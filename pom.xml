@@ -225,19 +225,6 @@
         </dependencies>
     </dependencyManagement>
 
-    <distributionManagement>
-        <repository>
-            <id>luna</id>
-            <name>Internal Release Repository</name>
-            <url>scp://172.21.75.51/home/vta/jetty-6.1.5/maven</url>
-        </repository>
-        <snapshotRepository>
-            <id>luna</id>
-            <name>Internal Snapshot Repository</name>
-            <url>scp://172.21.75.51/home/vta/jetty-6.1.5/maven</url>
-        </snapshotRepository>
-    </distributionManagement>
-
     <build>
         <defaultGoal>package</defaultGoal>
 
