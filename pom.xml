@@ -8,8 +8,16 @@
     <artifactId>fluid-tools</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
-    <name>Fluid Tools Modules</name>
-    <url>http://www.fluidity.com/fluid-tools</url>
+
+    <name>Fluid Tools</name>
+    <inceptionYear>2005</inceptionYear>
+    <url>http://code.google.com/p/fluid-tools/</url>
+
+    <scm>
+        <connection>scm:svn:http://fluid-tools.googlecode.com/svn/trunk/</connection>
+        <developerConnection>scm:svn:https://fluid-tools.googlecode.com/svn/trunk/</developerConnection>
+        <url>http://fluid-tools.googlecode.com/svn/trunk/</url>
+    </scm>
 
     <properties>
         <fluidity.groupId>org.fluidity</fluidity.groupId>

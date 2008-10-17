@@ -13,7 +13,6 @@
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>Foundation: EasyMock Utilities</name>
-    <url>http://www.fluidity.com/fluid-tools</url>
 
     <licenses>
         <license>

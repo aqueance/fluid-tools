@@ -14,7 +14,6 @@
     <version>1.0-SNAPSHOT</version>
     <packaging>maven-plugin</packaging>
     <name>Webrun Maven Plugin</name>
-    <url>http://www.fluidity.com/fluid-tools</url>
 
     <licenses>
         <license>
