@@ -60,7 +60,6 @@ final class PicoComponentContainer implements OpenComponentContainer {
     private final Logging log = new StandardOutLogging(null);
 
     private static ComponentAdapterFactory defaultAdapterFactory
-//        = new AnnotatedComponentAdapterFactory();
         = new ConstructorInjectionComponentAdapterFactory(true);
 
     private static final ComponentAdapterFactory singletonAdapterFactory
