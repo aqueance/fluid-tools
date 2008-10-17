@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <parent>
+        <groupId>org.fluidity.maven</groupId>
+        <artifactId>maven-plugins</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>org.fluidity.maven</groupId>
+    <artifactId>maven-classpath-plugin</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>maven-plugin</packaging>
+    <name>Classpath Maven Plugin</name>
+    <url>http://www.fluidity.com/fluid-tools</url>
+
+    <description>
+This plugin takes a list of dependencies and a property name, composes a Java
+class path from the given dependencies and sets the value of the given
+property to be the composed class path.
+
+The class paths are specified like so:
+&lt;pre>
+  &lt;classpaths>
+    &lt;classpath>
+      &lt;property>name of a project property to set this classpath as the value of&lt;/property>
+      &lt;dependencies>
+        &lt;dependency>
+          &lt;groupId>the artifact's groupId&lt;/groupId>
+          &lt;artifactId>the artifact's artifactId&lt;/artifactId>
+        &lt;/dependency>
+        ...
+      &lt;/dependencies>
+    &lt;/classpath>
+    ...
+  &lt;/classpaths>
+&lt;/pre>
+    </description>
+
+    <dependencies>
+
+        <dependency>
+            <groupId>org.apache.maven</groupId>
+            <artifactId>maven-plugin-api</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.maven</groupId>
+            <artifactId>maven-project</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.maven</groupId>
+            <artifactId>maven-model</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.maven</groupId>
+            <artifactId>maven-artifact</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.codehaus.plexus</groupId>
+            <artifactId>plexus-utils</artifactId>
+        </dependency>
+
+    </dependencies>
+</project>

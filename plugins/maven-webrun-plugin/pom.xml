@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <parent>
+        <groupId>org.fluidity.maven</groupId>
+        <artifactId>maven-plugins</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>org.fluidity.maven</groupId>
+    <artifactId>maven-webrun-plugin</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>maven-plugin</packaging>
+    <name>Webrun Maven Plugin</name>
+    <url>http://www.fluidity.com/fluid-tools</url>
+
+    <licenses>
+        <license>
+            <name>The MIT License</name>
+            <url>file:LICENSE.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <description>
+This plugins takes a few .war artifacts and deploys them in an embedded Jetty
+server. The server will bootstrap a ComponentContainer and offer it as a
+parent container for the deployed web applications.
+
+The list of .war files contains the host project's artifact if that
+happens to be a war project and all .war artifacts declared as dependency
+with "provided" scope.
+
+Any .jar artifact that happens to be in the plugin's classpath will be
+scanned for @Components to be added to the global ComponentContainer. They
+will also be scanned to discover @ServiceProviders that a deployed web
+application may ask for.
+
+You configure the plugin's classpath by a &lt;dependencies> section in the
+plugin configuration of your host project.
+
+The plugin exports an org.fluidity.maven.WebRunControl object in the global
+ComponentContainer. That object can be used to programmatically stop the
+Jetty server started by this plugin. The server can also be stopped by
+pressing Ctrl-C.
+    </description>
+
+    <dependencies>
+
+        <dependency>
+            <groupId>${fluidity.composition.groupId}</groupId>
+            <artifactId>composition-bootstrap</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>${fluidity.composition.groupId}</groupId>
+          <artifactId>composition-impl</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>${fluidity.composition.groupId}</groupId>
+          <artifactId>composition-command-line-impl</artifactId>
+        </dependency>
+
+        <!-- We use a PicoContainer as the container impl -->
+        <dependency>
+            <groupId>${fluidity.composition.groupId}</groupId>
+          <artifactId>composition-pico-impl</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>${fluidity.plugin.groupId}</groupId>
+            <artifactId>maven-webrun-plugin-api</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.maven</groupId>
+            <artifactId>maven-plugin-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.maven</groupId>
+            <artifactId>maven-project</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.maven</groupId>
+            <artifactId>maven-model</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.maven</groupId>
+            <artifactId>maven-artifact</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.codehaus.plexus</groupId>
+            <artifactId>plexus-utils</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.mortbay.jetty</groupId>
+            <artifactId>jetty</artifactId>
+            <version>7.0.0pre3</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.mortbay.jetty</groupId>
+            <artifactId>jsp-2.1-jetty</artifactId>
+            <version>7.0.0pre3</version>
+        </dependency>
+
+    </dependencies>
+</project>

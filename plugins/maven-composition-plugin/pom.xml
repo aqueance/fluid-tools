@@ -1,0 +1,82 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <parent>
+        <groupId>org.fluidity.maven</groupId>
+        <artifactId>maven-plugins</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>org.fluidity.maven</groupId>
+    <artifactId>maven-composition-plugin</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>maven-plugin</packaging>
+    <name>Composition: Maven Plugin</name>
+    <url>http://www.fluidity.com/fluid-tools</url>
+
+    <description>
+This plugin scans class files for annotations that instruct it to generate
+servce provider descriptor files as per the JAR file specification.
+
+There are two annotations that this plugin looks for.
+
+The @org.fluidity.composition.Component annotation marks a component for which
+the plugin creates a PackageBindings class that binds the component to its
+interface. How that interface is determined is described in the annotation's
+Javadoc. The name of the PackageBindings class generated for a @Component will
+be PackageBindings$ followed by the module's name. The package of the
+PackageBindings class will be the same as that of the @Component. Each
+PackageBinding class that has been generated is added to a service provider
+descriptor file in the project artifact's classpath under
+META-INF/services/org.fluidity.composition.PackageBindings. That file will be
+created if none exists in the project.
+
+The @org.fluidity.composition.ServiceProvider annotation marks a component
+that itself needs to be found by scanning the class path for service providers
+implementing a given interface. For each @ServiceProvider found the plugin
+generates a service provider descriptor file under META-INF/services/&lt;full
+class name of the @ServiceProvider> unless one already exists.
+    </description>
+
+    <dependencies>
+
+        <dependency>
+            <groupId>${fluidity.composition.groupId}</groupId>
+            <artifactId>composition-api</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.maven</groupId>
+            <artifactId>maven-plugin-api</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.maven</groupId>
+            <artifactId>maven-project</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.maven</groupId>
+            <artifactId>maven-model</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.maven</groupId>
+            <artifactId>maven-artifact</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.codehaus.plexus</groupId>
+            <artifactId>plexus-utils</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.bcel</groupId>
+            <artifactId>bcel</artifactId>
+            <version>5.3-SNAPSHOT</version>
+        </dependency>
+
+    </dependencies>
+
+</project>
