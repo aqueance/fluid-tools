@@ -90,11 +90,11 @@ public final class ComponentContainerAccess implements ComponentContainer {
     private final ClassLoader classLoader;
 
     public ComponentContainerAccess() {
-        ClassLoader cl = Thread.currentThread().getContextClassLoader();
+        final ClassLoader cl = Thread.currentThread().getContextClassLoader();
         this.classLoader = cl == null ? getClass().getClassLoader() : cl;
     }
 
-    public ComponentContainerAccess(ClassLoader classLoader) {
+    public ComponentContainerAccess(final ClassLoader classLoader) {
         this.classLoader = classLoader;
     }
 
@@ -103,7 +103,7 @@ public final class ComponentContainerAccess implements ComponentContainer {
      *
      * @param services is mock object.
      */
-    /* package */ void reset(BootstrapServices services) {
+    /* package */ void reset(final BootstrapServices services) {
         ComponentContainerAccess.containerMap.clear();
         ComponentContainerAccess.propertiesMap.clear();
         this.services = services;
@@ -120,7 +120,7 @@ public final class ComponentContainerAccess implements ComponentContainer {
      * @param value is the value of the property.
      */
     @SuppressWarnings({ "unchecked" })
-    public void setBindingsProperty(Object key, Object value) {
+    public void setBindingsProperty(final Object key, final Object value) {
         Map map = propertiesMap.get(classLoader);
 
         if (map == null) {
@@ -149,19 +149,19 @@ public final class ComponentContainerAccess implements ComponentContainer {
         return container;
     }
 
-    private void makeContainer(ClassLoader classLoader) {
+    private void makeContainer(final ClassLoader classLoader) {
         if (services == null) {
             services = new BootstrapServicesImpl();
         }
 
-        List<ClassLoader> classLoaders = new ArrayList<ClassLoader>();
+        final List<ClassLoader> classLoaders = new ArrayList<ClassLoader>();
 
         for (ClassLoader cl = classLoader; cl != rootClassLoader; cl = cl.getParent()) {
             classLoaders.add(cl);
         }
 
         for (ListIterator<ClassLoader> i = classLoaders.listIterator(classLoaders.size()); i.hasPrevious();) {
-            ClassLoader cl = i.previous();
+            final ClassLoader cl = i.previous();
 
             OpenComponentContainer ct = containerMap.get(cl);
 
@@ -198,11 +198,11 @@ public final class ComponentContainerAccess implements ComponentContainer {
      *
      * @see ComponentContainer#getComponent(Class)
      */
-    public <T> T getComponent(Class<T> componentClass) {
+    public <T> T getComponent(final Class<T> componentClass) {
         return getContainer().getComponent(componentClass);
     }
 
-    public <T> T getComponent(Class<T> componentClass, Bindings bindings) {
+    public <T> T getComponent(final Class<T> componentClass, final Bindings bindings) {
         return getContainer().getComponent(componentClass, bindings);
     }
 
@@ -220,13 +220,11 @@ public final class ComponentContainerAccess implements ComponentContainer {
         private final Logging log = new StandardOutLogging(null);
 
         @SuppressWarnings({ "unchecked" })
-        public <T> T findInstance(Class<? super T> interfaceClass, ClassLoader classLoader) {
-            Iterator iterator = Service.providers(interfaceClass, classLoader);
-
-            while (iterator.hasNext()) {
+        public <T> T findInstance(final Class<? super T> interfaceClass, final ClassLoader classLoader) {
+            for (final Iterator i = Service.providers(interfaceClass, classLoader); i.hasNext(); ) {
                 try {
-                    return (T) iterator.next();
-                } catch (ServiceConfigurationError e) {
+                    return (T) i.next();
+                } catch (final ServiceConfigurationError e) {
                     log.warning(getClass(),
                         "Finding service providers for " + interfaceClass + " using " + classLoader, e);
                 }

@@ -61,8 +61,7 @@ public class PropertySettingsImplTest extends SettingsAbstractTest {
             props.setProperty(key, reference.setting(key, null));
         }
 
-        String[] namespaces = reference.namespaces();
-        for (String namespace : namespaces) {
+        for (final String namespace : reference.namespaces()) {
             keys = reference.keys(namespace);
 
             for (final String key : keys) {

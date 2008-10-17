@@ -35,5 +35,5 @@ import org.fluidity.foundation.Settings;
  */
 public interface PropertySettings extends Settings {
 
-    void overrideProperties(URL url, final Properties properties);
+    void overrideProperties(final URL url, final Properties properties);
 }

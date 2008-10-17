@@ -95,7 +95,7 @@ public class WebRunMojo extends AbstractMojo {
                 final File[] files = directory.listFiles();
                 if (files == null) return;
 
-                for (File file : files) {
+                for (final File file : files) {
                     if (file.isDirectory()) {
                         deleteDirectory(file);
                     } else {
@@ -126,7 +126,7 @@ public class WebRunMojo extends AbstractMojo {
 
         addWebArtifact(project.getArtifact(), contexts, deployed, true);
 
-        for (Artifact dependency : (Set<Artifact>) project.getDependencyArtifacts()) {
+        for (final Artifact dependency : (Set<Artifact>) project.getDependencyArtifacts()) {
             addWebArtifact(dependency, contexts, deployed, false);
         }
 
@@ -147,7 +147,7 @@ public class WebRunMojo extends AbstractMojo {
                     final SelectChannelConnector connector = new SelectChannelConnector();
                     connector.setPort(Integer.parseInt(listenPort));
                     server.addConnector(connector);
-                } catch (NumberFormatException e) {
+                } catch (final NumberFormatException e) {
                     throw new MojoExecutionException("Listen port not a number: " + listenPort);
                 }
             }
@@ -160,7 +160,7 @@ public class WebRunMojo extends AbstractMojo {
                 server.setStopAtShutdown(true);
 
                 server.join();
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 throw new MojoExecutionException("Starting server", e);
             }
         }

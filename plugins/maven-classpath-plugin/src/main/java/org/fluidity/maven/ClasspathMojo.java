@@ -130,7 +130,7 @@ public class ClasspathMojo extends AbstractMojo {
 
                     try {
                         classpath.append(artifact.getFile().getCanonicalPath());
-                    } catch (IOException e) {
+                    } catch (final IOException e) {
                         throw new MojoExecutionException("Resolving " + artifact.toString(), e);
                     }
                 }

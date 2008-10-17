@@ -42,7 +42,7 @@ public abstract class SettingsAbstractTest extends MockGroupAbstractTest {
 
     @Test
     public void basicSettings() throws Exception {
-        Properties props = new Properties();
+        final Properties props = new Properties();
 
         props.setProperty("naked.string", "this is a string");
         props.setProperty("naked.int", "1234");
@@ -51,7 +51,7 @@ public abstract class SettingsAbstractTest extends MockGroupAbstractTest {
         props.setProperty("spaced/int", "5678");
         props.setProperty("spaced2/bool", "false");
 
-        Settings settings = newInstance(new MockSettings(props), null);
+        final Settings settings = newInstance(new MockSettings(props), null);
 
         Assert.assertEquals(new HashSet<String>(Arrays.asList(settings.keys())), new HashSet<String>(Arrays.asList("naked.string", "naked.int", "naked.bool")));
         Assert.assertEquals(new HashSet<String>(Arrays.asList(settings.namespaces())), new HashSet<String>(Arrays.asList("spaced", "spaced2")));
@@ -75,7 +75,7 @@ public abstract class SettingsAbstractTest extends MockGroupAbstractTest {
 
     @Test
     public void specificSettingsOverrideGenericOnes() throws Exception {
-        Properties props = new Properties();
+        final Properties props = new Properties();
 
         props.setProperty("naked.string", "wrong value");
         props.setProperty("naked.int", "wrong value");
@@ -92,7 +92,7 @@ public abstract class SettingsAbstractTest extends MockGroupAbstractTest {
         props.setProperty("app/spaced/int", "5678");
         props.setProperty("app/spaced2/bool", "false");
 
-        Settings settings = newInstance(new MockSettings(props), new MockApplicationInfo("app", null));
+        final Settings settings = newInstance(new MockSettings(props), new MockApplicationInfo("app", null));
 
         Assert.assertEquals(new HashSet<String>(Arrays.asList(settings.keys())), new HashSet<String>(Arrays.asList("naked.string", "naked.int", "naked.bool")));
         Assert.assertEquals(new HashSet<String>(Arrays.asList(settings.namespaces())), new HashSet<String>(Arrays.asList("spaced", "spaced2", "spaced3")));
@@ -117,7 +117,7 @@ public abstract class SettingsAbstractTest extends MockGroupAbstractTest {
 
     @Test
     public void defaultsToGenericSettings() throws Exception {
-        Properties props = new Properties();
+        final Properties props = new Properties();
 
         props.setProperty("app/naked.string", "this is a string");
         props.setProperty("app/naked.int", "1234");
@@ -126,7 +126,7 @@ public abstract class SettingsAbstractTest extends MockGroupAbstractTest {
         props.setProperty("app/spaced/int", "5678");
         props.setProperty("app/spaced2/bool", "false");
 
-        Settings settings = newInstance(new MockSettings(props), new MockApplicationInfo("app", null));
+        final Settings settings = newInstance(new MockSettings(props), new MockApplicationInfo("app", null));
 
         Assert.assertEquals(new HashSet<String>(Arrays.asList(settings.keys())), new HashSet<String>(Arrays.asList("naked.string", "naked.int", "naked.bool")));
         Assert.assertEquals(new HashSet<String>(Arrays.asList(settings.namespaces())), new HashSet<String>(Arrays.asList("spaced", "spaced2")));

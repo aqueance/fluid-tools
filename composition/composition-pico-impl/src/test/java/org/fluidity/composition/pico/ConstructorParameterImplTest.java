@@ -37,34 +37,4 @@ public class ConstructorParameterImplTest extends MockGroupAbstractTest {
         assert ConstructorParameterImpl.componentParameter(Object.class).representation() instanceof ComponentParameter;
         assert ConstructorParameterImpl.constantParameter(new Object()).representation() instanceof ConstantParameter;
     }
-
-/*
-    @Test
-    public void equality() throws Exception {
-        Object objectValue = new Object();
-        Class classValue = Object.class;
-
-        ConstructorParameter parameter = ConstructorParameterImpl.constantParameter(objectValue);
-        assert parameter.equals(parameter);
-
-        assert parameter.equals(ConstructorParameterImpl.constantParameter(objectValue));
-        assert ConstructorParameterImpl.componentParameter(classValue)
-            .equals(ConstructorParameterImpl.componentParameter(classValue));
-
-        assert !ConstructorParameterImpl.componentParameter(objectValue).equals(objectValue);
-        assert !ConstructorParameterImpl.componentParameter(objectValue).equals(
-            ConstructorParameterImpl.componentParameter(classValue));
-    }
-
-    @Test
-    public void hash() throws Exception {
-        Object objectValue = new Object();
-        Class classValue = Object.class;
-
-        assert ConstructorParameterImpl.componentParameter(objectValue).hashCode() ==
-            ConstructorParameterImpl.componentParameter(objectValue).hashCode();
-        assert ConstructorParameterImpl.componentParameter(classValue).hashCode() ==
-            ConstructorParameterImpl.componentParameter(classValue).hashCode();
-    }
-*/
 }

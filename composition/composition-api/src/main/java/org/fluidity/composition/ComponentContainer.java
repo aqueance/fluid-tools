@@ -125,7 +125,7 @@ public interface ComponentContainer {
      *
      * @return the component registered against the give class or <code>null</code> when none was found.
      */
-    <T> T getComponent(final Class<T> componentClass, Bindings bindings);
+    <T> T getComponent(final Class<T> componentClass, final Bindings bindings);
 
     /**
      * Creates another container whose components' dependencies will be satisfied from itself first and which will
@@ -193,7 +193,9 @@ public interface ComponentContainer {
          * @see #component(Class)
          * @see #constant(Object)
          */
-        <T> void bind(final Class<T> key, final Class<? extends T> implementation, final ConstructorParameter... parameters);
+        <T> void bind(final Class<T> key,
+                      final Class<? extends T> implementation,
+                      final ConstructorParameter... parameters);
 
         /**
          * Binds a component class to its interface with forced constructor parameters. Use this when you want to supply

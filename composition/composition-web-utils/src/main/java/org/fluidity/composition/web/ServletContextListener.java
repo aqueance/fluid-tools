@@ -38,24 +38,24 @@ public final class ServletContextListener implements javax.servlet.ServletContex
 
     private javax.servlet.ServletContextListener[] list;
 
-    public void contextInitialized(ServletContextEvent event) {
+    public void contextInitialized(final ServletContextEvent event) {
         try {
-            ServletContextListenerList listeners = (ServletContextListenerList) resolver.findComponent(
+            final ServletContextListenerList listeners = (ServletContextListenerList) resolver.findComponent(
                 event.getServletContext().getInitParameter(DependencyResolver.CONTAINER_CLASS),
                 ServletContextListenerList.class.getName());
 
             list = listeners.list();
-        } catch (ServletException e) {
+        } catch (final ServletException e) {
             throw new RuntimeException(e);
         }
 
-        for (javax.servlet.ServletContextListener listener : list) {
+        for (final javax.servlet.ServletContextListener listener : list) {
             listener.contextInitialized(event);
         }
     }
 
     public void contextDestroyed(ServletContextEvent event) {
-        for (javax.servlet.ServletContextListener listener : list) {
+        for (final javax.servlet.ServletContextListener listener : list) {
             listener.contextDestroyed(event);
         }
     }

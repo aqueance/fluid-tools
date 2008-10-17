@@ -36,20 +36,20 @@ public class KeyedComparatorTest extends MockGroupAbstractTest {
 
     @Test
     public void comparison() throws Exception {
-        Keyed object1 = new MyKeyed("aaaa");
-        Keyed object2 = new MyKeyed("bbbb");
-        Keyed object3 = new MyKeyed("cccc");
-        Keyed object4 = new MyKeyed("dddd");
-        Keyed object5 = new MyKeyed("eeee");
+        final Keyed object1 = new MyKeyed("aaaa");
+        final Keyed object2 = new MyKeyed("bbbb");
+        final Keyed object3 = new MyKeyed("cccc");
+        final Keyed object4 = new MyKeyed("dddd");
+        final Keyed object5 = new MyKeyed("eeee");
 
-        Set<Keyed> sorted = new TreeSet<Keyed>(new KeyedComparator());
+        final Set<Keyed> sorted = new TreeSet<Keyed>(new KeyedComparator());
         sorted.add(object2);
         sorted.add(object4);
         sorted.add(object1);
         sorted.add(object3);
         sorted.add(object5);
 
-        Iterator iterator = sorted.iterator();
+        final Iterator iterator = sorted.iterator();
         assert object1 == iterator.next();
         assert object2 == iterator.next();
         assert object3 == iterator.next();
@@ -62,7 +62,7 @@ public class KeyedComparatorTest extends MockGroupAbstractTest {
 
         private String key;
 
-        public MyKeyed(String key) {
+        public MyKeyed(final String key) {
             this.key = key;
         }
 

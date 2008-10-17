@@ -65,9 +65,9 @@ final class PropertySettingsImpl implements PropertySettings {
         this.prefix = prefix != null ? prefix.endsWith("/") ? prefix : prefix + "/" : null;
     }
 
-    public void overrideProperties(URL url, final Properties properties) {
+    public void overrideProperties(final URL url, final Properties properties) {
         final Map<String, String> map = new HashMap<String, String>();
-        for (Map.Entry entry : properties.entrySet()) {
+        for (final Map.Entry entry : properties.entrySet()) {
             map.put((String) entry.getKey(), (String) entry.getValue());
         }
 
@@ -83,7 +83,7 @@ final class PropertySettingsImpl implements PropertySettings {
 
         synchronized (this.properties) {
             for (final Map<String, String> map : properties.values()) {
-                for (String key : map.keySet()) {
+                for (final String key : map.keySet()) {
                     if (prefix != null && key.startsWith(prefix)) {
                         final String subkey = key.substring(prefix.length());
 
@@ -140,8 +140,8 @@ final class PropertySettingsImpl implements PropertySettings {
         final String appPrefix = prefix != null ? prefix.substring(0, prefix.length() - 1) : null;
 
         synchronized (this.properties) {
-            for (Map<String, String> map : properties.values()) {
-                for (String key : map.keySet()) {
+            for (final Map<String, String> map : properties.values()) {
+                for (final String key : map.keySet()) {
                     int slashIndex = key.indexOf("/");
                     if (slashIndex >= 0) {
                         if (prefix != null && key.startsWith(prefix)) {
@@ -169,10 +169,11 @@ final class PropertySettingsImpl implements PropertySettings {
 
         namespace += "/";
         synchronized (this.properties) {
-            for (Map<String, String> map : properties.values()) {
-                for (String key : map.keySet()) {
+            for (final Map<String, String> map : properties.values()) {
+                for (final String key : map.keySet()) {
                     if (prefix != null && key.startsWith(prefix)) {
                         final String subkey = key.substring(prefix.length());
+
                         if (subkey.startsWith(namespace)) {
                             keys.add(subkey.substring(namespace.length()));
                         }
@@ -186,19 +187,19 @@ final class PropertySettingsImpl implements PropertySettings {
         return keys.toArray(new String[keys.size()]);
     }
 
-    public String setting(String namespace, String key, String defaultValue) {
+    public String setting(final String namespace, final String key, final String defaultValue) {
         return setting(asNamespace(namespace, key), defaultValue);
     }
 
-    public int setting(String namespace, String key, int defaultValue) {
+    public int setting(final String namespace, final String key, final int defaultValue) {
         return setting(asNamespace(namespace, key), defaultValue);
     }
 
-    public boolean setting(String namespace, String key, boolean defaultValue) {
+    public boolean setting(final String namespace, final String key, final boolean defaultValue) {
         return setting(asNamespace(namespace, key), defaultValue);
     }
 
-    public String asNamespace(String... keys) {
+    public String asNamespace(final String... keys) {
         final StringBuilder builder = new StringBuilder();
 
         for (final String key : keys) {

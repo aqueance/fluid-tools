@@ -45,8 +45,8 @@ public class KeyedUtilsTest extends MockGroupAbstractTest {
 
     @Test
     public void collectionKeyExtraction() throws Exception {
-        Collection<String> keys = new ArrayList<String>();
-        Collection<Keyed> objects = new ArrayList<Keyed>();
+        final Collection<String> keys = new ArrayList<String>();
+        final Collection<Keyed> objects = new ArrayList<Keyed>();
 
         makeCollection(keys, objects);
 
@@ -55,20 +55,20 @@ public class KeyedUtilsTest extends MockGroupAbstractTest {
 
     @Test
     public void arrayKeyExtraction() throws Exception {
-        Collection<String> keys = new ArrayList<String>();
-        Keyed[] objects = makeCollection(keys);
+        final Collection<String> keys = new ArrayList<String>();
+        final Keyed[] objects = makeCollection(keys);
 
         assert keys.equals(KeyedUtils.asKeys(objects));
     }
 
     @Test
     public void orderSensitiveCollectionToMapConversion() throws Exception {
-        Collection<String> keys = new ArrayList<String>();
-        Collection<Keyed> objects = new ArrayList<Keyed>();
+        final Collection<String> keys = new ArrayList<String>();
+        final Collection<Keyed> objects = new ArrayList<Keyed>();
 
         makeCollection(keys, objects);
 
-        Map<String, Keyed> map = KeyedUtils.asOrderedMap(objects);
+        final Map<String, Keyed> map = KeyedUtils.asOrderedMap(objects);
 
         assert keys.equals(new ArrayList<String>(map.keySet()));
         assert objects.equals(new ArrayList<Keyed>(map.values()));
@@ -76,12 +76,12 @@ public class KeyedUtilsTest extends MockGroupAbstractTest {
 
     @Test
     public void orderInsensitiveCollectionToMapConversion() throws Exception {
-        Collection<String> keys = new ArrayList<String>();
-        Collection<Keyed> objects = new ArrayList<Keyed>();
+        final Collection<String> keys = new ArrayList<String>();
+        final Collection<Keyed> objects = new ArrayList<Keyed>();
 
         makeCollection(keys, objects);
 
-        Map<String, Keyed> map = KeyedUtils.asUnorderedMap(objects);
+        final Map<String, Keyed> map = KeyedUtils.asUnorderedMap(objects);
 
         assert new HashSet<String>(keys).equals(new HashSet<String>(map.keySet()));
         assert new HashSet<Keyed>(objects).equals(new HashSet<Keyed>(map.values()));
@@ -89,10 +89,10 @@ public class KeyedUtilsTest extends MockGroupAbstractTest {
 
     @Test
     public void orderSensitiveArrayToMapConversion() throws Exception {
-        Collection<String> keys = new ArrayList<String>();
-        Keyed[] objects = makeCollection(keys);
+        final Collection<String> keys = new ArrayList<String>();
+        final Keyed[] objects = makeCollection(keys);
 
-        Map<String, Keyed> map = KeyedUtils.asOrderedMap(objects);
+        final Map<String, Keyed> map = KeyedUtils.asOrderedMap(objects);
 
         assert keys.equals(new ArrayList<String>(map.keySet()));
         assert Arrays.asList(objects).equals(new ArrayList<Keyed>(map.values()));
@@ -100,10 +100,10 @@ public class KeyedUtilsTest extends MockGroupAbstractTest {
 
     @Test
     public void orderInsensitiveArrayToMapConversion() throws Exception {
-        Collection<String> keys = new ArrayList<String>();
-        Keyed[] objects = makeCollection(keys);
+        final Collection<String> keys = new ArrayList<String>();
+        final Keyed[] objects = makeCollection(keys);
 
-        Map<String, Keyed> map = KeyedUtils.asUnorderedMap(objects);
+        final Map<String, Keyed> map = KeyedUtils.asUnorderedMap(objects);
 
         assert new HashSet<String>(keys).equals(new HashSet<String>(map.keySet()));
         assert new HashSet<Keyed>(Arrays.asList(objects)).equals(new HashSet<Keyed>(map.values()));
@@ -111,15 +111,15 @@ public class KeyedUtilsTest extends MockGroupAbstractTest {
 
     @Test
     public void sortedMapConversion() throws Exception {
-        Collection<String> keys = new HashSet<String>();
-        Collection<Keyed> objects = new HashSet<Keyed>();
+        final Collection<String> keys = new HashSet<String>();
+        final Collection<Keyed> objects = new HashSet<Keyed>();
 
         makeCollection(keys, objects);
 
-        Set<String> orderedKeys = new TreeSet<String>();
+        final Set<String> orderedKeys = new TreeSet<String>();
         orderedKeys.addAll(keys);
 
-        Map<String, Keyed> map = KeyedUtils.asSortedMap(objects, new KeyedComparator());
+        final Map<String, Keyed> map = KeyedUtils.asSortedMap(objects, new KeyedComparator());
 
         assert new ArrayList<String>(orderedKeys).equals(new ArrayList<String>(map.keySet()));
         assert new HashSet<Keyed>(objects).equals(new HashSet<Keyed>(map.values()));
@@ -127,13 +127,13 @@ public class KeyedUtilsTest extends MockGroupAbstractTest {
 
     @Test
     public void arrayToSortedMapConversion() throws Exception {
-        Collection<String> keys = new HashSet<String>();
-        Keyed[] objects = makeCollection(keys);
+        final Collection<String> keys = new HashSet<String>();
+        final Keyed[] objects = makeCollection(keys);
 
-        Set<String> orderedKeys = new TreeSet<String>();
+        final Set<String> orderedKeys = new TreeSet<String>();
         orderedKeys.addAll(keys);
 
-        Map<String, Keyed> map = KeyedUtils.asSortedMap(objects, new KeyedComparator());
+        final Map<String, Keyed> map = KeyedUtils.asSortedMap(objects, new KeyedComparator());
 
         assert new ArrayList<String>(orderedKeys).equals(new ArrayList<String>(map.keySet()));
         assert new HashSet<Keyed>(Arrays.asList(objects)).equals(new HashSet<Keyed>(map.values()));
@@ -159,7 +159,7 @@ public class KeyedUtilsTest extends MockGroupAbstractTest {
         return objects;
     }
 
-    private Keyed[] makeCollection(Collection<String> keys) {
+    private Keyed[] makeCollection(final Collection<String> keys) {
         final Collection<Keyed> collection = makeCollection(keys, new ArrayList<Keyed>());
         return collection.toArray(new Keyed[collection.size()]);
     }

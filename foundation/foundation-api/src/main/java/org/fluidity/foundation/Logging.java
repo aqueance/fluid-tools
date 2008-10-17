@@ -30,29 +30,29 @@ package org.fluidity.foundation;
  */
 public interface Logging {
 
-    boolean isTraceEnabled(Class source);
+    boolean isTraceEnabled(final Class source);
 
-    void trace(Class source, String message);
+    void trace(final Class source, final String message);
 
-    void trace(Class source, String message, Throwable exception);
+    void trace(final Class source, final String message, final Throwable exception);
 
-    void debug(Class source, String message);
+    void debug(final Class source, final String message);
 
-    void debug(Class source, String message, Throwable exception);
+    void debug(final Class source, final String message, final Throwable exception);
 
-    void info(Class source, String message);
+    void info(final Class source, final String message);
 
-    void warning(Class source, String message);
+    void warning(final Class source, final String message);
 
-    void warning(Class source, String message, Throwable exception);
+    void warning(final Class source, final String message, final Throwable exception);
 
-    void error(Class source, String message);
+    void error(final Class source, final String message);
 
-    void error(Class source, String message, Throwable exception);
+    void error(final Class source, final String message, final Throwable exception);
 
-    void fatal(Class source, String message);
+    void fatal(final Class source, final String message);
 
-    void fatal(Class source, String message, Throwable exception);
+    void fatal(final Class source, final String message, final Throwable exception);
 
-    void timer(Class source, String message, long beginStamp);
+    void timer(final Class source, final String message, long beginStamp);
 }

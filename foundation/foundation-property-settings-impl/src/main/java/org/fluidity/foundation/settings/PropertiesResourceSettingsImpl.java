@@ -69,7 +69,7 @@ final class PropertiesResourceSettingsImpl implements Settings {
                 properties.load(stream);
                 this.delegate.overrideProperties(resources.locateResource(resourceName), properties);
             }
-        } catch (IOException e) {
+        } catch (final IOException e) {
             throw new RuntimeException(e);
         }
     }

@@ -34,7 +34,7 @@ public abstract class NamedAbstractTest extends MockGroupAbstractTest {
 
     @Test
     public void testName() throws Exception {
-        String name = "name";
+        final String name = "name";
         assert newNamed(name).name().equals(name);
     }
 }

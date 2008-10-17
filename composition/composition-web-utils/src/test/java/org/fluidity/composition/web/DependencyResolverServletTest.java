@@ -52,12 +52,12 @@ public class DependencyResolverServletTest extends MockGroupAbstractTest {
     @SuppressWarnings({ "StringEquality" })
     @Test
     public void delegateAcquisition() throws Exception {
-        DependencyResolver savedResolver = DependencyResolverServlet.useResolver(resolver);
+        final DependencyResolver savedResolver = DependencyResolverServlet.useResolver(resolver);
 
         try {
-            String componentKey = "key";
-            String referenceName = "referenceName";
-            String servletInfo = "info";
+            final String componentKey = "key";
+            final String referenceName = "referenceName";
+            final String servletInfo = "info";
 
             EasyMock.expect(config.getInitParameter(DependencyResolver.COMPONENT_KEY)).andReturn(componentKey);
             EasyMock.expect(config.getServletContext()).andReturn(context);
@@ -71,7 +71,7 @@ public class DependencyResolverServletTest extends MockGroupAbstractTest {
 
             replay();
 
-            DependencyResolverServlet resolverServlet = new DependencyResolverServlet();
+            final DependencyResolverServlet resolverServlet = new DependencyResolverServlet();
             resolverServlet.init(config);
             assert resolverServlet.getServletConfig() == config;
             assert resolverServlet.getServletInfo() == servletInfo;

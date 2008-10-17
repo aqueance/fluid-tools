@@ -34,7 +34,7 @@ import org.fluidity.composition.ShutdownHook;
 @Component
 final class RuntimeShutdownHook implements ShutdownHook {
 
-    public void addTask(String threadName, Runnable command) {
+    public void addTask(final String threadName, final Runnable command) {
         Runtime.getRuntime().addShutdownHook(new Thread(command, threadName));
     }
 }

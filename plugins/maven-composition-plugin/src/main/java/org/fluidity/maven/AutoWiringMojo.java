@@ -83,7 +83,6 @@ import org.fluidity.composition.ServiceProviderList;
  * @phase process-classes
  * @requiresDependencyResolution compile
  */
-@SuppressWarnings({ "MismatchedReadAndWriteOfArray" })
 public class AutoWiringMojo extends AbstractMojo {
 
     private static final String ATN_COMPONENT = "L" + Component.class.getName().replace('.', '/') + ";";
@@ -266,7 +265,7 @@ public class AutoWiringMojo extends AbstractMojo {
 
             try {
                 cg.getJavaClass().dump(file);
-            } catch (IOException e) {
+            } catch (final IOException e) {
                 throw new MojoExecutionException("Could not generate default package bindings class", e);
             }
         }
@@ -326,7 +325,7 @@ public class AutoWiringMojo extends AbstractMojo {
                     // the ServiceProvider annotation is inherited so we must check all implemented interfaces
                     // and superclasses to find them
                     for (final JavaClass cls : classData.getAllInterfaces()) {
-                        for (Attribute attribute : cls.getAttributes()) {
+                        for (final Attribute attribute : cls.getAttributes()) {
                             if (attribute instanceof RuntimeVisibleAnnotations) {
                                 final Annotations annotations = (Annotations) attribute;
                                 for (final AnnotationEntry annotation : annotations.getAnnotationEntries()) {

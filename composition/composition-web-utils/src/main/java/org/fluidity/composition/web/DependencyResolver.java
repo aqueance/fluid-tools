@@ -45,5 +45,5 @@ interface DependencyResolver {
      *
      * @throws ServletException when anything goes wrong.
      */
-    Object findComponent(String containerClassName, String componentClassName) throws ServletException;
+    Object findComponent(final String containerClassName, final String componentClassName) throws ServletException;
 }

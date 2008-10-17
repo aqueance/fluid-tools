@@ -45,8 +45,8 @@ public class NamedUtilsTest extends MockGroupAbstractTest {
 
     @Test
     public void collectionNameExtraction() throws Exception {
-        Collection<String> names = new ArrayList<String>();
-        Collection<Named> objects = new ArrayList<Named>();
+        final Collection<String> names = new ArrayList<String>();
+        final Collection<Named> objects = new ArrayList<Named>();
 
         makeCollection(names, objects);
 
@@ -55,20 +55,20 @@ public class NamedUtilsTest extends MockGroupAbstractTest {
 
     @Test
     public void arrayNameExtraction() throws Exception {
-        Collection<String> names = new ArrayList<String>();
-        Named[] objects = makeCollection(names);
+        final Collection<String> names = new ArrayList<String>();
+        final Named[] objects = makeCollection(names);
 
         assert names.equals(NamedUtils.asNames(objects));
     }
 
     @Test
     public void orderSensitiveCollectionToMapConversion() throws Exception {
-        Collection<String> names = new ArrayList<String>();
-        Collection<Named> objects = new ArrayList<Named>();
+        final Collection<String> names = new ArrayList<String>();
+        final Collection<Named> objects = new ArrayList<Named>();
 
         makeCollection(names, objects);
 
-        Map<String, Named> map = NamedUtils.asOrderedMap(objects);
+        final Map<String, Named> map = NamedUtils.asOrderedMap(objects);
 
         assert names.equals(new ArrayList<String>(map.keySet()));
         assert objects.equals(new ArrayList<Named>(map.values()));
@@ -76,12 +76,12 @@ public class NamedUtilsTest extends MockGroupAbstractTest {
 
     @Test
     public void orderInsensitiveCollectionToMapConversion() throws Exception {
-        Collection<String> names = new ArrayList<String>();
-        Collection<Named> objects = new ArrayList<Named>();
+        final Collection<String> names = new ArrayList<String>();
+        final Collection<Named> objects = new ArrayList<Named>();
 
         makeCollection(names, objects);
 
-        Map<String, Named> map = NamedUtils.asUnorderedMap(objects);
+        final Map<String, Named> map = NamedUtils.asUnorderedMap(objects);
 
         assert new HashSet<String>(names).equals(new HashSet<String>(map.keySet()));
         assert new HashSet<Named>(objects).equals(new HashSet<Named>(map.values()));
@@ -89,10 +89,10 @@ public class NamedUtilsTest extends MockGroupAbstractTest {
 
     @Test
     public void orderSensitiveArrayToMapConversion() throws Exception {
-        Collection<String> names = new ArrayList<String>();
-        Named[] objects = makeCollection(names);
+        final Collection<String> names = new ArrayList<String>();
+        final Named[] objects = makeCollection(names);
 
-        Map<String, Named> map = NamedUtils.asOrderedMap(objects);
+        final Map<String, Named> map = NamedUtils.asOrderedMap(objects);
 
         assert names.equals(new ArrayList<String>(map.keySet()));
         assert Arrays.asList(objects).equals(new ArrayList<Named>(map.values()));
@@ -100,10 +100,10 @@ public class NamedUtilsTest extends MockGroupAbstractTest {
 
     @Test
     public void orderInsensitiveArrayToMapConversion() throws Exception {
-        Collection<String> names = new ArrayList<String>();
-        Named[] objects = makeCollection(names);
+        final Collection<String> names = new ArrayList<String>();
+        final Named[] objects = makeCollection(names);
 
-        Map<String, Named> map = NamedUtils.asUnorderedMap(objects);
+        final Map<String, Named> map = NamedUtils.asUnorderedMap(objects);
 
         assert new HashSet<String>(names).equals(new HashSet<String>(map.keySet()));
         assert new HashSet<Named>(Arrays.asList(objects)).equals(new HashSet<Named>(map.values()));
@@ -111,15 +111,15 @@ public class NamedUtilsTest extends MockGroupAbstractTest {
 
     @Test
     public void sortedCollectionToMapConversion() throws Exception {
-        Collection<String> names = new HashSet<String>();
-        Collection<Named> objects = new HashSet<Named>();
+        final Collection<String> names = new HashSet<String>();
+        final Collection<Named> objects = new HashSet<Named>();
 
         makeCollection(names, objects);
 
-        Set<String> orderedKeys = new TreeSet<String>();
+        final Set<String> orderedKeys = new TreeSet<String>();
         orderedKeys.addAll(names);
 
-        Map<String, Named> map = NamedUtils.asSortedMap(objects, new NamedComparator());
+        final Map<String, Named> map = NamedUtils.asSortedMap(objects, new NamedComparator());
 
         assert new ArrayList<String>(orderedKeys).equals(new ArrayList<String>(map.keySet()));
         assert new HashSet<Named>(objects).equals(new HashSet<Named>(map.values()));
@@ -127,13 +127,13 @@ public class NamedUtilsTest extends MockGroupAbstractTest {
 
     @Test
     public void sortedArrayToMapConversion() throws Exception {
-        Collection<String> names = new HashSet<String>();
-        Named[] objects = makeCollection(names);
+        final Collection<String> names = new HashSet<String>();
+        final Named[] objects = makeCollection(names);
 
-        Set<String> orderedKeys = new TreeSet<String>();
+        final Set<String> orderedKeys = new TreeSet<String>();
         orderedKeys.addAll(names);
 
-        Map<String, Named> map = NamedUtils.asSortedMap(objects, new NamedComparator());
+        final Map<String, Named> map = NamedUtils.asSortedMap(objects, new NamedComparator());
 
         assert new ArrayList<String>(orderedKeys).equals(new ArrayList<String>(map.keySet()));
         assert new HashSet<Named>(Arrays.asList(objects)).equals(new HashSet<Named>(map.values()));
@@ -159,7 +159,7 @@ public class NamedUtilsTest extends MockGroupAbstractTest {
         return objects;
     }
 
-    private Named[] makeCollection(Collection<String> names) {
+    private Named[] makeCollection(final Collection<String> names) {
         final Collection<Named> collection = makeCollection(names, new ArrayList<Named>());
         return collection.toArray(new Named[collection.size()]);
     }

@@ -44,21 +44,21 @@ public class NamedComparator implements Comparator<Named> {
         this(Collator.getInstance());
     }
 
-    public NamedComparator(Collator collator) {
+    public NamedComparator(final Collator collator) {
         this.collator = collator;
         this.locale = null;
         this.ignoreCase = false;
     }
 
-    public NamedComparator(Locale locale, boolean ignoreCase) {
+    public NamedComparator(final Locale locale, final boolean ignoreCase) {
         this.collator = Collator.getInstance(locale);
         this.locale = locale;
         this.ignoreCase = ignoreCase;
     }
 
-    public int compare(Named o1, Named o2) {
-        String n1 = o1.name();
-        String n2 = o2.name();
+    public int compare(final Named o1, final Named o2) {
+        final String n1 = o1.name();
+        final String n2 = o2.name();
         return collator.compare(ignoreCase ? n1.toLowerCase(locale) : n1, ignoreCase ? n2.toLowerCase(locale) : n2);
     }
 }

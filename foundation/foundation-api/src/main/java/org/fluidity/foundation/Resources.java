@@ -40,7 +40,7 @@ public interface Resources {
      *
      * @return a valid resource name.
      */
-    String resourceName(String name);
+    String resourceName(final String name);
 
     /**
      * Finds the location of the given resource.
@@ -49,7 +49,7 @@ public interface Resources {
      *
      * @return a resource locator if the resource was found, <code>null</code> otherwise.
      */
-    URL locateResource(String name);
+    URL locateResource(final String name);
 
     /**
      * Finds the locations of all resources with the given name.
@@ -58,7 +58,7 @@ public interface Resources {
      *
      * @return an array of resource locators, never <code>null</code>.
      */
-    URL[] locateResources(String name);
+    URL[] locateResources(final String name);
 
     /**
      * Loads the resource with the given name.
@@ -67,7 +67,7 @@ public interface Resources {
      *
      * @return a stream if found, <code>null</code> otherwise.
      */
-    InputStream loadResource(String name);
+    InputStream loadResource(final String name);
 
     /**
      * Loads the given class as a resource.
@@ -76,7 +76,7 @@ public interface Resources {
      *
      * @return a stream if found, <code>null</code> otherwise.
      */
-    InputStream loadClassResource(String className);
+    InputStream loadClassResource(final String className);
 
     /**
      * Loads a class with the given name.
@@ -85,5 +85,5 @@ public interface Resources {
      *
      * @return the class if found, <code>null</code> otherwise.
      */
-    Class loadClass(String className);
+    Class loadClass(final String className);
 }

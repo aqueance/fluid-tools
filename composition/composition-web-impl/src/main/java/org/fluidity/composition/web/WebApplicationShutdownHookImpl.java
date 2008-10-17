@@ -22,14 +22,15 @@
  */
 package org.fluidity.composition.web;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ShutdownHook;
+import org.fluidity.foundation.logging.StandardOutLogging;
 
 /**
  * Implements the component shutdown mechanism for web applications. The implementation requires a mechanism that
@@ -42,22 +43,24 @@ import org.fluidity.composition.ShutdownHook;
 @Component(api = ShutdownHook.class)
 final class WebApplicationShutdownHookImpl implements ShutdownHook, ServletContextListener {
 
-    private static final List<Runnable> tasks = new ArrayList<Runnable>();
+    private static final Map<String, Runnable> tasks = new HashMap<String, Runnable>();
 
-    public void addTask(String threadName, Runnable command) {
-        tasks.add(command);
+    public void addTask(final String threadName, final Runnable command) {
+        tasks.put(threadName, command);
     }
 
-    public void contextInitialized(ServletContextEvent event) {
+    public void contextInitialized(final ServletContextEvent event) {
         // empty
     }
 
-    public void contextDestroyed(ServletContextEvent event) {
-        for (Runnable task : tasks) {
+    public void contextDestroyed(final ServletContextEvent event) {
+        final StandardOutLogging log = new StandardOutLogging(null);
+
+        for (final Map.Entry<String, Runnable> entry : tasks.entrySet()) {
             try {
-                task.run();
-            } catch (Exception e) {
-                e.printStackTrace();
+                entry.getValue().run();
+            } catch (final Exception e) {
+                log.fatal(getClass(), "Running shutdown task " + entry.getKey(), e);
             }
         }
     }

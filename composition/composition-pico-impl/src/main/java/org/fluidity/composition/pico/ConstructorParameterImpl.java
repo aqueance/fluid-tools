@@ -23,6 +23,7 @@
 package org.fluidity.composition.pico;
 
 import org.fluidity.composition.ConstructorParameter;
+import org.picocontainer.Parameter;
 import org.picocontainer.defaults.CollectionComponentParameter;
 import org.picocontainer.defaults.ComponentParameter;
 import org.picocontainer.defaults.ConstantParameter;
@@ -34,19 +35,19 @@ final class ConstructorParameterImpl implements ConstructorParameter {
 
     private final org.picocontainer.Parameter representation;
 
-    static ConstructorParameter constantParameter(Object value) {
+    static ConstructorParameter constantParameter(final Object value) {
         return new ConstructorParameterImpl(new ConstantParameter(value));
     }
 
-    static ConstructorParameter componentParameter(Class key) {
+    static ConstructorParameter componentParameter(final Class key) {
         return new ConstructorParameterImpl(new ComponentParameter(key));
     }
 
-    static ConstructorParameter arrayParameter(Class componentClass) {
+    static ConstructorParameter arrayParameter(final Class componentClass) {
         return new ConstructorParameterImpl(new CollectionComponentParameter(componentClass, null, true));
     }
 
-    private ConstructorParameterImpl(org.picocontainer.Parameter representation) {
+    private ConstructorParameterImpl(final Parameter representation) {
         this.representation = representation;
     }
 

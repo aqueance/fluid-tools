@@ -34,7 +34,7 @@ public final class MockKeyedNamed implements KeyedNamed {
 
     private final String name;
 
-    public MockKeyedNamed(String key, String name) {
+    public MockKeyedNamed(final String key, final String name) {
         this.key = key;
         this.name = name;
     }

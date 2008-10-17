@@ -27,5 +27,5 @@ package org.fluidity.composition;
  */
 interface BootstrapServices {
 
-    <T> T findInstance(Class<? super T> interfaceClass, ClassLoader classLoader);
+    <T> T findInstance(final Class<? super T> interfaceClass, final ClassLoader classLoader);
 }

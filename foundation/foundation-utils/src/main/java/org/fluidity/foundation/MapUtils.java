@@ -46,12 +46,12 @@ public final class MapUtils {
      *
      * @return a <code>Collection</code>, never <code>null</code>.
      */
-    public static <K> Collection<K> asKeys(Collection objects, Extractor<K, ?> extractor) {
+    public static <K> Collection<K> asKeys(final Collection objects, final Extractor<K, ?> extractor) {
         assert objects != null;
 
         final Collection<K> result = new ArrayList<K>();
 
-        for (Object object : objects) {
+        for (final Object object : objects) {
             result.add(extractor.getKey(object));
         }
 
@@ -67,11 +67,11 @@ public final class MapUtils {
      *
      * @return the value of the <code>result</code> parameter.
      */
-    public static <K, V> Map<K, V> asMap(Collection<?> objects, Map<K, V> result, Extractor<K, V> extractor) {
+    public static <K, V> Map<K, V> asMap(final Collection<?> objects, final Map<K, V> result, final Extractor<K, V> extractor) {
         assert objects != null;
         assert result != null;
 
-        for (Object object : objects) {
+        for (final Object object : objects) {
             result.put(extractor.getKey(object), extractor.getValue(object));
         }
 

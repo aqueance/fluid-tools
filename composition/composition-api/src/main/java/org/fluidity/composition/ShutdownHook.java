@@ -39,5 +39,5 @@ public interface ShutdownHook {
      * @param threadName is the name of the thread to add to the shutdown hook when a thread is required.
      * @param command    is the command to run prior application shutdown.
      */
-    void addTask(String threadName, Runnable command);
+    void addTask(final String threadName, final Runnable command);
 }

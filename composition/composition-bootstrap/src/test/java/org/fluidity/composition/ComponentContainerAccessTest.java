@@ -61,10 +61,10 @@ public class ComponentContainerAccessTest extends MockGroupAbstractTest {
         }
 
         // set up the test class
-        ComponentContainerAccess access = new ComponentContainerAccess(classLoader);
+        final ComponentContainerAccess access = new ComponentContainerAccess(classLoader);
         access.reset(services);
 
-        for (Map.Entry<String, String> entry: properties.entrySet()) {
+        for (final Map.Entry<String, String> entry: properties.entrySet()) {
             access.setBindingsProperty(entry.getKey(), entry.getValue());
         }
 
@@ -106,10 +106,10 @@ public class ComponentContainerAccessTest extends MockGroupAbstractTest {
         properties.put("key1", "value1");
         properties.put("key2", "value2");
 
-        ComponentContainerAccess access = new ComponentContainerAccess();
+        final ComponentContainerAccess access = new ComponentContainerAccess();
         access.reset(services);
 
-        for (Map.Entry<String, String> entry: properties.entrySet()) {
+        for (final Map.Entry<String, String> entry: properties.entrySet()) {
             access.setBindingsProperty(entry.getKey(), entry.getValue());
         }
 
@@ -120,7 +120,7 @@ public class ComponentContainerAccessTest extends MockGroupAbstractTest {
         }
 
         // make testee receive no dependency for all class loaders except ours
-        for (ListIterator<ClassLoader> i = classLoaders.listIterator(classLoaders.size()); i.hasPrevious();) {
+        for (final ListIterator<ClassLoader> i = classLoaders.listIterator(classLoaders.size()); i.hasPrevious();) {
             ClassLoader cl = i.previous();
             EasyMock.expect(services.findInstance(ContainerBootstrap.class, cl)).andReturn(null);
             EasyMock.expect(services.findInstance(ClassDiscovery.class, cl)).andReturn(null);
@@ -161,15 +161,15 @@ public class ComponentContainerAccessTest extends MockGroupAbstractTest {
 
     @Test
     public void populatesConnectedContainer() throws Exception {
-        ComponentContainerAccess access = new ComponentContainerAccess();
+        final ComponentContainerAccess access = new ComponentContainerAccess();
         access.reset(services);
 
-        IMocksControl containersControl = EasyMock.createControl();
-        Map<ClassLoader, OpenComponentContainer> containers = new HashMap<ClassLoader, OpenComponentContainer>();
+        final IMocksControl containersControl = EasyMock.createControl();
+        final Map<ClassLoader, OpenComponentContainer> containers = new HashMap<ClassLoader, OpenComponentContainer>();
 
         // find all class loaders on the ancestry
-        List<ClassLoader> classLoaders = new ArrayList<ClassLoader>();
-        ClassLoader ourClassLoader = getClass().getClassLoader();
+        final List<ClassLoader> classLoaders = new ArrayList<ClassLoader>();
+        final ClassLoader ourClassLoader = getClass().getClassLoader();
         assert ourClassLoader != null;
 
         for (ClassLoader cl = ourClassLoader; cl != null; cl = cl.getParent()) {
@@ -178,15 +178,15 @@ public class ComponentContainerAccessTest extends MockGroupAbstractTest {
         }
 
         // find the top level class loader
-        ClassLoader classLoader = classLoaders.get(classLoaders.size() - 1);
+        final ClassLoader classLoader = classLoaders.get(classLoaders.size() - 1);
 
         // make testee receive its dependencies from the top-level class loader
         EasyMock.expect(services.findInstance(ContainerBootstrap.class, classLoader)).andReturn(bootstrap);
         EasyMock.expect(services.findInstance(ClassDiscovery.class, classLoader)).andReturn(discovery);
 
         // go through the whole class loader ancestry
-        for (ListIterator<ClassLoader> i = classLoaders.listIterator(classLoaders.size()); i.hasPrevious();) {
-            ClassLoader cl = i.previous();
+        for (final ListIterator<ClassLoader> i = classLoaders.listIterator(classLoaders.size()); i.hasPrevious();) {
+            final ClassLoader cl = i.previous();
 
             // make testee receive a container (the same) at each level
             EasyMock.expect(bootstrap.populateContainer(EasyMock.same(discovery), (Properties) EasyMock.notNull(),
@@ -194,7 +194,7 @@ public class ComponentContainerAccessTest extends MockGroupAbstractTest {
                 EasyMock.same(cl))).andReturn(containers.get(cl));
         }
 
-        OpenComponentContainer ourContainer = containers.get(ourClassLoader);
+        final OpenComponentContainer ourContainer = containers.get(ourClassLoader);
         assert ourContainer != null;
 
         replay();

@@ -52,7 +52,7 @@ public class PicoComponentContainerTest extends MockGroupAbstractTest {
     @BeforeMethod
     public void setup() throws Exception {
         super.setup();
-        
+
         container = new PicoComponentContainer();
         registry = container.getRegistry();
 
@@ -62,14 +62,14 @@ public class PicoComponentContainerTest extends MockGroupAbstractTest {
 
     @Test
     public void singletonComponentRegistration() throws Exception {
-        int originalCount = Value.instanceCount;
+        final int originalCount = Value.instanceCount;
 
         registry.bind(Key.class, Value.class, true, false, false);
         registry.bind(DependentKey.class, DependentValue.class, true, false, false);
 
         verifyComponent(container);
 
-        Key component = container.getComponent(Key.class);
+        final Key component = container.getComponent(Key.class);
 
         // the key tells us how many times the class was instantiated
         assert container.getComponent(Key.class).key().equals(component.key());
@@ -81,7 +81,7 @@ public class PicoComponentContainerTest extends MockGroupAbstractTest {
         registry.bind(Key.class, Value.class, false, false, false);
         registry.bind(DependentKey.class, DependentValue.class, true, false, false);
 
-        Key component = container.getComponent(Key.class);
+        final Key component = container.getComponent(Key.class);
         assert component != null;
         assert component instanceof Value;
 
@@ -100,7 +100,7 @@ public class PicoComponentContainerTest extends MockGroupAbstractTest {
         // the same the second time as well
         assert container.getComponent(Key.class) == component;
 
-        Thread thread = new Thread() {
+        final Thread thread = new Thread() {
             public void run() {
                 Key localComponent = container.getComponent(Key.class);
                 assert localComponent != null;
@@ -120,12 +120,12 @@ public class PicoComponentContainerTest extends MockGroupAbstractTest {
 
     @Test
     public void deferredComponentRegistration() throws Exception {
-        int originalCount = Value.instanceCount;
+        final int originalCount = Value.instanceCount;
 
         registry.bind(Key.class, Value.class, true, false, true);
         registry.bind(DependentKey.class, DependentValue.class, true, false, false);
 
-        Key component = container.getComponent(Key.class);
+        final Key component = container.getComponent(Key.class);
         assert component != null;
 
         assert Value.instanceCount == originalCount;
@@ -183,7 +183,7 @@ public class PicoComponentContainerTest extends MockGroupAbstractTest {
     public void nestedContainerResolvesLocally() throws Exception {
 
         // another variant of the makeNestedContainer method
-        OpenComponentContainer nested = registry.makeNestedContainer(Key.class, Value.class, true, false, false,
+        final OpenComponentContainer nested = registry.makeNestedContainer(Key.class, Value.class, true, false, false,
             registry.component(DependentKey.class));
 
         nested.getRegistry().bind(DependentKey.class, DependentValue.class, true, false, false);
@@ -225,7 +225,7 @@ public class PicoComponentContainerTest extends MockGroupAbstractTest {
     public void childRegistryOfContainerUsesContainerForParent() throws Exception {
         registry.bind(DependentKey.class, DependentValue.class, true, false, false);
 
-        OpenComponentContainer nested = container.makeNestedContainer();
+        final OpenComponentContainer nested = container.makeNestedContainer();
         nested.getRegistry().bind(Key.class, Value.class, true, false, false);
 
         verifyComponent(nested);
@@ -236,8 +236,8 @@ public class PicoComponentContainerTest extends MockGroupAbstractTest {
         registry.bind(DependentKey.class, FakeDependentValue.class, true, false, false);
         registry.bind(Key.class, FakeValue.class, true, false, false);
 
-        OpenComponentContainer nestedContainer = container.makeNestedContainer();
-        ComponentContainer.Registry nestedRegistry = nestedContainer.getRegistry();
+        final OpenComponentContainer nestedContainer = container.makeNestedContainer();
+        final ComponentContainer.Registry nestedRegistry = nestedContainer.getRegistry();
         nestedRegistry.bind(DependentKey.class, DependentValue.class, true, false, false);
         nestedRegistry.bind(Key.class, Value.class, true, false, false);
 
@@ -269,7 +269,7 @@ public class PicoComponentContainerTest extends MockGroupAbstractTest {
         final ComponentContainer.Registry nestedRegistry = nestedContainer.getRegistry();
 
         // make sure we have the container inside the container without asserting to have received the same instance
-        ComponentContainer containerComponent = nestedContainer.getComponent(ComponentContainer.class);
+        final ComponentContainer containerComponent = nestedContainer.getComponent(ComponentContainer.class);
         assert containerComponent != null;
 
         assert containerComponent.getComponent(Key.class) == null;
@@ -280,7 +280,7 @@ public class PicoComponentContainerTest extends MockGroupAbstractTest {
 
     @Test
     public void invokesFactoryInstanceOnce() throws Exception {
-        int originalCount = Value.instanceCount;
+        final int originalCount = Value.instanceCount;
         final DependentValue value = new DependentValue();
 
         registry.bind(Key.class, Value.class, true, false, false);
@@ -288,7 +288,7 @@ public class PicoComponentContainerTest extends MockGroupAbstractTest {
         EasyMock.expect(factory.makeComponent(container)).andReturn(value);
 
         replay();
-        Key component = container.getComponent(Key.class);
+        final Key component = container.getComponent(Key.class);
 
         // the key tells us how many times the class was instantiated
         assert container.getComponent(Key.class).key().equals(component.key());
@@ -299,7 +299,7 @@ public class PicoComponentContainerTest extends MockGroupAbstractTest {
 
     @Test
     public void invokesNestedFactoryInstanceOnce() throws Exception {
-        int originalCount = Value.instanceCount;
+        final int originalCount = Value.instanceCount;
         final DependentValue value = new DependentValue();
 
         registry.bind(Key.class, Value.class, true, false, false);
@@ -308,7 +308,7 @@ public class PicoComponentContainerTest extends MockGroupAbstractTest {
         EasyMock.expect(factory.makeComponent(nested)).andReturn(value);
 
         replay();
-        Key component = container.getComponent(Key.class);
+        final Key component = container.getComponent(Key.class);
 
         // the key tells us how many times the class was instantiated
         assert container.getComponent(Key.class).key().equals(component.key());
@@ -319,7 +319,7 @@ public class PicoComponentContainerTest extends MockGroupAbstractTest {
 
     @Test
     public void invokesFactoryClassOnce() throws Exception {
-        int originalCount = Value.instanceCount;
+        final int originalCount = Value.instanceCount;
         final DependentValue value = new DependentValue();
 
         registry.bind(Key.class, Value.class, true, false, false);
@@ -329,7 +329,7 @@ public class PicoComponentContainerTest extends MockGroupAbstractTest {
         EasyMock.expect(factory.makeComponent(container)).andReturn(value);
 
         replay();
-        Key component = container.getComponent(Key.class);
+        final Key component = container.getComponent(Key.class);
 
         // the key tells us how many times the class was instantiated
         assert container.getComponent(Key.class).key().equals(component.key());
@@ -340,18 +340,18 @@ public class PicoComponentContainerTest extends MockGroupAbstractTest {
 
     @Test
     public void invokesNestedFactoryClassOnce() throws Exception {
-        int originalCount = Value.instanceCount;
+        final int originalCount = Value.instanceCount;
         final DependentValue value = new DependentValue();
 
         registry.bind(Key.class, Value.class, true, false, false);
         registry.bind(Factory.class, Factory.class);
         registry.bind(FactoryDependency.class, FactoryDependency.class);
-        OpenComponentContainer nested =
+        final OpenComponentContainer nested =
             registry.makeNestedContainer(DependentKey.class, DependentValue.class, true, false, false, Factory.class);
         EasyMock.expect(factory.makeComponent(nested)).andReturn(value);
 
         replay();
-        Key component = container.getComponent(Key.class);
+        final Key component = container.getComponent(Key.class);
 
         // the key tells us how many times the class was instantiated
         assert container.getComponent(Key.class).key().equals(component.key());
@@ -363,19 +363,19 @@ public class PicoComponentContainerTest extends MockGroupAbstractTest {
     @Test
     public void identifiesContainerChain() throws Exception {
         replay();
-        OpenComponentContainer nested = container.makeNestedContainer();
+        final OpenComponentContainer nested = container.makeNestedContainer();
 
-        String topString = container.toString();
-        String nestedString = nested.toString();
+        final String topString = container.toString();
+        final String nestedString = nested.toString();
         assert topString.startsWith("container ");
 
-        int prefix = "container ".length();
-        String topId = topString.substring(prefix);
+        final int prefix = "container ".length();
+        final String topId = topString.substring(prefix);
         assert nestedString.startsWith("container ");
-        String nestedSuffix = " > " + topId;
+        final String nestedSuffix = " > " + topId;
         assert nestedString.endsWith(nestedSuffix);
 
-        String nestedId = nestedString.substring(prefix, nestedString.length() - nestedSuffix.length());
+        final String nestedId = nestedString.substring(prefix, nestedString.length() - nestedSuffix.length());
         assert !topId.equals(nestedId);
         verify();
     }
@@ -383,7 +383,7 @@ public class PicoComponentContainerTest extends MockGroupAbstractTest {
     @Test
     public void transientComponentInstantiation() throws Exception {
         replay();
-        Key value = container.getComponent(Key.class, new ComponentContainer.Bindings() {
+        final Key value = container.getComponent(Key.class, new ComponentContainer.Bindings() {
 
             public void registerComponents(ComponentContainer.Registry registry) {
                 registry.bind(Key.class, Value.class);
@@ -398,7 +398,7 @@ public class PicoComponentContainerTest extends MockGroupAbstractTest {
     }
 
     private void verifyComponent(ComponentContainer container) {
-        Object component = container.getComponent(Key.class);
+        final Object component = container.getComponent(Key.class);
         assert component != null;
         assert component instanceof Value;
         assert container.getComponent(Value.class) == component;

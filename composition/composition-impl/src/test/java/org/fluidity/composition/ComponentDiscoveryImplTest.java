@@ -51,31 +51,31 @@ public class ComponentDiscoveryImplTest extends MockGroupAbstractTest {
     public void findsBoundImplementations() throws Exception {
 
         // we need to create a new service provider (http://java.sun.com/j2se/1.4.2/docs/guide/jar/jar.html#Service%20Provider)
-        File classDir = File.createTempFile("classes", ".dir", new File(System.getProperty("java.io.tmpdir")));
+        final File classDir = File.createTempFile("classes", ".dir", new File(System.getProperty("java.io.tmpdir")));
         classDir.delete();
         classDir.mkdir();
-        File servicesFile = new File(classDir, "META-INF/services/" + Interface.class.getName());
+        final File servicesFile = new File(classDir, "META-INF/services/" + Interface.class.getName());
         servicesFile.getParentFile().mkdirs();
 
-        PrintWriter writer = new PrintWriter(new FileWriter(servicesFile, false));
-        writer.println(Impl1.class.getName());
-        writer.println(Impl2.class.getName());
-        writer.println(Impl3.class.getName());
-        writer.close();
+        final PrintWriter pw = new PrintWriter(new FileWriter(servicesFile, false));
+        pw.println(Impl1.class.getName());
+        pw.println(Impl2.class.getName());
+        pw.println(Impl3.class.getName());
+        pw.close();
 
         assert servicesFile.exists();
 
         try {
-            URLClassLoader classLoader =
+            final URLClassLoader classLoader =
                 new URLClassLoader(new URL[] { classDir.toURL() }, getClass().getClassLoader());
             Thread.currentThread().setContextClassLoader(classLoader);
 
             EasyMock.expect(discovery.findComponentClasses(Interface.class, null, false)).andReturn(
                 new Class[] { Impl1.class, Impl2.class, Impl3.class });
 
-            Interface[] instances = new Interface[] { new Impl1(), new Impl2(), new Impl3() };
+            final Interface[] instances = new Interface[] { new Impl1(), new Impl2(), new Impl3() };
 
-            for (Interface instance : instances) {
+            for (final Interface instance : instances) {
                 EasyMock.expect(container.getComponent(instance.getClass())).andReturn(instance);
             }
 
@@ -98,32 +98,32 @@ public class ComponentDiscoveryImplTest extends MockGroupAbstractTest {
     public void findsImplementations() throws Exception {
 
         // we need to create a new service provider (http://java.sun.com/j2se/1.4.2/docs/guide/jar/jar.html#Service%20Provider)
-        File classDir = File.createTempFile("classes", ".dir", new File(System.getProperty("java.io.tmpdir")));
+        final File classDir = File.createTempFile("classes", ".dir", new File(System.getProperty("java.io.tmpdir")));
         classDir.delete();
         classDir.mkdir();
-        File servicesFile = new File(classDir, "META-INF/services/" + Interface.class.getName());
+        final File servicesFile = new File(classDir, "META-INF/services/" + Interface.class.getName());
         servicesFile.getParentFile().mkdirs();
 
-        PrintWriter writer = new PrintWriter(new FileWriter(servicesFile, false));
-        writer.println(Impl1.class.getName());
-        writer.println(Impl2.class.getName());
-        writer.println(Impl3.class.getName());
-        writer.close();
+        final PrintWriter pw = new PrintWriter(new FileWriter(servicesFile, false));
+        pw.println(Impl1.class.getName());
+        pw.println(Impl2.class.getName());
+        pw.println(Impl3.class.getName());
+        pw.close();
 
         assert servicesFile.exists();
 
         try {
-            URLClassLoader classLoader =
+            final URLClassLoader classLoader =
                 new URLClassLoader(new URL[] { classDir.toURL() }, getClass().getClassLoader());
             Thread.currentThread().setContextClassLoader(classLoader);
 
             EasyMock.expect(discovery.findComponentClasses(Interface.class, null, false))
                 .andReturn(new Class[] { Impl1.class, Impl2.class, Impl3.class });
 
-            Interface[] instances = new Interface[] { new Impl1(), new Impl2(), new Impl3() };
+            final Interface[] instances = new Interface[] { new Impl1(), new Impl2(), new Impl3() };
 
             for (final Interface instance : instances) {
-                Class<? extends Interface> instanceClass = instance.getClass();
+                final Class<? extends Interface> instanceClass = instance.getClass();
                 EasyMock.expect(container.getComponent(instanceClass)).andReturn(null);
                 EasyMock.expect(container.getComponent(EasyMock.same(instanceClass),
                     (ComponentContainer.Bindings) EasyMock.notNull())).andAnswer(new IAnswer<Interface>() {

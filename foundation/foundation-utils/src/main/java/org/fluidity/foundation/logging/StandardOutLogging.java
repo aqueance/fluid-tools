@@ -31,60 +31,60 @@ public final class StandardOutLogging implements Logging {
         return sw.toString();
     }
 
-    private void log(final String level, Class source, String message) {
+    private void log(final String level, Class source, final String message) {
         final String name = appName != null ? " [" + appName + "]" : "";
-        System.out.println(df.format(new Date()) + " "+ level + name  + " [" + source.getName() + "] " + message);
+        System.out.println(df.format(new Date()) + " " + level + name + " [" + source.getName() + "] " + message);
     }
 
-    public boolean isTraceEnabled(Class source) {
+    public boolean isTraceEnabled(final Class source) {
         return Boolean.getBoolean("sysout.trace");
     }
 
-    public void trace(Class source, String message) {
+    public void trace(final Class source, final String message) {
         log("TRACE", source, message);
     }
 
-    public void trace(Class source, String message, Throwable exception) {
+    public void trace(final Class source, final String message, final Throwable exception) {
         log("TRACE", source, message + stackTrace(exception));
     }
 
-    public void debug(Class source, String message) {
+    public void debug(final Class source, final String message) {
         log("DEBUG", source, message);
     }
 
-    public void debug(Class source, String message, Throwable exception) {
+    public void debug(final Class source, final String message, final Throwable exception) {
         log("DEBUG", source, message + stackTrace(exception));
     }
 
-    public void info(Class source, String message) {
+    public void info(final Class source, final String message) {
         log("INFO", source, message);
     }
 
-    public void warning(Class source, String message) {
+    public void warning(final Class source, final String message) {
         log("WARN", source, message);
     }
 
-    public void warning(Class source, String message, Throwable exception) {
+    public void warning(final Class source, final String message, final Throwable exception) {
         log("WARN", source, message + stackTrace(exception));
     }
 
-    public void error(Class source, String message) {
+    public void error(final Class source, final String message) {
         log("ERROR", source, message);
     }
 
-    public void error(Class source, String message, Throwable exception) {
+    public void error(final Class source, final String message, final Throwable exception) {
         log("ERROR", source, message + stackTrace(exception));
     }
 
-    public void fatal(Class source, String message) {
+    public void fatal(final Class source, final String message) {
         log("FATAL", source, message);
     }
 
-    public void fatal(Class source, String message, Throwable exception) {
+    public void fatal(final Class source, final String message, final Throwable exception) {
         log("FATAL", source, message + stackTrace(exception));
     }
 
-    public void timer(Class source, String message, long beginStamp) {
+    public void timer(final Class source, final String message, final long beginStamp) {
         info(source, message + " took " + (System.currentTimeMillis() - beginStamp) + " ms");
     }
 }

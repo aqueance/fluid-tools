@@ -77,7 +77,7 @@ final class PicoComponentContainer implements OpenComponentContainer {
         this(new DefaultPicoContainer(singletonAdapterFactory));
     }
 
-    private PicoComponentContainer(MutablePicoContainer pico) {
+    private PicoComponentContainer(final MutablePicoContainer pico) {
         this.pico = pico;
 
         // add ourselves to the container and quarantee that we are read only when accessed through the container
@@ -110,16 +110,16 @@ final class PicoComponentContainer implements OpenComponentContainer {
     }
 
     @SuppressWarnings({ "unchecked" })
-    public <T> T getComponent(Class<T> componentClass) {
-        T component = (T) pico.getComponentInstance(componentClass);
-        Package componentPackage = componentClass.getPackage();
+    public <T> T getComponent(final Class<T> componentClass) {
+        final T component = (T) pico.getComponentInstance(componentClass);
+        final Package componentPackage = componentClass.getPackage();
         return component == null && (componentPackage == null || !componentPackage.getName().startsWith("java."))
             ? (T) pico.getComponentInstanceOfType(componentClass)
             : component;
     }
 
-    public <T> T getComponent(Class<T> componentClass, Bindings bindings) {
-        OpenComponentContainer nestedContainer = makeNestedContainer();
+    public <T> T getComponent(final Class<T> componentClass, Bindings bindings) {
+        final OpenComponentContainer nestedContainer = makeNestedContainer();
         bindings.registerComponents(nestedContainer.getRegistry());
         return nestedContainer.getComponent(componentClass);
     }
@@ -133,13 +133,13 @@ final class PicoComponentContainer implements OpenComponentContainer {
     }
 
     public Map<Class, List<Class>> getUnresolvedDependencies() {
-        HashMap<Class, List<Class>> answer = new HashMap<Class, List<Class>>(unresolvedDependencies);
+        final HashMap<Class, List<Class>> answer = new HashMap<Class, List<Class>>(unresolvedDependencies);
         answer.keySet().removeAll(resolvedDependencies);
         return answer;
     }
 
     public String toString() {
-        List<String> chain = new LinkedList<String>();
+        final List<String> chain = new LinkedList<String>();
 
         PicoContainer pc = pico;
         do {
@@ -148,11 +148,10 @@ final class PicoComponentContainer implements OpenComponentContainer {
             pc = pc.getParent();
         } while (pc != null);
 
-        StringBuilder id = new StringBuilder();
-
+        final StringBuilder id = new StringBuilder();
         final String delimiter = " > ";
 
-        for (String link : chain) {
+        for (final String link : chain) {
             id.append(delimiter).append(link);
         }
 
@@ -162,7 +161,7 @@ final class PicoComponentContainer implements OpenComponentContainer {
 
     private class PicoComponentRegistry implements Registry {
 
-        public void requireDependency(Class dependencyInterface, Class dependentClass) {
+        public void requireDependency(final Class dependencyInterface, final Class dependentClass) {
             assert dependencyInterface != null;
             assert dependentClass != null;
 
@@ -178,22 +177,25 @@ final class PicoComponentContainer implements OpenComponentContainer {
         }
 
         @SuppressWarnings({ "unchecked" })
-        public <T> void bind(Class<? extends T> implementation) {
+        public <T> void bind(final Class<? extends T> implementation) {
             bind(implementation, (Class) implementation);
         }
 
-        public <T> void bind(Class<T> key, Class<? extends T> implementation, ConstructorParameter... parameters) {
+        public <T> void bind(final Class<T> key,
+                             final Class<? extends T> implementation,
+                             final ConstructorParameter... parameters) {
             bind(key, implementation, true, false, false, parameters);
         }
 
-        public <T> void bind(Class<T> key,
-                             Class<? extends T> implementation,
-                             boolean singleton,
-                             boolean thread,
-                             boolean deferred,
-                             ConstructorParameter... parameters) {
-            Parameter[] params = parameters != null && parameters.length > 0 ? new Parameter[parameters.length] : null;
-            StringBuffer report = new StringBuffer();
+        public <T> void bind(final Class<T> key,
+                             final Class<? extends T> implementation,
+                             final boolean singleton,
+                             final boolean thread,
+                             final boolean deferred,
+                             final ConstructorParameter... parameters) {
+            final Parameter[] params =
+                parameters != null && parameters.length > 0 ? new Parameter[parameters.length] : null;
+            final StringBuffer report = new StringBuffer();
 
             if (parameters != null) {
                 for (int i = 0; i < parameters.length; i++) {
@@ -215,27 +217,27 @@ final class PicoComponentContainer implements OpenComponentContainer {
 
         public <T> void bind(final Class<T> key,
                              final Class<? extends T> implementation,
-                             boolean singleton,
-                             boolean thread,
-                             boolean deferred,
+                             final boolean singleton,
+                             final boolean thread,
+                             final boolean deferred,
                              final ComponentFactory<T> factory) {
-            ComponentAdapter adapter = new ComponentFactoryInstanceAdapter<T>(key, implementation, factory);
+            final ComponentAdapter adapter = new ComponentFactoryInstanceAdapter<T>(key, implementation, factory);
             registerAdapter(key, adapter, singleton, thread, deferred);
         }
 
-        public <T> void bind(Class<T> key,
-                             Class<? extends T> implementation,
-                             boolean singleton,
-                             boolean thread,
-                             boolean deferred,
-                             Class<? extends ComponentFactory<T>> factory) {
-            ComponentAdapter adapter = new ComponentFactoryClassAdapter<T>(key, implementation, factory);
+        public <T> void bind(final Class<T> key,
+                             final Class<? extends T> implementation,
+                             final boolean singleton,
+                             final boolean thread,
+                             final boolean deferred,
+                             final Class<? extends ComponentFactory<T>> factory) {
+            final ComponentAdapter adapter = new ComponentFactoryClassAdapter<T>(key, implementation, factory);
             requireDependency(key, factory);
             registerAdapter(key, adapter, singleton, thread, deferred);
         }
 
-        public <T> void bind(Class<? super T> key, T instance) {
-            String value = instance instanceof String || instance instanceof Number
+        public <T> void bind(final Class<? super T> key, final T instance) {
+            final String value = instance instanceof String || instance instanceof Number
                 ? ('\'' + String.valueOf(instance) + '\'')
                 : (instance == null ? null : "instance of " + instance.getClass());
             log.info(getClass(), this + ": registering " + value + " for '" + key + "'");
@@ -246,60 +248,61 @@ final class PicoComponentContainer implements OpenComponentContainer {
             return new PicoComponentContainer(pico.makeChildContainer());
         }
 
-        public <T> OpenComponentContainer makeNestedContainer(Class<T> key,
-                                                              Class<? extends T> implementation,
-                                                              ConstructorParameter... parameters) {
+        public <T> OpenComponentContainer makeNestedContainer(final Class<T> key,
+                                                              final Class<? extends T> implementation,
+                                                              final ConstructorParameter... parameters) {
             return makeNestedContainer(key, implementation, true, false, false, parameters);
         }
 
-        public <T> OpenComponentContainer makeNestedContainer(Class<T> key,
-                                                              Class<? extends T> implementation,
-                                                              boolean singleton,
-                                                              boolean thread,
-                                                              boolean deferred,
-                                                              ConstructorParameter... parameters) {
-            OpenComponentContainer container = makeNestedContainer(key);
+        public <T> OpenComponentContainer makeNestedContainer(final Class<T> key,
+                                                              final Class<? extends T> implementation,
+                                                              final boolean singleton,
+                                                              final boolean thread,
+                                                              final boolean deferred,
+                                                              final ConstructorParameter... parameters) {
+            final OpenComponentContainer container = makeNestedContainer(key);
             container.getRegistry().bind(key, implementation, singleton, thread, deferred, parameters);
             return container;
         }
 
-        public <T> OpenComponentContainer makeNestedContainer(Class<T> key,
-                                                              Class<? extends T> implementation,
-                                                              boolean singleton,
-                                                              boolean thread,
-                                                              boolean deferred,
-                                                              ComponentFactory<T> factory) {
-            OpenComponentContainer container = makeNestedContainer(key);
+        public <T> OpenComponentContainer makeNestedContainer(final Class<T> key,
+                                                              final Class<? extends T> implementation,
+                                                              final boolean singleton,
+                                                              final boolean thread,
+                                                              final boolean deferred,
+                                                              final ComponentFactory<T> factory) {
+            final OpenComponentContainer container = makeNestedContainer(key);
             container.getRegistry().bind(key, implementation, singleton, thread, deferred, factory);
             return container;
         }
 
-        public <T> OpenComponentContainer makeNestedContainer(Class<T> key,
-                                                              Class<? extends T> implementation,
-                                                              boolean singleton,
-                                                              boolean thread,
-                                                              boolean deferred,
-                                                              Class<? extends ComponentFactory<T>> factory) {
-            OpenComponentContainer container = makeNestedContainer(key);
+        public <T> OpenComponentContainer makeNestedContainer(final Class<T> key,
+                                                              final Class<? extends T> implementation,
+                                                              final boolean singleton,
+                                                              final boolean thread,
+                                                              final boolean deferred,
+                                                              final Class<? extends ComponentFactory<T>> factory) {
+            final OpenComponentContainer container = makeNestedContainer(key);
             container.getRegistry().bind(key, implementation, singleton, thread, deferred, factory);
             return container;
         }
 
-        private <T> void registerAdapter(Class<T> key,
-                                         Class<? extends T> implementation,
-                                         boolean deferred,
-                                         boolean singleton,
-                                         boolean thread,
-                                         Parameter[] parameters) {
-            registerAdapter(key, defaultAdapterFactory.createComponentAdapter(key, implementation, parameters),
-                singleton, thread, deferred);
+        private <T> void registerAdapter(final Class<T> key,
+                                         final Class<? extends T> implementation,
+                                         final boolean deferred,
+                                         final boolean singleton,
+                                         final boolean thread,
+                                         final Parameter[] parameters) {
+            final ComponentAdapter adapter =
+                defaultAdapterFactory.createComponentAdapter(key, implementation, parameters);
+            registerAdapter(key, adapter, singleton, thread, deferred);
         }
 
-        private <T> void registerAdapter(Class<T> key,
+        private <T> void registerAdapter(final Class<T> key,
                                          ComponentAdapter adapter,
-                                         boolean singleton,
-                                         boolean thread,
-                                         boolean deferred) {
+                                         final boolean singleton,
+                                         final boolean thread,
+                                         final boolean deferred) {
             if (deferred) {
                 adapter = new ImplementationHidingComponentAdapter(adapter, true);
             }
@@ -314,46 +317,46 @@ final class PicoComponentContainer implements OpenComponentContainer {
             resolvedDependencies.add(key);
         }
 
-        private OpenComponentContainer makeNestedContainer(Class key) {
-            MutablePicoContainer nested = pico.makeChildContainer();
+        private OpenComponentContainer makeNestedContainer(final Class key) {
+            final MutablePicoContainer nested = pico.makeChildContainer();
             pico.registerComponent(new LinkingComponentAdapter(nested, key, key));
             resolvedDependencies.add(key);
             return new PicoComponentContainer(nested);
         }
 
-        public ConstructorParameter component(Class key) {
+        public ConstructorParameter component(final Class key) {
             return ConstructorParameterImpl.componentParameter(key);
         }
 
-        public ConstructorParameter constant(Object value) {
+        public ConstructorParameter constant(final Object value) {
             return ConstructorParameterImpl.constantParameter(value);
         }
 
-        public ConstructorParameter constant(char value) {
+        public ConstructorParameter constant(final char value) {
             return constant(new Character(value));
         }
 
-        public ConstructorParameter constant(byte value) {
+        public ConstructorParameter constant(final byte value) {
             return constant(new Byte(value));
         }
 
-        public ConstructorParameter constant(short value) {
+        public ConstructorParameter constant(final short value) {
             return constant(new Short(value));
         }
 
-        public ConstructorParameter constant(int value) {
+        public ConstructorParameter constant(final int value) {
             return constant(new Integer(value));
         }
 
-        public ConstructorParameter constant(long value) {
+        public ConstructorParameter constant(final long value) {
             return constant(new Long(value));
         }
 
-        public ConstructorParameter constant(boolean value) {
+        public ConstructorParameter constant(final boolean value) {
             return constant(Boolean.valueOf(value));
         }
 
-        public ConstructorParameter array(Class componentClass) {
+        public ConstructorParameter array(final Class componentClass) {
             return ConstructorParameterImpl.arrayParameter(componentClass);
         }
 
@@ -369,9 +372,9 @@ final class PicoComponentContainer implements OpenComponentContainer {
 
             private final Class<? extends ComponentFactory<T>> factoryClass;
 
-            public ComponentFactoryClassAdapter(Class<T> key,
-                                                Class<? extends T> implementation,
-                                                Class<? extends ComponentFactory<T>> factoryClass) {
+            public ComponentFactoryClassAdapter(final Class<T> key,
+                                                final Class<? extends T> implementation,
+                                                final Class<? extends ComponentFactory<T>> factoryClass) {
                 this.key = key;
                 this.implementation = implementation;
                 this.factoryClass = factoryClass;
@@ -386,18 +389,19 @@ final class PicoComponentContainer implements OpenComponentContainer {
             }
 
             @SuppressWarnings({ "unchecked" })
-            public Object getComponentInstance(PicoContainer picoContainer)
+            public Object getComponentInstance(final PicoContainer picoContainer)
                 throws PicoInitializationException, PicoIntrospectionException {
-                ComponentFactory<T> factory = (ComponentFactory<T>) picoContainer.getComponentInstance(factoryClass);
+                final ComponentFactory<T> factory =
+                    (ComponentFactory<T>) picoContainer.getComponentInstance(factoryClass);
                 assert factory != null : factoryClass;
                 return factory.makeComponent(PicoComponentContainer.this);
             }
 
-            public void verify(PicoContainer picoContainer) throws PicoIntrospectionException {
+            public void verify(final PicoContainer picoContainer) throws PicoIntrospectionException {
                 // empty
             }
 
-            public void accept(PicoVisitor picoVisitor) {
+            public void accept(final PicoVisitor picoVisitor) {
                 // empty
             }
         }
@@ -410,9 +414,9 @@ final class PicoComponentContainer implements OpenComponentContainer {
 
             private final ComponentFactory<T> factory;
 
-            public ComponentFactoryInstanceAdapter(Class<T> key,
-                                                   Class<? extends T> implementation,
-                                                   ComponentFactory<T> factory) {
+            public ComponentFactoryInstanceAdapter(final Class<T> key,
+                                                   final Class<? extends T> implementation,
+                                                   final ComponentFactory<T> factory) {
                 this.key = key;
                 this.implementation = implementation;
                 this.factory = factory;
@@ -426,7 +430,7 @@ final class PicoComponentContainer implements OpenComponentContainer {
                 return implementation;
             }
 
-            public Object getComponentInstance(PicoContainer picoContainer)
+            public Object getComponentInstance(final PicoContainer picoContainer)
                 throws PicoInitializationException, PicoIntrospectionException {
                 return factory.makeComponent(PicoComponentContainer.this);
             }
@@ -445,11 +449,11 @@ final class PicoComponentContainer implements OpenComponentContainer {
 
         private final ThreadLocal<Object> cache = new ThreadLocal<Object>();
 
-        public ThreadLocalComponentAdapter(ComponentAdapter componentAdapter) {
+        public ThreadLocalComponentAdapter(final ComponentAdapter componentAdapter) {
             super(componentAdapter);
         }
 
-        public synchronized Object getComponentInstance(PicoContainer picoContainer)
+        public synchronized Object getComponentInstance(final PicoContainer picoContainer)
             throws PicoInitializationException,
             PicoIntrospectionException {
             Object answer = cache.get();

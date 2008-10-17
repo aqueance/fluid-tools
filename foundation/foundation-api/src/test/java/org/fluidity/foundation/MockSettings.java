@@ -38,15 +38,15 @@ public final class MockSettings implements Settings {
 
     private final Properties properties = new Properties();
 
-    public MockSettings(Properties properties) {
+    public MockSettings(final Properties properties) {
         this.properties.putAll(properties);
     }
 
     public String[] keys() {
-        List<String> keys = new ArrayList<String>();
+        final List<String> keys = new ArrayList<String>();
 
-        for (Object o : properties.keySet()) {
-            String key = (String) o;
+        for (final Object o : properties.keySet()) {
+            final String key = (String) o;
 
             if (key.indexOf("/") < 0) {
                 keys.add(key);
@@ -57,27 +57,27 @@ public final class MockSettings implements Settings {
     }
 
     public String setting(String key, String defaultValue) {
-        String value = properties.getProperty(key);
+        final String value = properties.getProperty(key);
         return value == null ? defaultValue : value;
     }
 
     public int setting(String key, int defaultValue) {
-        String value = properties.getProperty(key);
+        final String value = properties.getProperty(key);
         return value == null ? defaultValue : Integer.valueOf(value);
     }
 
     public boolean setting(String key, boolean defaultValue) {
-        String value = properties.getProperty(key);
+        final String value = properties.getProperty(key);
         return value == null ? defaultValue : Boolean.valueOf(value);
     }
 
     public String[] namespaces() {
-        Set<String> keys = new HashSet<String>();
+        final Set<String> keys = new HashSet<String>();
 
-        for (Object o : properties.keySet()) {
+        for (final Object o : properties.keySet()) {
             String key = (String) o;
 
-            int slashIndex = key.indexOf("/");
+            final int slashIndex = key.indexOf("/");
             if (slashIndex >= 0) {
                 keys.add(key.substring(0, slashIndex));
             }
@@ -89,10 +89,10 @@ public final class MockSettings implements Settings {
     public String[] keys(String namespace) {
         namespace += "/";
 
-        List<String> keys = new ArrayList<String>();
+        final List<String> keys = new ArrayList<String>();
 
-        for (Object o : properties.keySet()) {
-            String key = (String) o;
+        for (final Object o : properties.keySet()) {
+            final String key = (String) o;
 
             if (key.startsWith(namespace)) {
                 keys.add(key.substring(namespace.length()));

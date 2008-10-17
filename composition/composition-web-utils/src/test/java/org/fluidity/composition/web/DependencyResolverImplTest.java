@@ -49,7 +49,7 @@ public class DependencyResolverImplTest extends MockGroupAbstractTest {
 
     @Test
     public void componentAcquisitionByClass() throws Exception {
-        Component component = new Component();
+        final Component component = new Component();
 
         EasyMock.expect(container.getComponent(Component.class)).andReturn(component);
 
@@ -92,11 +92,11 @@ public class DependencyResolverImplTest extends MockGroupAbstractTest {
             return DependencyResolverImplTest.container;
         }
 
-        public <T> T getComponent(Class<T> componentClass) {
+        public <T> T getComponent(final Class<T> componentClass) {
             return DependencyResolverImplTest.container.getComponent(componentClass);
         }
 
-        public <T> T getComponent(Class<T> componentClass, Bindings bindings) {
+        public <T> T getComponent(final Class<T> componentClass, final Bindings bindings) {
             return DependencyResolverImplTest.container.getComponent(componentClass, bindings);
         }
 

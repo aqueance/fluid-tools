@@ -47,7 +47,7 @@ public class PropertiesResourceSettingsImplTest extends MockGroupAbstractTest {
 
     @Test
     public void noResourceFound() throws Exception {
-        String resourceName = "whatever";
+        final String resourceName = "whatever";
         EasyMock.expect(resources.resourceName("default.properties")).andReturn(resourceName);
         EasyMock.expect(resources.loadResource(resourceName)).andReturn(null);
 
@@ -58,15 +58,15 @@ public class PropertiesResourceSettingsImplTest extends MockGroupAbstractTest {
 
     @Test
     public void withoutApplicationInfo() throws Exception {
-        Properties properties = new Properties();
+        final Properties properties = new Properties();
 
         properties.setProperty("a", "b");
         properties.setProperty("a.b.c", "def");
 
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
         properties.store(baos, null);
 
-        String resourceName = "whatever";
+        final String resourceName = "whatever";
         final URL url = new URL("file://properties.properties");
 
         EasyMock.expect(resources.resourceName("default.properties")).andReturn(resourceName);
@@ -81,23 +81,23 @@ public class PropertiesResourceSettingsImplTest extends MockGroupAbstractTest {
 
     @Test
     public void withApplicationInfo() throws Exception {
-        Properties defaultProperties = new Properties();
+        final Properties defaultProperties = new Properties();
 
         defaultProperties.setProperty("a", "b");
         defaultProperties.setProperty("a.b.c", "def");
 
-        ByteArrayOutputStream dbaos = new ByteArrayOutputStream();
+        final ByteArrayOutputStream dbaos = new ByteArrayOutputStream();
         defaultProperties.store(dbaos, null);
 
-        Properties appProperties = new Properties();
+        final Properties appProperties = new Properties();
 
         appProperties.setProperty("a", "b");
         appProperties.setProperty("a.b.c", "def");
 
-        ByteArrayOutputStream abaos = new ByteArrayOutputStream();
+        final ByteArrayOutputStream abaos = new ByteArrayOutputStream();
         appProperties.store(abaos, null);
 
-        String appName = "whatever";
+        final String appName = "whatever";
 
         final URL defaultUrl = new URL("file://default.properties");
         final URL appUrl = new URL("file://app.properties");

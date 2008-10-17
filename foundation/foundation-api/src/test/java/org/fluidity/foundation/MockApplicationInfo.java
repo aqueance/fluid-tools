@@ -8,7 +8,7 @@ public final class MockApplicationInfo implements ApplicationInfo {
     private final String shortName;
     private final String name;
 
-    public MockApplicationInfo(final String shortName, String name) {
+    public MockApplicationInfo(final String shortName, final String name) {
         this.shortName = shortName;
         this.name = name;
     }

@@ -37,28 +37,28 @@ public class TunnelExceptionTest extends MockGroupAbstractTest {
 
     @Test
     public void testIoException() throws Exception {
-        IOException exception = new IOException();
+        final IOException exception = new IOException();
 
         try {
             new TunnelException(exception).rethrow();
             assert false : "Should have thrown " + exception;
-        } catch (IOException e) {
+        } catch (final IOException e) {
             assert e == exception;
-        } catch (Exception e) {
+        } catch (final Exception e) {
             assert false : "Should have thrown " + exception;
         }
     }
 
     @Test
     public void testServletException() throws Exception {
-        ServletException exception = new ServletException();
+        final ServletException exception = new ServletException();
 
         try {
             new TunnelException(exception).rethrow();
             assert false : "Should have thrown " + exception;
-        } catch (ServletException e) {
+        } catch (final ServletException e) {
             assert e == exception;
-        } catch (Exception e) {
+        } catch (final Exception e) {
             assert false : "Should have thrown " + exception;
         }
     }

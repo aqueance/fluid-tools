@@ -44,26 +44,26 @@ public class LinkingComponentAdapterTest extends MockGroupAbstractTest {
 
     @Test
     public void usesRightKey() throws Exception {
-        Object linkedKey = new Object();
-        Object newKey = new Object();
+        final Object linkedKey = new Object();
+        final Object newKey = new Object();
 
         replay();
-        LinkingComponentAdapter adapter = new LinkingComponentAdapter(linkedPico, newKey, linkedKey);
+        final LinkingComponentAdapter adapter = new LinkingComponentAdapter(linkedPico, newKey, linkedKey);
         assert newKey == adapter.getComponentKey();
         verify();
     }
 
     @Test
     public void invokesLinkedPicoForComponent() throws Exception {
-        Object linkedKey = new Object();
-        Object newKey = new Object();
+        final Object linkedKey = new Object();
+        final Object newKey = new Object();
 
-        Object component = new Object();
+        final Object component = new Object();
         EasyMock.expect(linkedPico.getComponentInstance(linkedKey)).andReturn(component);
         EasyMock.expect(linkedPico.getComponentInstance(linkedKey)).andReturn(null);
 
         replay();
-        LinkingComponentAdapter adapter = new LinkingComponentAdapter(linkedPico, newKey, linkedKey);
+        final LinkingComponentAdapter adapter = new LinkingComponentAdapter(linkedPico, newKey, linkedKey);
         assert component == adapter.getComponentInstance(enclosingPico);
         assert adapter.getComponentInstance(enclosingPico) == null;
         verify();
@@ -71,43 +71,43 @@ public class LinkingComponentAdapterTest extends MockGroupAbstractTest {
 
     @Test
     public void invokesLinkedAdapterForImplementation() throws Exception {
-        Object linkedKey = new Object();
-        Object newKey = new Object();
-        Class componentClass = String.class;
+        final Object linkedKey = new Object();
+        final Object newKey = new Object();
+        final Class componentClass = String.class;
 
         EasyMock.expect(linkedPico.getComponentAdapter(linkedKey)).andReturn(linkedAdapter);
         EasyMock.expect(linkedAdapter.getComponentImplementation()).andReturn(componentClass);
 
         replay();
-        LinkingComponentAdapter adapter = new LinkingComponentAdapter(linkedPico, newKey, linkedKey);
+        final LinkingComponentAdapter adapter = new LinkingComponentAdapter(linkedPico, newKey, linkedKey);
         assert componentClass == adapter.getComponentImplementation();
         verify();
     }
 
     @Test
     public void acceptsVisitor() throws Exception {
-        Object linkedKey = new Object();
-        Object newKey = new Object();
+        final Object linkedKey = new Object();
+        final Object newKey = new Object();
 
         EasyMock.expect(linkedPico.getComponentAdapter(linkedKey)).andReturn(linkedAdapter);
         linkedAdapter.accept(visitor);
 
         replay();
-        LinkingComponentAdapter adapter = new LinkingComponentAdapter(linkedPico, newKey, linkedKey);
+        final LinkingComponentAdapter adapter = new LinkingComponentAdapter(linkedPico, newKey, linkedKey);
         adapter.accept(visitor);
         verify();
     }
 
     @Test(expectedExceptions = LinkedComponentNotFoundException.class)
     public void verifiesComponent() throws Exception {
-        Object linkedKey = new Object();
-        Object newKey = new Object();
+        final Object linkedKey = new Object();
+        final Object newKey = new Object();
 
         EasyMock.expect(linkedPico.getComponentAdapter(linkedKey)).andReturn(linkedAdapter);
         EasyMock.expect(linkedPico.getComponentAdapter(linkedKey)).andReturn(null);
 
         replay();
-        LinkingComponentAdapter adapter = new LinkingComponentAdapter(linkedPico, newKey, linkedKey);
+        final LinkingComponentAdapter adapter = new LinkingComponentAdapter(linkedPico, newKey, linkedKey);
         adapter.verify(enclosingPico);
         try {
             adapter.verify(enclosingPico);

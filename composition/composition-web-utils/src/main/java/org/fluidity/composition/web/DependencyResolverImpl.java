@@ -34,15 +34,16 @@ import org.fluidity.foundation.ClassLoaderUtils;
  */
 final class DependencyResolverImpl implements DependencyResolver {
 
-    public Object findComponent(String containerClassName, String componentClassName) throws ServletException {
+    public Object findComponent(final String containerClassName, final String componentClassName)
+        throws ServletException {
         assert containerClassName != null : CONTAINER_CLASS;
         assert componentClassName != null : COMPONENT_KEY;
 
         try {
-            ClassLoader classLoader = ClassLoaderUtils.findClassLoader(DependencyResolver.class);
+            final ClassLoader classLoader = ClassLoaderUtils.findClassLoader(DependencyResolver.class);
             assert classLoader != null : DependencyResolver.class;
 
-            ComponentContainer container = (ComponentContainer) classLoader.loadClass(containerClassName).newInstance();
+            final ComponentContainer container = (ComponentContainer) classLoader.loadClass(containerClassName).newInstance();
             assert container != null : containerClassName;
 
             final Class<?> componentClass = classLoader.loadClass(componentClassName);
@@ -61,11 +62,11 @@ final class DependencyResolverImpl implements DependencyResolver {
             }
 
             return component;
-        } catch (InstantiationException e) {
+        } catch (final InstantiationException e) {
             throw (ServletException) new ServletException(e).initCause(e);
-        } catch (IllegalAccessException e) {
+        } catch (final IllegalAccessException e) {
             throw (ServletException) new ServletException(e).initCause(e);
-        } catch (ClassNotFoundException e) {
+        } catch (final ClassNotFoundException e) {
             throw (ServletException) new ServletException(e).initCause(e);
         }
     }

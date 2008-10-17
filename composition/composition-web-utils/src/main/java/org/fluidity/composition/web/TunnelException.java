@@ -40,7 +40,7 @@ final class TunnelException extends RuntimeException {
      *
      * @param cause is the exception to wrap.
      */
-    public TunnelException(IOException cause) {
+    public TunnelException(final IOException cause) {
         super(cause);
         ioException = cause;
         servletException = null;
@@ -51,7 +51,7 @@ final class TunnelException extends RuntimeException {
      *
      * @param cause is the exception to wrap.
      */
-    public TunnelException(ServletException cause) {
+    public TunnelException(final ServletException cause) {
         super(cause);
         ioException = null;
         servletException = cause;

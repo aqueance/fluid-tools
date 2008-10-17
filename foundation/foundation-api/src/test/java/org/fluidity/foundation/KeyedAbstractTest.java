@@ -39,16 +39,16 @@ public abstract class KeyedAbstractTest extends MockGroupAbstractTest {
     @SuppressWarnings({ "StringEquality" })
     @Test
     public void testKey() throws Exception {
-        String key = newKey(1);
+        final String key = newKey(1);
         assert newKeyed(key).key() == key : "Did not retain key";
     }
 
     @Test
     public void testEquality() throws Exception {
-        Keyed keyed1 = newKeyed(newKey(1));
-        Keyed keyed2 = newKeyed(newKey(2));
-        Keyed keyed3 = newKeyed(newKey(1));
-        Keyed keyed4 = new Keyed() {
+        final Keyed keyed1 = newKeyed(newKey(1));
+        final Keyed keyed2 = newKeyed(newKey(2));
+        final Keyed keyed3 = newKeyed(newKey(1));
+        final Keyed keyed4 = new Keyed() {
             public String key() {
                 return newKey(4);
             }
@@ -62,11 +62,11 @@ public abstract class KeyedAbstractTest extends MockGroupAbstractTest {
 
     @Test
     public void testHashCode() throws Exception {
-        Keyed site1 = newKeyed(newKey(1));
-        Keyed site2 = newKeyed(newKey(2));
-        Keyed site3 = newKeyed(newKey(1));
+        final Keyed keyed1 = newKeyed(newKey(1));
+        final Keyed keyed2 = newKeyed(newKey(2));
+        final Keyed keyed3 = newKeyed(newKey(1));
 
-        assert site1.hashCode() != site2.hashCode() : "Two instances with different keys have the same hash code";
-        assert site1.hashCode() == site3.hashCode() : "Two instances with the same keys have different hash code";
+        assert keyed1.hashCode() != keyed2.hashCode() : "Two instances with different keys have the same hash code";
+        assert keyed1.hashCode() == keyed3.hashCode() : "Two instances with the same keys have different hash code";
     }
 }

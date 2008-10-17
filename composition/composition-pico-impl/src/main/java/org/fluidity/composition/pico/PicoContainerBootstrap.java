@@ -73,17 +73,18 @@ public final class PicoContainerBootstrap implements ContainerBootstrap {
         final OpenComponentContainer container =
             parent == null ? new PicoComponentContainer() : parent.makeNestedContainer();
 
-        ComponentContainer.Registry registry = container.getRegistry();
+        final ComponentContainer.Registry registry = container.getRegistry();
 
         /*
          * Find instances of classes implementing the PackageBindings interface.
          */
-        Collection<Class> assemblySet =
-            new HashSet<Class>(Arrays.asList(discovery.findComponentClasses(PackageBindings.class, classLoader, parent != null)));
+        final Collection<Class> assemblySet =
+            new HashSet<Class>(
+                Arrays.asList(discovery.findComponentClasses(PackageBindings.class, classLoader, parent != null)));
 
         log.info(getClass(), "Found " + assemblySet.size() + " package(s).");
 
-        MutablePicoContainer pico = new DefaultPicoContainer(
+        final MutablePicoContainer pico = new DefaultPicoContainer(
             new CachingComponentAdapterFactory(new ConstructorInjectionComponentAdapterFactory(true)));
 
         if (properties != null) {
@@ -93,7 +94,7 @@ public final class PicoContainerBootstrap implements ContainerBootstrap {
         /*
          * Add each to a modified PicoContainer
          */
-        for (Class componentClass : assemblySet) {
+        for (final Class componentClass : assemblySet) {
             pico.registerComponentImplementation(componentClass, componentClass);
         }
 
@@ -107,13 +108,13 @@ public final class PicoContainerBootstrap implements ContainerBootstrap {
         /*
          * Process each package component set.
          */
-        for (PackageBindings bindings : assemblies) {
+        for (final PackageBindings bindings : assemblies) {
             try {
                 log.info(getClass(), id() + ": processing " + bindings.getClass().getName());
                 bindings.registerComponents(registry);
-            } catch (RuntimeException e) {
+            } catch (final RuntimeException e) {
                 throw e;
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 throw new RuntimeException(e);
             }
         }
@@ -123,23 +124,23 @@ public final class PicoContainerBootstrap implements ContainerBootstrap {
         /*
          * Perform post-registration initialisation.
          */
-        for (PackageBindings assembly : assemblies) {
+        for (final PackageBindings bindings : assemblies) {
             try {
-                assembly.initialiseComponents(container);
-            } catch (RuntimeException e) {
+                bindings.initialiseComponents(container);
+            } catch (final RuntimeException e) {
                 throw e;
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 throw new RuntimeException(e);
             }
         }
 
-        Map<Class, List<Class>> unresolved = container.getUnresolvedDependencies();
+        final Map<Class, List<Class>> unresolved = container.getUnresolvedDependencies();
 
         if (!unresolved.isEmpty()) {
             throw new MissingDependenciesException(unresolved);
         }
 
-        ShutdownHook shutdown = container.getComponent(ShutdownHook.class);
+        final ShutdownHook shutdown = container.getComponent(ShutdownHook.class);
         assert shutdown != null;
 
         shutdown.addTask("container-shutdown", new Runnable() {
@@ -148,12 +149,12 @@ public final class PicoContainerBootstrap implements ContainerBootstrap {
                 /*
                  * Perform pre-shutdown tasks.
                  */
-                for (ListIterator i = assemblies.listIterator(assemblies.size()); i.hasPrevious();) {
+                for (final ListIterator i = assemblies.listIterator(assemblies.size()); i.hasPrevious();) {
                     try {
                         ((PackageBindings) i.previous()).shutdownComponents(container);
-                    } catch (RuntimeException e) {
+                    } catch (final RuntimeException e) {
                         throw e;
-                    } catch (Exception e) {
+                    } catch (final Exception e) {
                         throw new RuntimeException(e);
                     }
                 }
@@ -164,7 +165,7 @@ public final class PicoContainerBootstrap implements ContainerBootstrap {
     }
 
     private String id() {
-        String className = getClass().getName();
+        final String className = getClass().getName();
         return className.substring(className.lastIndexOf(".") + 1);
     }
 }
@@ -180,24 +181,24 @@ final class MissingDependenciesException extends RuntimeException {
     }
 
     public String getMessage() {
-        StringWriter message = new StringWriter();
-        PrintWriter pw = new PrintWriter(message);
+        final StringWriter message = new StringWriter();
+        final PrintWriter pw = new PrintWriter(message);
 
         pw.println("The following dependencies could not be resolved:");
 
-        for (Map.Entry<Class, List<Class>> entry : dependencies.entrySet()) {
-            Class key = entry.getKey();
-            List<Class> value = entry.getValue();
+        for (final Map.Entry<Class, List<Class>> entry : dependencies.entrySet()) {
+            final Class key = entry.getKey();
+            final List<Class> value = entry.getValue();
 
             pw.println(" " + key + " required by: ");
 
-            Set<String> classes = new TreeSet<String>();
+            final Set<String> classes = new TreeSet<String>();
 
-            for (Class component : value) {
-                URL resource = ClassLoaderUtils.findClassResource(component);
+            for (final Class component : value) {
+                final URL resource = ClassLoaderUtils.findClassResource(component);
 
                 String moduleName = resource.getPath();
-                String className = ClassLoaderUtils.classResourceName(component);
+                final String className = ClassLoaderUtils.classResourceName(component);
 
                 if (moduleName.endsWith(className)) {
                     moduleName = moduleName.substring(0, moduleName.length() - className.length());

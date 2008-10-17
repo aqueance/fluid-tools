@@ -49,31 +49,30 @@ public class ClassDiscoveryImplTest extends MockGroupAbstractTest {
     public void findsClassesInAnyClassLoader() throws Exception {
 
         // we need to create a new service provider (http://java.sun.com/j2se/1.4.2/docs/guide/jar/jar.html#Service%20Provider)
-        File classDir = File.createTempFile("classes", ".dir", new File(System.getProperty("java.io.tmpdir")));
+        final File classDir = File.createTempFile("classes", ".dir", new File(System.getProperty("java.io.tmpdir")));
         classDir.delete();
         classDir.mkdir();
 
-        File servicesFile =
-            new File(classDir, "META-INF/services/" + Interface.class.getName());
+        final File servicesFile = new File(classDir, "META-INF/services/" + Interface.class.getName());
         servicesFile.getParentFile().mkdirs();
 
-        ArrayList<File> fileList = new ArrayList<File>();
+        final ArrayList<File> fileList = new ArrayList<File>();
         fileList.add(servicesFile);
 
-        PrintWriter writer = new PrintWriter(new FileWriter(servicesFile, false));
-        writer.println(Impl1.class.getName());
-        writer.println(Impl2.class.getName());
-        writer.println(Impl3.class.getName());
-        writer.close();
+        final PrintWriter pw = new PrintWriter(new FileWriter(servicesFile, false));
+        pw.println(Impl1.class.getName());
+        pw.println(Impl2.class.getName());
+        pw.println(Impl3.class.getName());
+        pw.close();
 
         assert servicesFile.exists();
 
         try {
-            URLClassLoader classLoader =
+            final URLClassLoader classLoader =
                 new URLClassLoader(new URL[] { classDir.toURL() }, getClass().getClassLoader());
 
             replay();
-            Class[] classes = new ClassDiscoveryImpl().findComponentClasses(Interface.class, classLoader, false);
+            final Class[] classes = new ClassDiscoveryImpl().findComponentClasses(Interface.class, classLoader, false);
             verify();
 
             assert new ArrayList<Class>(Arrays.asList(Impl1.class, Impl2.class, Impl3.class))
@@ -88,23 +87,22 @@ public class ClassDiscoveryImplTest extends MockGroupAbstractTest {
     public void findsClassesOnlyByGivenClassLoader() throws Exception {
 
         // we need to create a new service provider (http://java.sun.com/j2se/1.4.2/docs/guide/jar/jar.html#Service%20Provider)
-        File classDir1 = File.createTempFile("classes1", ".dir", new File(System.getProperty("java.io.tmpdir")));
+        final File classDir1 = File.createTempFile("classes1", ".dir", new File(System.getProperty("java.io.tmpdir")));
         classDir1.delete();
         classDir1.mkdir();
 
-        File classDir2 = File.createTempFile("classes2", ".dir", new File(System.getProperty("java.io.tmpdir")));
+        final File classDir2 = File.createTempFile("classes2", ".dir", new File(System.getProperty("java.io.tmpdir")));
         classDir2.delete();
         classDir2.mkdir();
 
-        File servicesFile =
-            new File(classDir2, "META-INF/services/" + Interface.class.getName());
+        final File servicesFile = new File(classDir2, "META-INF/services/" + Interface.class.getName());
         servicesFile.getParentFile().mkdirs();
 
-        List<File> fileList = new ArrayList<File>();
+        final List<File> fileList = new ArrayList<File>();
         fileList.add(servicesFile);
 
-        PrintWriter writer = new PrintWriter(new FileWriter(servicesFile, false));
-        writer.println(Impl1.class.getName());
+        final PrintWriter pw = new PrintWriter(new FileWriter(servicesFile, false));
+        pw.println(Impl1.class.getName());
 
         // superclass and interfaces in parent class loader
         copyClassFile(Interface.class, classDir1, fileList);
@@ -112,18 +110,17 @@ public class ClassDiscoveryImplTest extends MockGroupAbstractTest {
 
         // actual class in child class loader
         copyClassFile(Impl1.class, classDir2, fileList);
-        writer.close();
+        pw.close();
 
         assert servicesFile.exists();
 
         try {
-            URLClassLoader classLoader1 =
-                new URLClassLoader(new URL[] { classDir1.toURL() }, null);
-            URLClassLoader classLoader2 =
-                new URLClassLoader(new URL[] { classDir2.toURL() }, classLoader1);
+            final URLClassLoader classLoader1 = new URLClassLoader(new URL[] { classDir1.toURL() }, null);
+            final URLClassLoader classLoader2 = new URLClassLoader(new URL[] { classDir2.toURL() }, classLoader1);
 
             replay();
-            Class[] classes = new ClassDiscoveryImpl().findComponentClasses(classLoader1.loadClass(Interface.class.getName()), classLoader2, true);
+            final Class[] classes = new ClassDiscoveryImpl()
+                .findComponentClasses(classLoader1.loadClass(Interface.class.getName()), classLoader2, true);
             verify();
 
             assert new ArrayList<Class>(Arrays.asList(classLoader2.loadClass(Impl1.class.getName())))
@@ -135,22 +132,23 @@ public class ClassDiscoveryImplTest extends MockGroupAbstractTest {
     }
 
     private void copyClassFile(Class impl, File classDir, List<File> fileList) throws IOException {
-        String fileName = impl.getName().replace('.', '/') + ".class";
+        final String fileName = impl.getName().replace('.', '/') + ".class";
 
-        File outputFile = new File(classDir, fileName);
+        final File outputFile = new File(classDir, fileName);
         fileList.add(outputFile);
 
         outputFile.getParentFile().mkdirs();
         outputFile.delete();
         outputFile.createNewFile();
 
-        InputStream input = getClass().getClassLoader().getResourceAsStream(ClassLoaderUtils.absoluteResourceName(fileName));
+        final InputStream input =
+            getClass().getClassLoader().getResourceAsStream(ClassLoaderUtils.absoluteResourceName(fileName));
         OutputStream output = new FileOutputStream(outputFile);
 
         assert input != null : fileName;
 
         try {
-            byte buffer[] = new byte[1024];
+            final byte buffer[] = new byte[1024];
             int len;
             while ((len = input.read(buffer)) > 0) {
                 output.write(buffer, 0, len);
@@ -158,23 +156,25 @@ public class ClassDiscoveryImplTest extends MockGroupAbstractTest {
         } finally {
             try {
                 input.close();
-            } catch (IOException e) {
+            } catch (final IOException e) {
                 e.printStackTrace();
             }
 
             try {
                 output.close();
-            } catch (IOException e) {
+            } catch (final IOException e) {
                 e.printStackTrace();
             }
         }
     }
 
     private void deleteDirectory(File rootDir, List<File> fileList) {
-        for (File file: fileList) {
+        for (final File file : fileList) {
             file.delete();
 
-            for (File directory = file.getParentFile(); !directory.equals(rootDir); directory = directory.getParentFile()) {
+            for (File directory = file.getParentFile();
+                 !directory.equals(rootDir);
+                 directory = directory.getParentFile()) {
                 if (!directory.delete()) {
                     break;
                 }

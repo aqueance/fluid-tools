@@ -46,7 +46,7 @@ public abstract class MockGroupAbstractTest {
 
     @BeforeMethod
     public void setup() throws Exception {
-        for (IMocksControl group : groups) {
+        for (final IMocksControl group : groups) {
             group.reset();
         }
     }
@@ -63,20 +63,20 @@ public abstract class MockGroupAbstractTest {
         return niceGroup;
     }
 
-    protected <T> T addControl(Class<T> interfaceClass) {
+    protected <T> T addControl(final Class<T> interfaceClass) {
         return group.createMock(interfaceClass);
     }
 
-    protected <T> T addNiceControl(Class<T> interfaceClass) {
+    protected <T> T addNiceControl(final Class<T> interfaceClass) {
         return niceGroup.createMock(interfaceClass);
     }
 
-    protected <T> T addStrictControl(Class<T> interfaceClass) {
+    protected <T> T addStrictControl(final Class<T> interfaceClass) {
         return strictGroup.createMock(interfaceClass);
     }
 
     protected final void replay() {
-        for (IMocksControl group : groups) {
+        for (final IMocksControl group : groups) {
             group.replay();
         }
     }
@@ -84,10 +84,10 @@ public abstract class MockGroupAbstractTest {
     protected final void verify() {
         boolean failed = false;
 
-        for (IMocksControl group : groups) {
+        for (final IMocksControl group : groups) {
             try {
                 group.verify();
-            } catch (AssertionError e) {
+            } catch (final AssertionError e) {
                 if (!failed) {
                     throw e;
                 } else {
@@ -96,7 +96,7 @@ public abstract class MockGroupAbstractTest {
             } finally {
                 try {
                     group.reset();
-                } catch (Throwable e) {
+                } catch (final Throwable e) {
                     assert false : e;
                 }
             }
@@ -104,7 +104,7 @@ public abstract class MockGroupAbstractTest {
     }
 
     protected final void reset() {
-        for (IMocksControl group : groups) {
+        for (final IMocksControl group : groups) {
             group.reset();
         }
     }

@@ -41,7 +41,7 @@ final class LinkingComponentAdapter implements ComponentAdapter {
 
     private final Object targetKey;
 
-    public LinkingComponentAdapter(PicoContainer pico, Object sourceKey, Object targetKey) {
+    public LinkingComponentAdapter(final PicoContainer pico, final Object sourceKey, final Object targetKey) {
         this.pico = pico;
         this.sourceKey = sourceKey;
         this.targetKey = targetKey;
@@ -55,18 +55,18 @@ final class LinkingComponentAdapter implements ComponentAdapter {
         return pico.getComponentAdapter(targetKey).getComponentImplementation();
     }
 
-    public Object getComponentInstance(PicoContainer picoContainer)
+    public Object getComponentInstance(final PicoContainer picoContainer)
         throws PicoInitializationException, PicoIntrospectionException {
         return pico.getComponentInstance(targetKey);
     }
 
-    public void verify(PicoContainer picoContainer) throws PicoIntrospectionException {
+    public void verify(final PicoContainer picoContainer) throws PicoIntrospectionException {
         if (pico.getComponentAdapter(targetKey) == null) {
             throw new LinkedComponentNotFoundException(targetKey);
         }
     }
 
-    public void accept(PicoVisitor picoVisitor) {
+    public void accept(final PicoVisitor picoVisitor) {
         pico.getComponentAdapter(targetKey).accept(picoVisitor);
     }
 }

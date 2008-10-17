@@ -54,11 +54,11 @@ public class DependencyResolverFilterTest extends MockGroupAbstractTest {
 
     @Test
     public void delegateAcquisition() throws Exception {
-        DependencyResolver savedResolver = DependencyResolverFilter.useResolver(resolver);
+        final DependencyResolver savedResolver = DependencyResolverFilter.useResolver(resolver);
 
         try {
-            String componentKey = "key";
-            String referenceName = "referenceName";
+            final String componentKey = "key";
+            final String referenceName = "referenceName";
 
             EasyMock.expect(config.getInitParameter(DependencyResolver.COMPONENT_KEY)).andReturn(componentKey);
             EasyMock.expect(config.getServletContext()).andReturn(context);
@@ -71,7 +71,7 @@ public class DependencyResolverFilterTest extends MockGroupAbstractTest {
 
             replay();
 
-            DependencyResolverFilter resolverFilter = new DependencyResolverFilter();
+            final DependencyResolverFilter resolverFilter = new DependencyResolverFilter();
             resolverFilter.init(config);
             resolverFilter.doFilter(request, response, chain);
             resolverFilter.destroy();

@@ -38,7 +38,7 @@ public interface PackageBindings extends ComponentContainer.Bindings {
      *
      * @param container is the container containing all global components that will be available during the life
      */
-    void initialiseComponents(ComponentContainer container);
+    void initialiseComponents(final ComponentContainer container);
 
     /**
      * Perform component specific shutdown if necessary. This method is invoked once when the application is being shut
@@ -46,5 +46,5 @@ public interface PackageBindings extends ComponentContainer.Bindings {
      *
      * @param container is the container containing all global components that will be available during the life
      */
-    void shutdownComponents(ComponentContainer container);
+    void shutdownComponents(final ComponentContainer container);
 }

@@ -15,7 +15,7 @@ public final class WebRunControlBindings extends EmptyPackageBindings {
     }
 
     @Override
-    public void registerComponents(ComponentContainer.Registry registry) {
+    public void registerComponents(final ComponentContainer.Registry registry) {
         if (control != null) {
             registry.bind(WebRunControl.class, control);
         }

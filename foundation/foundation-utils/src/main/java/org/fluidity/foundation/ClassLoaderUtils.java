@@ -40,7 +40,7 @@ import java.net.URL;
  */
 public final class ClassLoaderUtils {
 
-    public static ClassLoader findClassLoader(Class sourceClass) {
+    public static ClassLoader findClassLoader(final Class sourceClass) {
         ClassLoader result = Thread.currentThread().getContextClassLoader();
         result = result == null ? sourceClass.getClassLoader() : result;
         result = result == null ? ClassLoaderUtils.class.getClassLoader() : result;
@@ -49,15 +49,15 @@ public final class ClassLoaderUtils {
         return result == null ? ClassLoader.getSystemClassLoader() : result;
     }
 
-    public static String absoluteResourceName(String resourceName) {
+    public static String absoluteResourceName(final String resourceName) {
         return resourceName.startsWith("/") ? resourceName.substring(1) : resourceName;
     }
 
-    public static String classResourceName(Class sourceClass) {
+    public static String classResourceName(final Class sourceClass) {
         return sourceClass.getName().replace('.', '/') + ".class";
     }
 
-    public static URL findClassResource(Class sourceClass) {
+    public static URL findClassResource(final Class sourceClass) {
         return findClassLoader(sourceClass).getResource(classResourceName(sourceClass));
     }
 }

@@ -25,18 +25,18 @@ package org.fluidity.composition;
 /**
  * Empty package bindings to simplify creation of actual implementations.
  */
-@ServiceProvider(api = PackageBindings.class)
+@ServiceProvider
 public abstract class EmptyPackageBindings implements PackageBindings {
 
-    public void registerComponents(ComponentContainer.Registry registry) {
+    public void registerComponents(final ComponentContainer.Registry registry) {
         // empty
     }
 
-    public void initialiseComponents(ComponentContainer container) {
+    public void initialiseComponents(final ComponentContainer container) {
         // empty
     }
 
-    public void shutdownComponents(ComponentContainer container) {
+    public void shutdownComponents(final ComponentContainer container) {
         // empty
     }
 }

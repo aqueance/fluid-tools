@@ -31,7 +31,7 @@ import org.picocontainer.PicoIntrospectionException;
  */
 final class LinkedComponentNotFoundException extends PicoIntrospectionException {
 
-    public LinkedComponentNotFoundException(Object key) {
+    public LinkedComponentNotFoundException(final Object key) {
         super("Linked component not found for key " + key);
     }
 }

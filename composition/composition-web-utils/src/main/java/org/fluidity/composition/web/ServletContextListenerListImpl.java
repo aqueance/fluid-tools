@@ -35,7 +35,7 @@ final class ServletContextListenerListImpl implements ServletContextListenerList
 
     private final javax.servlet.ServletContextListener[] listeners;
 
-    public ServletContextListenerListImpl(javax.servlet.ServletContextListener[] listeners) {
+    public ServletContextListenerListImpl(final javax.servlet.ServletContextListener[] listeners) {
         this.listeners = listeners;
     }
 

@@ -40,40 +40,40 @@ import org.fluidity.composition.Component;
 @Component
 final class ResourcesImpl implements Resources {
 
-    public String resourceName(String name) {
+    public String resourceName(final String name) {
         return ClassLoaderUtils.absoluteResourceName(name);
     }
 
-    public URL locateResource(String name) {
+    public URL locateResource(final String name) {
         return classLoader().getResource(absoluteName(name));
     }
 
-    public URL[] locateResources(String name) {
-        Collection<URL> answer = new LinkedHashSet<URL>();
+    public URL[] locateResources(final String name) {
+        final Collection<URL> answer = new LinkedHashSet<URL>();
 
         try {
-            for (Enumeration resources = classLoader().getResources(absoluteName(name)); resources.hasMoreElements();) {
+            for (final Enumeration resources = classLoader().getResources(absoluteName(name)); resources.hasMoreElements();) {
                 answer.add((URL) resources.nextElement());
             }
-        } catch (IOException e) {
+        } catch (final IOException e) {
             throw new RuntimeException(e);
         }
 
         return answer.toArray(new URL[answer.size()]);
     }
 
-    public InputStream loadResource(String name) {
+    public InputStream loadResource(final String name) {
         return classLoader().getResourceAsStream(absoluteName(name));
     }
 
-    public InputStream loadClassResource(String className) {
+    public InputStream loadClassResource(final String className) {
         return classLoader().getResourceAsStream(className.replace('.', '/') + ".class");
     }
 
-    public Class loadClass(String className) {
+    public Class loadClass(final String className) {
         try {
             return classLoader().loadClass(className);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             return null;
         }
     }
@@ -82,7 +82,7 @@ final class ResourcesImpl implements Resources {
         return ClassLoaderUtils.findClassLoader(getClass());
     }
 
-    private String absoluteName(String name) {
+    private String absoluteName(final String name) {
         return ClassLoaderUtils.absoluteResourceName(name);
     }
 }

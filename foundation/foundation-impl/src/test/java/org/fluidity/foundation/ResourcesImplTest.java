@@ -76,7 +76,7 @@ public class ResourcesImplTest extends MockGroupAbstractTest {
     @SuppressWarnings({ "ThrowableInstanceNeverThrown" })
     @Test
     public void loadClass() throws Exception {
-        String className = getClass().getName();
+        final String className = getClass().getName();
         EasyMock.expect(delegate.loadClass(className)).andReturn(getClass());
         EasyMock.expect(delegate.loadClass(className)).andThrow(new RuntimeException());
 
@@ -88,8 +88,8 @@ public class ResourcesImplTest extends MockGroupAbstractTest {
 
     @Test
     public void loadResource() throws Exception {
-        String resourceName = "resource";
-        InputStream stream = new ByteArrayInputStream(new byte[0]);
+        final String resourceName = "resource";
+        final InputStream stream = new ByteArrayInputStream(new byte[0]);
 
         EasyMock.expect(delegate.loadResource(resourceName)).andReturn(stream);
         EasyMock.expect(delegate.loadResource(resourceName)).andReturn(stream);
@@ -102,10 +102,10 @@ public class ResourcesImplTest extends MockGroupAbstractTest {
 
     @Test
     public void loadClassResource() throws Exception {
-        String className = getClass().getName();
-        String resourceName = className.replace('.', '/') + ".class";
+        final String className = getClass().getName();
+        final String resourceName = className.replace('.', '/') + ".class";
 
-        InputStream stream = new ByteArrayInputStream(new byte[0]);
+        final InputStream stream = new ByteArrayInputStream(new byte[0]);
 
         EasyMock.expect(delegate.loadResource(resourceName)).andReturn(stream);
 
@@ -116,8 +116,8 @@ public class ResourcesImplTest extends MockGroupAbstractTest {
 
     @Test
     public void locateResource() throws Exception {
-        String resourceName = "whatever";
-        URL url = new URL("file:///");
+        final String resourceName = "whatever";
+        final URL url = new URL("file:///");
 
         EasyMock.expect(delegate.locateResource(resourceName)).andReturn(url);
 
@@ -128,11 +128,11 @@ public class ResourcesImplTest extends MockGroupAbstractTest {
 
     @Test
     public void locateResources() throws Exception {
-        String resourceName = "whatever";
-        URL url1 = new URL("file:///a");
-        URL url2 = new URL("file:///b");
+        final String resourceName = "whatever";
+        final URL url1 = new URL("file:///a");
+        final URL url2 = new URL("file:///b");
 
-        URL[] urls = new URL[] { url1, url2 };
+        final URL[] urls = new URL[] { url1, url2 };
         EasyMock.expect(delegate.locateResources(resourceName)).andReturn(urls);
 
         replay();

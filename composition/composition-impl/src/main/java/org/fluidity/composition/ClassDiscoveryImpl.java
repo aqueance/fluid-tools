@@ -64,7 +64,7 @@ public final class ClassDiscoveryImpl implements ClassDiscovery {
             final Enumeration<URL> resources = classLoader.getResources(
                 ClassLoaderUtils.absoluteResourceName("META-INF/services/" + componentInterface.getName()));
 
-            for (URL url : Collections.list(resources)) {
+            for (final URL url : Collections.list(resources)) {
 
                 /* Some dumb class loaders load JAR files more than once */
                 if (!loaded.contains(url)) {
@@ -106,7 +106,7 @@ public final class ClassDiscoveryImpl implements ClassDiscovery {
                                     log.error(getClass(), rawClass + " does not implemement " + componentInterface);
                                 }
                             }
-                        } catch (ClassNotFoundException e) {
+                        } catch (final ClassNotFoundException e) {
                             log.error(getClass(), "Invalid class name: " + line);
                         }
                     }
@@ -114,9 +114,9 @@ public final class ClassDiscoveryImpl implements ClassDiscovery {
                     componentList.addAll(localList);
                 }
             }
-        } catch (RuntimeException e) {
+        } catch (final RuntimeException e) {
             throw e;
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new RuntimeException(e);
         }
 

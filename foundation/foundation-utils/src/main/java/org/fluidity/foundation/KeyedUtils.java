@@ -51,7 +51,7 @@ public final class KeyedUtils {
      *
      * @return a <code>Map</code>, never <code>null</code>.
      */
-    public static <T extends Keyed> Map<String, T> asOrderedMap(Collection<T> objects) {
+    public static <T extends Keyed> Map<String, T> asOrderedMap(final Collection<T> objects) {
         return asMap(objects, new LinkedHashMap<String, T>());
     }
 
@@ -63,7 +63,7 @@ public final class KeyedUtils {
      *
      * @return a <code>Map</code>, never <code>null</code>.
      */
-    public static <T extends Keyed> Map<String, T> asUnorderedMap(Collection<T> objects) {
+    public static <T extends Keyed> Map<String, T> asUnorderedMap(final Collection<T> objects) {
         return asMap(objects, new HashMap<String, T>());
     }
 
@@ -76,11 +76,12 @@ public final class KeyedUtils {
      *
      * @return a <code>Map</code>, never <code>null</code>.
      */
-    public static <T extends Keyed> Map<String, T> asSortedMap(Collection<T> objects, Comparator<T> comparator) {
+    public static <T extends Keyed> Map<String, T> asSortedMap(final Collection<T> objects,
+                                                               final Comparator<T> comparator) {
         assert objects != null;
         assert comparator != null;
 
-        Set<T> set = new TreeSet<T>(comparator);
+        final Set<T> set = new TreeSet<T>(comparator);
         set.addAll(objects);
 
         return asOrderedMap(set);
@@ -94,7 +95,7 @@ public final class KeyedUtils {
      *
      * @return a <code>Map</code>, never <code>null</code>.
      */
-    public static <T extends Keyed> Map<String, T> asOrderedMap(T[] objects) {
+    public static <T extends Keyed> Map<String, T> asOrderedMap(final T[] objects) {
         return asOrderedMap(Arrays.asList(objects));
     }
 
@@ -106,7 +107,7 @@ public final class KeyedUtils {
      *
      * @return a <code>Map</code>, never <code>null</code>.
      */
-    public static <T extends Keyed> Map<String, T> asUnorderedMap(T[] objects) {
+    public static <T extends Keyed> Map<String, T> asUnorderedMap(final T[] objects) {
         return asUnorderedMap(Arrays.asList(objects));
     }
 
@@ -119,7 +120,7 @@ public final class KeyedUtils {
      *
      * @return a <code>Map</code>, never <code>null</code>.
      */
-    public static <T extends Keyed> Map<String, T> asSortedMap(T[] objects, Comparator<T> comparator) {
+    public static <T extends Keyed> Map<String, T> asSortedMap(final T[] objects, final Comparator<T> comparator) {
         return asSortedMap(Arrays.asList(objects), comparator);
     }
 
@@ -130,7 +131,7 @@ public final class KeyedUtils {
      *
      * @return a <code>Collection</code>, never <code>null</code>.
      */
-    public static <T extends Keyed> Collection<String> asKeys(Collection<T> objects) {
+    public static <T extends Keyed> Collection<String> asKeys(final Collection<T> objects) {
         return MapUtils.asKeys(objects, new KeyExtractor<T>());
     }
 
@@ -141,7 +142,7 @@ public final class KeyedUtils {
      *
      * @return a <code>Collection</code>, never <code>null</code>.
      */
-    public static <T extends Keyed> Collection<String> asKeys(T[] objects) {
+    public static <T extends Keyed> Collection<String> asKeys(final T[] objects) {
         return asKeys(Arrays.asList(objects));
     }
 
@@ -154,18 +155,18 @@ public final class KeyedUtils {
      *
      * @return a <code>Map</code>, never <code>null</code>.
      */
-    private static <T extends Keyed> Map<String, T> asMap(Collection<T> objects, Map<String, T> result) {
+    private static <T extends Keyed> Map<String, T> asMap(final Collection<T> objects, final Map<String, T> result) {
         return MapUtils.asMap(objects, result, new KeyExtractor<T>());
     }
 
     private static class KeyExtractor<T extends Keyed> implements MapUtils.Extractor<String, T> {
 
-        public String getKey(Object object) {
+        public String getKey(final Object object) {
             return ((Keyed) object).key();
         }
 
         @SuppressWarnings({ "unchecked" })
-        public T getValue(Object object) {
+        public T getValue(final Object object) {
             return (T) object;
         }
     }

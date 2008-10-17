@@ -37,20 +37,20 @@ public class NamedComparatorTest extends MockGroupAbstractTest {
 
     @Test
     public void comparison() throws Exception {
-        Named object1 = new MyNamed("aaaa");
-        Named object2 = new MyNamed("bbbb");
-        Named object3 = new MyNamed("cccc");
-        Named object4 = new MyNamed("dddd");
-        Named object5 = new MyNamed("eeee");
+        final Named object1 = new MyNamed("aaaa");
+        final Named object2 = new MyNamed("bbbb");
+        final Named object3 = new MyNamed("cccc");
+        final Named object4 = new MyNamed("dddd");
+        final Named object5 = new MyNamed("eeee");
 
-        Set<Named> sorted = new TreeSet<Named>(new NamedComparator());
+        final Set<Named> sorted = new TreeSet<Named>(new NamedComparator());
         sorted.add(object2);
         sorted.add(object4);
         sorted.add(object1);
         sorted.add(object3);
         sorted.add(object5);
 
-        Iterator iterator = sorted.iterator();
+        final Iterator iterator = sorted.iterator();
         assert object1 == iterator.next();
         assert object2 == iterator.next();
         assert object3 == iterator.next();
@@ -61,14 +61,14 @@ public class NamedComparatorTest extends MockGroupAbstractTest {
 
     @Test
     public void caseInsensitiveComparison() throws Exception {
-        Named object1 = new MyNamed("AAAA");
-        Named object2 = new MyNamed("bBbB");
-        Named object3 = new MyNamed("CcCc");
-        Named object4 = new MyNamed("dDdD");
-        Named object5 = new MyNamed("eeee");
-        Named object6 = new MyNamed("����");            // this is at the end of the alphabet in Finnish
+        final Named object1 = new MyNamed("AAAA");
+        final Named object2 = new MyNamed("bBbB");
+        final Named object3 = new MyNamed("CcCc");
+        final Named object4 = new MyNamed("dDdD");
+        final Named object5 = new MyNamed("eeee");
+        final Named object6 = new MyNamed("����");            // this is at the end of the alphabet in Finnish
 
-        Set<Named> sorted = new TreeSet<Named>(new NamedComparator(new Locale("FI"), true));
+        final Set<Named> sorted = new TreeSet<Named>(new NamedComparator(new Locale("FI"), true));
         sorted.add(object2);
         sorted.add(object6);
         sorted.add(object4);
@@ -76,7 +76,7 @@ public class NamedComparatorTest extends MockGroupAbstractTest {
         sorted.add(object3);
         sorted.add(object5);
 
-        Iterator iterator = sorted.iterator();
+        final Iterator iterator = sorted.iterator();
         assert object1 == iterator.next();
         assert object2 == iterator.next();
         assert object3 == iterator.next();
@@ -90,7 +90,7 @@ public class NamedComparatorTest extends MockGroupAbstractTest {
 
         private String name;
 
-        public MyNamed(String name) {
+        public MyNamed(final String name) {
             this.name = name;
         }
 

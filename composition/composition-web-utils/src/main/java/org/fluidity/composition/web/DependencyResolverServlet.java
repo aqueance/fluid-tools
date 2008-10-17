@@ -61,7 +61,7 @@ public final class DependencyResolverServlet implements Servlet {
 
     private Servlet delegate;
 
-    public void init(ServletConfig config) throws ServletException {
+    public void init(final ServletConfig config) throws ServletException {
         assert resolver != null;
         delegate = (Servlet) resolver.findComponent(
             config.getServletContext().getInitParameter(DependencyResolver.CONTAINER_CLASS),
@@ -74,7 +74,8 @@ public final class DependencyResolverServlet implements Servlet {
         return delegate.getServletConfig();
     }
 
-    public void service(ServletRequest request, ServletResponse response) throws ServletException, IOException {
+    public void service(final ServletRequest request, final ServletResponse response)
+        throws ServletException, IOException {
         delegate.service(request, response);
     }
 
@@ -88,7 +89,7 @@ public final class DependencyResolverServlet implements Servlet {
     }
 
     // Kept non-private for test cases to be able to provide mock resolver.
-    static DependencyResolver useResolver(DependencyResolver resolver) {
+    static DependencyResolver useResolver(final DependencyResolver resolver) {
         try {
             return DependencyResolverServlet.resolver;
         } finally {

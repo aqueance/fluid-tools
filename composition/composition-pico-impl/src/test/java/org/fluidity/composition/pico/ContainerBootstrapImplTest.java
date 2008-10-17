@@ -27,6 +27,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Properties;
+import java.util.Map;
 
 import org.easymock.EasyMock;
 import org.easymock.IAnswer;
@@ -125,7 +126,7 @@ public class ContainerBootstrapImplTest extends MockGroupAbstractTest {
         shutdown.addTask((String) EasyMock.notNull(), (Runnable) EasyMock.anyObject());
 
         replay();
-        OpenComponentContainer picoContainer =
+        final OpenComponentContainer picoContainer =
             new PicoContainerBootstrap().populateContainer(discovery, null, null, null);
         assert picoContainer != null;
         assert picoContainer.getComponent(ShutdownHook.class) == shutdown;
@@ -140,7 +141,7 @@ public class ContainerBootstrapImplTest extends MockGroupAbstractTest {
         replay();
         try {
             new PicoContainerBootstrap().populateContainer(discovery, null, null, null);
-        } catch (MissingDependenciesException e) {
+        } catch (final MissingDependenciesException e) {
             String message = e.getMessage();
             assert message.indexOf(ShutdownHook.class.getName()) > -1;
             assert message.indexOf(PicoContainerBootstrap.class.getName()) > -1;
@@ -164,9 +165,9 @@ public class ContainerBootstrapImplTest extends MockGroupAbstractTest {
         EasyMock.expect(container.getUnresolvedDependencies()).andReturn(new HashMap<Class, List<Class>>());
         EasyMock.expect(container.getComponent(ShutdownHook.class)).andReturn(shutdown);
 
-        String value = "value";
+        final String value = "value";
 
-        Properties properties = new Properties();
+        final Properties properties = new Properties();
         properties.setProperty(ConfigurablePackageBindingsImpl.KEY, value);
 
         shutdown.addTask((String) EasyMock.notNull(), (Runnable) EasyMock.anyObject());
@@ -200,7 +201,7 @@ public class ContainerBootstrapImplTest extends MockGroupAbstractTest {
 
         registry.requireDependency(ShutdownHook.class, PicoContainerBootstrap.class);
 
-        HashMap<Class, List<Class>> missing = new HashMap<Class, List<Class>>();
+        final Map<Class, List<Class>> missing = new HashMap<Class, List<Class>>();
         missing.put(getClass(), Arrays.asList((Class) getClass()));
         EasyMock.expect(container.getUnresolvedDependencies()).andReturn(missing);
 

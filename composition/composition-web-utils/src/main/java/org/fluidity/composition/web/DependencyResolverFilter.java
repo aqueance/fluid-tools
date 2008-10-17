@@ -62,7 +62,7 @@ public final class DependencyResolverFilter implements Filter {
 
     private Filter delegate;
 
-    public void init(FilterConfig config) throws ServletException {
+    public void init(final FilterConfig config) throws ServletException {
         assert resolver != null;
         delegate = (Filter) resolver.findComponent(
             config.getServletContext().getInitParameter(DependencyResolver.CONTAINER_CLASS),
@@ -71,7 +71,8 @@ public final class DependencyResolverFilter implements Filter {
         delegate.init(config);
     }
 
-    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException,
+    public void doFilter(final ServletRequest request, final ServletResponse response, final FilterChain chain)
+        throws IOException,
         ServletException {
         delegate.doFilter(request, response, chain);
     }
@@ -82,7 +83,7 @@ public final class DependencyResolverFilter implements Filter {
     }
 
     // Kept non-private for test cases to be able to provide mock resolver.
-    static DependencyResolver useResolver(DependencyResolver resolver) {
+    static DependencyResolver useResolver(final DependencyResolver resolver) {
         try {
             return DependencyResolverFilter.resolver;
         } finally {
