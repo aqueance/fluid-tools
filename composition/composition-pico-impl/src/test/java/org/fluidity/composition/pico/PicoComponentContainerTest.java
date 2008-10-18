@@ -21,10 +21,12 @@
  */
 package org.fluidity.composition.pico;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.easymock.EasyMock;
+import org.easymock.IAnswer;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.OpenComponentContainer;
 import org.fluidity.tests.MockGroupAbstractTest;
@@ -284,7 +286,11 @@ public class PicoComponentContainerTest extends MockGroupAbstractTest {
 
         registry.bind(Key.class, Value.class, true, false, false);
         registry.bind(DependentKey.class, DependentValue.class, true, false, false, factory);
-        EasyMock.expect(factory.makeComponent(container)).andReturn(value);
+
+        final String check = "check";
+        registry.bind(Serializable.class, check);
+        EasyMock.expect(factory.makeComponent((ComponentContainer) EasyMock.notNull()))
+            .andAnswer(new ContainerAnswer<DependentKey, DependentValue>(container, value, Serializable.class, check));
 
         replay();
         final Key component = container.getComponent(Key.class);
@@ -304,7 +310,10 @@ public class PicoComponentContainerTest extends MockGroupAbstractTest {
         registry.bind(Key.class, Value.class, true, false, false);
         OpenComponentContainer nested =
             registry.makeNestedContainer(DependentKey.class, DependentValue.class, true, false, false, factory);
-        EasyMock.expect(factory.makeComponent(nested)).andReturn(value);
+        final String check = "check";
+        nested.getRegistry().bind(Serializable.class, check);
+        EasyMock.expect(factory.makeComponent((ComponentContainer) EasyMock.notNull()))
+            .andAnswer(new ContainerAnswer<DependentKey, DependentValue>(nested, value, Serializable.class, check));
 
         replay();
         final Key component = container.getComponent(Key.class);
@@ -325,7 +334,11 @@ public class PicoComponentContainerTest extends MockGroupAbstractTest {
         registry.bind(Factory.class, Factory.class);
         registry.bind(FactoryDependency.class, FactoryDependency.class);
         registry.bind(DependentKey.class, DependentValue.class, true, false, false, Factory.class);
-        EasyMock.expect(factory.makeComponent(container)).andReturn(value);
+
+        final String check = "check";
+        registry.bind(Serializable.class, check);
+        EasyMock.expect(factory.makeComponent((ComponentContainer) EasyMock.notNull()))
+            .andAnswer(new ContainerAnswer<DependentKey, DependentValue>(container, value, Serializable.class, check));
 
         replay();
         final Key component = container.getComponent(Key.class);
@@ -347,7 +360,11 @@ public class PicoComponentContainerTest extends MockGroupAbstractTest {
         registry.bind(FactoryDependency.class, FactoryDependency.class);
         final OpenComponentContainer nested =
             registry.makeNestedContainer(DependentKey.class, DependentValue.class, true, false, false, Factory.class);
-        EasyMock.expect(factory.makeComponent(nested)).andReturn(value);
+
+        final String check = "check";
+        nested.getRegistry().bind(Serializable.class, check);
+        EasyMock.expect(factory.makeComponent((ComponentContainer) EasyMock.notNull()))
+            .andAnswer(new ContainerAnswer<DependentKey, DependentValue>(nested, value, Serializable.class, check));
 
         replay();
         final Key component = container.getComponent(Key.class);
@@ -483,13 +500,41 @@ public class PicoComponentContainerTest extends MockGroupAbstractTest {
 
         public static ComponentContainer.ComponentFactory<DependentKey> delegate;
 
-        public Factory(FactoryDependency dependent) {
+        public Factory(final FactoryDependency dependent) {
             assert dependent != null;
         }
 
-        public DependentKey makeComponent(OpenComponentContainer container) {
+        public DependentKey makeComponent(final ComponentContainer container) {
             assert delegate != null;
             return delegate.makeComponent(container);
+        }
+    }
+
+    private static class ContainerAnswer<K, V extends K> implements IAnswer<K> {
+
+        private final OpenComponentContainer container;
+        private final Class<?> checkKey;
+        private final Object checkValue;
+        private final V value;
+
+        public ContainerAnswer(final OpenComponentContainer container,
+                               final V value, final Class<?> checkKey,
+                               Object checkValue
+        ) {
+            this.container = container;
+            this.checkKey = checkKey;
+            this.checkValue = checkValue;
+            this.value = value;
+        }
+
+        public K answer() throws Throwable {
+            final ComponentContainer received = (ComponentContainer) EasyMock.getCurrentArguments()[0];
+
+            assert received != null : "Received no container";
+            assert received.getComponent(checkKey) == checkValue
+                : "Expected " + container.toString() + ", got " + received.toString();
+
+            return value;
         }
     }
 }

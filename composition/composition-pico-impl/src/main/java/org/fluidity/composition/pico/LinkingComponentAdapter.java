@@ -35,9 +35,7 @@ import org.picocontainer.PicoVisitor;
 final class LinkingComponentAdapter implements ComponentAdapter {
 
     private final PicoContainer pico;
-
     private final Object sourceKey;
-
     private final Object targetKey;
 
     public LinkingComponentAdapter(final PicoContainer pico, final Object sourceKey, final Object targetKey) {

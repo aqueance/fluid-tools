@@ -449,11 +449,11 @@ public interface ComponentContainer {
         /**
          * Creates a new instance of the component that this is a factory for.
          *
-         * @param container is the container where the key that this factory should provide a component to expects its
+         * @param container is the container where the key that this factory should provide a component for expects its
          *                  dependencies to be.
          *
          * @return an object implementing <code>T</code>, never <code>null</code>.
          */
-        T makeComponent(final OpenComponentContainer container);
+        T makeComponent(final ComponentContainer container);
     }
 }

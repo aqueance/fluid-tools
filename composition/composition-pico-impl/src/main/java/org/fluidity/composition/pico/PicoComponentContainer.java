@@ -366,9 +366,7 @@ final class PicoComponentContainer implements OpenComponentContainer {
         private class ComponentFactoryClassAdapter<T> implements ComponentAdapter {
 
             private final Class<T> key;
-
             private final Class<? extends T> implementation;
-
             private final Class<? extends ComponentFactory<T>> factoryClass;
 
             public ComponentFactoryClassAdapter(final Class<T> key,
@@ -393,7 +391,7 @@ final class PicoComponentContainer implements OpenComponentContainer {
                 final ComponentFactory<T> factory =
                     (ComponentFactory<T>) picoContainer.getComponentInstance(factoryClass);
                 assert factory != null : factoryClass;
-                return factory.makeComponent(PicoComponentContainer.this);
+                return factory.makeComponent(PicoComponentContainer.this.getComponent(ComponentContainer.class));
             }
 
             public void verify(final PicoContainer picoContainer) throws PicoIntrospectionException {
@@ -408,9 +406,7 @@ final class PicoComponentContainer implements OpenComponentContainer {
         private class ComponentFactoryInstanceAdapter<T> implements ComponentAdapter {
 
             private final Class<T> key;
-
             private final Class<? extends T> implementation;
-
             private final ComponentFactory<T> factory;
 
             public ComponentFactoryInstanceAdapter(final Class<T> key,
@@ -431,7 +427,7 @@ final class PicoComponentContainer implements OpenComponentContainer {
 
             public Object getComponentInstance(final PicoContainer picoContainer)
                 throws PicoInitializationException, PicoIntrospectionException {
-                return factory.makeComponent(PicoComponentContainer.this);
+                return factory.makeComponent(PicoComponentContainer.this.getComponent(ComponentContainer.class));
             }
 
             public void verify(PicoContainer picoContainer) throws PicoIntrospectionException {
