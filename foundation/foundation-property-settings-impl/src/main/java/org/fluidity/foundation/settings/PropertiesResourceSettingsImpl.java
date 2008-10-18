@@ -23,16 +23,19 @@ package org.fluidity.foundation.settings;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.util.Properties;
 
 import org.fluidity.composition.Component;
 import org.fluidity.foundation.ApplicationInfo;
 import org.fluidity.foundation.Resources;
 import org.fluidity.foundation.Settings;
-import org.fluidity.foundation.logging.Log;
 
 /**
- * Extends a properties enabled settings implementation with functionality to load properties file resources.
+ * Extends {@link org.fluidity.foundation.settings.PropertySettings} with functionality to load properties file
+ * resources. First all <tt>default.properties</tt> resources are loaded from the context class loader and then if the
+ * application provides implementation for the {@link org.fluidity.foundation.ApplicationInfo} interface then all
+ * <tt>.properties</tt> resources are loaded whose name equals to {@link org.fluidity.foundation.ApplicationInfo#applicationShortName()}.
  *
  * @author Tibor Varga
  * @version $Revision$
@@ -60,13 +63,14 @@ final class PropertiesResourceSettingsImpl implements Settings {
         try {
             final Properties properties = new Properties();
             final String resourceName = resources.resourceName(name + ".properties");
-            final InputStream stream = resources.loadResource(resourceName);
+            final URL[] urls = resources.locateResources(resourceName);
 
-            if (stream == null) {
-                Log.info(getClass(), resourceName + " not found");
-            } else {
+            for (final URL url : urls) {
+                final InputStream stream = url.openStream();
+                assert stream != null : url;
+
                 properties.load(stream);
-                this.delegate.overrideProperties(resources.locateResource(resourceName), properties);
+                this.delegate.overrideProperties(url, properties);
             }
         } catch (final IOException e) {
             throw new RuntimeException(e);

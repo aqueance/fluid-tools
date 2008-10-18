@@ -23,7 +23,11 @@ package org.fluidity.foundation.settings;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
+import java.net.URLConnection;
+import java.net.URLStreamHandler;
 import java.util.Properties;
 
 import org.easymock.EasyMock;
@@ -48,7 +52,7 @@ public class PropertiesResourceSettingsImplTest extends MockGroupAbstractTest {
     public void noResourceFound() throws Exception {
         final String resourceName = "whatever";
         EasyMock.expect(resources.resourceName("default.properties")).andReturn(resourceName);
-        EasyMock.expect(resources.loadResource(resourceName)).andReturn(null);
+        EasyMock.expect(resources.locateResources(resourceName)).andReturn(new URL[0]);
 
         replay();
         new PropertiesResourceSettingsImpl(settings, resources);
@@ -66,11 +70,14 @@ public class PropertiesResourceSettingsImplTest extends MockGroupAbstractTest {
         properties.store(baos, null);
 
         final String resourceName = "whatever";
-        final URL url = new URL("file://properties.properties");
 
-        EasyMock.expect(resources.resourceName("default.properties")).andReturn(resourceName);
-        EasyMock.expect(resources.loadResource(resourceName)).andReturn(new ByteArrayInputStream(baos.toByteArray()));
-        EasyMock.expect(resources.locateResource(resourceName)).andReturn(url);
+        final String defaultsFile = "default.properties";
+
+        final URL url = new URL("test", "", 0, resourceName, new TestURLStreamHandler(baos.toByteArray()));
+
+        EasyMock.expect(resources.resourceName(defaultsFile)).andReturn(resourceName);
+        EasyMock.expect(resources.locateResources(resourceName)).andReturn(new URL[] { url });
+
         settings.overrideProperties(url, properties);
 
         replay();
@@ -98,25 +105,100 @@ public class PropertiesResourceSettingsImplTest extends MockGroupAbstractTest {
 
         final String appName = "whatever";
 
-        final URL defaultUrl = new URL("file://default.properties");
-        final URL appUrl = new URL("file://app.properties");
+        final String defaultsFile = "default.properties";
+        final String applicationFile = appName + ".properties";
 
-        EasyMock.expect(resources.resourceName("default.properties")).andReturn("default.properties");
-        EasyMock.expect(resources.loadResource("default.properties"))
-            .andReturn(new ByteArrayInputStream(dbaos.toByteArray()));
-        EasyMock.expect(resources.locateResource("default.properties")).andReturn(defaultUrl);
+        final URL defaultUrl = new URL("test", "", 0, defaultsFile, new TestURLStreamHandler(dbaos.toByteArray()));
+        final URL applicationUrl =
+            new URL("test", "", 0, applicationFile, new TestURLStreamHandler(dbaos.toByteArray()));
+
+        EasyMock.expect(resources.resourceName(defaultsFile)).andReturn(defaultsFile);
+        EasyMock.expect(resources.locateResources(defaultsFile)).andReturn(new URL[] { defaultUrl });
 
         EasyMock.expect(info.applicationShortName()).andReturn(appName);
-        EasyMock.expect(resources.resourceName(appName + ".properties")).andReturn(appName + ".properties");
-        EasyMock.expect(resources.loadResource(appName + ".properties"))
-            .andReturn(new ByteArrayInputStream(abaos.toByteArray()));
-        EasyMock.expect(resources.locateResource(appName + ".properties")).andReturn(appUrl);
+        EasyMock.expect(resources.resourceName(applicationFile)).andReturn(applicationFile);
+        EasyMock.expect(resources.locateResources(applicationFile)).andReturn(new URL[] { applicationUrl });
 
         settings.overrideProperties(defaultUrl, defaultProperties);
-        settings.overrideProperties(appUrl, appProperties);
+        settings.overrideProperties(applicationUrl, appProperties);
 
         replay();
         new PropertiesResourceSettingsImpl(settings, resources, info);
         verify();
+    }
+
+    @Test
+    public void multipleResources() throws Exception {
+        final Properties defaultProperties = new Properties();
+
+        defaultProperties.setProperty("a", "b");
+        defaultProperties.setProperty("a.b.c", "def");
+
+        final ByteArrayOutputStream dbaos = new ByteArrayOutputStream();
+        defaultProperties.store(dbaos, null);
+
+        final Properties appProperties = new Properties();
+
+        appProperties.setProperty("a", "b");
+        appProperties.setProperty("a.b.c", "def");
+
+        final ByteArrayOutputStream abaos = new ByteArrayOutputStream();
+        appProperties.store(abaos, null);
+
+        final String appName = "whatever";
+
+        final String defaultsFile = "default.properties";
+        final String applicationFile = appName + ".properties";
+
+        final URL defaultUrl1 = new URL("test", "", 0, defaultsFile, new TestURLStreamHandler(dbaos.toByteArray()));
+        final URL defaultUrl2 = new URL("test", "", 0, defaultsFile, new TestURLStreamHandler(dbaos.toByteArray()));
+        final URL defaultUrl3 = new URL("test", "", 0, defaultsFile, new TestURLStreamHandler(dbaos.toByteArray()));
+
+        final URL applicationUrl1 =
+            new URL("test", "", 0, applicationFile, new TestURLStreamHandler(dbaos.toByteArray()));
+        final URL applicationUrl2 =
+            new URL("test", "", 0, applicationFile, new TestURLStreamHandler(dbaos.toByteArray()));
+
+        EasyMock.expect(resources.resourceName(defaultsFile)).andReturn(defaultsFile);
+        EasyMock.expect(resources.locateResources(defaultsFile))
+            .andReturn(new URL[] { defaultUrl1, defaultUrl2, defaultUrl3 });
+
+        EasyMock.expect(info.applicationShortName()).andReturn(appName);
+        EasyMock.expect(resources.resourceName(applicationFile)).andReturn(applicationFile);
+        EasyMock.expect(resources.locateResources(applicationFile))
+            .andReturn(new URL[] { applicationUrl1, applicationUrl2 });
+
+        settings.overrideProperties(defaultUrl1, defaultProperties);
+        settings.overrideProperties(defaultUrl2, defaultProperties);
+        settings.overrideProperties(defaultUrl3, defaultProperties);
+        settings.overrideProperties(applicationUrl1, appProperties);
+        settings.overrideProperties(applicationUrl2, appProperties);
+
+        replay();
+        new PropertiesResourceSettingsImpl(settings, resources, info);
+        verify();
+    }
+
+    private static class TestURLStreamHandler extends URLStreamHandler {
+
+        private final byte[] bytes;
+
+        public TestURLStreamHandler(final byte[] bytes) {
+            this.bytes = bytes;
+        }
+
+        protected URLConnection openConnection(URL u) throws IOException {
+            return new URLConnection(u) {
+
+                public void connect() throws IOException {
+                    // empty
+                }
+
+                @Override
+                public InputStream getInputStream() throws IOException {
+                    return new ByteArrayInputStream(bytes);
+                }
+            };
+        }
     }
 }
