@@ -53,16 +53,4 @@
         <module>composition-web-utils</module>
     </modules>
 
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>${fluidity.groupId}</groupId>
-                <artifactId>fluid-tools</artifactId>
-                <version>${project.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
-
 </project>
