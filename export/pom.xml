@@ -58,28 +58,28 @@
         <dependencies>
 
             <dependency>
-                <groupId>org.fluidity.export</groupId>
+                <groupId>${fluidity.export.groupId}</groupId>
                 <artifactId>common-api</artifactId>
                 <version>${fluidity.version}</version>
                 <type>pom</type>
             </dependency>
 
             <dependency>
-                <groupId>org.fluidity.export</groupId>
+                <groupId>${fluidity.export.groupId}</groupId>
                 <artifactId>common-impl</artifactId>
                 <version>${fluidity.version}</version>
                 <type>pom</type>
             </dependency>
 
             <dependency>
-                <groupId>org.fluidity.export</groupId>
+                <groupId>${fluidity.export.groupId}</groupId>
                 <artifactId>common-cli-impl</artifactId>
                 <version>${fluidity.version}</version>
                 <type>pom</type>
             </dependency>
 
             <dependency>
-                <groupId>org.fluidity.export</groupId>
+                <groupId>${fluidity.export.groupId}</groupId>
                 <artifactId>common-tests</artifactId>
                 <version>${fluidity.version}</version>
                 <type>pom</type>
@@ -87,20 +87,20 @@
             </dependency>
 
             <dependency>
-                <groupId>org.fluidity.export</groupId>
+                <groupId>${fluidity.export.groupId}</groupId>
                 <artifactId>common-web-impl</artifactId>
                 <version>${fluidity.version}</version>
                 <type>pom</type>
             </dependency>
 
             <dependency>
-                <groupId>org.fluidity.export</groupId>
+                <groupId>${fluidity.export.groupId}</groupId>
                 <artifactId>commons-logging-impl</artifactId>
                 <version>${fluidity.version}</version>
             </dependency>
 
             <dependency>
-                <groupId>org.fluidity.export</groupId>
+                <groupId>${fluidity.export.groupId}</groupId>
                 <artifactId>property-settings-impl</artifactId>
                 <version>${fluidity.version}</version>
             </dependency>

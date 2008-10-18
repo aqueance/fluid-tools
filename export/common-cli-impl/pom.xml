@@ -52,7 +52,7 @@
         </dependency>
 
         <dependency>
-            <groupId>org.fluidity.composition</groupId>
+            <groupId>${fluidity.composition.groupId}</groupId>
             <artifactId>composition-command-line-impl</artifactId>
         </dependency>
 

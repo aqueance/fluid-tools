@@ -46,27 +46,27 @@
     <dependencies>
 
         <dependency>
-            <groupId>org.fluidity.foundation</groupId>
+            <groupId>${fluidity.foundation.groupId}</groupId>
             <artifactId>foundation-api</artifactId>
         </dependency>
 
         <dependency>
-            <groupId>org.fluidity.foundation</groupId>
+            <groupId>${fluidity.foundation.groupId}</groupId>
             <artifactId>foundation-logging</artifactId>
         </dependency>
 
         <dependency>
-            <groupId>org.fluidity.foundation</groupId>
+            <groupId>${fluidity.foundation.groupId}</groupId>
             <artifactId>foundation-utils</artifactId>
         </dependency>
 
         <dependency>
-            <groupId>org.fluidity.composition</groupId>
+            <groupId>${fluidity.composition.groupId}</groupId>
             <artifactId>composition-api</artifactId>
         </dependency>
 
         <dependency>
-            <groupId>org.fluidity.composition</groupId>
+            <groupId>${fluidity.composition.groupId}</groupId>
             <artifactId>composition-bootstrap</artifactId>
         </dependency>
 
