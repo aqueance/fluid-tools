@@ -25,7 +25,6 @@ package org.fluidity.foundation;
  * Application settings.
  *
  * @author Tibor Varga
- * @version $Revision$
  */
 public interface Settings {
 

@@ -37,7 +37,6 @@ import org.testng.annotations.Test;
 
 /**
  * @author Tibor Varga
- * @version $Revision$
  */
 public class ResourcesImplTest extends MockGroupAbstractTest {
 

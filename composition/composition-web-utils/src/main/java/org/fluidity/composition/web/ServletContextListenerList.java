@@ -26,7 +26,6 @@ package org.fluidity.composition.web;
  * javax.servlet.ServletContextListener interface.
  *
  * @author Tibor Varga
- * @version $Revision$
  */
 interface ServletContextListenerList {
 

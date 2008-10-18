@@ -24,10 +24,7 @@ package org.fluidity.composition.web;
 import org.fluidity.composition.Component;
 
 /**
- * TODO...
- *
  * @author Tibor Varga
- * @version $Revision$
  */
 @Component
 final class ServletContextListenerListImpl implements ServletContextListenerList {

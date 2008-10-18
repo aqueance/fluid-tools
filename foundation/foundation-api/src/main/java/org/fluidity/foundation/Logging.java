@@ -25,7 +25,6 @@ package org.fluidity.foundation;
  * Provides facilities to log debug, error, etc. messages to a log sink.
  *
  * @author Tibor Varga
- * @version $Revision$
  */
 public interface Logging {
 

@@ -31,7 +31,6 @@ import org.testng.annotations.Test;
 
 /**
  * @author Tibor Varga
- * @version $Revision$
  */
 public abstract class SettingsAbstractTest extends MockGroupAbstractTest {
 

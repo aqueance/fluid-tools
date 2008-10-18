@@ -30,7 +30,6 @@ import org.fluidity.foundation.Settings;
  * Settings backed by a <code>Properties</code> object.
  *
  * @author Tibor Varga
- * @version $Revision$
  */
 public interface PropertySettings extends Settings {
 

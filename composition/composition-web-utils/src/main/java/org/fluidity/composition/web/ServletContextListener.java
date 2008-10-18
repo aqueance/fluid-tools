@@ -29,7 +29,6 @@ import javax.servlet.ServletException;
  * must be registered as a listener in the host application's web.xml file.
  *
  * @author Tibor Varga
- * @version $Revision$
  */
 public final class ServletContextListener implements javax.servlet.ServletContextListener {
 

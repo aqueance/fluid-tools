@@ -27,7 +27,6 @@ import org.fluidity.foundation.Settings;
 
 /**
  * @author Tibor Varga
- * @version $Revision$
  */
 public final class PackageBindingsImpl extends EmptyPackageBindings {
 

@@ -28,7 +28,6 @@ import org.fluidity.composition.ShutdownHook;
  * Uses the <code>Runtime</code> object to add shutdown tasks to.
  *
  * @author Tibor Varga
- * @version $Revision$
  */
 @Component
 final class RuntimeShutdownHook implements ShutdownHook {

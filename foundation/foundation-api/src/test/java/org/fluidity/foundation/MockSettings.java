@@ -28,10 +28,9 @@ import java.util.Properties;
 import java.util.Set;
 
 /**
- * TODO...
+ * Exposes a {@link java.util.Properties} object through the {@link org.fluidity.foundation.Settings} interface.
  *
  * @author Tibor Varga
- * @version $Revision$
  */
 public final class MockSettings implements Settings {
 

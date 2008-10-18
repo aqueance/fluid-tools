@@ -25,7 +25,6 @@ package org.fluidity.foundation;
  * Key-name (or name-value) pair.
  *
  * @author Tibor Varga
- * @version $Revision$
  */
 public interface KeyedNamed extends Keyed, Named {
 

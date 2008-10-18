@@ -38,7 +38,6 @@ import org.fluidity.foundation.Settings;
  * <tt>.properties</tt> resources are loaded whose name equals to {@link org.fluidity.foundation.ApplicationInfo#applicationShortName()}.
  *
  * @author Tibor Varga
- * @version $Revision$
  */
 @Component(automatic = false)
 final class PropertiesResourceSettingsImpl implements Settings {

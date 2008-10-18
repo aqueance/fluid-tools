@@ -37,7 +37,6 @@ import org.fluidity.foundation.logging.StandardOutLogging;
  * having to be registered in the web application's web.xml file.
  *
  * @author Tibor Varga
- * @version $Revision$
  */
 @Component(api = ShutdownHook.class)
 final class WebApplicationShutdownHookImpl implements ShutdownHook, ServletContextListener {

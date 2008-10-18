@@ -34,7 +34,6 @@ import org.fluidity.composition.Component;
  * Uses the class loader hierarchy to load resources. 
  *
  * @author Tibor Varga
- * @version $Revision$
  */
 @Component
 final class ResourcesImpl implements Resources {

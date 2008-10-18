@@ -25,7 +25,6 @@ package org.fluidity.foundation;
  * Provides information about the host application.
  *
  * @author Tibor Varga
- * @version $Revision$
  */
 public interface ApplicationInfo {
 

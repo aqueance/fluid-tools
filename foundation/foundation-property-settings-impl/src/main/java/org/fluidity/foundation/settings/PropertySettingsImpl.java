@@ -44,7 +44,6 @@ import org.fluidity.foundation.logging.Log;
  * latter is requested.
  *
  * @author Tibor Varga
- * @version $Revision$
  */
 final class PropertySettingsImpl implements PropertySettings {
 

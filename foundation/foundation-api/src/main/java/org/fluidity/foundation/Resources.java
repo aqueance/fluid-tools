@@ -28,7 +28,6 @@ import java.net.URL;
  * Loads resources and classes using the most appropriate class loader (context, etc.)
  *
  * @author Tibor Varga
- * @version $Revision$
  */
 public interface Resources {
 

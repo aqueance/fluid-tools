@@ -27,7 +27,6 @@ package org.fluidity.composition;
  * registry. The components thus bound may depend on other components in the container and vice versa.
  *
  * @author Tibor Varga
- * @version $Revision: 1.1 $
  */
 public interface PackageBindings extends ComponentContainer.Bindings {
 

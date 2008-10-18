@@ -95,7 +95,6 @@ package org.fluidity.composition;
  * </ul>
  *
  * @author Tibor Varga
- * @version $Revision$
  */
 public interface ComponentContainer {
 

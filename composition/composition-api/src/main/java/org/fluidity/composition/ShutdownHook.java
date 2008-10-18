@@ -27,7 +27,6 @@ package org.fluidity.composition;
  * want to use the runtime system to do this while a web application would use a context listener for the same purpose.
  *
  * @author Tibor Varga
- * @version $Revision$
  */
 public interface ShutdownHook {
 

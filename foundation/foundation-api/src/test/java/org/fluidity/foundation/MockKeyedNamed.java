@@ -25,7 +25,6 @@ package org.fluidity.foundation;
  * Mock implementation of the <code>Keyed</code>, the <code>Named</code> and the <code>KeyedNamed</code> interfaces.
  *
  * @author Tibor Varga
- * @version $Revision$
  */
 public final class MockKeyedNamed implements KeyedNamed {
 
