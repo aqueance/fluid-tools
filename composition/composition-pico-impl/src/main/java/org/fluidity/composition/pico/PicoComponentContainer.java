@@ -209,7 +209,7 @@ final class PicoComponentContainer implements OpenComponentContainer {
                 }
             }
 
-            log.info(getClass(), this + ": registering " + implementation + " for " + key
+            log.info(getClass(), this + ": binding " + key + " to " + implementation
                 + (params != null ? " with parameter(s) " + report : ""));
             registerAdapter(key, implementation, deferred, singleton, thread, params);
         }
@@ -239,7 +239,7 @@ final class PicoComponentContainer implements OpenComponentContainer {
             final String value = instance instanceof String || instance instanceof Number
                 ? ('\'' + String.valueOf(instance) + '\'')
                 : (instance == null ? null : "instance of " + instance.getClass());
-            log.info(getClass(), this + ": registering " + value + " for '" + key + "'");
+            log.info(getClass(), this + ": binding " + key + " to '" + value + "'");
             pico.registerComponentInstance(key, instance);
         }
 
