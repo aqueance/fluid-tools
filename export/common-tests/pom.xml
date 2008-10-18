@@ -30,10 +30,10 @@
 
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.fluidity.export</groupId>
-    <artifactId>common-cli-impl</artifactId>
+    <artifactId>common-tests</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
-    <name>Export: Fluid Tools Common CLI Modules</name>
+    <name>Export: Fluid Tools Common Tests Modules</name>
 
     <licenses>
         <license>
@@ -46,14 +46,16 @@
     <dependencies>
 
         <dependency>
-            <groupId>${fluidity.export.groupId}</groupId>
-            <artifactId>common-impl</artifactId>
-            <type>pom</type>
+            <groupId>${fluidity.foundation.groupId}</groupId>
+            <artifactId>foundation-api</artifactId>
+            <classifier>tests</classifier>
+            <scope>compile</scope>
         </dependency>
 
         <dependency>
-            <groupId>org.fluidity.composition</groupId>
-            <artifactId>composition-command-line-impl</artifactId>
+            <groupId>${fluidity.foundation.groupId}</groupId>
+            <artifactId>foundation-easymock</artifactId>
+            <scope>compile</scope>
         </dependency>
 
     </dependencies>

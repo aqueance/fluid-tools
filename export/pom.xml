@@ -48,6 +48,9 @@
         <module>common-impl</module>
         <module>common-cli-impl</module>
         <module>common-web-impl</module>
+        <module>common-tests</module>
+        <module>commons-logging-impl</module>
+        <module>property-settings-impl</module>
     </modules>
 
     <dependencyManagement>
@@ -77,9 +80,29 @@
 
             <dependency>
                 <groupId>org.fluidity.export</groupId>
+                <artifactId>common-tests</artifactId>
+                <version>${fluidity.version}</version>
+                <type>pom</type>
+                <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.fluidity.export</groupId>
                 <artifactId>common-web-impl</artifactId>
                 <version>${fluidity.version}</version>
                 <type>pom</type>
+            </dependency>
+
+            <dependency>
+                <groupId>org.fluidity.export</groupId>
+                <artifactId>commons-logging-impl</artifactId>
+                <version>${fluidity.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.fluidity.export</groupId>
+                <artifactId>property-settings-impl</artifactId>
+                <version>${fluidity.version}</version>
             </dependency>
 
         </dependencies>

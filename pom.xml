@@ -45,6 +45,7 @@
         <fluidity.foundation.groupId>${fluidity.groupId}.foundation</fluidity.foundation.groupId>
         <fluidity.composition.groupId>${fluidity.groupId}.composition</fluidity.composition.groupId>
         <fluidity.plugin.groupId>${fluidity.groupId}.maven</fluidity.plugin.groupId>
+        <fluidity.export.groupId>${fluidity.groupId}.export</fluidity.export.groupId>
         <fluidity.version>${project.version}</fluidity.version>
     </properties>
 
@@ -124,8 +125,8 @@
             </dependency>
 
             <dependency>
-                <groupId>${fluidity.foundation.groupId}</groupId>
-                <artifactId>foundation-property-settings-impl</artifactId>
+                <groupId>${fluidity.export.groupId}</groupId>
+                <artifactId>property-settings-impl</artifactId>
                 <version>${fluidity.version}</version>
                 <scope>compile</scope>
             </dependency>
@@ -145,8 +146,8 @@
             </dependency>
 
             <dependency>
-                <groupId>${fluidity.foundation.groupId}</groupId>
-                <artifactId>foundation-commons-logging-impl</artifactId>
+                <groupId>${fluidity.export.groupId}</groupId>
+                <artifactId>commons-logging-impl</artifactId>
                 <version>${fluidity.version}</version>
                 <scope>compile</scope>
             </dependency>

@@ -23,17 +23,17 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <parent>
-        <groupId>org.fluidity.foundation</groupId>
-        <artifactId>foundation-tools</artifactId>
+        <groupId>org.fluidity.export</groupId>
+        <artifactId>project</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
-    <groupId>org.fluidity.foundation</groupId>
-    <artifactId>foundation-property-settings-impl</artifactId>
+    <groupId>org.fluidity.export</groupId>
+    <artifactId>commons-logging-impl</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
-    <name>Foundation: Property Settings Implementation</name>
+    <name>Export: Commons Logging Implementation</name>
 
     <licenses>
         <license>
@@ -46,32 +46,16 @@
     <dependencies>
 
         <dependency>
-            <groupId>${fluidity.foundation.groupId}</groupId>
-            <artifactId>foundation-api</artifactId>
+            <groupId>${fluidity.export.groupId}</groupId>
+            <artifactId>common-api</artifactId>
+            <type>pom</type>
         </dependency>
 
         <dependency>
-            <groupId>${fluidity.composition.groupId}</groupId>
-            <artifactId>composition-api</artifactId>
+            <groupId>commons-logging</groupId>
+            <artifactId>commons-logging-api</artifactId>
         </dependency>
-
-        <dependency>
-            <groupId>${fluidity.foundation.groupId}</groupId>
-            <artifactId>foundation-api</artifactId>
-            <classifier>tests</classifier>
-        </dependency>
-
-        <dependency>
-            <groupId>${fluidity.foundation.groupId}</groupId>
-            <artifactId>foundation-logging</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>${fluidity.foundation.groupId}</groupId>
-            <artifactId>foundation-easymock</artifactId>
-            <scope>test</scope>
-        </dependency>
-
+            
     </dependencies>
 
     <build>

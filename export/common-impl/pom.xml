@@ -46,7 +46,7 @@
     <dependencies>
 
         <dependency>
-            <groupId>org.fluidity.export</groupId>
+            <groupId>${fluidity.export.groupId}</groupId>
             <artifactId>common-api</artifactId>
             <type>pom</type>
         </dependency>
