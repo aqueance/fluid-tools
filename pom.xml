@@ -60,6 +60,7 @@
         <module>foundation</module>
         <module>composition</module>
         <module>plugins</module>
+        <module>export</module>
     </modules>
 
     <dependencyManagement>
