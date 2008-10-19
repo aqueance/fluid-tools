@@ -66,6 +66,12 @@
         </dependency>
 
         <dependency>
+            <groupId>${fluidity.composition.groupId}</groupId>
+            <artifactId>composition-api</artifactId>
+            <classifier>tests</classifier>
+        </dependency>
+
+        <dependency>
             <groupId>org.picocontainer</groupId>
             <artifactId>picocontainer</artifactId>
         </dependency>
