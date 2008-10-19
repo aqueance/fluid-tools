@@ -30,7 +30,7 @@
 
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.fluidity.export</groupId>
-    <artifactId>commons-logging-impl</artifactId>
+    <artifactId>fluidity-commons-logging-impl</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>Export: Commons Logging Implementation</name>
@@ -47,7 +47,7 @@
 
         <dependency>
             <groupId>${fluidity.export.groupId}</groupId>
-            <artifactId>common-api</artifactId>
+            <artifactId>fluidity-api</artifactId>
             <type>pom</type>
         </dependency>
 

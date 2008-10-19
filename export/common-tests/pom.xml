@@ -30,7 +30,7 @@
 
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.fluidity.export</groupId>
-    <artifactId>common-tests</artifactId>
+    <artifactId>fluidity-tests</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Export: Fluid Tools Common Tests Modules</name>

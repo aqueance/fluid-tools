@@ -30,7 +30,7 @@
 
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.fluidity.export</groupId>
-    <artifactId>common-cli-impl</artifactId>
+    <artifactId>fluidity-cli-impl</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Export: Fluid Tools Common CLI Modules</name>
@@ -47,7 +47,7 @@
 
         <dependency>
             <groupId>${fluidity.export.groupId}</groupId>
-            <artifactId>common-impl</artifactId>
+            <artifactId>fluidity-impl</artifactId>
             <type>pom</type>
         </dependency>
 

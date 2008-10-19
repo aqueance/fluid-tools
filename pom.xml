@@ -126,7 +126,7 @@
 
             <dependency>
                 <groupId>${fluidity.export.groupId}</groupId>
-                <artifactId>property-settings-impl</artifactId>
+                <artifactId>fluidity-property-settings-impl</artifactId>
                 <version>${fluidity.version}</version>
                 <scope>compile</scope>
             </dependency>
@@ -147,7 +147,7 @@
 
             <dependency>
                 <groupId>${fluidity.export.groupId}</groupId>
-                <artifactId>commons-logging-impl</artifactId>
+                <artifactId>fluidity-commons-logging-impl</artifactId>
                 <version>${fluidity.version}</version>
                 <scope>compile</scope>
             </dependency>
