@@ -33,7 +33,7 @@
     <artifactId>fluidity-cli-impl</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
-    <name>Export: Fluid Tools Common CLI Modules</name>
+    <name>Export: Fluid Tools Command Line Support</name>
 
     <licenses>
         <license>

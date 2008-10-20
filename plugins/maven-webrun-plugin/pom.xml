@@ -84,7 +84,6 @@ pressing Ctrl-C.
           <artifactId>composition-command-line-impl</artifactId>
         </dependency>
 
-        <!-- We use a PicoContainer as the container impl -->
         <dependency>
             <groupId>${fluidity.composition.groupId}</groupId>
           <artifactId>composition-pico-impl</artifactId>

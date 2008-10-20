@@ -162,6 +162,8 @@ public class WebRunMojo extends AbstractMojo {
             } catch (final Exception e) {
                 throw new MojoExecutionException("Starting server", e);
             }
+        } else {
+            log.warn("No web applications to deploy");
         }
     }
 

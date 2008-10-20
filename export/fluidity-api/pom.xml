@@ -33,7 +33,7 @@
     <artifactId>fluidity-api</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
-    <name>Export: Fluid Tools Common API Modules</name>
+    <name>Export: Fluid Tools API</name>
 
     <licenses>
         <license>
