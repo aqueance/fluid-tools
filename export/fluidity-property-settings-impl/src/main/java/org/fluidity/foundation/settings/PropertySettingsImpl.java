@@ -103,9 +103,11 @@ final class PropertySettingsImpl implements PropertySettings {
         String actualKey;
 
         synchronized (this.properties) {
-            final List<Map.Entry<URL, Map<String, String>>> entries = new ArrayList<Map.Entry<URL, Map<String, String>>>(properties.entrySet());
+            final List<Map.Entry<URL, Map<String, String>>> entries =
+                new ArrayList<Map.Entry<URL, Map<String, String>>>(properties.entrySet());
 
-            for (final ListIterator<Map.Entry<URL, Map<String, String>>> i = entries.listIterator(entries.size()); i.hasPrevious();) {
+            for (final ListIterator<Map.Entry<URL, Map<String, String>>> i = entries.listIterator(entries.size());
+                 i.hasPrevious();) {
                 final Map.Entry<URL, Map<String, String>> entry = i.previous();
                 final Map<String, String> map = entry.getValue();
 
@@ -131,74 +133,104 @@ final class PropertySettingsImpl implements PropertySettings {
         spec.getChars(0, spec.length(), chars, 0);
 
         final StringBuilder value = new StringBuilder(spec.length());
-        final StringBuilder key = new StringBuilder();
+        final StringBuilder name = new StringBuilder();
         final StringBuilder defaults = new StringBuilder();
 
+        boolean escaping = false;
         boolean expectingOpenBrace = false;
         boolean collectingName = false;
-        boolean collectingSpec = true;
-        boolean collectingDefault = true;
+        boolean collectingDefaults = false;
+        boolean collectingValue = true;
+        StringBuilder collect = value;
         int position = 0;
+
         for (final char c : chars) {
             switch (c) {
-            case '$':
-                if (!collectingSpec) throw new IllegalArgumentException(spec + ": unexpected character '$' at position " + position);
+            case '\\':
+                if (escaping) {
+                    escaping = false;
+                    collect.append(c);
+                } else {
+                    escaping = true;
+                }
 
-                collectingSpec = false;
-                expectingOpenBrace = true;
+                break;
+            case '$':
+                if (escaping) {
+                    escaping = false;
+                    collect.append(c);
+                } else {
+                    if (!collectingValue) {
+                        throw new IllegalArgumentException(spec + ": unexpected character '$' at position " + position);
+                    }
+
+                    collectingValue = false;
+                    expectingOpenBrace = true;
+                }
 
                 break;
 
             case '{':
-                if (expectingOpenBrace) {
+                if (escaping) {
+                    escaping = false;
+                    collect.append(c);
+                } else if (expectingOpenBrace) {
                     expectingOpenBrace = false;
                     collectingName = true;
+                    collect = name;
+                } else {
+                    collect.append(c);
                 }
 
                 break;
 
             case '|':
-                if (collectingName) {
+                if (escaping) {
+                    escaping = false;
+                    collect.append(c);
+                } else if (collectingName) {
                     collectingName = false;
-                    collectingDefault = true;
+                    collectingDefaults = true;
+                    collect = defaults;
+                } else {
+                    collect.append(c);
                 }
 
                 break;
 
             case '}':
-                if (collectingName || collectingDefault) {
+                if (escaping) {
+                    escaping = false;
+                    collect.append(c);
+                } else if (collectingName || collectingDefaults) {
                     collectingName = false;
-                    collectingDefault = false;
-                    collectingSpec = true;
+                    collectingDefaults = false;
+                    collectingValue = true;
+                    collect = value;
 
-                    String property = setting(key.toString(), System.getProperty(key.toString()));
+                    String property = setting(name.toString(), System.getProperty(name.toString()));
 
                     if (property == null) {
                         final String defaultValue = defaults.toString();
 
                         if (defaultValue.length() == 0) {
-                            Log.warning(getClass(), "Property " + key + " not found");
+                            Log.warning(getClass(), "Property " + name + " not found");
                         } else {
                             property = defaultValue;
                         }
                     }
 
-                    value.append(property == null ? key : property);
-                    key.setLength(0);
+                    value.append(property == null ? name : property);
+                    name.setLength(0);
                     defaults.setLength(0);
+                } else {
+                    collect.append(c);
                 }
 
                 break;
 
             default:
-                if (collectingSpec) {
-                    value.append(c);
-                } else if (collectingName) {
-                    key.append(c);
-                } else if (collectingDefault) {
-                    defaults.append(c);
-                }
-
+                collect.append(c);
                 break;
             }
 

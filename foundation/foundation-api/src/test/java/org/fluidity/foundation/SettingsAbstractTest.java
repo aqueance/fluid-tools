@@ -151,6 +151,7 @@ public abstract class SettingsAbstractTest extends MockGroupAbstractTest {
         final Properties props = new Properties();
 
         props.setProperty("app/key", "${test.value}");
+        props.setProperty("app/escaped", "\\${test.value}");
         props.setProperty("dynamic.key", "${test.dynamic.key|key0}");
         props.setProperty("key0/value", "${test.dynamic.value.0}");
         props.setProperty("key1/value", "${test.dynamic.value.1}");
@@ -164,6 +165,8 @@ public abstract class SettingsAbstractTest extends MockGroupAbstractTest {
         System.setProperty("test.dynamic.value.2", "valueTwo");
 
         Assert.assertEquals(settings.setting("app", "key", 0), Integer.parseInt(System.getProperty("test.value")));
+        Assert.assertEquals(settings.setting("app", "escaped", null), "${test.value}");
+
         Assert.assertEquals(settings.setting("${test.dynamic.key|key0}", "value", null), System.getProperty("test.dynamic.value.0"));
         Assert.assertEquals(settings.setting("dynamic.key", null), "key0");
 
