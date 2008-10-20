@@ -145,4 +145,34 @@ public abstract class SettingsAbstractTest extends MockGroupAbstractTest {
         Assert.assertSame(settings.setting("spaced2", "bool", false), Boolean.valueOf(props.getProperty("app/spaced2/bool")));
         Assert.assertTrue(settings.setting("spaced2", "missing", true));
     }
+
+    @Test
+    public void extrapolatesPlaceholders() throws Exception {
+        final Properties props = new Properties();
+
+        props.setProperty("app/key", "${test.value}");
+        props.setProperty("dynamic.key", "${test.dynamic.key|key0}");
+        props.setProperty("key0/value", "${test.dynamic.value.0}");
+        props.setProperty("key1/value", "${test.dynamic.value.1}");
+        props.setProperty("key2/value", "${test.dynamic.value.2}");
+
+        final Settings settings = newInstance(new MockSettings(props), new MockApplicationInfo("app", null));
+
+        System.setProperty("test.value", "91011");
+        System.setProperty("test.dynamic.value.0", "valueZero");
+        System.setProperty("test.dynamic.value.1", "valueOne");
+        System.setProperty("test.dynamic.value.2", "valueTwo");
+
+        Assert.assertEquals(settings.setting("app", "key", 0), Integer.parseInt(System.getProperty("test.value")));
+        Assert.assertEquals(settings.setting("${test.dynamic.key|key0}", "value", null), System.getProperty("test.dynamic.value.0"));
+        Assert.assertEquals(settings.setting("dynamic.key", null), "key0");
+
+        System.setProperty("test.dynamic.key", "key1");
+        Assert.assertEquals(settings.setting("${test.dynamic.key|key0}", "value", null), System.getProperty("test.dynamic.value.1"));
+        Assert.assertEquals(settings.setting("dynamic.key", null), System.getProperty("test.dynamic.key"));
+
+        System.setProperty("test.dynamic.key", "key2");
+        Assert.assertEquals(settings.setting("${test.dynamic.key|key0}", "value", null), System.getProperty("test.dynamic.value.2"));
+        Assert.assertEquals(settings.setting("dynamic.key", null), System.getProperty("test.dynamic.key"));
+    }
 }

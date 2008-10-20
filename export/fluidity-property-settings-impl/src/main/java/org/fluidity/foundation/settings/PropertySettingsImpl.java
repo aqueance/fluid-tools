@@ -98,7 +98,8 @@ final class PropertySettingsImpl implements PropertySettings {
         return keys.toArray(new String[keys.size()]);
     }
 
-    public String setting(final String key, final String defaultValue) {
+    public String setting(final String spec, final String defaultValue) {
+        final String key = extrapolate(spec);
         String actualKey;
 
         synchronized (this.properties) {
@@ -115,14 +116,96 @@ final class PropertySettingsImpl implements PropertySettings {
                 }
 
                 if (value != null) {
-                    Log.info(getClass(), "Found property " + key + " in " + entry.getKey() + " as " + actualKey);
-                    return value;
+                    Log.info(getClass(), "Found property " + spec + " in " + entry.getKey() + " as " + actualKey);
+                    return extrapolate(value);
                 }
             }
         }
 
-        Log.info(getClass(), "Property " + key + " not found");
+        Log.info(getClass(), "Property " + spec + " not found");
         return defaultValue;
+    }
+
+    private String extrapolate(String spec) {
+        final char[] chars = new char[spec.length()];
+        spec.getChars(0, spec.length(), chars, 0);
+
+        final StringBuilder value = new StringBuilder(spec.length());
+        final StringBuilder key = new StringBuilder();
+        final StringBuilder defaults = new StringBuilder();
+
+        boolean expectingOpenBrace = false;
+        boolean collectingName = false;
+        boolean collectingSpec = true;
+        boolean collectingDefault = true;
+        int position = 0;
+        for (final char c : chars) {
+            switch (c) {
+            case '$':
+                if (!collectingSpec) throw new IllegalArgumentException(spec + ": unexpected character '$' at position " + position);
+
+                collectingSpec = false;
+                expectingOpenBrace = true;
+
+                break;
+
+            case '{':
+                if (expectingOpenBrace) {
+                    expectingOpenBrace = false;
+                    collectingName = true;
+                }
+
+                break;
+
+            case '|':
+                if (collectingName) {
+                    collectingName = false;
+                    collectingDefault = true;
+                }
+
+                break;
+
+            case '}':
+                if (collectingName || collectingDefault) {
+                    collectingName = false;
+                    collectingDefault = false;
+                    collectingSpec = true;
+
+                    String property = setting(key.toString(), System.getProperty(key.toString()));
+
+                    if (property == null) {
+                        final String defaultValue = defaults.toString();
+
+                        if (defaultValue.length() == 0) {
+                            Log.warning(getClass(), "Property " + key + " not found");
+                        } else {
+                            property = defaultValue;
+                        }
+                    }
+
+                    value.append(property == null ? key : property);
+                    key.setLength(0);
+                    defaults.setLength(0);
+                }
+
+                break;
+
+            default:
+                if (collectingSpec) {
+                    value.append(c);
+                } else if (collectingName) {
+                    key.append(c);
+                } else if (collectingDefault) {
+                    defaults.append(c);
+                }
+
+                break;
+            }
+
+            ++position;
+        }
+
+        return value.toString();
     }
 
     public int setting(final String key, final int defaultValue) {

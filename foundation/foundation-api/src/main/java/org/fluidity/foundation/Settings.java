@@ -22,7 +22,10 @@
 package org.fluidity.foundation;
 
 /**
- * Application settings.
+ * Parameter settings. Property values may contain placeholders in the format <tt>${key}</tt> or <tt>${key|default},
+ * in which case the given <tt>key</tt> is searched for among the settings or else in the system properties. If the key
+ * is not found and a default is given, the default is used, otherwise the found property return. The same applies the
+ * the <tt>key</tt> and <tt>namespace</tt> parameters of the <tt>setting()</tt> methods.
  *
  * @author Tibor Varga
  */
@@ -116,7 +119,9 @@ public interface Settings {
 
     /**
      * Combines the given keys into a namespace.
+     *
      * @param keys a list of keys
+     *
      * @return a namespace that can then be passed to the various other methods that accept a namespace.
      */
     String asNamespace(final String... keys);
