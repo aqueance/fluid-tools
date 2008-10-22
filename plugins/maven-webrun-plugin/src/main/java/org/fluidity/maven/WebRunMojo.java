@@ -50,8 +50,15 @@ import org.mortbay.thread.QueuedThreadPool;
  */
 public class WebRunMojo extends AbstractMojo {
 
-    private static final File TMP_DIR =
-        new File(System.getProperty("java.io.tmpdir"), "jetty-" + System.identityHashCode(WebRunMojo.class));
+    /**
+     * The location of the compiled classes.
+     *
+     * @parameter expression="${project.build.directory}"
+     * @required
+     * @readonly
+     */
+    @SuppressWarnings({ "UnusedDeclaration" })
+    private File outputDirectory;
 
     private static final String WAR_TYPE = "war";
 
@@ -78,41 +85,9 @@ public class WebRunMojo extends AbstractMojo {
 
     @SuppressWarnings({ "unchecked" })
     public void execute() throws MojoExecutionException {
-        TMP_DIR.mkdirs();
+        final File tempDirectory = new File(outputDirectory, "jetty-" + System.identityHashCode(WebRunMojo.class));
 
-        Runtime.getRuntime().addShutdownHook(new Thread() {
-
-            @Override
-            public void run() {
-                Thread.currentThread().setContextClassLoader(null);
-                deleteDirectory(TMP_DIR);
-            }
-
-            private void deleteDirectory(File directory) {
-                if (directory == null) return;
-
-                final File[] files = directory.listFiles();
-                if (files == null) return;
-
-                for (final File file : files) {
-                    if (file.isDirectory()) {
-                        deleteDirectory(file);
-                    } else {
-                        file.delete();
-
-                        if (file.exists()) {
-                            System.out.println(file + " could not be deleted");
-                        }
-                    }
-                }
-
-                directory.delete();
-
-                if (directory.exists()) {
-                    System.out.println(directory + " could not be deleted");
-                }
-            }
-        });
+        tempDirectory.mkdirs();
 
         final ContextHandlerCollection contexts = new ContextHandlerCollection();
 
@@ -123,10 +98,10 @@ public class WebRunMojo extends AbstractMojo {
 
         final Set<String> deployed = new HashSet<String>();
 
-        addWebArtifact(project.getArtifact(), contexts, deployed, true);
+        addWebArtifact(tempDirectory, project.getArtifact(), contexts, deployed, true);
 
         for (final Artifact dependency : (Set<Artifact>) project.getDependencyArtifacts()) {
-            addWebArtifact(dependency, contexts, deployed, false);
+            addWebArtifact(tempDirectory, dependency, contexts, deployed, false);
         }
 
         if (!deployed.isEmpty()) {
@@ -167,7 +142,8 @@ public class WebRunMojo extends AbstractMojo {
         }
     }
 
-    private void addWebArtifact(final Artifact artifact,
+    private void addWebArtifact(final File tempDirectory,
+                                final Artifact artifact,
                                 final ContextHandlerCollection webContexts,
                                 final Set<String> deployed,
                                 final boolean acceptAnyScope) {
@@ -179,7 +155,7 @@ public class WebRunMojo extends AbstractMojo {
                 final String archiveName = artifact.getArtifactId();
                 final String contextPath = "/" + archiveName;
 
-                context.setTempDirectory(new File(TMP_DIR, archiveName));
+                context.setTempDirectory(new File(tempDirectory, archiveName));
                 context.setContextPath(contextPath);
                 context.setParentLoaderPriority(true);
 
