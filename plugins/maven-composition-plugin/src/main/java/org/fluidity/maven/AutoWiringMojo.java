@@ -353,6 +353,11 @@ public class AutoWiringMojo extends AbstractMojo {
                         foundServiceProvider(serviceProviderMap, serviceProviderApi, className);
                     }
 
+                    if (serviceProviderApi.size() > 1 && !component) {
+                        component = true;
+                        fallback = true;
+                    }
+
                     if (component) {
                         if (componentApi == null) {
                             componentApi = fallback ? className : findComponentInterface(classData);
