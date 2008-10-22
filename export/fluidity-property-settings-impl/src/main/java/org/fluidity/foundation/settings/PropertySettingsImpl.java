@@ -216,7 +216,7 @@ final class PropertySettingsImpl implements PropertySettings {
                         if (defaultValue.length() == 0) {
                             Log.warning(getClass(), "Property " + name + " not found");
                         } else {
-                            property = defaultValue;
+                            property = setting(defaultValue, defaultValue);
                         }
                     }
 

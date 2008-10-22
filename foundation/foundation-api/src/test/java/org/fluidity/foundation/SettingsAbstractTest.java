@@ -27,6 +27,8 @@ import java.util.Properties;
 
 import org.fluidity.tests.MockGroupAbstractTest;
 import org.testng.Assert;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 /**
@@ -37,6 +39,24 @@ public abstract class SettingsAbstractTest extends MockGroupAbstractTest {
     protected abstract Settings newInstance(final Settings reference, final ApplicationInfo info) throws Exception;
 
     protected abstract void cleanup();
+
+    private final Properties systemProperties = new Properties();
+
+    @BeforeClass
+    public void saveProperties() {
+        systemProperties.putAll(System.getProperties());
+    }
+
+    @BeforeMethod
+    @SuppressWarnings({ "unchecked" })
+    public void clearProperties() {
+        final Properties properties = System.getProperties();
+        for (final Object key : new HashSet(System.getProperties().keySet())) {
+            if (!systemProperties.containsKey(key)) {
+                properties.remove(key);
+            }
+        }
+    }
 
     @Test
     public void basicSettings() throws Exception {
@@ -167,6 +187,7 @@ public abstract class SettingsAbstractTest extends MockGroupAbstractTest {
         Assert.assertEquals(settings.setting("app", "key", 0), Integer.parseInt(System.getProperty("test.value")));
         Assert.assertEquals(settings.setting("app", "escaped", null), "${test.value}");
 
+        System.out.println("dynamic = " + System.getProperty("test.dynamic.key"));
         Assert.assertEquals(settings.setting("${test.dynamic.key|key0}", "value", null), System.getProperty("test.dynamic.value.0"));
         Assert.assertEquals(settings.setting("dynamic.key", null), "key0");
 
@@ -177,5 +198,21 @@ public abstract class SettingsAbstractTest extends MockGroupAbstractTest {
         System.setProperty("test.dynamic.key", "key2");
         Assert.assertEquals(settings.setting("${test.dynamic.key|key0}", "value", null), System.getProperty("test.dynamic.value.2"));
         Assert.assertEquals(settings.setting("dynamic.key", null), System.getProperty("test.dynamic.key"));
+    }
+
+    @Test
+    public void recursiveExtrapolation() throws Exception {
+        final Properties props = new Properties();
+
+        props.setProperty("static.key", "${test.static.key}");
+        props.setProperty("dynamic.key", "${test.dynamic.key|static.key}");
+
+        final Settings settings = newInstance(new MockSettings(props), new MockApplicationInfo("app", null));
+
+        System.setProperty("test.static.key", "static");
+        Assert.assertEquals(settings.setting("dynamic.key", null), "static");
+
+        System.setProperty("test.dynamic.key", "dynamic");
+        Assert.assertEquals(settings.setting("dynamic.key", null), "dynamic");
     }
 }
