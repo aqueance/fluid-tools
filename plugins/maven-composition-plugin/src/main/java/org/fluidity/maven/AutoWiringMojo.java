@@ -285,7 +285,7 @@ public class AutoWiringMojo extends AbstractMojo {
 
         FILES:
         for (final String fileName : scanner.getIncludedFiles()) {
-            final String className = fileName.substring(0, fileName.length() - ".class".length()).replace('/', '.');
+            final String className = fileName.substring(0, fileName.length() - ".class".length()).replace(File.separatorChar, '.');
             final String componentPackage = className.substring(0, className.lastIndexOf("."));
             final String generatedBindings = componentPackage + "." + GENERATED_PACKAGE_BINDINGS + projectName;
 
@@ -451,7 +451,7 @@ public class AutoWiringMojo extends AbstractMojo {
                 final String answer = String.valueOf(value);
 
                 return value.getElementValueType() == ElementValue.CLASS
-                    ? answer.substring(1, answer.length() - 1).replace('/', '.')
+                    ? answer.substring(1, answer.length() - 1).replace(File.separatorChar, '.')
                     : answer;
             }
         }
