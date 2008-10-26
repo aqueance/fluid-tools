@@ -19,23 +19,24 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.fluidity.composition.web;
-
-import org.fluidity.composition.Component;
+package org.fluidity.composition;
 
 /**
- * @author Tibor Varga
+ * Bootstraps the application. The singleton implementing instance is not thread safe.
  */
-@Component
-final class ServletContextListenerListImpl implements ServletContextListenerList {
+public interface DeploymentBootstrap {
 
-    private final javax.servlet.ServletContextListener[] listeners;
+    /**
+     * Loads all {@link DeployedComponent} and {@link DeploymentObserver} objects and calls their {@link DeployedComponent#start()} and {@link
+     * DeploymentObserver#started()} methods, respectively.
+     *
+     * @throws Exception will cause the bootstrap to be aborted.
+     */
+    void load() throws Exception;
 
-    public ServletContextListenerListImpl(final javax.servlet.ServletContextListener[] listeners) {
-        this.listeners = listeners;
-    }
-
-    public javax.servlet.ServletContextListener[] list() {
-        return listeners;
-    }
+    /**
+     * Locates all loaded {@link DeployedComponent} and {@link DeploymentObserver} objects and calls their {@link DeployedComponent#stop()} and {@link
+     * DeploymentObserver#stopped()} methods, respectively, and in a reverse order than in the {@link #load()} method.
+     */
+    void unload();
 }

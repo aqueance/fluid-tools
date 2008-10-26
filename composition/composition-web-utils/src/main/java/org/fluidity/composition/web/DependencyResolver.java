@@ -30,19 +30,16 @@ import javax.servlet.ServletException;
  */
 interface DependencyResolver {
 
-    String CONTAINER_CLASS = "container-class";
-
     String COMPONENT_KEY = "component-key";
 
     /**
      * Returns a component from the host application's component container.
      *
-     * @param containerClassName the name of the container's class.
      * @param componentClassName the key of the requested component.
      *
      * @return a component for the given key or <code>null</code> if none found.
      *
      * @throws ServletException when anything goes wrong.
      */
-    Object findComponent(final String containerClassName, final String componentClassName) throws ServletException;
+    Object findComponent(final String componentClassName) throws ServletException;
 }

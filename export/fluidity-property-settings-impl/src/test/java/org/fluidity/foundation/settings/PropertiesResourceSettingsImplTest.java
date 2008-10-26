@@ -114,7 +114,7 @@ public class PropertiesResourceSettingsImplTest extends MockGroupAbstractTest {
         EasyMock.expect(resources.resourceName(defaultsFile)).andReturn(defaultsFile);
         EasyMock.expect(resources.locateResources(defaultsFile)).andReturn(new URL[] { defaultUrl });
 
-        EasyMock.expect(info.applicationShortName()).andReturn(appName);
+        EasyMock.expect(info.key()).andReturn(appName);
         EasyMock.expect(resources.resourceName(applicationFile)).andReturn(applicationFile);
         EasyMock.expect(resources.locateResources(applicationFile)).andReturn(new URL[] { applicationUrl });
 
@@ -162,7 +162,7 @@ public class PropertiesResourceSettingsImplTest extends MockGroupAbstractTest {
         EasyMock.expect(resources.locateResources(defaultsFile))
             .andReturn(new URL[] { defaultUrl1, defaultUrl2, defaultUrl3 });
 
-        EasyMock.expect(info.applicationShortName()).andReturn(appName);
+        EasyMock.expect(info.key()).andReturn(appName);
         EasyMock.expect(resources.resourceName(applicationFile)).andReturn(applicationFile);
         EasyMock.expect(resources.locateResources(applicationFile))
             .andReturn(new URL[] { applicationUrl1, applicationUrl2 });

@@ -21,9 +21,6 @@
  */
 package org.fluidity.composition.web;
 
-import java.util.List;
-import java.util.Map;
-
 import org.easymock.EasyMock;
 import org.easymock.IAnswer;
 import org.fluidity.composition.ComponentContainer;
@@ -40,7 +37,7 @@ public class DependencyResolverImplTest extends MockGroupAbstractTest {
 
     private final ComponentContainer.Registry registry = addControl(ComponentContainer.Registry.class);
 
-    private DependencyResolver resolver = new DependencyResolverImpl();
+    private DependencyResolverImpl resolver = new DependencyResolverImpl();
 
     public DependencyResolverImplTest() {
         container = addControl(OpenComponentContainer.class);
@@ -53,7 +50,7 @@ public class DependencyResolverImplTest extends MockGroupAbstractTest {
         EasyMock.expect(container.getComponent(Component.class)).andReturn(component);
 
         replay();
-        assert resolver.findComponent(MockComponentContainer.class.getName(), Component.class.getName()) == component;
+        assert resolver.findComponent(container, Component.class.getName()) == component;
         verify();
     }
 
@@ -81,35 +78,8 @@ public class DependencyResolverImplTest extends MockGroupAbstractTest {
         registry.bind(Component.class);
 
         replay();
-        assert resolver.findComponent(MockComponentContainer.class.getName(), Component.class.getName()) == component;
+        assert resolver.findComponent(container, Component.class.getName()) == component;
         verify();
-    }
-
-    public static class MockComponentContainer implements OpenComponentContainer {
-
-        public ComponentContainer getContainer() {
-            return DependencyResolverImplTest.container;
-        }
-
-        public <T> T getComponent(final Class<T> componentClass) {
-            return DependencyResolverImplTest.container.getComponent(componentClass);
-        }
-
-        public <T> T getComponent(final Class<T> componentClass, final Bindings bindings) {
-            return DependencyResolverImplTest.container.getComponent(componentClass, bindings);
-        }
-
-        public Registry getRegistry() {
-            return DependencyResolverImplTest.container.getRegistry();
-        }
-
-        public Map<Class, List<Class>> getUnresolvedDependencies() {
-            return DependencyResolverImplTest.container.getUnresolvedDependencies();
-        }
-
-        public OpenComponentContainer makeNestedContainer() {
-            return DependencyResolverImplTest.container.makeNestedContainer();
-        }
     }
 
     public static class Component {

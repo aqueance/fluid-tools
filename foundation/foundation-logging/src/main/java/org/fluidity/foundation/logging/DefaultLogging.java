@@ -34,7 +34,7 @@ final class DefaultLogging implements Logging {
     private final Logging delegate;
 
     public DefaultLogging(final ApplicationInfo appInfo) {
-        this.delegate = new StandardOutLogging(appInfo.applicationName());
+        this.delegate = new StandardOutLogging(appInfo.name());
     }
 
     public DefaultLogging() {

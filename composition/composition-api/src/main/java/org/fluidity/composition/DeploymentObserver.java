@@ -19,15 +19,30 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.fluidity.composition.web;
+package org.fluidity.composition;
 
 /**
- * Indirection used by the ServletContextListener impl in this package to find all components that implement the
- * javax.servlet.ServletContextListener interface.
+ * This component gets notified when all {@link org.fluidity.composition.DeployedComponent} objects have been started/stopped.
  *
- * @author Tibor Varga
+ * <p/>
+ *
+ * All subclasses of this interface will be marked as a service provider for this interface and will be automatically found and controlled by a suitable
+ * {@link DeploymentBootstrap} implementation.
  */
-interface ServletContextListenerList {
+@ServiceProvider
+public interface DeploymentObserver {
 
-    javax.servlet.ServletContextListener[] list();
+    /**
+     * Notifies the component that all {@link DeployedComponent} objects have been started.
+     *
+     * @throws Exception when thrown is logged.
+     */
+    void started() throws Exception;
+
+    /**
+     * Notifies the component that all {@link DeployedComponent} objects have been stopped.
+     *
+     * @throws Exception when thrown is logged.
+     */
+    void stopped() throws Exception;
 }

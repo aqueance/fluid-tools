@@ -43,6 +43,10 @@
         </license>
     </licenses>
 
+    <description>
+This project lists the web application support modules of the Fluidity Tools.
+    </description>
+
     <dependencies>
 
         <dependency>

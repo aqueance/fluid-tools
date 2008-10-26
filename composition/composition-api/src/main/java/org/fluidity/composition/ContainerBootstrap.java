@@ -24,26 +24,26 @@ package org.fluidity.composition;
 import java.util.Map;
 
 /**
- * Bootstraps the component container. A concrete implementation normally wraps and populates a third-party dependency
- * injection container.
+ * Bootstraps the component container. A concrete implementation normally wraps and populates a third-party dependency injection container.
  *
  * @author Tibor Varga
  */
 public interface ContainerBootstrap {
 
     /**
-     * Finds all package component bindings and invokes them to add their bindings and initialises components after all
-     * components have been registered. <p/> The idea is to find all <code>PackageBinding</code> objects using the
-     * supplied discovery component, invoke them to add their bindings and then invoke their initialisation method.
-     * Shutdown hooks are also expected to be used.
+     * Finds all package component bindings and invokes them to add their bindings and initialises components after all components have been registered.
+     *
+     * <p/>
+     *
+     * The idea is to find all <code>PackageBinding</code> objects using the supplied discovery component, invoke them to add their bindings and then invoke
+     * their initialisation method. Shutdown hooks are also expected to be used.
      *
      * @param discovery   is the component to use to find <code>PackageBindings</code> implementations.
-     * @param parent      is the container to use as the parent of the one returned; can be <code>null</code>, in which
-     *                    case a standalone container is returned.
-     * @param classLoader is the class loader to use to discover package bindings. Package bindings found in the class
-     *                    loader ancestry are ignored when the parent container is specified.
-     * @param properties  is the properties to bind to the container as a means to configure binding instances at
-     *                    run-time.
+     * @param parent      is the container to use as the parent of the one returned; can be <code>null</code>, in which case a standalone container is
+     *                    returned.
+     * @param classLoader is the class loader to use to discover package bindings. Package bindings found in the class loader ancestry are ignored when the
+     *                    parent container is specified.
+     * @param properties  is the properties to bind to the container as a means to configure binding instances at run-time.
      *
      * @return the container containing the registered components.
      */

@@ -45,53 +45,46 @@
     </licenses>
 
     <description>
-This plugins takes a few .war artifacts and deploys them in an embedded Jetty
-server. The server will bootstrap a ComponentContainer and offer it as a
-parent container for the deployed web applications.
+        This plugins takes a few .war artifacts and deploys them in an embedded Jetty
+        server. The server will bootstrap a ComponentContainer and offer it as a
+        parent container for the deployed web applications.
 
-The list of .war files contains the host project's artifact if that
-happens to be a war project and all .war artifacts declared as dependency
-with "provided" scope.
+        The list of .war files contains the host project's artifact if that
+        happens to be a war project and all .war artifacts declared as dependency
+        with "provided" scope.
 
-Any .jar artifact that happens to be in the plugin's classpath will be
-scanned for @Components to be added to the global ComponentContainer. They
-will also be scanned to discover @ServiceProviders that a deployed web
-application may ask for.
+        Any .jar artifact that happens to be in the plugin's classpath will be
+        scanned for @Components to be added to the global ComponentContainer. They
+        will also be scanned to discover @ServiceProviders that a deployed web
+        application may ask for.
 
-You configure the plugin's classpath by a &lt;dependencies> section in the
-plugin configuration of your host project.
+        You configure the plugin's classpath by a &lt;dependencies> section in the
+        plugin configuration of your host project.
 
-The plugin exports an org.fluidity.maven.WebRunControl object in the global
-ComponentContainer. That object can be used to programmatically stop the
-Jetty server started by this plugin. The server can also be stopped by
-pressing Ctrl-C.
+        The plugin exports an org.fluidity.maven.WebRunControl object in the global
+        ComponentContainer. That object can be used to programmatically stop the
+        Jetty server started by this plugin. The server can also be stopped by
+        pressing Ctrl-C.
     </description>
 
     <dependencies>
 
         <dependency>
-            <groupId>${fluidity.composition.groupId}</groupId>
-            <artifactId>composition-bootstrap</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>${fluidity.composition.groupId}</groupId>
-          <artifactId>composition-impl</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>${fluidity.composition.groupId}</groupId>
-          <artifactId>composition-command-line-impl</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>${fluidity.composition.groupId}</groupId>
-          <artifactId>composition-pico-impl</artifactId>
+            <groupId>${fluidity.export.groupId}</groupId>
+            <artifactId>fluidity-bootstrap</artifactId>
+            <type>pom</type>
+            <version>${fluidity.version}</version>
         </dependency>
 
         <dependency>
             <groupId>${fluidity.plugin.groupId}</groupId>
             <artifactId>maven-webrun-plugin-api</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>${fluidity.composition.groupId}</groupId>
+            <artifactId>composition-command-line-impl</artifactId>
+            <scope>runtime</scope>
         </dependency>
 
         <dependency>

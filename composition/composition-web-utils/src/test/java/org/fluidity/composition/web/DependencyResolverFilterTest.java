@@ -38,17 +38,10 @@ import org.testng.annotations.Test;
 public class DependencyResolverFilterTest extends MockGroupAbstractTest {
 
     private final Filter filter = addControl(Filter.class);
-
     private final FilterConfig config = addControl(FilterConfig.class);
-
-    private final ServletContext context = addControl(ServletContext.class);
-
     private final DependencyResolver resolver = addControl(DependencyResolver.class);
-
     private final ServletRequest request = addControl(ServletRequest.class);
-
     private final ServletResponse response = addControl(ServletResponse.class);
-
     private final FilterChain chain = addControl(FilterChain.class);
 
     @Test
@@ -57,13 +50,10 @@ public class DependencyResolverFilterTest extends MockGroupAbstractTest {
 
         try {
             final String componentKey = "key";
-            final String referenceName = "referenceName";
 
             EasyMock.expect(config.getInitParameter(DependencyResolver.COMPONENT_KEY)).andReturn(componentKey);
-            EasyMock.expect(config.getServletContext()).andReturn(context);
-            EasyMock.expect(context.getInitParameter(DependencyResolver.CONTAINER_CLASS)).andReturn(referenceName);
 
-            EasyMock.expect(resolver.findComponent(referenceName, componentKey)).andReturn(filter);
+            EasyMock.expect(resolver.findComponent(componentKey)).andReturn(filter);
             filter.init(config);
             filter.doFilter(request, response, chain);
             filter.destroy();

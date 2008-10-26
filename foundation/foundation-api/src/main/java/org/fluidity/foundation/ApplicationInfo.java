@@ -26,19 +26,19 @@ package org.fluidity.foundation;
  *
  * @author Tibor Varga
  */
-public interface ApplicationInfo {
+public interface ApplicationInfo extends KeyedNamed {
 
     /**
      * Short name for the application. Can be used to find properties file on the class path, etc.
      *
      * @return a short String; never <code>null</code>.
      */
-    String applicationShortName();
+    String key();
 
     /**
      * Human readable name of the application. Can be used to display user messages, etc.
      *
      * @return a short String; never <code>null</code>.
      */
-    String applicationName();
+    String name();
 }

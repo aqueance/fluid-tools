@@ -24,6 +24,7 @@ package org.fluidity.composition.web;
 import javax.servlet.ServletException;
 
 import org.fluidity.composition.ComponentContainer;
+import org.fluidity.composition.ComponentContainerAccess;
 import org.fluidity.foundation.ClassLoaderUtils;
 
 /**
@@ -33,21 +34,24 @@ import org.fluidity.foundation.ClassLoaderUtils;
  */
 final class DependencyResolverImpl implements DependencyResolver {
 
-    public Object findComponent(final String containerClassName, final String componentClassName)
-        throws ServletException {
-        assert containerClassName != null : CONTAINER_CLASS;
+    private final ComponentContainer container = new ComponentContainerAccess().getContainer();
+
+    public Object findComponent(final String componentClassName) throws ServletException {
+        return findComponent(container, componentClassName);
+    }
+
+    // This is the method that can be tested
+    Object findComponent(final ComponentContainer container, final String componentClassName) throws ServletException {
         assert componentClassName != null : COMPONENT_KEY;
 
         try {
             final ClassLoader classLoader = ClassLoaderUtils.findClassLoader(DependencyResolver.class);
             assert classLoader != null : DependencyResolver.class;
 
-            final ComponentContainer container = (ComponentContainer) classLoader.loadClass(containerClassName).newInstance();
-            assert container != null : containerClassName;
-
             final Class<?> componentClass = classLoader.loadClass(componentClassName);
             assert componentClass != null : componentClassName;
 
+            assert container != null : ComponentContainer.class;
             Object component = container.getComponent(componentClass);
 
             if (component == null) {
@@ -61,10 +65,6 @@ final class DependencyResolverImpl implements DependencyResolver {
             }
 
             return component;
-        } catch (final InstantiationException e) {
-            throw (ServletException) new ServletException(e).initCause(e);
-        } catch (final IllegalAccessException e) {
-            throw (ServletException) new ServletException(e).initCause(e);
         } catch (final ClassNotFoundException e) {
             throw (ServletException) new ServletException(e).initCause(e);
         }

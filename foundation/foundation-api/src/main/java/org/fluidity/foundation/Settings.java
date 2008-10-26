@@ -22,10 +22,10 @@
 package org.fluidity.foundation;
 
 /**
- * Parameter settings. Property values may contain placeholders in the format <tt>${key}</tt> or <tt>${key|default},
- * in which case the given <tt>key</tt> is searched for among the settings or else in the system properties. If the key
+ * Parameter settings. Property values may contain placeholders in the format <code>${key}</code> or <code>${key|default},
+ * in which case the given <code>key</code> is searched for among the settings or else in the system properties. If the key
  * is not found and a default is given, the default is used, otherwise the found property return. The same applies the
- * the <tt>key</tt> and <tt>namespace</tt> parameters of the <tt>setting()</tt> methods.
+ * the <code>key</code> and <code>namespace</code> parameters of the <code>setting()</code> methods.
  *
  * @author Tibor Varga
  */

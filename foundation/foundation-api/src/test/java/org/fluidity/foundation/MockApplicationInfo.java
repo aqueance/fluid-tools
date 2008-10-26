@@ -34,7 +34,7 @@ public final class MockApplicationInfo implements ApplicationInfo {
         this.name = name;
     }
 
-    public String applicationShortName() {
+    public String key() {
         if (shortName == null) {
             throw new UnsupportedOperationException();
         }
@@ -42,7 +42,7 @@ public final class MockApplicationInfo implements ApplicationInfo {
         return shortName;
     }
 
-    public String applicationName() {
+    public String name() {
         if (name == null) {
             throw new UnsupportedOperationException();
         }

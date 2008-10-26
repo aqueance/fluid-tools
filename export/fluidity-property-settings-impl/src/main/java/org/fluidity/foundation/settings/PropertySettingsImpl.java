@@ -38,7 +38,7 @@ import org.fluidity.foundation.logging.Log;
 
 /**
  * In-memory settings not backed by anything. This implementation will work with or without an {@link
- * org.fluidity.foundation.ApplicationInfo} object present. When an <tt>ApplicationInfo</tt> object is present, its
+ * org.fluidity.foundation.ApplicationInfo} object present. When an <code>ApplicationInfo</code> object is present, its
  * short name will be used as a fallback namespace. What this means is that if there is a property with a key &lt;short
  * name>/&lt;key> but there is no property with the key &lt;key> then the value of the former will be returned when the
  * latter is requested.
@@ -56,7 +56,7 @@ final class PropertySettingsImpl implements PropertySettings {
     }
 
     public PropertySettingsImpl(final ApplicationInfo info) {
-        this(info.applicationShortName());
+        this(info.key());
     }
 
     private PropertySettingsImpl(final String prefix) {

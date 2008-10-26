@@ -22,11 +22,13 @@
 package org.fluidity.composition;
 
 /**
- * An explicitly specified constructor parameter of a component, whose actual value is either another component from the
- * same container, a list of the same, or a constant value. The <code>ComponentContainer.Registry</code> object can
- * create instances of concrete classes that implement this interface. A forced component parameter is useful when you
- * want to explicitly specify what to pass to the constructor of a given component. <p/> This object is used in
- * <code>PackageBindings</code> implementations.
+ * An explicitly specified constructor parameter of a component, whose actual value is either another component from the same container, a list of the same, or
+ * a constant value. The <code>ComponentContainer.Registry</code> object can create instances of concrete classes that implement this interface. A forced
+ * component parameter is useful when you want to explicitly specify what to pass to the constructor of a given component.
+ *
+ * <p/>
+ *
+ * This object is used in <code>PackageBindings</code> implementations.
  *
  * @author Tibor Varga
  */

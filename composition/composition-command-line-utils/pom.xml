@@ -30,10 +30,10 @@
 
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.fluidity.composition</groupId>
-    <artifactId>composition-bootstrap</artifactId>
+    <artifactId>composition-command-line-utils</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
-    <name>Composition: Bootstrap</name>
+    <name>Composition: Command Line Utilities</name>
 
     <licenses>
         <license>
@@ -51,22 +51,32 @@
         </dependency>
 
         <dependency>
-            <groupId>${fluidity.foundation.groupId}</groupId>
-            <artifactId>foundation-utils</artifactId>
+            <groupId>${fluidity.composition.groupId}</groupId>
+            <artifactId>composition-bootstrap-impl</artifactId>
         </dependency>
 
         <dependency>
-            <groupId>${fluidity.foundation.groupId}</groupId>
-            <artifactId>foundation-api</artifactId>
-            <classifier>tests</classifier>
-        </dependency>
-
-        <dependency>
-            <groupId>${fluidity.foundation.groupId}</groupId>
-            <artifactId>foundation-easymock</artifactId>
-            <scope>test</scope>
+            <groupId>${fluidity.composition.groupId}</groupId>
+            <artifactId>composition-bootstrap-utils</artifactId>
         </dependency>
 
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>${fluidity.plugin.groupId}</groupId>
+                <artifactId>maven-composition-plugin</artifactId>
+                <version>${fluidity.version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>process-annotations</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>

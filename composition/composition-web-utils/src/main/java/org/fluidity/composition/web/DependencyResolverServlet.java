@@ -30,14 +30,12 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 
 /**
- * A servlet decorator that enables the decorated servlet to have its dependencies injected. <p/>
+ * A servlet decorator that enables the decorated servlet to have its dependencies injected.
+ *
+ * <p/>
+ *
  * Usage:<pre>
  * &lt;web-app>
- *   ...
- *   &lt;context-param>
- *     &lt;param-name>container-class&lt;/param-name>
- *     &lt;param-value><i>fully specified class name for the host application's <code>OpenComponentContainer</code></i>&lt;/param-api>
- *   &lt;/context-param>
  *   ...
  *   &lt;servlet>
  *     ...
@@ -62,9 +60,7 @@ public final class DependencyResolverServlet implements Servlet {
 
     public void init(final ServletConfig config) throws ServletException {
         assert resolver != null;
-        delegate = (Servlet) resolver.findComponent(
-            config.getServletContext().getInitParameter(DependencyResolver.CONTAINER_CLASS),
-            config.getInitParameter(DependencyResolver.COMPONENT_KEY));
+        delegate = (Servlet) resolver.findComponent(config.getInitParameter(DependencyResolver.COMPONENT_KEY));
         assert delegate != null;
         delegate.init(config);
     }
@@ -74,7 +70,7 @@ public final class DependencyResolverServlet implements Servlet {
     }
 
     public void service(final ServletRequest request, final ServletResponse response)
-        throws ServletException, IOException {
+            throws ServletException, IOException {
         delegate.service(request, response);
     }
 

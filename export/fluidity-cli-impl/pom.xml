@@ -43,6 +43,10 @@
         </license>
     </licenses>
 
+    <description>
+This project lists the command line support modules of the Fluidity Tools.
+    </description>
+
     <dependencies>
 
         <dependency>
@@ -54,6 +58,11 @@
         <dependency>
             <groupId>${fluidity.composition.groupId}</groupId>
             <artifactId>composition-command-line-impl</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>${fluidity.composition.groupId}</groupId>
+            <artifactId>composition-command-line-utils</artifactId>
         </dependency>
 
     </dependencies>

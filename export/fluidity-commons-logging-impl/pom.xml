@@ -43,6 +43,10 @@
         </license>
     </licenses>
 
+    <description>
+This project exports the Commons Logging based implemetation of the &lt;code>org.fluidity.foundation.Logging&lt;/code> interface.
+    </description>
+
     <dependencies>
 
         <dependency>
@@ -55,7 +59,7 @@
             <groupId>commons-logging</groupId>
             <artifactId>commons-logging-api</artifactId>
         </dependency>
-            
+
     </dependencies>
 
     <build>

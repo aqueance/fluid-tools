@@ -183,7 +183,14 @@
 
             <dependency>
                 <groupId>${fluidity.composition.groupId}</groupId>
-                <artifactId>composition-bootstrap</artifactId>
+                <artifactId>composition-bootstrap-impl</artifactId>
+                <version>${fluidity.version}</version>
+                <scope>compile</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>${fluidity.composition.groupId}</groupId>
+                <artifactId>composition-bootstrap-utils</artifactId>
                 <version>${fluidity.version}</version>
                 <scope>compile</scope>
             </dependency>
@@ -191,6 +198,13 @@
             <dependency>
                 <groupId>${fluidity.composition.groupId}</groupId>
                 <artifactId>composition-command-line-impl</artifactId>
+                <version>${fluidity.version}</version>
+                <scope>compile</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>${fluidity.composition.groupId}</groupId>
+                <artifactId>composition-command-line-utils</artifactId>
                 <version>${fluidity.version}</version>
                 <scope>compile</scope>
             </dependency>

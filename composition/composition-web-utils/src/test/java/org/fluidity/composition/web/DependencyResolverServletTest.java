@@ -37,15 +37,9 @@ import org.testng.annotations.Test;
 public class DependencyResolverServletTest extends MockGroupAbstractTest {
 
     private final Servlet servlet = addControl(Servlet.class);
-
     private final ServletConfig config = addControl(ServletConfig.class);
-
-    private final ServletContext context = addControl(ServletContext.class);
-
     private final DependencyResolver resolver = addControl(DependencyResolver.class);
-
     private final ServletRequest request = addControl(ServletRequest.class);
-
     private final ServletResponse response = addControl(ServletResponse.class);
 
     @SuppressWarnings({ "StringEquality" })
@@ -55,13 +49,10 @@ public class DependencyResolverServletTest extends MockGroupAbstractTest {
 
         try {
             final String componentKey = "key";
-            final String referenceName = "referenceName";
             final String servletInfo = "info";
 
             EasyMock.expect(config.getInitParameter(DependencyResolver.COMPONENT_KEY)).andReturn(componentKey);
-            EasyMock.expect(config.getServletContext()).andReturn(context);
-            EasyMock.expect(context.getInitParameter(DependencyResolver.CONTAINER_CLASS)).andReturn(referenceName);
-            EasyMock.expect(resolver.findComponent(referenceName, componentKey)).andReturn(servlet);
+            EasyMock.expect(resolver.findComponent(componentKey)).andReturn(servlet);
             servlet.init(config);
             EasyMock.expect(servlet.getServletConfig()).andReturn(config);
             EasyMock.expect(servlet.getServletInfo()).andReturn(servletInfo);

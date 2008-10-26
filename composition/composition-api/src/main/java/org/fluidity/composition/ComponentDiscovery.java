@@ -22,22 +22,24 @@
 package org.fluidity.composition;
 
 /**
- * Implements the Service Provider discovery mechanism described in the Jar File Specification. This mechanism is
- * documented at http://java.sun.com/j2se/1.4.2/docs/guide/jar/jar.html#Service%20Provider <p/> The difference between
- * this implementation and the one provided with the JDK is, in addition to this not being under the
- * <code>com.sun</code> package, that components are not instantiated by their default constructor but placed in an
- * anonymous nested container of the host application's dependency injection container to get their dependencies
- * resolved.
+ * Implements the Service Provider discovery mechanism described in the Jar File Specification. This mechanism is documented at
+ * http://java.sun.com/j2se/1.4.2/docs/guide/jar/jar.html#Service%20Provider
+ *
+ * <p/>
+ *
+ * The difference between this implementation and the one provided with the JDK is, in addition to this not being under the <code>com.sun</code> package, that
+ * components are not instantiated by their default constructor but placed in an anonymous nested container of the host application's dependency injection
+ * container to get their dependencies resolved.
  *
  * @author Tibor Varga
  */
 public interface ComponentDiscovery {
 
     /**
-     * Finds all classes in the class path that have been exposed through the standard service discovery mechanism and
-     * instantiates them, resolving their dependencies using the given dependency injection container.
+     * Finds all classes in the class path that have been exposed through the standard service discovery mechanism and instantiates them, resolving their
+     * dependencies using the given dependency injection container.
      *
-     * @param container is the container to use to resolve dependencies of the found components.
+     * @param container      is the container to use to resolve dependencies of the found components.
      * @param componentClass is the interface all discovered classes should implement.
      *
      * @return a list of instances of the discovered classes.

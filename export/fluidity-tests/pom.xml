@@ -43,6 +43,10 @@
         </license>
     </licenses>
 
+    <description>
+This project exports the unit testing related modules of the Fluidity Tools.
+    </description>
+
     <dependencies>
 
         <dependency>

@@ -33,9 +33,9 @@ import org.fluidity.foundation.Settings;
 
 /**
  * Extends {@link org.fluidity.foundation.settings.PropertySettings} with functionality to load properties file
- * resources. First all <tt>default.properties</tt> resources are loaded from the context class loader and then if the
+ * resources. First all <code>default.properties</code> resources are loaded from the context class loader and then if the
  * application provides implementation for the {@link org.fluidity.foundation.ApplicationInfo} interface then all
- * <tt>.properties</tt> resources are loaded whose name equals to {@link org.fluidity.foundation.ApplicationInfo#applicationShortName()}.
+ * <code>.properties</code> resources are loaded whose name equals to {@link org.fluidity.foundation.ApplicationInfo#key()}.
  *
  * @author Tibor Varga
  */
@@ -55,7 +55,7 @@ final class PropertiesResourceSettingsImpl implements Settings {
                                           final Resources resources,
                                           final ApplicationInfo appInfo) {
         this(settings, resources);
-        load(appInfo.applicationShortName());
+        load(appInfo.key());
     }
 
     private void load(final String name) {

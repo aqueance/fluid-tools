@@ -35,32 +35,29 @@ import sun.misc.Service;
 import sun.misc.ServiceConfigurationError;
 
 /**
- * Static access to class loader specific dependency injection container. The child container - parent container
- * hierarchy matches the child class loader - parent class loader hierarchy. The root class loader to have a container
- * is the one that can find the dependencies of this class: {@link org.fluidity.composition.ContainerBootstrap} and
- * {@link org.fluidity.composition.ClassDiscovery}.
+ * Static access to class loader specific dependency injection container. The child container - parent container hierarchy matches the child class loader -
+ * parent class loader hierarchy. The root class loader to have a container is the one that can find the dependencies of this class: {@link
+ * org.fluidity.composition.ContainerBootstrap} and {@link org.fluidity.composition.ClassDiscovery}.
  *
  * <p/>
  *
- * This component also bootstraps the required container if it has not yet been populated. Instances of this class all
- * work against the same data structure, thereby giving classes instantiated by third parties access to the container
- * relevant for their level in the application's class loader hierarchy. Due to the bootstrap bubbling up, it is advised
- * to explicitly bootstrap each level container before all child containers are bootstrapped where binding properties
- * are specified for those properties to take effect at the given level.
+ * This component also bootstraps the required container if it has not yet been populated. Instances of this class all work against the same data structure,
+ * thereby giving classes instantiated by third parties access to the container relevant for their level in the application's class loader hierarchy. Due to the
+ * bootstrap bubbling up, it is advised to explicitly bootstrap each level container before all child containers are bootstrapped where binding properties are
+ * specified for those properties to take effect at the given level.
  *
  * <p/>
  *
- * This class is a special case in the design since it has to be self-sufficient, depending on nothing but what's always
- * available, and it also has to be visible as it acts as the root object of an application's dependency graph. Thus it
- * has to depend on concrete classes, thus somewhat breaking the Dependency Inversion Principle. After due
- * consideration, it has been decided for this class to depend on functionality provided by the Sun JDK.
+ * This class is a special case in the design since it has to be self-sufficient, depending on nothing but what's always available, and it also has to be
+ * visible as it acts as the root object of an application's dependency graph. Thus it has to depend on concrete classes, thus somewhat breaking the Dependency
+ * Inversion Principle. After due consideration, it has been decided for this class to depend on functionality provided by the Sun JDK.
  *
  * @author Tibor Varga
  */
 public final class ComponentContainerAccess implements ComponentContainer {
 
     private static final Map<ClassLoader, OpenComponentContainer> containerMap =
-        new WeakHashMap<ClassLoader, OpenComponentContainer>();
+            new WeakHashMap<ClassLoader, OpenComponentContainer>();
 
     private static final Map<ClassLoader, Map> propertiesMap = new HashMap<ClassLoader, Map>();
 
@@ -112,13 +109,12 @@ public final class ComponentContainerAccess implements ComponentContainer {
     }
 
     /**
-     * Adds a property to a collection that will be passed to the bindings if they have a constructor that receives a
-     * <code>java.utils.Map</code> object.
+     * Adds a property to a collection that will be passed to the bindings if they have a constructor that receives a <code>java.utils.Map</code> object.
      *
      * @param key   is the key of the property.
      * @param value is the value of the property.
      */
-    @SuppressWarnings({ "unchecked" })
+    @SuppressWarnings({"unchecked"})
     public void setBindingsProperty(final Object key, final Object value) {
         Map map = propertiesMap.get(classLoader);
 
@@ -180,8 +176,8 @@ public final class ComponentContainerAccess implements ComponentContainer {
 
                     final Map map = propertiesMap.get(cl);
                     ct = containerBootstrap
-                        .populateContainer(classDiscovery, map == null ? new HashMap() : map,
-                            containerMap.get(cl.getParent()), cl);
+                            .populateContainer(classDiscovery, map == null ? new HashMap() : map,
+                                               containerMap.get(cl.getParent()), cl);
                     containerMap.put(cl, ct);
                 } else {
                     containerMap.put(cl, null);
@@ -218,14 +214,14 @@ public final class ComponentContainerAccess implements ComponentContainer {
 
         private final Logging log = new StandardOutLogging(null);
 
-        @SuppressWarnings({ "unchecked" })
+        @SuppressWarnings({"unchecked"})
         public <T> T findInstance(final Class<? super T> interfaceClass, final ClassLoader classLoader) {
-            for (final Iterator i = Service.providers(interfaceClass, classLoader); i.hasNext(); ) {
+            for (final Iterator i = Service.providers(interfaceClass, classLoader); i.hasNext();) {
                 try {
                     return (T) i.next();
                 } catch (final ServiceConfigurationError e) {
                     log.warning(getClass(),
-                        "Finding service providers for " + interfaceClass + " using " + classLoader, e);
+                                "Finding service providers for " + interfaceClass + " using " + classLoader, e);
                 }
             }
 

@@ -28,8 +28,8 @@ import java.net.URL;
  *
  * <p/>
  *
- * In test cases this class can be controlled by setting the context class loader to a mock class loader that returns
- * what the test case desires. This is done by calling
+ * In test cases this class can be controlled by setting the context class loader to a mock class loader that returns what the test case desires. This is done
+ * by calling
  *
  * <pre>
  * Thread.curentThread.setContextClassLoader(...);

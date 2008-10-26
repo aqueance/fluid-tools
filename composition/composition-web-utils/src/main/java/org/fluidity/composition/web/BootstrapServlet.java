@@ -21,44 +21,34 @@
  */
 package org.fluidity.composition.web;
 
-import java.io.IOException;
-
 import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
 
-import org.fluidity.tests.MockGroupAbstractTest;
-import org.testng.annotations.Test;
+import org.fluidity.composition.DeploymentBootstrap;
+import org.fluidity.composition.ComponentContainerAccess;
 
 /**
- * @author Tibor Varga
+ * A servlet that bootstraps and controls all {@link org.fluidity.composition.DeployedComponent} and {@link org.fluidity.composition.DeploymentObserver} objects
+ * in the application.
  */
-@SuppressWarnings({ "ThrowableInstanceNeverThrown" })
-public class TunnelExceptionTest extends MockGroupAbstractTest {
+public final class BootstrapServlet extends HttpServlet {
 
-    @Test
-    public void testIoException() throws Exception {
-        final IOException exception = new IOException();
+    private final DeploymentBootstrap bootstrap = new ComponentContainerAccess().getComponent(DeploymentBootstrap.class);
+
+    @Override
+    public void init() throws ServletException {
+        super.init();
 
         try {
-            new TunnelException(exception).rethrow();
-            assert false : "Should have thrown " + exception;
-        } catch (final IOException e) {
-            assert e == exception;
-        } catch (final Exception e) {
-            assert false : "Should have thrown " + exception;
+            bootstrap.load();
+        } catch (Exception e) {
+            throw (ServletException) new ServletException(e).initCause(e);
         }
     }
 
-    @Test
-    public void testServletException() throws Exception {
-        final ServletException exception = new ServletException();
-
-        try {
-            new TunnelException(exception).rethrow();
-            assert false : "Should have thrown " + exception;
-        } catch (final ServletException e) {
-            assert e == exception;
-        } catch (final Exception e) {
-            assert false : "Should have thrown " + exception;
-        }
+    @Override
+    public void destroy() {
+        bootstrap.unload();
+        super.destroy();
     }
 }

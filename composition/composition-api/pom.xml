@@ -42,8 +42,13 @@
             <distribution>repo</distribution>
         </license>
     </licenses>
-    
+
     <dependencies>
+
+        <dependency>
+            <groupId>${fluidity.foundation.groupId}</groupId>
+            <artifactId>foundation-api</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>${fluidity.foundation.groupId}</groupId>

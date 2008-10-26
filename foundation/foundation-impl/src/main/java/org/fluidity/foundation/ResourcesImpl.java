@@ -31,7 +31,7 @@ import java.util.LinkedHashSet;
 import org.fluidity.composition.Component;
 
 /**
- * Uses the class loader hierarchy to load resources. 
+ * Uses the class loader hierarchy to load resources.
  *
  * @author Tibor Varga
  */

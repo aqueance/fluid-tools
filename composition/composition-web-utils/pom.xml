@@ -51,6 +51,16 @@
         </dependency>
 
         <dependency>
+            <groupId>${fluidity.composition.groupId}</groupId>
+            <artifactId>composition-bootstrap-impl</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>${fluidity.composition.groupId}</groupId>
+            <artifactId>composition-bootstrap-utils</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>${fluidity.foundation.groupId}</groupId>
             <artifactId>foundation-utils</artifactId>
         </dependency>

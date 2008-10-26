@@ -43,27 +43,17 @@
         </license>
     </licenses>
 
+    <description>
+This project exports the implementation modules of the Fluidity Tools
+shared between the various application typed implementation modules,
+e.g. cli, web, etc.
+    </description>
+
     <dependencies>
-
-        <dependency>
-            <groupId>${fluidity.export.groupId}</groupId>
-            <artifactId>fluidity-api</artifactId>
-            <type>pom</type>
-        </dependency>
-
-        <dependency>
-            <groupId>${fluidity.foundation.groupId}</groupId>
-            <artifactId>foundation-impl</artifactId>
-        </dependency>
 
         <dependency>
             <groupId>${fluidity.composition.groupId}</groupId>
             <artifactId>composition-impl</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>${fluidity.composition.groupId}</groupId>
-            <artifactId>composition-pico-impl</artifactId>
         </dependency>
 
     </dependencies>

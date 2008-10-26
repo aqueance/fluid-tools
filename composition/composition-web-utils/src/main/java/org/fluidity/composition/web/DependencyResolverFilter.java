@@ -31,14 +31,12 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 
 /**
- * A filter decorator that enables its delegate to have its dependencies injected. <p/>
+ * A filter decorator that enables its delegate to have its dependencies injected.
+ *
+ * <p/>
+ *
  * Usage:<pre>
  * &lt;web-app>
- *   ...
- *   &lt;context-param>
- *     &lt;param-name>container-class&lt;/param-name>
- *     &lt;param-value><i>fully specified class name for the host application's <code>OpenComponentContainer</code></i>&lt;/param-api>
- *   &lt;/context-param>
  *   ...
  *   &lt;filter>
  *     ...
@@ -63,16 +61,12 @@ public final class DependencyResolverFilter implements Filter {
 
     public void init(final FilterConfig config) throws ServletException {
         assert resolver != null;
-        delegate = (Filter) resolver.findComponent(
-            config.getServletContext().getInitParameter(DependencyResolver.CONTAINER_CLASS),
-            config.getInitParameter(DependencyResolver.COMPONENT_KEY));
+        delegate = (Filter) resolver.findComponent(config.getInitParameter(DependencyResolver.COMPONENT_KEY));
         assert delegate != null;
         delegate.init(config);
     }
 
-    public void doFilter(final ServletRequest request, final ServletResponse response, final FilterChain chain)
-        throws IOException,
-        ServletException {
+    public void doFilter(final ServletRequest request, final ServletResponse response, final FilterChain chain) throws IOException, ServletException {
         delegate.doFilter(request, response, chain);
     }
 

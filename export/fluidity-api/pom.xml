@@ -43,6 +43,10 @@
         </license>
     </licenses>
 
+    <description>
+This project exports the API modules of the Fluidity Tools.
+    </description>
+
     <dependencies>
 
         <dependency>
@@ -63,11 +67,6 @@
         <dependency>
             <groupId>${fluidity.composition.groupId}</groupId>
             <artifactId>composition-api</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>${fluidity.composition.groupId}</groupId>
-            <artifactId>composition-bootstrap</artifactId>
         </dependency>
 
     </dependencies>
