@@ -54,11 +54,18 @@ import javax.servlet.ServletResponse;
  */
 public final class DependencyResolverServlet implements Servlet {
 
-    private static DependencyResolver resolver = new DependencyResolverImpl();
+    private final DependencyResolver resolver = new DependencyResolverImpl();
 
     private Servlet delegate;
 
     public void init(final ServletConfig config) throws ServletException {
+        init(config, resolver);
+    }
+
+    /*
+     * Package visible for test cases to see.
+     */
+    void init(final ServletConfig config, final DependencyResolver resolver) throws ServletException {
         assert resolver != null;
         delegate = (Servlet) resolver.findComponent(config.getInitParameter(DependencyResolver.COMPONENT_KEY));
         assert delegate != null;
@@ -81,14 +88,5 @@ public final class DependencyResolverServlet implements Servlet {
     public void destroy() {
         delegate.destroy();
         delegate = null;
-    }
-
-    // Kept non-private for test cases to be able to provide mock resolver.
-    static DependencyResolver useResolver(final DependencyResolver resolver) {
-        try {
-            return DependencyResolverServlet.resolver;
-        } finally {
-            DependencyResolverServlet.resolver = resolver;
-        }
     }
 }

@@ -55,11 +55,18 @@ import javax.servlet.ServletResponse;
  */
 public final class DependencyResolverFilter implements Filter {
 
-    private static DependencyResolver resolver = new DependencyResolverImpl();
+    private final DependencyResolver resolver = new DependencyResolverImpl();
 
     private Filter delegate;
 
     public void init(final FilterConfig config) throws ServletException {
+        init(config, resolver);
+    }
+
+    /*
+     * Package visible for test cases to see.
+     */
+    void init(final FilterConfig config, final DependencyResolver resolver) throws ServletException {
         assert resolver != null;
         delegate = (Filter) resolver.findComponent(config.getInitParameter(DependencyResolver.COMPONENT_KEY));
         assert delegate != null;
@@ -73,14 +80,5 @@ public final class DependencyResolverFilter implements Filter {
     public void destroy() {
         delegate.destroy();
         delegate = null;
-    }
-
-    // Kept non-private for test cases to be able to provide mock resolver.
-    static DependencyResolver useResolver(final DependencyResolver resolver) {
-        try {
-            return DependencyResolverFilter.resolver;
-        } finally {
-            DependencyResolverFilter.resolver = resolver;
-        }
     }
 }

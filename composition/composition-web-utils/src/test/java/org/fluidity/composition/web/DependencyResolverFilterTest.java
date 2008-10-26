@@ -24,7 +24,6 @@ package org.fluidity.composition.web;
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
-import javax.servlet.ServletContext;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 
@@ -46,28 +45,22 @@ public class DependencyResolverFilterTest extends MockGroupAbstractTest {
 
     @Test
     public void delegateAcquisition() throws Exception {
-        final DependencyResolver savedResolver = DependencyResolverFilter.useResolver(resolver);
+        final String componentKey = "key";
 
-        try {
-            final String componentKey = "key";
+        EasyMock.expect(config.getInitParameter(DependencyResolver.COMPONENT_KEY)).andReturn(componentKey);
 
-            EasyMock.expect(config.getInitParameter(DependencyResolver.COMPONENT_KEY)).andReturn(componentKey);
+        EasyMock.expect(resolver.findComponent(componentKey)).andReturn(filter);
+        filter.init(config);
+        filter.doFilter(request, response, chain);
+        filter.destroy();
 
-            EasyMock.expect(resolver.findComponent(componentKey)).andReturn(filter);
-            filter.init(config);
-            filter.doFilter(request, response, chain);
-            filter.destroy();
+        replay();
 
-            replay();
+        final DependencyResolverFilter resolverFilter = new DependencyResolverFilter();
+        resolverFilter.init(config, resolver);
+        resolverFilter.doFilter(request, response, chain);
+        resolverFilter.destroy();
 
-            final DependencyResolverFilter resolverFilter = new DependencyResolverFilter();
-            resolverFilter.init(config);
-            resolverFilter.doFilter(request, response, chain);
-            resolverFilter.destroy();
-
-            verify();
-        } finally {
-            DependencyResolverFilter.useResolver(savedResolver);
-        }
+        verify();
     }
 }

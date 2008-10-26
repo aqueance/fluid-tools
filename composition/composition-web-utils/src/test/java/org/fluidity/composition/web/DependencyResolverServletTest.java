@@ -23,7 +23,6 @@ package org.fluidity.composition.web;
 
 import javax.servlet.Servlet;
 import javax.servlet.ServletConfig;
-import javax.servlet.ServletContext;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 
@@ -42,35 +41,29 @@ public class DependencyResolverServletTest extends MockGroupAbstractTest {
     private final ServletRequest request = addControl(ServletRequest.class);
     private final ServletResponse response = addControl(ServletResponse.class);
 
-    @SuppressWarnings({ "StringEquality" })
+    @SuppressWarnings({"StringEquality"})
     @Test
     public void delegateAcquisition() throws Exception {
-        final DependencyResolver savedResolver = DependencyResolverServlet.useResolver(resolver);
+        final String componentKey = "key";
+        final String servletInfo = "info";
 
-        try {
-            final String componentKey = "key";
-            final String servletInfo = "info";
+        EasyMock.expect(config.getInitParameter(DependencyResolver.COMPONENT_KEY)).andReturn(componentKey);
+        EasyMock.expect(resolver.findComponent(componentKey)).andReturn(servlet);
+        servlet.init(config);
+        EasyMock.expect(servlet.getServletConfig()).andReturn(config);
+        EasyMock.expect(servlet.getServletInfo()).andReturn(servletInfo);
+        servlet.service(request, response);
+        servlet.destroy();
 
-            EasyMock.expect(config.getInitParameter(DependencyResolver.COMPONENT_KEY)).andReturn(componentKey);
-            EasyMock.expect(resolver.findComponent(componentKey)).andReturn(servlet);
-            servlet.init(config);
-            EasyMock.expect(servlet.getServletConfig()).andReturn(config);
-            EasyMock.expect(servlet.getServletInfo()).andReturn(servletInfo);
-            servlet.service(request, response);
-            servlet.destroy();
+        replay();
 
-            replay();
+        final DependencyResolverServlet resolverServlet = new DependencyResolverServlet();
+        resolverServlet.init(config, resolver);
+        assert resolverServlet.getServletConfig() == config;
+        assert resolverServlet.getServletInfo() == servletInfo;
+        resolverServlet.service(request, response);
+        resolverServlet.destroy();
 
-            final DependencyResolverServlet resolverServlet = new DependencyResolverServlet();
-            resolverServlet.init(config);
-            assert resolverServlet.getServletConfig() == config;
-            assert resolverServlet.getServletInfo() == servletInfo;
-            resolverServlet.service(request, response);
-            resolverServlet.destroy();
-
-            verify();
-        } finally {
-            DependencyResolverServlet.useResolver(savedResolver);
-        }
+        verify();
     }
 }
