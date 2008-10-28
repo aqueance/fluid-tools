@@ -451,7 +451,7 @@ public class AutoWiringMojo extends AbstractMojo {
                 final String answer = String.valueOf(value);
 
                 return value.getElementValueType() == ElementValue.CLASS
-                    ? answer.substring(1, answer.length() - 1).replace(File.separatorChar, '.')
+                    ? answer.substring(1, answer.length() - 1).replace('/', '.')
                     : answer;
             }
         }
