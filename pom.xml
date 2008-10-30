@@ -64,6 +64,21 @@
         <module>export</module>
     </modules>
 
+    <!--
+     This dummy distributionManagement section is needed to set up the deploy plugin. It is not used.
+
+     Use the following command to deploy Fluid Tools to your internal repository:
+
+     $ mvn deploy -DaltDeploymentRepository=id::layout::url
+    -->
+    <distributionManagement>
+      <repository>
+        <id>dummy</id>
+        <name>Dummy</name>
+        <url>dummy</url>
+      </repository>
+    </distributionManagement>
+
     <dependencyManagement>
         <dependencies>
 
