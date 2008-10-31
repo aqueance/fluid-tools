@@ -34,7 +34,7 @@ import java.lang.annotation.Target;
  * <p/>
  *
  * The org.fluidity.maven:maven-composition-plugin Maven plugin will generate the necessary {@link PackageBindings} object and create the appropriate service
- * provider descriptor file.
+ * provider descriptor file, unless the <code>automatic</code> is <code>false</code>.
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
@@ -42,7 +42,7 @@ import java.lang.annotation.Target;
 public @interface Component {
 
     /**
-     * Tells whether this component should be automatically bound or not. If manually bound, the developer has to implement the binding in suitable a
+     * Tells whether this component should be automatically bound or not. If manually bound, the developer has to implement the binding in a suitable
      * <code>PackageBindings</code> object. All other annotation properties are ignored for manually bound components.
      *
      * @return <code>true</code> if this component should be automatically bound.
