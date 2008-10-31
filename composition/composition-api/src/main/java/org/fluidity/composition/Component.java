@@ -28,8 +28,13 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * In case of simple interface to implementation mapping, this annotation can be used to specify at the implementation
- * class what interface class to map it against.
+ * In case of simple interface to implementation mapping, this annotation can be used to specify at the implementation class what interface should be bound to
+ * it.
+ *
+ * <p/>
+ *
+ * The org.fluidity.maven:maven-composition-plugin Maven plugin will generate the necessary {@link PackageBindings} object and create the appropriate service
+ * provider descriptor file.
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
@@ -37,25 +42,23 @@ import java.lang.annotation.Target;
 public @interface Component {
 
     /**
-     * Tells whether this component should be automatically bound or not. If manually bound, the developer has to
-     * implement the binding in suitable a <code>PackageBindings</code> object. All other annotation properties are
-     * ignored for manually bound components.
+     * Tells whether this component should be automatically bound or not. If manually bound, the developer has to implement the binding in suitable a
+     * <code>PackageBindings</code> object. All other annotation properties are ignored for manually bound components.
      *
      * @return <code>true</code> if this component should be automatically bound.
      */
     boolean automatic() default true;
 
     /**
-     * Returns the class to map the implementation class against. The property defaults to the first interface the class
-     * implements or the class itself if it implements no interface.
+     * Returns the class to map the implementation class against. The property defaults to the first interface the class implements or the class itself if it
+     * implements no interface.
      *
      * @return a Class object.
      */
     Class api() default Object.class;
 
     /**
-     * Tells whether this component should be bound as a fallback if no other component has been bound to its API
-     * interface.
+     * Tells whether this component should be bound as a fallback if no other component has been bound to its API interface.
      *
      * @return <code>true</code> if this component should be mapped as a fallback.
      */

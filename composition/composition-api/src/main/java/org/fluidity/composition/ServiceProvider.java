@@ -29,7 +29,11 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Declares that the annotated class is a service provider in the JAR file specification's sense.
+ * Declares that the annotated class, or implementing clases of the annotated interface, are service providers in the JAR file specification's sense.
+ *
+ * <p/>
+ *
+ * The org.fluidity.maven:maven-composition-plugin Maven plugin will create the appropriate service provider descriptor file.
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
