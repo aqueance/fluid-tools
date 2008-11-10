@@ -28,19 +28,19 @@ package org.fluidity.composition;
  *
  * <p/>
  *
- * Most of your components should never interact directly with this interface. Exceptions are boundary objects, i.e. objects created by third party tools, or
- * components with dynamic dependencies, e.g. that depend on some run-time criteria.
+ * Most of your components should never interact directly with this interface. Exceptions are objects created by third party tools, or components with dynamic
+ * dependencies, e.g. that depend on some run-time criteria.
  *
  * <h1>Using the <code>ComponentContainer.Registry</code></h1>
  *
- * The registry exposes several <code>bind()</code> methods to bind an interface to implementation mapping to its host container. Which one you need depends on
+ * The registry exposes several <code>bind()</code> methods to bind an implementation to interface mapping to the host container. Which one you need depends on
  * your requirements. These methods are normally invoked from the {@link PackageBindings#registerComponents(ComponentContainer.Registry)} method.
  *
  * <ul>
  *
- * <li>If you want to bind component that will be visible in the container itself <b>AND</b> you expect all its dependencies to be visible in that same
- * container <b>AND</b> you want to map the component against its own class rather than against an interface <b>AND</b> you don't need to override constructor
- * parameters:
+ * <li>If you want to bind a component that will be visible in the container itself <b>AND</b> you expect all its dependencies to be visible in that same
+ * container <b>AND</b> you want to map the component against its own class rather than against an interface, e.g. to provide a default implementation to some
+ * interface:
  *
  * <p/>
  *
@@ -55,7 +55,7 @@ package org.fluidity.composition;
  *
  * <p/>
  *
- * <blockquote>{@link ComponentContainer.Registry#bind(Class,Class,ConstructorParameter[])}</blockquote>
+ * <blockquote>{@link ComponentContainer.Registry#bind(Class,Class)}</blockquote>
  *
  * <p/>
  *
@@ -77,7 +77,7 @@ package org.fluidity.composition;
  *
  * <p/>
  *
- * <blockquote>{@link ComponentContainer.Registry#bind(Class,Class,boolean,boolean,boolean,ConstructorParameter[])}</blockquote>
+ * <blockquote>{@link ComponentContainer.Registry#bind(Class,Class,boolean,boolean,boolean)}</blockquote>
  *
  * <p/>
  *
@@ -101,7 +101,7 @@ package org.fluidity.composition;
  *
  * <p/>
  *
- * <blockquote>{@link ComponentContainer.Registry#bind(Class,Class,boolean,boolean,boolean, ComponentContainer.ComponentFactory)}</blockquote>
+ * <blockquote>{@link ComponentContainer.Registry#bind(Class,Class,boolean,boolean,boolean,ComponentContainer.ComponentFactory)}</blockquote>
  *
  * <p/>
  *
@@ -112,7 +112,7 @@ package org.fluidity.composition;
  *
  * <p/>
  *
- * <blockquote> use the {@link ComponentContainer.Registry#makeNestedContainer(Class,Class,ConstructorParameter[])} method</blockquote>
+ * <blockquote> use the {@link ComponentContainer.Registry#makeNestedContainer(Class,Class)} method</blockquote>
  *
  * <p/>
  *
@@ -123,7 +123,7 @@ package org.fluidity.composition;
  *
  * <p/>
  *
- * <blockquote> use the {@link ComponentContainer.Registry#makeNestedContainer(Class, Class,boolean,boolean,boolean,ConstructorParameter[])}
+ * <blockquote> use the {@link ComponentContainer.Registry#makeNestedContainer(Class,Class,boolean,boolean,boolean)}
  * method</blockquote>
  *
  * <p/>
@@ -136,7 +136,7 @@ package org.fluidity.composition;
  *
  * <p/>
  *
- * <blockquote> use the {@link ComponentContainer.Registry#makeNestedContainer(Class, Class,boolean,boolean,boolean,ConstructorParameter[])}
+ * <blockquote> use the {@link ComponentContainer.Registry#bind(Class,Class,boolean,boolean,boolean,Class)}
  * method</blockquote>
  *
  * <p/>
@@ -149,7 +149,7 @@ package org.fluidity.composition;
  *
  * <p/>
  *
- * <blockquote> use the {@link ComponentContainer.Registry#makeNestedContainer(Class, Class,boolean,boolean,boolean,ConstructorParameter[])}
+ * <blockquote> use the {@link ComponentContainer.Registry#makeNestedContainer(Class,Class,boolean,boolean,boolean,ComponentContainer.ComponentFactory)}
  * method</blockquote>
  *
  * <p/>
@@ -259,14 +259,8 @@ public interface ComponentContainer {
          *
          * @param key            the key by which to register the component; preferrably an interface class.
          * @param implementation the component class.
-         * @param parameters     the non-empty list of parameters to use to instantiate the component, never <code>null</code>.
-         *
-         * @see #component(Class)
-         * @see #constant(Object)
          */
-        <T> void bind(final Class<T> key,
-                      final Class<? extends T> implementation,
-                      final ConstructorParameter... parameters);
+        <T> void bind(final Class<T> key, final Class<? extends T> implementation);
 
         /**
          * Binds a component class to its interface with forced constructor parameters. Use this when you want to supply a more specific dependency or the
@@ -277,17 +271,12 @@ public interface ComponentContainer {
          * @param singleton      specifies whether the component should be singleton or not.
          * @param thread         specifies whether the component should be thread local.
          * @param deferred       specifies whether the component's instantiation should be deferred until the first method call.
-         * @param parameters     the non-empty list of parameters to use to instantiate the component, never <code>null</code>.
-         *
-         * @see #component(Class)
-         * @see #constant(Object)
          */
         <T> void bind(final Class<T> key,
                       final Class<? extends T> implementation,
                       final boolean singleton,
                       final boolean thread,
-                      final boolean deferred,
-                      final ConstructorParameter... parameters);
+                      final boolean deferred);
 
         /**
          * Binds a component class to its interface with forced constructor parameters. Use this when you want to supply a more specific dependency or the
@@ -299,9 +288,6 @@ public interface ComponentContainer {
          * @param thread         specifies whether the component should be thread local.
          * @param deferred       specifies whether the component's instantiation should be deferred until the first method call.
          * @param factory        is an object that will produce instances of the given implementation class.
-         *
-         * @see #component(Class)
-         * @see #constant(Object)
          */
         <T> void bind(final Class<T> key,
                       final Class<? extends T> implementation,
@@ -320,9 +306,6 @@ public interface ComponentContainer {
          * @param thread         specifies whether the component should be thread local.
          * @param deferred       specifies whether the component's instantiation should be deferred until the first method call.
          * @param factory        is a class whose singleton instance that will produce instances of the given implementation class.
-         *
-         * @see #component(Class)
-         * @see #constant(Object)
          */
         <T> void bind(final Class<T> key,
                       final Class<? extends T> implementation,
@@ -354,13 +337,11 @@ public interface ComponentContainer {
          *
          * @param key            the key under which the child container will be accessible through its parent.
          * @param implementation the component whose dependencies the child container will help resolving.
-         * @param parameters     the non-empty list of parameters to use to instantiate the component, never <code>null</code>.
          *
          * @return an open container, never <code>null</code>.
          */
         <T> OpenComponentContainer makeNestedContainer(final Class<T> key,
-                                                       final Class<? extends T> implementation,
-                                                       final ConstructorParameter... parameters);
+                                                       final Class<? extends T> implementation);
 
         /**
          * Returns a new child registry whose container will use the container for this registry as its parent.
@@ -370,7 +351,6 @@ public interface ComponentContainer {
          * @param singleton      specifies whether the component should be singleton or not.
          * @param thread         specifies whether the component should be thread local.
          * @param deferred       specifies whether the component's instantiation should be deferred until the first method call.
-         * @param parameters     the non-empty list of parameters to use to instantiate the component, never <code>null</code>.
          *
          * @return an open container, never <code>null</code>.
          */
@@ -378,8 +358,7 @@ public interface ComponentContainer {
                                                        final Class<? extends T> implementation,
                                                        final boolean singleton,
                                                        final boolean thread,
-                                                       final boolean deferred,
-                                                       final ConstructorParameter... parameters);
+                                                       final boolean deferred);
 
         /**
          * Returns a new child registry whose container will use the container for this registry as its parent.
@@ -418,87 +397,6 @@ public interface ComponentContainer {
                                                        final boolean thread,
                                                        final boolean deferred,
                                                        final Class<? extends ComponentFactory<T>> factory);
-
-        /**
-         * Returns a component parameter that is linked to a component in the container that has been bound to the given interface.
-         *
-         * @param key the key of the component to link to.
-         *
-         * @return a parameter object, never <code>null</code>.
-         */
-        ConstructorParameter component(final Class key);
-
-        /**
-         * Returns a component parameter that encapsulates a constant value.
-         *
-         * @param value the constant value to encapsulate.
-         *
-         * @return a parameter object, never <code>null</code>.
-         */
-        ConstructorParameter constant(final Object value);
-
-        /**
-         * Returns a component parameter that encapsulates a constant value.
-         *
-         * @param value the constant value to encapsulate.
-         *
-         * @return a parameter, never <code>null</code>.
-         */
-        ConstructorParameter constant(final char value);
-
-        /**
-         * Returns a component parameter that encapsulates a constant value.
-         *
-         * @param value the constant value to encapsulate.
-         *
-         * @return a parameter, never <code>null</code>.
-         */
-        ConstructorParameter constant(final byte value);
-
-        /**
-         * Returns a component parameter that encapsulates a constant value.
-         *
-         * @param value the constant value to encapsulate.
-         *
-         * @return a parameter, never <code>null</code>.
-         */
-        ConstructorParameter constant(final short value);
-
-        /**
-         * Returns a component parameter that encapsulates a constant value.
-         *
-         * @param value the constant value to encapsulate.
-         *
-         * @return a parameter, never <code>null</code>.
-         */
-        ConstructorParameter constant(final int value);
-
-        /**
-         * Returns a component parameter that encapsulates a constant value.
-         *
-         * @param value the constant value to encapsulate.
-         *
-         * @return a parameter, never <code>null</code>.
-         */
-        ConstructorParameter constant(final long value);
-
-        /**
-         * Returns a component parameter that encapsulates a constant value.
-         *
-         * @param value the constant value to encapsulate.
-         *
-         * @return a parameter, never <code>null</code>.
-         */
-        ConstructorParameter constant(final boolean value);
-
-        /**
-         * Returns a component parameter that encapsulates an array.
-         *
-         * @param componentClass is the component class for the array.
-         *
-         * @return a parameter, never <code>null</code>.
-         */
-        ConstructorParameter array(final Class componentClass);
     }
 
     /**

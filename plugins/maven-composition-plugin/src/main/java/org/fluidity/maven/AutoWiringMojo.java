@@ -48,7 +48,6 @@ import org.apache.bcel.classfile.ElementValuePair;
 import org.apache.bcel.classfile.Field;
 import org.apache.bcel.classfile.JavaClass;
 import org.apache.bcel.classfile.RuntimeVisibleAnnotations;
-import org.apache.bcel.generic.ArrayType;
 import org.apache.bcel.generic.ClassGen;
 import org.apache.bcel.generic.ConstantPoolGen;
 import org.apache.bcel.generic.InstructionConstants;
@@ -67,7 +66,6 @@ import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.DirectoryScanner;
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
-import org.fluidity.composition.ConstructorParameter;
 import org.fluidity.composition.EmptyPackageBindings;
 import org.fluidity.composition.PackageBindings;
 import org.fluidity.composition.ServiceProvider;
@@ -244,12 +242,10 @@ public class AutoWiringMojo extends AbstractMojo {
                 code.append(InstructionConstants.ALOAD_1);
                 code.append(new LDC_W(cp.addClass(interfaceName)));
                 code.append(new LDC_W(cp.addClass(implementationName)));
-                code.append(InstructionConstants.ACONST_NULL);
                 code.append(factory.createInvoke(ComponentContainer.Registry.class.getName(),
                     "bind", Type.VOID, new Type[] {
                     Type.getType(Class.class),
                     Type.getType(Class.class),
-                    new ArrayType(Type.getType(ConstructorParameter.class), 1)
                 }, Constants.INVOKEINTERFACE));
             }
 

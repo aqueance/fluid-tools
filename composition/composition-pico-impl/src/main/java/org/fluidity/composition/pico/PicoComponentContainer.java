@@ -30,7 +30,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.fluidity.composition.ComponentContainer;
-import org.fluidity.composition.ConstructorParameter;
 import org.fluidity.composition.OpenComponentContainer;
 import org.fluidity.foundation.Logging;
 import org.fluidity.foundation.logging.StandardOutLogging;
@@ -181,37 +180,18 @@ final class PicoComponentContainer implements OpenComponentContainer {
         }
 
         public <T> void bind(final Class<T> key,
-                             final Class<? extends T> implementation,
-                             final ConstructorParameter... parameters) {
-            bind(key, implementation, true, false, false, parameters);
+                             final Class<? extends T> implementation) {
+            bind(key, implementation, true, false, false);
         }
 
         public <T> void bind(final Class<T> key,
                              final Class<? extends T> implementation,
                              final boolean singleton,
                              final boolean thread,
-                             final boolean deferred,
-                             final ConstructorParameter... parameters) {
-            final Parameter[] params =
-                parameters != null && parameters.length > 0 ? new Parameter[parameters.length] : null;
-            final StringBuffer report = new StringBuffer();
+                             final boolean deferred) {
 
-            if (parameters != null) {
-                for (int i = 0; i < parameters.length; i++) {
-                    assert params != null;
-                    params[i] = (Parameter) parameters[i].representation();
-
-                    if (i > 0) {
-                        report.append(", ");
-                    }
-
-                    report.append(parameters[i]);
-                }
-            }
-
-            log.info(getClass(), this + ": binding " + key + " to " + implementation
-                + (params != null ? " with parameter(s) " + report : ""));
-            registerAdapter(key, implementation, deferred, singleton, thread, params);
+            log.info(getClass(), this + ": binding " + key + " to " + implementation);
+            registerAdapter(key, implementation, deferred, singleton, thread, null);
         }
 
         public <T> void bind(final Class<T> key,
@@ -248,19 +228,17 @@ final class PicoComponentContainer implements OpenComponentContainer {
         }
 
         public <T> OpenComponentContainer makeNestedContainer(final Class<T> key,
-                                                              final Class<? extends T> implementation,
-                                                              final ConstructorParameter... parameters) {
-            return makeNestedContainer(key, implementation, true, false, false, parameters);
+                                                              final Class<? extends T> implementation) {
+            return makeNestedContainer(key, implementation, true, false, false);
         }
 
         public <T> OpenComponentContainer makeNestedContainer(final Class<T> key,
                                                               final Class<? extends T> implementation,
                                                               final boolean singleton,
                                                               final boolean thread,
-                                                              final boolean deferred,
-                                                              final ConstructorParameter... parameters) {
+                                                              final boolean deferred) {
             final OpenComponentContainer container = makeNestedContainer(key);
-            container.getRegistry().bind(key, implementation, singleton, thread, deferred, parameters);
+            container.getRegistry().bind(key, implementation, singleton, thread, deferred);
             return container;
         }
 
@@ -321,42 +299,6 @@ final class PicoComponentContainer implements OpenComponentContainer {
             pico.registerComponent(new LinkingComponentAdapter(nested, key, key));
             resolvedDependencies.add(key);
             return new PicoComponentContainer(nested);
-        }
-
-        public ConstructorParameter component(final Class key) {
-            return ConstructorParameterImpl.componentParameter(key);
-        }
-
-        public ConstructorParameter constant(final Object value) {
-            return ConstructorParameterImpl.constantParameter(value);
-        }
-
-        public ConstructorParameter constant(final char value) {
-            return constant(new Character(value));
-        }
-
-        public ConstructorParameter constant(final byte value) {
-            return constant(new Byte(value));
-        }
-
-        public ConstructorParameter constant(final short value) {
-            return constant(new Short(value));
-        }
-
-        public ConstructorParameter constant(final int value) {
-            return constant(new Integer(value));
-        }
-
-        public ConstructorParameter constant(final long value) {
-            return constant(new Long(value));
-        }
-
-        public ConstructorParameter constant(final boolean value) {
-            return constant(Boolean.valueOf(value));
-        }
-
-        public ConstructorParameter array(final Class componentClass) {
-            return ConstructorParameterImpl.arrayParameter(componentClass);
         }
 
         public String toString() {

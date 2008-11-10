@@ -174,7 +174,6 @@ public abstract class ComponentContainerAbstractTest extends MockGroupAbstractTe
     public void nestedContainerDefaultsToParent() throws Exception {
         registry.bind(DependentKey.class, DependentValue.class, true, false, false);
 
-        // one variant of the makeNestedContainer method
         registry.makeNestedContainer(Key.class, Value.class, true, false, false);
         verifyComponent(container);
     }
@@ -182,9 +181,7 @@ public abstract class ComponentContainerAbstractTest extends MockGroupAbstractTe
     @Test
     public void nestedContainerResolvesLocally() throws Exception {
 
-        // another variant of the makeNestedContainer method
-        final OpenComponentContainer nested = registry.makeNestedContainer(Key.class, Value.class, true, false, false,
-            registry.component(DependentKey.class));
+        final OpenComponentContainer nested = registry.makeNestedContainer(Key.class, Value.class, true, false, false);
 
         nested.getRegistry().bind(DependentKey.class, DependentValue.class, true, false, false);
 
@@ -195,22 +192,6 @@ public abstract class ComponentContainerAbstractTest extends MockGroupAbstractTe
     public void nestedContainerInteraction() throws Exception {
         registry.makeNestedContainer(DependentKey.class, DependentValue.class, true, false, false);
         registry.makeNestedContainer(Key.class, Value.class, true, false, false);
-        verifyComponent(container);
-    }
-
-    @Test
-    public void componentsWithForcedComponentParameter() throws Exception {
-        registry.bind(Key.class, Value.class, true, false, false, registry.component(DependentKey.class));
-
-        registry.bind(DependentKey.class, DependentValue.class, true, false, false);
-
-        verifyComponent(container);
-    }
-
-    @Test
-    public void componentsWithForcedConstantParameter() throws Exception {
-        registry.bind(Key.class, Value.class, true, false, false, registry.constant(new DependentValue()));
-
         verifyComponent(container);
     }
 
