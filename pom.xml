@@ -261,6 +261,13 @@
 
             <dependency>
                 <groupId>${fluidity.plugin.groupId}</groupId>
+                <artifactId>war-bootstrap-api</artifactId>
+                <version>${fluidity.version}</version>
+                <scope>compile</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>${fluidity.plugin.groupId}</groupId>
                 <artifactId>jetty-bootstrap</artifactId>
                 <version>${fluidity.version}</version>
                 <scope>compile</scope>
