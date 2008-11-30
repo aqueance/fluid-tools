@@ -504,7 +504,9 @@ public class ExecutableWarMojo extends AbstractMojo {
 
         for (final Iterator<Artifact> i = pluginDependencies.iterator(); i.hasNext();) {
             final Artifact artifact = i.next();
-            if (bootstrap.equals(artifact.getGroupId() + ':' + artifact.getArtifactId())) {
+            final String artifactKey = artifact.getGroupId() + ':' + artifact.getArtifactId();
+
+            if (bootstrap.equals(artifactKey) || DEFAULT_BOOTSTRAP_KEY.equals(artifactKey)) {
                 i.remove();
             }
         }
