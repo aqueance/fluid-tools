@@ -112,7 +112,7 @@ public class WebRunMojo extends AbstractMojo {
         if (!deployed.isEmpty()) {
             final Server server = new Server();
 
-            new ComponentContainerAccess().setBindingsProperty(WebRunControl.class, new WebRunControl() {
+            new ComponentContainerAccess().setBindingsProperty(WebServerControl.class, new WebServerControl() {
                 public void stopServer() throws Exception {
                     server.stop();
                 }

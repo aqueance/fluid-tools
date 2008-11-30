@@ -21,24 +21,11 @@
  */
 package org.fluidity.maven;
 
-import java.util.Map;
+/**
+ * Allows stopping by the deployed application the web server started by the org.fluidity.shared:maven-webrun-plugin
+ * Maven plugin.
+ */
+public interface WebServerControl {
 
-import org.fluidity.composition.ComponentContainer;
-import org.fluidity.composition.EmptyPackageBindings;
-
-public final class WebRunControlBindings extends EmptyPackageBindings {
-
-    private final WebRunControl control;
-
-    public WebRunControlBindings(final Map properties) {
-        control = (WebRunControl) properties.get(WebRunControl.class);
-        assert control != null : WebRunControl.class;
-    }
-
-    @Override
-    public void registerComponents(final ComponentContainer.Registry registry) {
-        if (control != null) {
-            registry.bind(WebRunControl.class, control);
-        }
-    }
+    void stopServer() throws Exception;
 }

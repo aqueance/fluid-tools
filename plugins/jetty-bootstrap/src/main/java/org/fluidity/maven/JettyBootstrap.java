@@ -9,9 +9,9 @@ import org.mortbay.jetty.handler.HandlerCollection;
 import org.mortbay.jetty.handler.RequestLogHandler;
 import org.mortbay.jetty.nio.SelectChannelConnector;
 import org.mortbay.jetty.webapp.WebAppContext;
-import org.mortbay.resource.Resource;
 import org.mortbay.thread.QueuedThreadPool;
 import org.fluidity.composition.ServiceProvider;
+import org.fluidity.composition.ComponentContainerAccess;
 
 /**
  * Bootstraps a Jetty web container and deploys the .war file that contains this class.
@@ -39,22 +39,26 @@ public final class JettyBootstrap implements ServerBootstrap {
 
         final Server server = new Server();
 
+        final ComponentContainerAccess access = new ComponentContainerAccess();
+        access.setBindingsProperty(WebServerControl.class, new WebServerControl() {
+            public void stopServer() throws Exception {
+                server.stop();
+            }
+        });
+
         server.setThreadPool(new QueuedThreadPool());
         server.setHandler(handlers);
 
-        if (true) {
-            final int listenPort = 8080;
+        final Settings settings = access.getComponent(Settings.class);
 
-            try {
+        if (settings != null) {
+            final int httpPort = settings.httpPort();
+            if (httpPort > 0) {
                 final SelectChannelConnector connector = new SelectChannelConnector();
-                connector.setPort(listenPort);
+                connector.setPort(httpPort);
                 server.addConnector(connector);
-            } catch (final NumberFormatException e) {
-                throw new RuntimeException("Listen port not a number: " + listenPort);
             }
         }
-
-        Resource.setDefaultUseCaches(false);
 
         try {
             System.out.println("Starting server - press Ctrl-C to kill.");
