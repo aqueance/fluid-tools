@@ -240,9 +240,6 @@ public class ExecutableWarMojo extends AbstractMojo {
         final Collection<Artifact> serverDependencies = findDependencies(findPluginArtifact(), dependencyRootNode);
         serverDependencies.removeAll(bootstrapDependencies);
 
-        System.out.println("bootstrapDependencies = " + bootstrapDependencies);
-        System.out.println("serverDependencies = " + serverDependencies);
-
         final Set<String> processedEntries = new HashSet<String>();
 
         try {
