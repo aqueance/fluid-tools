@@ -78,7 +78,7 @@ pressing Ctrl-C.
 
         <dependency>
             <groupId>${fluidity.plugin.groupId}</groupId>
-            <artifactId>maven-webrun-plugin-api</artifactId>
+            <artifactId>web-control-api</artifactId>
         </dependency>
 
         <dependency>
