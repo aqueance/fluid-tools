@@ -237,7 +237,6 @@ public class ExecutableWarMojo extends AbstractMojo {
 
         final Artifact bootstrap = findBootstrapDependency();
         final Collection<Artifact> bootstrapDependencies = addTransitiveDependencies(Collections.singleton(bootstrap), dependencyRootNode);
-        ;
         final Collection<Artifact> serverDependencies = findDependencies(findPluginArtifact(), dependencyRootNode);
         serverDependencies.removeAll(bootstrapDependencies);
 
@@ -468,8 +467,7 @@ public class ExecutableWarMojo extends AbstractMojo {
                                   Collections.singletonList(listener));
 
 
-        final DependencyNode rootNode = listener.getRootNode();
-        return rootNode;
+        return listener.getRootNode();
     }
 
     private Collection<Artifact> addTransitiveDependencies(final Set<Artifact> artifacts, final DependencyNode rootNode) {
