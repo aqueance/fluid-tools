@@ -231,13 +231,15 @@ public class ExecutableWarMojo extends AbstractMojo {
         final DependencyNode dependencyRootNode;
         try {
             dependencyRootNode = calculateDependencyGraph(findPluginArtifact(), project.getRemoteArtifactRepositories());
-        } catch (ArtifactResolutionException e) {
+        } catch (final ArtifactResolutionException e) {
             throw new MojoExecutionException("Cannot calculate dependency graph", e);
         }
 
         final Artifact bootstrap = findBootstrapDependency();
+
         final Collection<Artifact> bootstrapDependencies = addTransitiveDependencies(Collections.singleton(bootstrap), dependencyRootNode);
         final Collection<Artifact> serverDependencies = findDependencies(findPluginArtifact(), dependencyRootNode);
+
         serverDependencies.removeAll(bootstrapDependencies);
 
         final Set<String> processedEntries = new HashSet<String>();
@@ -276,7 +278,7 @@ public class ExecutableWarMojo extends AbstractMojo {
                     } finally {
                         try {
                             jarInput.close();
-                        } catch (IOException ignored) {
+                        } catch (final IOException ignored) {
                             // ignored
                         }
                     }
@@ -326,7 +328,9 @@ public class ExecutableWarMojo extends AbstractMojo {
 
                     if (!serverDependencies.isEmpty()) {
                         final String bootDirectory = "WEB-INF/boot/";
+
                         outputStream.putNextEntry(new JarEntry(bootDirectory));
+
                         for (final Artifact artifact : serverDependencies) {
                             final File dependency = new File(localRepository.getBasedir(), localRepository.pathOf(artifact));
 
@@ -341,14 +345,14 @@ public class ExecutableWarMojo extends AbstractMojo {
                 } finally {
                     try {
                         warInput.close();
-                    } catch (IOException ignored) {
+                    } catch (final IOException ignored) {
                         // ignored
                     }
                 }
             } finally {
                 try {
                     outputStream.close();
-                } catch (IOException ignored) {
+                } catch (final IOException ignored) {
                     // ignored
                 }
             }
@@ -360,7 +364,7 @@ public class ExecutableWarMojo extends AbstractMojo {
             if (!file.renameTo(packageFile)) {
                 throw new MojoExecutionException("Could not create " + packageFile);
             }
-        } catch (IOException e) {
+        } catch (final IOException e) {
             throw new MojoExecutionException("Processing " + packageFile, e);
         }
     }
@@ -369,7 +373,7 @@ public class ExecutableWarMojo extends AbstractMojo {
         final Artifact root;
         try {
             root = artifactFactory.createPluginArtifact(pluginGroupId, pluginArtifactId, VersionRange.createFromVersionSpec(pluginVersion));
-        } catch (InvalidVersionSpecificationException e) {
+        } catch (final InvalidVersionSpecificationException e) {
             throw new MojoExecutionException("Resolving plugin artifact", e);
         }
         return root;
@@ -396,7 +400,7 @@ public class ExecutableWarMojo extends AbstractMojo {
      * Finds all dependencies of the host project to include in the .war file. We can calculate the dependency list for this plugin, we can generate a complete
      * dependency tree and we have a root artifact whose transitive dependencies should be returned, but nothing more. The host project may add dependencies to
      * this plugin to be returned here in addition to those directly known by the host and that poses a problem: we need to throw away all dependencies of this
-     * plugin that are not needed, transitively, by the root artifact and any other dependency added for inclusing in the .war file.
+     * plugin that are not needed, transitively, by the root artifact and any other dependency added for inclusion in the .war file.
      */
     @SuppressWarnings({"unchecked"})
     private Collection<Artifact> findDependencies(final Artifact root, final DependencyNode rootNode) throws MojoExecutionException {
@@ -515,7 +519,7 @@ public class ExecutableWarMojo extends AbstractMojo {
         final Set<Artifact> pluginDependencies;
         try {
             pluginDependencies = (Set<Artifact>) artifactMetadataSource.retrieve(root, localRepository, remoteRepositories).getArtifacts();
-        } catch (ArtifactMetadataRetrievalException e) {
+        } catch (final ArtifactMetadataRetrievalException e) {
             throw new MojoExecutionException("Retrieving plugin dependencies", e);
         }
 
@@ -551,7 +555,7 @@ public class ExecutableWarMojo extends AbstractMojo {
         } finally {
             try {
                 input.close();
-            } catch (IOException e) {
+            } catch (final IOException e) {
                 // ignore
             }
         }
