@@ -1,7 +1,9 @@
-package org.fluidity.maven;
+package org.fluidity.web;
 
 import java.io.File;
 
+import org.fluidity.composition.ComponentContainerAccess;
+import org.fluidity.composition.ServiceProvider;
 import org.mortbay.jetty.Server;
 import org.mortbay.jetty.handler.ContextHandlerCollection;
 import org.mortbay.jetty.handler.DefaultHandler;
@@ -10,8 +12,6 @@ import org.mortbay.jetty.handler.RequestLogHandler;
 import org.mortbay.jetty.nio.SelectChannelConnector;
 import org.mortbay.jetty.webapp.WebAppContext;
 import org.mortbay.thread.QueuedThreadPool;
-import org.fluidity.composition.ServiceProvider;
-import org.fluidity.composition.ComponentContainerAccess;
 
 /**
  * Bootstraps a Jetty web container and deploys the .war file that contains this class.
@@ -40,7 +40,7 @@ public final class JettyBootstrap implements ServerBootstrap {
         final Server server = new Server();
 
         final ComponentContainerAccess access = new ComponentContainerAccess();
-        access.setBindingsProperty(WebServerControl.class, new WebServerControl() {
+        access.setBindingsProperty(ServerControl.class, new ServerControl() {
             public void stopServer() throws Exception {
                 server.stop();
             }

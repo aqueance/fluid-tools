@@ -1,4 +1,4 @@
-package org.fluidity.maven;
+package org.fluidity.web;
 
 import java.io.File;
 

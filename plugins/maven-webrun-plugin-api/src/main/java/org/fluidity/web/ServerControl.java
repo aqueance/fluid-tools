@@ -19,13 +19,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.fluidity.maven;
+package org.fluidity.web;
 
 /**
- * Allows stopping by the deployed application the web server started by the org.fluidity.shared:maven-webrun-plugin
- * Maven plugin.
+ * Allows stopping by the deployed application the web server started by the org.fluidity.shared:maven-webrun-plugin Maven plugin.
  */
-public interface WebServerControl {
+public interface ServerControl {
 
     void stopServer() throws Exception;
 }

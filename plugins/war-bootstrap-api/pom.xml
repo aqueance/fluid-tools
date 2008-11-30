@@ -56,7 +56,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>org.fluidity.maven.WarBootstrapLoader</mainClass>
+                            <mainClass>org.fluidity.web.WarBootstrapLoader</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

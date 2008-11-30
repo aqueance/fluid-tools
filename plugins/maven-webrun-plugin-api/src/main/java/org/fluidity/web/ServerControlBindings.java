@@ -19,26 +19,26 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.fluidity.maven;
+package org.fluidity.web;
 
 import java.util.Map;
 
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.EmptyPackageBindings;
 
-public final class WebServerControlBindings extends EmptyPackageBindings {
+public final class ServerControlBindings extends EmptyPackageBindings {
 
-    private final WebServerControl control;
+    private final ServerControl control;
 
-    public WebServerControlBindings(final Map properties) {
-        control = (WebServerControl) properties.get(WebServerControl.class);
-        assert control != null : WebServerControl.class;
+    public ServerControlBindings(final Map properties) {
+        control = (ServerControl) properties.get(ServerControl.class);
+        assert control != null : ServerControl.class;
     }
 
     @Override
     public void registerComponents(final ComponentContainer.Registry registry) {
         if (control != null) {
-            registry.bind(WebServerControl.class, control);
+            registry.bind(ServerControl.class, control);
         }
     }
 }
