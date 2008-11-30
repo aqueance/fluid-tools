@@ -1,6 +1,9 @@
 package org.fluidity.web;
 
 import java.io.File;
+import java.util.List;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 
 import org.fluidity.composition.ComponentContainerAccess;
 import org.fluidity.composition.ServiceProvider;
@@ -19,7 +22,7 @@ import org.mortbay.thread.QueuedThreadPool;
 @ServiceProvider
 public final class JettyBootstrap implements ServerBootstrap {
 
-    public void bootstrap(final File warFile, final File workDirectory) {
+    public void bootstrap(final File bootWar, final List<File> otherWars, final File workDirectory) {
         final ContextHandlerCollection contexts = new ContextHandlerCollection();
 
         final HandlerCollection handlers = new HandlerCollection();
@@ -27,15 +30,11 @@ public final class JettyBootstrap implements ServerBootstrap {
         handlers.addHandler(new DefaultHandler());
         handlers.addHandler(new RequestLogHandler());
 
-        final WebAppContext context = new WebAppContext();
-        final String contextPath = "/";
+        contexts.addHandler(deployWar(bootWar, workDirectory, true));
 
-        context.setTempDirectory(new File(workDirectory, warFile.getName()));
-        context.setContextPath(contextPath);
-        context.setParentLoaderPriority(true);
-
-        context.setWar(warFile.getPath());
-        contexts.addHandler(context);
+        for (final File war : otherWars) {
+            contexts.addHandler(deployWar(war, workDirectory, false));
+        }
 
         final Server server = new Server();
 
@@ -53,6 +52,7 @@ public final class JettyBootstrap implements ServerBootstrap {
 
         if (settings != null) {
             final int httpPort = settings.httpPort();
+
             if (httpPort > 0) {
                 final SelectChannelConnector connector = new SelectChannelConnector();
                 connector.setPort(httpPort);
@@ -69,5 +69,31 @@ public final class JettyBootstrap implements ServerBootstrap {
         } catch (final Exception e) {
             throw new RuntimeException("Starting server", e);
         }
+    }
+
+    private WebAppContext deployWar(final File warFile, final File workDirectory, final boolean root) {
+        final WebAppContext context = new WebAppContext();
+        final String archiveName = warFile.getName();
+        final String contextPath = "/" + (root ? "" : artifactId(archiveName));
+
+        context.setTempDirectory(new File(workDirectory, archiveName));
+        context.setContextPath(contextPath);
+        context.setParentLoaderPriority(true);
+
+        context.setWar(warFile.getPath());
+
+        return context;
+    }
+
+    private final Pattern archiveNamePattern = Pattern.compile("(.+?)-\\d.*\\.war");
+
+    private String artifactId(final String archiveName) {
+        final Matcher matcher = archiveNamePattern.matcher(archiveName);
+
+        if (!matcher.matches()) {
+            throw new RuntimeException("Could not parse archive name " + archiveName + " using pattern " + archiveNamePattern);
+        }
+
+        return matcher.group(1);
     }
 }

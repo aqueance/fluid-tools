@@ -45,14 +45,11 @@
     </licenses>
 
     <description>
-This plugins takes host project's .war artifact and deploys it in an
-embedded Jetty server. The server will bootstrap a ComponentContainer
-and offer it as a parent container for the deployed web applications.
-
-Any .jar artifact that happens to be in the plugin's classpath will be
-scanned for @Components to be added to the global ComponentContainer.
-They will also be scanned to discover @ServiceProviders that a deployed
-web application may ask for.
+This plugins takes host project's .war artifact and produces an executable
+.war file out of it. When executed, that .war file will deploy itself
+and all other .war files specified on the command line in an embedded Jetty
+server. The server will bootstrap a ComponentContainer and offer it as a
+parent container for the deployed web applications.
 
 You configure the web server's classpath by a &lt;dependencies> section
 in the plugin configuration of your host project. The server classpath
@@ -62,6 +59,9 @@ The plugin exports an org.fluidity.web.ServerControl object in the global
 ComponentContainer. That object can be used to programmatically stop the
 Jetty server started by this plugin. The server can also be stopped by
 pressing Ctrl-C.
+
+The web server can be configured by supplying an implementation for the
+org.fluidity.web.ServerBootstrap.Settings interface.
     </description>
 
     <dependencies>

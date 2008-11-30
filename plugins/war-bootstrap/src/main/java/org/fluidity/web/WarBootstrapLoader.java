@@ -27,105 +27,129 @@ import sun.misc.Service;
  */
 public final class WarBootstrapLoader {
 
-    private static DateFormat df = new SimpleDateFormat("yyyy-MM-dd:HH:mm:SSS");
+    private final DateFormat df = new SimpleDateFormat("yyyy-MM-dd:HH:mm:SSS");
+    private final Pattern warFilePattern = Pattern.compile("^jar:file:(.*.war)\\!/.*");
 
     public static void main(String[] args) throws Exception {
-        final Class<WarBootstrapLoader> bootstrapClass = WarBootstrapLoader.class;
+        new WarBootstrapLoader().boot(args);
+    }
+
+    private void boot(final String[] args) throws Exception {
+        final Class<? extends WarBootstrapLoader> bootstrapClass = getClass();
         final String name = bootstrapClass.getName().replace('.', '/') + ".class";
-        final URL warUrl = bootstrapClass.getClassLoader().getResource(name);
-        final String url = warUrl.toExternalForm();
+        final ClassLoader bootstrapLoader = bootstrapClass.getClassLoader();
+        final String bootUrl = bootstrapLoader.getResource(name).toExternalForm();
 
-        final Matcher matcher = Pattern.compile("^jar:file:(.*.war)\\!/.*").matcher(url);
+        final List<File> otherWars = new ArrayList<File>();
+
+        final Matcher matcher = warFilePattern.matcher(bootUrl);
         if (matcher.matches()) {
-            final List<URL> classpath = new ArrayList<URL>();
-
             final String warPath = matcher.group(1);
-            final File warFile = new File(warPath);
-            assert warFile.exists() : warFile;
+            final File bootWar = new File(warPath);
+            assert bootWar.exists() : bootWar;
 
-            final JarFile warInput = new JarFile(warFile);
+            final File workDirectory = createWorkDirectory(bootWar);
+            final List<URL> classpath = unpackBootModules(workDirectory, bootWar);
 
-            final File workDirectory = createWorkDirectory(warFile);
-            final File classpathRoot = new File(workDirectory, archiveName(warFile) + '-' + df.format(new Date(warFile.lastModified())));
-            if (!classpathRoot.exists() && !classpathRoot.mkdir()) {
-                throw new RuntimeException("Cannot create direcory " + classpathRoot);
-            }
+            for (final String path : args) {
+                if (path.endsWith(".war")) {
+                    final File file = new File(path);
+                    assert file.exists() : file;
 
-            try {
-                final String bootEntry = "WEB-INF/boot/";
-                final byte buffer[] = new byte[1024 * 16];
-
-                for (final Enumeration entries = warInput.entries(); entries.hasMoreElements();) {
-                    final JarEntry entry = (JarEntry) entries.nextElement();
-
-                    final String entryName = entry.getName();
-                    if (entryName.startsWith(bootEntry) && !entryName.equals(bootEntry)) {
-                        final File file = new File(classpathRoot, new File(entryName).getName());
-
-                        if (file.exists()) {
-                            final long entryTime = entry.getTime();
-                            final long fileTime = file.lastModified();
-
-                            if (entryTime > fileTime) {
-                                if (!file.delete()) {
-                                    throw new RuntimeException("Cannot delete " + file);
-                                }
-                            }
-                        }
-
-                        if (!file.exists()) {
-                            final InputStream inputStream = warInput.getInputStream(entry);
-                            final OutputStream outputStream = new FileOutputStream(file);
-                            int bytesRead;
-
-                            try {
-                                while ((bytesRead = inputStream.read(buffer)) != -1) {
-                                    outputStream.write(buffer, 0, bytesRead);
-                                }
-                            } finally {
-                                try {
-                                    inputStream.close();
-                                } catch (IOException e) {
-                                    // ignore
-                                }
-
-                                try {
-                                    outputStream.close();
-                                } catch (IOException e) {
-                                    // ignore
-                                }
-                            }
-                        }
-
-                        classpath.add(new URL("file:" + file.getAbsolutePath()));
-                    }
-                }
-            } finally {
-                try {
-                    warInput.close();
-                } catch (IOException e) {
-                    // ignore
+                    otherWars.add(file);
                 }
             }
 
-            final URLClassLoader classLoader = new URLClassLoader(classpath.toArray(new URL[classpath.size()]));
-
-            // Jetty needs this to function
-            Thread.currentThread().setContextClassLoader(classLoader);
-            final Iterator providers = Service.providers(ServerBootstrap.class, classLoader);
-
-            if (providers.hasNext()) {
-                final ServerBootstrap server = (ServerBootstrap) providers.next();
-                server.bootstrap(warFile, workDirectory);
-            } else {
-                throw new RuntimeException("No server bootstrap found (service provider for " + ServerBootstrap.class + ")");
-            }
+            bootstrapServer(classpath, bootWar, otherWars, workDirectory);
         } else {
-            throw new RuntimeException("Not a local .war file: " + url);
+            throw new RuntimeException("Not a local .war file: " + bootUrl);
         }
     }
 
-    private static File createWorkDirectory(final File archive) {
+    private List<URL> unpackBootModules(final File workDirectory, final File warFile) throws IOException {
+        final List<URL> classpath = new ArrayList<URL>();
+        final JarFile warInput = new JarFile(warFile);
+
+        final File classpathRoot = new File(workDirectory, archiveName(warFile) + '-' + df.format(new Date(warFile.lastModified())));
+        if (!classpathRoot.exists() && !classpathRoot.mkdir()) {
+            throw new RuntimeException("Cannot create direcory " + classpathRoot);
+        }
+
+        try {
+            final String bootEntry = "WEB-INF/boot/";
+            final byte buffer[] = new byte[1024 * 16];
+
+            for (final Enumeration entries = warInput.entries(); entries.hasMoreElements();) {
+                final JarEntry entry = (JarEntry) entries.nextElement();
+
+                final String entryName = entry.getName();
+                if (entryName.startsWith(bootEntry) && !entryName.equals(bootEntry)) {
+                    final File file = new File(classpathRoot, new File(entryName).getName());
+
+                    if (file.exists()) {
+                        final long entryTime = entry.getTime();
+                        final long fileTime = file.lastModified();
+
+                        if (entryTime > fileTime) {
+                            if (!file.delete()) {
+                                throw new RuntimeException("Cannot delete " + file);
+                            }
+                        }
+                    }
+
+                    if (!file.exists()) {
+                        final InputStream inputStream = warInput.getInputStream(entry);
+                        final OutputStream outputStream = new FileOutputStream(file);
+                        int bytesRead;
+
+                        try {
+                            while ((bytesRead = inputStream.read(buffer)) != -1) {
+                                outputStream.write(buffer, 0, bytesRead);
+                            }
+                        } finally {
+                            try {
+                                inputStream.close();
+                            } catch (IOException e) {
+                                // ignore
+                            }
+
+                            try {
+                                outputStream.close();
+                            } catch (IOException e) {
+                                // ignore
+                            }
+                        }
+                    }
+
+                    classpath.add(new URL("file:" + file.getAbsolutePath()));
+                }
+            }
+        } finally {
+            try {
+                warInput.close();
+            } catch (IOException e) {
+                // ignore
+            }
+        }
+
+        return classpath;
+    }
+
+    private void bootstrapServer(final List<URL> classpath, final File bootWar, final List<File> otherWars, final File workDirectory) {
+        final URLClassLoader classLoader = new URLClassLoader(classpath.toArray(new URL[classpath.size()]));
+
+        // Jetty needs this to function
+        Thread.currentThread().setContextClassLoader(classLoader);
+        final Iterator providers = Service.providers(ServerBootstrap.class, classLoader);
+
+        if (providers.hasNext()) {
+            ((ServerBootstrap) providers.next()).bootstrap(bootWar, otherWars, workDirectory);
+        } else {
+            throw new RuntimeException("No server bootstrap found (service provider for " + ServerBootstrap.class + ")");
+        }
+    }
+
+    private File createWorkDirectory(final File archive) {
         File bootDirectory = new File(archive.getParentFile(), "web-container");
 
         if (!bootDirectory.exists() && !bootDirectory.mkdirs()) {
@@ -135,7 +159,7 @@ public final class WarBootstrapLoader {
         return bootDirectory;
     }
 
-    private static String archiveName(final File archive) {
+    private String archiveName(final File archive) {
         final String archiveName = archive.getName();
         return archiveName.substring(0, archiveName.length() - ".war".length());
     }
