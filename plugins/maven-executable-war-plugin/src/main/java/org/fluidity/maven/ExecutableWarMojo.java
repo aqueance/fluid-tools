@@ -33,11 +33,10 @@ import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
@@ -45,13 +44,11 @@ import java.util.jar.JarOutputStream;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.factory.ArtifactFactory;
-import org.apache.maven.artifact.metadata.ArtifactMetadataSource;
 import org.apache.maven.artifact.metadata.ArtifactMetadataRetrievalException;
+import org.apache.maven.artifact.metadata.ArtifactMetadataSource;
 import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.artifact.resolver.ArtifactCollector;
 import org.apache.maven.artifact.resolver.ArtifactResolutionException;
-import org.apache.maven.artifact.resolver.filter.ScopeArtifactFilter;
-import org.apache.maven.artifact.resolver.filter.ArtifactFilter;
 import org.apache.maven.artifact.versioning.InvalidVersionSpecificationException;
 import org.apache.maven.artifact.versioning.VersionRange;
 import org.apache.maven.plugin.AbstractMojo;
@@ -72,6 +69,7 @@ import org.codehaus.plexus.logging.Logger;
  */
 public class ExecutableWarMojo extends AbstractMojo {
 
+    private static final String DEFAULT_BOOTSTRAP_KEY = "org.fluidity.maven:war-bootstrap";
     private static final String WAR_TYPE = "war";
 
     /**
@@ -98,7 +96,7 @@ public class ExecutableWarMojo extends AbstractMojo {
      * Identifies in the format groupId:artifactId the dependency that contains the bootstrap classes. Dependencies of the identified dependency will be copied
      * under the WEB-INF/boot directory of the .war file.
      *
-     * @parameter default-value="org.fluidity.maven:war-bootstrap"
+     * @parameter
      * @readonly
      */
     @SuppressWarnings({"UnusedDeclaration"})
@@ -223,6 +221,10 @@ public class ExecutableWarMojo extends AbstractMojo {
             throw new MojoExecutionException("This is not a .war project");
         } else if (!packageFile.exists()) {
             throw new MojoExecutionException(packageFile + " does not exist");
+        }
+
+        if (bootstrap == null) {
+            bootstrap = DEFAULT_BOOTSTRAP_KEY;
         }
 
         final Artifact bootstrap = findBootstrapDependency();
@@ -368,7 +370,19 @@ public class ExecutableWarMojo extends AbstractMojo {
         return bootstrapModule;
     }
 
+    /*
+     * Finds all dependencies of the host project to include in the .war file. We can calculate the dependency list for this plugin, we can generate a complete
+     * dependency tree and we have a root artifact whose transitive dependencies should be returned, but nothing more. The host project may add dependencies to
+     * this plugin to be returned here in addition to those directly known by the host and that poses a problem: we need to throw away all dependencies of this
+     * plugin that are not needed, transitively, by the root artifact and any other dependency added for inclusing in the .war file.
+     */
+    @SuppressWarnings({"unchecked"})
     private Collection<Artifact> findDependencies(final Artifact root, final Artifact bootstrap) throws MojoExecutionException {
+        final List remoteRepositories = project.getRemoteArtifactRepositories();
+
+        // The dependency list of this plugin
+        final Set<Artifact> pluginDependencies = findPluginDependencies(root, remoteRepositories);
+
         final DependencyTreeResolutionListener listener = new DependencyTreeResolutionListener(new NullLogger());
 
         try {
@@ -376,39 +390,48 @@ public class ExecutableWarMojo extends AbstractMojo {
                                       root,
                                       project.getManagedVersionMap(),
                                       localRepository,
-                                      project.getRemoteArtifactRepositories(),
+                                      remoteRepositories,
                                       artifactMetadataSource,
                                       null,
                                       Collections.singletonList(listener));
 
-            final DependencyNode rootNode = listener.getRootNode();
 
+            final Set<String> pluginDependencyIds = dependencyIds(addTransitiveDependencies(pluginDependencies, listener.getRootNode()));
+
+            pluginDependencyIds.add(root.getDependencyConflictId() + ':' + root.getVersion());
+
+            // The root of the complete dependency tree for the host project including this plugin
+            final DependencyNode rootNode = listener.getRootNode();
             final Map<String, Artifact> dependencies = new HashMap<String, Artifact>();
-            dependencies.put(bootstrap.getDependencyConflictId(), bootstrap);
+
+            // What we already checked
+            final Set<String> checked = new HashSet<String>();
 
             final DependencyNodeVisitor nodeVisitor = new DependencyNodeVisitor() {
-                private String collecting = null;
-
-                public boolean visit(final DependencyNode dependencyNode) {
-                    final Artifact artifact = dependencyNode.getArtifact();
+                @SuppressWarnings({"unchecked"})
+                public boolean visit(final DependencyNode node) {
+                    final Artifact artifact = node.getArtifact();
                     final String artifactId = artifact.getDependencyConflictId();
 
-                    if (collecting == null && dependencies.containsKey(artifactId)) {
-                        collecting = artifactId;
-                    } else if (collecting != null) {
-                        dependencies.put(artifactId, artifact);
+                    final boolean unseen = !checked.contains(artifactId);
+
+                    if (unseen) {
+                        checked.add(artifactId);
+                        final List<String> dependencyTrail = (List<String>) artifact.getDependencyTrail();
+
+                        if (dependencyTrail != null) {
+                            dependencyTrail.removeAll(pluginDependencyIds);
+
+                            if (!dependencyTrail.isEmpty()) {
+                                dependencies.put(artifactId, artifact);
+                            }
+                        }
                     }
 
-                    return true;
+                    return unseen;
                 }
 
-                public boolean endVisit(final DependencyNode dependencyNode) {
-                    final Artifact artifact = dependencyNode.getArtifact();
-
-                    if (artifact.getDependencyConflictId().equals(collecting)) {
-                        collecting = null;
-                    }
-
+                public boolean endVisit(final DependencyNode node) {
                     return true;
                 }
             };
@@ -425,6 +448,78 @@ public class ExecutableWarMojo extends AbstractMojo {
         } catch (ArtifactResolutionException exception) {
             throw new MojoExecutionException("Cannot build project dependency tree", exception);
         }
+    }
+
+    private Collection<Artifact> addTransitiveDependencies(final Set<Artifact> artifacts, final DependencyNode rootNode) {
+        final Map<String, Artifact> dependencies = new HashMap<String, Artifact>();
+
+        for (final Artifact artifact : artifacts) {
+            dependencies.put(artifact.getDependencyConflictId(), artifact);
+        }
+
+        final DependencyNodeVisitor nodeVisitor = new DependencyNodeVisitor() {
+            private String collecting = null;
+
+            public boolean visit(final DependencyNode dependencyNode) {
+                final Artifact artifact = dependencyNode.getArtifact();
+                final String artifactId = artifact.getDependencyConflictId();
+
+                if (collecting == null && dependencies.containsKey(artifactId)) {
+                    collecting = artifactId;
+                } else if (collecting != null) {
+                    dependencies.put(artifactId, artifact);
+                }
+
+                return true;
+            }
+
+            public boolean endVisit(final DependencyNode dependencyNode) {
+                final Artifact artifact = dependencyNode.getArtifact();
+
+                if (artifact.getDependencyConflictId().equals(collecting)) {
+                    collecting = null;
+                }
+
+                return true;
+            }
+        };
+
+        int mapSize;
+        do {
+            mapSize = dependencies.size();
+            rootNode.accept(nodeVisitor);
+        } while (mapSize < dependencies.size());
+
+        return dependencies.values();
+    }
+
+    @SuppressWarnings({"unchecked"})
+    private Set<Artifact> findPluginDependencies(final Artifact root, final List remoteRepositories) throws MojoExecutionException {
+        final Set<Artifact> pluginDependencies;
+        try {
+            pluginDependencies = (Set<Artifact>) artifactMetadataSource.retrieve(root, localRepository, remoteRepositories).getArtifacts();
+        } catch (ArtifactMetadataRetrievalException e) {
+            throw new MojoExecutionException("Retrieving plugin dependencies", e);
+        }
+
+        for (final Iterator<Artifact> i = pluginDependencies.iterator(); i.hasNext();) {
+            final Artifact artifact = i.next();
+            if (bootstrap.equals(artifact.getGroupId() + ':' + artifact.getArtifactId())) {
+                i.remove();
+            }
+        }
+
+        return pluginDependencies;
+    }
+
+    private Set<String> dependencyIds(final Collection<Artifact> artifacts) {
+        final Set<String> dependencies = new HashSet<String>();
+
+        for (final Artifact artifact : artifacts) {
+            dependencies.add(artifact.getDependencyConflictId() + ':' + artifact.getVersion());
+        }
+
+        return dependencies;
     }
 
     private void copyStream(final JarOutputStream output, final InputStream input, final byte[] buffer) throws IOException {
