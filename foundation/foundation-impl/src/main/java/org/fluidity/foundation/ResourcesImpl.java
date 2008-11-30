@@ -50,8 +50,8 @@ final class ResourcesImpl implements Resources {
         final Collection<URL> answer = new LinkedHashSet<URL>();
 
         try {
-            for (final Enumeration resources = classLoader().getResources(absoluteName(name)); resources.hasMoreElements();) {
-                answer.add((URL) resources.nextElement());
+            for (final Enumeration<URL> resources = classLoader().getResources(absoluteName(name)); resources.hasMoreElements();) {
+                answer.add(resources.nextElement());
             }
         } catch (final IOException e) {
             throw new RuntimeException(e);
