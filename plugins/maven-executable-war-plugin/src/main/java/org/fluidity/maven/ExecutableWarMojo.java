@@ -69,7 +69,8 @@ import org.codehaus.plexus.logging.Logger;
  */
 public class ExecutableWarMojo extends AbstractMojo {
 
-    private static final String DEFAULT_BOOTSTRAP_KEY = "org.fluidity.maven:war-bootstrap";
+    private static final String BOOTSTRAP_MODULE_KEY = "org.fluidity.maven:war-bootstrap";
+    private static final String DEFAULT_SERVER_KEY = "org.fluidity.maven:jetty-bootstrap";
     private static final String WAR_TYPE = "war";
 
     /**
@@ -93,14 +94,14 @@ public class ExecutableWarMojo extends AbstractMojo {
     private File packageFile;
 
     /**
-     * Identifies in the format groupId:artifactId the dependency that contains the bootstrap classes. Dependencies of the identified dependency will be copied
-     * under the WEB-INF/boot directory of the .war file.
+     * Identifies in the format groupId:artifactId the dependency that contains the server bootstrap classes. Dependencies of the identified dependency will be
+     * copied under the WEB-INF/boot directory of the .war file.
      *
      * @parameter
      * @readonly
      */
     @SuppressWarnings({"UnusedDeclaration"})
-    private String bootstrap;
+    private String server;
 
     /**
      * Specifies the HTTP port to listen on.
@@ -223,46 +224,70 @@ public class ExecutableWarMojo extends AbstractMojo {
             throw new MojoExecutionException(packageFile + " does not exist");
         }
 
-        if (bootstrap == null) {
-            bootstrap = DEFAULT_BOOTSTRAP_KEY;
+        if (server == null) {
+            server = DEFAULT_SERVER_KEY;
+        }
+
+        final DependencyNode dependencyRootNode;
+        try {
+            dependencyRootNode = calculateDependencyGraph(findPluginArtifact(), project.getRemoteArtifactRepositories());
+        } catch (ArtifactResolutionException e) {
+            throw new MojoExecutionException("Cannot calculate dependency graph", e);
         }
 
         final Artifact bootstrap = findBootstrapDependency();
-        final Collection<Artifact> bootstrapDependencies = findDependencies(findPluginArtifact(), bootstrap);
+        final Collection<Artifact> bootstrapDependencies = addTransitiveDependencies(Collections.singleton(bootstrap), dependencyRootNode);
+        ;
+        final Collection<Artifact> serverDependencies = findDependencies(findPluginArtifact(), dependencyRootNode);
+        serverDependencies.removeAll(bootstrapDependencies);
+
+        System.out.println("bootstrapDependencies = " + bootstrapDependencies);
+        System.out.println("serverDependencies = " + serverDependencies);
 
         final Set<String> processedEntries = new HashSet<String>();
 
         try {
             final File file = createTempFile();
             final JarOutputStream outputStream = new JarOutputStream(new FileOutputStream(file));
+            String mainClass = null;
 
             try {
                 boolean manifestFound = false;
                 final byte buffer[] = new byte[1024 * 16];
 
-                final JarFile jarInput = new JarFile(bootstrap.getFile());
-                String mainClass = (String) jarInput.getManifest().getMainAttributes().get(Attributes.Name.MAIN_CLASS);
+                for (final Artifact artifact : bootstrapDependencies) {
+                    final JarFile jarInput = new JarFile(new File(localRepository.getBasedir(), localRepository.pathOf(artifact)));
+
+                    if (mainClass == null) {
+                        mainClass = (String) jarInput.getManifest().getMainAttributes().get(Attributes.Name.MAIN_CLASS);
+                    }
+
+                    try {
+                        for (final Enumeration entries = jarInput.entries(); entries.hasMoreElements();) {
+                            final JarEntry entry = (JarEntry) entries.nextElement();
+                            final String entryName = entry.getName();
+
+                            if (!processedEntries.contains(entryName)) {
+                                if (!entryName.equals(JarFile.MANIFEST_NAME)) {
+                                    outputStream.putNextEntry(entry);
+                                    copyStream(outputStream, jarInput.getInputStream(entry), buffer);
+                                    processedEntries.add(entryName);
+                                }
+                            } else if (!entryName.endsWith("/")) {
+                                throw new MojoExecutionException("Duplicate entry: " + entryName);
+                            }
+                        }
+                    } finally {
+                        try {
+                            jarInput.close();
+                        } catch (IOException ignored) {
+                            // ignored
+                        }
+                    }
+                }
 
                 if (mainClass == null) {
                     throw new MojoExecutionException("No main class found in " + bootstrap);
-                }
-
-                try {
-                    for (final Enumeration entries = jarInput.entries(); entries.hasMoreElements();) {
-                        final JarEntry entry = (JarEntry) entries.nextElement();
-
-                        if (!entry.getName().equals(JarFile.MANIFEST_NAME)) {
-                            outputStream.putNextEntry(entry);
-                            copyStream(outputStream, jarInput.getInputStream(entry), buffer);
-                            processedEntries.add(entry.getName());
-                        }
-                    }
-                } finally {
-                    try {
-                        jarInput.close();
-                    } catch (IOException ignored) {
-                        // ignored
-                    }
                 }
 
                 final JarFile warInput = new JarFile(packageFile);
@@ -303,10 +328,10 @@ public class ExecutableWarMojo extends AbstractMojo {
                         throw new MojoExecutionException("No manifest found in " + packageFile);
                     }
 
-                    if (!bootstrapDependencies.isEmpty()) {
+                    if (!serverDependencies.isEmpty()) {
                         final String bootDirectory = "WEB-INF/boot/";
                         outputStream.putNextEntry(new JarEntry(bootDirectory));
-                        for (final Artifact artifact : bootstrapDependencies) {
+                        for (final Artifact artifact : serverDependencies) {
                             final File dependency = new File(localRepository.getBasedir(), localRepository.pathOf(artifact));
 
                             if (!dependency.exists()) {
@@ -358,15 +383,16 @@ public class ExecutableWarMojo extends AbstractMojo {
         Artifact bootstrapModule = null;
 
         for (final Map.Entry<String, Artifact> entry : pluginArtifactMap.entrySet()) {
-            if (entry.getKey().equals(bootstrap)) {
+            if (entry.getKey().equals(BOOTSTRAP_MODULE_KEY)) {
                 bootstrapModule = entry.getValue();
                 break;
             }
         }
 
         if (bootstrapModule == null) {
-            throw new MojoExecutionException("Bootstrap module not found " + bootstrap);
+            throw new MojoExecutionException("Bootstrap module not found " + BOOTSTRAP_MODULE_KEY);
         }
+
         return bootstrapModule;
     }
 
@@ -377,77 +403,73 @@ public class ExecutableWarMojo extends AbstractMojo {
      * plugin that are not needed, transitively, by the root artifact and any other dependency added for inclusing in the .war file.
      */
     @SuppressWarnings({"unchecked"})
-    private Collection<Artifact> findDependencies(final Artifact root, final Artifact bootstrap) throws MojoExecutionException {
-        final List remoteRepositories = project.getRemoteArtifactRepositories();
+    private Collection<Artifact> findDependencies(final Artifact root, final DependencyNode rootNode) throws MojoExecutionException {
 
         // The dependency list of this plugin
-        final Set<Artifact> pluginDependencies = findPluginDependencies(root, remoteRepositories);
+        final Set<Artifact> pluginDependencies = findPluginDependencies(root, project.getRemoteArtifactRepositories());
+        final Set<String> pluginDependencyIds = dependencyIds(addTransitiveDependencies(pluginDependencies, rootNode));
 
-        final DependencyTreeResolutionListener listener = new DependencyTreeResolutionListener(new NullLogger());
+        pluginDependencyIds.add(root.getDependencyConflictId() + ':' + root.getVersion());
 
-        try {
-            artifactCollector.collect(new HashSet<Artifact>(pluginArtifacts),
-                                      root,
-                                      project.getManagedVersionMap(),
-                                      localRepository,
-                                      remoteRepositories,
-                                      artifactMetadataSource,
-                                      null,
-                                      Collections.singletonList(listener));
+        // The root of the complete dependency tree for the host project including this plugin
+        final Map<String, Artifact> dependencies = new HashMap<String, Artifact>();
 
+        // What we already checked
+        final Set<String> checked = new HashSet<String>();
 
-            final Set<String> pluginDependencyIds = dependencyIds(addTransitiveDependencies(pluginDependencies, listener.getRootNode()));
+        final DependencyNodeVisitor nodeVisitor = new DependencyNodeVisitor() {
+            @SuppressWarnings({"unchecked"})
+            public boolean visit(final DependencyNode node) {
+                final Artifact artifact = node.getArtifact();
+                final String artifactId = artifact.getDependencyConflictId();
 
-            pluginDependencyIds.add(root.getDependencyConflictId() + ':' + root.getVersion());
+                final boolean unseen = !checked.contains(artifactId);
 
-            // The root of the complete dependency tree for the host project including this plugin
-            final DependencyNode rootNode = listener.getRootNode();
-            final Map<String, Artifact> dependencies = new HashMap<String, Artifact>();
+                if (unseen) {
+                    checked.add(artifactId);
+                    final List<String> dependencyTrail = (List<String>) artifact.getDependencyTrail();
 
-            // What we already checked
-            final Set<String> checked = new HashSet<String>();
+                    if (dependencyTrail != null) {
+                        dependencyTrail.removeAll(pluginDependencyIds);
 
-            final DependencyNodeVisitor nodeVisitor = new DependencyNodeVisitor() {
-                @SuppressWarnings({"unchecked"})
-                public boolean visit(final DependencyNode node) {
-                    final Artifact artifact = node.getArtifact();
-                    final String artifactId = artifact.getDependencyConflictId();
-
-                    final boolean unseen = !checked.contains(artifactId);
-
-                    if (unseen) {
-                        checked.add(artifactId);
-                        final List<String> dependencyTrail = (List<String>) artifact.getDependencyTrail();
-
-                        if (dependencyTrail != null) {
-                            dependencyTrail.removeAll(pluginDependencyIds);
-
-                            if (!dependencyTrail.isEmpty()) {
-                                dependencies.put(artifactId, artifact);
-                            }
+                        if (!dependencyTrail.isEmpty()) {
+                            dependencies.put(artifactId, artifact);
                         }
                     }
-
-                    return unseen;
                 }
 
-                public boolean endVisit(final DependencyNode node) {
-                    return true;
-                }
-            };
+                return unseen;
+            }
 
-            int mapSize;
-            do {
-                mapSize = dependencies.size();
-                rootNode.accept(nodeVisitor);
-            } while (mapSize < dependencies.size());
+            public boolean endVisit(final DependencyNode node) {
+                return true;
+            }
+        };
 
-            dependencies.remove(bootstrap.getDependencyConflictId());
+        int mapSize;
+        do {
+            mapSize = dependencies.size();
+            rootNode.accept(nodeVisitor);
+        } while (mapSize < dependencies.size());
 
-            return dependencies.values();
-        } catch (ArtifactResolutionException exception) {
-            throw new MojoExecutionException("Cannot build project dependency tree", exception);
-        }
+        return dependencies.values();
+    }
+
+    private DependencyNode calculateDependencyGraph(final Artifact root, final List remoteRepositories) throws ArtifactResolutionException {
+        final DependencyTreeResolutionListener listener = new DependencyTreeResolutionListener(new NullLogger());
+
+        artifactCollector.collect(new HashSet<Artifact>(pluginArtifacts),
+                                  root,
+                                  project.getManagedVersionMap(),
+                                  localRepository,
+                                  remoteRepositories,
+                                  artifactMetadataSource,
+                                  null,
+                                  Collections.singletonList(listener));
+
+
+        final DependencyNode rootNode = listener.getRootNode();
+        return rootNode;
     }
 
     private Collection<Artifact> addTransitiveDependencies(final Set<Artifact> artifacts, final DependencyNode rootNode) {
@@ -506,7 +528,7 @@ public class ExecutableWarMojo extends AbstractMojo {
             final Artifact artifact = i.next();
             final String artifactKey = artifact.getGroupId() + ':' + artifact.getArtifactId();
 
-            if (bootstrap.equals(artifactKey) || DEFAULT_BOOTSTRAP_KEY.equals(artifactKey)) {
+            if (server.equals(artifactKey) || DEFAULT_SERVER_KEY.equals(artifactKey) || BOOTSTRAP_MODULE_KEY.equals(artifactKey)) {
                 i.remove();
             }
         }

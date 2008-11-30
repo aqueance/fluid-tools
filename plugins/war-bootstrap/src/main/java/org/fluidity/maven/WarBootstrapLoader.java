@@ -11,24 +11,26 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.lang.reflect.Method;
+
+import sun.misc.Service;
 
 /**
  * Prepares the web container bootstrap process, e.g. creating a work directory, setting up the boot classpath and loading and instantiating the bootstrap
  * component.
  */
-public final class WarBootstrap {
+public final class WarBootstrapLoader {
 
     private static DateFormat df = new SimpleDateFormat("yyyy-MM-dd:HH:mm:SSS");
 
     public static void main(String[] args) throws Exception {
-        final Class<WarBootstrap> bootstrapClass = WarBootstrap.class;
+        final Class<WarBootstrapLoader> bootstrapClass = WarBootstrapLoader.class;
         final String name = bootstrapClass.getName().replace('.', '/') + ".class";
         final URL warUrl = bootstrapClass.getClassLoader().getResource(name);
         final String url = warUrl.toExternalForm();
@@ -43,8 +45,8 @@ public final class WarBootstrap {
 
             final JarFile warInput = new JarFile(warFile);
 
-            final File bootDirectory = createBootDirectory(warFile);
-            final File classpathRoot = new File(bootDirectory, archiveName(warFile) + '-' + df.format(new Date(warFile.lastModified())));
+            final File workDirectory = createWorkDirectory(warFile);
+            final File classpathRoot = new File(workDirectory, archiveName(warFile) + '-' + df.format(new Date(warFile.lastModified())));
             if (!classpathRoot.exists() && !classpathRoot.mkdir()) {
                 throw new RuntimeException("Cannot create direcory " + classpathRoot);
             }
@@ -110,17 +112,20 @@ public final class WarBootstrap {
 
             // Jetty needs this to function
             Thread.currentThread().setContextClassLoader(classLoader);
+            final Iterator providers = Service.providers(ServerBootstrap.class, classLoader);
 
-            final Class<?> mainClass = classLoader.loadClass(WarBootstrap.class.getPackage().getName() + ".JettyBootstrap");
-            final Method bootMethod = mainClass.getDeclaredMethod("boot", String.class, String.class, File.class);
-
-            bootMethod.invoke(null, warFile.getName(), warFile.getPath(), bootDirectory);
+            if (providers.hasNext()) {
+                final ServerBootstrap server = (ServerBootstrap) providers.next();
+                server.bootstrap(warFile, workDirectory);
+            } else {
+                throw new RuntimeException("No server bootstrap found (service provider for " + ServerBootstrap.class + ")");
+            }
         } else {
             throw new RuntimeException("Not a local .war file: " + url);
         }
     }
 
-    private static File createBootDirectory(final File archive) {
+    private static File createWorkDirectory(final File archive) {
         File bootDirectory = new File(archive.getParentFile(), "web-container");
 
         if (!bootDirectory.exists() && !bootDirectory.mkdirs()) {

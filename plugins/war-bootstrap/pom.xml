@@ -51,7 +51,7 @@
 
         <dependency>
             <groupId>${fluidity.plugin.groupId}</groupId>
-            <artifactId>jetty-bootstrap</artifactId>
+            <artifactId>war-bootstrap-api</artifactId>
         </dependency>
 
     </dependencies>
@@ -65,7 +65,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>org.fluidity.maven.WarBootstrap</mainClass>
+                            <mainClass>org.fluidity.maven.WarBootstrapLoader</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

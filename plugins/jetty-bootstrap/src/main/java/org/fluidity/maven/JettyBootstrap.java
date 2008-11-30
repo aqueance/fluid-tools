@@ -11,12 +11,15 @@ import org.mortbay.jetty.nio.SelectChannelConnector;
 import org.mortbay.jetty.webapp.WebAppContext;
 import org.mortbay.resource.Resource;
 import org.mortbay.thread.QueuedThreadPool;
+import org.fluidity.composition.ServiceProvider;
 
 /**
  * Bootstraps a Jetty web container and deploys the .war file that contains this class.
  */
-public final class JettyBootstrap {
-    public static void boot(final String warName, final String warPath, final File jettyDirectory) {
+@ServiceProvider
+public final class JettyBootstrap implements ServerBootstrap {
+
+    public void bootstrap(final File warFile, final File workDirectory) {
         final ContextHandlerCollection contexts = new ContextHandlerCollection();
 
         final HandlerCollection handlers = new HandlerCollection();
@@ -27,11 +30,11 @@ public final class JettyBootstrap {
         final WebAppContext context = new WebAppContext();
         final String contextPath = "/";
 
-        context.setTempDirectory(new File(jettyDirectory, warName));
+        context.setTempDirectory(new File(workDirectory, warFile.getName()));
         context.setContextPath(contextPath);
         context.setParentLoaderPriority(true);
 
-        context.setWar(warPath);
+        context.setWar(warFile.getPath());
         contexts.addHandler(context);
 
         final Server server = new Server();
