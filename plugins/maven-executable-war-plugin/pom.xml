@@ -31,32 +31,21 @@
 
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.fluidity.maven</groupId>
-    <artifactId>maven-classpath-plugin</artifactId>
+    <artifactId>maven-executable-war-plugin</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>maven-plugin</packaging>
-    <name>Classpath Maven Plugin</name>
+    <name>Executable WAR Maven Plugin</name>
+
+    <licenses>
+        <license>
+            <name>The MIT License</name>
+            <url>file:LICENSE.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
 
     <description>
-This plugin takes a list of dependencies and a property name, composes a Java
-class path from the given dependencies and sets the value of the given
-property to be the composed class path.
-
-The class paths are specified like so:
-&lt;pre>
-  &lt;classpaths>
-    &lt;classpath>
-      &lt;property>name of a project property to set this classpath as the value of&lt;/property>
-      &lt;dependencies>
-        &lt;dependency>
-          &lt;groupId>the artifact's groupId&lt;/groupId>
-          &lt;artifactId>the artifact's artifactId&lt;/artifactId>
-        &lt;/dependency>
-        ...
-      &lt;/dependencies>
-    &lt;/classpath>
-    ...
-  &lt;/classpaths>
-&lt;/pre>
+        TODO
     </description>
 
     <dependencies>
@@ -73,12 +62,24 @@ The class paths are specified like so:
 
         <dependency>
             <groupId>org.apache.maven</groupId>
-            <artifactId>maven-model</artifactId>
+            <artifactId>maven-artifact</artifactId>
         </dependency>
 
         <dependency>
-            <groupId>org.apache.maven</groupId>
-            <artifactId>maven-artifact</artifactId>
+            <groupId>org.apache.maven.shared</groupId>
+            <artifactId>maven-dependency-tree</artifactId>
+            <version>1.1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.codehaus.plexus</groupId>
+            <artifactId>plexus-container-default</artifactId>
+            <version>1.0-alpha-9-stable-1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>${fluidity.plugin.groupId}</groupId>
+            <artifactId>war-bootstrap</artifactId>
         </dependency>
 
     </dependencies>

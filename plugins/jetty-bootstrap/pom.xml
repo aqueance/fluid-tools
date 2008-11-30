@@ -23,17 +23,17 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <parent>
-        <groupId>org.fluidity</groupId>
-        <artifactId>fluid-tools</artifactId>
+        <groupId>org.fluidity.maven</groupId>
+        <artifactId>maven-plugins</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.fluidity.maven</groupId>
-    <artifactId>maven-plugins</artifactId>
+    <artifactId>jetty-bootstrap</artifactId>
     <version>1.0-SNAPSHOT</version>
-    <packaging>pom</packaging>
-    <name>Maven Plugin Modules</name>
+    <packaging>jar</packaging>
+    <name>Jetty Bootstrap Class</name>
 
     <licenses>
         <license>
@@ -43,14 +43,36 @@
         </license>
     </licenses>
 
-    <modules>
-        <module>maven-composition-plugin</module>
-        <module>maven-classpath-plugin</module>
-        <module>war-bootstrap</module>
-        <module>jetty-bootstrap</module>
-        <module>maven-executable-war-plugin</module>
-        <module>maven-webrun-plugin-api</module>
-        <module>maven-webrun-plugin</module>
-    </modules>
+    <description>
+        TODO
+    </description>
 
+    <dependencies>
+
+        <dependency>
+            <groupId>${fluidity.export.groupId}</groupId>
+            <artifactId>fluidity-bootstrap</artifactId>
+            <type>pom</type>
+            <version>${fluidity.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>${fluidity.composition.groupId}</groupId>
+            <artifactId>composition-command-line-impl</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.mortbay.jetty</groupId>
+            <artifactId>jetty</artifactId>
+            <version>7.0.0pre3</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.mortbay.jetty</groupId>
+            <artifactId>jsp-2.1-jetty</artifactId>
+            <version>7.0.0pre3</version>
+        </dependency>
+
+    </dependencies>
 </project>

@@ -50,6 +50,8 @@ import org.mortbay.thread.QueuedThreadPool;
  */
 public class WebRunMojo extends AbstractMojo {
 
+    private static final String WAR_TYPE = "war";
+
     /**
      * The location of the compiled classes.
      *
@@ -57,19 +59,15 @@ public class WebRunMojo extends AbstractMojo {
      * @required
      * @readonly
      */
-    @SuppressWarnings({ "UnusedDeclaration" })
+    @SuppressWarnings({"UnusedDeclaration"})
     private File outputDirectory;
-
-    private static final String WAR_TYPE = "war";
-
-    private static final String PROVIDED_SCOPE = "provided";
 
     /**
      * HTTP port to listen on. No value means no HTTP listener.
      *
      * @parameter
      */
-    @SuppressWarnings({ "UnusedDeclaration" })
+    @SuppressWarnings({"UnusedDeclaration"})
     private String listenPort;
 
     /**
@@ -78,16 +76,23 @@ public class WebRunMojo extends AbstractMojo {
      * @parameter expression="${project}"
      * @required
      */
-    @SuppressWarnings({ "UnusedDeclaration" })
+    @SuppressWarnings({"UnusedDeclaration"})
     private MavenProject project;
+
+    /**
+     * Name of the maven project
+     *
+     * @parameter expression="${plugin.artifactId}"
+     * @required
+     */
+    @SuppressWarnings({"UnusedDeclaration"})
+    private String pluginName;
 
     private final Log log = getLog();
 
-    @SuppressWarnings({ "unchecked" })
+    @SuppressWarnings({"unchecked"})
     public void execute() throws MojoExecutionException {
-        final File tempDirectory = new File(outputDirectory, "jetty-" + System.identityHashCode(WebRunMojo.class));
-
-        tempDirectory.mkdirs();
+        final File jettyDirectory = createTempDirectory();
 
         final ContextHandlerCollection contexts = new ContextHandlerCollection();
 
@@ -98,10 +103,10 @@ public class WebRunMojo extends AbstractMojo {
 
         final Set<String> deployed = new HashSet<String>();
 
-        addWebArtifact(tempDirectory, project.getArtifact(), contexts, deployed, true);
+        addWebArtifact(jettyDirectory, project.getArtifact(), contexts, deployed, true);
 
         for (final Artifact dependency : (Set<Artifact>) project.getDependencyArtifacts()) {
-            addWebArtifact(tempDirectory, dependency, contexts, deployed, false);
+            addWebArtifact(jettyDirectory, dependency, contexts, deployed, false);
         }
 
         if (!deployed.isEmpty()) {
@@ -142,7 +147,21 @@ public class WebRunMojo extends AbstractMojo {
         }
     }
 
-    private void addWebArtifact(final File tempDirectory,
+    private File createTempDirectory() throws MojoExecutionException {
+        File tempDirectory;
+
+        do {
+            tempDirectory = new File(outputDirectory, pluginName + '-' + System.nanoTime());
+        } while (tempDirectory.exists());
+
+        if (!tempDirectory.mkdirs()) {
+            throw new MojoExecutionException("Cannot create " + tempDirectory);
+        }
+
+        return tempDirectory;
+    }
+
+    private void addWebArtifact(final File jettyDirectory,
                                 final Artifact artifact,
                                 final ContextHandlerCollection webContexts,
                                 final Set<String> deployed,
@@ -150,12 +169,12 @@ public class WebRunMojo extends AbstractMojo {
         final File file = artifact.getFile();
 
         if (file != null) {
-            if (WAR_TYPE.equals(artifact.getType()) && (acceptAnyScope || PROVIDED_SCOPE.equals(artifact.getScope()))) {
+            if (WAR_TYPE.equals(artifact.getType()) && (acceptAnyScope || Artifact.SCOPE_PROVIDED.equals(artifact.getScope()))) {
                 final WebAppContext context = new WebAppContext();
                 final String archiveName = artifact.getArtifactId();
                 final String contextPath = "/" + archiveName;
 
-                context.setTempDirectory(new File(tempDirectory, archiveName));
+                context.setTempDirectory(new File(jettyDirectory, archiveName));
                 context.setContextPath(contextPath);
                 context.setParentLoaderPriority(true);
 

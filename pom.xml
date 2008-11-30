@@ -253,6 +253,20 @@
             </dependency>
 
             <dependency>
+                <groupId>${fluidity.plugin.groupId}</groupId>
+                <artifactId>war-bootstrap</artifactId>
+                <version>${fluidity.version}</version>
+                <scope>compile</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>${fluidity.plugin.groupId}</groupId>
+                <artifactId>jetty-bootstrap</artifactId>
+                <version>${fluidity.version}</version>
+                <scope>compile</scope>
+            </dependency>
+
+            <dependency>
                 <groupId>${fluidity.composition.groupId}</groupId>
                 <artifactId>composition-api</artifactId>
                 <version>${fluidity.version}</version>
@@ -263,6 +277,12 @@
             <dependency>
                 <groupId>org.apache.maven</groupId>
                 <artifactId>maven-plugin-api</artifactId>
+                <version>2.0.9</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.maven</groupId>
+                <artifactId>maven-plugin-descriptor</artifactId>
                 <version>2.0.9</version>
             </dependency>
 
@@ -282,12 +302,6 @@
                 <groupId>org.apache.maven</groupId>
                 <artifactId>maven-artifact</artifactId>
                 <version>2.0.9</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.codehaus.plexus</groupId>
-                <artifactId>plexus-utils</artifactId>
-                <version>1.5.1</version>
             </dependency>
 
         </dependencies>

@@ -23,17 +23,17 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <parent>
-        <groupId>org.fluidity</groupId>
-        <artifactId>fluid-tools</artifactId>
+        <groupId>org.fluidity.maven</groupId>
+        <artifactId>maven-plugins</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.fluidity.maven</groupId>
-    <artifactId>maven-plugins</artifactId>
+    <artifactId>war-bootstrap</artifactId>
     <version>1.0-SNAPSHOT</version>
-    <packaging>pom</packaging>
-    <name>Maven Plugin Modules</name>
+    <packaging>jar</packaging>
+    <name>WAR Bootstrap Class</name>
 
     <licenses>
         <license>
@@ -43,14 +43,34 @@
         </license>
     </licenses>
 
-    <modules>
-        <module>maven-composition-plugin</module>
-        <module>maven-classpath-plugin</module>
-        <module>war-bootstrap</module>
-        <module>jetty-bootstrap</module>
-        <module>maven-executable-war-plugin</module>
-        <module>maven-webrun-plugin-api</module>
-        <module>maven-webrun-plugin</module>
-    </modules>
+    <description>
+        TODO
+    </description>
 
+    <dependencies>
+
+        <dependency>
+            <groupId>${fluidity.plugin.groupId}</groupId>
+            <artifactId>jetty-bootstrap</artifactId>
+        </dependency>
+
+    </dependencies>
+
+    <build>
+        <plugins>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <mainClass>org.fluidity.maven.WarBootstrap</mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
+
+        </plugins>
+    </build>
 </project>
