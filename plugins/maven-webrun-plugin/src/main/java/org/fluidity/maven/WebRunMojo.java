@@ -136,9 +136,8 @@ public class WebRunMojo extends AbstractMojo {
 
             try {
                 log.info("Starting server - press Ctrl-C to kill.");
-                server.start();
                 server.setStopAtShutdown(true);
-
+                server.start();
                 server.join();
             } catch (final Exception e) {
                 throw new MojoExecutionException("Starting server", e);
@@ -186,7 +185,7 @@ public class WebRunMojo extends AbstractMojo {
                     webContexts.addHandler(context);
                     deployed.add(filePath);
 
-                    log.info("Context " + contextPath + " is " + filePath);
+                    log.info("Context " + context.getContextPath() + ": " + context.getWar());
                 }
             }
         }

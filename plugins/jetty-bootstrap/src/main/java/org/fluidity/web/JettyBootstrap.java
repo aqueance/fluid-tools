@@ -2,8 +2,8 @@ package org.fluidity.web;
 
 import java.io.File;
 import java.util.List;
-import java.util.regex.Pattern;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.fluidity.composition.ComponentContainerAccess;
 import org.fluidity.composition.ServiceProvider;
@@ -62,9 +62,8 @@ public final class JettyBootstrap implements ServerBootstrap {
 
         try {
             System.out.println("Starting server - press Ctrl-C to kill.");
-            server.start();
             server.setStopAtShutdown(true);
-
+            server.start();
             server.join();
         } catch (final Exception e) {
             throw new RuntimeException("Starting server", e);
@@ -81,6 +80,8 @@ public final class JettyBootstrap implements ServerBootstrap {
         context.setParentLoaderPriority(true);
 
         context.setWar(warFile.getPath());
+
+        System.out.println("Context " + context.getContextPath() + ": " + context.getWar());
 
         return context;
     }
