@@ -155,7 +155,7 @@ public final class ComponentContainerAccess implements ComponentContainer {
             classLoaders.add(cl);
         }
 
-        for (ListIterator<ClassLoader> i = classLoaders.listIterator(classLoaders.size()); i.hasPrevious();) {
+        for (final ListIterator<ClassLoader> i = classLoaders.listIterator(classLoaders.size()); i.hasPrevious();) {
             final ClassLoader cl = i.previous();
 
             OpenComponentContainer ct = containerMap.get(cl);
