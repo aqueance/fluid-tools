@@ -71,6 +71,8 @@ public final class PicoContainerBootstrap implements ContainerBootstrap {
         final OpenComponentContainer container =
                 parent == null ? new PicoComponentContainer() : parent.makeNestedContainer();
 
+        log.info(getClass(), "Created new " + container + (classLoader == null ? "" : " for " + classLoader));
+
         final ComponentContainer.Registry registry = container.getRegistry();
 
         /*
