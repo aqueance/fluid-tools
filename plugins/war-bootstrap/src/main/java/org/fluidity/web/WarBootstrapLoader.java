@@ -138,12 +138,18 @@ public final class WarBootstrapLoader {
     private void bootstrapServer(final List<URL> classpath, final File bootWar, final List<File> otherWars, final File workDirectory) {
         final URLClassLoader classLoader = new URLClassLoader(classpath.toArray(new URL[classpath.size()]));
 
-        // Jetty needs this to function
-        Thread.currentThread().setContextClassLoader(classLoader);
         final Iterator providers = Service.providers(ServerBootstrap.class, classLoader);
 
         if (providers.hasNext()) {
-            ((ServerBootstrap) providers.next()).bootstrap(bootWar, otherWars, workDirectory);
+            final Thread currentThread = Thread.currentThread();
+            final ClassLoader contextLoader = currentThread.getContextClassLoader();
+
+            currentThread.setContextClassLoader(classLoader);
+            try {
+                ((ServerBootstrap) providers.next()).bootstrap(bootWar, otherWars, workDirectory);
+            } finally {
+                currentThread.setContextClassLoader(contextLoader);
+            }
         } else {
             throw new RuntimeException("No server bootstrap found (service provider for " + ServerBootstrap.class + ")");
         }
