@@ -126,7 +126,7 @@ public final class PicoContainerBootstrap implements ContainerBootstrap {
          */
         for (final PackageBindings bindings : assemblies) {
             try {
-                bindings.initialiseComponents(container);
+                bindings.initializeComponents(container);
             } catch (final RuntimeException e) {
                 throw e;
             } catch (final Exception e) {

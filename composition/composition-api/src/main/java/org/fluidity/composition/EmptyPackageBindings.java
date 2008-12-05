@@ -31,7 +31,7 @@ public abstract class EmptyPackageBindings implements PackageBindings {
         // empty
     }
 
-    public void initialiseComponents(final ComponentContainer container) {
+    public void initializeComponents(final ComponentContainer container) {
         // empty
     }
 
