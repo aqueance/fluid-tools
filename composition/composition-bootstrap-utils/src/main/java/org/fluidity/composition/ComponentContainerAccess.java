@@ -23,10 +23,12 @@ package org.fluidity.composition;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.Set;
 import java.util.WeakHashMap;
 
 import org.fluidity.foundation.Logging;
@@ -60,6 +62,7 @@ public final class ComponentContainerAccess implements ComponentContainer {
             new WeakHashMap<ClassLoader, OpenComponentContainer>();
 
     private static final Map<ClassLoader, Map> propertiesMap = new HashMap<ClassLoader, Map>();
+    private static final Set<OpenComponentContainer> committedContainers = new HashSet<OpenComponentContainer>();
 
     /*
      * The component that can bootstrap the container for us.
@@ -102,6 +105,7 @@ public final class ComponentContainerAccess implements ComponentContainer {
     /* package */ void reset(final BootstrapServices services) {
         ComponentContainerAccess.containerMap.clear();
         ComponentContainerAccess.propertiesMap.clear();
+        ComponentContainerAccess.committedContainers.clear();
         this.services = services;
         this.rootClassLoader = null;
         this.containerBootstrap = null;
@@ -130,18 +134,8 @@ public final class ComponentContainerAccess implements ComponentContainer {
      *
      * @return the application wide container.
      */
-    public synchronized ComponentContainer getContainer() {
-        if (!containerMap.containsKey(classLoader)) {
-            makeContainer(classLoader);
-        }
-
-        ClassLoader cl = classLoader;
-        OpenComponentContainer container = containerMap.get(cl);
-        while (container == null && (cl = cl.getParent()) != null) {
-            container = containerMap.get(cl);
-        }
-
-        return container;
+    public ComponentContainer getContainer() {
+        return getContainer(true);
     }
 
     private void makeContainer(final ClassLoader classLoader) {
@@ -188,17 +182,37 @@ public final class ComponentContainerAccess implements ComponentContainer {
         assert containerMap.containsKey(classLoader);
     }
 
+    private synchronized OpenComponentContainer getContainer(final boolean commit) {
+        if (!containerMap.containsKey(classLoader)) {
+            makeContainer(classLoader);
+        }
+
+        ClassLoader cl = classLoader;
+        OpenComponentContainer container = containerMap.get(cl);
+        while (container == null && (cl = cl.getParent()) != null) {
+            container = containerMap.get(cl);
+        }
+
+        if (commit) {
+            committedContainers.add(container);
+        } else if (committedContainers.contains(container)) {
+            throw new IllegalStateException("Component container is read-only.");
+        }
+
+        return container;
+    }
+
     /**
      * Delegates to the enclosed container.
      *
      * @see ComponentContainer#getComponent(Class)
      */
     public <T> T getComponent(final Class<T> componentClass) {
-        return getContainer().getComponent(componentClass);
+        return getContainer(true).getComponent(componentClass);
     }
 
     public <T> T getComponent(final Class<T> componentClass, final Bindings bindings) {
-        return getContainer().getComponent(componentClass, bindings);
+        return getContainer(true).getComponent(componentClass, bindings);
     }
 
     /**
@@ -207,7 +221,24 @@ public final class ComponentContainerAccess implements ComponentContainer {
      * @see OpenComponentContainer#makeNestedContainer()
      */
     public OpenComponentContainer makeNestedContainer() {
-        return getContainer().makeNestedContainer();
+        return getContainer(false).makeNestedContainer();
+    }
+
+    /**
+     * Allows a bootstrap code to add components to the container. This method can only be invoked before any component is taken out of the container by any of
+     * the {@link #getComponent(Class)} or {@link #getComponent(Class, org.fluidity.composition.ComponentContainer.Bindings)} methods. Once that happens, this
+     * method will throw an <code>IllegalStateException</code>.
+     *
+     * <p/>
+     *
+     * This method will trigger population of the associated container and its parents.
+     *
+     * @param key      the key by which to register the component; preferrably an interface class.
+     * @param instance the component instance.
+     * @throws IllegalStateException if the container is made read only by getting any component out of it.
+     */
+    public <T> void bindBootComponent(final Class<? super T> key, final T instance) {
+        getContainer(false).getRegistry().bind(key, instance);
     }
 
     private static class BootstrapServicesImpl implements BootstrapServices {
