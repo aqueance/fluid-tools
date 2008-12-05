@@ -50,7 +50,6 @@
         <module>war-bootstrap</module>
         <module>jetty-bootstrap</module>
         <module>maven-executable-war-plugin</module>
-        <module>web-control-api</module>
         <module>maven-webrun-plugin</module>
     </modules>
 

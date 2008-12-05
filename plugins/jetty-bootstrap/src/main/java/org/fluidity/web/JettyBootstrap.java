@@ -39,7 +39,7 @@ public final class JettyBootstrap implements ServerBootstrap {
         final Server server = new Server();
 
         final ComponentContainerAccess access = new ComponentContainerAccess();
-        access.setBindingsProperty(ServerControl.class, new ServerControl() {
+        access.bindBootComponent(ServerControl.class, new ServerControl() {
             public void stopServer() throws Exception {
                 server.stop();
             }

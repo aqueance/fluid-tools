@@ -78,7 +78,7 @@ pressing Ctrl-C.
 
         <dependency>
             <groupId>${fluidity.plugin.groupId}</groupId>
-            <artifactId>web-control-api</artifactId>
+            <artifactId>war-bootstrap-api</artifactId>
         </dependency>
 
         <dependency>

@@ -22,7 +22,7 @@
 package org.fluidity.web;
 
 /**
- * Allows stopping by the deployed application the web server started by the org.fluidity.shared:maven-webrun-plugin Maven plugin.
+ * Allows stopping the web server controlled by the implementation.
  */
 public interface ServerControl {
 

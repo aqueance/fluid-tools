@@ -49,7 +49,7 @@ import org.mortbay.thread.QueuedThreadPool;
  * @phase package
  * @requiresDependencyResolution compile
  */
-public class WebRunMojo extends AbstractMojo {
+public final class WebRunMojo extends AbstractMojo {
 
     private static final String WAR_TYPE = "war";
 
@@ -113,7 +113,7 @@ public class WebRunMojo extends AbstractMojo {
         if (!deployed.isEmpty()) {
             final Server server = new Server();
 
-            new ComponentContainerAccess().setBindingsProperty(ServerControl.class, new ServerControl() {
+            new ComponentContainerAccess().bindBootComponent(ServerControl.class, new ServerControl() {
                 public void stopServer() throws Exception {
                     server.stop();
                 }
