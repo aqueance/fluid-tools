@@ -80,19 +80,18 @@ import org.fluidity.composition.ServiceProviderList;
  * @phase process-classes
  * @requiresDependencyResolution compile
  */
+@SuppressWarnings({"ResultOfMethodCallIgnored"})
 public class AutoWiringMojo extends AbstractMojo {
 
     private static final String ATN_COMPONENT = "L" + Component.class.getName().replace('.', '/') + ";";
     private static final String ATN_SERVICE_PROVIDER = "L" + ServiceProvider.class.getName().replace('.', '/') + ";";
-    private static final String ATN_SERVICE_PROVIDER_LIST =
-        "L" + ServiceProviderList.class.getName().replace('.', '/') + ";";
+    private static final String ATN_SERVICE_PROVIDER_LIST = "L" + ServiceProviderList.class.getName().replace('.', '/') + ";";
     private static final String ATR_API = "api";
     private static final String ATR_VALUE = "value";
     private static final String ATR_AUTOMATIC = "automatic";
     private static final String ATTR_FALLBACK = "fallback";
     private static final String PACKAGE_BINDINGS = PackageBindings.class.getName();
-    private static final String GENERATED_PACKAGE_BINDINGS =
-        PACKAGE_BINDINGS.substring(PACKAGE_BINDINGS.lastIndexOf(".") + 1) + "$";
+    private static final String GENERATED_PACKAGE_BINDINGS = PACKAGE_BINDINGS.substring(PACKAGE_BINDINGS.lastIndexOf(".") + 1) + "$";
 
     /**
      * Reference of the maven project
@@ -204,8 +203,7 @@ public class AutoWiringMojo extends AbstractMojo {
 
             log.info("Service provider " + bindingsClassName + " binds:");
 
-            final ClassGen cg = new ClassGen(bindingsClassName, EmptyPackageBindings.class.getName(), null,
-                Constants.ACC_FINAL + Constants.ACC_PUBLIC, null);
+            final ClassGen cg = new ClassGen(bindingsClassName, EmptyPackageBindings.class.getName(), null, Constants.ACC_FINAL + Constants.ACC_PUBLIC, null);
             cg.setMajor(Constants.MAJOR_1_5);
             cg.setMinor(Constants.MINOR_1_5);
 
@@ -213,14 +211,10 @@ public class AutoWiringMojo extends AbstractMojo {
             final InstructionFactory factory = new InstructionFactory(cg);
 
             InstructionList code = new InstructionList();
-            final MethodGen initMethod = new MethodGen(Constants.ACC_PUBLIC, Type.VOID,
-                Type.NO_ARGS,
-                null, "<init>", bindingsClassName,
-                code, cp);
+            final MethodGen initMethod = new MethodGen(Constants.ACC_PUBLIC, Type.VOID, Type.NO_ARGS, null, "<init>", bindingsClassName, code, cp);
 
             code.append(InstructionConstants.ALOAD_0);
-            code.append(factory.createInvoke(cg.getSuperclassName(), "<init>", Type.VOID, Type.NO_ARGS,
-                Constants.INVOKESPECIAL));
+            code.append(factory.createInvoke(cg.getSuperclassName(), "<init>", Type.VOID, Type.NO_ARGS, Constants.INVOKESPECIAL));
             code.append(InstructionConstants.RETURN);
             initMethod.setMaxStack();
             initMethod.setMaxLocals();
