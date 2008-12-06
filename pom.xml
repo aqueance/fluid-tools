@@ -339,9 +339,7 @@
     <profiles>
         <profile>
             <id>sources</id>
-
             <build>
-
                 <plugins>
 
                     <plugin>
@@ -357,13 +355,13 @@
                         <configuration>
                             <descriptors>
                                 <descriptor>assembly-src.xml</descriptor>
+                                <descriptor>assembly-src-all.xml</descriptor>
                             </descriptors>
                         </configuration>
                         <inherited>false</inherited>
                     </plugin>
 
                 </plugins>
-
             </build>
         </profile>
     </profiles>
@@ -389,6 +387,23 @@
                     <artifactId>maven-surefire-plugin</artifactId>
                     <configuration>
                         <useFile>false</useFile>
+                    </configuration>
+                </plugin>
+
+                <plugin>
+                    <artifactId>maven-assembly-plugin</artifactId>
+                    <executions>
+                        <execution>
+                            <phase>package</phase>
+                            <goals>
+                                <goal>attached</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                    <configuration>
+                        <descriptors>
+                            <descriptor>assembly-src.xml</descriptor>
+                        </descriptors>
                     </configuration>
                 </plugin>
 

@@ -64,6 +64,19 @@ This project exports the &lt;code>java.util.Properties&lt;/code> based implemeta
 
     </dependencies>
 
+    <profiles>
+        <profile>
+            <id>sources</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-assembly-plugin</artifactId>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
     <build>
         <plugins>
             <plugin>

@@ -94,4 +94,17 @@ class name of the @ServiceProvider> unless one already exists.
 
     </dependencies>
 
+    <profiles>
+        <profile>
+            <id>sources</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-assembly-plugin</artifactId>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
 </project>

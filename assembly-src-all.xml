@@ -20,7 +20,7 @@
   ~ THE SOFTWARE.
   -->
 <assembly>
-    <id>sources</id>
+    <id>all-sources</id>
     <formats>
         <format>jar</format>
     </formats>
@@ -37,4 +37,25 @@
             <directory>src</directory>
         </fileSet>
     </fileSets>
+    <moduleSets>
+        <moduleSet>
+            <includes/>
+            <sources>
+                <fileSets>
+                    <fileSet>
+                        <includes>
+                            <include>README*</include>
+                            <include>LICENSE*</include>
+                            <include>NOTICE*</include>
+                            <include>*.xml</include>
+                        </includes>
+                    </fileSet>
+                    <fileSet>
+                        <directory>src</directory>
+                        <outputDirectory>src</outputDirectory>
+                    </fileSet>
+                </fileSets>
+            </sources>
+        </moduleSet>
+    </moduleSets>
 </assembly>
