@@ -58,9 +58,7 @@ import sun.misc.ServiceConfigurationError;
  */
 public final class ComponentContainerAccess implements ComponentContainer {
 
-    private static final Map<ClassLoader, OpenComponentContainer> containerMap =
-            new WeakHashMap<ClassLoader, OpenComponentContainer>();
-
+    private static final Map<ClassLoader, OpenComponentContainer> containerMap = new WeakHashMap<ClassLoader, OpenComponentContainer>();
     private static final Map<ClassLoader, Map> propertiesMap = new HashMap<ClassLoader, Map>();
     private static final Set<OpenComponentContainer> committedContainers = new HashSet<OpenComponentContainer>();
 
@@ -193,10 +191,12 @@ public final class ComponentContainerAccess implements ComponentContainer {
             container = containerMap.get(cl);
         }
 
-        if (commit) {
-            committedContainers.add(container);
-        } else if (committedContainers.contains(container)) {
-            throw new IllegalStateException("Component container is read-only.");
+        if (container != null) {
+            if (commit) {
+                committedContainers.add(container);
+            } else if (committedContainers.contains(container)) {
+                throw new IllegalStateException("Component container is read-only.");
+            }
         }
 
         return container;
