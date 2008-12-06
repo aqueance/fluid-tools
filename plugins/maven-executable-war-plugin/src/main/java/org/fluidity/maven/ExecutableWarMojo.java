@@ -62,7 +62,8 @@ import org.codehaus.plexus.logging.Logger;
 
 
 /**
- * Adds code to the project .war file that allows it to be run as a .jar file, e.g. <code>$ java -jar &lt;file name>.war</code>.
+ * Adds code to the project .war file that allows it to be run as a .jar file, e.g. <code>$ java -jar &lt;file name>.war</code>. More .war files can be
+ * specified in the command line and all will be deployed to the same application server.
  *
  * @goal package
  * @phase package
