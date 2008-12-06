@@ -15,7 +15,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.fluidity.composition.ComponentContainerAccess;
-import org.fluidity.web.ServerBootstrap;
 import org.mortbay.jetty.Server;
 import org.mortbay.jetty.handler.ContextHandlerCollection;
 import org.mortbay.jetty.handler.DefaultHandler;

@@ -1,7 +1,5 @@
 package org.fluidity.deployment;
 
-import org.fluidity.web.ServerControl;
-
 /**
  * Allows the caller to control the web server by means of starting and stopping known web applications.
  */

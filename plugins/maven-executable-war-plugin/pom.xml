@@ -55,13 +55,12 @@ You configure the web server's classpath by a &lt;dependencies> section
 in the plugin configuration of your host project. The server classpath
 will by default include all necessary modules to start the server.
 
-The plugin exports an org.fluidity.web.ServerControl object in the global
+The plugin exports an org.fluidity.deployment.ServerControl object in the global
 ComponentContainer. That object can be used to programmatically stop the
 Jetty server started by this plugin. The server can also be stopped by
 pressing Ctrl-C.
 
-The web server can be configured by supplying an implementation for the
-org.fluidity.web.ServerBootstrap.Settings interface.
+The web server can be configured by supplying an implementation for tdeploymentorg.fluidity.web.ServerBootstrap.Settings interface.
     </description>
 
     <dependencies>

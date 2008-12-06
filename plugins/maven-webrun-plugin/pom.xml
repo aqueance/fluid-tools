@@ -44,7 +44,7 @@
         </license>
     </licenses>
 
-    <description>
+    <description><![CDATA[
 This plugins takes a few .war artifacts and deploys them in an embedded Jetty
 server. The server will bootstrap a ComponentContainer and offer it as a
 parent container for the deployed web applications.
@@ -61,11 +61,11 @@ application may ask for.
 You configure the plugin's classpath by a &lt;dependencies> section in the
 plugin configuration of your host project.
 
-The plugin exports an org.fluidity.web.ServerControl object in the global
+The plugin exports an org.fluidity.deployment.ServerControl object in the global
 ComponentContainer. That object can be used to programmatically stop the
 Jetty server started by this plugin. The server can also be stopped by
 pressing Ctrl-C.
-    </description>
+    ]]></description>
 
     <dependencies>
 

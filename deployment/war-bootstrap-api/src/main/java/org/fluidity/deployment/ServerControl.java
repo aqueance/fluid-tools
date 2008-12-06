@@ -19,7 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.fluidity.web;
+package org.fluidity.deployment;
 
 /**
  * Allows stopping the web server controlled by the implementation.

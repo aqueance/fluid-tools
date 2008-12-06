@@ -31,7 +31,7 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
 import org.fluidity.composition.ComponentContainerAccess;
-import org.fluidity.web.ServerControl;
+import org.fluidity.deployment.ServerControl;
 import org.mortbay.jetty.Server;
 import org.mortbay.jetty.handler.ContextHandlerCollection;
 import org.mortbay.jetty.handler.DefaultHandler;

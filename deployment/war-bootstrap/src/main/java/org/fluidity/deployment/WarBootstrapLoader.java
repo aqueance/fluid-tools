@@ -1,4 +1,4 @@
-package org.fluidity.web;
+package org.fluidity.deployment;
 
 import java.io.File;
 import java.io.FileOutputStream;

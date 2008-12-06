@@ -1,4 +1,4 @@
-package org.fluidity.web;
+package org.fluidity.deployment;
 
 import java.io.File;
 import java.util.List;
@@ -12,7 +12,7 @@ import org.fluidity.composition.ServiceProvider;
 public interface ServerBootstrap {
 
     /**
-     * Bootstraps a web server. A {@link org.fluidity.web.ServerBootstrap.Settings} implementation may be provided as a component but since the invokee will
+     * Bootstraps a web server. A {@link org.fluidity.deployment.ServerBootstrap.Settings} implementation may be provided as a component but since the invokee will
      * have to trigger population of the dependency injection container, that <code>Settings</code> component will have to be found manually.
      *
      * @param bootWar       The .war file to be used to establish the boot class path. The list of .jar files to be added to the boot class path will be found
