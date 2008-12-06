@@ -50,8 +50,8 @@ public final class JettyDeployer implements ServerBootstrap {
             deployer.addHandler(createWarContext(bootWar, workDirectory, true));
         }
 
-        handlers.addHandler(new DefaultHandler());
-        handlers.addHandler(new RequestLogHandler());
+        handlers.addHandler(new DefaultHandler());      // TODO: this does too much
+        handlers.addHandler(new RequestLogHandler());   // TODO: is this needed?
 
         for (final File war : otherWars) {
             try {
