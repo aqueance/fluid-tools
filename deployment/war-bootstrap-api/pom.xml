@@ -44,7 +44,7 @@
     </licenses>
 
     <description>
-        TODO
+Exports the &lt;code>org.fluidity.deployment.ServerControl&lt;/code> interface.
     </description>
 
     <dependencies>
@@ -52,6 +52,7 @@
         <dependency>
             <groupId>${fluidity.composition.groupId}</groupId>
             <artifactId>composition-api</artifactId>
+            <scope>provided</scope>
         </dependency>
 
     </dependencies>
