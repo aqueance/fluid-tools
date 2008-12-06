@@ -49,7 +49,7 @@
         <fluidity.export.groupId>${fluidity.groupId}.export</fluidity.export.groupId>
         <fluidity.version>${project.version}</fluidity.version>
         <maven.version>2.0.9</maven.version>
-        <jetty.version>7.0.0pre3</jetty.version>
+        <jetty.version>7.0.0.pre5</jetty.version>
     </properties>
 
     <licenses>
@@ -76,11 +76,11 @@
      $ mvn deploy -DaltDeploymentRepository=id::layout::url
     -->
     <distributionManagement>
-      <repository>
-        <id>dummy</id>
-        <name>Dummy</name>
-        <url>dummy</url>
-      </repository>
+        <repository>
+            <id>dummy</id>
+            <name>Dummy</name>
+            <url>dummy</url>
+        </repository>
     </distributionManagement>
 
     <dependencyManagement>
@@ -288,6 +288,12 @@
             <dependency>
                 <groupId>org.mortbay.jetty</groupId>
                 <artifactId>jetty</artifactId>
+                <version>${jetty.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.mortbay.jetty</groupId>
+                <artifactId>jetty-webapp</artifactId>
                 <version>${jetty.version}</version>
             </dependency>
 
