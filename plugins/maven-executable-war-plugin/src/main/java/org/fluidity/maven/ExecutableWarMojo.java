@@ -21,13 +21,11 @@
  */
 package org.fluidity.maven;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -41,6 +39,7 @@ import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.JarOutputStream;
+import java.util.jar.Manifest;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.factory.ArtifactFactory;
@@ -292,6 +291,16 @@ public class ExecutableWarMojo extends AbstractMojo {
                 final JarFile warInput = new JarFile(packageFile);
 
                 try {
+                    final Manifest manifest = warInput.getManifest();
+                    final Attributes mainAttributes = manifest.getMainAttributes();
+
+                    if (mainAttributes.getValue(Attributes.Name.MAIN_CLASS) != null) {
+                        throw new MojoExecutionException(
+                                "Manifest already contains " + Attributes.Name.MAIN_CLASS + ": " + mainAttributes.getValue(Attributes.Name.MAIN_CLASS));
+                    }
+
+                    mainAttributes.putValue(Attributes.Name.MAIN_CLASS.toString(), mainClass);
+
                     for (final Enumeration entries = warInput.entries(); entries.hasMoreElements();) {
                         final JarEntry entry = (JarEntry) entries.nextElement();
                         final String entryName = entry.getName();
@@ -299,18 +308,7 @@ public class ExecutableWarMojo extends AbstractMojo {
                         if (entryName.equals(JarFile.MANIFEST_NAME)) {
                             if (!manifestFound) {
                                 outputStream.putNextEntry(new JarEntry(JarFile.MANIFEST_NAME));
-                                outputStream.write((Attributes.Name.MAIN_CLASS + ": " + mainClass + '\n').getBytes());
-
-                                final BufferedReader bis = new BufferedReader(new InputStreamReader(warInput.getInputStream(entry)));
-                                String line;
-                                while ((line = bis.readLine()) != null) {
-                                    if (line.startsWith(Attributes.Name.MAIN_CLASS.toString())) {
-                                        throw new MojoExecutionException("Manifest already contains " + line);
-                                    }
-
-                                    outputStream.write((line + '\n').getBytes());
-                                }
-
+                                manifest.write(outputStream);
                                 manifestFound = true;
                             }
                         } else {
