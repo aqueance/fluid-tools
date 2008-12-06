@@ -77,14 +77,14 @@ pressing Ctrl-C.
         </dependency>
 
         <dependency>
-            <groupId>${fluidity.plugin.groupId}</groupId>
-            <artifactId>war-bootstrap-api</artifactId>
-        </dependency>
-
-        <dependency>
             <groupId>${fluidity.composition.groupId}</groupId>
             <artifactId>composition-command-line-impl</artifactId>
             <scope>runtime</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>${fluidity.deployment.groupId}</groupId>
+            <artifactId>war-bootstrap-api</artifactId>
         </dependency>
 
         <dependency>

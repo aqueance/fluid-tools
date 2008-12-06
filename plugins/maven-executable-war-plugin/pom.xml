@@ -94,13 +94,13 @@ org.fluidity.web.ServerBootstrap.Settings interface.
         </dependency>
 
         <dependency>
-            <groupId>${fluidity.plugin.groupId}</groupId>
+            <groupId>${fluidity.deployment.groupId}</groupId>
             <artifactId>war-bootstrap</artifactId>
         </dependency>
 
         <!-- The default implementation of war-bootstrap-api -->
         <dependency>
-            <groupId>${fluidity.plugin.groupId}</groupId>
+            <groupId>${fluidity.deployment.groupId}</groupId>
             <artifactId>jetty-bootstrap</artifactId>
         </dependency>
 

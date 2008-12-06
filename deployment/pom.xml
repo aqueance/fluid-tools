@@ -46,6 +46,9 @@
     <modules>
         <module>deployer-api</module>
         <module>jetty-deployer-impl</module>
+        <module>war-bootstrap-api</module>
+        <module>war-bootstrap</module>
+        <module>jetty-bootstrap</module>
     </modules>
 
 </project>

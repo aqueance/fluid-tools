@@ -69,8 +69,8 @@ import org.codehaus.plexus.logging.Logger;
  */
 public class ExecutableWarMojo extends AbstractMojo {
 
-    private static final String BOOTSTRAP_MODULE_KEY = "org.fluidity.maven:war-bootstrap";
-    private static final String DEFAULT_SERVER_KEY = "org.fluidity.maven:jetty-bootstrap";
+    private static final String BOOTSTRAP_MODULE_KEY = "org.fluidity.deployment:war-bootstrap";
+    private static final String DEFAULT_SERVER_KEY = "org.fluidity.deployment:jetty-bootstrap";
     private static final String WAR_TYPE = "war";
 
     /**

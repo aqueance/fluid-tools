@@ -46,9 +46,6 @@
     <modules>
         <module>maven-composition-plugin</module>
         <module>maven-classpath-plugin</module>
-        <module>war-bootstrap-api</module>
-        <module>war-bootstrap</module>
-        <module>jetty-bootstrap</module>
         <module>maven-executable-war-plugin</module>
         <module>maven-webrun-plugin</module>
     </modules>
