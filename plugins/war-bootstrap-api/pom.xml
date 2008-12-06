@@ -47,6 +47,15 @@
         TODO
     </description>
 
+    <dependencies>
+
+        <dependency>
+            <groupId>${fluidity.composition.groupId}</groupId>
+            <artifactId>composition-api</artifactId>
+        </dependency>
+
+    </dependencies>
+
     <build>
         <plugins>
 

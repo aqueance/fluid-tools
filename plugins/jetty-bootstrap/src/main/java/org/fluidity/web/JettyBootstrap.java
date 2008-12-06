@@ -6,7 +6,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.fluidity.composition.ComponentContainerAccess;
-import org.fluidity.composition.ServiceProvider;
 import org.mortbay.jetty.Server;
 import org.mortbay.jetty.handler.ContextHandlerCollection;
 import org.mortbay.jetty.handler.DefaultHandler;
@@ -19,7 +18,6 @@ import org.mortbay.thread.QueuedThreadPool;
 /**
  * Bootstraps a Jetty web container and deploys the .war file that contains this class.
  */
-@ServiceProvider
 public final class JettyBootstrap implements ServerBootstrap {
 
     public void bootstrap(final File bootWar, final List<File> otherWars, final File workDirectory) {

@@ -3,9 +3,12 @@ package org.fluidity.web;
 import java.io.File;
 import java.util.List;
 
+import org.fluidity.composition.ServiceProvider;
+
 /**
  * Bootstraps an HTTP server and deploys one or more .war files.
  */
+@ServiceProvider
 public interface ServerBootstrap {
 
     /**

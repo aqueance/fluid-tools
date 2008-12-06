@@ -22,7 +22,7 @@ import java.util.regex.Pattern;
 import sun.misc.Service;
 
 /**
- * Prepares the web container bootstrap process, e.g. creating a work directory, setting up the boot classpath and loading and instantiating the bootstrap
+ * Prepares the web container bootstrap process, e.g. creating a work directory, setting up the boot classpath and loading and invoking the bootstrap
  * component.
  */
 public final class WarBootstrapLoader {
