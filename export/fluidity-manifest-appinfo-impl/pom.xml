@@ -45,7 +45,7 @@
 
     <description>
 This project exports the manifest file based implemetation of the
-&lt;code>org.fluidity.foundation.Logging&lt;/code> interface.
+&lt;code>org.fluidity.foundation.ApplicationInfo&lt;/code> interface.
 The implementation reads the application key and name from two attributes in
 the host application's JAR manifest main section: Application-Key and
 Application-Name.  This implementation is useful only for packaged applications
