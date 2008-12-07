@@ -13,14 +13,15 @@ import org.mortbay.jetty.handler.HandlerCollection;
 import org.mortbay.jetty.handler.RequestLogHandler;
 import org.mortbay.jetty.nio.SelectChannelConnector;
 import org.mortbay.jetty.webapp.WebAppContext;
-import org.mortbay.thread.QueuedThreadPool;
 
 /**
  * Bootstraps a Jetty web container and deploys the .war file that contains this class.
+ *
+ * TODO: use JettyDeployer instead
  */
 public final class JettyBootstrap implements ServerBootstrap {
 
-    public void bootstrap(final File bootWar, final List<File> otherWars, final File workDirectory) {
+    public void bootstrap(final WebApplicationInfo bootApp, final List<WebApplicationInfo> managedApps, final File workDirectory, final String args[]) {
         final ContextHandlerCollection contexts = new ContextHandlerCollection();
 
         final HandlerCollection handlers = new HandlerCollection();
@@ -28,10 +29,10 @@ public final class JettyBootstrap implements ServerBootstrap {
         handlers.addHandler(new DefaultHandler());
         handlers.addHandler(new RequestLogHandler());
 
-        contexts.addHandler(deployWar(bootWar, workDirectory, true));
+        contexts.addHandler(deployWar(bootApp.archive(), workDirectory, true));
 
-        for (final File war : otherWars) {
-            contexts.addHandler(deployWar(war, workDirectory, false));
+        for (final WebApplicationInfo app : managedApps) {
+            contexts.addHandler(deployWar(app.archive(), workDirectory, false));
         }
 
         final Server server = new Server();
@@ -43,18 +44,16 @@ public final class JettyBootstrap implements ServerBootstrap {
             }
         });
 
-        server.setThreadPool(new QueuedThreadPool());
         server.setHandler(handlers);
 
-        final Settings settings = access.getComponent(Settings.class);
-
-        if (settings != null) {
-            final int httpPort = settings.httpPort();
-
-            if (httpPort > 0) {
+        if (args.length > 0 && "-port".equals(args[0])) {
+            try {
+                final int httpPort = args.length > 2 ? Integer.parseInt(args[1]) : 80;
                 final SelectChannelConnector connector = new SelectChannelConnector();
                 connector.setPort(httpPort);
                 server.addConnector(connector);
+            } catch (NumberFormatException e) {
+                throw new RuntimeException("Parameter " + args[1] + " is not a port number");
             }
         }
 

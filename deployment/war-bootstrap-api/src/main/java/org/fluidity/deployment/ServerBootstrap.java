@@ -12,27 +12,16 @@ import org.fluidity.composition.ServiceProvider;
 public interface ServerBootstrap {
 
     /**
-     * Bootstraps a web server. A {@link org.fluidity.deployment.ServerBootstrap.Settings} implementation may be provided as a component but since the invokee will
-     * have to trigger population of the dependency injection container, that <code>Settings</code> component will have to be found manually.
+     * Bootstraps a web server and deploys a list of .war files, either automatically or by providing a component through which another entity can manage the
+     * deployment.
      *
-     * @param bootWar       The .war file to be used to establish the boot class path. The list of .jar files to be added to the boot class path will be found
-     *                      under <code>WEB-INF/boot</code> of this .war file. This .war file shall be deployed under the root (<code>/</code>) context.
-     * @param otherWars     The other .war files to deploy. These .war files shall be deployed under a context that is derived from the .war name exlucing the
-     *                      version number and the extension.
+     * @param bootApp       The web application descriptor of the .war file used to establish the boot class path. The list of .jar files to be added to the
+     *                      boot class path will be found under <code>WEB-INF/boot</code> of this .war file. This .war file shall be deployed under the root
+     *                      (<code>/</code>) context.
+     * @param managedApps   The web application descriptor of the other .war files to deploy. These .war files shall be deployed under a context that is derived
+     *                      from the .war name exlucing the version number and the extension.
      * @param workDirectory The working directory for use by the web server.
+     * @param args          The list of command line arguments left unprocessed by the invoker.
      */
-    void bootstrap(final File bootWar, final List<File> otherWars, final File workDirectory);
-
-    /**
-     * Web server settings. The implementing class should be a @{@link org.fluidity.composition.Component}.
-     */
-    interface Settings {
-
-        /**
-         * The HTTP port to listen on. Returning 0 causes no listener to be set up.
-         *
-         * @return a non-negative number.
-         */
-        int httpPort();
-    }
+    void bootstrap(final WebApplicationInfo bootApp, final List<WebApplicationInfo> managedApps, final File workDirectory, final String args[]);
 }
