@@ -12,29 +12,31 @@ public interface DeploymentServer extends ServerControl {
      *
      * @return a list of applications names, may be empty.
      */
-    ApplicationInfo[] applicationKeys();
+    ApplicationInfo[] applications();
 
     /**
-     * Tells whether the application with the given name is deployed or not. The list of deployable applications are returned by the {@link #applicationKeys()}
+     * Tells whether the application with the given name is deployed or not. The list of deployable applications are returned by the {@link #applications()}
      * method.
      *
-     * @param key identifies the application
+     * @param key identifies the application as returned by {@link org.fluidity.foundation.ApplicationInfo#key()}.
+     *
      * @return <code>true</code> if the application is deployed, <code>false</code> otherwise.
      */
     boolean isApplicationDeployed(final String key);
 
     /**
-     * Deploys the application with the given names. The list of deployable applications are returned by the {@link #applicationKeys()} method.
+     * Deploys the application with the given names. The list of deployable applications are returned by the {@link #applications()} method.
      *
-     * @param key identifies the application
+     * @param key identifies the application as returned by {@link org.fluidity.foundation.ApplicationInfo#key()}.
+     *
      * @throws Exception when something goes wrong with the deployment.
      */
     void deployApplication(final String key) throws Exception;
 
     /**
-     * Undeploys the application with the given names. The list of deployable applications are returned by the {@link #applicationKeys()} method.
+     * Undeploys the application with the given names. The list of deployable applications are returned by the {@link #applications()} method.
      *
-     * @param key identifies the application
+     * @param key identifies the application as returned by {@link org.fluidity.foundation.ApplicationInfo#key()}.
      *
      * @throws Exception when something goes wrong with the undeployment.
      */

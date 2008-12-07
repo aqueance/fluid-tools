@@ -15,6 +15,7 @@ public interface ServerBootstrap {
      * Bootstraps a web server and deploys a list of .war files, either automatically or by providing a component through which another entity can manage the
      * deployment.
      *
+     * @param httpPort      The HTTP port to listen on. If == 0 then no HTTP listener is needed.
      * @param bootApp       The web application .war file used to establish the boot class path. The list of .jar files to be added to the boot class path will
      *                      be found under <code>WEB-INF/boot</code> of this .war file. This .war file shall be deployed under the root (<code>/</code>)
      *                      context.
@@ -23,5 +24,5 @@ public interface ServerBootstrap {
      * @param workDirectory The working directory for use by the web server.
      * @param args          The list of command line arguments left unprocessed by the invoker.
      */
-    void bootstrap(final File bootApp, final List<File> managedApps, final File workDirectory, final String args[]);
+    void bootstrap(final int httpPort, final File bootApp, final List<File> managedApps, final File workDirectory, final String args[]);
 }

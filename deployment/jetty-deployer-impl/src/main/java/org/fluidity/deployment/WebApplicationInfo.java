@@ -23,5 +23,5 @@ public interface WebApplicationInfo extends ApplicationInfo {
      *
      * @return <code>true</code> if this application needs an HTTP server, <code>false</code> otherwise.
      */
-    boolean supportsHttp();
+    boolean needsHttp();
 }

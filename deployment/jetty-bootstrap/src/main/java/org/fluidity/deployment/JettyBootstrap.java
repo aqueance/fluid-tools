@@ -21,7 +21,7 @@ import org.mortbay.jetty.webapp.WebAppContext;
  */
 public final class JettyBootstrap implements ServerBootstrap {
 
-    public void bootstrap(final File bootApp, final List<File> managedApps, final File workDirectory, final String args[]) {
+    public void bootstrap(final int httpPort, final File bootApp, final List<File> managedApps, final File workDirectory, final String args[]) {
         final ContextHandlerCollection contexts = new ContextHandlerCollection();
 
         final HandlerCollection handlers = new HandlerCollection();
@@ -46,15 +46,10 @@ public final class JettyBootstrap implements ServerBootstrap {
 
         server.setHandler(handlers);
 
-        if (args.length > 0 && "-port".equals(args[0])) {
-            try {
-                final int httpPort = args.length > 2 ? Integer.parseInt(args[1]) : 80;
-                final SelectChannelConnector connector = new SelectChannelConnector();
-                connector.setPort(httpPort);
-                server.addConnector(connector);
-            } catch (NumberFormatException e) {
-                throw new RuntimeException("Parameter " + args[1] + " is not a port number");
-            }
+        if (httpPort > 0) {
+            final SelectChannelConnector connector = new SelectChannelConnector();
+            connector.setPort(httpPort);
+            server.addConnector(connector);
         }
 
         try {
@@ -65,6 +60,7 @@ public final class JettyBootstrap implements ServerBootstrap {
         } catch (final Exception e) {
             throw new RuntimeException("Starting server", e);
         }
+
     }
 
     private WebAppContext deployWar(final File warFile, final File workDirectory, final boolean root) {

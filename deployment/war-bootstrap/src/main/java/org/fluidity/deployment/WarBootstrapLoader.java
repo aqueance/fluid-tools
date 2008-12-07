@@ -51,20 +51,36 @@ public final class WarBootstrapLoader {
             final File workDirectory = createWorkDirectory(bootWar);
             final List<URL> classpath = unpackBootModules(workDirectory, bootWar);
 
+            int httpPort = 0;
             final List<String> params = new ArrayList<String>();
 
-            for (final String param : args) {
+            for (int i = 0; i < args.length; i++) {
+                String param = args[i];
+
                 if (param.endsWith(".war")) {
                     final File file = new File(param);
                     assert file.exists() : file;
 
                     managedApps.add(file);
+                } else if (args.length > i && param.equals("-http")) {
+                    if (args.length > i + 1) {
+                        try {
+                            httpPort = Integer.parseInt(args[i + 1]);
+                            ++i;
+                        } catch (NumberFormatException e) {
+                            if (!args[i + 1].endsWith(".war")) {
+                                throw new RuntimeException("Parameter " + args[i + 1] + " is not a port number");
+                            }
+                        }
+                    } else {
+                        httpPort = 80;
+                    }
                 } else {
                     params.add(param);
                 }
             }
 
-            bootstrapServer(classpath, bootWar, managedApps, workDirectory, params.toArray(new String[params.size()]));
+            bootstrapServer(httpPort, classpath, bootWar, managedApps, workDirectory, params.toArray(new String[params.size()]));
         } else {
             throw new RuntimeException("Not a local .war file: " + bootUrl);
         }
@@ -139,11 +155,13 @@ public final class WarBootstrapLoader {
         return classpath;
     }
 
-    private void bootstrapServer(final List<URL> classpath,
+    private void bootstrapServer(final int httpPort,
+                                 final List<URL> classpath,
                                  final File bootApp,
                                  final List<File> managedApps,
                                  final File workDirectory,
                                  final String args[]) {
+
         final URLClassLoader classLoader = new URLClassLoader(classpath.toArray(new URL[classpath.size()]));
 
         final Iterator providers = Service.providers(ServerBootstrap.class, classLoader);
@@ -154,7 +172,7 @@ public final class WarBootstrapLoader {
 
             currentThread.setContextClassLoader(classLoader);
             try {
-                ((ServerBootstrap) providers.next()).bootstrap(bootApp, managedApps, workDirectory, args);
+                ((ServerBootstrap) providers.next()).bootstrap(httpPort, bootApp, managedApps, workDirectory, args);
             } finally {
                 currentThread.setContextClassLoader(contextLoader);
             }

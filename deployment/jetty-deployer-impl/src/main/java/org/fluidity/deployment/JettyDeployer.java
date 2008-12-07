@@ -3,15 +3,14 @@ package org.fluidity.deployment;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
-import java.util.jar.Attributes;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
@@ -39,13 +38,19 @@ public final class JettyDeployer implements ServerBootstrap {
     private final Map<String, WebAppContext> contextMap = new LinkedHashMap<String, WebAppContext>();
     private final Set<ApplicationInfo> descriptors = new HashSet<ApplicationInfo>();
 
-    public void bootstrap(final File bootApp, final List<File> managedApps, final File workDirectory, final String args[]) {
+    public void bootstrap(final int httpPort, final File bootApp, final List<File> managedApps, final File workDirectory, final String args[]) {
         final HandlerCollection handlers = new HandlerCollection();
         handlers.addHandler(applications);
 
         final ContextHandlerCollection manager = new ContextHandlerCollection();
         handlers.addHandler(manager);
         manager.addHandler(createWarContext(bootApp, workDirectory, true));
+
+        boolean needsHttp = describe(bootApp).needsHttp();
+
+        if (needsHttp && httpPort <= 0) {
+            throw new IllegalStateException("No HTTP port specified and " + bootApp + " needs HTTP");
+        }
 
 //        handlers.addHandler(new DefaultHandler());      // TODO: this does too much
 //        handlers.addHandler(new RequestLogHandler());   // TODO: is this needed?
@@ -61,6 +66,12 @@ public final class JettyDeployer implements ServerBootstrap {
                 contextMap.put(key, context);
                 descriptors.add(descriptor);
             }
+
+            needsHttp |= descriptor.needsHttp();
+
+            if (needsHttp && httpPort <= 0) {
+                throw new IllegalStateException("No HTTP port specified and " + app + " needs HTTP");
+            }
         }
 
         final JettyDeploymentServer deployer = new JettyDeploymentServer();
@@ -70,16 +81,12 @@ public final class JettyDeployer implements ServerBootstrap {
 
         server.setThreadPool(new QueuedThreadPool(/* TODO: configure pool size and other stuff */));
         server.setHandler(handlers);
+        server.setSendServerVersion(false);
 
-        if (args.length > 0 && "-port".equals(args[0])) {
-            try {
-                final int httpPort = args.length > 2 ? Integer.parseInt(args[1]) : 80;
-                final SelectChannelConnector connector = new SelectChannelConnector();
-                connector.setPort(httpPort);
-                server.addConnector(connector);
-            } catch (NumberFormatException e) {
-                throw new RuntimeException("Parameter " + args[1] + " is not a port number");
-            }
+        if (needsHttp) {
+            final SelectChannelConnector connector = new SelectChannelConnector();
+            connector.setPort(httpPort);
+            server.addConnector(connector);
         }
 
         try {
@@ -147,7 +154,7 @@ public final class JettyDeployer implements ServerBootstrap {
                 final ZipEntry rootManifestEntry = jar.getEntry(JarFile.MANIFEST_NAME);
 
                 if (rootManifestEntry != null) {
-                    final InputStream stream = jar.getInputStream( rootManifestEntry);
+                    final InputStream stream = jar.getInputStream(rootManifestEntry);
                     final Manifest manifest = new Manifest(stream);
 
                     stream.close();
@@ -184,7 +191,7 @@ public final class JettyDeployer implements ServerBootstrap {
             return archive;
         }
 
-        public boolean supportsHttp() {
+        public boolean needsHttp() {
             return http;
         }
 
@@ -201,9 +208,8 @@ public final class JettyDeployer implements ServerBootstrap {
 
         private final Set<String> deployments = new HashSet<String>();
 
-        public ApplicationInfo[] applicationKeys() {
-            final Collection<ApplicationInfo> cope = descriptors;
-            return cope.toArray(new ApplicationInfo[cope.size()]);
+        public ApplicationInfo[] applications() {
+            return descriptors.toArray(new ApplicationInfo[descriptors.size()]);
         }
 
         public boolean isApplicationDeployed(final String key) {
