@@ -58,6 +58,7 @@ import org.apache.maven.shared.dependency.tree.DependencyTreeResolutionListener;
 import org.apache.maven.shared.dependency.tree.traversal.DependencyNodeVisitor;
 import org.codehaus.plexus.logging.AbstractLogger;
 import org.codehaus.plexus.logging.Logger;
+import org.fluidity.foundation.ApplicationInfo;
 
 
 /**
@@ -214,7 +215,26 @@ public class ExecutableWarMojo extends AbstractMojo {
     @SuppressWarnings({"UnusedDeclaration"})
     private ArtifactMetadataSource artifactMetadataSource;
 
-//    private final Log log = getLog();
+    /**
+     * @parameter expression="${project.artifactId}"
+     * @required
+     */
+    @SuppressWarnings({"UnusedDeclaration"})
+    private String projectArtifactId;
+
+    /**
+     * @parameter expression="${project.name}"
+     * @required
+     */
+    @SuppressWarnings({"UnusedDeclaration"})
+    private String projectName;
+
+    /**
+     * @parameter expression="${project.version}"
+     * @required
+     */
+    @SuppressWarnings({"UnusedDeclaration"})
+    private String projectVersion;
 
     @SuppressWarnings({"unchecked"})
     public void execute() throws MojoExecutionException {
@@ -300,6 +320,8 @@ public class ExecutableWarMojo extends AbstractMojo {
                     }
 
                     mainAttributes.putValue(Attributes.Name.MAIN_CLASS.toString(), mainClass);
+                    mainAttributes.putValue(ApplicationInfo.KEY_ATTRIBUTE, projectArtifactId);
+                    mainAttributes.putValue(ApplicationInfo.NAME_ATTRIBUTE, projectName + " (" + projectVersion + ")");
 
                     for (final Enumeration entries = warInput.entries(); entries.hasMoreElements();) {
                         final JarEntry entry = (JarEntry) entries.nextElement();

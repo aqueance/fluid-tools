@@ -144,6 +144,13 @@
             </dependency>
 
             <dependency>
+                <groupId>${fluidity.foundation.groupId}</groupId>
+                <artifactId>foundation-logging</artifactId>
+                <version>${fluidity.version}</version>
+                <scope>compile</scope>
+            </dependency>
+
+            <dependency>
                 <groupId>${fluidity.export.groupId}</groupId>
                 <artifactId>fluidity-property-settings-impl</artifactId>
                 <version>${fluidity.version}</version>
@@ -151,8 +158,8 @@
             </dependency>
 
             <dependency>
-                <groupId>${fluidity.foundation.groupId}</groupId>
-                <artifactId>foundation-logging</artifactId>
+                <groupId>${fluidity.export.groupId}</groupId>
+                <artifactId>fluidity-manifest-appinfo-impl</artifactId>
                 <version>${fluidity.version}</version>
                 <scope>compile</scope>
             </dependency>

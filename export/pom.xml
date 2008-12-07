@@ -55,6 +55,7 @@ This project lists the exported modules of the Fluidity Tools.
         <module>fluidity-web-impl</module>
         <module>fluidity-commons-logging-impl</module>
         <module>fluidity-property-settings-impl</module>
+        <module>fluidity-manifest-appinfo-impl</module>
         <module>fluidity-tests</module>
     </modules>
 

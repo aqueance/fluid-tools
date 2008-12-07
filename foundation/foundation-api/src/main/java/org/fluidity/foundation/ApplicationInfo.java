@@ -28,6 +28,9 @@ package org.fluidity.foundation;
  */
 public interface ApplicationInfo extends KeyedNamed {
 
+    String KEY_ATTRIBUTE = "Application-Key";
+    String NAME_ATTRIBUTE = "Application-Name";
+
     /**
      * Short name for the application. Can be used to find properties file on the class path, etc.
      *
