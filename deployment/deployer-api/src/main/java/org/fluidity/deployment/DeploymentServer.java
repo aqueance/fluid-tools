@@ -1,5 +1,7 @@
 package org.fluidity.deployment;
 
+import org.fluidity.foundation.ApplicationInfo;
+
 /**
  * Allows the caller to control the web server by means of starting and stopping known web applications.
  */
@@ -10,7 +12,7 @@ public interface DeploymentServer extends ServerControl {
      *
      * @return a list of applications names, may be empty.
      */
-    String[] applicationKeys();
+    ApplicationInfo[] applicationKeys();
 
     /**
      * Tells whether the application with the given name is deployed or not. The list of deployable applications are returned by the {@link #applicationKeys()}

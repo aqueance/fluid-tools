@@ -21,7 +21,7 @@ import org.mortbay.jetty.webapp.WebAppContext;
  */
 public final class JettyBootstrap implements ServerBootstrap {
 
-    public void bootstrap(final WebApplicationInfo bootApp, final List<WebApplicationInfo> managedApps, final File workDirectory, final String args[]) {
+    public void bootstrap(final File bootApp, final List<File> managedApps, final File workDirectory, final String args[]) {
         final ContextHandlerCollection contexts = new ContextHandlerCollection();
 
         final HandlerCollection handlers = new HandlerCollection();
@@ -29,10 +29,10 @@ public final class JettyBootstrap implements ServerBootstrap {
         handlers.addHandler(new DefaultHandler());
         handlers.addHandler(new RequestLogHandler());
 
-        contexts.addHandler(deployWar(bootApp.archive(), workDirectory, true));
+        contexts.addHandler(deployWar(bootApp, workDirectory, true));
 
-        for (final WebApplicationInfo app : managedApps) {
-            contexts.addHandler(deployWar(app.archive(), workDirectory, false));
+        for (final File app : managedApps) {
+            contexts.addHandler(deployWar(app, workDirectory, false));
         }
 
         final Server server = new Server();

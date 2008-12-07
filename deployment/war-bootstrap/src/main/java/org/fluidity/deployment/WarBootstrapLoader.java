@@ -14,10 +14,8 @@ import java.util.Date;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
-import java.util.zip.ZipEntry;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
-import java.util.jar.Manifest;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -28,12 +26,6 @@ import sun.misc.Service;
  * component.
  */
 public final class WarBootstrapLoader {
-
-    /** Duplicates ApplicationInfo.KEY_ATTRIBUTE -  */
-    public static final String KEY_ATTRIBUTE = "Application-Key";
-
-    /** Duplicates ApplicationInfo.NAME_ATTRIBUTE */
-    public static final String NAME_ATTRIBUTE = "Application-Name";
 
     private final DateFormat df = new SimpleDateFormat("yyyy-MM-dd:HH:mm:SSS");
     private final Pattern warFilePattern = Pattern.compile("^jar:file:(.*.war)\\!/.*");
@@ -48,15 +40,13 @@ public final class WarBootstrapLoader {
         final ClassLoader bootstrapLoader = bootstrapClass.getClassLoader();
         final String bootUrl = bootstrapLoader.getResource(name).toExternalForm();
 
-        final List<WebApplicationInfo> managedApps = new ArrayList<WebApplicationInfo>();
+        final List<File> managedApps = new ArrayList<File>();
 
         final Matcher matcher = warFilePattern.matcher(bootUrl);
         if (matcher.matches()) {
             final String warPath = matcher.group(1);
             final File bootWar = new File(warPath);
             assert bootWar.exists() : bootWar;
-
-            final WebApplicationInfo bootApp = describe(bootWar);
 
             final File workDirectory = createWorkDirectory(bootWar);
             final List<URL> classpath = unpackBootModules(workDirectory, bootWar);
@@ -68,39 +58,16 @@ public final class WarBootstrapLoader {
                     final File file = new File(param);
                     assert file.exists() : file;
 
-                    managedApps.add(describe(file));
+                    managedApps.add(file);
                 } else {
                     params.add(param);
                 }
             }
 
-            bootstrapServer(classpath, bootApp, managedApps, workDirectory, params.toArray(new String[params.size()]));
+            bootstrapServer(classpath, bootWar, managedApps, workDirectory, params.toArray(new String[params.size()]));
         } else {
             throw new RuntimeException("Not a local .war file: " + bootUrl);
         }
-    }
-
-    private WebApplicationInfo describe(final File archive) throws IOException {
-        final JarFile jar = new JarFile(archive);
-        final ZipEntry manifestEntry = jar.getEntry("WEB-INF/classes/" + JarFile.MANIFEST_NAME);
-
-        String key = null;
-        String name = null;
-
-        if (manifestEntry != null) {
-            final InputStream is = jar.getInputStream(manifestEntry);
-            final Manifest manifest = new Manifest(is);
-
-            is.close();
-            jar.close();
-
-            key = manifest.getMainAttributes().getValue(KEY_ATTRIBUTE);
-            name = manifest.getMainAttributes().getValue(NAME_ATTRIBUTE);
-        }
-
-        assert key == null || name != null : key + " has no name";
-
-        return new ArchiveInfo(archive, key, name);
     }
 
     private List<URL> unpackBootModules(final File workDirectory, final File warFile) throws IOException {
@@ -173,8 +140,8 @@ public final class WarBootstrapLoader {
     }
 
     private void bootstrapServer(final List<URL> classpath,
-                                 final WebApplicationInfo bootApp,
-                                 final List<WebApplicationInfo> managedApps,
+                                 final File bootApp,
+                                 final List<File> managedApps,
                                  final File workDirectory,
                                  final String args[]) {
         final URLClassLoader classLoader = new URLClassLoader(classpath.toArray(new URL[classpath.size()]));
@@ -209,30 +176,5 @@ public final class WarBootstrapLoader {
     private String archiveName(final File archive) {
         final String archiveName = archive.getName();
         return archiveName.substring(0, archiveName.length() - ".war".length());
-    }
-
-    private static class ArchiveInfo implements WebApplicationInfo {
-
-        private final File archive;
-        private final String key;
-        private final String name;
-
-        public ArchiveInfo(final File archive, final String key, final String name) {
-            this.archive = archive;
-            this.key = key;
-            this.name = name;
-        }
-
-        public File archive() {
-            return archive;
-        }
-
-        public String key() {
-            return key;
-        }
-
-        public String name() {
-            return name;
-        }
     }
 }
