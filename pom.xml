@@ -65,6 +65,7 @@
         <module>composition</module>
         <module>deployment</module>
         <module>plugins</module>
+        <module>archetypes</module>
         <module>export</module>
     </modules>
 
