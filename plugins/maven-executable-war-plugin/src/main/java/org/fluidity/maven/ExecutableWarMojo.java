@@ -113,15 +113,6 @@ public class ExecutableWarMojo extends AbstractMojo {
     private int httpPort;
 
     /**
-     * Name of the maven project
-     *
-     * @parameter expression="${plugin.artifactId}"
-     * @required
-     */
-    @SuppressWarnings({"UnusedDeclaration"})
-    private String pluginName;
-
-    /**
      * @parameter expression="${plugin.artifacts}"
      * @required
      */
@@ -566,7 +557,7 @@ public class ExecutableWarMojo extends AbstractMojo {
         File tempFile;
 
         do {
-            tempFile = new File(outputDirectory, pluginName + '-' + System.nanoTime());
+            tempFile = new File(outputDirectory, pluginArtifactId + '-' + System.nanoTime());
         } while (tempFile.exists());
 
         return tempFile;

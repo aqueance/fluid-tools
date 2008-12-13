@@ -34,7 +34,7 @@
     <artifactId>maven-executable-war-plugin</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>maven-plugin</packaging>
-    <name>Executable WAR Maven Plugin</name>
+    <name>Plugins: Executable WAR</name>
 
     <licenses>
         <license>
