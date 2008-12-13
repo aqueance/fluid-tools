@@ -2,5 +2,8 @@
 <archetype-descriptor name="fluidity-archetype-aggregate">
     <requiredProperties>
         <requiredProperty key="projectName"/>
+        <requiredProperty key="package">
+            <defaultValue>&lt;empty></defaultValue>            
+        </requiredProperty>
     </requiredProperties>
 </archetype-descriptor>
