@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<archetype>
+    <id>fluidity-archetype-api-module</id>
+    <sources>
+        <source>src/main/java/ComponentApi.java</source>
+    </sources>
+</archetype>

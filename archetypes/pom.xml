@@ -33,7 +33,7 @@
     <artifactId>maven-archetypes</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
-    <name>Archetypes: Maven Archetype Modules</name>
+    <name>Archetype: Maven Archetype Modules</name>
 
     <licenses>
         <license>
@@ -45,6 +45,8 @@
 
     <modules>
         <module>project-root</module>
+        <module>api-module</module>
+        <module>impl-module</module>
     </modules>
 
 </project>

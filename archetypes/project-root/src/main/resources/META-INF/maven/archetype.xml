@@ -1,3 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?><archetype>
-  <id>fluidity-archetype-aggregate</id>
+<?xml version="1.0" encoding="UTF-8"?>
+<archetype>
+    <id>fluidity-archetype-project-root</id>
 </archetype>
