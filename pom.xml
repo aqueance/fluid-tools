@@ -34,6 +34,10 @@
     <inceptionYear>2006</inceptionYear>
     <url>http://code.google.com/p/fluid-tools/</url>
 
+    <prerequisites>
+        <maven>2.0.9</maven>
+    </prerequisites>
+
     <scm>
         <connection>scm:svn:http://fluid-tools.googlecode.com/svn/trunk/</connection>
         <developerConnection>scm:svn:https://fluid-tools.googlecode.com/svn/trunk/</developerConnection>
