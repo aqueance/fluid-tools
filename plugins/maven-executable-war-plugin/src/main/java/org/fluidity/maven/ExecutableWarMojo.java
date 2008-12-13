@@ -176,7 +176,7 @@ public class ExecutableWarMojo extends AbstractMojo {
     private ArtifactCollector artifactCollector;
 
     /**
-     * The artifact repository to use.
+     * The local repository.
      *
      * @parameter expression="${localRepository}"
      * @required
