@@ -1,15 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>${groupId}</groupId>
     <artifactId>${artifactId}</artifactId>
     <version>${version}</version>
-    <packaging>jar</packaging>
+    <packaging>pom</packaging>
 
     <name>${projectName}</name>
 
     <properties>
-      <fluidity-version>1.0-SNAPSHOT</fluidity-version>
+        <fluidity-version>1.0-SNAPSHOT</fluidity-version>
     </properties>
 
     <distributionManagement>
@@ -24,14 +25,14 @@
     <dependencyManagement>
         <dependencies>
 
-        <!-- fluid tools -->
-        <dependency>
-          <groupId>org.fluidity.export</groupId>
-          <artifactId>project</artifactId>
-          <version>${symbol_dollar}{fluidity-version}</version>
-          <type>pom</type>
-          <scope>import</scope>
-        </dependency>
+            <!-- fluid tools -->
+            <dependency>
+                <groupId>org.fluidity.export</groupId>
+                <artifactId>project</artifactId>
+                <version>${symbol_dollar}{fluidity-version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
 
         </dependencies>
     </dependencyManagement>
@@ -64,4 +65,33 @@
         </pluginManagement>
     </build>
 
+    <profiles>
+        <profile>
+            <id>clean</id>
+
+            <build>
+                <defaultGoal>clean</defaultGoal>
+
+                <plugins>
+                    <plugin>
+                        <groupId>org.fluidity.maven</groupId>
+                        <artifactId>maven-repo-clean-plugin</artifactId>
+                        <version>${symbol_dollar}{fluidity-version}</version>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>clean</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+
+                        <configuration>
+                            <allVersions>true</allVersions>
+                        </configuration>
+                    </plugin>
+                </plugins>
+
+            </build>
+        </profile>
+    </profiles>
 </project>
