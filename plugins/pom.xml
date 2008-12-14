@@ -48,7 +48,6 @@
         <module>maven-classpath-plugin</module>
         <module>maven-executable-war-plugin</module>
         <module>maven-webrun-plugin</module>
-        <module>maven-repo-clean-plugin</module>
     </modules>
 
 </project>
