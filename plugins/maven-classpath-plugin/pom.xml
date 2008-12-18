@@ -36,28 +36,25 @@
     <packaging>maven-plugin</packaging>
     <name>Plugins: Classpath</name>
 
-    <description>
-This plugin takes a list of dependencies and a property name, composes a Java
-class path from the given dependencies and sets the value of the given
-property to be the composed class path.
+    <description><![CDATA[
+This plugin takes a list of dependency patterns and a property name, composes a Java
+class path from the dependencies of the host project that match any of the patterns
+and sets the value of the given property to be the composed class path.
 
 The class paths are specified like so:
-&lt;pre>
-  &lt;classpaths>
-    &lt;classpath>
-      &lt;property>name of a project property to set this classpath as the value of&lt;/property>
-      &lt;dependencies>
-        &lt;dependency>
-          &lt;groupId>the artifact's groupId&lt;/groupId>
-          &lt;artifactId>the artifact's artifactId&lt;/artifactId>
-        &lt;/dependency>
+<pre>
+  <classpaths>
+    <classpath>
+      <property>name of a project property to set this classpath as the value of</property>
+      <patterns>
+        <pattern>a Java regex pattern to match "groupId:artifactId" of all dependencies of the host plugin against</pattern>
         ...
-      &lt;/dependencies>
-    &lt;/classpath>
+      </patterns>
+    </classpath>
     ...
-  &lt;/classpaths>
-&lt;/pre>
-    </description>
+  </classpaths>
+</pre>
+]]></description>
 
     <dependencies>
 

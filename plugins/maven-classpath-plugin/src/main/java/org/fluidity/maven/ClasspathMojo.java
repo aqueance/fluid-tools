@@ -25,6 +25,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.AbstractMojo;
@@ -57,13 +59,10 @@ public class ClasspathMojo extends AbstractMojo {
      * <classpaths>
      *   <classpath>
      *     <property>name of a project property to set this classpath as the value of</property>
-     *     <dependencies>
-     *       <dependency>
-     *         <groupId>the artifact's groupId</groupId>
-     *         <artifactId>the artifact's artifactId</artifactId>
-     *       </dependency>
-     *       ...
-     *     </dependencies>
+     *     <patterns>
+     *       <pattern>a Java regex pattern to match "groupId:artifactId" of all dependencies of the host plugin against</pattern>
+     *        ...
+     *     </patterns>
      *   </classpath>
      *   ...
      * </classpaths>
@@ -90,49 +89,49 @@ public class ClasspathMojo extends AbstractMojo {
         final Set<Artifact> artifacts = (Set<Artifact>) project.getArtifacts();
 
         for (final Classpath definition : classpaths) {
-            final StringBuilder classpath = new StringBuilder();
+            if (verbose) {
+                log.info("Processing property " + definition.property);
+            }
 
-            final Set<String> inclusions = new HashSet<String>();
-            final Set<String> exclusions = new HashSet<String>();
+            final Set<Pattern> patterns = new HashSet<Pattern>();
 
-            if (definition.dependencies != null) {
-                for (final Dependency include : definition.dependencies) {
-                    inclusions.add(include.artifactId);
-
-                    if (include.groupId != null) {
-                        inclusions.add(include.groupId + ":" + include.artifactId);
+            if (definition.patterns != null) {
+                for (final String pattern : definition.patterns) {
+                    if (verbose) {
+                        log.info(" adding pattern " + pattern);
                     }
+
+                    patterns.add(Pattern.compile(pattern));
                 }
             }
 
-            if (definition.exclusions != null) {
-                for (final Dependency exclude : definition.exclusions) {
-                    exclusions.add(exclude.artifactId);
-
-                    if (exclude.groupId != null) {
-                        exclusions.add(exclude.groupId + ":" + exclude.artifactId);
-                    }
-                }
-            }
+            final Set<String> list = new HashSet<String>();
 
             for (final Artifact artifact : artifacts) {
                 final String artifactId = artifact.getArtifactId();
                 final String artifactKey = artifact.getGroupId() + ":" + artifactId;
 
-                if (!exclusions.contains(artifactKey)
-                    && (inclusions.isEmpty()
-                    || inclusions.contains(artifactKey)
-                    || ((inclusions.contains(artifactId) && !exclusions.contains(artifactId))))) {
-                    if (classpath.length() > 0) {
-                        classpath.append(File.pathSeparator);
-                    }
+                for (final Pattern pattern : patterns) {
+                    final Matcher matcher = pattern.matcher(artifactKey);
+                    final boolean matches = matcher.matches();
 
-                    try {
-                        classpath.append(artifact.getFile().getCanonicalPath());
-                    } catch (final IOException e) {
-                        throw new MojoExecutionException("Resolving " + artifact.toString(), e);
+                    if (matches) {
+                        try {
+                            list.add(artifact.getFile().getCanonicalPath());
+                        } catch (final IOException e) {
+                            throw new MojoExecutionException("Resolving " + artifact.toString(), e);
+                        }
                     }
                 }
+            }
+
+            final StringBuilder classpath = new StringBuilder();
+            for (final String path : list) {
+                if (classpath.length() > 0) {
+                    classpath.append(File.pathSeparator);
+                }
+
+                classpath.append(path);
             }
 
             if (verbose) {

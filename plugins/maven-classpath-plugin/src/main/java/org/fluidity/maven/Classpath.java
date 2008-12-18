@@ -25,7 +25,5 @@ public class Classpath {
 
     public String property;
 
-    public Dependency[] dependencies;
-
-    public Dependency[] exclusions;
+    public String[] patterns;
 }
