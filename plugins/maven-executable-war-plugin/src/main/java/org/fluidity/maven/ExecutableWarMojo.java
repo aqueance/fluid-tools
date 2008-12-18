@@ -59,7 +59,6 @@ import org.apache.maven.shared.dependency.tree.traversal.DependencyNodeVisitor;
 import org.codehaus.plexus.logging.AbstractLogger;
 import org.codehaus.plexus.logging.Logger;
 
-
 /**
  * Adds code to the project .war file that allows it to be run as a .jar file, e.g. <code>$ java -jar &lt;file name>.war</code>. More .war files can be
  * specified in the command line and all will be deployed to the same application server.
@@ -98,19 +97,19 @@ public class ExecutableWarMojo extends AbstractMojo {
      * copied under the WEB-INF/boot directory of the .war file.
      *
      * @parameter
-     * @readonly
      */
     @SuppressWarnings({"UnusedDeclaration"})
     private String server;
 
     /**
-     * Specifies the HTTP port to listen on.
+     * Instructs the plugin, when set, to remove from the WEB-INF/lib directory all .jar files that the plugin puts in
+     * the WEB-INF/boot directory, effectively making the resulting .war smaller than otherwise but also making it
+     * executable via the command line only, i.e. the .war file will not be deployable in an ordinary web container.
      *
-     * @parameter
-     * @readonly
+     * @parameter default-value="false"
      */
     @SuppressWarnings({"UnusedDeclaration"})
-    private int httpPort;
+    private boolean bootOnly;
 
     /**
      * @parameter expression="${plugin.artifacts}"
@@ -277,6 +276,12 @@ public class ExecutableWarMojo extends AbstractMojo {
                     throw new MojoExecutionException("No main class found in " + bootstrap);
                 }
 
+                final Set<String> bootLibraries = new HashSet<String>();
+
+                for (final Artifact artifact : serverDependencies) {
+                    bootLibraries.add("WEB-INF/lib/" + new File(localRepository.pathOf(artifact)).getName());
+                }
+
                 final JarFile warInput = new JarFile(packageFile);
 
                 try {
@@ -302,8 +307,10 @@ public class ExecutableWarMojo extends AbstractMojo {
                             }
                         } else {
                             if (!processedEntries.contains(entryName)) {
-                                outputStream.putNextEntry(entry);
-                                copyStream(outputStream, warInput.getInputStream(entry), buffer);
+                                if (!bootOnly || !bootLibraries.contains(entryName)) {
+                                    outputStream.putNextEntry(entry);
+                                    copyStream(outputStream, warInput.getInputStream(entry), buffer);
+                                }
                             } else if (!entryName.endsWith("/")) {
                                 throw new MojoExecutionException("Duplicate entry: " + entryName);
                             }
@@ -454,7 +461,6 @@ public class ExecutableWarMojo extends AbstractMojo {
                                   artifactMetadataSource,
                                   null,
                                   Collections.singletonList(listener));
-
 
         return listener.getRootNode();
     }
