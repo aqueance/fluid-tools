@@ -22,6 +22,7 @@
 package org.fluidity.maven;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -32,9 +33,7 @@ import java.util.Set;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.factory.ArtifactFactory;
-import org.apache.maven.artifact.metadata.ArtifactMetadataSource;
 import org.apache.maven.artifact.repository.ArtifactRepository;
-import org.apache.maven.artifact.resolver.ArtifactCollector;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
@@ -67,26 +66,6 @@ public final class CleanRepositoryMojo extends AbstractMojo {
      */
     @SuppressWarnings({"UnusedDeclaration"})
     private ArtifactRepository localRepository;
-
-    /**
-     * The artifact collector to use.
-     *
-     * @component
-     * @required
-     * @readonly
-     */
-    @SuppressWarnings({"UnusedDeclaration"})
-    private ArtifactCollector artifactCollector;
-
-    /**
-     * The artifact metadata source to use.
-     *
-     * @component
-     * @required
-     * @readonly
-     */
-    @SuppressWarnings({"UnusedDeclaration"})
-    private ArtifactMetadataSource artifactMetadataSource;
 
     /**
      * The artifact factory to use.
@@ -185,41 +164,44 @@ public final class CleanRepositoryMojo extends AbstractMojo {
 */
         }
 
-        final String projectId = dependencyId(project.getArtifact());
-        final Set<Artifact> artifacts = (Set<Artifact>) properties.get(artifactListKey);
-        final String rootDirectory = localRepository.getBasedir();
+        try {
+            final String projectId = dependencyId(project.getArtifact());
+            final Set<Artifact> artifacts = (Set<Artifact>) properties.get(artifactListKey);
+            final String rootDirectory = new File(localRepository.getBasedir()).getCanonicalPath();
 
-        for (final Map.Entry<Artifact, Set<String>> entry : dependencyMap.entrySet()) {
-            final Artifact artifact = entry.getKey();
+            for (final Map.Entry<Artifact, Set<String>> entry : dependencyMap.entrySet()) {
+                final Artifact artifact = entry.getKey();
 
-            if (artifacts.contains(artifact)) {
-                final Set<String> list = entry.getValue();
-                if (list != null) {
-                    list.remove(projectId);
-                }
+                if (artifacts.contains(artifact)) {
+                    final Set<String> list = entry.getValue();
+                    if (list != null) {
+                        list.remove(projectId);
+                    }
 
-                if (list == null || list.isEmpty()) {
-                    final File file = new File(rootDirectory, localRepository.pathOf(artifact));
-                    final File directory = allVersions ? file.getParentFile().getParentFile() : file.getParentFile();
+                    if (list == null || list.isEmpty()) {
+                        final File file = new File(rootDirectory, localRepository.pathOf(artifact));
+                        final File directory = allVersions ? file.getParentFile().getParentFile() : file.getParentFile();
 
-                    if (directory.exists()) {
-                        log.info("Deleting " + directory);
-                        final boolean success = delete(directory, rootDirectory);
-                        if (!success) {
-                            log.error("Failed to delete " + directory);
+                        if (directory.exists()) {
+                            log.info("Deleting " + directory);
+                            final boolean success = delete(directory, rootDirectory);
+                            if (!success) {
+                                log.error("Failed to delete " + directory);
+                            }
                         }
                     }
                 }
             }
+        } catch (IOException e) {
+            throw new MojoExecutionException("Deleting directories", e);
         }
-
     }
 
     private String dependencyId(final Artifact artifact) {
         return artifact.getDependencyConflictId() + ':' + artifact.getVersion();
     }
 
-    private boolean delete(final File directory, final String root) {
+    private boolean delete(final File directory, final String root) throws IOException {
         final File[] files = directory.listFiles();
 
         if (files == null) {
@@ -240,7 +222,7 @@ public final class CleanRepositoryMojo extends AbstractMojo {
 
         boolean deleted = directory.delete();
 
-        for (File parent = directory.getParentFile(); deleted && !parent.getAbsolutePath().equals(root); parent = parent.getParentFile()) {
+        for (File parent = directory.getParentFile(); deleted && !parent.getCanonicalPath().equals(root); parent = parent.getParentFile()) {
             final String[] list = parent.list();
             if (list == null || list.length == 0) {
                 log.info("Deleting " + parent);
