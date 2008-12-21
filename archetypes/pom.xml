@@ -49,4 +49,14 @@
         <module>impl-module</module>
     </modules>
 
+    <build>
+
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>false</filtering>
+            </resource>
+        </resources>
+
+    </build>
 </project>
