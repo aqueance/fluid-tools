@@ -24,7 +24,8 @@ package org.fluidity.composition;
 import org.fluidity.foundation.KeyedNamed;
 
 /**
- * This is a component that is started/stopped as the application container starts/stops.
+ * This is a component that is started/stopped as the application container starts/stops. There is no deterministic order in which deployed components are
+ * started/stopped and so deployed components should be independent of one another.
  *
  * <p/>
  *
