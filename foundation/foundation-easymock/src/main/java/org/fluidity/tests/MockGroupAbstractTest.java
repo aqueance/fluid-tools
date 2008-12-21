@@ -45,9 +45,7 @@ public abstract class MockGroupAbstractTest {
 
     @BeforeMethod
     public void setup() throws Exception {
-        for (final IMocksControl group : groups) {
-            group.reset();
-        }
+        reset();
     }
 
     protected final IMocksControl group() {
