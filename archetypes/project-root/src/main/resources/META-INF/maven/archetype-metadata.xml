@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<archetype-descriptor name="fluidity-archetype-aggregate">
+<archetype-descriptor name="fluidity-archetype-root">
     <requiredProperties>
         <requiredProperty key="projectName"/>
         <requiredProperty key="package">
-            <defaultValue>&lt;empty></defaultValue>            
+            <defaultValue>&lt;empty></defaultValue>
         </requiredProperty>
     </requiredProperties>
 </archetype-descriptor>
