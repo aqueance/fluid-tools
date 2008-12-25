@@ -3,10 +3,10 @@
 #set( $symbol_escape = '\' )
 package ${package};
 
-import org.fluidity.tests.MockGroupAbstractTest;
-import org.testng.annotations.Test;
-import org.testng.Assert;
 import org.easymock.EasyMock;
+import org.fluidity.tests.MockGroupAbstractTest;
+import org.testng.Assert;
+import org.testng.annotations.Test;
 
 public final class ComponentImplTest extends MockGroupAbstractTest {
 
@@ -15,7 +15,7 @@ public final class ComponentImplTest extends MockGroupAbstractTest {
     private final ComponentApi testee = new ComponentImpl(dependency);
 
     @Test
-    public void sendsText() {
+    public void sendsText() throws Exception {
         final String accepted = "accepted";
         final String rejected = "rejected";
 

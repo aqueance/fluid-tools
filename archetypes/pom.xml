@@ -47,6 +47,7 @@
         <module>project-root</module>
         <module>api-module</module>
         <module>impl-module</module>
+        <module>deployment-module</module>
     </modules>
 
     <build>
