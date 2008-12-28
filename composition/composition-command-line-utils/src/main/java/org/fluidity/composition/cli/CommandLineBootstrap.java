@@ -21,41 +21,46 @@
  */
 package org.fluidity.composition.cli;
 
-import org.fluidity.composition.DeploymentBootstrap;
-import org.fluidity.composition.ComponentContainer;
+import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainerAccess;
+import org.fluidity.composition.DeploymentBootstrap;
 import org.fluidity.composition.ShutdownHook;
 
 /**
- * A command line main class that bootstraps and controls all {@link org.fluidity.composition.DeployedComponent} and {@link
- * org.fluidity.composition.DeploymentObserver} objects in the application. The application must have a {@link Main} component that is initialized ({@link
- * Main#initialize(String[])}) and run ({@link org.fluidity.composition.cli.Main#run()}).
+ * A command line main class that bootstraps the application's dependency injection container, invokes {@link DeploymentBootstrap} to load and control
+ * deployment units and to invokes the application supplied main loop, {@link MainLoop}. Any component can access the command line parameters by having a
+ * constructor with, among other dependencies, a <code>final String[] args</code> parameter.
  */
-public final class BootstrapMain {
+@Component
+public final class CommandLineBootstrap implements Runnable {
 
-    public BootstrapMain(final ShutdownHook shutdown, final DeploymentBootstrap bootstrap) throws Exception {
+    private final MainLoop main;
+    private final int componentCount;
+    private boolean started;
+
+    public CommandLineBootstrap(final DeploymentBootstrap bootstrap, final MainLoop main, final ShutdownHook shutdown) throws Exception {
+        this.main = main;
+
         shutdown.addTask("bootstrap", new Runnable() {
             public void run() {
                 bootstrap.unload();
+
+                if (started) {
+                    main.stop();
+                }
             }
         });
 
-        bootstrap.load();
+        this.componentCount = bootstrap.load();
+    }
+
+    public void run() {
+        started = main.run(componentCount);
     }
 
     public static void main(final String[] args) throws Exception {
-        final ComponentContainer container = new ComponentContainerAccess();
-
-        final ShutdownHook shutdown = container.getComponent(ShutdownHook.class);
-        final DeploymentBootstrap bootstrap = container.getComponent(DeploymentBootstrap.class);
-
-        final Main main = container.getComponent(Main.class);
-        assert main != null : Main.class;
-
-        main.initialize(args);
-
-        new BootstrapMain(shutdown, bootstrap);
-
-        main.run();
+        final ComponentContainerAccess container = new ComponentContainerAccess();
+        container.bindBootComponent(String[].class, args);
+        container.getComponent(CommandLineBootstrap.class).run();
     }
 }

@@ -48,7 +48,7 @@ final class DeploymentBootstrapImpl implements DeploymentBootstrap {
         Collections.reverse(observers);
     }
 
-    public void load() throws Exception {
+    public int load() throws Exception {
         Collections.reverse(components);
         for (final DeployedComponent component : components) {
             log.info(getClass(), "Starting " + component.name());
@@ -64,6 +64,8 @@ final class DeploymentBootstrapImpl implements DeploymentBootstrap {
                 log.warning(getClass(), observer.getClass().getName(), e);
             }
         }
+
+        return components.size();
     }
 
     public void unload() {

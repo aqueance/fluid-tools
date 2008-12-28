@@ -6,6 +6,7 @@ import org.fluidity.foundation.logging.StandardOutLogging;
 import org.fluidity.tests.MockGroupAbstractTest;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+import org.testng.Assert;
 
 public final class DeploymentBootstrapImplTest extends MockGroupAbstractTest {
 
@@ -61,7 +62,7 @@ public final class DeploymentBootstrapImplTest extends MockGroupAbstractTest {
         observer2.started();
 
         replay();
-        bootstrap.load();
+        Assert.assertEquals(3, bootstrap.load());
         verify();
     }
 
