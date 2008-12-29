@@ -22,9 +22,9 @@
 package org.fluidity.deployment;
 
 /**
- * Allows stopping the web server controlled by the implementation.
+ * Allows stopping the runtime controlled by the implementation.
  */
-public interface ServerControl {
+public interface RuntimeControl {
 
-    void stopServer() throws Exception;
+    void stop() throws Exception;
 }

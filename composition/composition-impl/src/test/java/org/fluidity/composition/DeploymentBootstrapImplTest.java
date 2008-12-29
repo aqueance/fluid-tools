@@ -4,9 +4,8 @@ import org.easymock.EasyMock;
 import org.fluidity.foundation.Logging;
 import org.fluidity.foundation.logging.StandardOutLogging;
 import org.fluidity.tests.MockGroupAbstractTest;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
 import org.testng.Assert;
+import org.testng.annotations.Test;
 
 public final class DeploymentBootstrapImplTest extends MockGroupAbstractTest {
 
@@ -21,10 +20,15 @@ public final class DeploymentBootstrapImplTest extends MockGroupAbstractTest {
     private final DeploymentObserver observer1 = addStrictControl(DeploymentObserver.class);
     private final DeploymentObserver observer2 = addStrictControl(DeploymentObserver.class);
 
-    private DeploymentBootstrap bootstrap;
+    private final DeploymentBootstrap bootstrap = new DeploymentBootstrapImpl(log, container, discovery);
 
-    @BeforeMethod
-    public void setupBootstrap() {
+    @Test
+    public void forceTestOrdering() throws Exception {
+        testLoading();
+        testUnloading();
+    }
+
+    public void testLoading() throws Exception {
         EasyMock.expect(discovery.findComponentInstances(container, DeployedComponent.class)).andReturn(new DeployedComponent[] {
                 component1,
                 component2,
@@ -34,18 +38,7 @@ public final class DeploymentBootstrapImplTest extends MockGroupAbstractTest {
                 observer1,
                 observer2,
         });
-        replay();
-        bootstrap = new DeploymentBootstrapImpl(log, container, discovery);
-        verify();
-    }
 
-    @Test
-    public void forceTestOrdering() throws Exception {
-        testLoading();
-        testUnloading();
-    }
-
-    public void testLoading() throws Exception {
         EasyMock.expect(component1.name()).andReturn("Component 1");
         component1.start();
         EasyMock.expect(component1.name()).andReturn("Component 1");

@@ -31,7 +31,7 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
 import org.fluidity.composition.ComponentContainerAccess;
-import org.fluidity.deployment.ServerControl;
+import org.fluidity.deployment.RuntimeControl;
 import org.mortbay.jetty.Server;
 import org.mortbay.jetty.handler.ContextHandlerCollection;
 import org.mortbay.jetty.handler.DefaultHandler;
@@ -113,8 +113,8 @@ public final class WebRunMojo extends AbstractMojo {
         if (!deployed.isEmpty()) {
             final Server server = new Server();
 
-            new ComponentContainerAccess().bindBootComponent(ServerControl.class, new ServerControl() {
-                public void stopServer() throws Exception {
+            new ComponentContainerAccess().bindBootComponent(RuntimeControl.class, new RuntimeControl() {
+                public void stop() throws Exception {
                     server.stop();
                 }
             });

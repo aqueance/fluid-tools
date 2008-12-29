@@ -227,8 +227,8 @@
             </dependency>
 
             <dependency>
-                <groupId>${fluidity.composition.groupId}</groupId>
-                <artifactId>composition-command-line-utils</artifactId>
+                <groupId>${fluidity.deployment.groupId}</groupId>
+                <artifactId>cli-bootstrap</artifactId>
                 <version>${fluidity.version}</version>
                 <scope>compile</scope>
             </dependency>

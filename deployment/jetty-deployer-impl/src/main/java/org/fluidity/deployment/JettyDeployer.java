@@ -243,7 +243,7 @@ public final class JettyDeployer implements ServerBootstrap {
             }
         }
 
-        public void stopServer() throws Exception {
+        public void stop() throws Exception {
             server.stop();
         }
     }

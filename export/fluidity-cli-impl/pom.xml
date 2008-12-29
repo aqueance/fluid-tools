@@ -61,8 +61,8 @@ This project lists the command line support modules of the Fluidity Tools.
         </dependency>
 
         <dependency>
-            <groupId>${fluidity.composition.groupId}</groupId>
-            <artifactId>composition-command-line-utils</artifactId>
+            <groupId>${fluidity.deployment.groupId}</groupId>
+            <artifactId>cli-bootstrap</artifactId>
         </dependency>
 
     </dependencies>

@@ -24,6 +24,7 @@ package org.fluidity.composition;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.ArrayList;
 
 import org.fluidity.foundation.Logging;
 
@@ -33,30 +34,33 @@ import org.fluidity.foundation.Logging;
 @Component
 final class DeploymentBootstrapImpl implements DeploymentBootstrap {
 
-    private final List<DeployedComponent> components;
-    private final List<DeploymentObserver> observers;
+    private final ComponentContainer container;
+    private final ComponentDiscovery discovery;
+
+    private final List<DeployedComponent> components = new ArrayList<DeployedComponent>();
+    private final List<DeploymentObserver> observers = new ArrayList<DeploymentObserver>();
 
     private final Logging log;
 
     public DeploymentBootstrapImpl(final Logging log, final ComponentContainer container, final ComponentDiscovery discovery) {
         this.log = log;
-
-        components = Arrays.asList(discovery.findComponentInstances(container, DeployedComponent.class));
-        Collections.reverse(components);
-
-        observers = Arrays.asList(discovery.findComponentInstances(container, DeploymentObserver.class));
-        Collections.reverse(observers);
+        this.container = container;
+        this.discovery = discovery;
     }
 
     public void load() throws Exception {
-        Collections.reverse(components);
+        components.clear();
+        observers.clear();
+
+        components.addAll(Arrays.asList(discovery.findComponentInstances(container, DeployedComponent.class)));
+        observers.addAll(Arrays.asList(discovery.findComponentInstances(container, DeploymentObserver.class)));
+
         for (final DeployedComponent component : components) {
             log.info(getClass(), "Starting " + component.name());
             component.start();
             log.info(getClass(), "Started " + component.name());
         }
 
-        Collections.reverse(observers);
         for (final DeploymentObserver observer : observers) {
             try {
                 observer.started();

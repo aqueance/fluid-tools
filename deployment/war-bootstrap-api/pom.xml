@@ -43,9 +43,9 @@
         </license>
     </licenses>
 
-    <description>
-Exports the &lt;code>org.fluidity.deployment.ServerControl&lt;/code> interface.
-    </description>
+    <description><![CDATA[
+Exports the &lt;code>org.fluidity.deployment.RuntimeControl&lt;/code> interface.
+    ]]></description>
 
     <dependencies>
 

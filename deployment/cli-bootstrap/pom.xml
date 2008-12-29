@@ -29,11 +29,11 @@
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
-    <groupId>org.fluidity.composition</groupId>
-    <artifactId>composition-command-line-utils</artifactId>
+    <groupId>org.fluidity.deployment</groupId>
+    <artifactId>cli-bootstrap</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
-    <name>Composition: Command Line Utilities</name>
+    <name>Deployment: CLI Bootstrap</name>
 
     <licenses>
         <license>
@@ -58,6 +58,11 @@
         <dependency>
             <groupId>${fluidity.composition.groupId}</groupId>
             <artifactId>composition-bootstrap-utils</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>${fluidity.deployment.groupId}</groupId>
+            <artifactId>deployer-api</artifactId>
         </dependency>
 
     </dependencies>

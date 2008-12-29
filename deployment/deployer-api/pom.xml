@@ -50,11 +50,6 @@
             <artifactId>foundation-api</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>${fluidity.deployment.groupId}</groupId>
-            <artifactId>war-bootstrap-api</artifactId>
-        </dependency>
-
     </dependencies>
 
     <profiles>

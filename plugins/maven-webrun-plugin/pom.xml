@@ -61,7 +61,7 @@ application may ask for.
 You configure the plugin's classpath by a &lt;dependencies> section in the
 plugin configuration of your host project.
 
-The plugin exports an org.fluidity.deployment.ServerControl object in the global
+The plugin exports an org.fluidity.deployment.RuntimeControl object in the global
 ComponentContainer. That object can be used to programmatically stop the
 Jetty server started by this plugin. The server can also be stopped by
 pressing Ctrl-C.
@@ -85,6 +85,11 @@ pressing Ctrl-C.
         <dependency>
             <groupId>${fluidity.deployment.groupId}</groupId>
             <artifactId>war-bootstrap-api</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>${fluidity.deployment.groupId}</groupId>
+            <artifactId>deployer-api</artifactId>
         </dependency>
 
         <dependency>

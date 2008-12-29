@@ -50,7 +50,6 @@
         <module>composition-bootstrap-utils</module>
         <module>composition-pico-impl</module>
         <module>composition-command-line-impl</module>
-        <module>composition-command-line-utils</module>
         <module>composition-web-impl</module>
         <module>composition-web-utils</module>
     </modules>
