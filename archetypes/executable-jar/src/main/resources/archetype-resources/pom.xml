@@ -13,40 +13,54 @@
 
         <dependency>
             <groupId>org.fluidity.export</groupId>
-            <artifactId>fluidity-api</artifactId>
+            <artifactId>fluidity-bootstrap</artifactId>
             <version>${symbol_dollar}{fluidity-version}</version>
             <type>pom</type>
         </dependency>
 
         <dependency>
             <groupId>org.fluidity.export</groupId>
-            <artifactId>fluidity-tests</artifactId>
+            <artifactId>fluidity-cli-impl</artifactId>
             <version>${symbol_dollar}{fluidity-version}</version>
             <type>pom</type>
-            <scope>test</scope>
         </dependency>
 
     </dependencies>
 
     <build>
-
         <plugins>
 
             <plugin>
-                <groupId>org.fluidity.maven</groupId>
-                <artifactId>maven-composition-plugin</artifactId>
-                <version>${symbol_dollar}{fluidity-version}</version>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <addClasspath>true</addClasspath>
+                            <mainClass>org.fluidity.composition.cli.CommandLineBootstrap</mainClass>
+                            <!-- Uncomment this block for local testing
+                            <classpathMavenRepositoryLayout>true</classpathMavenRepositoryLayout>
+                            <classpathPrefix>${settings.localRepository}</classpathPrefix>
+                            -->
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
                 <executions>
                     <execution>
                         <goals>
-                            <goal>process-annotations</goal>
+                            <goal>java</goal>
                         </goals>
                     </execution>
                 </executions>
+                <configuration>
+                    <mainClass>org.fluidity.composition.cli.CommandLineBootstrap</mainClass>
+                </configuration>
             </plugin>
 
         </plugins>
-
     </build>
-
 </project>

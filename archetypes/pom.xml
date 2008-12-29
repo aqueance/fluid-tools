@@ -45,9 +45,11 @@
 
     <modules>
         <module>project-root</module>
+        <module>parent-project</module>
         <module>api-module</module>
         <module>impl-module</module>
         <module>deployment-module</module>
+        <module>executable-jar</module>
     </modules>
 
     <build>

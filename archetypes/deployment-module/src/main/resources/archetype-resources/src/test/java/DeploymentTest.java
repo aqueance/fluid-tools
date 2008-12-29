@@ -14,7 +14,7 @@ public final class DeploymentTest extends MockGroupAbstractTest {
     private final DeployedComponent deployment = new Deployment();
 
     @Test
-    public void basics() throws Exception {
+    public void metadata() throws Exception {
         replay();
         deployment.key();
         deployment.name();

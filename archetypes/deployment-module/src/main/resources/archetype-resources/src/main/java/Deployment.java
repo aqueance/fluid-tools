@@ -3,10 +3,8 @@
 #set( $symbol_escape = '\' )
 package ${package};
 
-import org.fluidity.composition.Component;
 import org.fluidity.composition.DeployedComponent;
 
-@Component
 final class Deployment implements DeployedComponent {
 
     public String key() {
