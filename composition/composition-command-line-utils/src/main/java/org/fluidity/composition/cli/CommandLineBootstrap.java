@@ -35,8 +35,6 @@ import org.fluidity.composition.ShutdownHook;
 public final class CommandLineBootstrap implements Runnable {
 
     private final MainLoop main;
-    private final int componentCount;
-    private boolean started;
 
     public CommandLineBootstrap(final DeploymentBootstrap bootstrap, final MainLoop main, final ShutdownHook shutdown) throws Exception {
         this.main = main;
@@ -44,18 +42,14 @@ public final class CommandLineBootstrap implements Runnable {
         shutdown.addTask("bootstrap", new Runnable() {
             public void run() {
                 bootstrap.unload();
-
-                if (started) {
-                    main.stop();
-                }
             }
         });
 
-        this.componentCount = bootstrap.load();
+        bootstrap.load();
     }
 
     public void run() {
-        started = main.run(componentCount);
+        main.run();
     }
 
     public static void main(final String[] args) throws Exception {

@@ -30,15 +30,20 @@ public interface DeploymentBootstrap {
      * Loads all {@link DeployedComponent} and {@link DeploymentObserver} objects and calls their {@link DeployedComponent#start()} and {@link
      * DeploymentObserver#started()} methods, respectively.
      *
-     * @return the number of deployed components found.
-     *
      * @throws Exception will cause the bootstrap to be aborted.
      */
-    int load() throws Exception;
+    void load() throws Exception;
 
     /**
      * Locates all loaded {@link DeployedComponent} and {@link DeploymentObserver} objects and calls their {@link DeployedComponent#stop()} and {@link
      * DeploymentObserver#stopped()} methods, respectively, and in a reverse order than in the {@link #load()} method.
      */
     void unload();
+
+    /**
+     * Returns the number of deployed components and observers found.
+     *
+     * @return the number of deployed components and observers found.
+     */
+    int deploymentCount();
 }

@@ -1,6 +1,7 @@
 package org.fluidity.composition.cli;
 
 import org.fluidity.composition.Component;
+import org.fluidity.composition.DeploymentBootstrap;
 
 /**
  * This default implementation expects the application code to be in a {@link org.fluidity.composition.DeployedComponent}, which when done invokes {@link
@@ -11,10 +12,14 @@ final class DefaultMainLoopImpl implements MainLoop {
 
     private final Object lock = new Object();
 
-    public boolean run(final int componentCount) {
-        final boolean started = componentCount > 0;
+    private final DeploymentBootstrap bootstrap;
 
-        if (started) {
+    public DefaultMainLoopImpl(final DeploymentBootstrap bootstrap) {
+        this.bootstrap = bootstrap;
+    }
+
+    public void run() {
+        if (bootstrap.deploymentCount() > 0) {
             synchronized (lock) {
                 try {
                     lock.wait();
@@ -23,8 +28,6 @@ final class DefaultMainLoopImpl implements MainLoop {
                 }
             }
         }
-
-        return started;
     }
 
     public void stop() {

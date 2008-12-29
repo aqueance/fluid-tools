@@ -62,8 +62,10 @@ public final class DeploymentBootstrapImplTest extends MockGroupAbstractTest {
         observer2.started();
 
         replay();
-        Assert.assertEquals(3, bootstrap.load());
+        bootstrap.load();
         verify();
+
+        Assert.assertEquals(5, bootstrap.deploymentCount());
     }
 
     public void testUnloading() throws Exception {
