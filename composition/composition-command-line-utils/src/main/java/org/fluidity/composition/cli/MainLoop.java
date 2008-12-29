@@ -7,6 +7,8 @@ package org.fluidity.composition.cli;
  * <p/>
  *
  * The application exits when the call to the {@link Runnable#run()} method returns, unless the developer has started but failed to stop non-deamon threads.
+ *
+ * TODO: extend RuntimeControl
  */
 public interface MainLoop extends Runnable {
 

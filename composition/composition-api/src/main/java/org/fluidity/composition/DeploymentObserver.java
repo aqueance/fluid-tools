@@ -28,6 +28,8 @@ package org.fluidity.composition;
  *
  * All subclasses of this interface will be marked as a service provider for this interface and will be automatically found and controlled by a suitable
  * {@link DeploymentBootstrap} implementation.
+ * 
+ * TODO: move to a new module under deployments
  */
 @ServiceProvider
 public interface DeploymentObserver {

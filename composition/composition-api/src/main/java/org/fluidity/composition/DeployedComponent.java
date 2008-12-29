@@ -31,6 +31,8 @@ import org.fluidity.foundation.KeyedNamed;
  *
  * All subclasses of this interface will be marked as a service provider for this interface and will be automatically found and controlled by a suitable {@link
  * DeploymentBootstrap} implementation.
+ *
+ * TODO: move to a new module under deployments
  */
 @ServiceProvider(api = DeployedComponent.class)
 public interface DeployedComponent extends KeyedNamed {
