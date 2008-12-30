@@ -28,8 +28,6 @@ import javax.servlet.ServletResponse;
 
 import org.easymock.EasyMock;
 import org.fluidity.tests.MockGroupAbstractTest;
-import org.fluidity.deployment.DependencyResolver;
-import org.fluidity.deployment.DependencyResolverServlet;
 import org.testng.annotations.Test;
 
 /**

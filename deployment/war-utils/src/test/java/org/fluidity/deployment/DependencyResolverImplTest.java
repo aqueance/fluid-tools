@@ -26,7 +26,6 @@ import org.easymock.IAnswer;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.OpenComponentContainer;
 import org.fluidity.tests.MockGroupAbstractTest;
-import org.fluidity.deployment.DependencyResolverImpl;
 import org.testng.annotations.Test;
 
 /**
