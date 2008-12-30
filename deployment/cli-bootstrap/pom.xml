@@ -62,7 +62,7 @@
 
         <dependency>
             <groupId>${fluidity.deployment.groupId}</groupId>
-            <artifactId>deployer-api</artifactId>
+            <artifactId>deployment-api</artifactId>
         </dependency>
 
     </dependencies>

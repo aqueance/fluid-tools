@@ -30,10 +30,10 @@
 
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.fluidity.deployment</groupId>
-    <artifactId>jetty-deployer-impl</artifactId>
+    <artifactId>deployment-impl</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
-    <name>Deployment: Jetty Deployer</name>
+    <name>Deployment: Deployer Implementation</name>
 
     <licenses>
         <license>
@@ -46,40 +46,25 @@
     <dependencies>
 
         <dependency>
-            <groupId>${fluidity.export.groupId}</groupId>
-            <artifactId>fluidity-bootstrap</artifactId>
-            <type>pom</type>
-            <version>${fluidity.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>${fluidity.composition.groupId}</groupId>
-            <artifactId>composition-command-line-impl</artifactId>
-        </dependency>
-
-        <dependency>
             <groupId>${fluidity.deployment.groupId}</groupId>
             <artifactId>deployment-api</artifactId>
         </dependency>
 
         <dependency>
-            <groupId>${fluidity.deployment.groupId}</groupId>
-            <artifactId>war-bootstrap-api</artifactId>
+            <groupId>${fluidity.foundation.groupId}</groupId>
+            <artifactId>foundation-api</artifactId>
+            <classifier>tests</classifier>
         </dependency>
 
         <dependency>
-            <groupId>org.mortbay.jetty</groupId>
-            <artifactId>jetty</artifactId>
+            <groupId>${fluidity.foundation.groupId}</groupId>
+            <artifactId>foundation-utils</artifactId>
         </dependency>
 
         <dependency>
-            <groupId>org.mortbay.jetty</groupId>
-            <artifactId>jetty-webapp</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.mortbay.jetty</groupId>
-            <artifactId>jsp-2.1-jetty</artifactId>
+            <groupId>${fluidity.foundation.groupId}</groupId>
+            <artifactId>foundation-easymock</artifactId>
+            <scope>test</scope>
         </dependency>
 
     </dependencies>
@@ -96,22 +81,5 @@
             </build>
         </profile>
     </profiles>
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>${fluidity.plugin.groupId}</groupId>
-                <artifactId>maven-composition-plugin</artifactId>
-                <version>${fluidity.version}</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>process-annotations</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
 
 </project>

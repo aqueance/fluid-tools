@@ -21,34 +21,29 @@
  */
 package org.fluidity.deployment;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-
-import org.fluidity.deployment.DeploymentBootstrap;
-import org.fluidity.composition.ComponentContainerAccess;
-
 /**
- * A servlet that bootstraps and controls all {@link DeployedComponent} and {@link DeploymentObserver} objects
- * in the application.
+ * Bootstraps the application. The singleton implementing instance is not thread safe.
  */
-public final class BootstrapServlet extends HttpServlet {
+public interface DeploymentBootstrap {
 
-    private final DeploymentBootstrap bootstrap = new ComponentContainerAccess().getComponent(DeploymentBootstrap.class);
+    /**
+     * Loads all {@link org.fluidity.deployment.DeployedComponent} and {@link org.fluidity.deployment.DeploymentObserver} objects and calls their {@link org.fluidity.deployment.DeployedComponent#start()} and {@link
+     * org.fluidity.deployment.DeploymentObserver#started()} methods, respectively.
+     *
+     * @throws Exception will cause the bootstrap to be aborted.
+     */
+    void load() throws Exception;
 
-    @Override
-    public void init() throws ServletException {
-        super.init();
+    /**
+     * Locates all loaded {@link org.fluidity.deployment.DeployedComponent} and {@link org.fluidity.deployment.DeploymentObserver} objects and calls their {@link org.fluidity.deployment.DeployedComponent#stop()} and {@link
+     * org.fluidity.deployment.DeploymentObserver#stopped()} methods, respectively, and in a reverse order than in the {@link #load()} method.
+     */
+    void unload();
 
-        try {
-            bootstrap.load();
-        } catch (Exception e) {
-            throw (ServletException) new ServletException(e).initCause(e);
-        }
-    }
-
-    @Override
-    public void destroy() {
-        bootstrap.unload();
-        super.destroy();
-    }
+    /**
+     * Returns the number of deployed components and observers found.
+     *
+     * @return the number of deployed components and observers found.
+     */
+    int deploymentCount();
 }

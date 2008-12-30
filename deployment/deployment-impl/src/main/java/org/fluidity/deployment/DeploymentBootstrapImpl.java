@@ -19,7 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.fluidity.composition;
+package org.fluidity.deployment;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -27,6 +27,12 @@ import java.util.List;
 import java.util.ArrayList;
 
 import org.fluidity.foundation.Logging;
+import org.fluidity.deployment.DeployedComponent;
+import org.fluidity.deployment.DeploymentObserver;
+import org.fluidity.deployment.DeploymentBootstrap;
+import org.fluidity.composition.Component;
+import org.fluidity.composition.ComponentContainer;
+import org.fluidity.composition.ComponentDiscovery;
 
 /**
  * @author Tibor Varga

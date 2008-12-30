@@ -1,6 +1,8 @@
-package org.fluidity.composition;
+package org.fluidity.deployment;
 
 import org.easymock.EasyMock;
+import org.fluidity.composition.ComponentContainer;
+import org.fluidity.composition.ComponentDiscovery;
 import org.fluidity.foundation.Logging;
 import org.fluidity.foundation.logging.StandardOutLogging;
 import org.fluidity.tests.MockGroupAbstractTest;

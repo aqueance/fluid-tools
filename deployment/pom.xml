@@ -44,7 +44,8 @@
     </licenses>
 
     <modules>
-        <module>deployer-api</module>
+        <module>deployment-api</module>
+        <module>deployment-impl</module>
         <module>jetty-deployer-impl</module>
         <module>war-bootstrap-api</module>
         <module>war-bootstrap</module>

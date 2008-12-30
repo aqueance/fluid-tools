@@ -23,11 +23,11 @@ package org.fluidity.deployment.cli;
 
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainerAccess;
-import org.fluidity.composition.DeploymentBootstrap;
+import org.fluidity.deployment.DeploymentBootstrap;
 import org.fluidity.composition.ShutdownHook;
 
 /**
- * A command line main class that bootstraps the application's dependency injection container, invokes {@link DeploymentBootstrap} to load and control
+ * A command line main class that bootstraps the application's dependency injection container, invokes {@link org.fluidity.deployment.DeploymentBootstrap} to load and control
  * deployment units and to invokes the application supplied main loop, {@link MainLoop}. Any component can access the command line parameters by having a
  * constructor with, among other dependencies, a <code>final String[] args</code> parameter.
  */

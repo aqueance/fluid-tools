@@ -3,10 +3,10 @@ package org.fluidity.deployment.cli;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.fluidity.composition.Component;
-import org.fluidity.composition.DeploymentBootstrap;
+import org.fluidity.deployment.DeploymentBootstrap;
 
 /**
- * This default implementation expects the application code to be in a {@link org.fluidity.composition.DeployedComponent}, which when done invokes {@link
+ * This default implementation expects the application code to be in a {@link org.fluidity.deployment.DeployedComponent}, which when done invokes {@link
  * org.fluidity.deployment.RuntimeControl#stop()}.
  */
 @Component(fallback = true)

@@ -19,31 +19,32 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.fluidity.composition;
+package org.fluidity.deployment;
+
+import org.fluidity.composition.ServiceProvider;
 
 /**
- * Bootstraps the application. The singleton implementing instance is not thread safe.
+ * This component gets notified when all {@link org.fluidity.deployment.DeployedComponent} objects have been started/stopped.
+ *
+ * <p/>
+ *
+ * All subclasses of this interface will be marked as a service provider for this interface and will be automatically found and controlled by a suitable
+ * {@link DeploymentBootstrap} implementation.
  */
-public interface DeploymentBootstrap {
+@ServiceProvider
+public interface DeploymentObserver {
 
     /**
-     * Loads all {@link DeployedComponent} and {@link DeploymentObserver} objects and calls their {@link DeployedComponent#start()} and {@link
-     * DeploymentObserver#started()} methods, respectively.
+     * Notifies the component that all {@link org.fluidity.deployment.DeployedComponent} objects have been started.
      *
-     * @throws Exception will cause the bootstrap to be aborted.
+     * @throws Exception when thrown is logged.
      */
-    void load() throws Exception;
+    void started() throws Exception;
 
     /**
-     * Locates all loaded {@link DeployedComponent} and {@link DeploymentObserver} objects and calls their {@link DeployedComponent#stop()} and {@link
-     * DeploymentObserver#stopped()} methods, respectively, and in a reverse order than in the {@link #load()} method.
-     */
-    void unload();
-
-    /**
-     * Returns the number of deployed components and observers found.
+     * Notifies the component that all {@link org.fluidity.deployment.DeployedComponent} objects have been stopped.
      *
-     * @return the number of deployed components and observers found.
+     * @throws Exception when thrown is logged.
      */
-    int deploymentCount();
+    void stopped() throws Exception;
 }

@@ -19,32 +19,48 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.fluidity.composition;
+package org.fluidity.deployment;
+
+import org.fluidity.foundation.KeyedNamed;
+import org.fluidity.composition.ServiceProvider;
 
 /**
- * This component gets notified when all {@link org.fluidity.composition.DeployedComponent} objects have been started/stopped.
+ * This is a component that is started/stopped as the application container starts/stops. There is no deterministic order in which deployed components are
+ * started/stopped and so deployed components should be independent of one another.
  *
  * <p/>
  *
- * All subclasses of this interface will be marked as a service provider for this interface and will be automatically found and controlled by a suitable
- * {@link DeploymentBootstrap} implementation.
- * 
- * TODO: move to a new module under deployments
+ * All subclasses of this interface will be marked as a service provider for this interface and will be automatically found and controlled by a suitable {@link
+ * DeploymentBootstrap} implementation.
  */
-@ServiceProvider
-public interface DeploymentObserver {
+@ServiceProvider(api = DeployedComponent.class)
+public interface DeployedComponent extends KeyedNamed {
 
     /**
-     * Notifies the component that all {@link DeployedComponent} objects have been started.
+     * The component has an ID that is returned by this method.
+     *
+     * @return a short String idenfifying this component among other {@link DeployedComponent}s.
+     */
+    String key();
+
+    /**
+     * The component has a name that is returned by this method.
+     *
+     * @return a String, never <code>null</code>.
+     */
+    String name();
+
+    /**
+     * Starts the component.
+     *
+     * @throws Exception when thrown is logged and will cause the application start-up to be aborted if possible.
+     */
+    void start() throws Exception;
+
+    /**
+     * Stops the component.
      *
      * @throws Exception when thrown is logged.
      */
-    void started() throws Exception;
-
-    /**
-     * Notifies the component that all {@link DeployedComponent} objects have been stopped.
-     *
-     * @throws Exception when thrown is logged.
-     */
-    void stopped() throws Exception;
+    void stop() throws Exception;
 }
