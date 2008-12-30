@@ -61,8 +61,8 @@ This project lists the web application support modules of the Fluidity Tools.
         </dependency>
 
         <dependency>
-            <groupId>${fluidity.composition.groupId}</groupId>
-            <artifactId>composition-web-utils</artifactId>
+            <groupId>${fluidity.deployment.groupId}</groupId>
+            <artifactId>war-utils</artifactId>
         </dependency>
 
     </dependencies>

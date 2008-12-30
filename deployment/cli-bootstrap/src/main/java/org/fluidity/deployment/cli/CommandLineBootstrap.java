@@ -19,7 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.fluidity.composition.cli;
+package org.fluidity.deployment.cli;
 
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainerAccess;

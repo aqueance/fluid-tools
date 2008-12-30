@@ -1,4 +1,4 @@
-package org.fluidity.composition.cli;
+package org.fluidity.deployment.cli;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 

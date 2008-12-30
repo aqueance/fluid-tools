@@ -248,13 +248,6 @@
             </dependency>
 
             <dependency>
-                <groupId>${fluidity.composition.groupId}</groupId>
-                <artifactId>composition-web-utils</artifactId>
-                <version>${fluidity.version}</version>
-                <scope>compile</scope>
-            </dependency>
-
-            <dependency>
                 <groupId>${fluidity.deployment.groupId}</groupId>
                 <artifactId>deployer-api</artifactId>
                 <version>${fluidity.version}</version>
@@ -285,6 +278,13 @@
             <dependency>
                 <groupId>${fluidity.deployment.groupId}</groupId>
                 <artifactId>jetty-bootstrap</artifactId>
+                <version>${fluidity.version}</version>
+                <scope>compile</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>${fluidity.deployment.groupId}</groupId>
+                <artifactId>war-utils</artifactId>
                 <version>${fluidity.version}</version>
                 <scope>compile</scope>
             </dependency>

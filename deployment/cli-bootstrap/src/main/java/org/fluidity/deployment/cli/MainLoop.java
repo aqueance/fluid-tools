@@ -1,4 +1,4 @@
-package org.fluidity.composition.cli;
+package org.fluidity.deployment.cli;
 
 import org.fluidity.deployment.RuntimeControl;
 

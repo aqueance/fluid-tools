@@ -47,8 +47,8 @@
 
         <!-- contains the mechanism to invoke servlet context listeners -->
         <dependency>
-            <groupId>${fluidity.composition.groupId}</groupId>
-            <artifactId>composition-web-utils</artifactId>
+            <groupId>${fluidity.deployment.groupId}</groupId>
+            <artifactId>war-utils</artifactId>
         </dependency>
 
         <dependency>

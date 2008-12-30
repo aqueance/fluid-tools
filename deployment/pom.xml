@@ -50,6 +50,7 @@
         <module>war-bootstrap</module>
         <module>cli-bootstrap</module>
         <module>jetty-bootstrap</module>
+        <module>war-utils</module>
     </modules>
 
 </project>
