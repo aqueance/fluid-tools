@@ -20,12 +20,36 @@
 
         <dependency>
             <groupId>org.fluidity.export</groupId>
-            <artifactId>fluidity-cli-impl</artifactId>
+            <artifactId>cli-deployment</artifactId>
             <version>${symbol_dollar}{fluidity-version}</version>
             <type>pom</type>
         </dependency>
 
     </dependencies>
+
+    <profiles>
+        <profile>
+            <id>debug</id>
+
+            <build>
+                <plugins>
+
+                    <plugin>
+                        <artifactId>maven-jar-plugin</artifactId>
+                        <configuration>
+                            <archive>
+                                <manifest>
+                                    <classpathMavenRepositoryLayout>true</classpathMavenRepositoryLayout>
+                                    <classpathPrefix>${symbol_dollar}{settings.localRepository}</classpathPrefix>
+                                </manifest>
+                            </archive>
+                        </configuration>
+                    </plugin>
+
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
     <build>
         <plugins>
@@ -37,10 +61,6 @@
                         <manifest>
                             <addClasspath>true</addClasspath>
                             <mainClass>org.fluidity.deployment.cli.CommandLineBootstrap</mainClass>
-                            <!-- Uncomment this block for local testing
-                            <classpathMavenRepositoryLayout>true</classpathMavenRepositoryLayout>
-                            <classpathPrefix>${settings.localRepository}</classpathPrefix>
-                            -->
                         </manifest>
                     </archive>
                 </configuration>
