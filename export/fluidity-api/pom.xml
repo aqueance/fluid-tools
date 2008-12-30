@@ -69,6 +69,11 @@ This project exports the API modules of the Fluidity Tools.
             <artifactId>composition-api</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>${fluidity.deployment.groupId}</groupId>
+            <artifactId>deployment-api</artifactId>
+        </dependency>
+
     </dependencies>
 
     <profiles>

@@ -66,7 +66,7 @@ final class DependencyResolverImpl implements DependencyResolver {
 
             return component;
         } catch (final ClassNotFoundException e) {
-            throw (ServletException) new ServletException(e).initCause(e);
+            throw new ServletException(e);
         }
     }
 }

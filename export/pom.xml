@@ -56,7 +56,6 @@ This project lists the exported modules of the Fluidity Tools.
         <module>fluidity-property-settings-impl</module>
         <module>fluidity-manifest-appinfo-impl</module>
         <module>fluidity-tests</module>
-        <module>deployment-api</module>
         <module>cli-deployment</module>
     </modules>
 

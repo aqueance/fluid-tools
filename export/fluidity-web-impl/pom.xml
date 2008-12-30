@@ -62,6 +62,11 @@ This project lists the web application support modules of the Fluidity Tools.
 
         <dependency>
             <groupId>${fluidity.deployment.groupId}</groupId>
+            <artifactId>deployment-impl</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>${fluidity.deployment.groupId}</groupId>
             <artifactId>war-utils</artifactId>
         </dependency>
 

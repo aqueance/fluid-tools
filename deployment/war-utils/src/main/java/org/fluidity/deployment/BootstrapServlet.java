@@ -24,7 +24,6 @@ package org.fluidity.deployment;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 
-import org.fluidity.deployment.DeploymentBootstrap;
 import org.fluidity.composition.ComponentContainerAccess;
 
 /**
@@ -39,10 +38,12 @@ public final class BootstrapServlet extends HttpServlet {
     public void init() throws ServletException {
         super.init();
 
+        assert bootstrap != null : DeploymentBootstrap.class;
+
         try {
             bootstrap.load();
         } catch (Exception e) {
-            throw (ServletException) new ServletException(e).initCause(e);
+            throw new ServletException(e);
         }
     }
 

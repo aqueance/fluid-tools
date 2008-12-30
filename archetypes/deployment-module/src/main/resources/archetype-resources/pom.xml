@@ -20,13 +20,6 @@
 
         <dependency>
             <groupId>org.fluidity.export</groupId>
-            <artifactId>deployment-api</artifactId>
-            <version>${symbol_dollar}{fluidity-version}</version>
-            <type>pom</type>
-        </dependency>
-
-        <dependency>
-            <groupId>org.fluidity.export</groupId>
             <artifactId>fluidity-tests</artifactId>
             <version>${symbol_dollar}{fluidity-version}</version>
             <type>pom</type>
