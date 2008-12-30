@@ -82,4 +82,21 @@
         </profile>
     </profiles>
 
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>${fluidity.plugin.groupId}</groupId>
+                <artifactId>maven-composition-plugin</artifactId>
+                <version>${fluidity.version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>process-annotations</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
 </project>

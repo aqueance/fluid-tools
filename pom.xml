@@ -256,6 +256,13 @@
 
             <dependency>
                 <groupId>${fluidity.deployment.groupId}</groupId>
+                <artifactId>deployment-impl</artifactId>
+                <version>${fluidity.version}</version>
+                <scope>compile</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>${fluidity.deployment.groupId}</groupId>
                 <artifactId>jetty-deployer-impl</artifactId>
                 <version>${fluidity.version}</version>
                 <scope>compile</scope>

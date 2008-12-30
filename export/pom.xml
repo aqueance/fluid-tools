@@ -51,12 +51,13 @@ This project lists the exported modules of the Fluidity Tools.
         <module>fluidity-api</module>
         <module>fluidity-bootstrap</module>
         <module>fluidity-impl</module>
-        <module>fluidity-cli-impl</module>
         <module>fluidity-web-impl</module>
         <module>fluidity-commons-logging-impl</module>
         <module>fluidity-property-settings-impl</module>
         <module>fluidity-manifest-appinfo-impl</module>
         <module>fluidity-tests</module>
+        <module>deployment-api</module>
+        <module>cli-deployment</module>
     </modules>
 
     <dependencyManagement>
