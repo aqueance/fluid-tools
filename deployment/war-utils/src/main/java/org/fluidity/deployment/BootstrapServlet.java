@@ -19,27 +19,36 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.fluidity.composition.web;
+package org.fluidity.deployment;
 
 import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+
+import org.fluidity.composition.DeploymentBootstrap;
+import org.fluidity.composition.ComponentContainerAccess;
 
 /**
- * Component that knows how to find the host application's component container and look up a given key in it.
- *
- * @author Tibor Varga
+ * A servlet that bootstraps and controls all {@link org.fluidity.composition.DeployedComponent} and {@link org.fluidity.composition.DeploymentObserver} objects
+ * in the application.
  */
-interface DependencyResolver {
+public final class BootstrapServlet extends HttpServlet {
 
-    String COMPONENT_KEY = "component-key";
+    private final DeploymentBootstrap bootstrap = new ComponentContainerAccess().getComponent(DeploymentBootstrap.class);
 
-    /**
-     * Returns a component from the host application's component container.
-     *
-     * @param componentClassName the key of the requested component.
-     *
-     * @return a component for the given key or <code>null</code> if none found.
-     *
-     * @throws ServletException when anything goes wrong.
-     */
-    Object findComponent(final String componentClassName) throws ServletException;
+    @Override
+    public void init() throws ServletException {
+        super.init();
+
+        try {
+            bootstrap.load();
+        } catch (Exception e) {
+            throw (ServletException) new ServletException(e).initCause(e);
+        }
+    }
+
+    @Override
+    public void destroy() {
+        bootstrap.unload();
+        super.destroy();
+    }
 }

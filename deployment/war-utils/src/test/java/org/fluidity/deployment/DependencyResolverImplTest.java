@@ -19,13 +19,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.fluidity.composition.web;
+package org.fluidity.deployment;
 
 import org.easymock.EasyMock;
 import org.easymock.IAnswer;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.OpenComponentContainer;
 import org.fluidity.tests.MockGroupAbstractTest;
+import org.fluidity.deployment.DependencyResolverImpl;
 import org.testng.annotations.Test;
 
 /**
