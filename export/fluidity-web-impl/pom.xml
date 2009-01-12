@@ -30,7 +30,7 @@
 
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.fluidity.export</groupId>
-    <artifactId>fluidity-web-impl</artifactId>
+    <artifactId>war-deployment</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Export: Fluid Tools Web Support</name>
