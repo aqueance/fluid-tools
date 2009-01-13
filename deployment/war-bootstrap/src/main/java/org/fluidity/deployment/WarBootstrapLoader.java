@@ -27,7 +27,7 @@ import sun.misc.Service;
  */
 public final class WarBootstrapLoader {
 
-    private final DateFormat df = new SimpleDateFormat("yyyy-MM-dd:HH:mm:SSS");
+    private final DateFormat df = new SimpleDateFormat("yyyy-MM-dd-HH.mm.SSS");
     private final Pattern warFilePattern = Pattern.compile("^jar:file:(.*.war)\\!/.*");
 
     public static void main(String[] args) throws Exception {
