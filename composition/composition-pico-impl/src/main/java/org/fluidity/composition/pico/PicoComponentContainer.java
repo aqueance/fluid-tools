@@ -118,7 +118,7 @@ final class PicoComponentContainer implements OpenComponentContainer {
 
     public <T> T getComponent(final Class<T> componentClass, Bindings bindings) {
         final OpenComponentContainer nestedContainer = makeNestedContainer();
-        bindings.registerComponents(nestedContainer.getRegistry());
+        bindings.bindComponents(nestedContainer.getRegistry());
         return nestedContainer.getComponent(componentClass);
     }
 

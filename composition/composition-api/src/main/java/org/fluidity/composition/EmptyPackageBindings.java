@@ -27,7 +27,7 @@ package org.fluidity.composition;
 @ServiceProvider
 public abstract class EmptyPackageBindings implements PackageBindings {
 
-    public void registerComponents(final ComponentContainer.Registry registry) {
+    public void bindComponents(final ComponentContainer.Registry registry) {
         // empty
     }
 

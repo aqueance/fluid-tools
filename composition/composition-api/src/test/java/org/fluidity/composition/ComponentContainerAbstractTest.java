@@ -381,7 +381,7 @@ public abstract class ComponentContainerAbstractTest extends MockGroupAbstractTe
         replay();
         final Key value = container.getComponent(Key.class, new ComponentContainer.Bindings() {
 
-            public void registerComponents(ComponentContainer.Registry registry) {
+            public void bindComponents(ComponentContainer.Registry registry) {
                 registry.bind(Key.class, Value.class);
                 registry.bind(DependentKey.class, DependentValue.class);
             }

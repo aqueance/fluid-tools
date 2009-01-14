@@ -56,7 +56,7 @@ final class DependencyResolverImpl implements DependencyResolver {
 
             if (component == null) {
                 component = container.getComponent(componentClass, new ComponentContainer.Bindings() {
-                    public void registerComponents(ComponentContainer.Registry registry) {
+                    public void bindComponents(ComponentContainer.Registry registry) {
                         registry.bind(componentClass);
                     }
                 });

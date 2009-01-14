@@ -30,9 +30,8 @@ import org.fluidity.foundation.Settings;
  */
 public final class PackageBindingsImpl extends EmptyPackageBindings {
 
-    public void registerComponents(final ComponentContainer.Registry registry) {
-        final ComponentContainer.Registry nested
-            = registry.makeNestedContainer(Settings.class, PropertiesResourceSettingsImpl.class).getRegistry();
+    public void bindComponents(final ComponentContainer.Registry registry) {
+        final ComponentContainer.Registry nested = registry.makeNestedContainer(Settings.class, PropertiesResourceSettingsImpl.class).getRegistry();
         nested.bind(PropertySettings.class, PropertySettingsImpl.class);
     }
 }

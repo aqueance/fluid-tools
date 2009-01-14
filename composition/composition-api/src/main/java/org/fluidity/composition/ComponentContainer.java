@@ -34,7 +34,7 @@ package org.fluidity.composition;
  * <h1>Using the <code>ComponentContainer.Registry</code></h1>
  *
  * The registry exposes several <code>bind()</code> methods to bind an implementation to interface mapping to the host container. Which one you need depends on
- * your requirements. These methods are normally invoked from the {@link PackageBindings#registerComponents(ComponentContainer.Registry)} method.
+ * your requirements. These methods are normally invoked from the {@link PackageBindings#bindComponents(ComponentContainer.Registry)} method.
  *
  * <ul>
  *
@@ -211,7 +211,7 @@ public interface ComponentContainer {
          *
          * @param registry is an interface to register component bindings.
          */
-        void registerComponents(final ComponentContainer.Registry registry);
+        void bindComponents(final ComponentContainer.Registry registry);
     }
 
     /**

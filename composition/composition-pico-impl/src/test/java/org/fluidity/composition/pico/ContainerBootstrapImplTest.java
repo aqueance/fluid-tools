@@ -76,7 +76,7 @@ public class ContainerBootstrapImplTest extends MockGroupAbstractTest {
 
         EasyMock.expect(container.getRegistry()).andReturn(registry);
 
-        bindings.registerComponents(registry);
+        bindings.bindComponents(registry);
         EasyMock.expectLastCall().times(2);
 
         bindings.initializeComponents(container);
@@ -221,7 +221,7 @@ public class ContainerBootstrapImplTest extends MockGroupAbstractTest {
 
         public static ShutdownHook hook;
 
-        public void registerComponents(ComponentContainer.Registry registry) {
+        public void bindComponents(ComponentContainer.Registry registry) {
             registry.bind(ShutdownHook.class, hook);
         }
     }
@@ -237,8 +237,8 @@ public class ContainerBootstrapImplTest extends MockGroupAbstractTest {
             // empty
         }
 
-        public void registerComponents(ComponentContainer.Registry registry) {
-            bindings.registerComponents(registry);
+        public void bindComponents(ComponentContainer.Registry registry) {
+            bindings.bindComponents(registry);
         }
 
         public void initializeComponents(ComponentContainer container) {
@@ -263,8 +263,8 @@ public class ContainerBootstrapImplTest extends MockGroupAbstractTest {
             // empty
         }
 
-        public void registerComponents(ComponentContainer.Registry registry) {
-            bindings.registerComponents(registry);
+        public void bindComponents(ComponentContainer.Registry registry) {
+            bindings.bindComponents(registry);
         }
 
         public void initializeComponents(ComponentContainer container) {

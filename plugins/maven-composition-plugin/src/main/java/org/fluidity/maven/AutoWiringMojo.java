@@ -224,7 +224,7 @@ public class AutoWiringMojo extends AbstractMojo {
             code = new InstructionList();
             final MethodGen registerMethod = new MethodGen(Constants.ACC_PUBLIC, Type.VOID,
                 new Type[] { Type.getType(ComponentContainer.Registry.class) },
-                new String[] { "registry" }, "registerComponents", bindingsClassName,
+                new String[] { "registry" }, "bindComponents", bindingsClassName,
                 code, cp);
 
             for (final Map.Entry<String, String> entry : bindingsEntry.getValue().entrySet()) {
@@ -276,8 +276,8 @@ public class AutoWiringMojo extends AbstractMojo {
         FILES:
         for (final String fileName : scanner.getIncludedFiles()) {
             final String className = fileName.substring(0, fileName.length() - ".class".length()).replace(File.separatorChar, '.');
-            final String componentPackage = className.substring(0, className.lastIndexOf("."));
-            final String generatedBindings = componentPackage + "." + GENERATED_PACKAGE_BINDINGS + projectName;
+            final String componentPackage = className.substring(0, className.lastIndexOf(".") + 1);
+            final String generatedBindings = componentPackage + GENERATED_PACKAGE_BINDINGS + projectName;
 
             if (!className.equals(generatedBindings)) {
                 final JavaClass classData = repository.loadClass(className);

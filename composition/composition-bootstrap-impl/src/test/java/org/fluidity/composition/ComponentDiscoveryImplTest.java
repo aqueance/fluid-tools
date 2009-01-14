@@ -131,7 +131,7 @@ public class ComponentDiscoveryImplTest extends MockGroupAbstractTest {
                             (ComponentContainer.Bindings) EasyMock.getCurrentArguments()[1];
 
                         // invoke the testee supplied parameter
-                        bindings.registerComponents(registry);
+                        bindings.bindComponents(registry);
 
                         // return to the testee
                         return instance;

@@ -49,7 +49,7 @@ final class ComponentDiscoveryImpl implements ComponentDiscovery {
 
             if (component == null) {
                 component = container.getComponent(theClass, new ComponentContainer.Bindings() {
-                    public void registerComponents(ComponentContainer.Registry registry) {
+                    public void bindComponents(ComponentContainer.Registry registry) {
                         registry.bind(theClass);
                     }
                 });

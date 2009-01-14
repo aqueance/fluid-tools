@@ -67,7 +67,7 @@ public class DependencyResolverImplTest extends MockGroupAbstractTest {
                         (ComponentContainer.Bindings) EasyMock.getCurrentArguments()[1];
 
                     // invoke testee supplied parameter
-                    bindings.registerComponents(registry);
+                    bindings.bindComponents(registry);
 
                     // return to testee
                     return component;
