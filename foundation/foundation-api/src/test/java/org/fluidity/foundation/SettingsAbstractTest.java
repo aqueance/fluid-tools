@@ -92,6 +92,19 @@ public abstract class SettingsAbstractTest extends MockGroupAbstractTest {
     }
 
     @Test
+    public void escapedValues() throws Exception {
+        final Properties props = new Properties();
+
+        props.setProperty("escaped.string", "this\\ is\\ a\\ string");
+        props.setProperty("escaped.slash", "this\\ is\\ a\\ \\\\");
+
+        final Settings settings = newInstance(new MockSettings(props), null);
+
+        Assert.assertEquals(settings.setting("escaped.string", null), props.getProperty("escaped.string"));
+        Assert.assertEquals(settings.setting("escaped.slash", null), props.getProperty("escaped.slash"));
+    }
+
+    @Test
     public void specificSettingsOverrideGenericOnes() throws Exception {
         final Properties props = new Properties();
 

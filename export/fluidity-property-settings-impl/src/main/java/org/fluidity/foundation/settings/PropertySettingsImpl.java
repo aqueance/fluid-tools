@@ -147,6 +147,7 @@ final class PropertySettingsImpl implements PropertySettings {
             case '\\':
                 if (escaping) {
                     escaping = false;
+                    collect.append('\\');
                     collect.append(c);
                 } else {
                     escaping = true;
@@ -235,6 +236,11 @@ final class PropertySettingsImpl implements PropertySettings {
                 break;
 
             default:
+                if (escaping) {
+                    escaping = false;
+                    collect.append('\\');
+                }
+
                 collect.append(c);
                 break;
             }
@@ -242,7 +248,7 @@ final class PropertySettingsImpl implements PropertySettings {
             ++position;
         }
 
-        return value.length() == 0 ? null : value.toString();
+      return value.length() == 0 ? null : value.toString();
     }
 
     public int setting(final String key, final int defaultValue) {
