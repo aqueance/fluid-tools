@@ -215,4 +215,30 @@ public abstract class SettingsAbstractTest extends MockGroupAbstractTest {
         System.setProperty("test.dynamic.key", "dynamic");
         Assert.assertEquals(settings.setting("dynamic.key", null), "dynamic");
     }
+
+    @Test
+    public void selfReferencingExtrapolation() throws Exception {
+        final Properties props = new Properties();
+
+        props.setProperty("static.key", "${static.key}");
+        props.setProperty("dynamic.key", "${dynamic.key|static.key}");
+        props.setProperty("self.key", "${self.key|self.key}");
+        props.setProperty("self.key2", "${non-existent.key|self.key2}");
+
+        final Settings settings = newInstance(new MockSettings(props), new MockApplicationInfo("app", null));
+
+        Assert.assertNull(settings.setting("static.key", null));
+        Assert.assertNull(settings.setting("dynamic.key", null));
+        Assert.assertNull(settings.setting("self.key", null));
+        Assert.assertNull(settings.setting("self.key2", null));
+
+        System.setProperty("static.key", "static");
+        Assert.assertEquals(settings.setting("dynamic.key", null), "static");
+
+        System.setProperty("dynamic.key", "dynamic");
+        Assert.assertEquals(settings.setting("dynamic.key", null), "dynamic");
+
+        System.setProperty("self.key", "self");
+        Assert.assertEquals(settings.setting("self.key", null), "self");
+    }
 }

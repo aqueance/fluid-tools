@@ -99,7 +99,7 @@ final class PropertySettingsImpl implements PropertySettings {
     }
 
     public String setting(final String spec, final String defaultValue) {
-        final String key = extrapolate(spec);
+        final String key = extrapolate(null, spec);
         String actualKey;
 
         synchronized (this.properties) {
@@ -119,7 +119,7 @@ final class PropertySettingsImpl implements PropertySettings {
 
                 if (value != null) {
                     Log.info(getClass(), "Found property " + spec + " in " + entry.getKey() + " as " + actualKey);
-                    return extrapolate(value);
+                    return extrapolate(actualKey, value);
                 }
             }
         }
@@ -128,7 +128,7 @@ final class PropertySettingsImpl implements PropertySettings {
         return defaultValue;
     }
 
-    private String extrapolate(String spec) {
+    private String extrapolate(final String key, final String spec) {
         final char[] chars = new char[spec.length()];
         spec.getChars(0, spec.length(), chars, 0);
 
@@ -208,19 +208,26 @@ final class PropertySettingsImpl implements PropertySettings {
                     collectingValue = true;
                     collect = value;
 
-                    String property = setting(name.toString(), System.getProperty(name.toString()));
+                    final String nameKey = name.toString();
+                    final boolean selfReference = nameKey.equals(key);
+                    String property = selfReference ? System.getProperty(nameKey) : setting(nameKey, System.getProperty(nameKey));
 
                     if (property == null) {
                         final String defaultValue = defaults.toString();
 
-                        if (defaultValue.length() == 0) {
-                            Log.warning(getClass(), "Property " + name + " not found");
+                        if (defaultValue.length() == 0 || defaultValue.equals(key)) {
+                            Log.warning(getClass(), "Property " + name + " not found" + (selfReference ? " (refers to itself)": ""));
                         } else {
                             property = setting(defaultValue, defaultValue);
                         }
                     }
 
-                    value.append(property == null ? name : property);
+                    final String result = property == null && key == null ? nameKey : property;
+
+                    if (result != null) {
+                      value.append(result);
+                    }
+
                     name.setLength(0);
                     defaults.setLength(0);
                 } else {
@@ -237,7 +244,7 @@ final class PropertySettingsImpl implements PropertySettings {
             ++position;
         }
 
-        return value.toString();
+        return value.length() == 0 ? null : value.toString();
     }
 
     public int setting(final String key, final int defaultValue) {
