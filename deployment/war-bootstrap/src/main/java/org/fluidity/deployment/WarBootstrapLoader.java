@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.net.URLDecoder;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -38,7 +39,7 @@ public final class WarBootstrapLoader {
         final Class<? extends WarBootstrapLoader> bootstrapClass = getClass();
         final String name = bootstrapClass.getName().replace('.', '/') + ".class";
         final ClassLoader bootstrapLoader = bootstrapClass.getClassLoader();
-        final String bootUrl = bootstrapLoader.getResource(name).toExternalForm();
+        final String bootUrl = URLDecoder.decode(bootstrapLoader.getResource(name).toExternalForm(), "UTF-8");
 
         final List<File> managedApps = new ArrayList<File>();
 
