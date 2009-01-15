@@ -103,11 +103,9 @@ final class PropertySettingsImpl implements PropertySettings {
         String actualKey;
 
         synchronized (this.properties) {
-            final List<Map.Entry<URL, Map<String, String>>> entries =
-                new ArrayList<Map.Entry<URL, Map<String, String>>>(properties.entrySet());
+            final List<Map.Entry<URL, Map<String, String>>> entries = new ArrayList<Map.Entry<URL, Map<String, String>>>(properties.entrySet());
 
-            for (final ListIterator<Map.Entry<URL, Map<String, String>>> i = entries.listIterator(entries.size());
-                 i.hasPrevious();) {
+            for (final ListIterator<Map.Entry<URL, Map<String, String>>> i = entries.listIterator(entries.size()); i.hasPrevious();) {
                 final Map.Entry<URL, Map<String, String>> entry = i.previous();
                 final Map<String, String> map = entry.getValue();
 
