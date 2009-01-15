@@ -30,9 +30,10 @@ import org.easymock.IAnswer;
 import org.fluidity.tests.MockGroupAbstractTest;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+import org.testng.Assert;
 
 /**
- * @authot Tibor Varga
+ * @author Tibor Varga
  */
 public abstract class ComponentContainerAbstractTest extends MockGroupAbstractTest {
 
@@ -40,24 +41,46 @@ public abstract class ComponentContainerAbstractTest extends MockGroupAbstractTe
     private ComponentContainer.Registry registry;
 
     @SuppressWarnings({ "unchecked" })
-    protected ComponentContainer.ComponentFactory<DependentKey> factory =
-        addControl(ComponentContainer.ComponentFactory.class);
+    protected ComponentContainer.ComponentFactory<DependentKey> factory = addControl(ComponentContainer.ComponentFactory.class);
 
     public ComponentContainerAbstractTest() {
         Factory.delegate = factory;
     }
 
-    protected abstract OpenComponentContainer newContainer();
+    /**
+     * Creates a new container. This method is called for each test case.
+     * @param command the command to invoke when the created container gets garbage collected. The same object will
+     *                be passed at each invocation so it is safe to store it in a static field.
+     * @return        a new container to be tested.
+     */
+    protected abstract OpenComponentContainer newContainer(final Runnable command);
+
+    final boolean collected[] = new boolean[1];
 
     @BeforeMethod
-    public void setup() throws Exception {
-        super.setup();
+    public void createContainer() throws Exception {
+        container = newContainer(new Runnable() {
+            public void run() {
+                collected[0] = true;
+            }
+        });
 
-        container = newContainer();
         registry = container.getRegistry();
 
         // clean up
         Value.dependent = null;
+    }
+
+    @Test
+    public void transientContainersGetGarbageCollected() throws Exception {
+        final Object component = new Object();
+
+        for (int i = 0; i < 100000 && !collected[0]; ++i) {
+            container.makeNestedContainer().getRegistry().bind(Object.class, component);
+            Runtime.getRuntime().gc();
+        }
+
+        Assert.assertTrue(collected[0]);
     }
 
     @Test
@@ -288,8 +311,8 @@ public abstract class ComponentContainerAbstractTest extends MockGroupAbstractTe
         final DependentValue value = new DependentValue();
 
         registry.bind(Key.class, Value.class, true, false, false);
-        OpenComponentContainer nested =
-            registry.makeNestedContainer(DependentKey.class, DependentValue.class, true, false, false, factory);
+        OpenComponentContainer nested = registry.makeNestedContainer(DependentKey.class, DependentValue.class, true, false, false, factory);
+
         final String check = "check";
         nested.getRegistry().bind(Serializable.class, check);
         EasyMock.expect(factory.makeComponent((ComponentContainer) EasyMock.notNull()))

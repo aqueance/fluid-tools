@@ -21,25 +21,16 @@
  */
 package org.fluidity.composition.pico;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.easymock.EasyMock;
-import org.easymock.IAnswer;
-import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.OpenComponentContainer;
 import org.fluidity.composition.ComponentContainerAbstractTest;
-import org.fluidity.tests.MockGroupAbstractTest;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
 
 /**
  * @author Tibor Varga
  */
 public class PicoComponentContainerTest extends ComponentContainerAbstractTest {
 
-    protected OpenComponentContainer newContainer() {
+    protected OpenComponentContainer newContainer(final Runnable command) {
+        PicoComponentContainer.setCollectionCommand(command);
         return new PicoComponentContainer();
     }
 }

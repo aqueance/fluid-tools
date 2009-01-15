@@ -55,24 +55,44 @@ import org.picocontainer.defaults.ImplementationHidingComponentAdapter;
  */
 final class PicoComponentContainer implements OpenComponentContainer {
 
+    private static final ComponentAdapterFactory defaultAdapterFactory = new ConstructorInjectionComponentAdapterFactory(true);
+
+    private static final ComponentAdapterFactory singletonAdapterFactory = new CachingComponentAdapterFactory(defaultAdapterFactory);
+
     private final Logging log = new StandardOutLogging(null);
-
-    private static ComponentAdapterFactory defaultAdapterFactory
-        = new ConstructorInjectionComponentAdapterFactory(true);
-
-    private static final ComponentAdapterFactory singletonAdapterFactory
-        = new CachingComponentAdapterFactory(defaultAdapterFactory);
-
     private final ComponentContainer.Registry registry = new PicoComponentRegistry();
-
     private final MutablePicoContainer pico;
 
     private final Set<Class> resolvedDependencies = new HashSet<Class>();
-
     private final Map<Class, List<Class>> unresolvedDependencies = new HashMap<Class, List<Class>>();
 
+
+    // used only for testing to verify garbage collection of transient containers
+    private static Runnable collectionCommand;
+
+    public static void setCollectionCommand(final Runnable command) {
+        PicoComponentContainer.collectionCommand = command;
+    }
+
     public PicoComponentContainer() {
-        this(new DefaultPicoContainer(singletonAdapterFactory));
+        this(newRootContainer());
+    }
+
+    @Override
+    protected void finalize() throws Throwable {
+        if (collectionCommand != null) {
+            collectionCommand.run();
+        }
+
+        super.finalize();
+    }
+
+    private static DefaultPicoContainer newRootContainer() {
+        return new DefaultPicoContainer(singletonAdapterFactory);
+    }
+
+    private static DefaultPicoContainer newChildContainer(final MutablePicoContainer parent) {
+        return new DefaultPicoContainer(singletonAdapterFactory, parent);
     }
 
     private PicoComponentContainer(final MutablePicoContainer pico) {
@@ -99,14 +119,6 @@ final class PicoComponentContainer implements OpenComponentContainer {
         });
     }
 
-    protected void finalize() throws Throwable {
-        super.finalize();
-
-        if (pico.getParent() != null) {
-            ((MutablePicoContainer) pico.getParent()).removeChildContainer(pico);
-        }
-    }
-
     @SuppressWarnings({ "unchecked" })
     public <T> T getComponent(final Class<T> componentClass) {
         final T component = (T) pico.getComponentInstance(componentClass);
@@ -123,7 +135,7 @@ final class PicoComponentContainer implements OpenComponentContainer {
     }
 
     public OpenComponentContainer makeNestedContainer() {
-        return new PicoComponentContainer(new DefaultPicoContainer(singletonAdapterFactory, pico));
+        return new PicoComponentContainer(newChildContainer(pico));
     }
 
     public Registry getRegistry() {
@@ -157,7 +169,7 @@ final class PicoComponentContainer implements OpenComponentContainer {
         return id.toString();
     }
 
-    private class PicoComponentRegistry implements Registry {
+  private class PicoComponentRegistry implements Registry {
 
         public void requireDependency(final Class dependencyInterface, final Class dependentClass) {
             assert dependencyInterface != null;
@@ -224,7 +236,7 @@ final class PicoComponentContainer implements OpenComponentContainer {
         }
 
         public OpenComponentContainer makeNestedContainer() {
-            return new PicoComponentContainer(pico.makeChildContainer());
+            return new PicoComponentContainer(newChildContainer(pico));
         }
 
         public <T> OpenComponentContainer makeNestedContainer(final Class<T> key,
@@ -295,7 +307,7 @@ final class PicoComponentContainer implements OpenComponentContainer {
         }
 
         private OpenComponentContainer makeNestedContainer(final Class key) {
-            final MutablePicoContainer nested = pico.makeChildContainer();
+            final MutablePicoContainer nested = newChildContainer(pico);
             pico.registerComponent(new LinkingComponentAdapter(nested, key, key));
             resolvedDependencies.add(key);
             return new PicoComponentContainer(nested);
