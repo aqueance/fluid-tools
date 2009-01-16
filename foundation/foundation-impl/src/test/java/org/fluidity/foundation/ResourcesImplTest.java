@@ -135,7 +135,7 @@ public class ResourcesImplTest extends MockGroupAbstractTest {
 
         replay();
         assert new ArrayList<URL>(Arrays.asList(urls))
-            .equals(new ArrayList<URL>(Arrays.asList(resources.locateResources(resourceName))));
+                .equals(new ArrayList<URL>(Arrays.asList(resources.locateResources(resourceName))));
         verify();
     }
 }

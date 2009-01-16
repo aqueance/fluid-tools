@@ -60,19 +60,19 @@ public class DependencyResolverImplTest extends MockGroupAbstractTest {
 
         EasyMock.expect(container.getComponent(Component.class)).andReturn(null);
         EasyMock.expect(
-            container.getComponent(EasyMock.same(Component.class), (ComponentContainer.Bindings) EasyMock.notNull()))
-            .andAnswer(new IAnswer<Component>() {
-                public Component answer() throws Throwable {
-                    ComponentContainer.Bindings bindings =
-                        (ComponentContainer.Bindings) EasyMock.getCurrentArguments()[1];
+                container.getComponent(EasyMock.same(Component.class), (ComponentContainer.Bindings) EasyMock.notNull()))
+                .andAnswer(new IAnswer<Component>() {
+                    public Component answer() throws Throwable {
+                        ComponentContainer.Bindings bindings =
+                                (ComponentContainer.Bindings) EasyMock.getCurrentArguments()[1];
 
-                    // invoke testee supplied parameter
-                    bindings.bindComponents(registry);
+                        // invoke testee supplied parameter
+                        bindings.bindComponents(registry);
 
-                    // return to testee
-                    return component;
-                }
-            });
+                        // return to testee
+                        return component;
+                    }
+                });
 
         // this is what the testee should do when invoke above from the inner class
         registry.bind(Component.class);

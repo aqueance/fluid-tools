@@ -30,8 +30,7 @@ import java.util.Date;
 import org.fluidity.foundation.Logging;
 
 /**
- * Logs to the standard output. Tracing is disabled by default and can be turned on by setting the system property
- * "sysout.trace" to true.
+ * Logs to the standard output. Tracing is disabled by default and can be turned on by setting the system property "sysout.trace" to true.
  */
 public final class StandardOutLogging implements Logging {
 

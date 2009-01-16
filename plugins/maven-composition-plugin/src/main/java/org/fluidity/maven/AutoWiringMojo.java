@@ -72,15 +72,14 @@ import org.fluidity.composition.ServiceProvider;
 import org.fluidity.composition.ServiceProviderList;
 
 /**
- * Goal that finds all implementations of a service provider interface and creates a service provider file as per the
- * JAR file specification and finds all components, generates a package bindings class for each and adds these package
- * bindings as service provider descriptor files.
+ * Goal that finds all implementations of a service provider interface and creates a service provider file as per the JAR file specification and finds all
+ * components, generates a package bindings class for each and adds these package bindings as service provider descriptor files.
  *
  * @goal process-annotations
  * @phase process-classes
  * @requiresDependencyResolution compile
  */
-@SuppressWarnings({"ResultOfMethodCallIgnored"})
+@SuppressWarnings({ "ResultOfMethodCallIgnored" })
 public class AutoWiringMojo extends AbstractMojo {
 
     private static final String ATN_COMPONENT = "L" + Component.class.getName().replace('.', '/') + ";";
@@ -223,9 +222,9 @@ public class AutoWiringMojo extends AbstractMojo {
 
             code = new InstructionList();
             final MethodGen registerMethod = new MethodGen(Constants.ACC_PUBLIC, Type.VOID,
-                new Type[] { Type.getType(ComponentContainer.Registry.class) },
-                new String[] { "registry" }, "bindComponents", bindingsClassName,
-                code, cp);
+                    new Type[] { Type.getType(ComponentContainer.Registry.class) },
+                    new String[] { "registry" }, "bindComponents", bindingsClassName,
+                    code, cp);
 
             for (final Map.Entry<String, String> entry : bindingsEntry.getValue().entrySet()) {
                 final String interfaceName = entry.getKey();
@@ -237,10 +236,10 @@ public class AutoWiringMojo extends AbstractMojo {
                 code.append(new LDC_W(cp.addClass(interfaceName)));
                 code.append(new LDC_W(cp.addClass(implementationName)));
                 code.append(factory.createInvoke(ComponentContainer.Registry.class.getName(),
-                    "bind", Type.VOID, new Type[] {
-                    Type.getType(Class.class),
-                    Type.getType(Class.class),
-                }, Constants.INVOKEINTERFACE));
+                        "bind", Type.VOID, new Type[] {
+                                Type.getType(Class.class),
+                                Type.getType(Class.class),
+                        }, Constants.INVOKEINTERFACE));
             }
 
             code.append(InstructionConstants.RETURN);
@@ -263,7 +262,7 @@ public class AutoWiringMojo extends AbstractMojo {
     private void processClasses(final Repository repository,
                                 final Map<String, Collection<String>> serviceProviderMap,
                                 final Map<String, Map<String, String>> componentMap)
-        throws IOException, ClassNotFoundException, MojoExecutionException {
+            throws IOException, ClassNotFoundException, MojoExecutionException {
 
         final DirectoryScanner scanner = new DirectoryScanner();
 
@@ -355,7 +354,7 @@ public class AutoWiringMojo extends AbstractMojo {
 
                         if (componentApi != null) {
                             foundComponent(generatedBindings, serviceProviderMap, componentMap, className,
-                                componentApi);
+                                    componentApi);
                         } else {
                             log.warn("No component interface could be identified for " + className);
                         }
@@ -395,7 +394,7 @@ public class AutoWiringMojo extends AbstractMojo {
     }
 
     private String getApiClass(final JavaClass classData, final AnnotationEntry annotation)
-        throws ClassNotFoundException {
+            throws ClassNotFoundException {
         final String api = getAnnotationAttribute(ATR_API, annotation);
         return api == null ? classData == null ? null : findSingleInterface(classData) : api;
     }
@@ -406,7 +405,7 @@ public class AutoWiringMojo extends AbstractMojo {
 
     private boolean isServiceProvider(final AnnotationEntry annotation) {
         return ATN_SERVICE_PROVIDER.equals(annotation.getAnnotationType()) || ATN_SERVICE_PROVIDER_LIST
-            .equals(annotation.getAnnotationType());
+                .equals(annotation.getAnnotationType());
     }
 
     private String findComponentInterface(final JavaClass classData) throws ClassNotFoundException {
@@ -441,8 +440,8 @@ public class AutoWiringMojo extends AbstractMojo {
                 final String answer = String.valueOf(value);
 
                 return value.getElementValueType() == ElementValue.CLASS
-                    ? answer.substring(1, answer.length() - 1).replace('/', '.')
-                    : answer;
+                        ? answer.substring(1, answer.length() - 1).replace('/', '.')
+                        : answer;
             }
         }
 
@@ -462,7 +461,7 @@ public class AutoWiringMojo extends AbstractMojo {
                     for (final ElementValue value : ((ArrayElementValue) list).getElementValuesArray()) {
                         if (value.getElementValueType() == ElementValue.ANNOTATION) {
                             values.add(
-                                getAnnotationAttribute(nested, ((AnnotationElementValue) value).getAnnotationEntry()));
+                                    getAnnotationAttribute(nested, ((AnnotationElementValue) value).getAnnotationEntry()));
                         }
                     }
                 }

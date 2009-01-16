@@ -54,7 +54,7 @@ public final class CleanRepositoryMojo extends AbstractMojo {
      * @parameter expression="${project}"
      * @required
      */
-    @SuppressWarnings({"UnusedDeclaration"})
+    @SuppressWarnings({ "UnusedDeclaration" })
     private MavenProject project;
 
     /**
@@ -64,7 +64,7 @@ public final class CleanRepositoryMojo extends AbstractMojo {
      * @required
      * @readonly
      */
-    @SuppressWarnings({"UnusedDeclaration"})
+    @SuppressWarnings({ "UnusedDeclaration" })
     private ArtifactRepository localRepository;
 
     /**
@@ -74,7 +74,7 @@ public final class CleanRepositoryMojo extends AbstractMojo {
      * @required
      * @readonly
      */
-    @SuppressWarnings({"UnusedDeclaration"})
+    @SuppressWarnings({ "UnusedDeclaration" })
     private ArtifactFactory artifactFactory;
 
     /**
@@ -86,7 +86,7 @@ public final class CleanRepositoryMojo extends AbstractMojo {
 
     private final Log log = getLog();
 
-    @SuppressWarnings({"unchecked"})
+    @SuppressWarnings({ "unchecked" })
     public void execute() throws MojoExecutionException {
         MavenProject rootProject;
         for (rootProject = project; !rootProject.isExecutionRoot(); rootProject = rootProject.getParent()) {

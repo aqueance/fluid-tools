@@ -14,7 +14,7 @@ import org.fluidity.composition.Component;
  * <p/>
  *
  * This implementation is useful only for packaged applications such as <code>war</code> and <code>ear</code> files. Use the
- * <code>org.fluidity.maven:maven-composition-plugin</code> plugin's <code>application-goal</code> to generate that MANIFEST file.
+ * <code>org.fluidity.maven:maven-composition-plugin</code> plugin's <code>application-info</code> goal to generate that MANIFEST file.
  *
  * <p/>
  *

@@ -41,7 +41,7 @@ public abstract class MockGroupAbstractTest {
     private final IMocksControl strictGroup = EasyMock.createStrictControl();
 
     private final List<IMocksControl> groups =
-        new ArrayList<IMocksControl>(Arrays.asList(strictGroup, group, niceGroup));
+            new ArrayList<IMocksControl>(Arrays.asList(strictGroup, group, niceGroup));
 
     @BeforeMethod
     public void setup() throws Exception {

@@ -26,8 +26,7 @@ import java.util.Collection;
 import java.util.Map;
 
 /**
- * Logic common to the various utility classes in this package, such as <code>KeyedUtils</code>,
- * <code>NamedUtils</code>, etc.
+ * Logic common to the various utility classes in this package, such as <code>KeyedUtils</code>, <code>NamedUtils</code>, etc.
  *
  * @author Tibor Varga
  */

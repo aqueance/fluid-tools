@@ -21,8 +21,8 @@
  */
 package org.fluidity.deployment;
 
-import org.fluidity.foundation.KeyedNamed;
 import org.fluidity.composition.ServiceProvider;
+import org.fluidity.foundation.KeyedNamed;
 
 /**
  * This is a component that is started/stopped as the application container starts/stops. There is no deterministic order in which deployed components are

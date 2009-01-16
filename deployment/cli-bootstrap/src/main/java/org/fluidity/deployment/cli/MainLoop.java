@@ -11,4 +11,5 @@ import org.fluidity.deployment.RuntimeControl;
  * The application exits when the call to the {@link Runnable#run()} method returns, unless the developer has started but failed to stop non-deamon threads.
  */
 public interface MainLoop extends Runnable, RuntimeControl {
+
 }

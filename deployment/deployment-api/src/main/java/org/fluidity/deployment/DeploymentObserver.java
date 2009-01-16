@@ -28,8 +28,8 @@ import org.fluidity.composition.ServiceProvider;
  *
  * <p/>
  *
- * All subclasses of this interface will be marked as a service provider for this interface and will be automatically found and controlled by a suitable
- * {@link DeploymentBootstrap} implementation.
+ * All subclasses of this interface will be marked as a service provider for this interface and will be automatically found and controlled by a suitable {@link
+ * DeploymentBootstrap} implementation.
  */
 @ServiceProvider
 public interface DeploymentObserver {

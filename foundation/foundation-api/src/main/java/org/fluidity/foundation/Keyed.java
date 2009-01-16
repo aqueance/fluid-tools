@@ -22,8 +22,8 @@
 package org.fluidity.foundation;
 
 /**
- * Objects implementing this interface can be uniquely identified within some domain by a key. This enables various
- * manipulations of collections of such objects, using <code>KeyedUtils</code>.
+ * Objects implementing this interface can be uniquely identified within some domain by a key. This enables various manipulations of collections of such
+ * objects, using <code>KeyedUtils</code>.
  *
  * @author Tibor Varga
  * @see org.fluidity.foundation.KeyedUtils

@@ -60,7 +60,7 @@ public final class WebRunMojo extends AbstractMojo {
      * @required
      * @readonly
      */
-    @SuppressWarnings({"UnusedDeclaration"})
+    @SuppressWarnings({ "UnusedDeclaration" })
     private File outputDirectory;
 
     /**
@@ -68,7 +68,7 @@ public final class WebRunMojo extends AbstractMojo {
      *
      * @parameter
      */
-    @SuppressWarnings({"UnusedDeclaration"})
+    @SuppressWarnings({ "UnusedDeclaration" })
     private String listenPort;
 
     /**
@@ -77,7 +77,7 @@ public final class WebRunMojo extends AbstractMojo {
      * @parameter expression="${project}"
      * @required
      */
-    @SuppressWarnings({"UnusedDeclaration"})
+    @SuppressWarnings({ "UnusedDeclaration" })
     private MavenProject project;
 
     /**
@@ -86,12 +86,12 @@ public final class WebRunMojo extends AbstractMojo {
      * @parameter expression="${plugin.artifactId}"
      * @required
      */
-    @SuppressWarnings({"UnusedDeclaration"})
+    @SuppressWarnings({ "UnusedDeclaration" })
     private String pluginName;
 
     private final Log log = getLog();
 
-    @SuppressWarnings({"unchecked"})
+    @SuppressWarnings({ "unchecked" })
     public void execute() throws MojoExecutionException {
         final File jettyDirectory = createTempDirectory();
 

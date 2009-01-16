@@ -43,8 +43,8 @@ public final class KeyedUtils {
     }
 
     /**
-     * Converts the given collection of <code>Keyed</code> objects to a map whose keys are the objects' key. The
-     * returned map retains the original order of the items.
+     * Converts the given collection of <code>Keyed</code> objects to a map whose keys are the objects' key. The returned map retains the original order of the
+     * items.
      *
      * @param objects the collection of objects to convert into a map.
      *
@@ -55,8 +55,8 @@ public final class KeyedUtils {
     }
 
     /**
-     * Converts the given collection of <code>Keyed</code> objects to a map whose keys are the objects' key. The order
-     * of the items in the returned map is arbitrary.
+     * Converts the given collection of <code>Keyed</code> objects to a map whose keys are the objects' key. The order of the items in the returned map is
+     * arbitrary.
      *
      * @param objects the collection of objects to convert into a map.
      *
@@ -67,8 +67,8 @@ public final class KeyedUtils {
     }
 
     /**
-     * Converts the given collection of <code>Keyed</code> objects to a map whose keys are the objects' key. The order
-     * of the items in the returned map is defined by the given comparator.
+     * Converts the given collection of <code>Keyed</code> objects to a map whose keys are the objects' key. The order of the items in the returned map is
+     * defined by the given comparator.
      *
      * @param objects    the collection of objects to convert into a map.
      * @param comparator determines the sort ordering of the elements in the returned map.
@@ -87,8 +87,8 @@ public final class KeyedUtils {
     }
 
     /**
-     * Converts the given collection of <code>Keyed</code> objects to a map whose keys are the objects' key. The
-     * returned map retains the original order of the items.
+     * Converts the given collection of <code>Keyed</code> objects to a map whose keys are the objects' key. The returned map retains the original order of the
+     * items.
      *
      * @param objects the collection of objects to convert into a map.
      *
@@ -99,8 +99,8 @@ public final class KeyedUtils {
     }
 
     /**
-     * Converts the given collection of <code>Keyed</code> objects to a map whose keys are the objects' key. The order
-     * of the items in the returned map is arbitrary.
+     * Converts the given collection of <code>Keyed</code> objects to a map whose keys are the objects' key. The order of the items in the returned map is
+     * arbitrary.
      *
      * @param objects the collection of objects to convert into a map.
      *
@@ -111,8 +111,8 @@ public final class KeyedUtils {
     }
 
     /**
-     * Converts the given collection of <code>Keyed</code> objects to a map whose keys are the objects' key. The order
-     * of the items in the returned map is defined by the given comparator.
+     * Converts the given collection of <code>Keyed</code> objects to a map whose keys are the objects' key. The order of the items in the returned map is
+     * defined by the given comparator.
      *
      * @param objects    the collection of objects to convert into a map.
      * @param comparator determines the sort ordering of the elements in the returned map.
@@ -146,8 +146,7 @@ public final class KeyedUtils {
     }
 
     /**
-     * Converts the given collection of <code>Keyed</code> objects to a map whose keys are the objects' key. The
-     * specified map is populated and returned.
+     * Converts the given collection of <code>Keyed</code> objects to a map whose keys are the objects' key. The specified map is populated and returned.
      *
      * @param objects the collection of objects to convert into a map.
      * @param result  is the map to be populated and returned.

@@ -21,22 +21,22 @@
  */
 package org.fluidity.foundation.settings;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.util.Properties;
+
 import org.fluidity.composition.Component;
 import org.fluidity.composition.Optional;
 import org.fluidity.foundation.ApplicationInfo;
 import org.fluidity.foundation.Resources;
 import org.fluidity.foundation.Settings;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
-import java.util.Properties;
-
 /**
- * Extends {@link org.fluidity.foundation.settings.PropertySettings} with functionality to load properties file
- * resources. First all <code>default.properties</code> resources are loaded from the context class loader and then if the
- * application provides implementation for the {@link org.fluidity.foundation.ApplicationInfo} interface then all
- * <code>.properties</code> resources are loaded whose name equals to {@link org.fluidity.foundation.ApplicationInfo#key()}.
+ * Extends {@link org.fluidity.foundation.settings.PropertySettings} with functionality to load properties file resources. First all
+ * <code>default.properties</code> resources are loaded from the context class loader and then if the application provides implementation for the {@link
+ * org.fluidity.foundation.ApplicationInfo} interface then all <code>.properties</code> resources are loaded whose name equals to {@link
+ * org.fluidity.foundation.ApplicationInfo#key()}.
  *
  * @author Tibor Varga
  */

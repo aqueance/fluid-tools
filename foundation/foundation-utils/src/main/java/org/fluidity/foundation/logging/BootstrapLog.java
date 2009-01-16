@@ -1,11 +1,32 @@
+/*
+ * Copyright (c) 2006-2008 Tibor Adam Varga (tibor.adam.varga on gmail)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Softweare"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
 package org.fluidity.foundation.logging;
 
 import org.fluidity.foundation.Logging;
 import org.fluidity.foundation.SystemSettings;
 
 /**
- * Wraps a standard output logger unless the "container.quiet" System property is set to "true". In that case it
- * suppresses log messages from the bootstrap classes.
+ * Wraps a standard output logger unless the "container.quiet" System property is set to "true". In that case it suppresses log messages from the bootstrap
+ * classes.
  */
 public final class BootstrapLog implements Logging {
 
@@ -25,7 +46,9 @@ public final class BootstrapLog implements Logging {
     }
 
     public void trace(Class source, String message) {
-        if (verbose) log.trace(source, message);
+        if (verbose) {
+            log.trace(source, message);
+        }
     }
 
     public void trace(Class source, String message, Throwable exception) {
@@ -33,7 +56,9 @@ public final class BootstrapLog implements Logging {
     }
 
     public void debug(Class source, String message) {
-        if (verbose) log.debug(source, message);
+        if (verbose) {
+            log.debug(source, message);
+        }
     }
 
     public void debug(Class source, String message, Throwable exception) {
@@ -41,7 +66,9 @@ public final class BootstrapLog implements Logging {
     }
 
     public void info(Class source, String message) {
-        if (verbose) log.info(source, message);
+        if (verbose) {
+            log.info(source, message);
+        }
     }
 
     public void warning(Class source, String message) {
@@ -69,6 +96,8 @@ public final class BootstrapLog implements Logging {
     }
 
     public void timer(Class source, String message, long beginStamp) {
-        if (verbose) log.timer(source, message, beginStamp);
+        if (verbose) {
+            log.timer(source, message, beginStamp);
+        }
     }
 }

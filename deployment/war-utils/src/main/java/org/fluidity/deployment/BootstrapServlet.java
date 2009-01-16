@@ -27,8 +27,7 @@ import javax.servlet.http.HttpServlet;
 import org.fluidity.composition.ComponentContainerAccess;
 
 /**
- * A servlet that bootstraps and controls all {@link DeployedComponent} and {@link DeploymentObserver} objects
- * in the application.
+ * A servlet that bootstraps and controls all {@link DeployedComponent} and {@link DeploymentObserver} objects in the application.
  */
 public final class BootstrapServlet extends HttpServlet {
 

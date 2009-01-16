@@ -34,9 +34,9 @@ import org.fluidity.foundation.ApplicationInfo;
 
 
 /**
- * Creates a JAR manifest containing the values of evaluating the "${project.artifactId}" and
- * "${project.name} (${project.version})" Maven expressions as the application's ID and name, respectively. This Mojo is used in conjuction with the
- * <code>org.fluidity.foundation.ManifestApplicationInfoImpl</code> that exposes these values to the application.
+ * Creates a JAR manifest containing the values of evaluating the "${project.artifactId}" and "${project.name} (${project.version})" Maven expressions as the
+ * application's ID and name, respectively. This Mojo is used in conjuction with the <code>org.fluidity.foundation.ManifestApplicationInfoImpl</code> that
+ * exposes these values to the application.
  *
  * @goal application-info
  * @phase process-classes
@@ -50,31 +50,31 @@ public class ManifestAppInfoMojo extends AbstractMojo {
      * @required
      * @readonly
      */
-    @SuppressWarnings({"UnusedDeclaration"})
+    @SuppressWarnings({ "UnusedDeclaration" })
     private File outputDirectory;
 
     /**
      * @parameter expression="${project.artifactId}"
      * @required
      */
-    @SuppressWarnings({"UnusedDeclaration"})
+    @SuppressWarnings({ "UnusedDeclaration" })
     private String projectArtifactId;
 
     /**
      * @parameter expression="${project.name}"
      * @required
      */
-    @SuppressWarnings({"UnusedDeclaration"})
+    @SuppressWarnings({ "UnusedDeclaration" })
     private String projectName;
 
     /**
      * @parameter expression="${project.version}"
      * @required
      */
-    @SuppressWarnings({"UnusedDeclaration"})
+    @SuppressWarnings({ "UnusedDeclaration" })
     private String projectVersion;
 
-    @SuppressWarnings({"unchecked", "ResultOfMethodCallIgnored"})
+    @SuppressWarnings({ "unchecked", "ResultOfMethodCallIgnored" })
     public void execute() throws MojoExecutionException {
         final File manifestFile = new File(outputDirectory, JarFile.MANIFEST_NAME);
         manifestFile.getParentFile().mkdirs();
@@ -91,7 +91,7 @@ public class ManifestAppInfoMojo extends AbstractMojo {
             final FileOutputStream out = new FileOutputStream(manifestFile);
             manifest.write(out);
             out.close();
-        } catch (IOException e) {
+        } catch (final IOException e) {
             throw new MojoExecutionException("Saving manifest", e);
         }
     }

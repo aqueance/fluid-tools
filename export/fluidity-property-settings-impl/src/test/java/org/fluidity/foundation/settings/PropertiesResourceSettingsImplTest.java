@@ -109,7 +109,7 @@ public class PropertiesResourceSettingsImplTest extends MockGroupAbstractTest {
 
         final URL defaultUrl = new URL("test", "", 0, defaultsFile, new TestURLStreamHandler(dbaos.toByteArray()));
         final URL applicationUrl =
-            new URL("test", "", 0, applicationFile, new TestURLStreamHandler(dbaos.toByteArray()));
+                new URL("test", "", 0, applicationFile, new TestURLStreamHandler(dbaos.toByteArray()));
 
         EasyMock.expect(resources.resourceName(defaultsFile)).andReturn(defaultsFile);
         EasyMock.expect(resources.locateResources(defaultsFile)).andReturn(new URL[] { defaultUrl });
@@ -154,18 +154,18 @@ public class PropertiesResourceSettingsImplTest extends MockGroupAbstractTest {
         final URL defaultUrl3 = new URL("test", "", 0, defaultsFile, new TestURLStreamHandler(dbaos.toByteArray()));
 
         final URL applicationUrl1 =
-            new URL("test", "", 0, applicationFile, new TestURLStreamHandler(dbaos.toByteArray()));
+                new URL("test", "", 0, applicationFile, new TestURLStreamHandler(dbaos.toByteArray()));
         final URL applicationUrl2 =
-            new URL("test", "", 0, applicationFile, new TestURLStreamHandler(dbaos.toByteArray()));
+                new URL("test", "", 0, applicationFile, new TestURLStreamHandler(dbaos.toByteArray()));
 
         EasyMock.expect(resources.resourceName(defaultsFile)).andReturn(defaultsFile);
         EasyMock.expect(resources.locateResources(defaultsFile))
-            .andReturn(new URL[] { defaultUrl1, defaultUrl2, defaultUrl3 });
+                .andReturn(new URL[] { defaultUrl1, defaultUrl2, defaultUrl3 });
 
         EasyMock.expect(info.key()).andReturn(appName);
         EasyMock.expect(resources.resourceName(applicationFile)).andReturn(applicationFile);
         EasyMock.expect(resources.locateResources(applicationFile))
-            .andReturn(new URL[] { applicationUrl1, applicationUrl2 });
+                .andReturn(new URL[] { applicationUrl1, applicationUrl2 });
 
         settings.overrideProperties(defaultUrl1, defaultProperties);
         settings.overrideProperties(defaultUrl2, defaultProperties);

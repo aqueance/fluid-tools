@@ -79,7 +79,7 @@ public class ExecutableWarMojo extends AbstractMojo {
      * @required
      * @readonly
      */
-    @SuppressWarnings({"UnusedDeclaration"})
+    @SuppressWarnings({ "UnusedDeclaration" })
     private File outputDirectory;
 
     /**
@@ -89,7 +89,7 @@ public class ExecutableWarMojo extends AbstractMojo {
      * @required
      * @readonly
      */
-    @SuppressWarnings({"UnusedDeclaration"})
+    @SuppressWarnings({ "UnusedDeclaration" })
     private File packageFile;
 
     /**
@@ -98,52 +98,52 @@ public class ExecutableWarMojo extends AbstractMojo {
      *
      * @parameter
      */
-    @SuppressWarnings({"UnusedDeclaration"})
+    @SuppressWarnings({ "UnusedDeclaration" })
     private String server;
 
     /**
-     * Instructs the plugin, when set, to remove from the WEB-INF/lib directory all .jar files that the plugin puts in
-     * the WEB-INF/boot directory, effectively making the resulting .war smaller than otherwise but also making it
-     * executable via the command line only, i.e. the .war file will not be deployable in an ordinary web container.
+     * Instructs the plugin, when set, to remove from the WEB-INF/lib directory all .jar files that the plugin puts in the WEB-INF/boot directory, effectively
+     * making the resulting .war smaller than otherwise but also making it executable via the command line only, i.e. the .war file will not be deployable in an
+     * ordinary web container.
      *
      * @parameter default-value="false"
      */
-    @SuppressWarnings({"UnusedDeclaration"})
+    @SuppressWarnings({ "UnusedDeclaration" })
     private boolean bootOnly;
 
     /**
      * @parameter expression="${plugin.artifacts}"
      * @required
      */
-    @SuppressWarnings({"UnusedDeclaration", "MismatchedQueryAndUpdateOfCollection"})
+    @SuppressWarnings({ "UnusedDeclaration", "MismatchedQueryAndUpdateOfCollection" })
     private List<Artifact> pluginArtifacts;
 
     /**
      * @parameter expression="${plugin.artifactMap}"
      * @required
      */
-    @SuppressWarnings({"UnusedDeclaration", "MismatchedQueryAndUpdateOfCollection"})
+    @SuppressWarnings({ "UnusedDeclaration", "MismatchedQueryAndUpdateOfCollection" })
     private Map<String, Artifact> pluginArtifactMap;
 
     /**
      * @parameter expression="${plugin.groupId}"
      * @required
      */
-    @SuppressWarnings({"UnusedDeclaration"})
+    @SuppressWarnings({ "UnusedDeclaration" })
     private String pluginGroupId;
 
     /**
      * @parameter expression="${plugin.artifactId}"
      * @required
      */
-    @SuppressWarnings({"UnusedDeclaration"})
+    @SuppressWarnings({ "UnusedDeclaration" })
     private String pluginArtifactId;
 
     /**
      * @parameter expression="${plugin.version}"
      * @required
      */
-    @SuppressWarnings({"UnusedDeclaration"})
+    @SuppressWarnings({ "UnusedDeclaration" })
     private String pluginVersion;
 
     /**
@@ -151,7 +151,7 @@ public class ExecutableWarMojo extends AbstractMojo {
      *
      * @parameter expression="${project.packaging}"
      */
-    @SuppressWarnings({"UnusedDeclaration"})
+    @SuppressWarnings({ "UnusedDeclaration" })
     private String packaging;
 
     /**
@@ -161,7 +161,7 @@ public class ExecutableWarMojo extends AbstractMojo {
      * @required
      * @readonly
      */
-    @SuppressWarnings({"UnusedDeclaration"})
+    @SuppressWarnings({ "UnusedDeclaration" })
     private MavenProject project;
 
     /**
@@ -171,7 +171,7 @@ public class ExecutableWarMojo extends AbstractMojo {
      * @required
      * @readonly
      */
-    @SuppressWarnings({"UnusedDeclaration"})
+    @SuppressWarnings({ "UnusedDeclaration" })
     private ArtifactCollector artifactCollector;
 
     /**
@@ -181,7 +181,7 @@ public class ExecutableWarMojo extends AbstractMojo {
      * @required
      * @readonly
      */
-    @SuppressWarnings({"UnusedDeclaration"})
+    @SuppressWarnings({ "UnusedDeclaration" })
     private ArtifactRepository localRepository;
 
     /**
@@ -191,7 +191,7 @@ public class ExecutableWarMojo extends AbstractMojo {
      * @required
      * @readonly
      */
-    @SuppressWarnings({"UnusedDeclaration"})
+    @SuppressWarnings({ "UnusedDeclaration" })
     private ArtifactFactory artifactFactory;
 
     /**
@@ -201,10 +201,10 @@ public class ExecutableWarMojo extends AbstractMojo {
      * @required
      * @readonly
      */
-    @SuppressWarnings({"UnusedDeclaration"})
+    @SuppressWarnings({ "UnusedDeclaration" })
     private ArtifactMetadataSource artifactMetadataSource;
 
-    @SuppressWarnings({"unchecked"})
+    @SuppressWarnings({ "unchecked" })
     public void execute() throws MojoExecutionException {
         if (!WAR_TYPE.equals(packaging)) {
             throw new MojoExecutionException("This is not a .war project");
@@ -397,7 +397,7 @@ public class ExecutableWarMojo extends AbstractMojo {
      * this plugin to be returned here in addition to those directly known by the host and that poses a problem: we need to throw away all dependencies of this
      * plugin that are not needed, transitively, by the root artifact and any other dependency added for inclusion in the .war file.
      */
-    @SuppressWarnings({"unchecked"})
+    @SuppressWarnings({ "unchecked" })
     private Collection<Artifact> findDependencies(final Artifact root, final DependencyNode rootNode) throws MojoExecutionException {
 
         // The dependency list of this plugin
@@ -413,7 +413,7 @@ public class ExecutableWarMojo extends AbstractMojo {
         final Set<String> checked = new HashSet<String>();
 
         final DependencyNodeVisitor nodeVisitor = new DependencyNodeVisitor() {
-            @SuppressWarnings({"unchecked"})
+            @SuppressWarnings({ "unchecked" })
             public boolean visit(final DependencyNode node) {
                 final Artifact artifact = node.getArtifact();
                 final String artifactId = artifact.getDependencyConflictId();
@@ -454,13 +454,13 @@ public class ExecutableWarMojo extends AbstractMojo {
         final DependencyTreeResolutionListener listener = new DependencyTreeResolutionListener(new NullLogger());
 
         artifactCollector.collect(new HashSet<Artifact>(pluginArtifacts),
-                                  root,
-                                  project.getManagedVersionMap(),
-                                  localRepository,
-                                  remoteRepositories,
-                                  artifactMetadataSource,
-                                  null,
-                                  Collections.singletonList(listener));
+                root,
+                project.getManagedVersionMap(),
+                localRepository,
+                remoteRepositories,
+                artifactMetadataSource,
+                null,
+                Collections.singletonList(listener));
 
         return listener.getRootNode();
     }
@@ -508,7 +508,7 @@ public class ExecutableWarMojo extends AbstractMojo {
         return dependencies.values();
     }
 
-    @SuppressWarnings({"unchecked"})
+    @SuppressWarnings({ "unchecked" })
     private Set<Artifact> findPluginDependencies(final Artifact root, final List remoteRepositories) throws MojoExecutionException {
         final Set<Artifact> pluginDependencies;
         try {
