@@ -42,15 +42,16 @@ import org.fluidity.composition.ServiceProvider;
 import org.fluidity.composition.ShutdownHook;
 import org.fluidity.foundation.ClassLoaderUtils;
 import org.fluidity.foundation.Logging;
-import org.fluidity.foundation.logging.StandardOutLogging;
+import org.fluidity.foundation.logging.BootstrapLog;
 import org.picocontainer.MutablePicoContainer;
 import org.picocontainer.defaults.CachingComponentAdapterFactory;
 import org.picocontainer.defaults.ConstructorInjectionComponentAdapterFactory;
 import org.picocontainer.defaults.DefaultPicoContainer;
 
 /**
- * Bootstraps the component container. This class is exported via the standard service provider discovery mechanism described in the JAR file specification (for
- * dummies: the fully qualitified name of this class can be found in a file whose name is the fully qualified class name of the implemented interface).
+ * Bootstraps the component container. This class is exported via the standard service provider discovery mechanism
+ * described in the JAR file specification (for dummies: the fully qualitified name of this class can be found in a file
+ * whose name is the fully qualified class name of the implemented interface).
  *
  * <p/>
  *
@@ -61,7 +62,7 @@ import org.picocontainer.defaults.DefaultPicoContainer;
 @ServiceProvider
 public final class PicoContainerBootstrap implements ContainerBootstrap {
 
-    private final Logging log = new StandardOutLogging(null);
+    private final Logging log = new BootstrapLog("container");
 
     @SuppressWarnings({"unchecked"})
     public OpenComponentContainer populateContainer(final ClassDiscovery discovery,
@@ -69,7 +70,7 @@ public final class PicoContainerBootstrap implements ContainerBootstrap {
                                                     final OpenComponentContainer parent,
                                                     final ClassLoader classLoader) {
         final OpenComponentContainer container =
-                parent == null ? new PicoComponentContainer() : parent.makeNestedContainer();
+            parent == null ? new PicoComponentContainer() : parent.makeNestedContainer();
 
         log.info(getClass(), "Created new " + container + (classLoader == null ? "" : " for " + classLoader));
 
@@ -78,14 +79,16 @@ public final class PicoContainerBootstrap implements ContainerBootstrap {
         /*
          * Find instances of classes implementing the PackageBindings interface.
          */
-        final Collection<Class> assemblySet =
-                new HashSet<Class>(
-                        Arrays.asList(discovery.findComponentClasses(PackageBindings.class, classLoader, parent != null)));
+        final Collection<Class> assemblySet = new HashSet<Class>(Arrays.asList(discovery.findComponentClasses(
+            PackageBindings.class,
+            classLoader,
+            parent != null)));
 
         log.info(getClass(), "Found " + assemblySet.size() + " package(s).");
 
-        final MutablePicoContainer pico = new DefaultPicoContainer(
-                new CachingComponentAdapterFactory(new ConstructorInjectionComponentAdapterFactory(true)));
+        final MutablePicoContainer pico =
+            new DefaultPicoContainer(new CachingComponentAdapterFactory(new ConstructorInjectionComponentAdapterFactory(
+                true)));
 
         if (properties != null) {
             pico.registerComponentInstance(Map.class, properties);
@@ -102,7 +105,7 @@ public final class PicoContainerBootstrap implements ContainerBootstrap {
          * Get the instances in instantiation order
          */
         final List<? extends PackageBindings> assemblies =
-                (List<? extends PackageBindings>) pico.getComponentInstancesOfType(PackageBindings.class);
+            (List<? extends PackageBindings>) pico.getComponentInstancesOfType(PackageBindings.class);
         assert assemblies != null;
 
         /*

@@ -4,12 +4,18 @@ import org.easymock.EasyMock;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentDiscovery;
 import org.fluidity.foundation.Logging;
+import org.fluidity.foundation.SystemSettings;
 import org.fluidity.foundation.logging.StandardOutLogging;
+import org.fluidity.foundation.logging.BootstrapLog;
 import org.fluidity.tests.MockGroupAbstractTest;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
 public final class DeploymentBootstrapImplTest extends MockGroupAbstractTest {
+
+    static {
+        SystemSettings.set(BootstrapLog.SUPPRESS_LOGS, BootstrapLog.ALL_LOGS);
+    }
 
     private final Logging log = new StandardOutLogging("test");
     private final ComponentContainer container = addControl(ComponentContainer.class);

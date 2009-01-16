@@ -33,7 +33,10 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
+import org.fluidity.composition.Optional;
 import org.fluidity.foundation.ApplicationInfo;
+import org.fluidity.foundation.SystemSettings;
+import org.fluidity.foundation.logging.BootstrapLog;
 import org.fluidity.foundation.logging.Log;
 
 /**
@@ -47,16 +50,19 @@ import org.fluidity.foundation.logging.Log;
  */
 final class PropertySettingsImpl implements PropertySettings {
 
-    private final Map<URL, Map<String, String>> properties = new LinkedHashMap<URL, Map<String, String>>();
+    private final boolean verbose = !SystemSettings.isSet(BootstrapLog.SUPPRESS_LOGS, "settings", BootstrapLog.ALL_LOGS);
 
+    private final Map<URL, Map<String, String>> properties = new LinkedHashMap<URL, Map<String, String>>();
     private final String prefix;
 
-    public PropertySettingsImpl() {
-        this((String) null);
+    private void info(String message) {
+        if (verbose) {
+            Log.info(getClass(), message);
+        }
     }
 
-    public PropertySettingsImpl(final ApplicationInfo info) {
-        this(info.key());
+    public PropertySettingsImpl(@Optional final ApplicationInfo info) {
+        this(info == null ? null : info.key());
     }
 
     private PropertySettingsImpl(final String prefix) {
@@ -73,7 +79,7 @@ final class PropertySettingsImpl implements PropertySettings {
             this.properties.put(url, map);
         }
 
-        Log.info(getClass(), "Loaded properties from " + url);
+        info("Loaded properties from " + url);
     }
 
     public String[] keys() {
@@ -103,9 +109,11 @@ final class PropertySettingsImpl implements PropertySettings {
         String actualKey;
 
         synchronized (this.properties) {
-            final List<Map.Entry<URL, Map<String, String>>> entries = new ArrayList<Map.Entry<URL, Map<String, String>>>(properties.entrySet());
+            final List<Map.Entry<URL, Map<String, String>>> entries =
+                new ArrayList<Map.Entry<URL, Map<String, String>>>(properties.entrySet());
 
-            for (final ListIterator<Map.Entry<URL, Map<String, String>>> i = entries.listIterator(entries.size()); i.hasPrevious();) {
+            for (final ListIterator<Map.Entry<URL, Map<String, String>>> i = entries.listIterator(entries.size());
+                 i.hasPrevious();) {
                 final Map.Entry<URL, Map<String, String>> entry = i.previous();
                 final Map<String, String> map = entry.getValue();
 
@@ -116,13 +124,13 @@ final class PropertySettingsImpl implements PropertySettings {
                 }
 
                 if (value != null) {
-                    Log.info(getClass(), "Found property " + spec + " in " + entry.getKey() + " as " + actualKey);
+                    info("Found property " + spec + " in " + entry.getKey() + " as " + actualKey);
                     return extrapolate(actualKey, value);
                 }
             }
         }
 
-        Log.info(getClass(), "Property " + spec + " not found");
+        info("Property " + spec + " not found");
         return defaultValue;
     }
 
@@ -209,13 +217,14 @@ final class PropertySettingsImpl implements PropertySettings {
 
                     final String nameKey = name.toString();
                     final boolean selfReference = nameKey.equals(key);
-                    String property = selfReference ? System.getProperty(nameKey) : setting(nameKey, System.getProperty(nameKey));
+                    String property =
+                        selfReference ? System.getProperty(nameKey) : setting(nameKey, System.getProperty(nameKey));
 
                     if (property == null) {
                         final String defaultValue = defaults.toString();
 
                         if (defaultValue.length() == 0 || defaultValue.equals(key)) {
-                            Log.warning(getClass(), "Property " + name + " not found" + (selfReference ? " (refers to itself)": ""));
+                            info("Property " + name + " not found" + (selfReference ? " (refers to itself)" : ""));
                         } else {
                             property = setting(defaultValue, defaultValue);
                         }
@@ -224,7 +233,7 @@ final class PropertySettingsImpl implements PropertySettings {
                     final String result = property == null && key == null ? nameKey : property;
 
                     if (result != null) {
-                      value.append(result);
+                        value.append(result);
                     }
 
                     name.setLength(0);
@@ -248,7 +257,7 @@ final class PropertySettingsImpl implements PropertySettings {
             ++position;
         }
 
-      return value.length() == 0 ? null : value.toString();
+        return value.length() == 0 ? null : value.toString();
     }
 
     public int setting(final String key, final int defaultValue) {

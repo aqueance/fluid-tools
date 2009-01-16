@@ -32,7 +32,7 @@ import java.util.Set;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.OpenComponentContainer;
 import org.fluidity.foundation.Logging;
-import org.fluidity.foundation.logging.StandardOutLogging;
+import org.fluidity.foundation.logging.BootstrapLog;
 import org.picocontainer.ComponentAdapter;
 import org.picocontainer.MutablePicoContainer;
 import org.picocontainer.Parameter;
@@ -43,7 +43,6 @@ import org.picocontainer.PicoVisitor;
 import org.picocontainer.defaults.CachingComponentAdapter;
 import org.picocontainer.defaults.CachingComponentAdapterFactory;
 import org.picocontainer.defaults.ComponentAdapterFactory;
-import org.picocontainer.defaults.ConstructorInjectionComponentAdapterFactory;
 import org.picocontainer.defaults.DecoratingComponentAdapter;
 import org.picocontainer.defaults.DefaultPicoContainer;
 import org.picocontainer.defaults.ImplementationHidingComponentAdapter;
@@ -59,7 +58,7 @@ final class PicoComponentContainer implements OpenComponentContainer {
 
     private static final ComponentAdapterFactory singletonAdapterFactory = new CachingComponentAdapterFactory(defaultAdapterFactory);
 
-    private final Logging log = new StandardOutLogging(null);
+    private final Logging log = new BootstrapLog("container");
     private final ComponentContainer.Registry registry = new PicoComponentRegistry();
     private final MutablePicoContainer pico;
 

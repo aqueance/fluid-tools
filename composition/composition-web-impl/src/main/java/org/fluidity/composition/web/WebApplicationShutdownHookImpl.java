@@ -28,17 +28,21 @@ import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
 import org.fluidity.composition.Component;
+import org.fluidity.composition.ComponentContainerAccess;
+import org.fluidity.composition.ServiceProvider;
 import org.fluidity.composition.ShutdownHook;
-import org.fluidity.foundation.logging.StandardOutLogging;
+import org.fluidity.foundation.Logging;
 
 /**
  * Implements the component shutdown mechanism for web applications. The implementation requires a mechanism that
  * auto-discovers <code>ServletContextListeners</code> and dispatches the respective servlet events to all without each
- * having to be registered in the web application's web.xml file.
+ * having to be registered in the web application's web.xml file. Such mechanism is the {@link
+ * org.fluidity.composition.web.WebApplicationLifecycleListener} that should then be added as a listener in the web.xml.
  *
  * @author Tibor Varga
  */
 @Component(api = ShutdownHook.class)
+@ServiceProvider(api = ServletContextListener.class)
 final class WebApplicationShutdownHookImpl implements ShutdownHook, ServletContextListener {
 
     private static final Map<String, Runnable> tasks = new HashMap<String, Runnable>();
@@ -52,7 +56,7 @@ final class WebApplicationShutdownHookImpl implements ShutdownHook, ServletConte
     }
 
     public void contextDestroyed(final ServletContextEvent event) {
-        final StandardOutLogging log = new StandardOutLogging(null);
+        final Logging log = new ComponentContainerAccess().getComponent(Logging.class);
 
         for (final Map.Entry<String, Runnable> entry : tasks.entrySet()) {
             try {

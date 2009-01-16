@@ -43,6 +43,18 @@
         </license>
     </licenses>
 
+    <description><![CDATA[
+Exports WebApplicationLifecycleListener that finds all @ServiceProvider annotated ServletContextListeners and
+delegates events to them, and also exports a web implementation of the ShutdownHook that relies on
+WebApplicationLifecycleListener to be registered as a listener in the host application's web.xml, like so:
+
+<listener>
+  <description>Finds all @ServiceProvider annotated servlet context listeners and delegates events to them</description>
+  <display-name>Fluid Tools Aggregating Listener</display-name>
+  <listener-class>org.fluidity.composition.web.WebApplicationLifecycleListener</listener-class>
+</listener>
+    ]]></description>
+
     <dependencies>
 
         <!-- contains the mechanism to invoke servlet context listeners -->

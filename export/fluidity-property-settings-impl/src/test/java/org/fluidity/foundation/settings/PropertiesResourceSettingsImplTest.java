@@ -54,7 +54,7 @@ public class PropertiesResourceSettingsImplTest extends MockGroupAbstractTest {
         EasyMock.expect(resources.locateResources(resourceName)).andReturn(new URL[0]);
 
         replay();
-        new PropertiesResourceSettingsImpl(settings, resources);
+        new PropertiesResourceSettingsImpl(settings, resources, null);
         verify();
     }
 
@@ -80,7 +80,7 @@ public class PropertiesResourceSettingsImplTest extends MockGroupAbstractTest {
         settings.overrideProperties(url, properties);
 
         replay();
-        new PropertiesResourceSettingsImpl(settings, resources);
+        new PropertiesResourceSettingsImpl(settings, resources, null);
         verify();
     }
 

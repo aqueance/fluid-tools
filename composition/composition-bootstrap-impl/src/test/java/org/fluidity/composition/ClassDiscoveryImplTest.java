@@ -35,13 +35,20 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.fluidity.foundation.ClassLoaderUtils;
+import org.fluidity.foundation.SystemSettings;
+import org.fluidity.foundation.logging.BootstrapLog;
 import org.fluidity.tests.MockGroupAbstractTest;
 import org.testng.annotations.Test;
 
 /**
  * @author Tibor Varga
  */
+@SuppressWarnings({"ResultOfMethodCallIgnored"})
 public class ClassDiscoveryImplTest extends MockGroupAbstractTest {
+
+    static {
+        SystemSettings.set(BootstrapLog.SUPPRESS_LOGS, BootstrapLog.ALL_LOGS);
+    }
 
     @Test
     @SuppressWarnings({ "unchecked" })

@@ -22,6 +22,7 @@
 package org.fluidity.foundation.logging;
 
 import org.fluidity.composition.Component;
+import org.fluidity.composition.Optional;
 import org.fluidity.foundation.ApplicationInfo;
 import org.fluidity.foundation.Logging;
 
@@ -33,12 +34,8 @@ final class DefaultLogging implements Logging {
 
     private final Logging delegate;
 
-    public DefaultLogging(final ApplicationInfo appInfo) {
-        this.delegate = new StandardOutLogging(appInfo.name());
-    }
-
-    public DefaultLogging() {
-        this.delegate = new StandardOutLogging(null);
+    public DefaultLogging(final @Optional ApplicationInfo appInfo) {
+        this.delegate = new StandardOutLogging(appInfo == null ? null : appInfo.name());
     }
 
     public boolean isTraceEnabled(final Class source) {

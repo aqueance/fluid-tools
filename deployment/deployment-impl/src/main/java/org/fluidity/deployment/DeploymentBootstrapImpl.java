@@ -21,24 +21,25 @@
  */
 package org.fluidity.deployment;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.ArrayList;
 
-import org.fluidity.foundation.Logging;
-import org.fluidity.deployment.DeployedComponent;
-import org.fluidity.deployment.DeploymentObserver;
-import org.fluidity.deployment.DeploymentBootstrap;
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentDiscovery;
+import org.fluidity.foundation.Logging;
+import org.fluidity.foundation.SystemSettings;
+import org.fluidity.foundation.logging.BootstrapLog;
 
 /**
  * @author Tibor Varga
  */
 @Component
 final class DeploymentBootstrapImpl implements DeploymentBootstrap {
+
+    private final boolean verbose = !SystemSettings.isSet(BootstrapLog.SUPPRESS_LOGS, "deployment", BootstrapLog.ALL_LOGS);
 
     private final ComponentContainer container;
     private final ComponentDiscovery discovery;
@@ -48,10 +49,18 @@ final class DeploymentBootstrapImpl implements DeploymentBootstrap {
 
     private final Logging log;
 
-    public DeploymentBootstrapImpl(final Logging log, final ComponentContainer container, final ComponentDiscovery discovery) {
+    public DeploymentBootstrapImpl(final Logging log,
+                                   final ComponentContainer container,
+                                   final ComponentDiscovery discovery) {
         this.log = log;
         this.container = container;
         this.discovery = discovery;
+    }
+
+    private void info(String message) {
+        if (verbose) {
+            log.info(getClass(), message);
+        }
     }
 
     public void load() throws Exception {
@@ -62,9 +71,9 @@ final class DeploymentBootstrapImpl implements DeploymentBootstrap {
         observers.addAll(Arrays.asList(discovery.findComponentInstances(container, DeploymentObserver.class)));
 
         for (final DeployedComponent component : components) {
-            log.info(getClass(), "Starting " + component.name());
+            info("Starting " + component.name());
             component.start();
-            log.info(getClass(), "Started " + component.name());
+            info("Started " + component.name());
         }
 
         for (final DeploymentObserver observer : observers) {
@@ -80,9 +89,9 @@ final class DeploymentBootstrapImpl implements DeploymentBootstrap {
         Collections.reverse(components);
         for (final DeployedComponent component : components) {
             try {
-                log.info(getClass(), "Stopping " + component.name());
+                info("Stopping " + component.name());
                 component.stop();
-                log.info(getClass(), "Stopped " + component.name());
+                info("Stopped " + component.name());
             } catch (Exception e) {
                 log.warning(getClass(), component.name(), e);
             }

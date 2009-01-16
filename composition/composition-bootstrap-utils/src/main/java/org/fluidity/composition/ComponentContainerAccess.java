@@ -32,7 +32,8 @@ import java.util.Set;
 import java.util.WeakHashMap;
 
 import org.fluidity.foundation.Logging;
-import org.fluidity.foundation.logging.StandardOutLogging;
+import org.fluidity.foundation.logging.BootstrapLog;
+
 import sun.misc.Service;
 import sun.misc.ServiceConfigurationError;
 
@@ -243,7 +244,7 @@ public final class ComponentContainerAccess implements ComponentContainer {
 
     private static class BootstrapServicesImpl implements BootstrapServices {
 
-        private final Logging log = new StandardOutLogging(null);
+        private final Logging log = new BootstrapLog("container");
 
         @SuppressWarnings({"unchecked"})
         public <T> T findInstance(final Class<? super T> interfaceClass, final ClassLoader classLoader) {

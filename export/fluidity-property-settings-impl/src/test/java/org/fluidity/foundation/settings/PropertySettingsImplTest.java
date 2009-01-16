@@ -31,6 +31,8 @@ import org.fluidity.foundation.ApplicationInfo;
 import org.fluidity.foundation.MockApplicationInfo;
 import org.fluidity.foundation.Settings;
 import org.fluidity.foundation.SettingsAbstractTest;
+import org.fluidity.foundation.SystemSettings;
+import org.fluidity.foundation.logging.BootstrapLog;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -38,6 +40,10 @@ import org.testng.annotations.Test;
  * @author Tibor Varga
  */
 public class PropertySettingsImplTest extends SettingsAbstractTest {
+
+    static {
+        SystemSettings.set(BootstrapLog.SUPPRESS_LOGS, BootstrapLog.ALL_LOGS);
+    }
 
     private final URL defaultUrl;
     private final URL appUrl;
@@ -67,8 +73,7 @@ public class PropertySettingsImplTest extends SettingsAbstractTest {
             }
         }
 
-        final PropertySettingsImpl settings =
-            info == null ? new PropertySettingsImpl() : new PropertySettingsImpl(info);
+        final PropertySettingsImpl settings = new PropertySettingsImpl(info);
         settings.overrideProperties(defaultUrl, props);
         return settings;
     }

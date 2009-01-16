@@ -34,7 +34,7 @@ import java.util.Set;
 
 import org.fluidity.foundation.ClassLoaderUtils;
 import org.fluidity.foundation.Logging;
-import org.fluidity.foundation.logging.StandardOutLogging;
+import org.fluidity.foundation.logging.BootstrapLog;
 
 /**
  * This class is public so that sun.misc.Services can find it.
@@ -45,7 +45,7 @@ import org.fluidity.foundation.logging.StandardOutLogging;
 @ServiceProvider
 public final class ClassDiscoveryImpl implements ClassDiscovery {
 
-    private final Logging log = new StandardOutLogging(null);
+    private final Logging log = new BootstrapLog("discovery");
 
     @SuppressWarnings({ "unchecked" })
     public <T> Class<? extends T>[] findComponentClasses(final Class<T> componentInterface,

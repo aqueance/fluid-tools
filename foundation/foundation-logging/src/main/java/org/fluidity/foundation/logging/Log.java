@@ -44,7 +44,7 @@ public final class Log {
             // empty
         }
 
-        Log.log = log == null ? new DefaultLogging() : log;
+        Log.log = log == null ? new DefaultLogging(null) : log;
     }
 
     public static boolean isTraceEnabled(final Class source) {

@@ -21,15 +21,16 @@
  */
 package org.fluidity.foundation.settings;
 
+import org.fluidity.composition.Component;
+import org.fluidity.composition.Optional;
+import org.fluidity.foundation.ApplicationInfo;
+import org.fluidity.foundation.Resources;
+import org.fluidity.foundation.Settings;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.Properties;
-
-import org.fluidity.composition.Component;
-import org.fluidity.foundation.ApplicationInfo;
-import org.fluidity.foundation.Resources;
-import org.fluidity.foundation.Settings;
 
 /**
  * Extends {@link org.fluidity.foundation.settings.PropertySettings} with functionality to load properties file
@@ -45,17 +46,16 @@ final class PropertiesResourceSettingsImpl implements Settings {
     private final PropertySettings delegate;
     private final Resources resources;
 
-    public PropertiesResourceSettingsImpl(final PropertySettings settings, final Resources resources) {
+    public PropertiesResourceSettingsImpl(final PropertySettings settings,
+                                          final Resources resources,
+                                          @Optional final ApplicationInfo appInfo) {
         this.delegate = settings;
         this.resources = resources;
         load("default");
-    }
 
-    public PropertiesResourceSettingsImpl(final PropertySettings settings,
-                                          final Resources resources,
-                                          final ApplicationInfo appInfo) {
-        this(settings, resources);
-        load(appInfo.key());
+        if (appInfo != null) {
+            load(appInfo.key());
+        }
     }
 
     private void load(final String name) {

@@ -23,11 +23,17 @@ package org.fluidity.composition.pico;
 
 import org.fluidity.composition.OpenComponentContainer;
 import org.fluidity.composition.ComponentContainerAbstractTest;
+import org.fluidity.foundation.SystemSettings;
+import org.fluidity.foundation.logging.BootstrapLog;
 
 /**
  * @author Tibor Varga
  */
 public class PicoComponentContainerTest extends ComponentContainerAbstractTest {
+
+    static {
+        SystemSettings.set(BootstrapLog.SUPPRESS_LOGS, BootstrapLog.ALL_LOGS);
+    }
 
     protected OpenComponentContainer newContainer(final Runnable command) {
         PicoComponentContainer.setCollectionCommand(command);
