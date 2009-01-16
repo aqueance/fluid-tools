@@ -43,9 +43,9 @@
         </license>
     </licenses>
 
-    <description>
+    <description><![CDATA[
 This project lists the exported modules of the Fluidity Tools.
-    </description>
+    ]]></description>
 
     <modules>
         <module>fluidity-api</module>

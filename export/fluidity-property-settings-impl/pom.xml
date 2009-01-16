@@ -43,9 +43,9 @@
         </license>
     </licenses>
 
-    <description>
+    <description><![CDATA[
 This project exports the &lt;code>java.util.Properties&lt;/code> based implemetation of the &lt;code>org.fluidity.foundation.Settings&lt;/code> interface.
-    </description>
+    ]]></description>
 
     <dependencies>
 

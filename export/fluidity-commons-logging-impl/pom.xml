@@ -43,9 +43,9 @@
         </license>
     </licenses>
 
-    <description>
+    <description><![CDATA[
 This project exports the Commons Logging based implemetation of the &lt;code>org.fluidity.foundation.Logging&lt;/code> interface.
-    </description>
+    ]]></description>
 
     <dependencies>
 

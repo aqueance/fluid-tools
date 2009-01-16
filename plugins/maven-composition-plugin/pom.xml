@@ -35,7 +35,7 @@
     <packaging>maven-plugin</packaging>
     <name>Plugins: Composition</name>
 
-    <description>
+    <description><![CDATA[
 This plugin scans class files for annotations that instruct it to generate
 servce provider descriptor files as per the JAR file specification.
 
@@ -56,8 +56,8 @@ The @org.fluidity.composition.ServiceProvider annotation marks a component
 that itself needs to be found by scanning the class path for service providers
 implementing a given interface. For each @ServiceProvider found the plugin
 generates a service provider descriptor file under META-INF/services/&lt;full
-class name of the @ServiceProvider> unless one already exists.
-    </description>
+class name of the Service Provider interface> unless one already exists.
+    ]]></description>
 
     <dependencies>
 

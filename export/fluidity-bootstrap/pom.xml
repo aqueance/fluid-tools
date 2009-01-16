@@ -43,12 +43,12 @@
         </license>
     </licenses>
 
-    <description>
+    <description><![CDATA[
 This project lists the bootstrap modules of the Fluidity Tools. Bootstrap
 modules are the ones that need to be loaded by the top-level class loader of
 your application, the one that you intend to have the top-level dependency
 injection container associated with.
-    </description>
+    ]]></description>
 
     <dependencies>
 

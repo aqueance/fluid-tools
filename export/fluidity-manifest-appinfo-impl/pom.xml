@@ -43,7 +43,7 @@
         </license>
     </licenses>
 
-    <description>
+    <description><![CDATA[
 This project exports the manifest file based implemetation of the
 &lt;code>org.fluidity.foundation.ApplicationInfo&lt;/code> interface.
 The implementation reads the application key and name from two attributes in
@@ -68,7 +68,7 @@ following to your pom.xml:
  &lt;/configuration>
 &lt;/plugin>
 ...
-    </description>
+    ]]></description>
 
     <dependencies>
 
