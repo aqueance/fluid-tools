@@ -21,16 +21,17 @@
  */
 package org.fluidity.composition;
 
+import org.easymock.EasyMock;
+import org.easymock.IAnswer;
+import org.fluidity.foundation.Keyed;
+import org.fluidity.tests.MockGroupAbstractTest;
+import org.testng.Assert;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-
-import org.easymock.EasyMock;
-import org.easymock.IAnswer;
-import org.fluidity.tests.MockGroupAbstractTest;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
-import org.testng.Assert;
 
 /**
  * @author Tibor Varga
@@ -416,16 +417,32 @@ public abstract class ComponentContainerAbstractTest extends MockGroupAbstractTe
         verify();
     }
 
+    @Test
+    public void testOptionalDependencies() throws Exception {
+        replay();
+        registry.bind(OptionalDependentValue.class);
+        Assert.assertNotNull(container.getComponent(OptionalDependentValue.class));
+        Assert.assertNull(OptionalDependentValue.dependent);
+        verify();
+
+        replay();
+        registry.bind(MandatoryDependentValue.class);
+
+        try {
+            container.getComponent(MandatoryDependentValue.class);
+            Assert.fail("Component should not have been instantiated with mandatory but missing dependency");
+        } catch (final Exception e) {
+            // expected
+        } finally {
+            verify();
+        }
+    }
+
     private void verifyComponent(ComponentContainer container) {
         final Object component = container.getComponent(Key.class);
         assert component != null;
         assert component instanceof Value;
         assert container.getComponent(Value.class) == component;
-    }
-
-    public static interface Keyed {
-
-        String key();
     }
 
     public static interface Key extends Keyed {
@@ -461,6 +478,21 @@ public abstract class ComponentContainerAbstractTest extends MockGroupAbstractTe
 
         public String key() {
             return key;
+        }
+    }
+
+    private static class OptionalDependentValue {
+        public static DependentKey dependent;
+
+        public OptionalDependentValue(@Optional final DependentKey dependent) {
+            OptionalDependentValue.dependent = dependent;
+        }
+    }
+
+    private static class MandatoryDependentValue {
+
+        @SuppressWarnings({"UnusedDeclaration"})
+        public MandatoryDependentValue(final DependentKey dependent) {
         }
     }
 
@@ -521,9 +553,9 @@ public abstract class ComponentContainerAbstractTest extends MockGroupAbstractTe
         private final V value;
 
         public ContainerCheck(final OpenComponentContainer container,
-                               final V value, final Class<?> checkKey,
-                               Object checkValue
-        ) {
+                              final V value,
+                              final Class<?> checkKey,
+                              final Object checkValue) {
             this.container = container;
             this.checkKey = checkKey;
             this.checkValue = checkValue;

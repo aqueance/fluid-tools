@@ -55,7 +55,7 @@ import org.picocontainer.defaults.ImplementationHidingComponentAdapter;
  */
 final class PicoComponentContainer implements OpenComponentContainer {
 
-    private static final ComponentAdapterFactory defaultAdapterFactory = new ConstructorInjectionComponentAdapterFactory(true);
+    private static final ComponentAdapterFactory defaultAdapterFactory = new AnnotatedConstructorInjectionComponentAdapterFactory();
 
     private static final ComponentAdapterFactory singletonAdapterFactory = new CachingComponentAdapterFactory(defaultAdapterFactory);
 
