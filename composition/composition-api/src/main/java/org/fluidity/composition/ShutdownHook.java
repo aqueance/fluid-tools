@@ -22,17 +22,17 @@
 package org.fluidity.composition;
 
 /**
- * Enables tasks to be hooked to the application shutdown event. This is used by component bootstrap implementations to
- * provide means to shut down components when the application shuts down. For instance, a command line application may
- * want to use the runtime system to do this while a web application would use a context listener for the same purpose.
+ * Enables tasks to be hooked to the application shutdown event. This is used by component bootstrap implementations to provide means to shut down components
+ * when the application shuts down. For instance, a command line application may want to use the runtime system to do this while a web application would use a
+ * context listener for the same purpose.
  *
  * @author Tibor Varga
  */
 public interface ShutdownHook {
 
     /**
-     * Adds a task to be run when the application is shut down. Concrete implementations are needed for the various
-     * application types, i.e. command line, web, etc.
+     * Adds a task to be run when the application is shut down. Concrete implementations are needed for the various application types, i.e. command line, web,
+     * etc.
      *
      * @param threadName is the name of the thread to add to the shutdown hook when a thread is required.
      * @param command    is the command to run prior application shutdown.

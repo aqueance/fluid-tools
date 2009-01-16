@@ -21,11 +21,14 @@
  */
 package org.fluidity.composition;
 
-import java.lang.annotation.*;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * Annotates a constructor parameter as optional dependency. An optional dependency may receive a <code>null</code>
- * value upon instantiation.
+ * Annotates a constructor parameter as optional dependency. An optional dependency may receive a <code>null</code> value upon instantiation.
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)

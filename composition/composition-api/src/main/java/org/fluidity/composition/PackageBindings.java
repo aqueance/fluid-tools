@@ -22,25 +22,24 @@
 package org.fluidity.composition;
 
 /**
- * An implementation of this interface is placed in each package that contains component implementations. The goal of
- * these classes is to add component bindings with component implementations in the respective package to the supplied
- * registry. The components thus bound may depend on other components in the container and vice versa.
+ * An implementation of this interface is placed in each package that contains component implementations. The goal of these classes is to add component bindings
+ * with component implementations in the respective package to the supplied registry. The components thus bound may depend on other components in the container
+ * and vice versa.
  *
  * @author Tibor Varga
  */
 public interface PackageBindings extends ComponentContainer.Bindings {
 
     /**
-     * Perform component specific initialisation if necessary. This method is invoked once after the
-     * <code>registerComponents()</code> method of all <code>PackageBinding</code> objects have been invoked.
+     * Perform component specific initialisation if necessary. This method is invoked once after the <code>registerComponents()</code> method of all
+     * <code>PackageBinding</code> objects have been invoked.
      *
      * @param container is the container containing all global components that will be available during the life
      */
     void initializeComponents(final ComponentContainer container);
 
     /**
-     * Perform component specific shutdown if necessary. This method is invoked once when the application is being shut
-     * down.
+     * Perform component specific shutdown if necessary. This method is invoked once when the application is being shut down.
      *
      * @param container is the container containing all global components that will be available during the life
      */

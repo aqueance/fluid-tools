@@ -123,8 +123,7 @@ package org.fluidity.composition;
  *
  * <p/>
  *
- * <blockquote> use the {@link ComponentContainer.Registry#makeNestedContainer(Class,Class,boolean,boolean,boolean)}
- * method</blockquote>
+ * <blockquote> use the {@link ComponentContainer.Registry#makeNestedContainer(Class,Class,boolean,boolean,boolean)} method</blockquote>
  *
  * <p/>
  *
@@ -136,8 +135,7 @@ package org.fluidity.composition;
  *
  * <p/>
  *
- * <blockquote> use the {@link ComponentContainer.Registry#bind(Class,Class,boolean,boolean,boolean,Class)}
- * method</blockquote>
+ * <blockquote> use the {@link ComponentContainer.Registry#bind(Class,Class,boolean,boolean,boolean,Class)} method</blockquote>
  *
  * <p/>
  *

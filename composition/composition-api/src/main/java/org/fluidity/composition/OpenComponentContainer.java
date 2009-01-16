@@ -39,9 +39,8 @@ public interface OpenComponentContainer extends ComponentContainer {
     ComponentContainer.Registry getRegistry();
 
     /**
-     * Returns a list of unresolved dependencies. The keys are classes representing the interfaces of the missing
-     * dependencies. The values are List objects containing the class objects representing the components that require
-     * the missing dependency.
+     * Returns a list of unresolved dependencies. The keys are classes representing the interfaces of the missing dependencies. The values are List objects
+     * containing the class objects representing the components that require the missing dependency.
      *
      * @return a Map of Class objects with keys and List of Class objects as values.
      */
