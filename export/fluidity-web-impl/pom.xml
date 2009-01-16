@@ -43,9 +43,10 @@
         </license>
     </licenses>
 
-    <description>
-This project lists the web application support modules of the Fluidity Tools.
-    </description>
+    <description><![CDATA[
+This project lists the web application support modules of the Fluidity Tools. These modules are required to successfully
+bootstrap the dependency container in a web application.        
+    ]]></description>
 
     <dependencies>
 
