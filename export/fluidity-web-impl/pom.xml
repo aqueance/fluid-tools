@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2006-2008 Tibor Adam Varga (tibor.adam.varga on gmail)
+  ~ Copyright (c) 2006-2009 Tibor Adam Varga (tibor.adam.varga on gmail)
   ~
   ~ Permission is hereby granted, free of charge, to any person obtaining a copy
   ~ of this software and associated documentation files (the "Softweare"), to deal
@@ -45,7 +45,7 @@
 
     <description><![CDATA[
 This project lists the web application support modules of the Fluidity Tools. These modules are required to successfully
-bootstrap the dependency container in a web application.        
+bootstrap the dependency container in a web application.
     ]]></description>
 
     <dependencies>
