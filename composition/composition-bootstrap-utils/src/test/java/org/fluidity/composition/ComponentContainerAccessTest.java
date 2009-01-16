@@ -73,8 +73,8 @@ public class ComponentContainerAccessTest extends MockGroupAbstractTest {
 
         // give testee a container for that class loader
         EasyMock.expect(bootstrap.populateContainer(EasyMock.same(discovery), (Properties) EasyMock.notNull(),
-                                                    (OpenComponentContainer) EasyMock.same(null),
-                                                    EasyMock.same(classLoader))).andAnswer(new IAnswer<OpenComponentContainer>() {
+                (OpenComponentContainer) EasyMock.same(null),
+                EasyMock.same(classLoader))).andAnswer(new IAnswer<OpenComponentContainer>() {
             public OpenComponentContainer answer() throws Throwable {
 
                 // check that the properties received by bootstrap is contains exactly what we set up above
@@ -131,8 +131,8 @@ public class ComponentContainerAccessTest extends MockGroupAbstractTest {
 
         // give testee a container for our class loader
         EasyMock.expect(bootstrap.populateContainer(EasyMock.same(discovery), (Properties) EasyMock.notNull(),
-                                                    (OpenComponentContainer) EasyMock.same(null),
-                                                    EasyMock.same(getClass().getClassLoader()))).andAnswer(new IAnswer<OpenComponentContainer>() {
+                (OpenComponentContainer) EasyMock.same(null),
+                EasyMock.same(getClass().getClassLoader()))).andAnswer(new IAnswer<OpenComponentContainer>() {
             public OpenComponentContainer answer() throws Throwable {
 
                 // check that the properties received by bootstrap is contains exactly what we set up above
@@ -188,8 +188,8 @@ public class ComponentContainerAccessTest extends MockGroupAbstractTest {
 
             // make testee receive a container (the same) at each level
             EasyMock.expect(bootstrap.populateContainer(EasyMock.same(discovery), (Properties) EasyMock.notNull(),
-                                                        EasyMock.same(containers.get(cl.getParent())),
-                                                        EasyMock.same(cl))).andReturn(containers.get(cl));
+                    EasyMock.same(containers.get(cl.getParent())),
+                    EasyMock.same(cl))).andReturn(containers.get(cl));
         }
 
         final OpenComponentContainer ourContainer = containers.get(ourClassLoader);
@@ -241,8 +241,8 @@ public class ComponentContainerAccessTest extends MockGroupAbstractTest {
 
         // give testee a container for that class loader
         EasyMock.expect(bootstrap.populateContainer(EasyMock.same(discovery), (Properties) EasyMock.notNull(),
-                                                    (OpenComponentContainer) EasyMock.same(null),
-                                                    EasyMock.same(classLoader))).andReturn(container);
+                (OpenComponentContainer) EasyMock.same(null),
+                EasyMock.same(classLoader))).andReturn(container);
 
         final BootComponent1 component1 = new BootComponent1();
         final BootComponent2 component2 = new BootComponent2();

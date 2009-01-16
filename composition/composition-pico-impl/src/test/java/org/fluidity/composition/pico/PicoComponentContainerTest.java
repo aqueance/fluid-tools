@@ -21,8 +21,8 @@
  */
 package org.fluidity.composition.pico;
 
-import org.fluidity.composition.OpenComponentContainer;
 import org.fluidity.composition.ComponentContainerAbstractTest;
+import org.fluidity.composition.OpenComponentContainer;
 import org.fluidity.foundation.SystemSettings;
 import org.fluidity.foundation.logging.BootstrapLog;
 

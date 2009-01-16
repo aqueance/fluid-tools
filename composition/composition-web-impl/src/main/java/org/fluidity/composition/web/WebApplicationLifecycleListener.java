@@ -4,8 +4,8 @@ import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
 import org.fluidity.composition.ComponentContainer;
-import org.fluidity.composition.ComponentDiscovery;
 import org.fluidity.composition.ComponentContainerAccess;
+import org.fluidity.composition.ComponentDiscovery;
 
 /**
  * Finds all implementations of the {@link javax.servlet.ServletContextListener} that have been marked with the

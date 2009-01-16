@@ -53,7 +53,7 @@ public final class ClassDiscoveryImpl implements ClassDiscovery {
                                                          final boolean strict) {
         classLoader = classLoader == null ? ClassLoaderUtils.findClassLoader(componentInterface) : classLoader;
         log.info(getClass(),
-            "Loading service provider files for " + componentInterface + " using class loader " + classLoader);
+                "Loading service provider files for " + componentInterface + " using class loader " + classLoader);
 
         final Collection<Class<? extends T>> componentList = new LinkedHashSet<Class<? extends T>>();
 
@@ -61,7 +61,7 @@ public final class ClassDiscoveryImpl implements ClassDiscovery {
             final Set<URL> loaded = new HashSet<URL>();
 
             final Enumeration<URL> resources = classLoader.getResources(
-                ClassLoaderUtils.absoluteResourceName("META-INF/services/" + componentInterface.getName()));
+                    ClassLoaderUtils.absoluteResourceName("META-INF/services/" + componentInterface.getName()));
 
             for (final URL url : Collections.list(resources)) {
 

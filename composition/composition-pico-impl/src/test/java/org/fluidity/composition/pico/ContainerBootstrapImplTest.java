@@ -25,8 +25,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Properties;
 import java.util.Map;
+import java.util.Properties;
 
 import org.easymock.EasyMock;
 import org.easymock.IAnswer;
@@ -62,9 +62,9 @@ public class ContainerBootstrapImplTest extends MockGroupAbstractTest {
     @Test
     public void connectedComponentAssembly() throws Exception {
         EasyMock.expect(discovery.findComponentClasses(PackageBindings.class, null, true)).andReturn(new Class[] {
-            PackageBindingsImpl.class,
-            DependentPackageBindingsImpl.class,
-            ResponsiblePackageBindingsImpl.class,
+                PackageBindingsImpl.class,
+                DependentPackageBindingsImpl.class,
+                ResponsiblePackageBindingsImpl.class,
         });
 
         final List<PackageBindings> list = new ArrayList<PackageBindings>();
@@ -119,14 +119,14 @@ public class ContainerBootstrapImplTest extends MockGroupAbstractTest {
     @Test
     public void standaloneComponentAssembly() throws Exception {
         EasyMock.expect(discovery.findComponentClasses(PackageBindings.class, null, false)).andReturn(new Class[] {
-            ShutdownHookPackageBindingsImpl.class,
+                ShutdownHookPackageBindingsImpl.class,
         });
 
         shutdown.addTask((String) EasyMock.notNull(), (Runnable) EasyMock.anyObject());
 
         replay();
         final OpenComponentContainer picoContainer =
-            new PicoContainerBootstrap().populateContainer(discovery, null, null, null);
+                new PicoContainerBootstrap().populateContainer(discovery, null, null, null);
         assert picoContainer != null;
         assert picoContainer.getComponent(ShutdownHook.class) == shutdown;
         verify();
@@ -153,7 +153,7 @@ public class ContainerBootstrapImplTest extends MockGroupAbstractTest {
     @Test
     public void bindingProperties() throws Exception {
         EasyMock.expect(discovery.findComponentClasses(PackageBindings.class, null, true)).andReturn(new Class[] {
-            ConfigurablePackageBindingsImpl.class,
+                ConfigurablePackageBindingsImpl.class,
         });
 
         EasyMock.expect(container.getRegistry()).andReturn(registry);
@@ -192,7 +192,7 @@ public class ContainerBootstrapImplTest extends MockGroupAbstractTest {
     @Test(expectedExceptions = MissingDependenciesException.class)
     public void missingDependency() throws Exception {
         EasyMock.expect(discovery.findComponentClasses(PackageBindings.class, null, true)).andReturn(new Class[] {
-            ResponsiblePackageBindingsImpl.class,
+                ResponsiblePackageBindingsImpl.class,
         });
 
         EasyMock.expect(container.makeNestedContainer()).andReturn(container);
@@ -279,6 +279,7 @@ public class ContainerBootstrapImplTest extends MockGroupAbstractTest {
     }
 
     public static class ConfigurablePackageBindingsImpl extends EmptyPackageBindings {
+
         public static final String KEY = ConfigurablePackageBindingsImpl.class.getName() + ".key";
         public static String value;
 

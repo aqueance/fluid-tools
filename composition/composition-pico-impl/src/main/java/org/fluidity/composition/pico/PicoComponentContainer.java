@@ -123,8 +123,8 @@ final class PicoComponentContainer implements OpenComponentContainer {
         final T component = (T) pico.getComponentInstance(componentClass);
         final Package componentPackage = componentClass.getPackage();
         return component == null && (componentPackage == null || !componentPackage.getName().startsWith("java."))
-            ? (T) pico.getComponentInstanceOfType(componentClass)
-            : component;
+                ? (T) pico.getComponentInstanceOfType(componentClass)
+                : component;
     }
 
     public <T> T getComponent(final Class<T> componentClass, Bindings bindings) {
@@ -168,7 +168,7 @@ final class PicoComponentContainer implements OpenComponentContainer {
         return id.toString();
     }
 
-  private class PicoComponentRegistry implements Registry {
+    private class PicoComponentRegistry implements Registry {
 
         public void requireDependency(final Class dependencyInterface, final Class dependentClass) {
             assert dependencyInterface != null;
@@ -228,8 +228,8 @@ final class PicoComponentContainer implements OpenComponentContainer {
 
         public <T> void bind(final Class<? super T> key, final T instance) {
             final String value = instance instanceof String || instance instanceof Number
-                ? ('\'' + String.valueOf(instance) + '\'')
-                : (instance == null ? null : "instance of " + instance.getClass());
+                    ? ('\'' + String.valueOf(instance) + '\'')
+                    : (instance == null ? null : "instance of " + instance.getClass());
             log.info(getClass(), this + ": binding " + key + " to '" + value + "'");
             pico.registerComponentInstance(key, instance);
         }
@@ -282,7 +282,7 @@ final class PicoComponentContainer implements OpenComponentContainer {
                                          final boolean thread,
                                          final Parameter[] parameters) {
             final ComponentAdapter adapter =
-                defaultAdapterFactory.createComponentAdapter(key, implementation, parameters);
+                    defaultAdapterFactory.createComponentAdapter(key, implementation, parameters);
             registerAdapter(key, adapter, singleton, thread, deferred);
         }
 
@@ -297,8 +297,8 @@ final class PicoComponentContainer implements OpenComponentContainer {
 
             if (singleton) {
                 adapter = thread
-                    ? new ThreadLocalComponentAdapter(adapter)
-                    : new CachingComponentAdapter(adapter);
+                        ? new ThreadLocalComponentAdapter(adapter)
+                        : new CachingComponentAdapter(adapter);
             }
 
             pico.registerComponent(adapter);
@@ -340,9 +340,9 @@ final class PicoComponentContainer implements OpenComponentContainer {
 
             @SuppressWarnings({ "unchecked" })
             public Object getComponentInstance(final PicoContainer picoContainer)
-                throws PicoInitializationException, PicoIntrospectionException {
+                    throws PicoInitializationException, PicoIntrospectionException {
                 final ComponentFactory<T> factory =
-                    (ComponentFactory<T>) picoContainer.getComponentInstance(factoryClass);
+                        (ComponentFactory<T>) picoContainer.getComponentInstance(factoryClass);
                 assert factory != null : factoryClass;
                 return factory.makeComponent(PicoComponentContainer.this.getComponent(ComponentContainer.class));
             }
@@ -379,7 +379,7 @@ final class PicoComponentContainer implements OpenComponentContainer {
             }
 
             public Object getComponentInstance(final PicoContainer picoContainer)
-                throws PicoInitializationException, PicoIntrospectionException {
+                    throws PicoInitializationException, PicoIntrospectionException {
                 return factory.makeComponent(PicoComponentContainer.this.getComponent(ComponentContainer.class));
             }
 
@@ -402,8 +402,8 @@ final class PicoComponentContainer implements OpenComponentContainer {
         }
 
         public synchronized Object getComponentInstance(final PicoContainer picoContainer)
-            throws PicoInitializationException,
-            PicoIntrospectionException {
+                throws PicoInitializationException,
+                       PicoIntrospectionException {
             Object answer = cache.get();
 
             if (answer == null) {

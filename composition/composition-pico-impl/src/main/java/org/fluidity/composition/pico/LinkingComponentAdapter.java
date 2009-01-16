@@ -53,7 +53,7 @@ final class LinkingComponentAdapter implements ComponentAdapter {
     }
 
     public Object getComponentInstance(final PicoContainer picoContainer)
-        throws PicoInitializationException, PicoIntrospectionException {
+            throws PicoInitializationException, PicoIntrospectionException {
         return pico.getComponentInstance(targetKey);
     }
 

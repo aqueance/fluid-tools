@@ -37,6 +37,7 @@ import org.testng.annotations.Test;
 /**
  * @author Tibor Varga
  */
+@SuppressWarnings({ "ResultOfMethodCallIgnored" })
 public class ComponentDiscoveryImplTest extends MockGroupAbstractTest {
 
     private final ComponentContainer container = addControl(ComponentContainer.class);
@@ -66,11 +67,11 @@ public class ComponentDiscoveryImplTest extends MockGroupAbstractTest {
 
         try {
             final URLClassLoader classLoader =
-                new URLClassLoader(new URL[] { classDir.toURL() }, getClass().getClassLoader());
+                    new URLClassLoader(new URL[] { classDir.toURL() }, getClass().getClassLoader());
             Thread.currentThread().setContextClassLoader(classLoader);
 
             EasyMock.expect(discovery.findComponentClasses(Interface.class, null, false)).andReturn(
-                new Class[] { Impl1.class, Impl2.class, Impl3.class });
+                    new Class[] { Impl1.class, Impl2.class, Impl3.class });
 
             final Interface[] instances = new Interface[] { new Impl1(), new Impl2(), new Impl3() };
 
@@ -80,7 +81,7 @@ public class ComponentDiscoveryImplTest extends MockGroupAbstractTest {
 
             replay();
             assert new ArrayList<Interface>(Arrays.asList(instances)).equals(new ArrayList<Interface>(
-                Arrays.asList(new ComponentDiscoveryImpl(discovery).findComponentInstances(container, Interface.class))));
+                    Arrays.asList(new ComponentDiscoveryImpl(discovery).findComponentInstances(container, Interface.class))));
             verify();
 
         } finally {
@@ -113,11 +114,11 @@ public class ComponentDiscoveryImplTest extends MockGroupAbstractTest {
 
         try {
             final URLClassLoader classLoader =
-                new URLClassLoader(new URL[] { classDir.toURL() }, getClass().getClassLoader());
+                    new URLClassLoader(new URL[] { classDir.toURL() }, getClass().getClassLoader());
             Thread.currentThread().setContextClassLoader(classLoader);
 
             EasyMock.expect(discovery.findComponentClasses(Interface.class, null, false))
-                .andReturn(new Class[] { Impl1.class, Impl2.class, Impl3.class });
+                    .andReturn(new Class[] { Impl1.class, Impl2.class, Impl3.class });
 
             final Interface[] instances = new Interface[] { new Impl1(), new Impl2(), new Impl3() };
 
@@ -125,10 +126,10 @@ public class ComponentDiscoveryImplTest extends MockGroupAbstractTest {
                 final Class<? extends Interface> instanceClass = instance.getClass();
                 EasyMock.expect(container.getComponent(instanceClass)).andReturn(null);
                 EasyMock.expect(container.getComponent(EasyMock.same(instanceClass),
-                    (ComponentContainer.Bindings) EasyMock.notNull())).andAnswer(new IAnswer<Interface>() {
+                        (ComponentContainer.Bindings) EasyMock.notNull())).andAnswer(new IAnswer<Interface>() {
                     public Interface answer() throws Throwable {
                         ComponentContainer.Bindings bindings =
-                            (ComponentContainer.Bindings) EasyMock.getCurrentArguments()[1];
+                                (ComponentContainer.Bindings) EasyMock.getCurrentArguments()[1];
 
                         // invoke the testee supplied parameter
                         bindings.bindComponents(registry);
@@ -144,7 +145,7 @@ public class ComponentDiscoveryImplTest extends MockGroupAbstractTest {
 
             replay();
             assert new ArrayList<Interface>(Arrays.asList(instances)).equals(new ArrayList<Interface>(
-                Arrays.asList(new ComponentDiscoveryImpl(discovery).findComponentInstances(container, Interface.class))));
+                    Arrays.asList(new ComponentDiscoveryImpl(discovery).findComponentInstances(container, Interface.class))));
             verify();
         } finally {
             servicesFile.delete();

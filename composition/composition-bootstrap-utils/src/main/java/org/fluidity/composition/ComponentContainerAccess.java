@@ -117,7 +117,7 @@ public final class ComponentContainerAccess implements ComponentContainer {
      * @param key   is the key of the property.
      * @param value is the value of the property.
      */
-    @SuppressWarnings({"unchecked"})
+    @SuppressWarnings({ "unchecked" })
     public void setBindingsProperty(final Object key, final Object value) {
         Map map = propertiesMap.get(classLoader);
 
@@ -170,7 +170,7 @@ public final class ComponentContainerAccess implements ComponentContainer {
                     final Map map = propertiesMap.get(cl);
                     ct = containerBootstrap
                             .populateContainer(classDiscovery, map == null ? new HashMap() : map,
-                                               containerMap.get(cl.getParent()), cl);
+                                    containerMap.get(cl.getParent()), cl);
                     containerMap.put(cl, ct);
                 } else {
                     containerMap.put(cl, null);
@@ -236,6 +236,7 @@ public final class ComponentContainerAccess implements ComponentContainer {
      *
      * @param key      the key by which to register the component; preferrably an interface class.
      * @param instance the component instance.
+     *
      * @throws IllegalStateException if the container is made read only by getting any component out of it.
      */
     public <T> void bindBootComponent(final Class<? super T> key, final T instance) {
@@ -246,14 +247,14 @@ public final class ComponentContainerAccess implements ComponentContainer {
 
         private final Logging log = new BootstrapLog("container");
 
-        @SuppressWarnings({"unchecked"})
+        @SuppressWarnings({ "unchecked" })
         public <T> T findInstance(final Class<? super T> interfaceClass, final ClassLoader classLoader) {
             for (final Iterator i = Service.providers(interfaceClass, classLoader); i.hasNext();) {
                 try {
                     return (T) i.next();
                 } catch (final ServiceConfigurationError e) {
                     log.warning(getClass(),
-                                "Finding service providers for " + interfaceClass + " using " + classLoader, e);
+                            "Finding service providers for " + interfaceClass + " using " + classLoader, e);
                 }
             }
 

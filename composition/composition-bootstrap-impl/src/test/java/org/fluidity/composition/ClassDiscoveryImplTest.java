@@ -43,7 +43,7 @@ import org.testng.annotations.Test;
 /**
  * @author Tibor Varga
  */
-@SuppressWarnings({"ResultOfMethodCallIgnored"})
+@SuppressWarnings({ "ResultOfMethodCallIgnored" })
 public class ClassDiscoveryImplTest extends MockGroupAbstractTest {
 
     static {
@@ -75,14 +75,14 @@ public class ClassDiscoveryImplTest extends MockGroupAbstractTest {
 
         try {
             final URLClassLoader classLoader =
-                new URLClassLoader(new URL[] { classDir.toURL() }, getClass().getClassLoader());
+                    new URLClassLoader(new URL[] { classDir.toURL() }, getClass().getClassLoader());
 
             replay();
             final Class[] classes = new ClassDiscoveryImpl().findComponentClasses(Interface.class, classLoader, false);
             verify();
 
             assert new ArrayList<Class>(Arrays.asList(Impl1.class, Impl2.class, Impl3.class))
-                .equals(new ArrayList<Class>(Arrays.asList(classes)));
+                    .equals(new ArrayList<Class>(Arrays.asList(classes)));
         } finally {
             deleteDirectory(classDir, fileList);
         }
@@ -126,11 +126,11 @@ public class ClassDiscoveryImplTest extends MockGroupAbstractTest {
 
             replay();
             final Class[] classes = new ClassDiscoveryImpl()
-                .findComponentClasses(classLoader1.loadClass(Interface.class.getName()), classLoader2, true);
+                    .findComponentClasses(classLoader1.loadClass(Interface.class.getName()), classLoader2, true);
             verify();
 
             assert new ArrayList<Class>(Arrays.asList(classLoader2.loadClass(Impl1.class.getName())))
-                .equals(new ArrayList<Class>(Arrays.asList(classes)));
+                    .equals(new ArrayList<Class>(Arrays.asList(classes)));
         } finally {
             deleteDirectory(classDir1, fileList);
             deleteDirectory(classDir2, fileList);
@@ -148,7 +148,7 @@ public class ClassDiscoveryImplTest extends MockGroupAbstractTest {
         outputFile.createNewFile();
 
         final InputStream input =
-            getClass().getClassLoader().getResourceAsStream(ClassLoaderUtils.absoluteResourceName(fileName));
+                getClass().getClassLoader().getResourceAsStream(ClassLoaderUtils.absoluteResourceName(fileName));
         OutputStream output = new FileOutputStream(outputFile);
 
         assert input != null : fileName;

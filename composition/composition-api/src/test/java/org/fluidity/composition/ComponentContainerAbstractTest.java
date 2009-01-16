@@ -21,6 +21,10 @@
  */
 package org.fluidity.composition;
 
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.easymock.EasyMock;
 import org.easymock.IAnswer;
 import org.fluidity.foundation.Keyed;
@@ -28,10 +32,6 @@ import org.fluidity.tests.MockGroupAbstractTest;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author Tibor Varga
@@ -50,9 +50,11 @@ public abstract class ComponentContainerAbstractTest extends MockGroupAbstractTe
 
     /**
      * Creates a new container. This method is called for each test case.
-     * @param command the command to invoke when the created container gets garbage collected. The same object will
-     *                be passed at each invocation so it is safe to store it in a static field.
-     * @return        a new container to be tested.
+     *
+     * @param command the command to invoke when the created container gets garbage collected. The same object will be passed at each invocation so it is safe
+     *                to store it in a static field.
+     *
+     * @return a new container to be tested.
      */
     protected abstract OpenComponentContainer newContainer(final Runnable command);
 
@@ -294,7 +296,7 @@ public abstract class ComponentContainerAbstractTest extends MockGroupAbstractTe
         final String check = "check";
         registry.bind(Serializable.class, check);
         EasyMock.expect(factory.makeComponent((ComponentContainer) EasyMock.notNull()))
-            .andAnswer(new ContainerCheck<DependentKey, DependentValue>(container, value, Serializable.class, check));
+                .andAnswer(new ContainerCheck<DependentKey, DependentValue>(container, value, Serializable.class, check));
 
         replay();
         final Key component = container.getComponent(Key.class);
@@ -317,7 +319,7 @@ public abstract class ComponentContainerAbstractTest extends MockGroupAbstractTe
         final String check = "check";
         nested.getRegistry().bind(Serializable.class, check);
         EasyMock.expect(factory.makeComponent((ComponentContainer) EasyMock.notNull()))
-            .andAnswer(new ContainerCheck<DependentKey, DependentValue>(nested, value, Serializable.class, check));
+                .andAnswer(new ContainerCheck<DependentKey, DependentValue>(nested, value, Serializable.class, check));
 
         replay();
         final Key component = container.getComponent(Key.class);
@@ -342,7 +344,7 @@ public abstract class ComponentContainerAbstractTest extends MockGroupAbstractTe
         final String check = "check";
         registry.bind(Serializable.class, check);
         EasyMock.expect(factory.makeComponent((ComponentContainer) EasyMock.notNull()))
-            .andAnswer(new ContainerCheck<DependentKey, DependentValue>(container, value, Serializable.class, check));
+                .andAnswer(new ContainerCheck<DependentKey, DependentValue>(container, value, Serializable.class, check));
 
         replay();
         final Key component = container.getComponent(Key.class);
@@ -363,12 +365,12 @@ public abstract class ComponentContainerAbstractTest extends MockGroupAbstractTe
         registry.bind(Factory.class, Factory.class);
         registry.bind(FactoryDependency.class, FactoryDependency.class);
         final OpenComponentContainer nested =
-            registry.makeNestedContainer(DependentKey.class, DependentValue.class, true, false, false, Factory.class);
+                registry.makeNestedContainer(DependentKey.class, DependentValue.class, true, false, false, Factory.class);
 
         final String check = "check";
         nested.getRegistry().bind(Serializable.class, check);
         EasyMock.expect(factory.makeComponent((ComponentContainer) EasyMock.notNull()))
-            .andAnswer(new ContainerCheck<DependentKey, DependentValue>(nested, value, Serializable.class, check));
+                .andAnswer(new ContainerCheck<DependentKey, DependentValue>(nested, value, Serializable.class, check));
 
         replay();
         final Key component = container.getComponent(Key.class);
@@ -482,6 +484,7 @@ public abstract class ComponentContainerAbstractTest extends MockGroupAbstractTe
     }
 
     private static class OptionalDependentValue {
+
         public static DependentKey dependent;
 
         public OptionalDependentValue(@Optional final DependentKey dependent) {
@@ -491,7 +494,7 @@ public abstract class ComponentContainerAbstractTest extends MockGroupAbstractTe
 
     private static class MandatoryDependentValue {
 
-        @SuppressWarnings({"UnusedDeclaration"})
+        @SuppressWarnings({ "UnusedDeclaration" })
         public MandatoryDependentValue(final DependentKey dependent) {
         }
     }
@@ -567,7 +570,7 @@ public abstract class ComponentContainerAbstractTest extends MockGroupAbstractTe
 
             assert received != null : "Received no container";
             assert received.getComponent(checkKey) == checkValue
-                : "Expected " + container.toString() + ", got " + received.toString();
+                    : "Expected " + container.toString() + ", got " + received.toString();
 
             return value;
         }

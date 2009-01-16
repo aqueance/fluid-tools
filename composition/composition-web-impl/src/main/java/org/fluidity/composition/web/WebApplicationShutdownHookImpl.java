@@ -34,10 +34,10 @@ import org.fluidity.composition.ShutdownHook;
 import org.fluidity.foundation.Logging;
 
 /**
- * Implements the component shutdown mechanism for web applications. The implementation requires a mechanism that
- * auto-discovers <code>ServletContextListeners</code> and dispatches the respective servlet events to all without each
- * having to be registered in the web application's web.xml file. Such mechanism is the {@link
- * org.fluidity.composition.web.WebApplicationLifecycleListener} that should then be added as a listener in the web.xml.
+ * Implements the component shutdown mechanism for web applications. The implementation requires a mechanism that auto-discovers
+ * <code>ServletContextListeners</code> and dispatches the respective servlet events to all without each having to be registered in the web application's
+ * web.xml file. Such mechanism is the {@link org.fluidity.composition.web.WebApplicationLifecycleListener} that should then be added as a listener in the
+ * web.xml.
  *
  * @author Tibor Varga
  */
