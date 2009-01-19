@@ -25,13 +25,21 @@ import org.fluidity.composition.ServiceProvider;
 import org.fluidity.foundation.KeyedNamed;
 
 /**
- * This is a component that is started/stopped as the application container starts/stops. There is no deterministic order in which deployed components are
- * started/stopped and so deployed components should be independent of one another.
+ * This is a component that is started/stopped as the application container starts/stops. There is no deterministic
+ * order in which deployed components are started/stopped and so deployed components should be independent of one
+ * another.
  *
  * <p/>
  *
- * All subclasses of this interface will be marked as a service provider for this interface and will be automatically found and controlled by a suitable {@link
- * DeploymentBootstrap} implementation.
+ * A component can notify the system that it stopped running by calling {@link org.fluidity.deployment.DeployedComponent.Context#complete()}
+ * on the observer passed in the {@link org.fluidity.deployment.DeployedComponent#start(org.fluidity.deployment.DeployedComponent.Context)}
+ * method. If the component stops and notifies the observer, the component's {@link DeployedComponent#stop()} method
+ * will not be invoked.
+ *
+ * <p/>
+ *
+ * All subclasses of this interface will be marked as a service provider for this interface and will be automatically
+ * found and controlled by a suitable {@link DeploymentBootstrap} implementation.
  */
 @ServiceProvider(api = DeployedComponent.class)
 public interface DeployedComponent extends KeyedNamed {
@@ -53,14 +61,28 @@ public interface DeployedComponent extends KeyedNamed {
     /**
      * Starts the component.
      *
+     * @param observer is notified when this component is done.
      * @throws Exception when thrown is logged and will cause the application start-up to be aborted if possible.
      */
-    void start() throws Exception;
+    void start(final Context observer) throws Exception;
 
     /**
-     * Stops the component.
+     * Stops the component, unless the component notified the observer passed in {@link
+     * org.fluidity.deployment.DeployedComponent#start(org.fluidity.deployment.DeployedComponent.Context)} that it had
+     * stopped.
      *
      * @throws Exception when thrown is logged.
      */
     void stop() throws Exception;
+
+    /**
+     * Callback interface to notify the recipient that the caller has completed.
+     */
+    interface Context {
+
+        /**
+         * Notifies the recipient that the caller has completed.
+         */
+        void complete();
+    }
 }

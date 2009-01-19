@@ -267,5 +267,9 @@ public final class JettyDeployer implements ServerBootstrap {
         public void stop() throws Exception {
             server.stop();
         }
+
+        public void deploymentsComplete() {
+            // ignore
+        }
     }
 }

@@ -24,7 +24,6 @@ package org.fluidity.deployment.cli;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.fluidity.composition.Component;
-import org.fluidity.deployment.DeploymentBootstrap;
 
 /**
  * This default implementation expects the application code to be in a {@link org.fluidity.deployment.DeployedComponent}, which when done invokes {@link
@@ -35,15 +34,10 @@ final class DefaultMainLoopImpl implements MainLoop {
 
     private final Object lock = new Object();
 
-    private final DeploymentBootstrap bootstrap;
     private final AtomicBoolean stopped = new AtomicBoolean(false);
 
-    public DefaultMainLoopImpl(final DeploymentBootstrap bootstrap) {
-        this.bootstrap = bootstrap;
-    }
-
     public void run() {
-        if (bootstrap.deploymentCount() > 0 && !stopped.get()) {
+        if (!stopped.get()) {
             synchronized (lock) {
                 try {
                     lock.wait();
@@ -60,5 +54,9 @@ final class DefaultMainLoopImpl implements MainLoop {
                 lock.notify();
             }
         }
+    }
+
+    public void deploymentsComplete() {
+        stop();
     }
 }

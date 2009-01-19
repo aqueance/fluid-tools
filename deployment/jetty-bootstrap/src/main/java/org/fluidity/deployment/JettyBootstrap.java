@@ -63,6 +63,10 @@ public final class JettyBootstrap implements ServerBootstrap {
             public void stop() throws Exception {
                 server.stop();
             }
+
+            public void deploymentsComplete() {
+                // ignore
+            }
         });
 
         server.setHandler(handlers);

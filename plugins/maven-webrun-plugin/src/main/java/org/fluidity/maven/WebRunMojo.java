@@ -117,6 +117,10 @@ public final class WebRunMojo extends AbstractMojo {
                 public void stop() throws Exception {
                     server.stop();
                 }
+
+                public void deploymentsComplete() {
+                    // ignore
+                }
             });
 
             server.setThreadPool(new QueuedThreadPool());

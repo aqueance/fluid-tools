@@ -27,4 +27,6 @@ package org.fluidity.deployment;
 public interface RuntimeControl {
 
     void stop() throws Exception;
+
+    void deploymentsComplete();
 }

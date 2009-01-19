@@ -43,18 +43,22 @@ final class DeploymentBootstrapImpl implements DeploymentBootstrap {
 
     private final ComponentContainer container;
     private final ComponentDiscovery discovery;
+    private final RuntimeControl runtime;
 
-    private final List<DeployedComponent> components = new ArrayList<DeployedComponent>();
+    private final List<DeployedComponent> deployedComponents = Collections.synchronizedList(new ArrayList<DeployedComponent>());
+    private final List<DeployedComponent> activeComponents = Collections.synchronizedList(new ArrayList<DeployedComponent>());
     private final List<DeploymentObserver> observers = new ArrayList<DeploymentObserver>();
 
     private final Logging log;
 
     public DeploymentBootstrapImpl(final Logging log,
                                    final ComponentContainer container,
-                                   final ComponentDiscovery discovery) {
+                                   final ComponentDiscovery discovery,
+                                   final RuntimeControl runtime) {
         this.log = log;
         this.container = container;
         this.discovery = discovery;
+        this.runtime = runtime;
     }
 
     private void info(String message) {
@@ -64,15 +68,36 @@ final class DeploymentBootstrapImpl implements DeploymentBootstrap {
     }
 
     public void load() throws Exception {
-        components.clear();
+        deployedComponents.clear();
         observers.clear();
 
-        components.addAll(Arrays.asList(discovery.findComponentInstances(container, DeployedComponent.class)));
+        deployedComponents.addAll(Arrays.asList(discovery.findComponentInstances(container, DeployedComponent.class)));
         observers.addAll(Arrays.asList(discovery.findComponentInstances(container, DeploymentObserver.class)));
 
-        for (final DeployedComponent component : components) {
+        activeComponents.clear();
+        activeComponents.addAll(deployedComponents);
+
+        for (final DeployedComponent component : deployedComponents) {
             info("Starting " + component.name());
-            component.start();
+            component.start(new DeployedComponent.Context() {
+                public void complete() {
+                    final boolean empty;
+
+                    synchronized (activeComponents) {
+
+                        // empty can only be true if the component has actually be removed
+                        empty = activeComponents.remove(component) && activeComponents.isEmpty();
+                    }
+
+                    if (empty) {
+                        try {
+                            runtime.deploymentsComplete();
+                        } catch (final Exception e) {
+                            log.fatal(getClass(), "Could not stop runtime", e);
+                        }
+                    }
+                }
+            });
             info("Started " + component.name());
         }
 
@@ -83,11 +108,16 @@ final class DeploymentBootstrapImpl implements DeploymentBootstrap {
                 log.warning(getClass(), observer.getClass().getName(), e);
             }
         }
+
+        if (activeComponents.isEmpty() && observers.isEmpty()) {
+            runtime.deploymentsComplete();
+        }
     }
 
     public void unload() {
-        Collections.reverse(components);
-        for (final DeployedComponent component : components) {
+        Collections.reverse(deployedComponents);
+        Collections.reverse(activeComponents);
+        for (final DeployedComponent component : activeComponents) {
             try {
                 info("Stopping " + component.name());
                 component.stop();
@@ -105,9 +135,5 @@ final class DeploymentBootstrapImpl implements DeploymentBootstrap {
                 log.warning(getClass(), observer.getClass().getName(), e);
             }
         }
-    }
-
-    public int deploymentCount() {
-        return components.size() + observers.size();
     }
 }

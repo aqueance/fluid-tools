@@ -27,24 +27,19 @@ package org.fluidity.deployment;
 public interface DeploymentBootstrap {
 
     /**
-     * Loads all {@link org.fluidity.deployment.DeployedComponent} and {@link org.fluidity.deployment.DeploymentObserver} objects and calls their {@link
-     * org.fluidity.deployment.DeployedComponent#start()} and {@link org.fluidity.deployment.DeploymentObserver#started()} methods, respectively.
+     * Loads all {@link org.fluidity.deployment.DeployedComponent} and {@link org.fluidity.deployment.DeploymentObserver}
+     * objects and calls their {@link DeployedComponent#start(org.fluidity.deployment.DeployedComponent.Context)} and
+     * {@link org.fluidity.deployment.DeploymentObserver#started()} methods, respectively.
      *
      * @throws Exception will cause the bootstrap to be aborted.
      */
     void load() throws Exception;
 
     /**
-     * Locates all loaded {@link org.fluidity.deployment.DeployedComponent} and {@link org.fluidity.deployment.DeploymentObserver} objects and calls their
-     * {@link org.fluidity.deployment.DeployedComponent#stop()} and {@link org.fluidity.deployment.DeploymentObserver#stopped()} methods, respectively, and in a
-     * reverse order than in the {@link #load()} method.
+     * Locates all loaded {@link org.fluidity.deployment.DeployedComponent} and {@link
+     * org.fluidity.deployment.DeploymentObserver} objects and calls their {@link org.fluidity.deployment.DeployedComponent#stop()}
+     * and {@link org.fluidity.deployment.DeploymentObserver#stopped()} methods, respectively, and in a reverse order
+     * than in the {@link #load()} method.
      */
     void unload();
-
-    /**
-     * Returns the number of deployed components and observers found.
-     *
-     * @return the number of deployed components and observers found.
-     */
-    int deploymentCount();
 }
