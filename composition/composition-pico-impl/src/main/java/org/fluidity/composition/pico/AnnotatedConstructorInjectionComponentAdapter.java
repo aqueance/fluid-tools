@@ -54,11 +54,16 @@ import org.picocontainer.defaults.UnsatisfiableDependenciesException;
  */
 public class AnnotatedConstructorInjectionComponentAdapter extends ConstructorInjectionComponentAdapter {
 
+    private final AnnotatedFieldInjector fieldInjector;
+
     private transient List<Constructor> sortedMatchingConstructors;
 
-    public AnnotatedConstructorInjectionComponentAdapter(final Object componentKey, final Class componentImplementation)
-            throws AssignabilityRegistrationException, NotConcreteRegistrationException {
+    public AnnotatedConstructorInjectionComponentAdapter(final AnnotatedFieldInjector fieldInjector,
+                                                         final Object componentKey,
+                                                         final Class componentImplementation)
+        throws AssignabilityRegistrationException, NotConcreteRegistrationException {
         super(componentKey, componentImplementation, null, true);
+        this.fieldInjector = fieldInjector;
     }
 
     private List<Constructor> getSortedMatchingConstructors() {
@@ -67,8 +72,8 @@ public class AnnotatedConstructorInjectionComponentAdapter extends ConstructorIn
 
         // filter out all constructors that will definately not match
         for (Constructor constructor : allConstructors) {
-            if ((parameters == null || constructor.getParameterTypes().length == parameters.length) && (
-                    allowNonPublicClasses || (constructor.getModifiers() & Modifier.PUBLIC) != 0)) {
+            if ((parameters == null || constructor.getParameterTypes().length == parameters.length) && (allowNonPublicClasses
+                || (constructor.getModifiers() & Modifier.PUBLIC) != 0)) {
                 matchingConstructors.add(constructor);
             }
         }
@@ -95,7 +100,7 @@ public class AnnotatedConstructorInjectionComponentAdapter extends ConstructorIn
 
     @Override
     protected Constructor getGreediestSatisfiableConstructor(final PicoContainer container)
-            throws PicoIntrospectionException, AssignabilityRegistrationException, NotConcreteRegistrationException {
+        throws PicoIntrospectionException, AssignabilityRegistrationException, NotConcreteRegistrationException {
         final Set<Constructor> conflicts = new HashSet<Constructor>();
         final Set<List<Class>> unsatisfiableDependencyTypes = new HashSet<List<Class>>();
 
@@ -111,9 +116,7 @@ public class AnnotatedConstructorInjectionComponentAdapter extends ConstructorIn
             final Class[] parameterTypes = constructor.getParameterTypes();
 
             final Annotation[][] parameterAnnotations = constructor.getParameterAnnotations();
-            final Parameter[] currentParameters = parameters != null
-                    ? parameters
-                    : createDefaultParameters(parameterTypes, parameterAnnotations, container);
+            final Parameter[] currentParameters = parameters != null ? parameters : createDefaultParameters(parameterTypes, parameterAnnotations, container);
 
             boolean failedDependency = false;
 
@@ -154,25 +157,19 @@ public class AnnotatedConstructorInjectionComponentAdapter extends ConstructorIn
         if (!conflicts.isEmpty()) {
             throw new TooManySatisfiableConstructorsException(getComponentImplementation(), conflicts);
         } else if (greediestConstructor == null && !unsatisfiableDependencyTypes.isEmpty()) {
-            throw new UnsatisfiableDependenciesException(this,
-                    unsatisfiedDependencyType,
-                    unsatisfiableDependencyTypes,
-                    container);
+            throw new UnsatisfiableDependenciesException(this, unsatisfiedDependencyType, unsatisfiableDependencyTypes, container);
         } else if (greediestConstructor == null) {
 
             // be nice to the user, show all constructors that were filtered out
-            throw new PicoInitializationException(
-                    "Either do the specified parameters not match any of the following constructors: "
-                            + new HashSet<Constructor>(Arrays.asList(getConstructors())).toString()
-                            + " or the constructors were not accessible for '" + getComponentImplementation() + "'");
+            throw new PicoInitializationException("Either do the specified parameters not match any of the following constructors: "
+                + new HashSet<Constructor>(Arrays.asList(getConstructors())).toString() + " or the constructors were not accessible for '"
+                + getComponentImplementation() + "'");
         }
 
         return greediestConstructor;
     }
 
-    private Parameter[] createDefaultParameters(final Class[] parameterTypes,
-                                                final Annotation[][] parameterAnnotations,
-                                                final PicoContainer container) {
+    private Parameter[] createDefaultParameters(final Class[] parameterTypes, final Annotation[][] parameterAnnotations, final PicoContainer container) {
         final Parameter[] parameters = super.createDefaultParameters(parameterTypes);
 
         for (int i = 0; i < parameters.length; i++) {
@@ -196,6 +193,14 @@ public class AnnotatedConstructorInjectionComponentAdapter extends ConstructorIn
         return false;
     }
 
+    @Override
+    public Object getComponentInstance(final PicoContainer container)
+        throws PicoInitializationException, PicoIntrospectionException, AssignabilityRegistrationException, NotConcreteRegistrationException {
+        final Object component = super.getComponentInstance(container);
+        fieldInjector.injectFields(container, component);
+        return component;
+    }
+
     /**
      * This is a constructor parameter that was specified as optional and that could not be resolved. This implementation resolves to <code>null</code>,
      * effectively allowing the corresponding constructor parameter to receive a <code>null</code> value.
@@ -208,15 +213,11 @@ public class AnnotatedConstructorInjectionComponentAdapter extends ConstructorIn
             this.parameter = parameter;
         }
 
-        public Object resolveInstance(final PicoContainer container,
-                                      final ComponentAdapter adapter,
-                                      final Class expectedType) {
+        public Object resolveInstance(final PicoContainer container, final ComponentAdapter adapter, final Class expectedType) {
             return null;
         }
 
-        public boolean isResolvable(final PicoContainer container,
-                                    final ComponentAdapter adapter,
-                                    final Class expectedType) {
+        public boolean isResolvable(final PicoContainer container, final ComponentAdapter adapter, final Class expectedType) {
             return true;
         }
 

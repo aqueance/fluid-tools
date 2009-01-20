@@ -33,10 +33,15 @@ import org.picocontainer.defaults.NotConcreteRegistrationException;
  */
 public class AnnotatedConstructorInjectionComponentAdapterFactory extends ConstructorInjectionComponentAdapterFactory {
 
-    public ComponentAdapter createComponentAdapter(final Object componentKey,
-                                                   final Class componentImplementation,
-                                                   final Parameter[] parameters)
-            throws PicoIntrospectionException, AssignabilityRegistrationException, NotConcreteRegistrationException {
-        return new AnnotatedConstructorInjectionComponentAdapter(componentKey, componentImplementation);
+    private final AnnotatedFieldInjector fieldInjector;
+
+    public AnnotatedConstructorInjectionComponentAdapterFactory(final AnnotatedFieldInjector fieldInjector) {
+        super(true);
+        this.fieldInjector = fieldInjector;
+    }
+
+    public ComponentAdapter createComponentAdapter(final Object componentKey, final Class componentImplementation, final Parameter[] parameters)
+        throws PicoIntrospectionException, AssignabilityRegistrationException, NotConcreteRegistrationException {
+        return new AnnotatedConstructorInjectionComponentAdapter(fieldInjector, componentKey, componentImplementation);
     }
 }

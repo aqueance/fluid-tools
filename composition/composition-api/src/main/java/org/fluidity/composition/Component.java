@@ -29,23 +29,25 @@ import java.lang.annotation.Target;
 
 /**
  * In case of simple interface to implementation mapping, this annotation can be used to specify at the implementation class what interface should be bound to
- * it.
+ * it. The org.fluidity.maven:maven-composition-plugin Maven plugin will generate the necessary {@link PackageBindings} object and create the appropriate
+ * service provider descriptor file, unless the <code>automatic</code> is <code>false</code>.
  *
  * <p/>
  *
- * The org.fluidity.maven:maven-composition-plugin Maven plugin will generate the necessary {@link PackageBindings} object and create the appropriate service
- * provider descriptor file, unless the <code>automatic</code> is <code>false</code>.
+ * This annotation can also be used to mark instance fields of components to request field inject of dependencies. In that case the annotation is processed at
+ * run-time after the component has been instantiated - either by the container or externally and in the latter case the container has to be asked to initialize
+ * the externally instantiated object by calling {@link org.fluidity.composition.ComponentContainer#initialize(Object)}.
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
+@Target({ElementType.TYPE, ElementType.FIELD})
 public @interface Component {
 
     /**
      * Tells whether this component should be automatically bound or not. If manually bound, the developer has to implement the binding in a suitable
      * <code>PackageBindings</code> object. All other annotation properties are ignored for manually bound components.
      *
-     * @return <code>true</code> if this component should be automatically bound.
+     * @return <code>true</code> if this component should be automatically bound; ignored for annotated fields.
      */
     boolean automatic() default true;
 
@@ -60,7 +62,7 @@ public @interface Component {
     /**
      * Tells whether this component should be bound as a fallback if no other component has been bound to its API interface.
      *
-     * @return <code>true</code> if this component should be mapped as a fallback.
+     * @return <code>true</code> if this component should be mapped as a fallback; ignored for annotated fields.
      */
     boolean fallback() default false;
 }

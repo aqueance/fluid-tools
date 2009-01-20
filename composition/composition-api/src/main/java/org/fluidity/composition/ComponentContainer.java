@@ -200,6 +200,15 @@ public interface ComponentContainer {
     OpenComponentContainer makeNestedContainer();
 
     /**
+     * Post-initialize the @{@link Component} annotated fields of the given object.
+     *
+     * @param component is a component that needs field injection of dependencies.
+     *
+     * @return the field injected object - the same that was passed as the method parameter.
+     */
+    <T> T initialize(final T component);
+
+    /**
      * Created to be add component bindings to a registry.
      */
     interface Bindings {
@@ -270,11 +279,7 @@ public interface ComponentContainer {
          * @param thread         specifies whether the component should be thread local.
          * @param deferred       specifies whether the component's instantiation should be deferred until the first method call.
          */
-        <T> void bind(final Class<T> key,
-                      final Class<? extends T> implementation,
-                      final boolean singleton,
-                      final boolean thread,
-                      final boolean deferred);
+        <T> void bind(final Class<T> key, final Class<? extends T> implementation, final boolean singleton, final boolean thread, final boolean deferred);
 
         /**
          * Binds a component class to its interface with forced constructor parameters. Use this when you want to supply a more specific dependency or the
@@ -338,8 +343,7 @@ public interface ComponentContainer {
          *
          * @return an open container, never <code>null</code>.
          */
-        <T> OpenComponentContainer makeNestedContainer(final Class<T> key,
-                                                       final Class<? extends T> implementation);
+        <T> OpenComponentContainer makeNestedContainer(final Class<T> key, final Class<? extends T> implementation);
 
         /**
          * Returns a new child registry whose container will use the container for this registry as its parent.

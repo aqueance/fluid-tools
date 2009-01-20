@@ -41,7 +41,7 @@ public abstract class ComponentContainerAbstractTest extends MockGroupAbstractTe
     private OpenComponentContainer container;
     private ComponentContainer.Registry registry;
 
-    @SuppressWarnings({ "unchecked" })
+    @SuppressWarnings({"unchecked"})
     protected ComponentContainer.ComponentFactory<DependentKey> factory = addControl(ComponentContainer.ComponentFactory.class);
 
     public ComponentContainerAbstractTest() {
@@ -296,7 +296,7 @@ public abstract class ComponentContainerAbstractTest extends MockGroupAbstractTe
         final String check = "check";
         registry.bind(Serializable.class, check);
         EasyMock.expect(factory.makeComponent((ComponentContainer) EasyMock.notNull()))
-                .andAnswer(new ContainerCheck<DependentKey, DependentValue>(container, value, Serializable.class, check));
+            .andAnswer(new ContainerCheck<DependentKey, DependentValue>(container, value, Serializable.class, check));
 
         replay();
         final Key component = container.getComponent(Key.class);
@@ -319,7 +319,7 @@ public abstract class ComponentContainerAbstractTest extends MockGroupAbstractTe
         final String check = "check";
         nested.getRegistry().bind(Serializable.class, check);
         EasyMock.expect(factory.makeComponent((ComponentContainer) EasyMock.notNull()))
-                .andAnswer(new ContainerCheck<DependentKey, DependentValue>(nested, value, Serializable.class, check));
+            .andAnswer(new ContainerCheck<DependentKey, DependentValue>(nested, value, Serializable.class, check));
 
         replay();
         final Key component = container.getComponent(Key.class);
@@ -344,7 +344,7 @@ public abstract class ComponentContainerAbstractTest extends MockGroupAbstractTe
         final String check = "check";
         registry.bind(Serializable.class, check);
         EasyMock.expect(factory.makeComponent((ComponentContainer) EasyMock.notNull()))
-                .andAnswer(new ContainerCheck<DependentKey, DependentValue>(container, value, Serializable.class, check));
+            .andAnswer(new ContainerCheck<DependentKey, DependentValue>(container, value, Serializable.class, check));
 
         replay();
         final Key component = container.getComponent(Key.class);
@@ -364,13 +364,12 @@ public abstract class ComponentContainerAbstractTest extends MockGroupAbstractTe
         registry.bind(Key.class, Value.class, true, false, false);
         registry.bind(Factory.class, Factory.class);
         registry.bind(FactoryDependency.class, FactoryDependency.class);
-        final OpenComponentContainer nested =
-                registry.makeNestedContainer(DependentKey.class, DependentValue.class, true, false, false, Factory.class);
+        final OpenComponentContainer nested = registry.makeNestedContainer(DependentKey.class, DependentValue.class, true, false, false, Factory.class);
 
         final String check = "check";
         nested.getRegistry().bind(Serializable.class, check);
         EasyMock.expect(factory.makeComponent((ComponentContainer) EasyMock.notNull()))
-                .andAnswer(new ContainerCheck<DependentKey, DependentValue>(nested, value, Serializable.class, check));
+            .andAnswer(new ContainerCheck<DependentKey, DependentValue>(nested, value, Serializable.class, check));
 
         replay();
         final Key component = container.getComponent(Key.class);
@@ -440,6 +439,46 @@ public abstract class ComponentContainerAbstractTest extends MockGroupAbstractTe
         }
     }
 
+    @Test
+    public void testFieldInjection() throws Exception {
+        replay();
+        registry.bind(Key.class, Value.class);
+        registry.bind(DependentKey.class, DependentValue.class);
+        registry.bind(FieldInjected.class);
+
+        final FieldInjected injected = container.getComponent(FieldInjected.class);
+        Assert.assertNotNull(injected);
+        injected.verify();
+
+        verify();
+    }
+
+    @Test
+    public void testFieldInjectionOfInstance() throws Exception {
+        replay();
+        registry.bind(Key.class, Value.class);
+        registry.bind(DependentKey.class, DependentValue.class);
+
+        final FieldInjected injected = new FieldInjected(container.getComponent(DependentValue.class));
+
+        container.initialize(injected);
+        injected.verify();
+
+        verify();
+    }
+
+    @Test
+    public void testSelfDependencyViaField() throws Exception {
+        replay();
+        registry.bind(SelfDependent.class, SelfDependentImpl.class);
+
+        final SelfDependentImpl injected = container.getComponent(SelfDependentImpl.class);
+        Assert.assertNotNull(injected);
+        injected.verify();
+
+        verify();
+    }
+
     private void verifyComponent(ComponentContainer container) {
         final Object component = container.getComponent(Key.class);
         assert component != null;
@@ -494,7 +533,7 @@ public abstract class ComponentContainerAbstractTest extends MockGroupAbstractTe
 
     private static class MandatoryDependentValue {
 
-        @SuppressWarnings({ "UnusedDeclaration" })
+        @SuppressWarnings({"UnusedDeclaration"})
         public MandatoryDependentValue(final DependentKey dependent) {
         }
     }
@@ -504,7 +543,7 @@ public abstract class ComponentContainerAbstractTest extends MockGroupAbstractTe
      */
     private static class FakeValue implements Key {
 
-        public FakeValue(DependentKey dependent) {
+        public FakeValue(final DependentKey dependent) {
             assert dependent != null;
         }
 
@@ -534,6 +573,50 @@ public abstract class ComponentContainerAbstractTest extends MockGroupAbstractTe
         // empty
     }
 
+    /**
+     * A class that has both constructor injected and field injected dependencies.
+     */
+    @SuppressWarnings({"UnusedDeclaration"})
+    public static class FieldInjected {
+
+        @Component
+        private Key dependency1;
+
+        private final DependentKey dependency2;
+
+        public FieldInjected(final DependentKey dependency2) {
+            this.dependency2 = dependency2;
+        }
+
+        public void verify() {
+            Assert.assertNotNull(dependency1, "Field injection did not work");
+            Assert.assertNotNull(dependency2, "Construction injection did not work");
+        }
+    }
+
+    public static interface SelfDependent {
+
+    }
+
+    /**
+     * A class that has a field dependency to itself.
+     */
+    @SuppressWarnings({"UnusedDeclaration"})
+    public static class SelfDependentImpl implements SelfDependent {
+
+        @Component
+        private SelfDependent self;
+
+        @Optional
+        @Component
+        private DependentKey key;
+
+        public void verify() {
+            Assert.assertSame(self, this, "Self injection did not work");
+            Assert.assertNull(key, "Optional dependency set");
+        }
+    }
+
     private static class Factory implements ComponentContainer.ComponentFactory<DependentKey> {
 
         public static ComponentContainer.ComponentFactory<DependentKey> delegate;
@@ -555,10 +638,7 @@ public abstract class ComponentContainerAbstractTest extends MockGroupAbstractTe
         private final Object checkValue;
         private final V value;
 
-        public ContainerCheck(final OpenComponentContainer container,
-                              final V value,
-                              final Class<?> checkKey,
-                              final Object checkValue) {
+        public ContainerCheck(final OpenComponentContainer container, final V value, final Class<?> checkKey, final Object checkValue) {
             this.container = container;
             this.checkKey = checkKey;
             this.checkValue = checkValue;
@@ -569,8 +649,7 @@ public abstract class ComponentContainerAbstractTest extends MockGroupAbstractTe
             final ComponentContainer received = (ComponentContainer) EasyMock.getCurrentArguments()[0];
 
             assert received != null : "Received no container";
-            assert received.getComponent(checkKey) == checkValue
-                    : "Expected " + container.toString() + ", got " + received.toString();
+            assert received.getComponent(checkKey) == checkValue : "Expected " + container.toString() + ", got " + received.toString();
 
             return value;
         }

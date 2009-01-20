@@ -117,7 +117,7 @@ public final class ComponentContainerAccess implements ComponentContainer {
      * @param key   is the key of the property.
      * @param value is the value of the property.
      */
-    @SuppressWarnings({ "unchecked" })
+    @SuppressWarnings({"unchecked"})
     public void setBindingsProperty(final Object key, final Object value) {
         Map map = propertiesMap.get(classLoader);
 
@@ -168,9 +168,7 @@ public final class ComponentContainerAccess implements ComponentContainer {
                     }
 
                     final Map map = propertiesMap.get(cl);
-                    ct = containerBootstrap
-                            .populateContainer(classDiscovery, map == null ? new HashMap() : map,
-                                    containerMap.get(cl.getParent()), cl);
+                    ct = containerBootstrap.populateContainer(classDiscovery, map == null ? new HashMap() : map, containerMap.get(cl.getParent()), cl);
                     containerMap.put(cl, ct);
                 } else {
                     containerMap.put(cl, null);
@@ -225,6 +223,10 @@ public final class ComponentContainerAccess implements ComponentContainer {
         return getContainer(false).makeNestedContainer();
     }
 
+    public <T> T initialize(final T component) {
+        return getContainer(true).initialize(component);
+    }
+
     /**
      * Allows a bootstrap code to add components to the container. This method can only be invoked before any component is taken out of the container by any of
      * the {@link #getComponent(Class)} or {@link #getComponent(Class, org.fluidity.composition.ComponentContainer.Bindings)} methods. Once that happens, this
@@ -247,14 +249,13 @@ public final class ComponentContainerAccess implements ComponentContainer {
 
         private final Logging log = new BootstrapLog("container");
 
-        @SuppressWarnings({ "unchecked" })
+        @SuppressWarnings({"unchecked"})
         public <T> T findInstance(final Class<? super T> interfaceClass, final ClassLoader classLoader) {
             for (final Iterator i = Service.providers(interfaceClass, classLoader); i.hasNext();) {
                 try {
                     return (T) i.next();
                 } catch (final ServiceConfigurationError e) {
-                    log.warning(getClass(),
-                            "Finding service providers for " + interfaceClass + " using " + classLoader, e);
+                    log.warning(getClass(), "Finding service providers for " + interfaceClass + " using " + classLoader, e);
                 }
             }
 
