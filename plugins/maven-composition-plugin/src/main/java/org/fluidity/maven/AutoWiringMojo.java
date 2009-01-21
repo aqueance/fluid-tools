@@ -38,7 +38,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.bcel.Constants;
-import org.apache.bcel.classfile.AnnotationElementValue;
 import org.apache.bcel.classfile.AnnotationEntry;
 import org.apache.bcel.classfile.Annotations;
 import org.apache.bcel.classfile.ArrayElementValue;
@@ -69,7 +68,6 @@ import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.EmptyPackageBindings;
 import org.fluidity.composition.PackageBindings;
 import org.fluidity.composition.ServiceProvider;
-import org.fluidity.composition.ServiceProviderList;
 
 /**
  * Goal that finds all implementations of a service provider interface and creates a service provider file as per the JAR file specification and finds all
@@ -84,9 +82,7 @@ public class AutoWiringMojo extends AbstractMojo {
 
     private static final String ATN_COMPONENT = "L" + Component.class.getName().replace('.', '/') + ";";
     private static final String ATN_SERVICE_PROVIDER = "L" + ServiceProvider.class.getName().replace('.', '/') + ";";
-    private static final String ATN_SERVICE_PROVIDER_LIST = "L" + ServiceProviderList.class.getName().replace('.', '/') + ";";
     private static final String ATR_API = "api";
-    private static final String ATR_VALUE = "value";
     private static final String ATR_AUTOMATIC = "automatic";
     private static final String ATTR_FALLBACK = "fallback";
     private static final String PACKAGE_BINDINGS = PackageBindings.class.getName();
@@ -290,7 +286,7 @@ public class AutoWiringMojo extends AbstractMojo {
                         }
                     }
 
-                    final Set<String> serviceProviderApi = new HashSet<String>();
+                    final Set<String> serviceProviderApis = new HashSet<String>();
 
                     boolean component = false;
                     boolean fallback = false;
@@ -300,7 +296,7 @@ public class AutoWiringMojo extends AbstractMojo {
                         if (attribute instanceof RuntimeVisibleAnnotations) {
                             for (final AnnotationEntry annotation : ((Annotations) attribute).getAnnotationEntries()) {
                                 if (isServiceProvider(annotation)) {
-                                    findServiceProviders(classData, serviceProviderApi, annotation);
+                                    findServiceProviders(classData, serviceProviderApis, annotation);
                                 } else if (isComponent(annotation) && isAutomatic(annotation)) {
                                     component = true;
                                     componentApi = getApiClass(null, annotation);
@@ -318,7 +314,7 @@ public class AutoWiringMojo extends AbstractMojo {
                                 final Annotations annotations = (Annotations) attribute;
                                 for (final AnnotationEntry annotation : annotations.getAnnotationEntries()) {
                                     if (isServiceProvider(annotation)) {
-                                        findServiceProviders(cls, serviceProviderApi, annotation);
+                                        findServiceProviders(cls, serviceProviderApis, annotation);
                                     }
                                 }
                             }
@@ -331,18 +327,18 @@ public class AutoWiringMojo extends AbstractMojo {
                                 final Annotations annotations = (Annotations) attribute;
                                 for (final AnnotationEntry annotation : annotations.getAnnotationEntries()) {
                                     if (isServiceProvider(annotation)) {
-                                        findServiceProviders(cls, serviceProviderApi, annotation);
+                                        findServiceProviders(cls, serviceProviderApis, annotation);
                                     }
                                 }
                             }
                         }
                     }
 
-                    if (!serviceProviderApi.isEmpty()) {
-                        foundServiceProvider(serviceProviderMap, serviceProviderApi, className);
+                    if (!serviceProviderApis.isEmpty()) {
+                        foundServiceProvider(serviceProviderMap, serviceProviderApis, className);
                     }
 
-                    if (serviceProviderApi.size() > 1 && !component) {
+                    if (serviceProviderApis.size() > 1 && !component) {
                         component = true;
                         fallback = true;
                     }
@@ -353,8 +349,7 @@ public class AutoWiringMojo extends AbstractMojo {
                         }
 
                         if (componentApi != null) {
-                            foundComponent(generatedBindings, serviceProviderMap, componentMap, className,
-                                    componentApi);
+                            foundComponent(generatedBindings, serviceProviderMap, componentMap, className, componentApi);
                         } else {
                             log.warn("No component interface could be identified for " + className);
                         }
@@ -366,17 +361,17 @@ public class AutoWiringMojo extends AbstractMojo {
         }
     }
 
-    private void findServiceProviders(final JavaClass classData,
-                                      final Set<String> serviceProviderApi,
-                                      final AnnotationEntry annotation) throws ClassNotFoundException {
-        final String api = getApiClass(classData, annotation);
+    private void findServiceProviders(final JavaClass classData, final Set<String> serviceProviderApis, final AnnotationEntry annotation)
+        throws ClassNotFoundException {
+        final Collection<String> apis = getAnnotationValues(ATR_API, annotation);
 
-        if (api != null) {
-            serviceProviderApi.add(api);
+        if (apis != null && apis.size() > 0) {
+            serviceProviderApis.addAll(apis);
         } else {
-            final Collection<String> apis = getAnnotationAttribute(ATR_VALUE, ATR_API, annotation);
-            if (apis != null && apis.size() > 0) {
-                serviceProviderApi.addAll(apis);
+            final String api = findSingleInterface(classData);
+
+            if (api != null) {
+                serviceProviderApis.add(api);
             } else {
                 log.warn("No service provider interface could be identified for " + classData.getClassName());
             }
@@ -384,18 +379,17 @@ public class AutoWiringMojo extends AbstractMojo {
     }
 
     private boolean isFallback(final AnnotationEntry annotation) {
-        final String value = getAnnotationAttribute(ATTR_FALLBACK, annotation);
+        final String value = getAnnotationValue(ATTR_FALLBACK, annotation);
         return value != null && Boolean.parseBoolean(value);
     }
 
     private boolean isAutomatic(final AnnotationEntry annotation) {
-        final String value = getAnnotationAttribute(ATR_AUTOMATIC, annotation);
+        final String value = getAnnotationValue(ATR_AUTOMATIC, annotation);
         return value == null || Boolean.parseBoolean(value);
     }
 
-    private String getApiClass(final JavaClass classData, final AnnotationEntry annotation)
-            throws ClassNotFoundException {
-        final String api = getAnnotationAttribute(ATR_API, annotation);
+    private String getApiClass(final JavaClass classData, final AnnotationEntry annotation) throws ClassNotFoundException {
+        final String api = getAnnotationValue(ATR_API, annotation);
         return api == null ? classData == null ? null : findSingleInterface(classData) : api;
     }
 
@@ -404,8 +398,7 @@ public class AutoWiringMojo extends AbstractMojo {
     }
 
     private boolean isServiceProvider(final AnnotationEntry annotation) {
-        return ATN_SERVICE_PROVIDER.equals(annotation.getAnnotationType()) || ATN_SERVICE_PROVIDER_LIST
-                .equals(annotation.getAnnotationType());
+        return ATN_SERVICE_PROVIDER.equals(annotation.getAnnotationType());
     }
 
     private String findComponentInterface(final JavaClass classData) throws ClassNotFoundException {
@@ -433,24 +426,20 @@ public class AutoWiringMojo extends AbstractMojo {
         return null;
     }
 
-    private String getAnnotationAttribute(final String name, final AnnotationEntry annotation) {
+    private String getAnnotationValue(final String name, final AnnotationEntry annotation) {
         for (final ElementValuePair setting : annotation.getElementValuePairs()) {
             if (name.equals(setting.getNameString())) {
                 final ElementValue value = setting.getValue();
                 final String answer = String.valueOf(value);
 
-                return value.getElementValueType() == ElementValue.CLASS
-                        ? answer.substring(1, answer.length() - 1).replace('/', '.')
-                        : answer;
+                return value.getElementValueType() == ElementValue.CLASS ? className(answer) : answer;
             }
         }
 
         return null;
     }
 
-    private Collection<String> getAnnotationAttribute(final String name,
-                                                      final String nested,
-                                                      final AnnotationEntry annotation) {
+    private Collection<String> getAnnotationValues(final String name, final AnnotationEntry annotation) {
         final List<String> values = new ArrayList<String>();
 
         for (final ElementValuePair setting : annotation.getElementValuePairs()) {
@@ -459,16 +448,18 @@ public class AutoWiringMojo extends AbstractMojo {
 
                 if (list.getElementValueType() == ElementValue.ARRAY) {
                     for (final ElementValue value : ((ArrayElementValue) list).getElementValuesArray()) {
-                        if (value.getElementValueType() == ElementValue.ANNOTATION) {
-                            values.add(
-                                    getAnnotationAttribute(nested, ((AnnotationElementValue) value).getAnnotationEntry()));
-                        }
+                        final String answer = String.valueOf(value);
+                        values.add(value.getElementValueType() == ElementValue.CLASS ? className(answer) : answer);
                     }
                 }
             }
         }
 
         return values;
+    }
+
+    private String className(final String typeCode) {
+        return typeCode.substring(1, typeCode.length() - 1).replace('/', '.');
     }
 
     private void foundComponent(final String generatedBindings,
@@ -509,9 +500,8 @@ public class AutoWiringMojo extends AbstractMojo {
         return answer.toString();
     }
 
-    private void foundServiceProvider(final Map<String, Collection<String>> serviceProviderMap,
-                                      final Collection<String> providerNames,
-                                      final String className) throws MojoExecutionException {
+    private void foundServiceProvider(final Map<String, Collection<String>> serviceProviderMap, final Collection<String> providerNames, final String className)
+        throws MojoExecutionException {
         for (final String providerName : providerNames) {
             Collection<String> list = serviceProviderMap.get(providerName);
 

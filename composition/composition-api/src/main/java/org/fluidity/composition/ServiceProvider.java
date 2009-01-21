@@ -42,9 +42,9 @@ import java.lang.annotation.Target;
 public @interface ServiceProvider {
 
     /**
-     * Returns the interface that this service provider implements.
+     * Returns the interfaces that this service provider implements.
      *
-     * @return a Class object.
+     * @return an array of Class objects.
      */
-    Class api() default Object.class;
+    Class[] api() default { };
 }
