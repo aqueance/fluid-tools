@@ -22,7 +22,6 @@
 package org.fluidity.composition.pico;
 
 import java.io.Serializable;
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.Collections;
@@ -63,30 +62,15 @@ public class AnnotatedFieldInjector implements Serializable {
 
             if ((field.getModifiers() & Modifier.FINAL) != 0 || field.get(instance) != null) continue;
 
-            Class<?> dependencyType = field.getType();
-            boolean component = false;
-            boolean optional = false;
-
-            for (final Annotation annotation : field.getAnnotations()) {
-                final Class<? extends Annotation> type = annotation.annotationType();
-
-                if (type.equals(Component.class)) {
-                    component = true;
-                    dependencyType = ((Component) annotation).api();
-                } else if (type.equals(Optional.class)) {
-                    optional = true;
-                }
-            }
-
-            if (component) {
-                if (dependencyType == Object.class) {
-                    dependencyType = field.getType();
-                }
-
+            if (field.isAnnotationPresent(Component.class)) {
+                final Class<?> dependencyType = findInterfaceType(field.getAnnotation(Component.class), field.getType());
                 final Object dependency = dependencyType.isAssignableFrom(componentType) ? instance : container.getComponentInstance(dependencyType);
 
-                if (dependency == null && !optional) {
-                    throw new UnsatisfiableDependenciesException(new FakeComponentAdapter(componentType, instance),
+                if (dependency == null && !field.isAnnotationPresent(Optional.class)) {
+                    final Component annotation = componentType.getAnnotation(Component.class);
+                    final Class<?> interfaceType = findInterfaceType(annotation, componentType);
+
+                    throw new UnsatisfiableDependenciesException(new FakeComponentAdapter(interfaceType, componentType, instance),
                                                                  dependencyType,
                                                                  Collections.emptySet(),
                                                                  container);
@@ -106,14 +90,17 @@ public class AnnotatedFieldInjector implements Serializable {
         }
     }
 
+    private Class<?> findInterfaceType(Component component, final Class<?> defaultType) {
+        final Class<?> dependencyType = component == null ? Object.class : component.api();
+        return dependencyType == Object.class ? defaultType : dependencyType;
+    }
+
     private static class FakeComponentAdapter extends AbstractComponentAdapter {
 
         private final Object instance;
 
-        protected FakeComponentAdapter(final Class componentImplementation, final Object instance) throws AssignabilityRegistrationException {
-
-            // TODO: detect component key using @Component annotation of class
-            super(componentImplementation, componentImplementation);
+        protected FakeComponentAdapter(final Class componentKey, final Class componentImplementation, final Object instance) throws AssignabilityRegistrationException {
+            super(componentKey, componentImplementation);
             this.instance = instance;
         }
 
