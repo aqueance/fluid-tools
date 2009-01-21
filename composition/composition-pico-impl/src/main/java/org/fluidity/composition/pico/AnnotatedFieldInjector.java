@@ -49,52 +49,61 @@ public class AnnotatedFieldInjector implements Serializable {
         final Class<?> componentType = instance.getClass();
 
         try {
-            for (final Field field : componentType.getDeclaredFields()) {
-                field.setAccessible(true);
-
-                if ((field.getModifiers() & Modifier.FINAL) != 0 || field.get(instance) != null) continue;
-
-                Class<?> dependencyType = field.getType();
-                boolean component = false;
-                boolean optional = false;
-
-                for (final Annotation annotation : field.getAnnotations()) {
-                    final Class<? extends Annotation> type = annotation.annotationType();
-
-                    if (type.equals(Component.class)) {
-                        component = true;
-                        dependencyType = ((Component) annotation).api();
-                    } else if (type.equals(Optional.class)) {
-                        optional = true;
-                    }
-                }
-
-                if (component) {
-                    if (dependencyType == Object.class) {
-                        dependencyType = field.getType();
-                    }
-
-                    final Object dependency = dependencyType.isAssignableFrom(componentType) ? instance : container.getComponentInstance(dependencyType);
-
-                    if (dependency == null && !optional) {
-                        throw new UnsatisfiableDependenciesException(new FakeComponentAdapter(componentType, instance),
-                                                                     dependencyType,
-                                                                     Collections.emptySet(),
-                                                                     container);
-                    } else {
-                        try {
-                            field.set(instance, dependency);
-                        } catch (final IllegalAccessException e) {
-                            assert false : e;
-                        }
-                    }
-                }
-            }
+            injectFields(container, instance, componentType, componentType);
         } catch (IllegalAccessException e) {
             assert false : e;
         }
 
         return instance;
+    }
+
+    private <T> void injectFields(final PicoContainer container, final T instance, final Class<?> componentType, final Class<?> declaringType) throws IllegalAccessException {
+        for (final Field field : declaringType.getDeclaredFields()) {
+            field.setAccessible(true);
+
+            if ((field.getModifiers() & Modifier.FINAL) != 0 || field.get(instance) != null) continue;
+
+            Class<?> dependencyType = field.getType();
+            boolean component = false;
+            boolean optional = false;
+
+            for (final Annotation annotation : field.getAnnotations()) {
+                final Class<? extends Annotation> type = annotation.annotationType();
+
+                if (type.equals(Component.class)) {
+                    component = true;
+                    dependencyType = ((Component) annotation).api();
+                } else if (type.equals(Optional.class)) {
+                    optional = true;
+                }
+            }
+
+            if (component) {
+                if (dependencyType == Object.class) {
+                    dependencyType = field.getType();
+                }
+
+                final Object dependency = dependencyType.isAssignableFrom(componentType) ? instance : container.getComponentInstance(dependencyType);
+
+                if (dependency == null && !optional) {
+                    throw new UnsatisfiableDependenciesException(new FakeComponentAdapter(componentType, instance),
+                                                                 dependencyType,
+                                                                 Collections.emptySet(),
+                                                                 container);
+                } else {
+                    try {
+                        field.set(instance, dependency);
+                    } catch (final IllegalAccessException e) {
+                        assert false : e;
+                    }
+                }
+            }
+        }
+
+        final Class<?> superclass = declaringType.getSuperclass();
+        if (superclass != null) {
+            injectFields(container, instance, componentType, superclass);
+        }
     }
 
     private static class FakeComponentAdapter extends AbstractComponentAdapter {

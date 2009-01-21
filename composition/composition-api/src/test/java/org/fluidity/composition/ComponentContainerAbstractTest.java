@@ -445,10 +445,15 @@ public abstract class ComponentContainerAbstractTest extends MockGroupAbstractTe
         registry.bind(Key.class, Value.class);
         registry.bind(DependentKey.class, DependentValue.class);
         registry.bind(FieldInjected.class);
+        registry.bind(SuperFieldInjected.class);
 
         final FieldInjected injected = container.getComponent(FieldInjected.class);
         Assert.assertNotNull(injected);
         injected.verify();
+
+        final FieldInjected superInjected = container.getComponent(SuperFieldInjected.class);
+        Assert.assertNotNull(superInjected);
+        superInjected.verify();
 
         verify();
     }
@@ -591,6 +596,13 @@ public abstract class ComponentContainerAbstractTest extends MockGroupAbstractTe
         public void verify() {
             Assert.assertNotNull(dependency1, "Field injection did not work");
             Assert.assertNotNull(dependency2, "Construction injection did not work");
+        }
+    }
+
+    private static class SuperFieldInjected extends FieldInjected {
+
+        public SuperFieldInjected(final DependentKey dependency2) {
+            super(dependency2);
         }
     }
 
