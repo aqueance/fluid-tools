@@ -62,6 +62,7 @@ import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
+import org.apache.maven.model.Build;
 import org.codehaus.plexus.util.DirectoryScanner;
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
@@ -75,10 +76,10 @@ import org.fluidity.composition.ServiceProvider;
  *
  * @goal process-annotations
  * @phase process-classes
- * @requiresDependencyResolution compile
+ * @requiresDependencyResolution test
  */
 @SuppressWarnings({ "ResultOfMethodCallIgnored" })
-public class AutoWiringMojo extends AbstractMojo {
+public class AnnotationProcessorMojo extends AbstractMojo {
 
     private static final String ATN_COMPONENT = "L" + Component.class.getName().replace('.', '/') + ";";
     private static final String ATN_SERVICE_PROVIDER = "L" + ServiceProvider.class.getName().replace('.', '/') + ";";
@@ -97,38 +98,21 @@ public class AutoWiringMojo extends AbstractMojo {
     @SuppressWarnings({ "UnusedDeclaration" })
     private MavenProject project;
 
-    /**
-     * The location of the compiled classes.
-     *
-     * @parameter expression="${project.build.directory}"
-     * @required
-     * @readonly
-     */
-    @SuppressWarnings({ "UnusedDeclaration" })
-    private File outputDirectory;
-
-    /**
-     * The location of the compiled classes.
-     *
-     * @parameter expression="${project.build.outputDirectory}"
-     * @required
-     * @readonly
-     */
-    @SuppressWarnings({ "UnusedDeclaration" })
-    private File classesDirectory;
-
     private final Log log = getLog();
 
     private String projectName;
 
-    @SuppressWarnings({ "unchecked" })
     public void execute() throws MojoExecutionException {
         projectName = getProjectNameId();
+        final Build build = project.getBuild();
+        
+        processDirectory(new File(build.getOutputDirectory()));
+        processDirectory(new File(build.getTestOutputDirectory()));
+    }
 
-        if (!classesDirectory.exists()) {
-            log.info("No classes to scan");
-            return;
-        }
+    @SuppressWarnings({ "unchecked" })
+    private void processDirectory(File classesDirectory) throws MojoExecutionException {
+        if (!classesDirectory.exists()) return;
 
         final File servicesDirectory = new File(new File(classesDirectory, "META-INF"), "services");
 
@@ -139,6 +123,7 @@ public class AutoWiringMojo extends AbstractMojo {
 
         try {
             urls.add(classesDirectory.toURL());
+
             for (final Artifact artifact : (Set<Artifact>) project.getArtifacts()) {
                 urls.add(artifact.getFile().toURL());
             }
@@ -149,7 +134,7 @@ public class AutoWiringMojo extends AbstractMojo {
         final Repository repository = new ClassLoaderRepository(new URLClassLoader(urls.toArray(new URL[urls.size()])));
 
         try {
-            processClasses(repository, serviceProviderMap, componentMap);
+            processClasses(repository, classesDirectory, serviceProviderMap, componentMap);
         } catch (final IOException e) {
             throw new MojoExecutionException("Error processing service providers", e);
         } catch (final ClassNotFoundException e) {
@@ -217,10 +202,9 @@ public class AutoWiringMojo extends AbstractMojo {
             code.dispose();
 
             code = new InstructionList();
-            final MethodGen registerMethod = new MethodGen(Constants.ACC_PUBLIC, Type.VOID,
-                    new Type[] { Type.getType(ComponentContainer.Registry.class) },
-                    new String[] { "registry" }, "bindComponents", bindingsClassName,
-                    code, cp);
+            final MethodGen registerMethod =
+                new MethodGen(Constants.ACC_PUBLIC, Type.VOID, new Type[] { Type.getType(ComponentContainer.Registry.class) }, new String[] { "registry" },
+                              "bindComponents", bindingsClassName, code, cp);
 
             for (final Map.Entry<String, String> entry : bindingsEntry.getValue().entrySet()) {
                 final String interfaceName = entry.getKey();
@@ -231,11 +215,9 @@ public class AutoWiringMojo extends AbstractMojo {
                 code.append(InstructionConstants.ALOAD_1);
                 code.append(new LDC_W(cp.addClass(interfaceName)));
                 code.append(new LDC_W(cp.addClass(implementationName)));
-                code.append(factory.createInvoke(ComponentContainer.Registry.class.getName(),
-                        "bind", Type.VOID, new Type[] {
-                                Type.getType(Class.class),
-                                Type.getType(Class.class),
-                        }, Constants.INVOKEINTERFACE));
+                code.append(factory.createInvoke(ComponentContainer.Registry.class.getName(), "bind", Type.VOID, new Type[] {
+                    Type.getType(Class.class), Type.getType(Class.class),
+                }, Constants.INVOKEINTERFACE));
             }
 
             code.append(InstructionConstants.RETURN);
@@ -256,9 +238,9 @@ public class AutoWiringMojo extends AbstractMojo {
     }
 
     private void processClasses(final Repository repository,
+                                final File classesDirectory,
                                 final Map<String, Collection<String>> serviceProviderMap,
-                                final Map<String, Map<String, String>> componentMap)
-            throws IOException, ClassNotFoundException, MojoExecutionException {
+                                final Map<String, Map<String, String>> componentMap) throws IOException, ClassNotFoundException, MojoExecutionException {
 
         final DirectoryScanner scanner = new DirectoryScanner();
 
