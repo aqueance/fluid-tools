@@ -105,7 +105,7 @@ public class AnnotationProcessorMojo extends AbstractMojo {
     public void execute() throws MojoExecutionException {
         projectName = getProjectNameId();
         final Build build = project.getBuild();
-        
+
         processDirectory(new File(build.getOutputDirectory()));
         processDirectory(new File(build.getTestOutputDirectory()));
     }
