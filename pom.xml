@@ -156,6 +156,13 @@
             </dependency>
 
             <dependency>
+                <groupId>${fluidity.foundation.groupId}</groupId>
+                <artifactId>foundation-settings</artifactId>
+                <version>${fluidity.version}</version>
+                <scope>compile</scope>
+            </dependency>
+
+            <dependency>
                 <groupId>${fluidity.export.groupId}</groupId>
                 <artifactId>fluidity-property-settings-impl</artifactId>
                 <version>${fluidity.version}</version>

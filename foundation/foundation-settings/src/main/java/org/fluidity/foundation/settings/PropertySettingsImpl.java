@@ -33,21 +33,34 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
+import org.fluidity.composition.Component;
 import org.fluidity.composition.Optional;
+import org.fluidity.foundation.AbstractSettings;
 import org.fluidity.foundation.ApplicationInfo;
 import org.fluidity.foundation.SystemSettings;
 import org.fluidity.foundation.logging.BootstrapLog;
 import org.fluidity.foundation.logging.Log;
 
 /**
- * In-memory settings not backed by anything. This implementation will work with or without an {@link org.fluidity.foundation.ApplicationInfo} object present.
+ * In-memory settings not read from anywhere. This implementation will work with or without an {@link org.fluidity.foundation.ApplicationInfo} object present.
  * When an <code>ApplicationInfo</code> object is present, its short name will be used as a fallback namespace. What this means is that if there is a property
  * with a key &lt;short name>/&lt;key> but there is no property with the key &lt;key> then the value of the former will be returned when the latter is
  * requested.
  *
+ * <p/>
+ *
+ * This implementation also performs key expansion. A "${...}" or "${...|...}" pattern found anywhere in the key=value specification, without the quote marks of
+ * course, will trigger the recursive expansion logic. Between the curly braces (first form) or between the opening curly brace and the pipe character (second
+ * form) is a key. The logic first tries to find a value for that key among the key=value specifications then, and failing that, among the System properties. In
+ * the second form, a default value is specified between the pipe character and the closing curly brace, which will be substituted in place of the "${...}" or
+ * "${...|...}" expression if no value could be found for the given key. Short of a defaul value, the key itself will be substituted. Circular references are
+ * handled gracefully by substituting the key or the default value of the last property in the circular reference chain in place of the expression, depending
+ * whether a default value has been specified.
+ *
  * @author Tibor Varga
  */
-final class PropertySettingsImpl implements PropertySettings {
+@Component
+final class PropertySettingsImpl extends AbstractSettings implements PropertySettings {
 
     private final boolean verbose = !SystemSettings.isSet(BootstrapLog.SUPPRESS_LOGS, "settings", BootstrapLog.ALL_LOGS);
 
@@ -65,7 +78,7 @@ final class PropertySettingsImpl implements PropertySettings {
     }
 
     private PropertySettingsImpl(final String prefix) {
-        this.prefix = prefix != null ? prefix.endsWith("/") ? prefix : prefix + "/" : null;
+        this.prefix = prefix != null ? prefix.charAt(prefix.length() - 1) == NAMESPACE_DELIMITER ? prefix : prefix + NAMESPACE_DELIMITER : null;
     }
 
     public void overrideProperties(final URL url, final Properties properties) {
@@ -90,10 +103,10 @@ final class PropertySettingsImpl implements PropertySettings {
                     if (prefix != null && key.startsWith(prefix)) {
                         final String subkey = key.substring(prefix.length());
 
-                        if (subkey.indexOf('/') < 0) {
+                        if (subkey.indexOf(NAMESPACE_DELIMITER) < 0) {
                             keys.add(subkey);
                         }
-                    } else if (key.indexOf('/') < 0) {
+                    } else if (key.indexOf(NAMESPACE_DELIMITER) < 0) {
                         keys.add(key);
                     }
                 }
@@ -104,7 +117,7 @@ final class PropertySettingsImpl implements PropertySettings {
     }
 
     public String setting(final String spec, final String defaultValue) {
-        final String key = extrapolate(null, spec);
+        final String key = expand(null, spec);
         String actualKey;
 
         synchronized (this.properties) {
@@ -124,7 +137,7 @@ final class PropertySettingsImpl implements PropertySettings {
 
                 if (value != null) {
                     info("Found property " + spec + " in " + entry.getKey() + " as " + actualKey);
-                    return extrapolate(actualKey, value);
+                    return expand(actualKey, value);
                 }
             }
         }
@@ -133,7 +146,59 @@ final class PropertySettingsImpl implements PropertySettings {
         return defaultValue;
     }
 
-    private String extrapolate(final String key, final String spec) {
+    public String[] namespaces() {
+        final Set<String> keys = new HashSet<String>();
+        final String appPrefix = prefix != null ? prefix.substring(0, prefix.length() - 1) : null;
+
+        synchronized (this.properties) {
+            for (final Map<String, String> map : properties.values()) {
+                for (final String key : map.keySet()) {
+                    int slashIndex = key.indexOf(NAMESPACE_DELIMITER);
+                    if (slashIndex >= 0) {
+                        if (prefix != null && key.startsWith(prefix)) {
+                            final String subkey = key.substring(prefix.length());
+
+                            slashIndex = subkey.indexOf(NAMESPACE_DELIMITER);
+                            if (slashIndex >= 0) {
+                                keys.add(subkey.substring(0, slashIndex));
+                            }
+                        } else {
+                            if (appPrefix == null || !key.equals(appPrefix)) {
+                                keys.add(key.substring(0, slashIndex));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return keys.toArray(new String[keys.size()]);
+    }
+
+    public String[] keys(String namespace) {
+        final Set<String> keys = new LinkedHashSet<String>();
+
+        namespace += NAMESPACE_DELIMITER;
+        synchronized (this.properties) {
+            for (final Map<String, String> map : properties.values()) {
+                for (final String key : map.keySet()) {
+                    if (prefix != null && key.startsWith(prefix)) {
+                        final String subkey = key.substring(prefix.length());
+
+                        if (subkey.startsWith(namespace)) {
+                            keys.add(subkey.substring(namespace.length()));
+                        }
+                    } else if (key.startsWith(namespace)) {
+                        keys.add(key.substring(namespace.length()));
+                    }
+                }
+            }
+        }
+
+        return keys.toArray(new String[keys.size()]);
+    }
+
+    private String expand(final String key, final String spec) {
         final char[] chars = new char[spec.length()];
         spec.getChars(0, spec.length(), chars, 0);
 
@@ -217,7 +282,7 @@ final class PropertySettingsImpl implements PropertySettings {
                     final String nameKey = name.toString();
                     final boolean selfReference = nameKey.equals(key);
                     String property =
-                        selfReference ? System.getProperty(nameKey) : setting(nameKey, System.getProperty(nameKey));
+                            selfReference ? System.getProperty(nameKey) : setting(nameKey, System.getProperty(nameKey));
 
                     if (property == null) {
                         final String defaultValue = defaults.toString();
@@ -259,92 +324,4 @@ final class PropertySettingsImpl implements PropertySettings {
         return value.length() == 0 ? null : value.toString();
     }
 
-    public int setting(final String key, final int defaultValue) {
-        return Integer.parseInt(setting(key, String.valueOf(defaultValue)));
-    }
-
-    public boolean setting(String key, boolean defaultValue) {
-        return Boolean.parseBoolean(setting(key, String.valueOf(defaultValue)));
-    }
-
-    public String[] namespaces() {
-        final Set<String> keys = new HashSet<String>();
-        final String appPrefix = prefix != null ? prefix.substring(0, prefix.length() - 1) : null;
-
-        synchronized (this.properties) {
-            for (final Map<String, String> map : properties.values()) {
-                for (final String key : map.keySet()) {
-                    int slashIndex = key.indexOf("/");
-                    if (slashIndex >= 0) {
-                        if (prefix != null && key.startsWith(prefix)) {
-                            final String subkey = key.substring(prefix.length());
-
-                            slashIndex = subkey.indexOf("/");
-                            if (slashIndex >= 0) {
-                                keys.add(subkey.substring(0, slashIndex));
-                            }
-                        } else {
-                            if (appPrefix == null || !key.equals(appPrefix)) {
-                                keys.add(key.substring(0, slashIndex));
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        return keys.toArray(new String[keys.size()]);
-    }
-
-    public String[] keys(String namespace) {
-        final Set<String> keys = new LinkedHashSet<String>();
-
-        namespace += "/";
-        synchronized (this.properties) {
-            for (final Map<String, String> map : properties.values()) {
-                for (final String key : map.keySet()) {
-                    if (prefix != null && key.startsWith(prefix)) {
-                        final String subkey = key.substring(prefix.length());
-
-                        if (subkey.startsWith(namespace)) {
-                            keys.add(subkey.substring(namespace.length()));
-                        }
-                    } else if (key.startsWith(namespace)) {
-                        keys.add(key.substring(namespace.length()));
-                    }
-                }
-            }
-        }
-
-        return keys.toArray(new String[keys.size()]);
-    }
-
-    public String setting(final String namespace, final String key, final String defaultValue) {
-        return setting(asNamespace(namespace, key), defaultValue);
-    }
-
-    public int setting(final String namespace, final String key, final int defaultValue) {
-        return setting(asNamespace(namespace, key), defaultValue);
-    }
-
-    public boolean setting(final String namespace, final String key, final boolean defaultValue) {
-        return setting(asNamespace(namespace, key), defaultValue);
-    }
-
-    public String asNamespace(final String... keys) {
-        final StringBuilder builder = new StringBuilder();
-
-        for (final String key : keys) {
-            assert !key.startsWith("/") : key;
-            assert !key.endsWith("/") : key;
-
-            if (builder.length() > 0) {
-                builder.append('/');
-            }
-
-            builder.append(key);
-        }
-
-        return builder.toString();
-    }
 }

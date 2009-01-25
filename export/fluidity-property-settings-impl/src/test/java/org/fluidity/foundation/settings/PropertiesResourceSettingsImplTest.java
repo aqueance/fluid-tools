@@ -42,9 +42,7 @@ import org.testng.annotations.Test;
 public class PropertiesResourceSettingsImplTest extends MockGroupAbstractTest {
 
     private final PropertySettings settings = addControl(PropertySettings.class);
-
     private final Resources resources = addControl(Resources.class);
-
     private final ApplicationInfo info = addControl(ApplicationInfo.class);
 
     @Test

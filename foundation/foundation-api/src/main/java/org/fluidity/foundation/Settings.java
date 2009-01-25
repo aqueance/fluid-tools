@@ -123,5 +123,5 @@ public interface Settings {
      *
      * @return a namespace that can then be passed to the various other methods that accept a namespace.
      */
-    String asNamespace(final String... keys);
+    String namespace(final String... keys);
 }

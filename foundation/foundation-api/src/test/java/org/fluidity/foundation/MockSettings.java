@@ -101,18 +101,18 @@ public final class MockSettings implements Settings {
     }
 
     public String setting(String namespace, String key, String defaultValue) {
-        return setting(asNamespace(namespace, key), defaultValue);
+        return setting(namespace(namespace, key), defaultValue);
     }
 
     public int setting(String namespace, String key, int defaultValue) {
-        return setting(asNamespace(namespace, key), defaultValue);
+        return setting(namespace(namespace, key), defaultValue);
     }
 
     public boolean setting(String namespace, String key, boolean defaultValue) {
-        return setting(asNamespace(namespace, key), defaultValue);
+        return setting(namespace(namespace, key), defaultValue);
     }
 
-    public String asNamespace(String... keys) {
+    public String namespace(String... keys) {
         final StringBuilder builder = new StringBuilder();
 
         for (final String key : keys) {

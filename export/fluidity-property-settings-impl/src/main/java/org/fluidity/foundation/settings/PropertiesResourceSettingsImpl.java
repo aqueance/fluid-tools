@@ -28,6 +28,7 @@ import java.util.Properties;
 
 import org.fluidity.composition.Component;
 import org.fluidity.composition.Optional;
+import org.fluidity.foundation.AbstractSettings;
 import org.fluidity.foundation.ApplicationInfo;
 import org.fluidity.foundation.Resources;
 import org.fluidity.foundation.Settings;
@@ -40,8 +41,8 @@ import org.fluidity.foundation.Settings;
  *
  * @author Tibor Varga
  */
-@Component(automatic = false)
-final class PropertiesResourceSettingsImpl implements Settings {
+@Component
+final class PropertiesResourceSettingsImpl extends AbstractSettings implements Settings {
 
     private final PropertySettings delegate;
     private final Resources resources;
@@ -84,14 +85,6 @@ final class PropertiesResourceSettingsImpl implements Settings {
         return delegate.setting(key, defaultValue);
     }
 
-    public int setting(final String key, final int defaultValue) {
-        return delegate.setting(key, defaultValue);
-    }
-
-    public boolean setting(final String key, final boolean defaultValue) {
-        return delegate.setting(key, defaultValue);
-    }
-
     public String[] namespaces() {
         return delegate.namespaces();
     }
@@ -100,19 +93,7 @@ final class PropertiesResourceSettingsImpl implements Settings {
         return delegate.keys(namespace);
     }
 
-    public String setting(final String namespace, final String key, final String defaultValue) {
-        return delegate.setting(namespace, key, defaultValue);
-    }
-
-    public int setting(final String namespace, final String key, final int defaultValue) {
-        return delegate.setting(namespace, key, defaultValue);
-    }
-
-    public boolean setting(final String namespace, final String key, final boolean defaultValue) {
-        return delegate.setting(namespace, key, defaultValue);
-    }
-
-    public String asNamespace(String... keys) {
-        return delegate.asNamespace(keys);
+    public String namespace(final String... keys) {
+        return delegate.namespace(keys);
     }
 }

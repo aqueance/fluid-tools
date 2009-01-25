@@ -33,5 +33,11 @@ import org.fluidity.foundation.Settings;
  */
 public interface PropertySettings extends Settings {
 
+    /**
+     * Updates and, in case of conflict, overwrites the maintained properties from the ones in the given <code>Properties</code> object.
+     *
+     * @param url is the origin of the <code>Properties</code>, such as a properties file.
+     * @param properties is the new properties to update the maintined properties with.
+     */
     void overrideProperties(final URL url, final Properties properties);
 }
