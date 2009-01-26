@@ -26,17 +26,17 @@ package org.fluidity.foundation;
  */
 public abstract class AbstractSettings implements Settings {
 
-    public static final char NAMESPACE_DELIMITER = '/';
+    private static final char NAMESPACE_DELIMITER = '/';
 
     public String namespace(final String... keys) {
         final StringBuilder builder = new StringBuilder();
 
         for (final String key : keys) {
-            assert key.charAt(0) != NAMESPACE_DELIMITER : key + " starts with " + NAMESPACE_DELIMITER;
-            assert key.charAt(key.length() - 1) != NAMESPACE_DELIMITER : key + " ends with " + NAMESPACE_DELIMITER;
+            assert key.charAt(0) != namespaceDelimiter() : key + " starts with " + namespaceDelimiter();
+            assert key.charAt(key.length() - 1) != namespaceDelimiter() : key + " ends with " + namespaceDelimiter();
 
             if (builder.length() > 0) {
-                builder.append(NAMESPACE_DELIMITER);
+                builder.append(namespaceDelimiter());
             }
 
             builder.append(key);
@@ -63,5 +63,9 @@ public abstract class AbstractSettings implements Settings {
 
     public final boolean setting(final String namespace, final String key, final boolean defaultValue) {
         return setting(namespace(namespace, key), defaultValue);
+    }
+
+    protected char namespaceDelimiter() {
+        return NAMESPACE_DELIMITER;
     }
 }

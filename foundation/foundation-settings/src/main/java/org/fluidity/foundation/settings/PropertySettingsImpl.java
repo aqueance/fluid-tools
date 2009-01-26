@@ -78,7 +78,7 @@ final class PropertySettingsImpl extends AbstractSettings implements PropertySet
     }
 
     private PropertySettingsImpl(final String prefix) {
-        this.prefix = prefix != null ? prefix.charAt(prefix.length() - 1) == NAMESPACE_DELIMITER ? prefix : prefix + NAMESPACE_DELIMITER : null;
+        this.prefix = prefix != null ? prefix.charAt(prefix.length() - 1) == namespaceDelimiter() ? prefix : prefix + namespaceDelimiter() : null;
     }
 
     public void overrideProperties(final URL url, final Properties properties) {
@@ -103,10 +103,10 @@ final class PropertySettingsImpl extends AbstractSettings implements PropertySet
                     if (prefix != null && key.startsWith(prefix)) {
                         final String subkey = key.substring(prefix.length());
 
-                        if (subkey.indexOf(NAMESPACE_DELIMITER) < 0) {
+                        if (subkey.indexOf(namespaceDelimiter()) < 0) {
                             keys.add(subkey);
                         }
-                    } else if (key.indexOf(NAMESPACE_DELIMITER) < 0) {
+                    } else if (key.indexOf(namespaceDelimiter()) < 0) {
                         keys.add(key);
                     }
                 }
@@ -153,12 +153,12 @@ final class PropertySettingsImpl extends AbstractSettings implements PropertySet
         synchronized (this.properties) {
             for (final Map<String, String> map : properties.values()) {
                 for (final String key : map.keySet()) {
-                    int slashIndex = key.indexOf(NAMESPACE_DELIMITER);
+                    int slashIndex = key.indexOf(namespaceDelimiter());
                     if (slashIndex >= 0) {
                         if (prefix != null && key.startsWith(prefix)) {
                             final String subkey = key.substring(prefix.length());
 
-                            slashIndex = subkey.indexOf(NAMESPACE_DELIMITER);
+                            slashIndex = subkey.indexOf(namespaceDelimiter());
                             if (slashIndex >= 0) {
                                 keys.add(subkey.substring(0, slashIndex));
                             }
@@ -178,7 +178,7 @@ final class PropertySettingsImpl extends AbstractSettings implements PropertySet
     public String[] keys(String namespace) {
         final Set<String> keys = new LinkedHashSet<String>();
 
-        namespace += NAMESPACE_DELIMITER;
+        namespace += namespaceDelimiter();
         synchronized (this.properties) {
             for (final Map<String, String> map : properties.values()) {
                 for (final String key : map.keySet()) {
