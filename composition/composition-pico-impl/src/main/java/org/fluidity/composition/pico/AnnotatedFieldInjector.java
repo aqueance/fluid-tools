@@ -64,7 +64,7 @@ public class AnnotatedFieldInjector implements Serializable {
 
             if (field.isAnnotationPresent(Component.class)) {
                 final Class<?> dependencyType = findInterfaceType(field.getAnnotation(Component.class), field.getType());
-                final Object dependency = dependencyType.isAssignableFrom(componentType) ? instance : container.getComponentInstance(dependencyType);
+                final Object dependency = dependencyType.isAssignableFrom(componentType) ? instance : findComponent(container, dependencyType);
 
                 if (dependency == null && !field.isAnnotationPresent(Optional.class)) {
                     final Component annotation = componentType.getAnnotation(Component.class);
@@ -88,6 +88,13 @@ public class AnnotatedFieldInjector implements Serializable {
         if (superclass != null) {
             injectFields(container, instance, componentType, superclass);
         }
+    }
+
+    private Object findComponent(final PicoContainer pico, Class<?> componentClass) {
+        final Object component = pico.getComponentInstance(componentClass);
+        final Package componentPackage = componentClass.getPackage();
+        return component == null && (componentPackage == null || !componentPackage.getName().startsWith("java.")) ? pico
+            .getComponentInstanceOfType(componentClass) : component;
     }
 
     private Class<?> findInterfaceType(Component component, final Class<?> defaultType) {

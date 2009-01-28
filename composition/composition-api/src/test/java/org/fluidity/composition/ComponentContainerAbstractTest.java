@@ -584,18 +584,24 @@ public abstract class ComponentContainerAbstractTest extends MockGroupAbstractTe
     @SuppressWarnings({"UnusedDeclaration"})
     public static class FieldInjected {
 
+        @Optional
         @Component
         private Key dependency1;
 
-        private final DependentKey dependency2;
+        @Optional
+        @Component
+        private Value dependency2;
 
-        public FieldInjected(final DependentKey dependency2) {
-            this.dependency2 = dependency2;
+        private final DependentKey dependency3;
+
+        public FieldInjected(final DependentKey dependency3) {
+            this.dependency3 = dependency3;
         }
 
         public void verify() {
             Assert.assertNotNull(dependency1, "Field injection did not work");
-            Assert.assertNotNull(dependency2, "Construction injection did not work");
+            Assert.assertNotNull(dependency2, "Field injection did not work on subtype");
+            Assert.assertNotNull(dependency3, "Construction injection did not work");
         }
     }
 
