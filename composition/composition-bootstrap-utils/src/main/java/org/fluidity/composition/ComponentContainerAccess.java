@@ -59,7 +59,8 @@ import sun.misc.ServiceConfigurationError;
  */
 public final class ComponentContainerAccess implements ComponentContainer {
 
-    private static final Map<ClassLoader, OpenComponentContainer> containerMap = new WeakHashMap<ClassLoader, OpenComponentContainer>();
+    private static final Map<ClassLoader, OpenComponentContainer> populatedContainers = new WeakHashMap<ClassLoader, OpenComponentContainer>();
+    private static final Set<ClassLoader> inflightContainers = new HashSet<ClassLoader>();
     private static final Map<ClassLoader, Map> propertiesMap = new HashMap<ClassLoader, Map>();
     private static final Set<OpenComponentContainer> committedContainers = new HashSet<OpenComponentContainer>();
 
@@ -102,7 +103,8 @@ public final class ComponentContainerAccess implements ComponentContainer {
      * @param services is mock object.
      */
     /* package */ void reset(final BootstrapServices services) {
-        ComponentContainerAccess.containerMap.clear();
+        ComponentContainerAccess.populatedContainers.clear();
+        ComponentContainerAccess.inflightContainers.clear();
         ComponentContainerAccess.propertiesMap.clear();
         ComponentContainerAccess.committedContainers.clear();
         this.services = services;
@@ -151,7 +153,7 @@ public final class ComponentContainerAccess implements ComponentContainer {
         for (final ListIterator<ClassLoader> i = classLoaders.listIterator(classLoaders.size()); i.hasPrevious();) {
             final ClassLoader cl = i.previous();
 
-            OpenComponentContainer ct = containerMap.get(cl);
+            OpenComponentContainer ct = populatedContainers.get(cl);
 
             if (ct == null) {
                 if (containerBootstrap == null) {
@@ -167,27 +169,34 @@ public final class ComponentContainerAccess implements ComponentContainer {
                         rootClassLoader = cl;
                     }
 
-                    final Map map = propertiesMap.get(cl);
-                    ct = containerBootstrap.populateContainer(classDiscovery, map == null ? new HashMap() : map, containerMap.get(cl.getParent()), cl);
-                    containerMap.put(cl, ct);
+                    inflightContainers.add(cl);
+                    try {
+                        final Map map = propertiesMap.get(cl);
+                        ct = containerBootstrap.populateContainer(classDiscovery, map == null ? new HashMap() : map, populatedContainers.get(cl.getParent()), cl);
+                        populatedContainers.put(cl, ct);
+                    } finally {
+                        inflightContainers.remove(cl);
+                    }
                 } else {
-                    containerMap.put(cl, null);
+                    populatedContainers.put(cl, null);
                 }
             }
         }
 
-        assert containerMap.containsKey(classLoader);
+        assert populatedContainers.containsKey(classLoader);
     }
 
     private synchronized OpenComponentContainer getContainer(final boolean commit) {
-        if (!containerMap.containsKey(classLoader)) {
+        if (inflightContainers.contains(classLoader)) {
+            throw new IllegalStateException("Container for " + classLoader + " cannot be externally accessed while it is being populated");
+        } else if (!populatedContainers.containsKey(classLoader)) {
             makeContainer(classLoader);
         }
 
         ClassLoader cl = classLoader;
-        OpenComponentContainer container = containerMap.get(cl);
+        OpenComponentContainer container = populatedContainers.get(cl);
         while (container == null && (cl = cl.getParent()) != null) {
-            container = containerMap.get(cl);
+            container = populatedContainers.get(cl);
         }
 
         if (container != null) {
