@@ -28,11 +28,16 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import org.fluidity.foundation.Logging;
+import org.fluidity.foundation.SystemSettings;
 
 /**
  * Logs to the standard output. Tracing is disabled by default and can be turned on by setting the system property "sysout.trace" to true.
  */
 public final class StandardOutLogging implements Logging {
+
+    private static final String LOG_LEVEL = "log-level";
+    private static final String TRACE_LEVEL = "trace";
+    private static final String DEBUG_LEVEL = "debug";
 
     private final DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
     private final String appName;
@@ -57,7 +62,11 @@ public final class StandardOutLogging implements Logging {
     }
 
     public boolean isTraceEnabled(final Class source) {
-        return Boolean.getBoolean("sysout.trace");
+        return SystemSettings.isSet(LOG_LEVEL, TRACE_LEVEL);
+    }
+
+    public boolean isDebugEnabled(Class source) {
+        return SystemSettings.isSet(LOG_LEVEL, DEBUG_LEVEL, TRACE_LEVEL);
     }
 
     public void trace(final Class source, final String message) {

@@ -45,6 +45,10 @@ public final class BootstrapLog implements Logging {
         return log != null && log.isTraceEnabled(source);
     }
 
+    public boolean isDebugEnabled(Class source) {
+        return log != null && log.isDebugEnabled(source);
+    }
+
     public void trace(final Class source, final String message) {
         if (verbose) {
             log.trace(source, message);

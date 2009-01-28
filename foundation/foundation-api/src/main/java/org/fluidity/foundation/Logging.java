@@ -30,6 +30,8 @@ public interface Logging {
 
     boolean isTraceEnabled(final Class source);
 
+    boolean isDebugEnabled(final Class source);
+
     void trace(final Class source, final String message);
 
     void trace(final Class source, final String message, final Throwable exception);

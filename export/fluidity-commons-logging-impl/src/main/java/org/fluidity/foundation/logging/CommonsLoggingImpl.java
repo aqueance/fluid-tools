@@ -35,6 +35,10 @@ final class CommonsLoggingImpl implements Logging {
         return LogFactory.getLog(source).isTraceEnabled();
     }
 
+    public boolean isDebugEnabled(Class source) {
+        return LogFactory.getLog(source).isDebugEnabled();
+    }
+
     public void trace(final Class source, final String message) {
         LogFactory.getLog(source).trace(message);
     }

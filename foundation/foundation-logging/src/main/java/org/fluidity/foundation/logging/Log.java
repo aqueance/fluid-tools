@@ -46,6 +46,11 @@ public final class Log {
         return log.get().isTraceEnabled(source);
     }
 
+    public static boolean isDebugEnabled(final Class source) {
+        assert log.get() != null : Logging.class;
+        return log.get().isDebugEnabled(source);
+    }
+
     public static void trace(final Class source, final String message) {
         assert log.get() != null : Logging.class;
         log.get().trace(source, message);

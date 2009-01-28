@@ -42,6 +42,10 @@ final class DefaultLogging implements Logging {
         return delegate.isTraceEnabled(source);
     }
 
+    public boolean isDebugEnabled(Class source) {
+        return delegate.isDebugEnabled(source);
+    }
+
     public void trace(final Class source, final String message) {
         delegate.trace(source, message);
     }
