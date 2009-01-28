@@ -21,9 +21,7 @@
  */
 package org.fluidity.foundation.logging;
 
-import java.util.concurrent.atomic.AtomicReference;
-
-import org.fluidity.composition.ComponentContainer;
+import org.fluidity.composition.Component;
 import org.fluidity.foundation.Logging;
 
 /**
@@ -31,83 +29,84 @@ import org.fluidity.foundation.Logging;
  */
 public final class Log {
 
-    private static AtomicReference<Logging> log = new AtomicReference<Logging>(new StandardOutLogging(null));
+    /** Initialized externally, see LogInitialization */
+    @Component
+    @SuppressWarnings({ "UnusedDeclaration" })
+    private static Logging log = new StandardOutLogging(null);
 
-    public static void reset(final ComponentContainer container) {
-        final Logging log = container.getComponent(Logging.class);
+    Log() {
 
-        if (log != null) {
-            Log.log.set(log);
-        }
+        // must reset it otherwise the field won't get injected
+        Log.log = null;
     }
 
     public static boolean isTraceEnabled(final Class source) {
-        assert log.get() != null : Logging.class;
-        return log.get().isTraceEnabled(source);
+        assert log != null : Logging.class;
+        return log.isTraceEnabled(source);
     }
 
     public static boolean isDebugEnabled(final Class source) {
-        assert log.get() != null : Logging.class;
-        return log.get().isDebugEnabled(source);
+        assert log != null : Logging.class;
+        return log.isDebugEnabled(source);
     }
 
     public static void trace(final Class source, final String message) {
-        assert log.get() != null : Logging.class;
-        log.get().trace(source, message);
+        assert log != null : Logging.class;
+        log.trace(source, message);
     }
 
     public static void trace(final Class source, final String message, final Throwable exception) {
-        assert log.get() != null : Logging.class;
-        log.get().trace(source, message, exception);
+        assert log != null : Logging.class;
+        log.trace(source, message, exception);
     }
 
     public static void debug(final Class source, final String message) {
-        assert log.get() != null : Logging.class;
-        log.get().debug(source, message);
+        assert log != null : Logging.class;
+        log.debug(source, message);
     }
 
     public static void debug(final Class source, final String message, final Throwable exception) {
-        assert log.get() != null : Logging.class;
-        log.get().debug(source, message, exception);
+        assert log != null : Logging.class;
+        log.debug(source, message, exception);
     }
 
     public static void info(final Class source, final String message) {
-        assert log.get() != null : Logging.class;
-        log.get().info(source, message);
+        assert log != null : Logging.class;
+        log.info(source, message);
     }
 
     public static void warning(final Class source, final String message) {
-        assert log.get() != null : Logging.class;
-        log.get().warning(source, message);
+        assert log != null : Logging.class;
+        log.warning(source, message);
     }
 
     public static void warning(final Class source, final String message, final Throwable exception) {
-        assert log.get() != null : Logging.class;
-        log.get().warning(source, message, exception);
+        assert log != null : Logging.class;
+        log.warning(source, message, exception);
     }
 
     public static void error(final Class source, final String message) {
-        assert log.get() != null : Logging.class;
-        log.get().error(source, message);
+        assert log != null : Logging.class;
+        log.error(source, message);
     }
 
     public static void error(final Class source, final String message, final Throwable exception) {
-        assert log.get() != null : Logging.class;
-        log.get().error(source, message, exception);
+        assert log != null : Logging.class;
+        log.error(source, message, exception);
     }
 
     public static void fatal(final Class source, final String message) {
-        assert log.get() != null : Logging.class;
-        log.get().fatal(source, message);
+        assert log != null : Logging.class;
+        log.fatal(source, message);
     }
 
     public static void fatal(final Class source, final String message, final Throwable exception) {
-        assert log.get() != null : Logging.class;
-        log.get().fatal(source, message, exception);
+        assert log != null : Logging.class;
+        log.fatal(source, message, exception);
     }
 
     public static void timer(final Class source, final String message, final long beginStamp) {
-        assert log.get() != null : Logging.class;
-        log.get().timer(source, message, beginStamp);
+        assert log != null : Logging.class;
+        log.timer(source, message, beginStamp);
     }
 }

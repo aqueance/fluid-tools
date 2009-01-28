@@ -56,6 +56,14 @@ injection container associated with.
             <groupId>${fluidity.export.groupId}</groupId>
             <artifactId>fluidity-api</artifactId>
             <type>pom</type>
+
+            <exclusions>
+                <exclusion>
+                    <!-- Log class must not be loaded by the top level application class loader -->
+                    <groupId>${fluidity.foundation.groupId}</groupId>
+                    <artifactId>foundation-logging</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
