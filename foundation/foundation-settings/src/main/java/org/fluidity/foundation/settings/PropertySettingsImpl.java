@@ -37,9 +37,8 @@ import org.fluidity.composition.Component;
 import org.fluidity.composition.Optional;
 import org.fluidity.foundation.AbstractSettings;
 import org.fluidity.foundation.ApplicationInfo;
-import org.fluidity.foundation.SystemSettings;
+import org.fluidity.foundation.Logging;
 import org.fluidity.foundation.logging.BootstrapLog;
-import org.fluidity.foundation.logging.Log;
 
 /**
  * In-memory settings not read from anywhere. This implementation will work with or without an {@link org.fluidity.foundation.ApplicationInfo} object present.
@@ -62,16 +61,10 @@ import org.fluidity.foundation.logging.Log;
 @Component
 final class PropertySettingsImpl extends AbstractSettings implements PropertySettings {
 
-    private final boolean verbose = !SystemSettings.isSet(BootstrapLog.SUPPRESS_LOGS, "settings", BootstrapLog.ALL_LOGS);
+    private final Logging log = new BootstrapLog("settings");
 
     private final Map<URL, Map<String, String>> properties = new LinkedHashMap<URL, Map<String, String>>();
     private final String prefix;
-
-    private void info(String message) {
-        if (verbose) {
-            Log.info(getClass(), message);
-        }
-    }
 
     public PropertySettingsImpl(@Optional final ApplicationInfo info) {
         this(info == null ? null : info.key());
@@ -91,7 +84,7 @@ final class PropertySettingsImpl extends AbstractSettings implements PropertySet
             this.properties.put(url, map);
         }
 
-        info("Loaded properties from " + url);
+        log.info(getClass(), "Loaded properties from " + url);
     }
 
     public String[] keys() {
@@ -136,13 +129,13 @@ final class PropertySettingsImpl extends AbstractSettings implements PropertySet
                 }
 
                 if (value != null) {
-                    info("Found property " + spec + " in " + entry.getKey() + " as " + actualKey);
+                    log.info(getClass(), "Found property " + spec + " in " + entry.getKey() + " as " + actualKey);
                     return expand(actualKey, value);
                 }
             }
         }
 
-        info("Property " + spec + " not found");
+        log.info(getClass(), "Property " + spec + " not found");
         return defaultValue;
     }
 
@@ -288,7 +281,8 @@ final class PropertySettingsImpl extends AbstractSettings implements PropertySet
                         final String defaultValue = defaults.toString();
 
                         if (defaultValue.length() == 0 || defaultValue.equals(key)) {
-                            info("Property " + name + " not found" + (selfReference ? " (refers to itself)" : ""));
+                            String message = "Property " + name + " not found" + (selfReference ? " (refers to itself)" : "");
+                            log.info(getClass(), message);
                         } else {
                             property = setting(defaultValue, defaultValue);
                         }

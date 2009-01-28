@@ -41,27 +41,27 @@ public final class BootstrapLog implements Logging {
         log = new StandardOutLogging(null);
     }
 
-    public boolean isTraceEnabled(Class source) {
+    public boolean isTraceEnabled(final Class source) {
         return log != null && log.isTraceEnabled(source);
     }
 
-    public void trace(Class source, String message) {
+    public void trace(final Class source, final String message) {
         if (verbose) {
             log.trace(source, message);
         }
     }
 
-    public void trace(Class source, String message, Throwable exception) {
+    public void trace(final Class source, final String message, final Throwable exception) {
         log.trace(source, message, exception);
     }
 
-    public void debug(Class source, String message) {
+    public void debug(final Class source, final String message) {
         if (verbose) {
             log.debug(source, message);
         }
     }
 
-    public void debug(Class source, String message, Throwable exception) {
+    public void debug(final Class source, final String message, final Throwable exception) {
         log.debug(source, message, exception);
     }
 
@@ -71,31 +71,31 @@ public final class BootstrapLog implements Logging {
         }
     }
 
-    public void warning(Class source, String message) {
+    public void warning(final Class source, final String message) {
         log.warning(source, message);
     }
 
-    public void warning(Class source, String message, Throwable exception) {
+    public void warning(final Class source, final String message, final Throwable exception) {
         log.warning(source, message, exception);
     }
 
-    public void error(Class source, String message) {
+    public void error(final Class source, final String message) {
         log.error(source, message);
     }
 
-    public void error(Class source, String message, Throwable exception) {
+    public void error(final Class source, final String message, final Throwable exception) {
         log.error(source, message, exception);
     }
 
-    public void fatal(Class source, String message) {
+    public void fatal(final Class source, final String message) {
         log.fatal(source, message);
     }
 
-    public void fatal(Class source, String message, Throwable exception) {
+    public void fatal(final Class source, final String message, final Throwable exception) {
         log.fatal(source, message, exception);
     }
 
-    public void timer(Class source, String message, long beginStamp) {
+    public void timer(final Class source, final String message, final long beginStamp) {
         if (verbose) {
             log.timer(source, message, beginStamp);
         }
