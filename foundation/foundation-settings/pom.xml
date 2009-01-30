@@ -71,7 +71,7 @@
         <dependency>
             <groupId>${fluidity.foundation.groupId}</groupId>
             <artifactId>foundation-easymock</artifactId>
-            <scope>compile</scope>
+            <scope>test</scope>
         </dependency>
 
     </dependencies>
