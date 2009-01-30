@@ -35,7 +35,7 @@ final class DefaultLogging implements Logging {
     private final Logging delegate;
 
     public DefaultLogging(final @Optional ApplicationInfo appInfo) {
-        this.delegate = new StandardOutLogging(appInfo == null ? null : appInfo.name());
+        this.delegate = new StandardOutLogging(appInfo == null ? null : appInfo.key());
     }
 
     public boolean isTraceEnabled(final Class source) {
