@@ -23,20 +23,17 @@ package org.fluidity.maven;
 
 import java.io.File;
 
-import org.apache.maven.model.Build;
 import org.apache.maven.plugin.MojoExecutionException;
 
 /**
- * @goal process-annotations
- * @phase process-classes
- * @requiresDependencyResolution compile
+ * @goal process-test-annotations
+ * @phase process-test-classes
+ * @requiresDependencyResolution test
  */
 @SuppressWarnings({ "ResultOfMethodCallIgnored" })
-public class AnnotationProcessorMojo extends AbstractAnnotationProcessorMojo {
+public class TestAnnotationProcessorMojo extends AbstractAnnotationProcessorMojo {
 
     public void execute() throws MojoExecutionException {
-        final Build build = build();
-
-        processDirectory(new File(build.getOutputDirectory()));
+        processDirectory(new File(build().getTestOutputDirectory()));
     }
 }
