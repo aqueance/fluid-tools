@@ -45,7 +45,7 @@
     </licenses>
 
     <description><![CDATA[
-This plugins takes host project's .war artifact and produces an executable
+This plugins takes the host project's .war artifact and produces an executable
 .war file out of it. When executed, that .war file will deploy itself
 and all other .war files specified on the command line in an embedded Jetty
 server. The server will bootstrap a ComponentContainer and offer it as a
@@ -59,8 +59,6 @@ The plugin exports an org.fluidity.deployment.RuntimeControl object in the globa
 ComponentContainer. That object can be used to programmatically stop the
 Jetty server started by this plugin. The server can also be stopped by
 pressing Ctrl-C.
-
-The web server can be configured by supplying an implementation for tdeploymentorg.fluidity.web.ServerBootstrap.Settings interface.
     ]]></description>
 
     <dependencies>
