@@ -37,7 +37,7 @@ import org.fluidity.composition.spi.ReferenceChain;
 /**
  * @author Tibor Varga
  */
-@SuppressWarnings({ "unchecked" })
+@SuppressWarnings("unchecked")
 final class SimpleContainerImpl implements SimpleContainer {
 
     private final ContainerServices services;
@@ -250,12 +250,12 @@ final class SimpleContainerImpl implements SimpleContainer {
                 return new InstanceProducer(key, instance.getClass(), instance);
             }
 
-            @SuppressWarnings({ "ConstantConditions" })
+            @SuppressWarnings("ConstantConditions")
             public VariantProducer variant(final ComponentCache cache) {
                 return new VariantProducerInstance((ComponentVariantFactory) instance, cache, SimpleContainerImpl.this);
             }
 
-            @SuppressWarnings({ "ConstantConditions" })
+            @SuppressWarnings("ConstantConditions")
             public FactoryProducer factory(final ComponentCache cache) {
                 return new FactoryProducerInstance((ComponentFactory) instance, cache);
             }

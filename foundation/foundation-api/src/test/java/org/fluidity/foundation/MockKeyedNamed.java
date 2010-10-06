@@ -45,7 +45,7 @@ public final class MockKeyedNamed implements KeyedNamed {
         return name;
     }
 
-    @SuppressWarnings({ "RedundantIfStatement" })
+    @SuppressWarnings("RedundantIfStatement")
     public boolean equals(Object o) {
         if (this == o) {
             return true;

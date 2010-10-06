@@ -95,7 +95,7 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo {
      * @parameter expression="${project}"
      * @required
      */
-    @SuppressWarnings({ "UnusedDeclaration" })
+    @SuppressWarnings("UnusedDeclaration")
     private MavenProject project;
 
     private final Log log = getLog();
@@ -242,7 +242,7 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo {
         }
     }
 
-    @SuppressWarnings({ "ResultOfMethodCallIgnored" })
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     private void processClasses(final Repository repository,
                                 final File classesDirectory,
                                 final Map<String, Collection<String>> serviceProviderMap,

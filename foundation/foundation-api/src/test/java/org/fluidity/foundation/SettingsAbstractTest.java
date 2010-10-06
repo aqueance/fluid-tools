@@ -47,7 +47,7 @@ public abstract class SettingsAbstractTest extends MockGroupAbstractTest {
     }
 
     @BeforeMethod
-    @SuppressWarnings({ "unchecked" })
+    @SuppressWarnings("unchecked")
     public void clearProperties() {
         final Properties properties = System.getProperties();
         for (final Object key : new HashSet(System.getProperties().keySet())) {

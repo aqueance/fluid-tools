@@ -72,7 +72,7 @@ public class ResourcesImplTest extends MockGroupAbstractTest {
         Thread.currentThread().setContextClassLoader(null);
     }
 
-    @SuppressWarnings({ "ThrowableInstanceNeverThrown" })
+    @SuppressWarnings("ThrowableInstanceNeverThrown")
     @Test
     public void loadClass() throws Exception {
         final String className = getClass().getName();

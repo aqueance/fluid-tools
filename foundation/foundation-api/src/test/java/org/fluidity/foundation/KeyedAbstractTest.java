@@ -36,7 +36,7 @@ public abstract class KeyedAbstractTest extends MockGroupAbstractTest {
         return "key" + id;
     }
 
-    @SuppressWarnings({ "StringEquality" })
+    @SuppressWarnings("StringEquality")
     @Test
     public void testKey() throws Exception {
         final String key = newKey(1);

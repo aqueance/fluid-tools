@@ -52,28 +52,28 @@ public class ManifestAppInfoMojo extends AbstractMojo {
      * @required
      * @readonly
      */
-    @SuppressWarnings({ "UnusedDeclaration" })
+    @SuppressWarnings("UnusedDeclaration")
     private File outputDirectory;
 
     /**
      * @parameter expression="${project.artifactId}"
      * @required
      */
-    @SuppressWarnings({ "UnusedDeclaration" })
+    @SuppressWarnings("UnusedDeclaration")
     private String projectArtifactId;
 
     /**
      * @parameter expression="${project.name}"
      * @required
      */
-    @SuppressWarnings({ "UnusedDeclaration" })
+    @SuppressWarnings("UnusedDeclaration")
     private String projectName;
 
     /**
      * @parameter expression="${project.version}"
      * @required
      */
-    @SuppressWarnings({ "UnusedDeclaration" })
+    @SuppressWarnings("UnusedDeclaration")
     private String projectVersion;
 
     @SuppressWarnings({ "unchecked", "ResultOfMethodCallIgnored" })

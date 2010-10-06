@@ -73,7 +73,7 @@ final class ComponentContextImpl implements ComponentContext {
     }
 
     @Override
-    @SuppressWarnings({ "SimplifiableIfStatement" })
+    @SuppressWarnings("SimplifiableIfStatement")
     public boolean equals(final Object o) {
         if (this == o) {
             return true;

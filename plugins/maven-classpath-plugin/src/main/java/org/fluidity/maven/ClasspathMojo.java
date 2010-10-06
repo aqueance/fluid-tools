@@ -49,7 +49,7 @@ public class ClasspathMojo extends AbstractMojo {
      * @parameter expression="${project}"
      * @required
      */
-    @SuppressWarnings({ "UnusedDeclaration" })
+    @SuppressWarnings("UnusedDeclaration")
     private MavenProject project;
 
     /**
@@ -78,12 +78,12 @@ public class ClasspathMojo extends AbstractMojo {
      *
      * @parameter
      */
-    @SuppressWarnings({ "UnusedDeclaration" })
+    @SuppressWarnings("UnusedDeclaration")
     private boolean verbose;
 
     private final Log log = getLog();
 
-    @SuppressWarnings({ "unchecked" })
+    @SuppressWarnings("unchecked")
     public void execute() throws MojoExecutionException {
         final Set<Artifact> artifacts = (Set<Artifact>) project.getArtifacts();
 

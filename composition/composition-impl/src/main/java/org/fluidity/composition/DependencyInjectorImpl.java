@@ -70,7 +70,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
                     return types[index];
                 }
 
-                @SuppressWarnings({ "unchecked" })
+                @SuppressWarnings("unchecked")
                 public <T extends Annotation> T annotation(final Class<T> annotationClass) {
                     for (final Annotation annotation : allAnnotations()) {
                         if (annotationClass.isAssignableFrom(annotation.getClass())) {
@@ -81,7 +81,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
                     return null;
                 }
 
-                @SuppressWarnings({ "UnnecessaryLocalVariable" })
+                @SuppressWarnings("UnnecessaryLocalVariable")
                 private Annotation[] allAnnotations() {
                     return annotations[index];
                 }

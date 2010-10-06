@@ -39,7 +39,7 @@ final class ComponentDiscoveryImpl implements ComponentDiscovery {
         this.discovery = discovery;
     }
 
-    @SuppressWarnings({ "unchecked" })
+    @SuppressWarnings("unchecked")
     public <T> T[] findComponentInstances(final ComponentContainer container, final Class<T> componentClass) {
         final Class<T>[] classes = discovery.findComponentClasses(componentClass, null, false);
         final List<T> instances = new ArrayList<T>();

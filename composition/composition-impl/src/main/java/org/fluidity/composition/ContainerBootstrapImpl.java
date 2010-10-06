@@ -41,7 +41,7 @@ import org.fluidity.foundation.logging.BootstrapLog;
  *
  * @author Tibor Varga
  */
-@SuppressWarnings({ "UnusedDeclaration" })
+@SuppressWarnings("UnusedDeclaration")
 public final class ContainerBootstrapImpl implements ContainerBootstrap {
 
     private final ContainerServices services;

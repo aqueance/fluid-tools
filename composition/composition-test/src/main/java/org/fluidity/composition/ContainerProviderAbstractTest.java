@@ -51,7 +51,7 @@ import org.testng.annotations.Test;
  *
  * @author Tibor Varga
  */
-@SuppressWarnings({ "unchecked" })
+@SuppressWarnings("unchecked")
 public abstract class ContainerProviderAbstractTest extends MockGroupAbstractTest {
 
     private final Logging logging = new BootstrapLog("test");
@@ -205,7 +205,7 @@ public abstract class ContainerProviderAbstractTest extends MockGroupAbstractTes
 
     public static class PackageBindingsImpl extends EmptyPackageBindings {
 
-        @SuppressWarnings({ "UnusedDeclaration" })
+        @SuppressWarnings("UnusedDeclaration")
         public PackageBindingsImpl(final ResponsiblePackageBindingsImpl dependent) {
             // empty
         }
@@ -213,7 +213,7 @@ public abstract class ContainerProviderAbstractTest extends MockGroupAbstractTes
 
     public static class DependentPackageBindingsImpl extends EmptyPackageBindings {
 
-        @SuppressWarnings({ "UnusedDeclaration" })
+        @SuppressWarnings("UnusedDeclaration")
         public DependentPackageBindingsImpl(PackageBindingsImpl dependent) {
             // empty
         }

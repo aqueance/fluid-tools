@@ -29,7 +29,7 @@ import org.fluidity.composition.spi.ComponentCache;
  *
  * @author Tibor Varga
  */
-@SuppressWarnings({ "unchecked" })
+@SuppressWarnings("unchecked")
 abstract class VariantProducer extends AbstractProducer {
 
     private final Class<? extends ComponentVariantFactory> factoryClass;

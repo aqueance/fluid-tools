@@ -38,7 +38,7 @@ public final class ContainerProviderImpl implements ContainerProvider {
         return new FluidComponentContainer(null, services, true);
     }
 
-    @SuppressWarnings({ "unchecked" })
+    @SuppressWarnings("unchecked")
     public List<PackageBindings> instantiateBindings(final ContainerServices services,
                                                      final Map properties,
                                                      final Collection<Class<PackageBindings>> assemblySet) {

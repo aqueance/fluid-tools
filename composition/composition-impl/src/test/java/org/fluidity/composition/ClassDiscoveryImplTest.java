@@ -44,7 +44,7 @@ import org.testng.annotations.Test;
 /**
  * @author Tibor Varga
  */
-@SuppressWarnings({ "ResultOfMethodCallIgnored" })
+@SuppressWarnings("ResultOfMethodCallIgnored")
 public class ClassDiscoveryImplTest extends MockGroupAbstractTest {
 
     static {
@@ -52,7 +52,7 @@ public class ClassDiscoveryImplTest extends MockGroupAbstractTest {
     }
 
     @Test
-    @SuppressWarnings({ "unchecked" })
+    @SuppressWarnings("unchecked")
     public void findsClassesInAnyClassLoader() throws Exception {
 
         // we need to create a new service provider (http://java.sun.com/j2se/1.4.2/docs/guide/jar/jar.html#Service%20Provider)
@@ -90,7 +90,7 @@ public class ClassDiscoveryImplTest extends MockGroupAbstractTest {
     }
 
     @Test
-    @SuppressWarnings({ "unchecked" })
+    @SuppressWarnings("unchecked")
     public void findsClassesOnlyByGivenClassLoader() throws Exception {
 
         // we need to create a new service provider (http://java.sun.com/j2se/1.4.2/docs/guide/jar/jar.html#Service%20Provider)

@@ -163,7 +163,7 @@ public final class KeyedUtils {
             return ((Keyed) object).key();
         }
 
-        @SuppressWarnings({ "unchecked" })
+        @SuppressWarnings("unchecked")
         public T getValue(final Object object) {
             return (T) object;
         }

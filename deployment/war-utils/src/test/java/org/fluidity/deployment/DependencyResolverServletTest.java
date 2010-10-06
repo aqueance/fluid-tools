@@ -42,7 +42,7 @@ public class DependencyResolverServletTest extends MockGroupAbstractTest {
     private final ServletRequest request = addControl(ServletRequest.class);
     private final ServletResponse response = addControl(ServletResponse.class);
 
-    @SuppressWarnings({ "StringEquality" })
+    @SuppressWarnings("StringEquality")
     @Test
     public void delegateAcquisition() throws Exception {
         final String componentKey = "key";

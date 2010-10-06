@@ -54,7 +54,7 @@ public final class OptionalDependencyTests extends AbstractContainerTests {
 
     private static class MandatoryDependentValue {
 
-        @SuppressWarnings({ "UnusedDeclaration" })
+        @SuppressWarnings("UnusedDeclaration")
         public MandatoryDependentValue(final DependentKey dependent) {
             assert false : "Should not have been instantiated";
         }

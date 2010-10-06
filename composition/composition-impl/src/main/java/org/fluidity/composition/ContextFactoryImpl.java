@@ -33,7 +33,7 @@ import org.fluidity.composition.spi.ContextFactory;
  */
 final class ContextFactoryImpl implements ContextFactory {
 
-    @SuppressWarnings({ "unchecked" })
+    @SuppressWarnings("unchecked")
     public ComponentContext newContext(final Properties properties) {
         return new ComponentContextImpl(properties);
     }

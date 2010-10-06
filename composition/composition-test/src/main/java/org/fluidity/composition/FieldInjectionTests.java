@@ -78,12 +78,12 @@ public final class FieldInjectionTests extends AbstractContainerTests {
 
         @Optional
         @Component
-        @SuppressWarnings({ "UnusedDeclaration" })
+        @SuppressWarnings("UnusedDeclaration")
         private Key dependency1;
 
         @Optional
         @Component
-        @SuppressWarnings({ "UnusedDeclaration" })
+        @SuppressWarnings("UnusedDeclaration")
         private Value dependency2;
 
         private final DependentKey dependency3;
@@ -116,12 +116,12 @@ public final class FieldInjectionTests extends AbstractContainerTests {
     public static class SelfDependentImpl implements SelfDependent {
 
         @Component
-        @SuppressWarnings({ "UnusedDeclaration" })
+        @SuppressWarnings("UnusedDeclaration")
         private SelfDependent self;
 
         @Optional
         @Component
-        @SuppressWarnings({ "UnusedDeclaration" })
+        @SuppressWarnings("UnusedDeclaration")
         private DependentKey key;
 
         public void verify() {

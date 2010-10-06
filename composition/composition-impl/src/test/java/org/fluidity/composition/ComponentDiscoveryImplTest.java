@@ -38,7 +38,7 @@ import org.testng.annotations.Test;
 /**
  * @author Tibor Varga
  */
-@SuppressWarnings({ "ResultOfMethodCallIgnored" })
+@SuppressWarnings("ResultOfMethodCallIgnored")
 public class ComponentDiscoveryImplTest extends MockGroupAbstractTest {
 
     private final ComponentContainer container = addControl(ComponentContainer.class);
@@ -47,7 +47,7 @@ public class ComponentDiscoveryImplTest extends MockGroupAbstractTest {
 
     private final ClassDiscovery discovery = addControl(ClassDiscovery.class);
 
-    @SuppressWarnings({ "unchecked" })
+    @SuppressWarnings("unchecked")
     @Test
     public void findsBoundImplementations() throws Exception {
 
@@ -94,7 +94,7 @@ public class ComponentDiscoveryImplTest extends MockGroupAbstractTest {
         }
     }
 
-    @SuppressWarnings({ "unchecked" })
+    @SuppressWarnings("unchecked")
     @Test
     public void findsImplementations() throws Exception {
 

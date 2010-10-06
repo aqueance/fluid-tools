@@ -34,7 +34,7 @@ import org.testng.annotations.Test;
  */
 public final class ComponentFactoryTests extends AbstractContainerTests {
 
-    @SuppressWarnings({ "unchecked" })
+    @SuppressWarnings("unchecked")
     private ComponentFactory<DependentKey> factory = addControl(ComponentFactory.class);
 
     public ComponentFactoryTests(final ContainerFactory factory) {

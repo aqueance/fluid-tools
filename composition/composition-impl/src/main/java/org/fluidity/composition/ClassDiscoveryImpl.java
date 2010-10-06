@@ -48,7 +48,7 @@ final class ClassDiscoveryImpl implements ClassDiscovery {
 
     private final Logging log = new BootstrapLog("discovery");
 
-    @SuppressWarnings({ "unchecked" })
+    @SuppressWarnings("unchecked")
     public <T> Class<T>[] findComponentClasses(final Class<T> componentInterface, final ClassLoader cl, final boolean strict) {
         final ClassLoader classLoader = cl == null ? ClassLoaderUtils.findClassLoader(componentInterface) : cl;
         final String objects = String.format(" service provider files for %s using class loader %s", componentInterface, classLoader);

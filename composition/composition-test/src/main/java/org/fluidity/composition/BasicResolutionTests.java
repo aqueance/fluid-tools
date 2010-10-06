@@ -183,7 +183,7 @@ public final class BasicResolutionTests extends AbstractContainerTests {
         private static ComponentContainer container;
 
         @Component
-        @SuppressWarnings({ "UnusedDeclaration" })
+        @SuppressWarnings("UnusedDeclaration")
         private transient Key dependency;
 
         public SerializableComponent() {

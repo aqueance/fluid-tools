@@ -163,7 +163,7 @@ public final class NamedUtils {
             return ((Named) object).name();
         }
 
-        @SuppressWarnings({ "unchecked" })
+        @SuppressWarnings("unchecked")
         public T getValue(final Object object) {
             return (T) object;
         }

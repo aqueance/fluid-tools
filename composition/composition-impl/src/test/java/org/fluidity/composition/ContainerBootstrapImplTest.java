@@ -67,7 +67,7 @@ public final class ContainerBootstrapImplTest extends MockGroupAbstractTest {
         EasyMock.expect(services.classDiscovery()).andReturn(discovery).anyTimes();
     }
 
-    @SuppressWarnings({ "unchecked" })
+    @SuppressWarnings("unchecked")
     @Test
     public void connectedComponentAssembly() throws Exception {
         final Class[] assemblies = {
@@ -132,7 +132,7 @@ public final class ContainerBootstrapImplTest extends MockGroupAbstractTest {
         verify();
     }
 
-    @SuppressWarnings({ "unchecked" })
+    @SuppressWarnings("unchecked")
     @Test
     public void standaloneComponentAssembly() throws Exception {
 
@@ -168,7 +168,7 @@ public final class ContainerBootstrapImplTest extends MockGroupAbstractTest {
         verify();
     }
 
-    @SuppressWarnings({ "unchecked" })
+    @SuppressWarnings("unchecked")
     @Test
     public void bindingProperties() throws Exception {
         final Class<?>[] assemblies = new Class<?>[0];
@@ -202,7 +202,7 @@ public final class ContainerBootstrapImplTest extends MockGroupAbstractTest {
         verify();
     }
 
-    @SuppressWarnings({ "unchecked" })
+    @SuppressWarnings("unchecked")
     @Test(expectedExceptions = RuntimeException.class, expectedExceptionsMessageRegExp = ".*require.*ShutdownHook.*")
     public void missingDependency() throws Exception {
         EasyMock.expect(discovery.findComponentClasses(PackageBindings.class, null, true)).andReturn(new Class[0]);
@@ -250,7 +250,7 @@ public final class ContainerBootstrapImplTest extends MockGroupAbstractTest {
 
         public static List<PackageBindings> list;
 
-        @SuppressWarnings({ "UnusedDeclaration" })
+        @SuppressWarnings("UnusedDeclaration")
         public PackageBindingsImpl(final ResponsiblePackageBindingsImpl dependent) {
             // empty
         }
@@ -276,7 +276,7 @@ public final class ContainerBootstrapImplTest extends MockGroupAbstractTest {
 
         public static List<PackageBindings> list;
 
-        @SuppressWarnings({ "UnusedDeclaration" })
+        @SuppressWarnings("UnusedDeclaration")
         public DependentPackageBindingsImpl(final PackageBindingsImpl dependent) {
             // empty
         }
