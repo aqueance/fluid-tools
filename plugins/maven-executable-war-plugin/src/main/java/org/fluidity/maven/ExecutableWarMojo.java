@@ -413,7 +413,7 @@ public class ExecutableWarMojo extends AbstractMojo {
         final Set<String> checked = new HashSet<String>();
 
         final DependencyNodeVisitor nodeVisitor = new DependencyNodeVisitor() {
-            @SuppressWarnings("unchecked")
+
             public boolean visit(final DependencyNode node) {
                 final Artifact artifact = node.getArtifact();
                 final String artifactId = artifact.getDependencyConflictId();
@@ -422,7 +422,7 @@ public class ExecutableWarMojo extends AbstractMojo {
 
                 if (unseen) {
                     checked.add(artifactId);
-                    final List<String> dependencyTrail = (List<String>) artifact.getDependencyTrail();  // TODO: see if it's generic in Maven 2.0.9
+                    final List<String> dependencyTrail = artifact.getDependencyTrail();
 
                     if (dependencyTrail != null) {
                         dependencyTrail.removeAll(pluginDependencyIds);
