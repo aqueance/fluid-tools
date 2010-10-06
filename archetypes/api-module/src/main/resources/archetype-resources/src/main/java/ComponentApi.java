@@ -15,7 +15,7 @@ public interface ComponentApi {
      *
      * @return <code>true</code> if the dependency accepted the text, <code>false</code> otherwise.
      */
-    boolean sendText(final String text);
+    boolean sendText(String text);
 
     /**
      * A dependency that accepts or rejects text.
@@ -29,6 +29,6 @@ public interface ComponentApi {
          *
          * @return <code>true</code> if the text was accepted, <code>false</code> otherwise.
          */
-        boolean receiveText(final String text);
+        boolean receiveText(String text);
     }
 }

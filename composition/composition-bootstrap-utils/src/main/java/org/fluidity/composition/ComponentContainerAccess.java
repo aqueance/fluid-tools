@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2006-2009 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Softweare"), to deal
+ * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
@@ -13,7 +13,7 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -28,6 +28,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.WeakHashMap;
 
@@ -65,14 +66,14 @@ public final class ComponentContainerAccess implements ComponentContainer {
     private static final Set<OpenComponentContainer> committedContainers = new HashSet<OpenComponentContainer>();
 
     /*
-     * The component that can bootstrap the container for us.
+     * The component that can bootstrap a container.
      */
     private ContainerBootstrap containerBootstrap;
 
     /*
-     * The component that can discover classes for us.
+     * The component that can provide container implementations.
      */
-    private ClassDiscovery classDiscovery;
+    private ContainerProvider containerProvider;
 
     /*
      * The component that can discover the above dependencies for us.
@@ -100,7 +101,7 @@ public final class ComponentContainerAccess implements ComponentContainer {
     /**
      * This is for the unit test cases to override our single dependency.
      *
-     * @param services is mock object.
+     * @param services is a mock object.
      */
     /* package */ void reset(final BootstrapServices services) {
         ComponentContainerAccess.populatedContainers.clear();
@@ -110,7 +111,7 @@ public final class ComponentContainerAccess implements ComponentContainer {
         this.services = services;
         this.rootClassLoader = null;
         this.containerBootstrap = null;
-        this.classDiscovery = null;
+        this.containerProvider = null;
     }
 
     /**
@@ -146,39 +147,39 @@ public final class ComponentContainerAccess implements ComponentContainer {
 
         final List<ClassLoader> classLoaders = new ArrayList<ClassLoader>();
 
-        for (ClassLoader cl = classLoader; cl != rootClassLoader; cl = cl.getParent()) {
-            classLoaders.add(cl);
+        for (ClassLoader loader = classLoader; loader != rootClassLoader; loader = loader.getParent()) {
+            classLoaders.add(loader);
         }
 
         for (final ListIterator<ClassLoader> i = classLoaders.listIterator(classLoaders.size()); i.hasPrevious();) {
-            final ClassLoader cl = i.previous();
+            final ClassLoader loader = i.previous();
 
-            OpenComponentContainer ct = populatedContainers.get(cl);
+            OpenComponentContainer container = populatedContainers.get(loader);
 
-            if (ct == null) {
+            if (container == null) {
+                if (containerProvider == null) {
+                    containerProvider = services.findInstance(ContainerProvider.class, loader);
+                }
+
                 if (containerBootstrap == null) {
-                    containerBootstrap = services.findInstance(ContainerBootstrap.class, cl);
+                    containerBootstrap = services.findInstance(ContainerBootstrap.class, loader);
                 }
 
-                if (classDiscovery == null) {
-                    classDiscovery = services.findInstance(ClassDiscovery.class, cl);
-                }
-
-                if (containerBootstrap != null && classDiscovery != null) {
+                if (containerBootstrap != null && containerProvider != null) {                    
                     if (rootClassLoader == null) {
-                        rootClassLoader = cl;
+                        rootClassLoader = loader;
                     }
 
-                    inflightContainers.add(cl);
+                    inflightContainers.add(loader);
                     try {
-                        final Map map = propertiesMap.get(cl);
-                        ct = containerBootstrap.populateContainer(classDiscovery, map == null ? new HashMap() : map, populatedContainers.get(cl.getParent()), cl);
-                        populatedContainers.put(cl, ct);
+                        final Map map = propertiesMap.get(loader);
+                        container = containerBootstrap.populateContainer(containerProvider, map == null ? new HashMap() : map, populatedContainers.get(loader.getParent()), loader);
+                        populatedContainers.put(loader, container);
                     } finally {
-                        inflightContainers.remove(cl);
+                        inflightContainers.remove(loader);
                     }
                 } else {
-                    populatedContainers.put(cl, null);
+                    populatedContainers.put(loader, null);
                 }
             }
         }
@@ -193,10 +194,10 @@ public final class ComponentContainerAccess implements ComponentContainer {
             makeContainer(classLoader);
         }
 
-        ClassLoader cl = classLoader;
-        OpenComponentContainer container = populatedContainers.get(cl);
-        while (container == null && (cl = cl.getParent()) != null) {
-            container = populatedContainers.get(cl);
+        ClassLoader loader = classLoader;
+        OpenComponentContainer container = populatedContainers.get(loader);
+        while (container == null && (loader = loader.getParent()) != null) {
+            container = populatedContainers.get(loader);
         }
 
         if (container != null) {
@@ -223,6 +224,18 @@ public final class ComponentContainerAccess implements ComponentContainer {
         return getContainer(true).getComponent(componentClass, bindings);
     }
 
+    public ComponentContext makeContext(final Properties properties) {
+        return getContainer(true).makeContext(properties);
+    }
+
+    public ComponentContext makeContext(final Map<String, String> map) {
+        return getContainer(true).makeContext(map);
+    }
+
+    public <T> T getComponent(final Class<T> componentClass, final ComponentContext context) {
+        return getContainer(true).getComponent(componentClass, context);
+    }
+
     /**
      * Delegates to the enclosed container.
      *
@@ -245,13 +258,13 @@ public final class ComponentContainerAccess implements ComponentContainer {
      *
      * This method will trigger population of the associated container and its parents.
      *
-     * @param key      the key by which to register the component; preferrably an interface class.
+     * @param key      the key by which to register the component; preferably an interface class.
      * @param instance the component instance.
      *
      * @throws IllegalStateException if the container is made read only by getting any component out of it.
      */
     public <T> void bindBootComponent(final Class<? super T> key, final T instance) {
-        getContainer(false).getRegistry().bind(key, instance);
+        getContainer(false).getRegistry().bindInstance(key, instance);
     }
 
     private static class BootstrapServicesImpl implements BootstrapServices {

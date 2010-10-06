@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2006-2009 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Softweare"), to deal
+ * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
@@ -13,7 +13,7 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -45,7 +45,7 @@ public interface Settings {
      *
      * @return a setting value.
      */
-    String setting(final String key, final String defaultValue);
+    String setting(String key, String defaultValue);
 
     /**
      * Finds a setting with the given key.
@@ -55,7 +55,7 @@ public interface Settings {
      *
      * @return a setting value.
      */
-    int setting(final String key, final int defaultValue);
+    int setting(String key, int defaultValue);
 
     /**
      * Finds a setting with the given key.
@@ -65,7 +65,7 @@ public interface Settings {
      *
      * @return a setting value.
      */
-    boolean setting(final String key, final boolean defaultValue);
+    boolean setting(String key, boolean defaultValue);
 
     /**
      * Returns the list of namespaces known to this object.
@@ -81,7 +81,7 @@ public interface Settings {
      *
      * @return an array of <code>String</code>s, never <code>null</code>.
      */
-    String[] keys(final String namespace);
+    String[] keys(String namespace);
 
     /**
      * Finds a setting with the given key.
@@ -92,7 +92,7 @@ public interface Settings {
      *
      * @return a setting value.
      */
-    String setting(final String namespace, final String key, final String defaultValue);
+    String setting(String namespace, String key, String defaultValue);
 
     /**
      * Finds a setting with the given key.
@@ -103,7 +103,7 @@ public interface Settings {
      *
      * @return a setting value.
      */
-    int setting(final String namespace, final String key, final int defaultValue);
+    int setting(String namespace, String key, int defaultValue);
 
     /**
      * Finds a setting with the given key.
@@ -114,7 +114,7 @@ public interface Settings {
      *
      * @return a setting value.
      */
-    boolean setting(final String namespace, final String key, final boolean defaultValue);
+    boolean setting(String namespace, String key, boolean defaultValue);
 
     /**
      * Combines the given keys into a namespace.
@@ -123,5 +123,5 @@ public interface Settings {
      *
      * @return a namespace that can then be passed to the various other methods that accept a namespace.
      */
-    String namespace(final String... keys);
+    String namespace(String... keys);
 }

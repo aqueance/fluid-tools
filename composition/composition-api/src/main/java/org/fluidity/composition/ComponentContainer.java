@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2006-2009 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Softweare"), to deal
+ * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
@@ -13,147 +13,45 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package org.fluidity.composition;
+
+import java.util.Map;
+import java.util.Properties;
 
 /**
  * This is a dependency injection container. Containers may form a hierarchy. If a component is not found in a nested container, it tries to find the component
- * in its parent. Components are instantiated by the container on demand and their dependencies are resolved by means of constructor based dependency
- * injection.
- *
+ * in its parent. Components are instantiated by the container on demand and their dependencies are resolved by means of constructor or field based dependency
+ * injection. No setter injection or other means of injections are supported. Components may be context aware in that different instance is created for
+ * different contexs. Entire dependency chains of dependencies may be instantiated multiple times for different contexts.
  * <p/>
- *
- * Most of your components should never interact directly with this interface. Exceptions are objects created by third party tools, or components with dynamic
- * dependencies, e.g. that depend on some run-time criteria.
- *
- * <h1>Using the <code>ComponentContainer.Registry</code></h1>
- *
- * The registry exposes several <code>bind()</code> methods to bind an implementation to interface mapping to the host container. Which one you need depends on
- * your requirements. These methods are normally invoked from the {@link PackageBindings#bindComponents(ComponentContainer.Registry)} method.
- *
+ * Most of your components should never interact directly with this interface. Exceptions to this are objects created by third party tools, or components with
+ * dynamic dependencies, e.g. that depend on some run-time criteria.
+ * <p/>
+ * The registry offers several ways to map an implementation to interface in the host container. Which one you need depends on your requirements. These methods
+ * are normally invoked from the {@link PackageBindings#bindComponents(org.fluidity.composition.ComponentContainer.Registry)} method.
  * <ul>
- *
- * <li>If you want to bind a component that will be visible in the container itself <b>AND</b> you expect all its dependencies to be visible in that same
- * container <b>AND</b> you want to map the component against its own class rather than against an interface, e.g. to provide a default implementation to some
- * interface:
- *
- * <p/>
- *
- * <blockquote>{@link ComponentContainer.Registry#bind(Class)}</blockquote>
- *
- * <p/>
- *
+ * <li>To simply register a component implementation for a component interface, use {@link ComponentContainer.Registry#bindComponent(Class,Class)}. For
+ * auto-wired components this is achieved by annotating the implementation class with {@link org.fluidity.composition.Component}.
  * </li>
- *
- * <li>If you want to bind an application scoped singleton component that will be visible in the container itself <b>AND</b> you expect all its dependencies to
- * be visible in that same container:
- *
- * <p/>
- *
- * <blockquote>{@link ComponentContainer.Registry#bind(Class,Class)}</blockquote>
- *
- * <p/>
- *
+ * <li>To register a default implementation of some component interface, use {@link ComponentContainer.Registry#bindDefault(Class)}. For auto-wired components
+ * this is achieved by annotating the implementation class with {@link Component#fallback()} set to <code>true</code>.
  * </li>
- *
- * <li>If you want to bind component that will be visible in the container itself <b>AND</b> you expect all its dependencies to be visible in that same
- * container <b>AND</b> you want to map an already instantiated component object to its interface:
- *
- * <p/>
- *
- * <blockquote>{@link ComponentContainer.Registry#bind(Class,Object)}</blockquote>
- *
- * <p/>
- *
+ * <li>To register an already instantiated component implementation for a component interface, use
+ * {@link ComponentContainer.Registry#bindInstance(Class,Object)}. This use precludes auto-wiring, which must be switched off by annotating the implementation
+ * class with the {@link Component#automatic()} annotation set to <code>false</code>.
  * </li>
- *
- * <li>If you want to bind a component that will be visible in the container itself <b>AND</b> you expect all its dependencies to be visible in that same
- * container <b>AND</b> you want to make it (thread local <b>OR</b> proxied):
- *
- * <p/>
- *
- * <blockquote>{@link ComponentContainer.Registry#bind(Class,Class,boolean,boolean,boolean)}</blockquote>
- *
- * <p/>
- *
+ * <li>To register a component implementation without having some or all of its dependencies accessible in the same container, use
+ * {@link ComponentContainer.Registry#makeNestedContainer(Class,Class)} method and use the returned container's {@link OpenComponentContainer#getRegistry()}
+ * method to gain access to the registry in which to bind the hidden dependencies. This use precludes auto-wiring, which must be switched off by annotating the
+ * implementation class with {@link Component#automatic()} annotation set to <code>false</code>.
  * </li>
- *
- * <li>If you want to bind a component that will be visible in the container itself <b>AND</b> you expect all its dependencies to be visible in that same
- * container <b>AND</b> you want to (make it thread local <b>OR</b> proxied <b>OR</b> you want to supply your own dependency injected factory class to
- * instantiate the component):
- *
- * <p/>
- *
- * <blockquote>{@link ComponentContainer.Registry#bind(Class,Class,boolean,boolean,boolean,Class)}</blockquote>
- *
- * <p/>
- *
- * </li>
- *
- * <li>If you want to bind a component that will be visible in the container itself <b>AND</b> you expect all its dependencies to be visible in that same
- * container <b>AND</b> you want to (make it thread local <b>OR</b> proxied <b>OR</b> you want to supply your own already instantiated factory object to
- * instantiate the component):
- *
- * <p/>
- *
- * <blockquote>{@link ComponentContainer.Registry#bind(Class,Class,boolean,boolean,boolean,ComponentContainer.ComponentFactory)}</blockquote>
- *
- * <p/>
- *
- * </li>
- *
- * <li>If you want to bind an application scoped singleton component that will be visible in the container itself <b>AND</b> you want to also bind some of its
- * dependencies in a way so as to hide them from view in the container itself:
- *
- * <p/>
- *
- * <blockquote> use the {@link ComponentContainer.Registry#makeNestedContainer(Class,Class)} method</blockquote>
- *
- * <p/>
- *
- * and use the returned container's {@link OpenComponentContainer#getRegistry()} method to bind your hidden dependencies.</li>
- *
- * <li>If you want to bind a component that will be visible in the container itself <b>AND</b> you want to also bind some of its dependencies in a way so as to
- * hide them from view in the container itself <b>AND</b> you want to make it (thread local <b>OR</b> proxied):
- *
- * <p/>
- *
- * <blockquote> use the {@link ComponentContainer.Registry#makeNestedContainer(Class,Class,boolean,boolean,boolean)} method</blockquote>
- *
- * <p/>
- *
- * and use the returned container's {@link OpenComponentContainer#getRegistry()} method to bind your hidden dependencies.</li>
- *
- * <li>If you want to bind a component that will be visible in the container itself <b>AND</b> you want to also bind some of its dependencies in a way so as to
- * hide them from view in the container itself <b>AND</b> you want to (make it thread local <b>OR</b> proxied <b>OR</b> you want to supply your own dependency
- * injected factory class to instantiate the component):
- *
- * <p/>
- *
- * <blockquote> use the {@link ComponentContainer.Registry#bind(Class,Class,boolean,boolean,boolean,Class)} method</blockquote>
- *
- * <p/>
- *
- * and use the returned container's {@link OpenComponentContainer#getRegistry()} method to bind your hidden dependencies.</li>
- *
- * <li>If you want to bind a component that will be visible in the container itself <b>AND</b> you want to also bind some of its dependencies in a way so as to
- * hide them from view in the container itself <b>AND</b> you want to (make it thread local <b>OR</b> proxied <b>OR</b> you want to supply your own already
- * instantiated factory object to instantiate the component):
- *
- * <p/>
- *
- * <blockquote> use the {@link ComponentContainer.Registry#makeNestedContainer(Class,Class,boolean,boolean,boolean,ComponentContainer.ComponentFactory)}
- * method</blockquote>
- *
- * <p/>
- *
- * and use the returned container's {@link OpenComponentContainer#getRegistry()} method to bind your hidden dependencies.</li>
- *
  * </ul>
  *
  * @author Tibor Varga
@@ -163,17 +61,18 @@ public interface ComponentContainer {
     /**
      * Returns a component by interface or (super)class. This method is provided for boundary objects (objects created outside the container by third party
      * tools) to acquire their dependencies.
-     *
      * <p/>
-     *
      * If there is no component bound to the given class itself, an attempt is made to locate a single component that implements the given interface or is an
      * instance of the given class or any of its subclasses.
      *
      * @param componentClass is a class object that was used to register a component against; never <code>null</code>.
      *
      * @return the component registered against the give class or <code>null</code> when none was found.
+     *
+     * @throws org.fluidity.composition.ComponentContainer.ResolutionException
+     *          when dependency resolution fails
      */
-    <T> T getComponent(final Class<T> componentClass);
+    <T> T getComponent(Class<T> componentClass) throws ResolutionException;
 
     /**
      * Returns a component by interface or (super)class. This method is provided for factory objects (objects creating transient components) as a convenient
@@ -183,15 +82,48 @@ public interface ComponentContainer {
      * @param bindings       is invoked to add component bindings to the nested container.
      *
      * @return the component registered against the give class or <code>null</code> when none was found.
+     *
+     * @throws org.fluidity.composition.ComponentContainer.ResolutionException
+     *          when dependency resolution fails
      */
-    <T> T getComponent(final Class<T> componentClass, final Bindings bindings);
+    <T> T getComponent(Class<T> componentClass, Bindings bindings) throws ResolutionException;
+
+    /**
+     * Creates a new component context to be used with {@link #getComponent(Class, ComponentContext)}.
+     *
+     * @param properties the properties to copy into the context.
+     *
+     * @return a read-only context created from the properties.
+     */
+    ComponentContext makeContext(Properties properties);
+
+    /**
+     * Creates a new component context to be used with {@link #getComponent(Class, ComponentContext)}.
+     *
+     * @param map the map to copy into the context.
+     *
+     * @return a read-only context created from the map.
+     */
+    ComponentContext makeContext(Map<String, String> map);
+
+    /**
+     * Returns a component by interface or (super)class. This method is provided for factory objects (objects creating transient components) as a convenient
+     * shortcut to acquire a nested container, bind components to it and get the nested container instantiate the requested component.
+     *
+     * @param componentClass is a class object that was used to register a component against; never <code>null</code>.
+     * @param context        specifies the context for the instantiation. Multiple instances may be returned depending on context and component configuration.
+     *
+     * @return the component registered against the give class or <code>null</code> when none was found.
+     *
+     * @throws org.fluidity.composition.ComponentContainer.ResolutionException
+     *          when dependency resolution fails
+     */
+    <T> T getComponent(Class<T> componentClass, ComponentContext context) throws ResolutionException;
 
     /**
      * Creates another container whose components' dependencies will be satisfied from itself first and which will default to this container when it could find
      * no component to satisfy a dependency with.
-     *
      * <p/>
-     *
      * This method can be used to gain access to the dependency resolution and injection functionality of the container without polluting it with new components
      * after it has been set up. Components placed in the nested container will not be visible to clients of, or components in, this container.
      *
@@ -205,8 +137,11 @@ public interface ComponentContainer {
      * @param component is a component that needs field injection of dependencies.
      *
      * @return the field injected object - the same that was passed as the method parameter.
+     *
+     * @throws org.fluidity.composition.ComponentContainer.ResolutionException
+     *          when dependency resolution fails
      */
-    <T> T initialize(final T component);
+    <T> T initialize(T component) throws ResolutionException;
 
     /**
      * Created to be add component bindings to a registry.
@@ -218,118 +153,86 @@ public interface ComponentContainer {
          *
          * @param registry is an interface to register component bindings.
          */
-        void bindComponents(final ComponentContainer.Registry registry);
+        void bindComponents(ComponentContainer.Registry registry);
     }
 
     /**
      * Allow registration of components into a container. This registry supports access to a nested container in the parent by means of linking. The nested
      * container exposes one component that will be accessible through the parent but its dependencies will be resolved in the context of the nested container.
-     *
      * <p/>
-     *
-     * This object is mainly used by <code>PackageBinding</code> objects when the host application populates its dependency injection container.
-     *
+     * This object is mainly used by {@link org.fluidity.composition.PackageBindings} objects when the host application populates its dependency injection
+     * container.
      * <p/>
-     *
-     * Objects implementing this interface can be aquired by calling <code>OpenComponentContainer.getRegistry()</code>.
+     * Objects implementing this interface can be acquired by calling {@link OpenComponentContainer#getRegistry()}.
      *
      * @author Tibor Varga
      */
     interface Registry {
 
         /**
-         * Adds an expected dependency interface to the registry. The list of such interface classes will be verified to have been bound when the container is
-         * populated and if any one of them is not bound, a report is logged to make the fact known and application startup is prevented.
-         *
+         * Binds a component class to its component interface. The component interface is taken either from the {@link Component#api()} annotation parameter or
+         * the single interface the class implements, unless the {@link Component#fallback()} annotation parameter is <code>true</code>, in which case the
+         * component is bound as a default implementation that can be overridden by another binding against the same API interface.
          * <p/>
-         *
-         * This method is useful for modules that expose an interface that they themselves do not implemebt but expect at run-time to be bound.
-         *
+         * Two special cases must be handled by the receiver: when the implementation is either a {@link org.fluidity.composition.ComponentFactory} or a {@link
+         * org.fluidity.composition.ComponentVariantFactory}. In the latter case, two bindings must take place, one for the variant factory and one for the
+         * component it creates variants of, and they can take place in any order. Irrespective of the order, the variant factory must receive any component
+         * lookup for the target component.
          * <p/>
+         * This is a convenience method whose functionality is also provided by other methods collectively, namely {@link #bindDefault(Class)} and {@link
+         * #bindComponent(Class, Class)}.
          *
-         * TODO: see if this is actually useful
+         * @param implementation the component class.
          *
-         * @param dependencyInterface is the expected dependency interface.
-         * @param dependentIClass     is the class that has the dependency.
+         * @throws org.fluidity.composition.ComponentContainer.BindingException
+         *          when the binding cannot be performed
          */
-        void requireDependency(final Class dependencyInterface, final Class dependentIClass);
+        void bindComponent(Class<?> implementation) throws BindingException;
 
         /**
-         * Calls <code>bind(implementation, implementation, true, false, false)</code>.
+         * Binds a component class to its interface. Two special cases must be handled by the receiver: when the implementation is either a {@link
+         * org.fluidity.composition.ComponentFactory} or a {@link org.fluidity.composition.ComponentVariantFactory}. In the latter case, two bindings must take
+         * place, one for the variant factory and one for the component it creates variants of, and they can take place in any order. Irrespective of the order,
+         * the variant factory must receive any component lookup for the target component.
+         *
+         * @param key            the key by which to register the component; preferably an interface class.
+         * @param implementation the component class.
+         *
+         * @throws org.fluidity.composition.ComponentContainer.BindingException
+         *          when the binding cannot be performed
+         */
+        <T> void bindComponent(Class<T> key, Class<? extends T> implementation) throws BindingException;
+
+        /**
+         * Calls {@link #bindComponent(Class, Class)} passing implementation as both parameters.
          *
          * @param implementation the class of the component to register.
-         */
-        <T> void bind(final Class<? extends T> implementation);
-
-        /**
-         * Calls <code>bind(key, implementation, true, false, false, parameters)</code>.
          *
-         * @param key            the key by which to register the component; preferrably an interface class.
-         * @param implementation the component class.
+         * @throws org.fluidity.composition.ComponentContainer.BindingException
+         *          when the binding cannot be performed
          */
-        <T> void bind(final Class<T> key, final Class<? extends T> implementation);
-
-        /**
-         * Binds a component class to its interface with forced constructor parameters. Use this when you want to supply a more specific dependency or the
-         * constructor you intend to be used has non-component parameters.
-         *
-         * @param key            the key by which to register the component; preferrably an interface class.
-         * @param implementation the component class.
-         * @param singleton      specifies whether the component should be singleton or not.
-         * @param thread         specifies whether the component should be thread local.
-         * @param deferred       specifies whether the component's instantiation should be deferred until the first method call.
-         */
-        <T> void bind(final Class<T> key, final Class<? extends T> implementation, final boolean singleton, final boolean thread, final boolean deferred);
-
-        /**
-         * Binds a component class to its interface with forced constructor parameters. Use this when you want to supply a more specific dependency or the
-         * constructor you intend to be used has non-component parameters.
-         *
-         * @param key            the key by which to register the component; preferrably an interface class.
-         * @param implementation the component class.
-         * @param singleton      specifies whether the component should be singleton or not.
-         * @param thread         specifies whether the component should be thread local.
-         * @param deferred       specifies whether the component's instantiation should be deferred until the first method call.
-         * @param factory        is an object that will produce instances of the given implementation class.
-         */
-        <T> void bind(final Class<T> key,
-                      final Class<? extends T> implementation,
-                      final boolean singleton,
-                      final boolean thread,
-                      final boolean deferred,
-                      final ComponentFactory<T> factory);
-
-        /**
-         * Binds a component class to its interface with forced constructor parameters. Use this when you want to supply a more specific dependency or the
-         * constructor you intend to be used has non-component parameters.
-         *
-         * @param key            the key by which to register the component; preferrably an interface class.
-         * @param implementation the component class.
-         * @param singleton      specifies whether the component should be singleton or not.
-         * @param thread         specifies whether the component should be thread local.
-         * @param deferred       specifies whether the component's instantiation should be deferred until the first method call.
-         * @param factory        is a class whose singleton instance that will produce instances of the given implementation class.
-         */
-        <T> void bind(final Class<T> key,
-                      final Class<? extends T> implementation,
-                      final boolean singleton,
-                      final boolean thread,
-                      final boolean deferred,
-                      final Class<? extends ComponentFactory<T>> factory);
+        <T> void bindDefault(Class<? extends T> implementation) throws BindingException;
 
         /**
          * Binds a component instance to its interface. In most case you should use the other registration methods that accept a class rather then instantiating
          * the component yourself. Use this method when you have no control over the instantiation of a class, such as those created by third party tools, but
          * you still want to make them available for components in the container to depend on.
+         * <p/>
+         * The supplied component instance may be a {@link org.fluidity.composition.ComponentFactory} or a {@link
+         * org.fluidity.composition.ComponentVariantFactory} instance, in which case the receiver must support their respective functionality as described in
+         * their documentation and at {@link #bindComponent(Class, Class)}.
          *
-         * @param key      the key by which to register the component; preferrably an interface class.
+         * @param key      the key by which to register the component; preferably an interface class.
          * @param instance the component instance.
+         *
+         * @throws org.fluidity.composition.ComponentContainer.BindingException
+         *          when the binding cannot be performed
          */
-        <T> void bind(final Class<? super T> key, final T instance);
+        <T> void bindInstance(Class<? super T> key, T instance) throws BindingException;
 
         /**
-         * Returns a new child registry whose container will use the container for this registry as its parent. See
-         * <code>OpenComponentContainer.makeNestedContainer()</code>.
+         * Returns a new child registry whose container will use the container for this registry as its parent. See {@link
+         * org.fluidity.composition.OpenComponentContainer#makeNestedContainer()}.
          *
          * @return an open container, never <code>null</code>.
          */
@@ -342,77 +245,42 @@ public interface ComponentContainer {
          * @param implementation the component whose dependencies the child container will help resolving.
          *
          * @return an open container, never <code>null</code>.
+         *
+         * @throws org.fluidity.composition.ComponentContainer.BindingException
+         *          when the binding cannot be performed
          */
-        <T> OpenComponentContainer makeNestedContainer(final Class<T> key, final Class<? extends T> implementation);
-
-        /**
-         * Returns a new child registry whose container will use the container for this registry as its parent.
-         *
-         * @param key            the key under which the child container will be accessible through its parent.
-         * @param implementation the component whose dependencies the child container will help resolving.
-         * @param singleton      specifies whether the component should be singleton or not.
-         * @param thread         specifies whether the component should be thread local.
-         * @param deferred       specifies whether the component's instantiation should be deferred until the first method call.
-         *
-         * @return an open container, never <code>null</code>.
-         */
-        <T> OpenComponentContainer makeNestedContainer(final Class<T> key,
-                                                       final Class<? extends T> implementation,
-                                                       final boolean singleton,
-                                                       final boolean thread,
-                                                       final boolean deferred);
-
-        /**
-         * Returns a new child registry whose container will use the container for this registry as its parent.
-         *
-         * @param key            the key under which the child container will be accessible through its parent.
-         * @param implementation the component whose dependencies the child container will help resolving.
-         * @param singleton      specifies whether the component should be singleton or not.
-         * @param thread         specifies whether the component should be thread local.
-         * @param deferred       specifies whether the component's instantiation should be deferred until the first method call.
-         * @param factory        is an object that will produce instances of the given implementation class.
-         *
-         * @return an open container, never <code>null</code>.
-         */
-        <T> OpenComponentContainer makeNestedContainer(final Class<T> key,
-                                                       final Class<? extends T> implementation,
-                                                       final boolean singleton,
-                                                       final boolean thread,
-                                                       final boolean deferred,
-                                                       final ComponentFactory<T> factory);
-
-        /**
-         * Returns a new child registry whose container will use the container for this registry as its parent.
-         *
-         * @param key            the key under which the child container will be accessible through its parent.
-         * @param implementation the component whose dependencies the child container will help resolving.
-         * @param singleton      specifies whether the component should be singleton or not.
-         * @param thread         specifies whether the component should be thread local.
-         * @param deferred       specifies whether the component's instantiation should be deferred until the first method call.
-         * @param factory        is an object that will produce instances of the given implementation class.
-         *
-         * @return an open container, never <code>null</code>.
-         */
-        <T> OpenComponentContainer makeNestedContainer(final Class<T> key,
-                                                       final Class<? extends T> implementation,
-                                                       final boolean singleton,
-                                                       final boolean thread,
-                                                       final boolean deferred,
-                                                       final Class<? extends ComponentFactory<T>> factory);
+        <T> OpenComponentContainer makeNestedContainer(Class<T> key, Class<? extends T> implementation) throws BindingException;
     }
 
-    /**
-     * Poses as a factory for a particular component.
-     */
-    interface ComponentFactory<T> {
+    class ContainerException extends RuntimeException {
 
-        /**
-         * Creates a new instance of the component that this is a factory for.
-         *
-         * @param container is the container where the key that this factory should provide a component for expects its dependencies to be.
-         *
-         * @return an object implementing <code>T</code>, never <code>null</code>.
-         */
-        T makeComponent(final ComponentContainer container);
+        public ContainerException(final String format, final Object... data) {
+            super(String.format(format, data));
+        }
+    }
+
+    class BindingException extends ContainerException {
+
+        public BindingException(final String format, final Object... data) {
+            super(format, data);
+        }
+    }
+
+    class ResolutionException extends ContainerException {
+
+        public ResolutionException(final String format, final Object... data) {
+            super(format, data);
+        }
+    }
+
+    class CircularReferencesException extends ResolutionException {
+
+        public CircularReferencesException(final Class<?> componentClass) {
+            super("Circular dependency detected involving %s", componentClass);
+        }
+
+        public CircularReferencesException(final Class<?> componentClass, final String resolutions) {
+            super("Circular dependency detected involving %s: %s", componentClass, resolutions);
+        }
     }
 }

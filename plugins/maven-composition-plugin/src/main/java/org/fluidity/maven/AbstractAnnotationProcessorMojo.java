@@ -1,3 +1,25 @@
+/*
+ * Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
 package org.fluidity.maven;
 
 import java.io.File;
@@ -15,6 +37,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import org.fluidity.composition.Component;
+import org.fluidity.composition.ComponentContainer;
+import org.fluidity.composition.EmptyPackageBindings;
+import org.fluidity.composition.PackageBindings;
+import org.fluidity.composition.ServiceProvider;
 
 import org.apache.bcel.Constants;
 import org.apache.bcel.classfile.AnnotationEntry;
@@ -43,11 +71,6 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.DirectoryScanner;
-import org.fluidity.composition.Component;
-import org.fluidity.composition.ComponentContainer;
-import org.fluidity.composition.EmptyPackageBindings;
-import org.fluidity.composition.PackageBindings;
-import org.fluidity.composition.ServiceProvider;
 
 /**
  * Mojos that find all implementations of a service provider interface and creates a service provider file as per the JAR file specification and finds all
@@ -197,7 +220,7 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo {
                 code.append(InstructionConstants.ALOAD_1);
                 code.append(new LDC_W(cp.addClass(interfaceName)));
                 code.append(new LDC_W(cp.addClass(implementationName)));
-                code.append(factory.createInvoke(ComponentContainer.Registry.class.getName(), "bind", Type.VOID, new Type[] {
+                code.append(factory.createInvoke(ComponentContainer.Registry.class.getName(), "bindComponent", Type.VOID, new Type[] {
                         Type.getType(Class.class), Type.getType(Class.class),
                 }, Constants.INVOKEINTERFACE));
             }
@@ -446,7 +469,7 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo {
         }
     }
 
-    private String getProjectNameId() {
+    protected String getProjectNameId() {
         final StringBuilder answer = new StringBuilder();
         final CharSequence name = project.getArtifactId();
 

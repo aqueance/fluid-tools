@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2006-2009 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Softweare"), to deal
+ * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
@@ -13,7 +13,7 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -38,7 +38,7 @@ public interface Resources {
      *
      * @return a valid resource name.
      */
-    String resourceName(final String name);
+    String resourceName(String name);
 
     /**
      * Finds the location of the given resource.
@@ -47,7 +47,7 @@ public interface Resources {
      *
      * @return a resource locator if the resource was found, <code>null</code> otherwise.
      */
-    URL locateResource(final String name);
+    URL locateResource(String name);
 
     /**
      * Finds the locations of all resources with the given name.
@@ -56,7 +56,7 @@ public interface Resources {
      *
      * @return an array of resource locators, never <code>null</code>.
      */
-    URL[] locateResources(final String name);
+    URL[] locateResources(String name);
 
     /**
      * Loads the resource with the given name.
@@ -65,7 +65,7 @@ public interface Resources {
      *
      * @return a stream if found, <code>null</code> otherwise.
      */
-    InputStream loadResource(final String name);
+    InputStream loadResource(String name);
 
     /**
      * Loads the given class as a resource.
@@ -74,7 +74,7 @@ public interface Resources {
      *
      * @return a stream if found, <code>null</code> otherwise.
      */
-    InputStream loadClassResource(final String className);
+    InputStream loadClassResource(String className);
 
     /**
      * Loads a class with the given name.
@@ -83,5 +83,5 @@ public interface Resources {
      *
      * @return the class if found, <code>null</code> otherwise.
      */
-    Class loadClass(final String className);
+    Class loadClass(String className);
 }

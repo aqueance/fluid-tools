@@ -1,8 +1,8 @@
 <!--
-  ~ Copyright (c) 2006-2009 Tibor Adam Varga (tibor.adam.varga on gmail)
+  ~ Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
   ~
   ~ Permission is hereby granted, free of charge, to any person obtaining a copy
-  ~ of this software and associated documentation files (the "Softweare"), to deal
+  ~ of this software and associated documentation files (the "Software"), to deal
   ~ in the Software without restriction, including without limitation the rights
   ~ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
   ~ copies of the Software, and to permit persons to whom the Software is
@@ -47,12 +47,7 @@
 
         <dependency>
             <groupId>${fluidity.composition.groupId}</groupId>
-            <artifactId>composition-api</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>${fluidity.composition.groupId}</groupId>
-            <artifactId>composition-bootstrap-impl</artifactId>
+            <artifactId>composition-impl</artifactId>
         </dependency>
 
         <dependency>
@@ -68,6 +63,7 @@
         <dependency>
             <groupId>${fluidity.foundation.groupId}</groupId>
             <artifactId>foundation-easymock</artifactId>
+            <scope>test</scope>
         </dependency>
 
         <dependency>
@@ -78,6 +74,18 @@
         <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>servlet-api</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>${fluidity.composition.groupId}</groupId>
+            <artifactId>composition-command-line-impl</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>${fluidity.composition.groupId}</groupId>
+            <artifactId>composition-container-impl</artifactId>
+            <scope>test</scope>
         </dependency>
 
     </dependencies>
@@ -105,6 +113,7 @@
                     <execution>
                         <goals>
                             <goal>process-annotations</goal>
+                            <goal>process-test-annotations</goal>
                         </goals>
                     </execution>
                 </executions>

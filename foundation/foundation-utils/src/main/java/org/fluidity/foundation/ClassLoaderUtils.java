@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2006-2009 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Softweare"), to deal
+ * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
@@ -13,7 +13,7 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -25,26 +25,27 @@ import java.net.URL;
 
 /**
  * Finds a suitable class loader in known application containers (web, ejb, junit, testng, maven).
- *
  * <p/>
- *
  * In test cases this class can be controlled by setting the context class loader to a mock class loader that returns what the test case desires. This is done
  * by calling
- *
  * <pre>
- * Thread.curentThread.setContextClassLoader(...);
+ * Thread.currentThread.setContextClassLoader(...);
  * </pre>
  *
  * @author Tibor Varga
  */
-public final class ClassLoaderUtils {
+public abstract class ClassLoaderUtils {
+
+    private ClassLoaderUtils() {
+        throw new UnsupportedOperationException("No instance allowed");
+    }
 
     public static ClassLoader findClassLoader(final Class sourceClass) {
         ClassLoader result = Thread.currentThread().getContextClassLoader();
         result = result == null ? sourceClass.getClassLoader() : result;
         result = result == null ? ClassLoaderUtils.class.getClassLoader() : result;
 
-        // any idea how to test defaulting to the system class loader?
+        // TODO: any idea how to test defaulting to the system class loader?
         return result == null ? ClassLoader.getSystemClassLoader() : result;
     }
 
