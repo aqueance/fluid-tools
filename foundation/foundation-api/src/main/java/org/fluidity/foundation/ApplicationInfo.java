@@ -22,7 +22,7 @@
 package org.fluidity.foundation;
 
 /**
- * Provides information about the host application.
+ * Provides information about the host application. When implemented, the information may be used in logging outputs, property file names or content, etc.
  *
  * @author Tibor Varga
  */

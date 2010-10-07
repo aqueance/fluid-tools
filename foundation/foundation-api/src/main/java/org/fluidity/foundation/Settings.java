@@ -68,14 +68,14 @@ public interface Settings {
     boolean setting(String key, boolean defaultValue);
 
     /**
-     * Returns the list of namespaces known to this object.
+     * Returns the list of name spaces known to this object.
      *
      * @return an array of <code>String</code>s, never <code>null</code>.
      */
     String[] namespaces();
 
     /**
-     * Returns the list of setting keys under the given namespace.
+     * Returns the list of setting keys under the given names pace.
      *
      * @param namespace specifies the name space in which the keys are requested
      *
@@ -86,7 +86,7 @@ public interface Settings {
     /**
      * Finds a setting with the given key.
      *
-     * @param namespace    is a namespace in which the given key is unique
+     * @param namespace    is a name space in which the given key is unique
      * @param key          the setting's key.
      * @param defaultValue the value to return when no such setting was found.
      *
@@ -97,7 +97,7 @@ public interface Settings {
     /**
      * Finds a setting with the given key.
      *
-     * @param namespace    is a namespace in which the given key is unique
+     * @param namespace    is a name space in which the given key is unique
      * @param key          the setting's key.
      * @param defaultValue the value to return when no such setting was found.
      *
@@ -108,7 +108,7 @@ public interface Settings {
     /**
      * Finds a setting with the given key.
      *
-     * @param namespace    is a namespace in which the given key is unique
+     * @param namespace    is a name space in which the given key is unique
      * @param key          the setting's key.
      * @param defaultValue the value to return when no such setting was found.
      *
@@ -117,11 +117,11 @@ public interface Settings {
     boolean setting(String namespace, String key, boolean defaultValue);
 
     /**
-     * Combines the given keys into a namespace.
+     * Combines the given keys into a name space.
      *
      * @param keys a list of keys
      *
-     * @return a namespace that can then be passed to the various other methods that accept a namespace.
+     * @return a namespace that can then be passed to the various other methods that accept a name space.
      */
     String namespace(String... keys);
 }

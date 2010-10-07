@@ -27,7 +27,8 @@ import org.fluidity.composition.Component;
 
 /**
  * This default implementation expects the application code to be in a {@link org.fluidity.deployment.DeployedComponent}, which when done invokes {@link
- * org.fluidity.deployment.RuntimeControl#stop()}.
+ * org.fluidity.deployment.RuntimeControl#stop()} or returns from its {@link org.fluidity.deployment.DeployedComponent#start(org.fluidity.deployment.DeployedComponent.Context)}
+ * method only when complete.
  */
 @Component(fallback = true)
 final class DefaultMainLoopImpl implements MainLoop {

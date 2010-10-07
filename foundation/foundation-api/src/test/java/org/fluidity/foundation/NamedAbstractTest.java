@@ -26,6 +26,8 @@ import org.fluidity.tests.MockGroupAbstractTest;
 import org.testng.annotations.Test;
 
 /**
+ * Tests that the implementation retains and returns the name it was given.
+ *
  * @author Tibor Varga
  */
 public abstract class NamedAbstractTest extends MockGroupAbstractTest {

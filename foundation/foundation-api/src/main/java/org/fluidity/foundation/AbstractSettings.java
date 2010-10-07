@@ -22,7 +22,7 @@
 package org.fluidity.foundation;
 
 /**
- * Provides delegating implementations of query methods with specific type.
+ * Provides delegating implementations of query methods with specific type. Generic query methods are implemented by the subclass.
  */
 public abstract class AbstractSettings implements Settings {
 

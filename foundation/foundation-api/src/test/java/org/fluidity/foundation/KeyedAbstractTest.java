@@ -21,36 +21,32 @@
  */
 package org.fluidity.foundation;
 
-import org.fluidity.tests.MockGroupAbstractTest;
-
 import org.testng.annotations.Test;
 
 /**
+ * Tests the key in relation to the implementation's {@link Object#hashCode()} and {@link Object#equals(Object)} method.
+ *
  * @author Tibor Varga
  */
-public abstract class KeyedAbstractTest extends MockGroupAbstractTest {
+public abstract class KeyedAbstractTest {
 
-    protected abstract Keyed newKeyed(String key);
-
-    protected String newKey(int id) {
-        return "key" + id;
-    }
+    protected abstract Keyed newKeyed(int id);
 
     @SuppressWarnings("StringEquality")
     @Test
     public void testKey() throws Exception {
-        final String key = newKey(1);
-        assert newKeyed(key).key() == key : "Did not retain key";
+        final int key = 1;
+        assert newKeyed(key).key().equals(String.valueOf(key)) : "Did not retain key";
     }
 
     @Test
     public void testEquality() throws Exception {
-        final Keyed keyed1 = newKeyed(newKey(1));
-        final Keyed keyed2 = newKeyed(newKey(2));
-        final Keyed keyed3 = newKeyed(newKey(1));
+        final Keyed keyed1 = newKeyed(1);
+        final Keyed keyed2 = newKeyed(2);
+        final Keyed keyed3 = newKeyed(1);
         final Keyed keyed4 = new Keyed() {
             public String key() {
-                return newKey(4);
+                return String.valueOf(4);
             }
         };
 
@@ -62,9 +58,9 @@ public abstract class KeyedAbstractTest extends MockGroupAbstractTest {
 
     @Test
     public void testHashCode() throws Exception {
-        final Keyed keyed1 = newKeyed(newKey(1));
-        final Keyed keyed2 = newKeyed(newKey(2));
-        final Keyed keyed3 = newKeyed(newKey(1));
+        final Keyed keyed1 = newKeyed(1);
+        final Keyed keyed2 = newKeyed(2);
+        final Keyed keyed3 = newKeyed(1);
 
         assert keyed1.hashCode() != keyed2.hashCode() : "Two instances with different keys have the same hash code";
         assert keyed1.hashCode() == keyed3.hashCode() : "Two instances with the same keys have different hash code";

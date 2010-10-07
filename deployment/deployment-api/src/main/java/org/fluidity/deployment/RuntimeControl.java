@@ -26,7 +26,15 @@ package org.fluidity.deployment;
  */
 public interface RuntimeControl {
 
+    /**
+     * Stops the runtime system.
+     *
+     * @throws Exception when the system could not be stopped
+     */
     void stop() throws Exception;
 
+    /**
+     * Notifies the runtime that all deployed components have been started.
+     */
     void deploymentsComplete();
 }

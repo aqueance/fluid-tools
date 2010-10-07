@@ -85,7 +85,7 @@ final class DeploymentBootstrapImpl implements DeploymentBootstrap {
 
                     synchronized (activeComponents) {
 
-                        // empty can only be true if the component has actually be removed
+                        // empty can only be true if the component has actually been removed
                         empty = activeComponents.remove(component) && activeComponents.isEmpty();
                     }
 
@@ -104,7 +104,7 @@ final class DeploymentBootstrapImpl implements DeploymentBootstrap {
         for (final DeploymentObserver observer : observers) {
             try {
                 observer.started();
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 log.warning(getClass(), observer.getClass().getName(), e);
             }
         }
