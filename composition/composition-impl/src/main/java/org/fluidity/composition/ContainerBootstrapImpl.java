@@ -98,7 +98,7 @@ public final class ContainerBootstrapImpl implements ContainerBootstrap {
          * Process each package component set.
          */
         for (final PackageBindings bindings : assemblies) {
-            log.info(getClass(), id() + ": processing " + bindings.getClass().getName());
+            log.info(getClass(), "processing " + bindings.getClass().getName());
             bindings.bindComponents(registry);
         }
 
@@ -127,11 +127,6 @@ public final class ContainerBootstrapImpl implements ContainerBootstrap {
         });
 
         return container;
-    }
-
-    private String id() {
-        final String className = getClass().getName();
-        return className.substring(className.lastIndexOf(".") + 1);
     }
 }
 
