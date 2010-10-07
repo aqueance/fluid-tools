@@ -38,6 +38,7 @@ import org.fluidity.composition.spi.ContextFactory;
 import org.fluidity.composition.spi.DependencyInjector;
 import org.fluidity.composition.spi.ReferenceChain;
 import org.fluidity.foundation.Logging;
+import org.fluidity.foundation.SystemSettings;
 import org.fluidity.foundation.logging.BootstrapLog;
 import org.fluidity.tests.MockGroupAbstractTest;
 
@@ -53,6 +54,10 @@ import org.testng.annotations.Test;
  */
 @SuppressWarnings("unchecked")
 public abstract class ContainerProviderAbstractTest extends MockGroupAbstractTest {
+
+    static {
+        SystemSettings.set(BootstrapLog.SUPPRESS_LOGS, BootstrapLog.ALL_LOGS);
+    }
 
     private final Logging logging = new BootstrapLog("test");
 

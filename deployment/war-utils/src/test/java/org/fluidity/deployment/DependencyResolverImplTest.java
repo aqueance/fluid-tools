@@ -23,6 +23,8 @@ package org.fluidity.deployment;
 
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.OpenComponentContainer;
+import org.fluidity.foundation.SystemSettings;
+import org.fluidity.foundation.logging.BootstrapLog;
 import org.fluidity.tests.MockGroupAbstractTest;
 
 import org.easymock.EasyMock;
@@ -33,6 +35,10 @@ import org.testng.annotations.Test;
  * @author Tibor Varga
  */
 public class DependencyResolverImplTest extends MockGroupAbstractTest {
+
+    static {
+        SystemSettings.set(BootstrapLog.SUPPRESS_LOGS, BootstrapLog.ALL_LOGS);
+    }
 
     private static OpenComponentContainer container;
 
