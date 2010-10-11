@@ -38,6 +38,7 @@ import java.util.zip.ZipEntry;
 
 import org.fluidity.composition.ComponentContainerAccess;
 import org.fluidity.foundation.ApplicationInfo;
+import org.fluidity.foundation.Exceptions;
 
 import org.mortbay.jetty.Server;
 import org.mortbay.jetty.handler.ContextHandlerCollection;
@@ -49,6 +50,8 @@ import org.mortbay.thread.QueuedThreadPool;
 /**
  * Bootstraps a Jetty web container and exposes a management interface to deploy/undeploy .war files specified in the command line, to stop the server
  * and to monitor and manage the Java virtual machine.
+ * <p/>
+ * This is work in progress.
  */
 public final class JettyDeployer implements ServerBootstrap {
 
@@ -265,12 +268,21 @@ public final class JettyDeployer implements ServerBootstrap {
             }
         }
 
-        public void stop() throws Exception {
-            server.stop();
+        public void stop() {
+            Exceptions.wrap("stopping Jetty server", new Exceptions.Command<Void>() {
+                public Void run() throws Exception {
+                    server.stop();
+                    return null;
+                }
+            });
         }
 
-        public void deploymentsComplete() {
+        public void completed() {
             // ignore
+        }
+
+        public boolean isStandalone() {
+            return false;
         }
     }
 }

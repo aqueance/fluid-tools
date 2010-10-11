@@ -51,9 +51,10 @@
         <fluidity.deployment.groupId>${fluidity.groupId}.deployment</fluidity.deployment.groupId>
         <fluidity.plugin.groupId>${fluidity.groupId}.maven</fluidity.plugin.groupId>
         <fluidity.export.groupId>${fluidity.groupId}.export</fluidity.export.groupId>
-        <fluidity.version>${project.version}</fluidity.version>
+
+        <fluidity.version>1.0-SNAPSHOT</fluidity.version>
+
         <maven.version>2.2.1</maven.version>
-        <jetty.version>7.0.0.pre5</jetty.version>
     </properties>
 
     <licenses>
@@ -209,7 +210,7 @@
 
             <dependency>
                 <groupId>${fluidity.composition.groupId}</groupId>
-                <artifactId>composition-test</artifactId>
+                <artifactId>composition-container-test</artifactId>
                 <version>${fluidity.version}</version>
             </dependency>
 
@@ -223,13 +224,6 @@
             <dependency>
                 <groupId>${fluidity.composition.groupId}</groupId>
                 <artifactId>composition-command-line-impl</artifactId>
-                <version>${fluidity.version}</version>
-                <scope>compile</scope>
-            </dependency>
-
-            <dependency>
-                <groupId>${fluidity.deployment.groupId}</groupId>
-                <artifactId>cli-bootstrap</artifactId>
                 <version>${fluidity.version}</version>
                 <scope>compile</scope>
             </dependency>
@@ -250,6 +244,13 @@
 
             <dependency>
                 <groupId>${fluidity.deployment.groupId}</groupId>
+                <artifactId>cli-bootstrap</artifactId>
+                <version>${fluidity.version}</version>
+                <scope>compile</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>${fluidity.deployment.groupId}</groupId>
                 <artifactId>deployment-api</artifactId>
                 <version>${fluidity.version}</version>
                 <scope>compile</scope>
@@ -264,7 +265,7 @@
 
             <dependency>
                 <groupId>${fluidity.deployment.groupId}</groupId>
-                <artifactId>jetty-deployer-impl</artifactId>
+                <artifactId>war-utils</artifactId>
                 <version>${fluidity.version}</version>
                 <scope>compile</scope>
             </dependency>
@@ -292,51 +293,9 @@
 
             <dependency>
                 <groupId>${fluidity.deployment.groupId}</groupId>
-                <artifactId>war-utils</artifactId>
+                <artifactId>jetty-deployer-impl</artifactId>
                 <version>${fluidity.version}</version>
                 <scope>compile</scope>
-            </dependency>
-
-            <dependency>
-                <groupId>org.mortbay.jetty</groupId>
-                <artifactId>jetty</artifactId>
-                <version>${jetty.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.mortbay.jetty</groupId>
-                <artifactId>jetty-webapp</artifactId>
-                <version>${jetty.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.mortbay.jetty</groupId>
-                <artifactId>jsp-2.1-jetty</artifactId>
-                <version>${jetty.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.apache.maven</groupId>
-                <artifactId>maven-plugin-api</artifactId>
-                <version>${maven.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.apache.maven</groupId>
-                <artifactId>maven-project</artifactId>
-                <version>${maven.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.apache.maven</groupId>
-                <artifactId>maven-model</artifactId>
-                <version>${maven.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.apache.maven</groupId>
-                <artifactId>maven-artifact</artifactId>
-                <version>${maven.version}</version>
             </dependency>
 
         </dependencies>

@@ -57,7 +57,7 @@
 
         <dependency>
             <groupId>${fluidity.composition.groupId}</groupId>
-            <artifactId>composition-test</artifactId>
+            <artifactId>composition-container-test</artifactId>
             <scope>test</scope>
         </dependency>
 

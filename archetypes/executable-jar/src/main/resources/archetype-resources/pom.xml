@@ -41,7 +41,7 @@ THE SOFTWARE.
 
         <dependency>
             <groupId>org.fluidity.export</groupId>
-            <artifactId>cli-deployment</artifactId>
+            <artifactId>fluidity-cli-deployment</artifactId>
             <version>${symbol_dollar}{fluidity-version}</version>
             <type>pom</type>
         </dependency>

@@ -13,27 +13,28 @@
   ~
   ~ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
   ~ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  ~ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  ~ FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
   ~ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
   ~ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
   ~ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
   ~ THE SOFTWARE.
   -->
+
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <parent>
-        <groupId>org.fluidity.export</groupId>
-        <artifactId>project</artifactId>
+        <groupId>org.fluidity.deployment</groupId>
+        <artifactId>deployment-tools</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
-    <groupId>org.fluidity.export</groupId>
-    <artifactId>war-deployment</artifactId>
+    <groupId>org.fluidity.maven</groupId>
+    <artifactId>maven-deployment-plugins</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
-    <name>Export: Fluid Tools Web Support</name>
+    <name>Plugins: Maven Deployment Plugin Modules</name>
 
     <licenses>
         <license>
@@ -43,47 +44,43 @@
         </license>
     </licenses>
 
-    <description><![CDATA[
-This project lists the web application support modules of the Fluidity Tools. These modules are required to successfully
-bootstrap the dependency container in a web application.
-    ]]></description>
+    <properties>
+        <maven.version>2.2.1</maven.version>
+    </properties>
 
-    <dependencies>
+    <dependencyManagement>
+        <dependencies>
 
-        <dependency>
-            <groupId>${fluidity.export.groupId}</groupId>
-            <artifactId>fluidity-impl</artifactId>
-            <type>pom</type>
-        </dependency>
+            <dependency>
+                <groupId>org.apache.maven</groupId>
+                <artifactId>maven-plugin-api</artifactId>
+                <version>${maven.version}</version>
+            </dependency>
 
-        <dependency>
-            <groupId>${fluidity.composition.groupId}</groupId>
-            <artifactId>composition-web-impl</artifactId>
-        </dependency>
+            <dependency>
+                <groupId>org.apache.maven</groupId>
+                <artifactId>maven-project</artifactId>
+                <version>${maven.version}</version>
+            </dependency>
 
-        <dependency>
-            <groupId>${fluidity.deployment.groupId}</groupId>
-            <artifactId>deployment-impl</artifactId>
-        </dependency>
+            <dependency>
+                <groupId>org.apache.maven</groupId>
+                <artifactId>maven-model</artifactId>
+                <version>${maven.version}</version>
+            </dependency>
 
-        <dependency>
-            <groupId>${fluidity.deployment.groupId}</groupId>
-            <artifactId>war-utils</artifactId>
-        </dependency>
+            <dependency>
+                <groupId>org.apache.maven</groupId>
+                <artifactId>maven-artifact</artifactId>
+                <version>${maven.version}</version>
+            </dependency>
 
-    </dependencies>
+        </dependencies>
+    </dependencyManagement>
 
-    <profiles>
-        <profile>
-            <id>sources</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <artifactId>maven-assembly-plugin</artifactId>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
+    <modules>
+        <module>maven-executable-war-plugin</module>
+        <module>maven-webrun-plugin</module>
+    </modules>
 
 </project>

@@ -73,8 +73,8 @@ import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.DirectoryScanner;
 
 /**
- * Mojos that find all implementations of a service provider interface and creates a service provider file as per the JAR file specification and finds all
- * components, generates a package bindings class for each and adds these package bindings as service provider descriptor files.
+ * Mojos that find in in a bunch of class files all implementations of a service provider interface, create a service provider file as per the JAR file
+ * specification, find all components, generate a package bindings class for each and add these package bindings as service provider descriptor files.
  * <p/>
  * Subclasses should call {@link AbstractAnnotationProcessorMojo#processDirectory(java.io.File)} with the directory containing the classes to process. The Maven
  * build object can be obtained by calling {@link org.fluidity.maven.AbstractAnnotationProcessorMojo#build()}.

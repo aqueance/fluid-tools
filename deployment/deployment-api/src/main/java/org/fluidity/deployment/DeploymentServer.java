@@ -26,7 +26,7 @@ import org.fluidity.foundation.ApplicationInfo;
 /**
  * Allows the caller to control the web server by means of starting and stopping known web applications.
  */
-public interface DeploymentServer extends RuntimeControl {
+public interface DeploymentServer extends DeploymentControl {
 
     /**
      * Returns the names of the application in the order they have been specified to the deployer.

@@ -19,26 +19,24 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.fluidity.deployment.cli;
-
-import org.fluidity.deployment.DeploymentControl;
-import org.fluidity.deployment.RuntimeControl;
+package org.fluidity.deployment;
 
 /**
- * The main class of the command line application that parses parameters and keeps the application's main thread running until stopped. The implementation can
- * access the command line parameters by having a constructor with, among other dependencies, a <code>final String[] args</code> parameter.
- * <p/>
- * The application exits when the call to the {@link Runnable#run()} method returns, unless the developer has started but failed to stop non-daemon threads.
+ * Receives notifications concerning the deployment of {@link org.fluidity.deployment.DeployedComponent} and {@link org.fluidity.deployment.DeploymentObserver}
+ * components.
  */
-public interface MainLoop extends Runnable, DeploymentControl {
+public interface DeploymentControl extends RuntimeControl {
 
-    interface Application {
+    /**
+     * Notification about all deployed components having been started.
+     */
+    void completed();
 
-        /**
-         * Execute the main application logic.
-         *
-         * @param control the runtime control object.
-         */
-        void run(RuntimeControl control);
-    }
+    /**
+     * Tells if the deployment is designed to function without any {@link org.fluidity.deployment.DeployedComponent} object running. Returning
+     * <code>false</code> when no such deployed component is running results in a call to {@link RuntimeControl#stop()}.
+     *
+     * @return <code>true</code> if the system should run even when no deployed components are running, <code>false</code> otherwise.
+     */
+    boolean isStandalone();
 }

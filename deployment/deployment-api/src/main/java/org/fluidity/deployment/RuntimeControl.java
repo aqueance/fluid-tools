@@ -19,6 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package org.fluidity.deployment;
 
 /**
@@ -26,15 +27,10 @@ package org.fluidity.deployment;
  */
 public interface RuntimeControl {
 
-    /**
-     * Stops the runtime system.
-     *
-     * @throws Exception when the system could not be stopped
-     */
-    void stop() throws Exception;
+    // TODO: add access to cli arguments
 
     /**
-     * Notifies the runtime that all deployed components have been started.
+     * Stops the runtime system.
      */
-    void deploymentsComplete();
+    void stop();
 }

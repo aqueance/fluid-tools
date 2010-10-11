@@ -31,7 +31,7 @@ import org.fluidity.deployment.DeploymentBootstrap;
  * load and control deployment units and to invokes the application supplied main loop, {@link MainLoop}. Any component can access the command line parameters
  * by having a constructor with, among other dependencies, a <code>final String[] args</code> parameter.
  */
-@Component
+@Component(api = CommandLineBootstrap.class)
 public final class CommandLineBootstrap implements Runnable {
 
     private final MainLoop main;

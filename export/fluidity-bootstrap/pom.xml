@@ -23,8 +23,8 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <parent>
-        <groupId>org.fluidity.export</groupId>
-        <artifactId>project</artifactId>
+        <groupId>org.fluidity</groupId>
+        <artifactId>exports</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
 
@@ -44,7 +44,7 @@
     </licenses>
 
     <description><![CDATA[
-This project lists the bootstrap modules of the Fluidity Tools. Bootstrap
+This project lists the bootstrap modules of Fluid Tools. Bootstrap
 modules are the ones that need to be loaded by the top-level class loader of
 your application, the one that you intend to have the top-level dependency
 injection container associated with.

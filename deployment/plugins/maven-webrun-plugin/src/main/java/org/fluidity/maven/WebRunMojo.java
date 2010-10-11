@@ -26,7 +26,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.fluidity.composition.ComponentContainerAccess;
-import org.fluidity.deployment.RuntimeControl;
+import org.fluidity.deployment.DeploymentControl;
+import org.fluidity.foundation.Exceptions;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.AbstractMojo;
@@ -114,13 +115,22 @@ public final class WebRunMojo extends AbstractMojo {
         if (!deployed.isEmpty()) {
             final Server server = new Server();
 
-            new ComponentContainerAccess().bindBootComponent(RuntimeControl.class, new RuntimeControl() {
-                public void stop() throws Exception {
-                    server.stop();
+            new ComponentContainerAccess().bindBootComponent(DeploymentControl.class, new DeploymentControl() {
+                public void completed() {
+                    // empty
                 }
 
-                public void deploymentsComplete() {
-                    // ignore
+                public boolean isStandalone() {
+                    return false;
+                }
+
+                public void stop() {
+                    Exceptions.wrap("stopping Jetty server", new Exceptions.Command<Void>() {
+                        public Void run() throws Exception {
+                            server.stop();
+                            return null;
+                        }
+                    });
                 }
             });
 

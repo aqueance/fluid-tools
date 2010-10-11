@@ -51,8 +51,8 @@ THE SOFTWARE.
 
             <!-- fluid tools -->
             <dependency>
-                <groupId>org.fluidity.export</groupId>
-                <artifactId>project</artifactId>
+                <groupId>org.fluidity</groupId>
+                <artifactId>exports</artifactId>
                 <version>${symbol_dollar}{fluidity-version}</version>
                 <type>pom</type>
                 <scope>import</scope>

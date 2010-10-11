@@ -29,8 +29,8 @@
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
-    <groupId>org.fluidity.export</groupId>
-    <artifactId>project</artifactId>
+    <groupId>org.fluidity</groupId>
+    <artifactId>exports</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Export: Fluid Tools Export Modules</name>
@@ -44,19 +44,19 @@
     </licenses>
 
     <description><![CDATA[
-This project lists the exported modules of the Fluidity Tools.
+This project lists the exported modules of Fluid Tools.
     ]]></description>
 
     <modules>
         <module>fluidity-api</module>
         <module>fluidity-bootstrap</module>
         <module>fluidity-impl</module>
-        <module>fluidity-web-impl</module>
         <module>fluidity-commons-logging-impl</module>
         <module>fluidity-property-settings-impl</module>
         <module>fluidity-manifest-appinfo-impl</module>
         <module>fluidity-tests</module>
-        <module>cli-deployment</module>
+        <module>fluidity-web-deployment</module>
+        <module>fluidity-cli-deployment</module>
     </modules>
 
     <dependencyManagement>

@@ -21,14 +21,11 @@
  */
 package org.fluidity.composition.cli;
 
-import java.security.AccessController;
-import java.security.PrivilegedAction;
-
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ShutdownHook;
 
 /**
- * Uses the <code>Runtime</code> object to add shutdown tasks to.
+ * Uses the <code>Runtime</code> object to add shutdown tasks to. The caller must make sure it has enough privileges to add a runtime shutdown hook.
  *
  * @author Tibor Varga
  */
@@ -36,11 +33,6 @@ import org.fluidity.composition.ShutdownHook;
 final class RuntimeShutdownHook implements ShutdownHook {
 
     public void addTask(final String threadName, final Runnable command) {
-        AccessController.doPrivileged(new PrivilegedAction<Void>() {
-            public Void run() {
-                Runtime.getRuntime().addShutdownHook(new Thread(command, threadName));
-                return null;
-            }
-        });
+        Runtime.getRuntime().addShutdownHook(new Thread(command, threadName));
     }
 }

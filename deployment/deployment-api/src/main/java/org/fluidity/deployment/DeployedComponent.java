@@ -27,7 +27,7 @@ import org.fluidity.foundation.KeyedNamed;
 /**
  * This is a component that is started/stopped as the application container starts/stops. There is no deterministic
  * order in which deployed components are started/stopped and so deployed components should be independent of one
- * another.
+ * another. However, they may of course depend on components that happens to be deployed components, too.
  * <p/>
  * A component can notify the system that it stopped running by calling {@link org.fluidity.deployment.DeployedComponent.Context#complete()}
  * on the observer passed in the {@link org.fluidity.deployment.DeployedComponent#start(org.fluidity.deployment.DeployedComponent.Context)}

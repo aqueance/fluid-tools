@@ -36,6 +36,7 @@ import org.fluidity.tests.MockGroupAbstractTest;
 import org.easymock.EasyMock;
 import org.easymock.IAnswer;
 import org.testng.Assert;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 public final class DeploymentBootstrapImplTest extends MockGroupAbstractTest {
@@ -47,7 +48,7 @@ public final class DeploymentBootstrapImplTest extends MockGroupAbstractTest {
     private final Logging log = new StandardOutLogging("test");
     private final ComponentContainer container = addControl(ComponentContainer.class);
     private final ComponentDiscovery discovery = addControl(ComponentDiscovery.class);
-    private final RuntimeControl runtime = addControl(RuntimeControl.class);
+    private final DeploymentControl deployments = addControl(DeploymentControl.class);
 
     private final DeployedComponent component1 = addStrictControl(DeployedComponent.class);
     private final DeployedComponent component2 = addStrictControl(DeployedComponent.class);
@@ -56,7 +57,7 @@ public final class DeploymentBootstrapImplTest extends MockGroupAbstractTest {
     private final DeploymentObserver observer1 = addStrictControl(DeploymentObserver.class);
     private final DeploymentObserver observer2 = addStrictControl(DeploymentObserver.class);
 
-    private final DeploymentBootstrap bootstrap = new DeploymentBootstrapImpl(log, container, discovery, runtime);
+    private final DeploymentBootstrap bootstrap = new DeploymentBootstrapImpl(log, container, discovery, deployments);
 
     @Test
     public void forceTestOrdering() throws Exception {
@@ -67,13 +68,10 @@ public final class DeploymentBootstrapImplTest extends MockGroupAbstractTest {
     @Test
     public void testAutoStoppingSome() throws Exception {
         EasyMock.expect(discovery.findComponentInstances(container, DeployedComponent.class)).andReturn(new DeployedComponent[] {
-                component1,
-                component2,
-                component3,
+                component1, component2, component3,
         });
         EasyMock.expect(discovery.findComponentInstances(container, DeploymentObserver.class)).andReturn(new DeploymentObserver[] {
-                observer1,
-                observer2,
+                observer1, observer2,
         });
 
         final List<DeployedComponent.Context> contexts = new ArrayList<DeployedComponent.Context>();
@@ -101,6 +99,7 @@ public final class DeploymentBootstrapImplTest extends MockGroupAbstractTest {
         observer1.started();
         observer2.started();
 
+        deployments.completed();
 
         replay();
         bootstrap.load();
@@ -131,16 +130,20 @@ public final class DeploymentBootstrapImplTest extends MockGroupAbstractTest {
         verify();
     }
 
-    @Test
-    public void testAutoStoppingAll() throws Exception {
+    @DataProvider(name = "standalone")
+    public Object[][] testAutoStoppingAll() throws Exception {
+        return new Object[][] {
+                new Object[] { false }, new Object[] { true }
+        };
+    }
+
+    @Test(dataProvider = "standalone")
+    public void testAutoStoppingAll(final boolean standalone) throws Exception {
         EasyMock.expect(discovery.findComponentInstances(container, DeployedComponent.class)).andReturn(new DeployedComponent[] {
-                component1,
-                component2,
-                component3,
+                component1, component2, component3,
         });
         EasyMock.expect(discovery.findComponentInstances(container, DeploymentObserver.class)).andReturn(new DeploymentObserver[] {
-                observer1,
-                observer2,
+                observer1, observer2,
         });
 
         // one for each component (and that's 3)
@@ -168,13 +171,17 @@ public final class DeploymentBootstrapImplTest extends MockGroupAbstractTest {
         observer1.started();
         observer2.started();
 
+        deployments.completed();
+
         replay();
         bootstrap.load();
         verify();
 
-        // because all components stopped automatically, none will be stopped externally
-        // and runtime.deploymentsComplete() is called
-        runtime.deploymentsComplete();
+        EasyMock.expect(deployments.isStandalone()).andReturn(standalone);
+
+        if (!standalone) {
+            deployments.stop();
+        }
 
         observer2.stopped();
         observer1.stopped();
@@ -195,7 +202,7 @@ public final class DeploymentBootstrapImplTest extends MockGroupAbstractTest {
         EasyMock.expect(discovery.findComponentInstances(container, DeploymentObserver.class)).andReturn(new DeploymentObserver[0]);
 
         // because no components were found to deploy, runtime.deploymentsComplete() is called
-        runtime.deploymentsComplete();
+        deployments.completed();
 
         replay();
         bootstrap.load();
@@ -208,13 +215,10 @@ public final class DeploymentBootstrapImplTest extends MockGroupAbstractTest {
 
     public void testLoading() throws Exception {
         EasyMock.expect(discovery.findComponentInstances(container, DeployedComponent.class)).andReturn(new DeployedComponent[] {
-                component1,
-                component2,
-                component3,
+                component1, component2, component3,
         });
         EasyMock.expect(discovery.findComponentInstances(container, DeploymentObserver.class)).andReturn(new DeploymentObserver[] {
-                observer1,
-                observer2,
+                observer1, observer2,
         });
 
         EasyMock.expect(component1.name()).andReturn("Component 1");
@@ -231,6 +235,8 @@ public final class DeploymentBootstrapImplTest extends MockGroupAbstractTest {
 
         observer1.started();
         observer2.started();
+
+        deployments.completed();
 
         replay();
         bootstrap.load();

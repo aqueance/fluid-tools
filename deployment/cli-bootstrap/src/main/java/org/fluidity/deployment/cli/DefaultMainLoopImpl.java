@@ -24,20 +24,34 @@ package org.fluidity.deployment.cli;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.fluidity.composition.Component;
+import org.fluidity.composition.Optional;
+import org.fluidity.foundation.Logging;
 
 /**
- * This default implementation expects the application code to be in a {@link org.fluidity.deployment.DeployedComponent}, which when done invokes {@link
- * org.fluidity.deployment.RuntimeControl#stop()} or returns from its {@link org.fluidity.deployment.DeployedComponent#start(org.fluidity.deployment.DeployedComponent.Context)}
- * method only when complete.
+ * This run loop implementation expects the application loop to be in a {@link org.fluidity.deployment.cli.MainLoop.Application}, which when done invokes {@link
+ * org.fluidity.deployment.RuntimeControl#stop()}. The application loop is optional and when not present, the application can be stopped using Ctrl-C.
  */
-@Component(fallback = true)
+@Component(api = MainLoop.class)
 final class DefaultMainLoopImpl implements MainLoop {
 
     private final Object lock = new Object();
-
     private final AtomicBoolean stopped = new AtomicBoolean(false);
 
+    private final Application application;
+    private final Logging log;
+
+    public DefaultMainLoopImpl(@Optional final Logging log, @Optional final Application application) {
+        this.log = log;
+        this.application = application;
+    }
+
     public void run() {
+        if (application != null) {
+            application.run(this);
+        } else if (log != null) {
+            log.info(getClass(), "Application started. Press Ctrl-C to stop it.");
+        }
+
         if (!stopped.get()) {
             synchronized (lock) {
                 try {
@@ -49,15 +63,19 @@ final class DefaultMainLoopImpl implements MainLoop {
         }
     }
 
+    public void completed() {
+        // ok
+    }
+
+    public boolean isStandalone() {
+        return application != null;
+    }
+
     public void stop() {
         if (!stopped.compareAndSet(false, true)) {
             synchronized (lock) {
                 lock.notify();
             }
         }
-    }
-
-    public void deploymentsComplete() {
-        stop();
     }
 }

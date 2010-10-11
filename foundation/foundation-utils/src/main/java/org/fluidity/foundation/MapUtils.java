@@ -66,11 +66,10 @@ public final class MapUtils {
      * @return the value of the <code>result</code> parameter.
      */
     public static <K, V> Map<K, V> asMap(final Collection<?> objects, final Map<K, V> result, final Extractor<K, V> extractor) {
-        assert objects != null;
-        assert result != null;
-
-        for (final Object object : objects) {
-            result.put(extractor.getKey(object), extractor.getValue(object));
+        if (objects != null) {
+            for (final Object object : objects) {
+                result.put(extractor.getKey(object), extractor.getValue(object));
+            }
         }
 
         return result;

@@ -27,6 +27,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.fluidity.composition.ComponentContainerAccess;
+import org.fluidity.foundation.Exceptions;
 
 import org.mortbay.jetty.Server;
 import org.mortbay.jetty.handler.ContextHandlerCollection;
@@ -59,14 +60,22 @@ public final class JettyBootstrap implements ServerBootstrap {
 
         final Server server = new Server();
 
-        final ComponentContainerAccess access = new ComponentContainerAccess();
-        access.bindBootComponent(RuntimeControl.class, new RuntimeControl() {
-            public void stop() throws Exception {
-                server.stop();
+        new ComponentContainerAccess().bindBootComponent(DeploymentControl.class, new DeploymentControl() {
+            public void completed() {
+                // empty
             }
 
-            public void deploymentsComplete() {
-                // ignore
+            public boolean isStandalone() {
+                return false;
+            }
+
+            public void stop() {
+                Exceptions.wrap("stopping Jetty server", new Exceptions.Command<Void>() {
+                    public Void run() throws Exception {
+                        server.stop();
+                        return null;
+                    }
+                });
             }
         });
 

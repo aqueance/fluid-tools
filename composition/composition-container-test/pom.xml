@@ -23,17 +23,17 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <parent>
-        <groupId>org.fluidity.export</groupId>
-        <artifactId>project</artifactId>
+        <groupId>org.fluidity.composition</groupId>
+        <artifactId>composition-tools</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
-    <groupId>org.fluidity.export</groupId>
-    <artifactId>cli-deployment</artifactId>
+    <groupId>org.fluidity.composition</groupId>
+    <artifactId>composition-container-test</artifactId>
     <version>1.0-SNAPSHOT</version>
-    <packaging>pom</packaging>
-    <name>Export: Fluid Tools Command Line Deployment</name>
+    <packaging>jar</packaging>
+    <name>Composition: Core Test</name>
 
     <licenses>
         <license>
@@ -43,31 +43,21 @@
         </license>
     </licenses>
 
-    <description><![CDATA[
-This project exports the deployment API modules of the Fluidity Tools.
-    ]]></description>
-
     <dependencies>
 
         <dependency>
-            <groupId>${fluidity.export.groupId}</groupId>
-            <artifactId>fluidity-impl</artifactId>
-            <type>pom</type>
+            <groupId>${fluidity.composition.groupId}</groupId>
+            <artifactId>composition-spi</artifactId>
         </dependency>
 
         <dependency>
             <groupId>${fluidity.composition.groupId}</groupId>
-            <artifactId>composition-command-line-impl</artifactId>
+            <artifactId>composition-impl</artifactId>
         </dependency>
 
         <dependency>
-            <groupId>${fluidity.deployment.groupId}</groupId>
-            <artifactId>deployment-impl</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>${fluidity.deployment.groupId}</groupId>
-            <artifactId>cli-bootstrap</artifactId>
+            <groupId>${fluidity.foundation.groupId}</groupId>
+            <artifactId>foundation-easymock</artifactId>
         </dependency>
 
     </dependencies>
@@ -84,5 +74,19 @@ This project exports the deployment API modules of the Fluidity Tools.
             </build>
         </profile>
     </profiles>
+
+    <build>
+        <plugins>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
+            </plugin>
+
+        </plugins>
+    </build>
 
 </project>

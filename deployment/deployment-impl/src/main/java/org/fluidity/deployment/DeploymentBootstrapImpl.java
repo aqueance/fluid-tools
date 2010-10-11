@@ -43,7 +43,7 @@ final class DeploymentBootstrapImpl implements DeploymentBootstrap {
 
     private final ComponentContainer container;
     private final ComponentDiscovery discovery;
-    private final RuntimeControl runtime;
+    private final DeploymentControl deployments;
 
     private final List<DeployedComponent> deployedComponents = Collections.synchronizedList(new ArrayList<DeployedComponent>());
     private final List<DeployedComponent> activeComponents = Collections.synchronizedList(new ArrayList<DeployedComponent>());
@@ -54,11 +54,11 @@ final class DeploymentBootstrapImpl implements DeploymentBootstrap {
     public DeploymentBootstrapImpl(final Logging log,
                                    final ComponentContainer container,
                                    final ComponentDiscovery discovery,
-                                   final RuntimeControl runtime) {
+                                   final DeploymentControl deployments) {
         this.log = log;
         this.container = container;
         this.discovery = discovery;
-        this.runtime = runtime;
+        this.deployments = deployments;
     }
 
     private void info(String message) {
@@ -89,9 +89,9 @@ final class DeploymentBootstrapImpl implements DeploymentBootstrap {
                         empty = activeComponents.remove(component) && activeComponents.isEmpty();
                     }
 
-                    if (empty) {
+                    if (empty && !deployments.isStandalone()) {
                         try {
-                            runtime.deploymentsComplete();
+                            deployments.stop();
                         } catch (final Exception e) {
                             log.fatal(getClass(), "Could not stop runtime", e);
                         }
@@ -109,9 +109,7 @@ final class DeploymentBootstrapImpl implements DeploymentBootstrap {
             }
         }
 
-        if (activeComponents.isEmpty() && observers.isEmpty()) {
-            runtime.deploymentsComplete();
-        }
+        deployments.completed();
     }
 
     public void unload() {
