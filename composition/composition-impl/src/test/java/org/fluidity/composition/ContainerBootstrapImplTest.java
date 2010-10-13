@@ -19,6 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package org.fluidity.composition;
 
 import java.util.ArrayList;
@@ -301,9 +302,9 @@ public final class ContainerBootstrapImplTest extends MockGroupAbstractTest {
         public static final String KEY = ConfigurablePackageBindingsImpl.class.getName() + ".key";
         public static String value;
 
-        public ConfigurablePackageBindingsImpl(final Properties properties) {
+        public ConfigurablePackageBindingsImpl(final Map<String, String> properties) {
             assert properties != null;
-            value = properties.getProperty(KEY);
+            value = properties.get(KEY);
         }
     }
 }

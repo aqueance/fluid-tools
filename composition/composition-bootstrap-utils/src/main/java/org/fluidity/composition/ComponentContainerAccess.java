@@ -19,6 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package org.fluidity.composition;
 
 import java.util.ArrayList;
@@ -273,6 +274,8 @@ public final class ComponentContainerAccess implements ComponentContainer {
 
         @SuppressWarnings({"unchecked"})
         public <T> T findInstance(final Class<? super T> interfaceClass, final ClassLoader classLoader) {
+
+            // Java 6: use java.util.ServiceLoader.load(interfaceClass, classLoader).iterator()
             for (final Iterator i = Service.providers(interfaceClass, classLoader); i.hasNext();) {
                 try {
                     return (T) i.next();

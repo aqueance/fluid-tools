@@ -130,6 +130,12 @@ final class SimpleContainerImpl implements SimpleContainer {
         return get(type, context);
     }
 
+    public <T> T create(final Class<T> type, final ComponentContext context) {
+        final SimpleContainerImpl nested = new SimpleContainerImpl(this, services);
+        nested.bindComponent(type, type);
+        return nested.get(type, context);
+    }
+
     public ComponentContainer container(final ComponentContext context) {
         return new EmbeddedContainer(this, context);
     }

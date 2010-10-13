@@ -42,7 +42,7 @@ public final class ProductionServices implements ContainerServices {
     private final ReferenceChainImpl referenceChain = new ReferenceChainImpl();
     private final ContextFactory contextFactory = new ContextFactoryImpl();
     private final ContextChain contextChain = new ContextChainImpl(contextFactory);
-    private final DependencyInjector dependencyInjector = new DependencyInjectorImpl();
+    private final DependencyInjector dependencyInjector = new DependencyInjectorImpl(classDiscovery);
 
     public ProductionServices(final Logging log) {
         this.log = log;

@@ -96,6 +96,19 @@ public interface DependencyInjector {
         <T> T resolve(Class<T> type, ComponentContext context) throws ComponentContainer.ResolutionException;
 
         /**
+         * Returns a new component instance for the given component interface.
+         *
+         * @param type    the component interface sought.
+         * @param context the reference context for the resolution.
+         *
+         * @return the resolved component instance or <code>null</code> is no unique resolution is possible.
+         *
+         * @throws org.fluidity.composition.ComponentContainer.ResolutionException
+         *          when the type cannot be resolved.
+         */
+        <T> T create(Class<T> type, ComponentContext context);
+
+        /**
          * Returns a new nested container with its base context set to the given properties.
          *
          * @param context the properties for the new container to use as base context.

@@ -28,7 +28,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 
 import org.fluidity.composition.spi.ComponentCache;
 import org.fluidity.composition.spi.ComponentMapping;
@@ -219,19 +218,8 @@ public abstract class ContainerProviderAbstractTest extends MockGroupAbstractTes
     public static class DependentPackageBindingsImpl extends EmptyPackageBindings {
 
         @SuppressWarnings("UnusedDeclaration")
-        public DependentPackageBindingsImpl(PackageBindingsImpl dependent) {
+        public DependentPackageBindingsImpl(final PackageBindingsImpl dependent) {
             // empty
-        }
-    }
-
-    public static class ConfigurablePackageBindingsImpl extends EmptyPackageBindings {
-
-        public static final String KEY = ConfigurablePackageBindingsImpl.class.getName() + ".key";
-        public static String value;
-
-        public ConfigurablePackageBindingsImpl(Properties properties) {
-            assert properties != null;
-            value = properties.getProperty(KEY);
         }
     }
 }

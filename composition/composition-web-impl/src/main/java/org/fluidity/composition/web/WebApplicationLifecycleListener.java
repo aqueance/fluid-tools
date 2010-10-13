@@ -19,6 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package org.fluidity.composition.web;
 
 import javax.servlet.ServletContextEvent;
@@ -30,7 +31,6 @@ import org.fluidity.composition.ComponentDiscovery;
 
 /**
  * Finds all implementations of the {@link javax.servlet.ServletContextListener} that have been marked with the
- *
  * @{@link org.fluidity.composition.ServiceProvider} annotation and dispatches the listener events to all.
  */
 public final class WebApplicationLifecycleListener implements ServletContextListener {

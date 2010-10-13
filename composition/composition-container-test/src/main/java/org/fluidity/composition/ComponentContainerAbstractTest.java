@@ -61,6 +61,7 @@ public abstract class ComponentContainerAbstractTest extends MockGroupAbstractTe
         return new Object[] {
                 new BasicResolutionTests(containers),
                 new OptionalDependencyTests(containers),
+                new ServiceProvidersDependencyTests(containers),
                 new FieldInjectionTests(containers),
                 new CircularReferencesTests(containers),
                 new ContainerHierarchyTests(containers),

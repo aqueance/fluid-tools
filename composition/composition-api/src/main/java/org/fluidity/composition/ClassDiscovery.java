@@ -29,7 +29,8 @@ package org.fluidity.composition;
  * The implementation is partial because this component does not instantiate the discovered classes, it merely discovers them.
  * <p/>
  * This is useful not so much for client components as for those providing core composition functionality such as component container bootstrap. Client
- * components normally need {@link org.fluidity.composition.ComponentDiscovery} instead.
+ * components normally need to use a {@link  org.fluidity.composition.ServiceProvider} annotated array parameter or {@link
+ * org.fluidity.composition.ComponentDiscovery} instead.
  *
  * @author Tibor Varga
  */

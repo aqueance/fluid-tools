@@ -23,9 +23,12 @@
 package org.fluidity.composition;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.fluidity.composition.spi.ContextChain;
 import org.fluidity.composition.spi.ContextFactory;
@@ -41,6 +44,12 @@ import org.fluidity.foundation.Reflection;
  * @author Tibor Varga
  */
 final class DependencyInjectorImpl implements DependencyInjector {
+
+    final ClassDiscovery discovery;
+
+    public DependencyInjectorImpl(final ClassDiscovery discovery) {
+        this.discovery = discovery;
+    }
 
     public <T> T injectFields(final Resolver resolver, final ComponentContext context, final T instance) {
         assert resolver != null;
@@ -118,7 +127,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
                     continue;
                 }
 
-                if (field.isAnnotationPresent(Component.class)) {
+                if (field.isAnnotationPresent(Component.class) || field.isAnnotationPresent(ServiceProvider.class)) {
                     injectDependency(resolver, context, componentType, declaringType, new Dependency() {
                         public Object itself() {
                             return instance;
@@ -164,9 +173,52 @@ final class DependencyInjectorImpl implements DependencyInjector {
         final ContextFactory contextFactory = resolver.contextFactory();
         final ReferenceChain referenceChain = resolver.referenceChain();
 
+        final ServiceProvider serviceProvider = dependency.annotation(ServiceProvider.class);
         final Class<?> dependencyType = findInterfaceType(dependency.annotation(Component.class), dependency.type());
 
-        if (dependency.type() == ComponentContext.class) {
+        if (serviceProvider != null) {
+            if (!dependencyType.isArray()) {
+                throw new ComponentContainer.ResolutionException("Service provider dependency %s of %s must be an array", dependencyType, declaringType);
+            }
+
+            if (dependencyType.getComponentType().isArray()) {
+                throw new ComponentContainer.ResolutionException("Service provider dependency %s of %s must be an array of non-arrays",
+                                                                 dependencyType,
+                                                                 declaringType);
+            }
+
+            final Class<?> providerType = serviceProvider.api() == null || serviceProvider.api().length != 1
+                                          ? dependencyType.getComponentType()
+                                          : serviceProvider.api()[0];
+
+            if (providerType.getAnnotation(ServiceProvider.class) == null) {
+                throw new ComponentContainer.ResolutionException("The component type of dependency %s of %s has not been annotated with %s",
+                                                                 dependencyType,
+                                                                 declaringType,
+                                                                 ServiceProvider.class);
+            }
+
+            if (!dependencyType.getComponentType().isAssignableFrom(providerType)) {
+                throw new ComponentContainer.ResolutionException(
+                        "The component type of dependency specified in the %s annotation is not assignable to the dependency type %s of %s",
+                        dependencyType,
+                        ServiceProvider.class,
+                        declaringType);
+            }
+
+            final List<Object> list = new ArrayList<Object>();
+
+            @SuppressWarnings({ "unchecked" }) final Class<Object>[] componentClasses = (Class<Object>[]) discovery.findComponentClasses(providerType,
+                                                                                                                                         declaringType.getClassLoader(),
+                                                                                                                                         false);
+
+            for (final Class<Object> componentClass : componentClasses) {
+                final Object component = resolver.resolve(componentClass, context);
+                list.add(component == null ? resolver.create(componentClass, context) : component);
+            }
+
+            dependency.set(list.toArray((Object[]) Array.newInstance(providerType, list.size())));
+        } else if (dependency.type() == ComponentContext.class) {
             dependency.set(contextChain.consumedContext(componentType, context, referenceChain));
         } else {
             Object value = null;
@@ -182,7 +234,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
             if (value == null) {
                 final Context annotation = dependency.annotation(Context.class);
                 value = annotation == null
-                        ? resolver.resolve(dependencyType, contextChain.currentContext())
+                        ? resolver.resolve(dependencyType, context)
                         : contextChain.nested(contextFactory.extractContext(annotation), new ContextChain.Command<Object>() {
                             public Object run(final ComponentContext context) {
                                 return resolver.resolve(dependencyType, context);
@@ -190,8 +242,12 @@ final class DependencyInjectorImpl implements DependencyInjector {
                         });
             }
 
-            if (value == null && dependency.annotation(Optional.class) == null) {
-                throw new ComponentContainer.ResolutionException("Dependency %s of %s cannot be satisfied", dependencyType, declaringType);
+            if (value == null) {
+                if (dependency.annotation(Optional.class) == null) {
+                    throw new ComponentContainer.ResolutionException("Dependency %s of %s cannot be satisfied", dependencyType, declaringType);
+                }
+
+                dependency.set(value);
             } else {
                 dependency.set(value);
             }

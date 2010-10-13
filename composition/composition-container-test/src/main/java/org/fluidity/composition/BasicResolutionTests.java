@@ -109,6 +109,16 @@ public final class BasicResolutionTests extends AbstractContainerTests {
     }
 
     @Test
+    @SuppressWarnings({ "unchecked" })
+    public void arrayRegistration() throws Exception {
+        registry.bindComponent(ArrayDependent.class);
+        final Object[] array = new Object[0];
+        registry.bindInstance((Class<Object[]>) array.getClass(), array);
+
+        assert container.getComponent(ArrayDependent.class) != null;
+    }
+
+    @Test
     public void dependencyOnContainer() throws Exception {
         registry.bindDefault(ContainerDependent.class);
 
@@ -182,7 +192,7 @@ public final class BasicResolutionTests extends AbstractContainerTests {
         /* in real life you'd use new ComponentContainerAccess() here */
         private static ComponentContainer container;
 
-        @Component
+        @Component(automatic = false)
         @SuppressWarnings("UnusedDeclaration")
         private transient Key dependency;
 
@@ -208,5 +218,12 @@ public final class BasicResolutionTests extends AbstractContainerTests {
     @Component(fallback = true)
     private static class DefaultDependentValue extends DependentValue {
 
+    }
+
+    private static class ArrayDependent {
+
+        public ArrayDependent(final Object[] array) {
+            assert array != null;
+        }
     }
 }
