@@ -45,15 +45,15 @@
     </licenses>
 
     <description><![CDATA[
-This plugins takes a few .war artifacts and deploys them in an embedded Jetty
+This plugin takes a few WAR artifacts and deploys them in an embedded Jetty
 server. The server will bootstrap a ComponentContainer and offer it as a
 parent container for the deployed web applications.
 
-The list of .war files contains the host project's artifact if that
-happens to be a war project and all .war artifacts declared as dependency
+The list of WAR files contains the host project's artifact if that
+happens to be a war project and all WAR artifacts declared as dependency
 with "provided" scope.
 
-Any .jar artifact that happens to be in the plugin's classpath will be
+Any JAR artifact that happens to be in the plugin's classpath will be
 scanned for @Components to be added to the global ComponentContainer. They
 will also be scanned to discover @ServiceProviders that a deployed web
 application may ask for.
