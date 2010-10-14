@@ -32,6 +32,7 @@ import java.util.Properties;
 
 import org.fluidity.composition.spi.ContainerServices;
 import org.fluidity.foundation.Logging;
+import org.fluidity.foundation.SystemSettings;
 import org.fluidity.foundation.logging.BootstrapLog;
 import org.fluidity.tests.MockGroupAbstractTest;
 
@@ -44,6 +45,10 @@ import org.testng.annotations.Test;
  * @author Tibor Varga
  */
 public final class ContainerBootstrapImplTest extends MockGroupAbstractTest {
+
+    static {
+        SystemSettings.set(BootstrapLog.SUPPRESS_LOGS, BootstrapLog.ALL_LOGS);
+    }
 
     private final Logging logging = new BootstrapLog("test");
 

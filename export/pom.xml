@@ -55,7 +55,7 @@ This project lists the exported modules of Fluid Tools.
         <module>fluidity-property-settings-impl</module>
         <module>fluidity-manifest-appinfo-impl</module>
         <module>fluidity-tests</module>
-        <module>fluidity-web-deployment</module>
+        <module>fluidity-war-deployment</module>
         <module>fluidity-cli-deployment</module>
     </modules>
 
@@ -79,6 +79,27 @@ This project lists the exported modules of Fluid Tools.
 
             <dependency>
                 <groupId>${fluidity.export.groupId}</groupId>
+                <artifactId>fluidity-bootstrap</artifactId>
+                <version>${fluidity.version}</version>
+                <type>pom</type>
+            </dependency>
+
+            <dependency>
+                <groupId>${fluidity.export.groupId}</groupId>
+                <artifactId>fluidity-cli-deployment</artifactId>
+                <version>${fluidity.version}</version>
+                <type>pom</type>
+            </dependency>
+
+            <dependency>
+                <groupId>${fluidity.export.groupId}</groupId>
+                <artifactId>fluidity-war-deployment</artifactId>
+                <version>${fluidity.version}</version>
+                <type>pom</type>
+            </dependency>
+
+            <dependency>
+                <groupId>${fluidity.export.groupId}</groupId>
                 <artifactId>fluidity-tests</artifactId>
                 <version>${fluidity.version}</version>
                 <type>pom</type>
@@ -94,6 +115,12 @@ This project lists the exported modules of Fluid Tools.
             <dependency>
                 <groupId>${fluidity.export.groupId}</groupId>
                 <artifactId>fluidity-property-settings-impl</artifactId>
+                <version>${fluidity.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>${fluidity.export.groupId}</groupId>
+                <artifactId>fluidity-manifest-appinfo-impl</artifactId>
                 <version>${fluidity.version}</version>
             </dependency>
 

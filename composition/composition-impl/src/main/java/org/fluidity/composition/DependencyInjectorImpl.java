@@ -34,6 +34,7 @@ import org.fluidity.composition.spi.ContextChain;
 import org.fluidity.composition.spi.ContextFactory;
 import org.fluidity.composition.spi.DependencyInjector;
 import org.fluidity.composition.spi.ReferenceChain;
+import org.fluidity.foundation.ClassLoaderUtils;
 import org.fluidity.foundation.Exceptions;
 import org.fluidity.foundation.Reflection;
 
@@ -208,9 +209,10 @@ final class DependencyInjectorImpl implements DependencyInjector {
 
             final List<Object> list = new ArrayList<Object>();
 
-            @SuppressWarnings({ "unchecked" }) final Class<Object>[] componentClasses = (Class<Object>[]) discovery.findComponentClasses(providerType,
-                                                                                                                                         declaringType.getClassLoader(),
-                                                                                                                                         false);
+            @SuppressWarnings("unchecked")
+            final Class<Object>[] componentClasses = (Class<Object>[]) discovery.findComponentClasses(providerType,
+                                                                                                      ClassLoaderUtils.findClassLoader(declaringType),
+                                                                                                      false);
 
             for (final Class<Object> componentClass : componentClasses) {
                 final Object component = resolver.resolve(componentClass, context);
