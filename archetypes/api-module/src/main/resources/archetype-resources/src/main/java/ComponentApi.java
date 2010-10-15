@@ -9,21 +9,21 @@ package ${package};
 public interface ComponentApi {
 
     /**
-     * Sends the given text to a dependency.
+     * Sends the given text to a message sink.
      *
-     * @param text the input text to reverse.
+     * @param text the text to send.
      *
      * @return <code>true</code> if the dependency accepted the text, <code>false</code> otherwise.
      */
     boolean sendText(String text);
 
     /**
-     * A dependency that accepts or rejects text.
+     * A sink that accepts or rejects text.
      */
-    interface Dependency {
+    interface MessageSink {
 
         /**
-         * Sends a text to this dependency.
+         * Sends a text to this sink.
          *
          * @param text the text to accept or reject.
          *

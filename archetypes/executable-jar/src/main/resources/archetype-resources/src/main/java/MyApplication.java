@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2010 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,11 +19,32 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.fluidity.maven;
+package ${package};
 
-public class Classpath {
+import org.fluidity.composition.Component;
+import org.fluidity.deployment.RuntimeControl;
+import org.fluidity.deployment.cli.MainLoop;
 
-    public String property;
+@Component
+public final class MyApplication implements MainLoop.Application {
 
-    public String[] patterns;
+    private final ComponentApi sink;
+
+    public MyApplication(final ComponentApi sink) {
+        this.sink = sink;
+    }
+
+    public void run(final RuntimeControl runtime) {
+        sink.sendText("--- Hello from the main application!");
+        runtime.stop();
+    }
+
+    @Component
+    public static class EchoText implements ComponentApi.MessageSink {
+
+        public boolean receiveText(String text) {
+            System.out.println(String.format("%s (accepted)", text));
+            return true;
+        }
+    }
 }

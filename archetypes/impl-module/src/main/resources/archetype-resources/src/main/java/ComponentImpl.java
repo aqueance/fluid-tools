@@ -8,9 +8,9 @@ import org.fluidity.composition.Component;
 @Component
 final class ComponentImpl implements ComponentApi {
 
-    private final Dependency dependency;
+    private final MessageSink dependency;
 
-    public ComponentImpl(final Dependency dependency) {
+    public ComponentImpl(final MessageSink dependency) {
         this.dependency = dependency;
     }
 

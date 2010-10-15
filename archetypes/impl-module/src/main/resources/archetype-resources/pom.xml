@@ -55,7 +55,6 @@ THE SOFTWARE.
             <plugin>
                 <groupId>org.fluidity.maven</groupId>
                 <artifactId>maven-composition-plugin</artifactId>
-                <version>${symbol_dollar}{fluidity-version}</version>
                 <executions>
                     <execution>
                         <goals>

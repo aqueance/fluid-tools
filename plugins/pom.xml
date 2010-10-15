@@ -80,7 +80,6 @@
 
     <modules>
         <module>maven-composition-plugin</module>
-        <module>maven-classpath-plugin</module>
     </modules>
 
 </project>

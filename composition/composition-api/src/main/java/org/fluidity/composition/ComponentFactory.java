@@ -35,12 +35,11 @@ package org.fluidity.composition;
 public interface ComponentFactory<T> {
 
     /**
-     * Creates a new instance of the component that this is a factory for. The component bindings, if any, will be applied to the container returned by the
-     * factory.
+     * Creates a new instance of the component that this is a factory for.
      *
      * @param container is the container to resolve dependencies of the component from.
-     * @param context   is the context for the instance to create. When this is null or empty, the default instance must be returned. The key set in the context
-     *                  is taken from the list of names in the {@link Context#names()} annotation.
+     * @param context   is the context for the instance to create. When this is null or empty, the default instance must be created. The key set in the context
+     *                  is taken from the list of names in the {@link Context#names()} annotation of the component class.
      *
      * @return the component created, never <code>null</code>.
      */

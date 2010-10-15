@@ -8,18 +8,18 @@ import org.fluidity.deployment.DeployedComponent;
 final class Deployment implements DeployedComponent {
 
     public String key() {
-        return null;
+        return "sample-deployment";
     }
 
     public String name() {
-        return null;
+        return "Sample Deployment";
     }
 
     public void start() throws Exception {
-        // empty
+        // get something started and return
     }
 
     public void stop() throws Exception {
-        // empty
+        // get that something stopped and return
     }
 }

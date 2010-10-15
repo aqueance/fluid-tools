@@ -85,37 +85,21 @@ THE SOFTWARE.
                     </configuration>
                 </plugin>
 
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-resources-plugin</artifactId>
+                    <configuration>
+                        <encoding>UTF-8</encoding>
+                    </configuration>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.fluidity.maven</groupId>
+                    <artifactId>maven-composition-plugin</artifactId>
+                    <version>${symbol_dollar}{fluidity-version}</version>
+                </plugin>
+
             </plugins>
         </pluginManagement>
     </build>
-
-    <profiles>
-        <profile>
-            <id>clean</id>
-
-            <build>
-                <defaultGoal>clean</defaultGoal>
-
-                <plugins>
-                    <plugin>
-                        <groupId>org.fluidity.maven</groupId>
-                        <artifactId>maven-repo-clean-plugin</artifactId>
-                        <version>${symbol_dollar}{fluidity-version}</version>
-                        <executions>
-                            <execution>
-                                <goals>
-                                    <goal>clean</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-
-                        <configuration>
-                            <allVersions>true</allVersions>
-                        </configuration>
-                    </plugin>
-                </plugins>
-
-            </build>
-        </profile>
-    </profiles>
 </project>

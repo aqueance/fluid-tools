@@ -33,6 +33,12 @@ THE SOFTWARE.
     <dependencies>
 
         <dependency>
+            <groupId>${groupId}</groupId>
+            <artifactId>${implArtifactId}</artifactId>
+            <version>${version}</version>
+        </dependency>
+
+        <dependency>
             <groupId>org.fluidity.export</groupId>
             <artifactId>fluidity-bootstrap</artifactId>
             <version>${symbol_dollar}{fluidity-version}</version>
@@ -74,6 +80,18 @@ THE SOFTWARE.
 
     <build>
         <plugins>
+
+            <plugin>
+                <groupId>org.fluidity.maven</groupId>
+                <artifactId>maven-composition-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>process-annotations</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
 
             <plugin>
                 <artifactId>maven-jar-plugin</artifactId>

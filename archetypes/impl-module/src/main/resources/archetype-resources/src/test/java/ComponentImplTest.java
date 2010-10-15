@@ -10,7 +10,7 @@ import org.testng.annotations.Test;
 
 public final class ComponentImplTest extends MockGroupAbstractTest {
 
-    private final ComponentApi.Dependency dependency = addControl(ComponentApi.Dependency.class);
+    private final ComponentApi.MessageSink dependency = addControl(ComponentApi.MessageSink.class);
 
     private final ComponentApi testee = new ComponentImpl(dependency);
 

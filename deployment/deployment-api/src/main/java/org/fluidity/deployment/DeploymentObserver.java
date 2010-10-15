@@ -24,10 +24,9 @@ package org.fluidity.deployment;
 import org.fluidity.composition.ServiceProvider;
 
 /**
- * This component gets notified when all {@link org.fluidity.deployment.DeployedComponent} objects have been started/stopped.
- *
+ * This component gets notified when all {@link org.fluidity.deployment.DeployedComponent} objects have been started/stopped. These methods are invoked from the
+ * main thread and block that thread until they return.
  * <p/>
- *
  * All subclasses of this interface will be marked as a service provider for this interface and will be automatically found and controlled by a suitable {@link
  * DeploymentBootstrap} implementation.
  */
