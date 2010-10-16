@@ -24,7 +24,7 @@ package org.fluidity.composition;
 
 /**
  * A variants factory offers context dependent instance variants of an otherwise singleton component that itself can in some way be configured to adapt to
- * various externally defined contexts. The variant factory lists the context keys it understands in its {@link org.fluidity.composition.Context#names()} class
+ * various externally defined contexts. The variant factory lists the context keys it understands in its {@link org.fluidity.composition.Context#accept()} class
  * annotation.
  * <p/>
  * A <code>ComponentVariantFactory</code> works in conjunction with an otherwise singleton component bound by either {@link
@@ -45,7 +45,7 @@ public interface ComponentVariantFactory {
      *
      * @return a container to get the instance from; may be <code>null</code>, in which case no instance will be created, otherwise either the component bound
      *         by the factory is returned or the default one if the factory binds no component. The key set in the context is taken from the list of names in
-     *         the {@link org.fluidity.composition.Context#names()} annotation.
+     *         the {@link org.fluidity.composition.Context#accept()} annotation.
      *
      * @throws org.fluidity.composition.ComponentContainer.ResolutionException
      *          of a component cannot be created.

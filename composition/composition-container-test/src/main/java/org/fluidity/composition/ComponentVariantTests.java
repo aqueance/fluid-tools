@@ -105,7 +105,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
     private Properties context(final Class<?> componentClass, final Class<? extends ComponentVariantFactory> factoryClass) {
         final Context contentContext = componentClass.getAnnotation(Context.class);
         final Context factoryContext = factoryClass == null ? null : factoryClass.getAnnotation(Context.class);
-        final Set<String> validNames = factoryContext == null ? null : new HashSet<String>(Arrays.asList(factoryContext.names()));
+        final Set<String> validNames = factoryContext == null ? null : new HashSet<String>(Arrays.asList(factoryContext.accept()));
 
         final Properties properties = new Properties();
         if (contentContext != null) {
@@ -134,7 +134,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
 
     private ComponentContext filterContext(final Properties properties, final Class<?> consumer) {
         final Context context = consumer.getAnnotation(Context.class);
-        properties.keySet().retainAll(Arrays.asList(context.names()));
+        properties.keySet().retainAll(Arrays.asList(context.accept()));
         return container.makeContext(properties);
     }
 
@@ -298,7 +298,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
     /**
      * This is intentionally private - makes sure the container is able to instantiate non-public classes
      */
-    @Context(names = "name1")
+    @Context(accept = "name1")
     private static class ContextDependentValue extends DependentValue {
 
         public ContextDependentValue(final ComponentContext context) {
@@ -307,7 +307,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
     }
 
     @Component(api = DependentKey.class)
-    @Context(names = { "name1", "name2" })
+    @Context(accept = { "name1", "name2" })
     private static class Variants implements ComponentVariantFactory {
 
         public static ComponentVariantFactory delegate;

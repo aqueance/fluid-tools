@@ -26,7 +26,7 @@ import java.util.Set;
 
 /**
  * Provides a context for components. A context is a textual configuration that a component may elect to receive by listing the context names in a {@link
- * org.fluidity.composition.Context#names()} type annotation. Context values are provided by components that depend, directly or indirectly, on context
+ * org.fluidity.composition.Context#accept()} type annotation. Context values are provided by components that depend, directly or indirectly, on context
  * consuming other components using the {@link org.fluidity.composition.Context#value()} annotation.
  * <p/>
  * Context support can be added to a component not directly supporting contexts using {@link org.fluidity.composition.ComponentVariantFactory} components as

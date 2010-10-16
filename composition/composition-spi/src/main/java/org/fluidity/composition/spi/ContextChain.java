@@ -30,7 +30,7 @@ import org.fluidity.composition.ComponentContext;
  * Contexts are the means to have multiple instances of the same component with different configuration by components that directly support contexts or that
  * have been complemented by a {@link org.fluidity.composition.ComponentVariantFactory} object to add context support.
  * <p/>
- * A context aware component or a {@link org.fluidity.composition.ComponentVariantFactory} declares, using the {@link org.fluidity.composition.Context#names()}
+ * A context aware component or a {@link org.fluidity.composition.ComponentVariantFactory} declares, using the {@link org.fluidity.composition.Context#accept()}
  * annotation, context keys that they consume. Upon instantiation a context is passed to such a component or the variant factory in the form of a {@link
  * java.util.Properties} object with keys that are a subset of the keys the component or factory declares to support.
  * <p/>

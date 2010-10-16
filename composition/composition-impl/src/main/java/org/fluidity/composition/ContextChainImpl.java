@@ -106,7 +106,7 @@ final class ContextChainImpl implements ContextChain {
                     final Context factoryContext = mapping.factoryClass().getAnnotation(Context.class);
 
                     if (factoryContext != null) {
-                        names.addAll(Arrays.asList(factoryContext.names()));
+                        names.addAll(Arrays.asList(factoryContext.accept()));
                         return false;
                     }
                 }
@@ -117,7 +117,7 @@ final class ContextChainImpl implements ContextChain {
 
         final Context context = ComponentVariantFactory.class.isAssignableFrom(componentType) ? null : componentType.getAnnotation(Context.class);
         if (context != null) {
-            names.addAll(Arrays.asList(context.names()));
+            names.addAll(Arrays.asList(context.accept()));
         }
 
         return names.size() > 0 ? names.toArray(new String[names.size()]) : null;

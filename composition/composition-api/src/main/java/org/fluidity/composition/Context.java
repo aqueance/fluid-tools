@@ -45,7 +45,7 @@ public @interface Context {
      *
      * @return a list of context names.
      */
-    String[] names() default { };
+    String[] accept() default { };
 
     /**
      * Returns the context values provided by this component or reference thereto.

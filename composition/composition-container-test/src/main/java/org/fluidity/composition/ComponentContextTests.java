@@ -166,7 +166,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
 
     }
 
-    @Context(names = { "setting1" })
+    @Context(accept = { "setting1" })
     private static class ContextAwareComponent1Impl implements ContextAwareComponent1 {
 
         private final String setting;
@@ -180,7 +180,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
         }
     }
 
-    @Context(names = { "setting2" })
+    @Context(accept = { "setting2" })
     private static class ContextAwareComponent2Impl implements ContextAwareComponent2 {
 
         private final String setting;
@@ -223,7 +223,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
     }
 
     @Component(api = OrdinaryComponent1.class)
-    @Context(names = { "setting1" })
+    @Context(accept = { "setting1" })
     private static class OrdinaryVariants1 implements ComponentVariantFactory {
 
         public OpenComponentContainer newComponent(final OpenComponentContainer container, final ComponentContext context) {
@@ -238,7 +238,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
     }
 
     @Component(api = OrdinaryComponent2.class)
-    @Context(names = { "setting2" })
+    @Context(accept = { "setting2" })
     private static class OrdinaryVariants2 implements ComponentVariantFactory {
 
         public OpenComponentContainer newComponent(final OpenComponentContainer container, final ComponentContext context) {
