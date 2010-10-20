@@ -190,22 +190,14 @@ public abstract class MockGroupAbstractTest {
      * {@link #addNiceControl(Class)}, {@link #addStrictControl(Class)} and {@link #addControls(Class, Class[])}.
      */
     protected final void verify() {
-        boolean failed = false;
-
         for (final IMocksControl group : groups) {
             try {
                 group.verify();
-            } catch (final AssertionError e) {
-                if (!failed) {
-                    throw e;
-                } else {
-                    failed = true;
-                }
             } finally {
                 try {
                     group.reset();
                 } catch (final Throwable e) {
-                    assert false : e;
+                    // ignore
                 }
             }
         }

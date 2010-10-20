@@ -25,7 +25,7 @@ import org.fluidity.foundation.Logging;
 import org.fluidity.foundation.SystemSettings;
 
 /**
- * Wraps a standard output logger unless the "container.quiet" System property is set to "true". In that case it suppresses log messages from the bootstrap
+ * Wraps a standard output logger unless the "fluidity:quiet-boot" System property is set to "all". In that case it suppresses log messages from the bootstrap
  * classes.
  */
 public final class BootstrapLog implements Logging {
