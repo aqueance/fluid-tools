@@ -43,7 +43,7 @@ public abstract class Exceptions {
         } catch (final RuntimeException e) {
             throw e;
         } catch (final Exception e) {
-            throw context == null ? new RuntimeException(e) : new RuntimeException(String.format("Error %s", context), e);
+            throw context == null ? new Wrapper(e) : new Wrapper(e, "Error %s", context);
         }
     }
 
@@ -72,5 +72,57 @@ public abstract class Exceptions {
          * @throws Exception to turn to {@link RuntimeException} if necessary.
          */
         T run() throws Exception;
+    }
+
+    /**
+     * A runtime exception that wraps a checked exception.
+     */
+    public static final class Wrapper extends RuntimeException {
+
+        public Wrapper(final Exception cause) {
+            super(cause);
+        }
+
+        public Wrapper(final Exception cause, final String format, final Object... args) {
+            super(String.format(format, args), cause);
+        }
+
+        /**
+         * If the wrapped exception is of the given type, it is thrown, otherwise this instance is returned. The intended usage type is:
+         * <pre>
+         * try {
+         *   ...
+         *     ...
+         *      Exceptions.wrap("...", new Exceptions.Command&lt;Void> {
+         *        ...
+         *      });
+         *     ...
+         *   ...
+         * } catch (final Exceptions.Wrapper wrapper) {
+         *   wrapper.rethrow(ExpectedCheckedException1.class);
+         *   wrapper.rethrow(ExpectedCheckedException2.class);
+         *   throw wrapper.rethrow(ExpectedCheckedException3.class);
+         * }
+         * </pre>
+         *
+         * @param accept the class of the exception to check.
+         * @param <T>    the type of the exception to check.
+         *
+         * @return returns itself if the wrapped exception is not of the given type.
+         *
+         * @throws T the wrapped exception if it is of the given type.
+         */
+        public <T extends Exception> Wrapper rethrow(final Class<T> accept) throws T {
+            final Throwable cause = getCause();
+
+            @SuppressWarnings({ "unchecked" })
+            final T exception = accept.isAssignableFrom(cause.getClass()) ? (T) cause : null;
+
+            if (exception != null) {
+                throw exception;
+            } else {
+                return this;
+            }
+        }
     }
 }
