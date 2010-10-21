@@ -88,7 +88,7 @@ public abstract class Exceptions {
         }
 
         /**
-         * If the wrapped exception is of the given type, it is thrown, otherwise this instance is returned. The intended usage type is:
+         * If the wrapped exception is of the given type, it is thrown, otherwise this instance is returned. The intended usage is:
          * <pre>
          * try {
          *   ...
