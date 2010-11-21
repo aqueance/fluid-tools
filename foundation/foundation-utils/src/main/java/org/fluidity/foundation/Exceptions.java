@@ -99,11 +99,15 @@ public abstract class Exceptions {
          *     ...
          *   ...
          * } catch (final Exceptions.Wrapper wrapper) {
-         *   wrapper.rethrow(ExpectedCheckedException1.class);
-         *   wrapper.rethrow(ExpectedCheckedException2.class);
-         *   throw wrapper.rethrow(ExpectedCheckedException3.class);
+         *   throw wrapper
+         *       .rethrow(ExpectedCheckedException1.class)
+         *       .rethrow(ExpectedCheckedException2.class)
+         *       .rethrow(ExpectedCheckedException3.class);
          * }
          * </pre>
+         * <p/>
+         * The above will throw re-throw either <code>ExpectedCheckedException1</code>, <code>ExpectedCheckedException2</code>,
+         * <code>ExpectedCheckedException3</code> or <code>wrapper</code>.
          *
          * @param accept the class of the exception to check.
          * @param <T>    the type of the exception to check.
