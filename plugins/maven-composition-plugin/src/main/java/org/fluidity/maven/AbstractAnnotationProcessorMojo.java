@@ -133,10 +133,8 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo {
 
         final URLClassLoader loader = new URLClassLoader(urls.toArray(new URL[urls.size()]));
 
-        final Repository repository = new ClassLoaderRepository(loader);
-
         try {
-            processClasses(repository, classesDirectory, serviceProviderMap, componentMap);
+            processClasses(new ClassLoaderRepository(loader), classesDirectory, serviceProviderMap, componentMap);
         } catch (final IOException e) {
             throw new MojoExecutionException("Error processing service providers", e);
         } catch (final ClassNotFoundException e) {
