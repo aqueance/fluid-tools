@@ -122,16 +122,18 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo {
         final List<URL> urls = new ArrayList<URL>();
 
         try {
-            urls.add(classesDirectory.toURL());
+            urls.add(classesDirectory.toURI().toURL());
 
             for (final Artifact artifact : (Set<Artifact>) project.getArtifacts()) {
-                urls.add(artifact.getFile().toURL());
+                urls.add(artifact.getFile().toURI().toURL());
             }
         } catch (final MalformedURLException e) {
             assert false : e;
         }
 
-        final Repository repository = new ClassLoaderRepository(new URLClassLoader(urls.toArray(new URL[urls.size()])));
+        final URLClassLoader loader = new URLClassLoader(urls.toArray(new URL[urls.size()]));
+
+        final Repository repository = new ClassLoaderRepository(loader);
 
         try {
             processClasses(repository, classesDirectory, serviceProviderMap, componentMap);
@@ -181,64 +183,70 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo {
             final Collection<String> bindings = serviceProviderMap.get(PACKAGE_BINDINGS);
             assert bindings != null && bindings.contains(bindingsClassName);
 
-            log.info("Service provider " + bindingsClassName + " binds:");
+            processBindings(bindingsClassName, bindingsEntry, classesDirectory);
+        }
+    }
 
-            final ClassGen cg = new ClassGen(bindingsClassName, EmptyPackageBindings.class.getName(), null, Constants.ACC_FINAL + Constants.ACC_PUBLIC, null);
-            cg.setMajor(Constants.MAJOR_1_5);
-            cg.setMinor(Constants.MINOR_1_5);
+    @SuppressWarnings({ "ResultOfMethodCallIgnored" })
+    private void processBindings(final String className, final Map.Entry<String, Map<String, String>> bindings, final File classesDirectory)
+            throws MojoExecutionException {
+        log.info("Service provider " + className + " binds:");
 
-            final ConstantPoolGen cp = cg.getConstantPool();
-            final InstructionFactory factory = new InstructionFactory(cg);
+        final ClassGen cg = new ClassGen(className, EmptyPackageBindings.class.getName(), null, Constants.ACC_FINAL + Constants.ACC_PUBLIC, null);
+        cg.setMajor(Constants.MAJOR_1_5);
+        cg.setMinor(Constants.MINOR_1_5);
 
-            InstructionList code = new InstructionList();
-            final MethodGen initMethod = new MethodGen(Constants.ACC_PUBLIC, Type.VOID, Type.NO_ARGS, null, "<init>", bindingsClassName, code, cp);
+        final ConstantPoolGen cp = cg.getConstantPool();
+        final InstructionFactory factory = new InstructionFactory(cg);
 
-            code.append(InstructionConstants.ALOAD_0);
-            code.append(factory.createInvoke(cg.getSuperclassName(), "<init>", Type.VOID, Type.NO_ARGS, Constants.INVOKESPECIAL));
-            code.append(InstructionConstants.RETURN);
-            initMethod.setMaxStack();
-            initMethod.setMaxLocals();
-            cg.addMethod(initMethod.getMethod());
-            code.dispose();
+        InstructionList code = new InstructionList();
+        final MethodGen initMethod = new MethodGen(Constants.ACC_PUBLIC, Type.VOID, Type.NO_ARGS, null, "<init>", className, code, cp);
 
-            code = new InstructionList();
-            final MethodGen registerMethod = new MethodGen(Constants.ACC_PUBLIC,
-                                                           Type.VOID,
-                                                           new Type[] { Type.getType(ComponentContainer.Registry.class) },
-                                                           new String[] { "registry" },
-                                                           "bindComponents",
-                                                           bindingsClassName,
-                                                           code,
-                                                           cp);
+        code.append(InstructionConstants.ALOAD_0);
+        code.append(factory.createInvoke(cg.getSuperclassName(), "<init>", Type.VOID, Type.NO_ARGS, Constants.INVOKESPECIAL));
+        code.append(InstructionConstants.RETURN);
+        initMethod.setMaxStack();
+        initMethod.setMaxLocals();
+        cg.addMethod(initMethod.getMethod());
+        code.dispose();
 
-            for (final Map.Entry<String, String> entry : bindingsEntry.getValue().entrySet()) {
-                final String interfaceName = entry.getKey();
-                final String implementationName = entry.getValue();
+        code = new InstructionList();
+        final MethodGen registerMethod = new MethodGen(Constants.ACC_PUBLIC,
+                                                       Type.VOID,
+                                                       new Type[] { Type.getType(ComponentContainer.Registry.class) },
+                                                       new String[] { "registry" },
+                                                       "bindComponents",
+                                                       className,
+                                                       code,
+                                                       cp);
 
-                log.info("  " + interfaceName + " to " + implementationName);
+        for (final Map.Entry<String, String> entry : bindings.getValue().entrySet()) {
+            final String interfaceName = entry.getKey();
+            final String implementationName = entry.getValue();
 
-                code.append(InstructionConstants.ALOAD_1);
-                code.append(new LDC_W(cp.addClass(interfaceName)));
-                code.append(new LDC_W(cp.addClass(implementationName)));
-                code.append(factory.createInvoke(ComponentContainer.Registry.class.getName(), "bindComponent", Type.VOID, new Type[] {
-                        Type.getType(Class.class), Type.getType(Class.class),
-                }, Constants.INVOKEINTERFACE));
-            }
+            log.info("  " + interfaceName + " to " + implementationName);
 
-            code.append(InstructionConstants.RETURN);
-            registerMethod.setMaxStack();
-            registerMethod.setMaxLocals();
-            cg.addMethod(registerMethod.getMethod());
-            code.dispose();
+            code.append(InstructionConstants.ALOAD_1);
+            code.append(new LDC_W(cp.addClass(interfaceName)));
+            code.append(new LDC_W(cp.addClass(implementationName)));
+            code.append(factory.createInvoke(ComponentContainer.Registry.class.getName(), "bindComponent", Type.VOID, new Type[] {
+                    Type.getType(Class.class), Type.getType(Class.class),
+            }, Constants.INVOKEINTERFACE));
+        }
 
-            final File file = new File(classesDirectory, bindingsClassName.replace('.', '/') + ".class");
-            file.getParentFile().mkdirs();
+        code.append(InstructionConstants.RETURN);
+        registerMethod.setMaxStack();
+        registerMethod.setMaxLocals();
+        cg.addMethod(registerMethod.getMethod());
+        code.dispose();
 
-            try {
-                cg.getJavaClass().dump(file);
-            } catch (final IOException e) {
-                throw new MojoExecutionException("Could not generate default package bindings class", e);
-            }
+        final File file = new File(classesDirectory, className.replace('.', '/') + ".class");
+        file.getParentFile().mkdirs();
+
+        try {
+            cg.getJavaClass().dump(file);
+        } catch (final IOException e) {
+            throw new MojoExecutionException("Could not generate default package bindings class", e);
         }
     }
 
