@@ -19,6 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package org.fluidity.composition;
 
 import java.io.File;
@@ -76,7 +77,7 @@ public class ClassDiscoveryImplTest extends MockGroupAbstractTest {
 
         try {
             final URLClassLoader classLoader =
-                    new URLClassLoader(new URL[] { classDir.toURL() }, getClass().getClassLoader());
+                    new URLClassLoader(new URL[] { classDir.toURI().toURL() }, getClass().getClassLoader());
 
             replay();
             final Class[] classes = new ClassDiscoveryImpl().findComponentClasses(Interface.class, classLoader, false);
@@ -122,8 +123,8 @@ public class ClassDiscoveryImplTest extends MockGroupAbstractTest {
         assert servicesFile.exists();
 
         try {
-            final URLClassLoader classLoader1 = new URLClassLoader(new URL[] { classDir1.toURL() }, null);
-            final URLClassLoader classLoader2 = new URLClassLoader(new URL[] { classDir2.toURL() }, classLoader1);
+            final URLClassLoader classLoader1 = new URLClassLoader(new URL[] { classDir1.toURI().toURL() }, null);
+            final URLClassLoader classLoader2 = new URLClassLoader(new URL[] { classDir2.toURI().toURL() }, classLoader1);
 
             replay();
             final Class[] classes = new ClassDiscoveryImpl()

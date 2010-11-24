@@ -19,6 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package org.fluidity.composition;
 
 import java.io.File;
@@ -68,7 +69,7 @@ public class ComponentDiscoveryImplTest extends MockGroupAbstractTest {
 
         try {
             final URLClassLoader classLoader =
-                    new URLClassLoader(new URL[] { classDir.toURL() }, getClass().getClassLoader());
+                    new URLClassLoader(new URL[] { classDir.toURI().toURL() }, getClass().getClassLoader());
             Thread.currentThread().setContextClassLoader(classLoader);
 
             EasyMock.expect(discovery.findComponentClasses(Interface.class, null, false)).andReturn(
@@ -115,7 +116,7 @@ public class ComponentDiscoveryImplTest extends MockGroupAbstractTest {
 
         try {
             final URLClassLoader classLoader =
-                    new URLClassLoader(new URL[] { classDir.toURL() }, getClass().getClassLoader());
+                    new URLClassLoader(new URL[] { classDir.toURI().toURL() }, getClass().getClassLoader());
             Thread.currentThread().setContextClassLoader(classLoader);
 
             EasyMock.expect(discovery.findComponentClasses(Interface.class, null, false))

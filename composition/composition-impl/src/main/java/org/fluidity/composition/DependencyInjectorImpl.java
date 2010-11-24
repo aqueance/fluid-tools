@@ -192,13 +192,6 @@ final class DependencyInjectorImpl implements DependencyInjector {
                                           ? dependencyType.getComponentType()
                                           : serviceProvider.api()[0];
 
-            if (providerType.getAnnotation(ServiceProvider.class) == null) {
-                throw new ComponentContainer.ResolutionException("The component type of dependency %s of %s has not been annotated with %s",
-                                                                 dependencyType,
-                                                                 declaringType,
-                                                                 ServiceProvider.class);
-            }
-
             if (!dependencyType.getComponentType().isAssignableFrom(providerType)) {
                 throw new ComponentContainer.ResolutionException(
                         "The component type of dependency specified in the %s annotation is not assignable to the dependency type %s of %s",
