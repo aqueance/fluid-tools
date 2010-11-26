@@ -34,7 +34,9 @@
     <groupId>org.fluidity.maven</groupId>
     <artifactId>maven-composition-plugin-test</artifactId>
     <version>1.0-SNAPSHOT</version>
-    <packaging>jar</packaging>
+
+    <!-- we configure the build cycle ourselves: see the build/plugins section -->
+    <packaging>pom</packaging>
 
     <name>Plugins: Composition Test</name>
 
@@ -45,7 +47,6 @@
             <artifactId>fluidity-api</artifactId>
             <version>${fluidity.version}</version>
             <type>pom</type>
-            <scope>test</scope>
         </dependency>
 
         <dependency>
@@ -99,36 +100,39 @@
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
+                <artifactId>maven-compiler-plugin</artifactId>
                 <executions>
                     <execution>
-                        <id>default-jar</id>
-                        <phase>none</phase> <!-- don't create JAR -->
+                        <id>default-testCompile</id>
+                        <phase>test-compile</phase>
+                        <goals>
+                            <goal>testCompile</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>default-compile</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>compile</goal>
+                        </goals>
                     </execution>
                 </executions>
             </plugin>
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-install-plugin</artifactId>
+                <artifactId>maven-surefire-plugin</artifactId>
                 <executions>
                     <execution>
-                        <id>default-install</id>
-                        <phase>none</phase> <!-- don't try to install non-existent JAR -->
+                        <id>default-test</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>test</goal>
+                        </goals>
                     </execution>
                 </executions>
             </plugin>
 
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-deploy-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>default-deploy</id>
-                        <phase>none</phase> <!-- don't try to deploy non-existent JAR -->
-                    </execution>
-                </executions>
-            </plugin>
         </plugins>
 
     </build>
