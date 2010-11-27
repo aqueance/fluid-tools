@@ -30,6 +30,7 @@ import org.apache.maven.plugin.MojoExecutionException;
  * @goal process-test-annotations
  * @phase process-test-classes
  * @requiresDependencyResolution test
+ * @threadSafe
  */
 public class TestAnnotationProcessorMojo extends AbstractAnnotationProcessorMojo {
 

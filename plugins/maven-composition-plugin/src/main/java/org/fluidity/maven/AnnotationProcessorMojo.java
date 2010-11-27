@@ -31,6 +31,7 @@ import org.apache.maven.plugin.MojoExecutionException;
  * @goal process-annotations
  * @phase process-classes
  * @requiresDependencyResolution compile
+ * @threadSafe
  */
 public class AnnotationProcessorMojo extends AbstractAnnotationProcessorMojo {
 

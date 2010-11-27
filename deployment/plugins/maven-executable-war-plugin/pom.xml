@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
 <!--
   ~ Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
   ~
@@ -52,13 +53,20 @@ server. The server will bootstrap a ComponentContainer and offer it as a
 parent container for the deployed web applications.
 
 You configure the web server's classpath by a &lt;dependencies> section
-in the plugin configuration of your host project. The server classpath
-will by default include all necessary modules to start the server.
+in the plugin configuration of your host project. To use the default
+bootstrap, add the following dependency to the plugin in your project:
+
+&lt;dependency>
+    &lt;groupId>org.fluidity.deployment&lt;/groupId>
+    &lt;artifactId>jetty-bootstrap&lt;/artifactId>
+    &lt;version>${fluidity-version}&lt;/version>
+&lt;/dependency>
 
 The plugin exports an org.fluidity.deployment.RuntimeControl component in the
 global ComponentContainer. That object can be used to programmatically stop
 the Jetty server started by this plugin. The server can also be stopped by
 pressing Ctrl-C.
+
     ]]></description>
 
     <dependencies>
@@ -66,39 +74,30 @@ pressing Ctrl-C.
         <dependency>
             <groupId>org.apache.maven</groupId>
             <artifactId>maven-plugin-api</artifactId>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>org.apache.maven</groupId>
-            <artifactId>maven-project</artifactId>
+            <artifactId>maven-core</artifactId>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>org.apache.maven</groupId>
             <artifactId>maven-artifact</artifactId>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
-            <groupId>org.apache.maven.shared</groupId>
-            <artifactId>maven-dependency-tree</artifactId>
-            <version>1.1</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.codehaus.plexus</groupId>
-            <artifactId>plexus-container-default</artifactId>
-            <version>1.0-alpha-9-stable-1</version>
+            <groupId>org.sonatype.aether</groupId>
+            <artifactId>aether-impl</artifactId>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>${fluidity.deployment.groupId}</groupId>
             <artifactId>war-bootstrap</artifactId>
-        </dependency>
-
-        <!-- The default implementation of war-bootstrap-api -->
-        <dependency>
-            <groupId>${fluidity.deployment.groupId}</groupId>
-            <artifactId>jetty-bootstrap</artifactId>
         </dependency>
 
     </dependencies>

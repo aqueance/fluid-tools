@@ -69,6 +69,8 @@ import org.objectweb.asm.commons.EmptyVisitor;
  * <p/>
  * Subclasses should call {@link AbstractAnnotationProcessorMojo#processDirectory(java.io.File)} with the directory containing the classes to process. The Maven
  * build object can be obtained by calling {@link org.fluidity.maven.AbstractAnnotationProcessorMojo#build()}.
+ *
+ * @threadSafe
  */
 public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo implements Opcodes {
 
