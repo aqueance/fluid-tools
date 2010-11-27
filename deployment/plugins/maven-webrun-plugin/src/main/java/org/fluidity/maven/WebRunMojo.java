@@ -19,6 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package org.fluidity.maven;
 
 import java.io.File;
@@ -108,7 +109,7 @@ public final class WebRunMojo extends AbstractMojo {
 
         addWebArtifact(jettyDirectory, project.getArtifact(), contexts, deployed, true);
 
-        for (final Artifact dependency : (Set<Artifact>) project.getDependencyArtifacts()) {
+        for (final Artifact dependency : project.getDependencyArtifacts()) {
             addWebArtifact(jettyDirectory, dependency, contexts, deployed, false);
         }
 
