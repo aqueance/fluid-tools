@@ -233,6 +233,16 @@ final class SimpleContainerImpl implements SimpleContainer {
         });
     }
 
+    private String handleArrayClass(final Class<?> rootType) {
+        final StringBuilder builder = new StringBuilder();
+
+        Class<?> componentType = rootType;
+        for (; componentType.isArray(); componentType = componentType.getComponentType()) {
+            builder.append("[]");
+        }
+        return builder.insert(0, componentType).toString();
+    }
+
     public ComponentProducer bindInstance(final Class<?> key, final Object instance) {
         if (instance == null) {
             throw new ComponentContainer.BindingException("Component instance for %s is null", key);
@@ -240,8 +250,8 @@ final class SimpleContainerImpl implements SimpleContainer {
 
         final String value = instance instanceof String || instance instanceof Number
                              ? ('\'' + String.valueOf(instance) + '\'')
-                             : ("instance of " + instance.getClass());
-        services.log().info(getClass(), this + ": binding " + key + " to '" + value + "'");
+                             : ("instance of " + handleArrayClass(instance.getClass()));
+        services.log().info(getClass(), this + ": binding " + handleArrayClass(key) + " to '" + value + "'");
 
         return bindFactory(new ContentProducers() {
             public boolean isVariantFactory() {
