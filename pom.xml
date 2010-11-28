@@ -144,13 +144,6 @@
 
             <dependency>
                 <groupId>${fluidity.foundation.groupId}</groupId>
-                <artifactId>foundation-logging</artifactId>
-                <version>${fluidity.version}</version>
-                <scope>compile</scope>
-            </dependency>
-
-            <dependency>
-                <groupId>${fluidity.foundation.groupId}</groupId>
                 <artifactId>foundation-settings</artifactId>
                 <version>${fluidity.version}</version>
                 <scope>compile</scope>

@@ -47,7 +47,6 @@
         <module>foundation-api</module>
         <module>foundation-impl</module>
         <module>foundation-utils</module>
-        <module>foundation-logging</module>
         <module>foundation-settings</module>
         <module>foundation-easymock</module>
     </modules>
