@@ -19,6 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package org.fluidity.deployment;
 
 import java.io.File;
@@ -191,7 +192,7 @@ public final class JettyDeployer implements ServerBootstrap {
                 jar.close();
             }
         } catch (IOException e) {
-            throw new RuntimeException("Reading " + archive, e);
+            throw new RuntimeException(String.format("Reading %s", archive), e);
         }
 
         assert key == null || name != null : key + " has no name";

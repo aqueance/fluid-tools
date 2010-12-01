@@ -19,6 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package org.fluidity.foundation.settings;
 
 import java.net.MalformedURLException;
@@ -29,10 +30,9 @@ import java.util.Properties;
 
 import org.fluidity.foundation.ApplicationInfo;
 import org.fluidity.foundation.MockApplicationInfo;
+import org.fluidity.foundation.NullLogFactory;
 import org.fluidity.foundation.Settings;
 import org.fluidity.foundation.SettingsAbstractTest;
-import org.fluidity.foundation.SystemSettings;
-import org.fluidity.foundation.logging.BootstrapLog;
 
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -42,9 +42,7 @@ import org.testng.annotations.Test;
  */
 public class PropertySettingsImplTest extends SettingsAbstractTest {
 
-    static {
-        SystemSettings.set(BootstrapLog.SUPPRESS_LOGS, BootstrapLog.ALL_LOGS);
-    }
+    private final NullLogFactory logs = new NullLogFactory();
 
     private final URL defaultUrl;
     private final URL appUrl;
@@ -74,7 +72,7 @@ public class PropertySettingsImplTest extends SettingsAbstractTest {
             }
         }
 
-        final PropertySettingsImpl settings = new PropertySettingsImpl(info);
+        final PropertySettings settings = new PropertySettingsImpl(info, logs);
         settings.overrideProperties(defaultUrl, props);
         return settings;
     }
@@ -97,7 +95,7 @@ public class PropertySettingsImplTest extends SettingsAbstractTest {
         defaultProps.setProperty("app/spaced/int", "wrong specific value");
         defaultProps.setProperty("app/spaced2/bool", "wrong specific value");
 
-        final PropertySettingsImpl settings = new PropertySettingsImpl(new MockApplicationInfo("app", null));
+        final PropertySettings settings = new PropertySettingsImpl(new MockApplicationInfo("app", null), logs);
 
         settings.overrideProperties(defaultUrl, defaultProps);
 

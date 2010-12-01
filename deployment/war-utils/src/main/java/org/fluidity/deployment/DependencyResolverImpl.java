@@ -19,6 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package org.fluidity.deployment;
 
 import javax.servlet.ServletException;
@@ -34,10 +35,8 @@ import org.fluidity.foundation.ClassLoaderUtils;
  */
 final class DependencyResolverImpl implements DependencyResolver {
 
-    private final ComponentContainer container = new ComponentContainerAccess().getContainer();
-
     public Object findComponent(final String componentClassName) throws ServletException {
-        return findComponent(container, componentClassName);
+        return findComponent(Bootstrap.container, componentClassName);
     }
 
     // This is the method that can be tested
@@ -68,5 +67,9 @@ final class DependencyResolverImpl implements DependencyResolver {
         } catch (final ClassNotFoundException e) {
             throw new ServletException(e);
         }
+    }
+
+    private static class Bootstrap {
+        private static final ComponentContainer container = new ComponentContainerAccess();
     }
 }

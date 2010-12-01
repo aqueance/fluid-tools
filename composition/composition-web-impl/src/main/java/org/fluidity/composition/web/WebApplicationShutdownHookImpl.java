@@ -19,6 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package org.fluidity.composition.web;
 
 import java.util.HashMap;
@@ -28,16 +29,16 @@ import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
 import org.fluidity.composition.Component;
-import org.fluidity.composition.ComponentContainerAccess;
 import org.fluidity.composition.ServiceProvider;
 import org.fluidity.composition.ShutdownHook;
-import org.fluidity.foundation.Logging;
+import org.fluidity.foundation.Log;
+import org.fluidity.foundation.LogFactory;
 
 /**
  * Implements the component shutdown mechanism for web applications. The implementation requires a mechanism that auto-discovers
  * <code>ServletContextListeners</code> and dispatches the respective servlet events to all without each having to be registered in the web application's
- * web.xml file. Such mechanism is the {@link org.fluidity.composition.web.WebApplicationLifecycleListener} that should then be added as a listener in the
- * web.xml.
+ * web.xml file. Such mechanism is the {@link org.fluidity.composition.web.WebApplicationLifecycleListener} that should be added as a listener in the
+ * host web application's <code>web.xml</code> file.
  *
  * @author Tibor Varga
  */
@@ -46,6 +47,12 @@ import org.fluidity.foundation.Logging;
 final class WebApplicationShutdownHookImpl implements ShutdownHook, ServletContextListener {
 
     private static final Map<String, Runnable> tasks = new HashMap<String, Runnable>();
+
+    private final Log log;
+
+    public WebApplicationShutdownHookImpl(final LogFactory logs) {
+        this.log = logs.createLog(getClass());
+    }
 
     public void addTask(final String threadName, final Runnable command) {
         tasks.put(threadName, command);
@@ -56,13 +63,11 @@ final class WebApplicationShutdownHookImpl implements ShutdownHook, ServletConte
     }
 
     public void contextDestroyed(final ServletContextEvent event) {
-        final Logging log = new ComponentContainerAccess().getComponent(Logging.class);
-
         for (final Map.Entry<String, Runnable> entry : tasks.entrySet()) {
             try {
                 entry.getValue().run();
             } catch (final Exception e) {
-                log.fatal(getClass(), "Running shutdown task " + entry.getKey(), e);
+                log.error(e, "Running shutdown task %s", entry.getKey());
             }
         }
     }

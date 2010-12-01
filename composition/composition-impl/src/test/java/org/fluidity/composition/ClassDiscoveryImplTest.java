@@ -36,8 +36,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.fluidity.foundation.ClassLoaderUtils;
-import org.fluidity.foundation.SystemSettings;
-import org.fluidity.foundation.logging.BootstrapLog;
+import org.fluidity.foundation.LogFactory;
+import org.fluidity.foundation.NullLogFactory;
 import org.fluidity.tests.MockGroupAbstractTest;
 
 import org.testng.annotations.Test;
@@ -48,9 +48,7 @@ import org.testng.annotations.Test;
 @SuppressWarnings("ResultOfMethodCallIgnored")
 public class ClassDiscoveryImplTest extends MockGroupAbstractTest {
 
-    static {
-        SystemSettings.set(BootstrapLog.SUPPRESS_LOGS, BootstrapLog.ALL_LOGS);
-    }
+    private final LogFactory logs = new NullLogFactory();
 
     @Test
     @SuppressWarnings("unchecked")
@@ -80,7 +78,7 @@ public class ClassDiscoveryImplTest extends MockGroupAbstractTest {
                     new URLClassLoader(new URL[] { classDir.toURI().toURL() }, getClass().getClassLoader());
 
             replay();
-            final Class[] classes = new ClassDiscoveryImpl().findComponentClasses(Interface.class, classLoader, false);
+            final Class[] classes = new ClassDiscoveryImpl(logs).findComponentClasses(Interface.class, classLoader, false);
             verify();
 
             assert new ArrayList<Class>(Arrays.asList(Impl1.class, Impl2.class, Impl3.class))
@@ -127,7 +125,7 @@ public class ClassDiscoveryImplTest extends MockGroupAbstractTest {
             final URLClassLoader classLoader2 = new URLClassLoader(new URL[] { classDir2.toURI().toURL() }, classLoader1);
 
             replay();
-            final Class[] classes = new ClassDiscoveryImpl()
+            final Class[] classes = new ClassDiscoveryImpl(logs)
                     .findComponentClasses(classLoader1.loadClass(Interface.class.getName()), classLoader2, true);
             verify();
 

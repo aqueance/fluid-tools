@@ -19,6 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package org.fluidity.composition;
 
 import java.io.BufferedReader;
@@ -34,8 +35,8 @@ import java.util.Set;
 
 import org.fluidity.foundation.ClassLoaderUtils;
 import org.fluidity.foundation.Exceptions;
-import org.fluidity.foundation.Logging;
-import org.fluidity.foundation.logging.BootstrapLog;
+import org.fluidity.foundation.Log;
+import org.fluidity.foundation.LogFactory;
 
 /**
  * The component is instantiated by {@link org.fluidity.composition.ProductionServices} and
@@ -46,15 +47,18 @@ import org.fluidity.foundation.logging.BootstrapLog;
 @Component(automatic = false)
 final class ClassDiscoveryImpl implements ClassDiscovery {
 
-    private final Logging log = new BootstrapLog("discovery");
+    private final Log log;
+
+    public ClassDiscoveryImpl(final LogFactory logs) {
+        log = logs.createLog(getClass());
+    }
 
     @SuppressWarnings("unchecked")
     public <T> Class<T>[] findComponentClasses(final Class<T> componentInterface, final ClassLoader cl, final boolean strict) {
         final ClassLoader classLoader = cl == null ? ClassLoaderUtils.findClassLoader(componentInterface) : cl;
-        final String objects = String.format(" service provider files for %s using class loader %s", componentInterface, classLoader);
-        log.info(getClass(), "Loading" + objects);
+        log.info("Loading service provider files for %s using class loader %s", componentInterface, classLoader);
 
-        final Collection<Class<T>> componentList = Exceptions.wrap("loading" + objects, new Exceptions.Command<Collection<Class<T>>>() {
+        final Collection<Class<T>> componentList = Exceptions.wrap(new Exceptions.Command<Collection<Class<T>>>() {
             public Collection<Class<T>> run() throws Exception {
                 final Collection<Class<T>> componentList = new LinkedHashSet<Class<T>>();
 
@@ -69,7 +73,7 @@ final class ClassDiscoveryImpl implements ClassDiscovery {
                     if (!loaded.contains(url)) {
                         loaded.add(url);
 
-                        log.info(getClass(), "Processing " + url);
+                        log.info("Processing %s", url);
 
                         final Collection<Class<T>> localList = new LinkedHashSet<Class<T>>();
                         final BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream(), "UTF-8"));
@@ -88,25 +92,25 @@ final class ClassDiscoveryImpl implements ClassDiscovery {
                                         final Class<T> componentClass = (Class<T>) rawClass;
 
                                         if (Modifier.isAbstract(componentClass.getModifiers())) {
-                                            log.info(getClass(), "Ignoring abstract service provider " + componentClass);
+                                            log.info("Ignoring abstract service provider %s", componentClass);
                                         } else {
                                             if (componentList.contains(componentClass)) {
-                                                log.error(getClass(), "Multiple export of " + componentClass);
+                                                log.error("Multiple export of %s", componentClass);
                                             } else {
                                                 if (localList.contains(componentClass)) {
-                                                    log.error(getClass(), "Duplicate " + componentClass);
+                                                    log.error("Duplicate %s", componentClass);
                                                 } else {
-                                                    log.info(getClass(), "Found service provider " + componentClass);
+                                                    log.info("Found service provider %s", componentClass);
                                                     localList.add(componentClass);
                                                 }
                                             }
                                         }
                                     } else {
-                                        log.error(getClass(), rawClass + " does not implemement " + componentInterface);
+                                        log.error(rawClass + " does not implemement %s", componentInterface);
                                     }
                                 }
                             } catch (final ClassNotFoundException e) {
-                                log.error(getClass(), "Invalid class name: " + line);
+                                log.error("Invalid class name: %s", line);
                             }
                         }
 

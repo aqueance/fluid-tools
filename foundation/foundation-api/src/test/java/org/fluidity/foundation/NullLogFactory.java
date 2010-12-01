@@ -20,21 +20,25 @@
  * THE SOFTWARE.
  */
 
-package org.fluidity.composition;
+package org.fluidity.foundation;
+
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 
 /**
- * Wraps the Sun JDK service provider discovery implementation, which was private API until Java 6.
+ * Returns {@link org.fluidity.foundation.Log} implementations that simple gobble up messages.
  */
-interface BootstrapServices {
+public final class NullLogFactory implements LogFactory {
 
-    /**
-     * Returns the first service provider implementation for the given interface.
-     *
-     * @param interfaceClass the service provider interface.
-     * @param classLoader    the class loader to look for implementations in.
-     * @param <T>            the service provider interface
-     *
-     * @return the first implementation of the given interface or <code>null</code> if none found.
-     */
-    <T> T findInstance(Class<T> interfaceClass, ClassLoader classLoader);
+    private final Log log = (Log) Proxy.newProxyInstance(NullLogFactory.class.getClassLoader(), new Class<?>[] { Log.class }, new InvocationHandler() {
+        public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
+            final Class<?> type = method.getReturnType();
+            return method.getDeclaringClass() == Object.class ? method.invoke(this, args) : type == Boolean.TYPE ? false : null;
+        }
+    });
+
+    public Log createLog(final Class<?> source) {
+        return log;
+    }
 }

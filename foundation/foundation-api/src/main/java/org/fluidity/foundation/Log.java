@@ -20,21 +20,38 @@
  * THE SOFTWARE.
  */
 
-package org.fluidity.composition;
+package org.fluidity.foundation;
 
 /**
- * Wraps the Sun JDK service provider discovery implementation, which was private API until Java 6.
+ * Log interface to use by Fluid Tools components.
  */
-interface BootstrapServices {
+public interface Log {
 
-    /**
-     * Returns the first service provider implementation for the given interface.
-     *
-     * @param interfaceClass the service provider interface.
-     * @param classLoader    the class loader to look for implementations in.
-     * @param <T>            the service provider interface
-     *
-     * @return the first implementation of the given interface or <code>null</code> if none found.
-     */
-    <T> T findInstance(Class<T> interfaceClass, ClassLoader classLoader);
+    boolean isTraceEnabled();
+
+    boolean isDebugEnabled();
+
+    boolean isInfoEnabled();
+
+    void trace(final String message, final Object... args);
+
+    void debug(final String message, final Object... args);
+
+    void info(final String message, final Object... args);
+
+    void warning(final String message, final Object... args);
+
+    void error(final String message, final Object... args);
+
+    void trace(final Throwable exception, final String message, final Object... args);
+
+    void debug(final Throwable exception, final String message, final Object... args);
+
+    void info(final Throwable exception, final String message, final Object... args);
+
+    void warning(final Throwable exception, final String message, final Object... args);
+
+    void error(final Throwable exception, final String message, final Object... args);
+
+    void timer(String message, long beginMillis);
 }

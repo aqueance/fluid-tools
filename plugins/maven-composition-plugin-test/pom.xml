@@ -75,7 +75,7 @@
 
         <dependency>
             <groupId>org.fluidity.export</groupId>
-            <artifactId>fluidity-commons-logging-impl</artifactId>
+            <artifactId>fluidity-logging-slf4j-impl</artifactId>
             <version>${fluidity.version}</version>
             <scope>test</scope>
         </dependency>
@@ -93,6 +93,7 @@
                     <execution>
                         <goals>
                             <goal>process-annotations</goal>
+                            <goal>process-test-annotations</goal>
                         </goals>
                     </execution>
                 </executions>

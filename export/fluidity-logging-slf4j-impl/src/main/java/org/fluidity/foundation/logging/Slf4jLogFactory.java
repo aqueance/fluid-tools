@@ -19,40 +19,19 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.fluidity.foundation;
 
-/**
- * Provides facilities to log debug, error, etc. messages to a log sink.
- *
- * @author Tibor Varga
- */
-public interface Logging {
+package org.fluidity.foundation.logging;
 
-    boolean isTraceEnabled(Class source);
+import org.fluidity.composition.Component;
+import org.fluidity.composition.ServiceProvider;
+import org.fluidity.foundation.Log;
+import org.fluidity.foundation.LogFactory;
 
-    boolean isDebugEnabled(Class source);
+@Component
+@ServiceProvider
+public final class Slf4jLogFactory implements LogFactory {
 
-    void trace(Class source, String message);
-
-    void trace(Class source, String message, Throwable exception);
-
-    void debug(Class source, String message);
-
-    void debug(Class source, String message, Throwable exception);
-
-    void info(Class source, String message);
-
-    void warning(Class source, String message);
-
-    void warning(Class source, String message, Throwable exception);
-
-    void error(Class source, String message);
-
-    void error(Class source, String message, Throwable exception);
-
-    void fatal(Class source, String message);
-
-    void fatal(Class source, String message, Throwable exception);
-
-    void timer(Class source, String message, long beginStamp);
+    public Log createLog(final Class<?> source) {
+        return new Slf4jLogImpl(source);
+    }
 }

@@ -19,6 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package org.fluidity.deployment;
 
 import javax.servlet.ServletException;
@@ -41,7 +42,7 @@ public final class BootstrapServlet extends HttpServlet {
 
         try {
             bootstrap.load();
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new ServletException(e);
         }
     }

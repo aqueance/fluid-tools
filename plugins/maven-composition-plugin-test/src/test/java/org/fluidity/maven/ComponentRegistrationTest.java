@@ -23,16 +23,10 @@
 package org.fluidity.maven;
 
 import org.fluidity.composition.ComponentContainerAccess;
-import org.fluidity.foundation.SystemSettings;
-import org.fluidity.foundation.logging.BootstrapLog;
 
 import org.testng.annotations.Test;
 
 public class ComponentRegistrationTest {
-
-    static {
-        SystemSettings.set(BootstrapLog.SUPPRESS_LOGS, BootstrapLog.ALL_LOGS);
-    }
 
     private final ComponentContainerAccess container = new ComponentContainerAccess();
 

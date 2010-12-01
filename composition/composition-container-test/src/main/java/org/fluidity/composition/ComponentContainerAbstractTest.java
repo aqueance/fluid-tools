@@ -23,8 +23,7 @@
 package org.fluidity.composition;
 
 import org.fluidity.composition.spi.ContainerServices;
-import org.fluidity.foundation.SystemSettings;
-import org.fluidity.foundation.logging.BootstrapLog;
+import org.fluidity.foundation.NullLogFactory;
 import org.fluidity.tests.MockGroupAbstractTest;
 
 import org.testng.annotations.Factory;
@@ -36,10 +35,6 @@ import org.testng.annotations.Test;
  * @author Tibor Varga
  */
 public abstract class ComponentContainerAbstractTest extends MockGroupAbstractTest {
-
-    static {
-        SystemSettings.set(BootstrapLog.SUPPRESS_LOGS, BootstrapLog.ALL_LOGS);
-    }
 
     /**
      * Creates a new container. This method is called for each test case.
@@ -54,7 +49,7 @@ public abstract class ComponentContainerAbstractTest extends MockGroupAbstractTe
     public Object[] tests() {
         final ContainerFactory containers = new ContainerFactory() {
             public OpenComponentContainer createContainer() {
-                return newContainer(new ProductionServices(new BootstrapLog("test")));
+                return newContainer(new ProductionServices(new NullLogFactory()));
             }
         };
 

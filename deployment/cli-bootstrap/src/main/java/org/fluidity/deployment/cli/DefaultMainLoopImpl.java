@@ -19,13 +19,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package org.fluidity.deployment.cli;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.fluidity.composition.Component;
 import org.fluidity.composition.Optional;
-import org.fluidity.foundation.Logging;
+import org.fluidity.foundation.Log;
+import org.fluidity.foundation.LogFactory;
 
 /**
  * This run loop implementation expects the application loop to be in a {@link org.fluidity.deployment.cli.MainLoop.Application}, which when done invokes {@link
@@ -38,10 +40,10 @@ final class DefaultMainLoopImpl implements MainLoop {
     private final AtomicBoolean stopped = new AtomicBoolean(false);
 
     private final Application application;
-    private final Logging log;
+    private final Log log;
 
-    public DefaultMainLoopImpl(@Optional final Logging log, @Optional final Application application) {
-        this.log = log;
+    public DefaultMainLoopImpl(@Optional final LogFactory logs, @Optional final Application application) {
+        this.log = logs.createLog(getClass());
         this.application = application;
     }
 
@@ -49,7 +51,7 @@ final class DefaultMainLoopImpl implements MainLoop {
         if (application != null) {
             application.run(this);
         } else if (log != null) {
-            log.info(getClass(), "Application started. Press Ctrl-C to stop it.");
+            log.info("Application started. Press Ctrl-C to stop it.");
         }
 
         if (!stopped.get()) {

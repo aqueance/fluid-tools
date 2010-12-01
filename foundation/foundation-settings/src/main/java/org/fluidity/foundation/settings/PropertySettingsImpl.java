@@ -19,6 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package org.fluidity.foundation.settings;
 
 import java.net.URL;
@@ -37,17 +38,15 @@ import org.fluidity.composition.Component;
 import org.fluidity.composition.Optional;
 import org.fluidity.foundation.AbstractSettings;
 import org.fluidity.foundation.ApplicationInfo;
-import org.fluidity.foundation.Logging;
-import org.fluidity.foundation.logging.BootstrapLog;
+import org.fluidity.foundation.Log;
+import org.fluidity.foundation.LogFactory;
 
 /**
  * In-memory settings not read from anywhere. This implementation will work with or without an {@link org.fluidity.foundation.ApplicationInfo} object present.
  * When an <code>ApplicationInfo</code> object is present, its short name will be used as a fallback namespace. What this means is that if there is a property
  * with a key &lt;short name>/&lt;key> but there is no property with the key &lt;key> then the value of the former will be returned when the latter is
  * requested.
- *
  * <p/>
- *
  * This implementation also performs key expansion. A "${...}" or "${...|...}" pattern found anywhere in the key=value specification, without the quote marks of
  * course, will trigger the recursive expansion logic. Between the curly braces (first form) or between the opening curly brace and the pipe character (second
  * form) is a key. The logic first tries to find a value for that key among the key=value specifications then, and failing that, among the System properties. In
@@ -56,22 +55,29 @@ import org.fluidity.foundation.logging.BootstrapLog;
  * handled gracefully by substituting the key or the default value of the last property in the circular reference chain in place of the expression, depending
  * whether a default value has been specified.
  *
+ * TODO: this is a Foundation class using Composition (e.g., the @Component annotation) - and that is bad and in need of redesign
+ *
+ * TODO: Settings are not used by Foundation modules, should be safe to move to Composition 
+ *
+ * TODO: settings should not be singletons but rather context aware components
+ *
  * @author Tibor Varga
  */
 @Component
 final class PropertySettingsImpl extends AbstractSettings implements PropertySettings {
 
-    private final Logging log = new BootstrapLog("settings");
+    private final Log log;
 
     private final Map<URL, Map<String, String>> properties = new LinkedHashMap<URL, Map<String, String>>();
     private final String prefix;
 
-    public PropertySettingsImpl(@Optional final ApplicationInfo info) {
-        this(info == null ? null : info.key());
+    public PropertySettingsImpl(@Optional final ApplicationInfo info, final LogFactory logs) {
+        this(info == null ? null : info.key(), logs.createLog(PropertySettingsImpl.class));
     }
 
-    private PropertySettingsImpl(final String prefix) {
+    private PropertySettingsImpl(final String prefix, final Log log) {
         this.prefix = prefix != null ? prefix.charAt(prefix.length() - 1) == namespaceDelimiter() ? prefix : prefix + namespaceDelimiter() : null;
+        this.log = log;
     }
 
     public void overrideProperties(final URL url, final Properties properties) {
@@ -84,7 +90,7 @@ final class PropertySettingsImpl extends AbstractSettings implements PropertySet
             this.properties.put(url, map);
         }
 
-        log.info(getClass(), "Loaded properties from " + url);
+        log.info("Loaded properties from %s", url);
     }
 
     public String[] keys() {
@@ -129,13 +135,13 @@ final class PropertySettingsImpl extends AbstractSettings implements PropertySet
                 }
 
                 if (value != null) {
-                    log.info(getClass(), "Found property " + spec + " in " + entry.getKey() + " as " + actualKey);
+                    log.info("Found property %s in %s as %s", spec, entry.getKey(),  actualKey);
                     return expand(actualKey, value);
                 }
             }
         }
 
-        log.info(getClass(), "Property " + spec + " not found");
+        log.info("Property %s not found", spec);
         return defaultValue;
     }
 
@@ -281,8 +287,7 @@ final class PropertySettingsImpl extends AbstractSettings implements PropertySet
                         final String defaultValue = defaults.toString();
 
                         if (defaultValue.length() == 0 || defaultValue.equals(key)) {
-                            String message = "Property " + name + " not found" + (selfReference ? " (refers to itself)" : "");
-                            log.info(getClass(), message);
+                            log.info("Property %s not found%s", name, (selfReference ? " (refers to itself)" : ""));
                         } else {
                             property = setting(defaultValue, defaultValue);
                         }

@@ -36,9 +36,8 @@ import org.fluidity.composition.spi.ContextChain;
 import org.fluidity.composition.spi.ContextFactory;
 import org.fluidity.composition.spi.DependencyInjector;
 import org.fluidity.composition.spi.ReferenceChain;
-import org.fluidity.foundation.Logging;
-import org.fluidity.foundation.SystemSettings;
-import org.fluidity.foundation.logging.BootstrapLog;
+import org.fluidity.foundation.LogFactory;
+import org.fluidity.foundation.NullLogFactory;
 import org.fluidity.tests.MockGroupAbstractTest;
 
 import org.easymock.EasyMock;
@@ -54,11 +53,7 @@ import org.testng.annotations.Test;
 @SuppressWarnings("unchecked")
 public abstract class ContainerProviderAbstractTest extends MockGroupAbstractTest {
 
-    static {
-        SystemSettings.set(BootstrapLog.SUPPRESS_LOGS, BootstrapLog.ALL_LOGS);
-    }
-
-    private final Logging logging = new BootstrapLog("test");
+    private final LogFactory logs = new NullLogFactory();
 
     private final ContainerServices services = addControl(ContainerServices.class);
     private final ClassDiscovery classDiscovery = addControl(ClassDiscovery.class);
@@ -81,7 +76,7 @@ public abstract class ContainerProviderAbstractTest extends MockGroupAbstractTes
 
     @BeforeMethod
     public void dependencies() {
-        EasyMock.expect(services.log()).andReturn(logging).anyTimes();
+        EasyMock.expect(services.log()).andReturn(logs).anyTimes();
         EasyMock.expect(services.classDiscovery()).andReturn(classDiscovery).anyTimes();
         EasyMock.expect(services.referenceChain()).andReturn(referenceChain).anyTimes();
         EasyMock.expect(services.contextChain()).andReturn(contextChain).anyTimes();

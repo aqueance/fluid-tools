@@ -19,6 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package org.fluidity.deployment;
 
 import java.io.File;
@@ -151,13 +152,13 @@ public final class WarBootstrapLoader {
                         } finally {
                             try {
                                 inputStream.close();
-                            } catch (IOException e) {
+                            } catch (final IOException e) {
                                 // ignore
                             }
 
                             try {
                                 outputStream.close();
-                            } catch (IOException e) {
+                            } catch (final IOException e) {
                                 // ignore
                             }
                         }
@@ -169,7 +170,7 @@ public final class WarBootstrapLoader {
         } finally {
             try {
                 warInput.close();
-            } catch (IOException e) {
+            } catch (final IOException e) {
                 // ignore
             }
         }

@@ -19,6 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package org.fluidity.deployment;
 
 import java.util.ArrayList;
@@ -29,17 +30,14 @@ import java.util.List;
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentDiscovery;
-import org.fluidity.foundation.Logging;
-import org.fluidity.foundation.SystemSettings;
-import org.fluidity.foundation.logging.BootstrapLog;
+import org.fluidity.foundation.Log;
+import org.fluidity.foundation.LogFactory;
 
 /**
  * @author Tibor Varga
  */
 @Component
 final class DeploymentBootstrapImpl implements DeploymentBootstrap {
-
-    private final boolean verbose = !SystemSettings.isSet(BootstrapLog.SUPPRESS_LOGS, "deployment", BootstrapLog.ALL_LOGS);
 
     private final ComponentContainer container;
     private final ComponentDiscovery discovery;
@@ -49,22 +47,20 @@ final class DeploymentBootstrapImpl implements DeploymentBootstrap {
     private final List<DeployedComponent> activeComponents = Collections.synchronizedList(new ArrayList<DeployedComponent>());
     private final List<DeploymentObserver> observers = new ArrayList<DeploymentObserver>();
 
-    private final Logging log;
+    private final Log log;
 
-    public DeploymentBootstrapImpl(final Logging log,
+    public DeploymentBootstrapImpl(final LogFactory logs,
                                    final ComponentContainer container,
                                    final ComponentDiscovery discovery,
                                    final DeploymentControl deployments) {
-        this.log = log;
+        this.log = logs.createLog(getClass());
         this.container = container;
         this.discovery = discovery;
         this.deployments = deployments;
     }
 
-    private void info(String message) {
-        if (verbose) {
-            log.info(getClass(), message);
-        }
+    private void info(final String message, final Object... args) {
+        log.info(message, args);
     }
 
     public void load() throws Exception {
@@ -78,7 +74,7 @@ final class DeploymentBootstrapImpl implements DeploymentBootstrap {
         activeComponents.addAll(deployedComponents);
 
         for (final DeployedComponent component : deployedComponents) {
-            info("Starting " + component.name());
+            info("Starting %s", component.name());
             component.start(new DeployedComponent.Context() {
                 public void complete() {
                     final boolean empty;
@@ -93,19 +89,19 @@ final class DeploymentBootstrapImpl implements DeploymentBootstrap {
                         try {
                             deployments.stop();
                         } catch (final Exception e) {
-                            log.fatal(getClass(), "Could not stop runtime", e);
+                            log.error(e, "Could not stop runtime");
                         }
                     }
                 }
             });
-            info("Started " + component.name());
+            info("Started %s",component.name());
         }
 
         for (final DeploymentObserver observer : observers) {
             try {
                 observer.started();
             } catch (final Exception e) {
-                log.warning(getClass(), observer.getClass().getName(), e);
+                log.warning(e, observer.getClass().getName());
             }
         }
 
@@ -115,13 +111,14 @@ final class DeploymentBootstrapImpl implements DeploymentBootstrap {
     public void unload() {
         Collections.reverse(deployedComponents);
         Collections.reverse(activeComponents);
+
         for (final DeployedComponent component : activeComponents) {
             try {
-                info("Stopping " + component.name());
+                info("Stopping %s", component.name());
                 component.stop();
-                info("Stopped " + component.name());
-            } catch (Exception e) {
-                log.warning(getClass(), component.name(), e);
+                info("Stopped %s", component.name());
+            } catch (final Exception e) {
+                log.warning(e, component.name());
             }
         }
 
@@ -129,8 +126,8 @@ final class DeploymentBootstrapImpl implements DeploymentBootstrap {
         for (final DeploymentObserver observer : observers) {
             try {
                 observer.stopped();
-            } catch (Exception e) {
-                log.warning(getClass(), observer.getClass().getName(), e);
+            } catch (final Exception e) {
+                log.warning(e, observer.getClass().getName());
             }
         }
     }

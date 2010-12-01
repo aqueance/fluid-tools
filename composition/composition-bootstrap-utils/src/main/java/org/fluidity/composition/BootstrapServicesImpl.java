@@ -22,19 +22,26 @@
 
 package org.fluidity.composition;
 
-/**
- * Wraps the Sun JDK service provider discovery implementation, which was private API until Java 6.
- */
-interface BootstrapServices {
+import java.util.Iterator;
 
-    /**
-     * Returns the first service provider implementation for the given interface.
-     *
-     * @param interfaceClass the service provider interface.
-     * @param classLoader    the class loader to look for implementations in.
-     * @param <T>            the service provider interface
-     *
-     * @return the first implementation of the given interface or <code>null</code> if none found.
-     */
-    <T> T findInstance(Class<T> interfaceClass, ClassLoader classLoader);
+import sun.misc.Service;
+import sun.misc.ServiceConfigurationError;
+
+final class BootstrapServicesImpl implements BootstrapServices {
+
+    @SuppressWarnings({ "unchecked" })
+    public <T> T findInstance(final Class<T> interfaceClass, final ClassLoader classLoader) {
+
+        // TODO: Java 6: use java.util.ServiceLoader.load(interfaceClass, classLoader).iterator()
+        for (final Iterator providers = Service.providers(interfaceClass, classLoader); providers.hasNext();) {
+            try {
+                return (T) providers.next();
+            } catch (final ServiceConfigurationError e) {
+                System.err.printf("Finding service providers for %s using %s", interfaceClass, classLoader);
+                e.printStackTrace(System.err);
+            }
+        }
+
+        return null;
+    }
 }

@@ -25,7 +25,6 @@ package org.fluidity.composition;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
@@ -33,29 +32,24 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.WeakHashMap;
 
-import org.fluidity.foundation.Logging;
-import org.fluidity.foundation.logging.BootstrapLog;
-
-import sun.misc.Service;
-import sun.misc.ServiceConfigurationError;
+import org.fluidity.composition.spi.ContainerServices;
+import org.fluidity.foundation.LogFactory;
 
 /**
  * Static access to class loader specific dependency injection container. The child container - parent container hierarchy matches the child class loader -
  * parent class loader hierarchy. The root class loader to have a container is the one that can find the dependencies of this class: {@link
  * org.fluidity.composition.ContainerBootstrap} and {@link org.fluidity.composition.ClassDiscovery}.
- *
  * <p/>
- *
  * This component also bootstraps the required container if it has not yet been populated. Instances of this class all work against the same data structure,
  * thereby giving classes instantiated by third parties access to the container relevant for their level in the application's class loader hierarchy. Due to the
- * bootstrap bubbling up, it is advised to explicitly bootstrap each level container before all child containers are bootstrapped where binding properties are
- * specified for those properties to take effect at the given level.
- *
+ * bootstrap bubbling up, it is advised to explicitly bootstrap each level container, before any child container is bootstrapped, where binding properties are
+ * specified so that those properties may take effect at the given level.
  * <p/>
- *
  * This class is a special case in the design since it has to be self-sufficient, depending on nothing but what's always available, and it also has to be
  * visible as it acts as the root object of an application's dependency graph. Thus it has to depend on concrete classes, thus somewhat breaking the Dependency
- * Inversion Principle. After due consideration, it has been decided for this class to depend on functionality provided by the Sun JDK.
+ * Inversion Principle.
+ * <p/>
+ * Access to instances of this class is thread-safe.
  *
  * @author Tibor Varga
  */
@@ -66,28 +60,35 @@ public final class ComponentContainerAccess implements ComponentContainer {
     private static final Map<ClassLoader, Map> propertiesMap = new HashMap<ClassLoader, Map>();
     private static final Set<OpenComponentContainer> committedContainers = new HashSet<OpenComponentContainer>();
 
-    /*
+    /**
+     * The component that can discover the above dependencies for us. The point is to have one single dependency for unit tests to override. This class is not
+     * dependency injected and so it is important to keep its dependencies down to a minimum.
+     */
+    private BootstrapServices services;
+
+    /**
      * The component that can bootstrap a container.
      */
     private ContainerBootstrap containerBootstrap;
 
-    /*
+    /**
      * The component that can provide container implementations.
      */
     private ContainerProvider containerProvider;
 
-    /*
-     * The component that can discover the above dependencies for us.
-     * The point is to have one single dependency for unit tests to override.
-     * This class is not dependency injected and so it is important to keep
-     * its dependencies down to a minimum.
+    /**
+     * Component that collects common container services.
      */
-    private BootstrapServices services;
+    private ContainerServices containerServices;
 
     /**
      * The root class loader the parent of which will not have a container created
      */
     private ClassLoader rootClassLoader;
+
+    /**
+     * The class loader associated with the container made accessible by this instance.
+     */
     private final ClassLoader classLoader;
 
     public ComponentContainerAccess() {
@@ -105,11 +106,13 @@ public final class ComponentContainerAccess implements ComponentContainer {
      * @param services is a mock object.
      */
     /* package */ void reset(final BootstrapServices services) {
+        this.services = services;
+
         ComponentContainerAccess.populatedContainers.clear();
         ComponentContainerAccess.inflightContainers.clear();
         ComponentContainerAccess.propertiesMap.clear();
         ComponentContainerAccess.committedContainers.clear();
-        this.services = services;
+
         this.rootClassLoader = null;
         this.containerBootstrap = null;
         this.containerProvider = null;
@@ -121,7 +124,7 @@ public final class ComponentContainerAccess implements ComponentContainer {
      * @param key   is the key of the property.
      * @param value is the value of the property.
      */
-    @SuppressWarnings({"unchecked"})
+    @SuppressWarnings({ "unchecked" })
     public void setBindingsProperty(final Object key, final Object value) {
         Map map = propertiesMap.get(classLoader);
 
@@ -158,23 +161,35 @@ public final class ComponentContainerAccess implements ComponentContainer {
             OpenComponentContainer container = populatedContainers.get(loader);
 
             if (container == null) {
-                if (containerProvider == null) {
-                    containerProvider = services.findInstance(ContainerProvider.class, loader);
-                }
-
                 if (containerBootstrap == null) {
                     containerBootstrap = services.findInstance(ContainerBootstrap.class, loader);
                 }
 
-                if (containerBootstrap != null && containerProvider != null) {                    
+                if (containerProvider == null) {
+                    containerProvider = services.findInstance(ContainerProvider.class, loader);
+                }
+
+                if (containerBootstrap != null && containerProvider != null) {
                     if (rootClassLoader == null) {
                         rootClassLoader = loader;
+                    }
+
+                    if (containerServices == null) {
+                        final ContainerServicesFactory factory = services.findInstance(ContainerServicesFactory.class, loader);
+                        assert factory != null : ContainerServicesFactory.class;
+
+                        containerServices = factory.containerServices(services.findInstance(LogFactory.class, loader));
+                        assert containerServices != null : ContainerServicesFactory.class;
                     }
 
                     inflightContainers.add(loader);
                     try {
                         final Map map = propertiesMap.get(loader);
-                        container = containerBootstrap.populateContainer(containerProvider, map == null ? new HashMap() : map, populatedContainers.get(loader.getParent()), loader);
+                        container = containerBootstrap.populateContainer(containerServices,
+                                                                         containerProvider,
+                                                                         map == null ? new HashMap() : map,
+                                                                         populatedContainers.get(loader.getParent()),
+                                                                         loader);
                         populatedContainers.put(loader, container);
                     } finally {
                         inflightContainers.remove(loader);
@@ -254,9 +269,7 @@ public final class ComponentContainerAccess implements ComponentContainer {
      * Allows a bootstrap code to add components to the container. This method can only be invoked before any component is taken out of the container by any of
      * the {@link #getComponent(Class)} or {@link #getComponent(Class, org.fluidity.composition.ComponentContainer.Bindings)} methods. Once that happens, this
      * method will throw an <code>IllegalStateException</code>.
-     *
      * <p/>
-     *
      * This method will trigger population of the associated container and its parents.
      *
      * @param key      the key by which to register the component; preferably an interface class.
@@ -266,25 +279,5 @@ public final class ComponentContainerAccess implements ComponentContainer {
      */
     public <T> void bindBootComponent(final Class<? super T> key, final T instance) {
         getContainer(false).getRegistry().bindInstance(key, instance);
-    }
-
-    private static class BootstrapServicesImpl implements BootstrapServices {
-
-        private final Logging log = new BootstrapLog("container");
-
-        @SuppressWarnings({"unchecked"})
-        public <T> T findInstance(final Class<? super T> interfaceClass, final ClassLoader classLoader) {
-
-            // Java 6: use java.util.ServiceLoader.load(interfaceClass, classLoader).iterator()
-            for (final Iterator i = Service.providers(interfaceClass, classLoader); i.hasNext();) {
-                try {
-                    return (T) i.next();
-                } catch (final ServiceConfigurationError e) {
-                    log.warning(getClass(), "Finding service providers for " + interfaceClass + " using " + classLoader, e);
-                }
-            }
-
-            return null;
-        }
     }
 }

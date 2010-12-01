@@ -28,7 +28,8 @@ import java.util.Map;
 import org.fluidity.composition.spi.ComponentCache;
 import org.fluidity.composition.spi.ContextChain;
 import org.fluidity.composition.spi.ReferenceChain;
-import org.fluidity.foundation.Logging;
+import org.fluidity.foundation.Log;
+import org.fluidity.foundation.LogFactory;
 
 /**
  * @author Tibor Varga
@@ -38,12 +39,12 @@ final class ComponentCacheImpl implements ComponentCache {
     private final Map<ComponentContext, Object> cache = new HashMap<ComponentContext, Object>();
     private final ContextChain contextChain;
     private final ReferenceChain referenceChain;
-    private final Logging log;
+    private final Log log;
 
-    public ComponentCacheImpl(final ContextChain contextChain, final ReferenceChain referenceChain, final Logging log) {
+    public ComponentCacheImpl(final ContextChain contextChain, final ReferenceChain referenceChain, final LogFactory logs) {
         this.referenceChain = referenceChain;
         this.contextChain = contextChain;
-        this.log = log;
+        this.log = logs.createLog(getClass());
     }
 
     public Object lookup(Object source, final Class<?> type, final Command create) {
@@ -58,12 +59,11 @@ final class ComponentCacheImpl implements ComponentCache {
             if (!cache.containsKey(consumedContext)) {
                 cache.put(key, component);
                 cache.put(consumedContext, component);
-                log.info(getClass(),
-                         String.format("%s: created %s@%s%s",
-                                       source,
-                                       component == null ? null : component.getClass().getName(),
-                                       System.identityHashCode(component),
-                                       consumedContext.keySet().isEmpty() ? "" : String.format(" for context %s", consumedContext)));
+                log.info("%s: created %s@%s%s",
+                         source,
+                         component == null ? null : component.getClass().getName(),
+                         System.identityHashCode(component),
+                         consumedContext.keySet().isEmpty() ? "" : String.format(" for context %s", consumedContext));
             } else {
                 cache.put(key, cache.get(consumedContext));
             }

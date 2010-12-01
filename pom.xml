@@ -165,7 +165,7 @@
 
             <dependency>
                 <groupId>${fluidity.export.groupId}</groupId>
-                <artifactId>fluidity-commons-logging-impl</artifactId>
+                <artifactId>fluidity-logging-slf4j-impl</artifactId>
                 <version>${fluidity.version}</version>
                 <scope>compile</scope>
             </dependency>

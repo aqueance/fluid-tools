@@ -28,7 +28,7 @@ import org.fluidity.composition.spi.ContextChain;
 import org.fluidity.composition.spi.ContextFactory;
 import org.fluidity.composition.spi.DependencyInjector;
 import org.fluidity.composition.spi.ReferenceChain;
-import org.fluidity.foundation.Logging;
+import org.fluidity.foundation.LogFactory;
 
 /**
  * Production services for a container implementation.
@@ -37,15 +37,18 @@ import org.fluidity.foundation.Logging;
  */
 public final class ProductionServices implements ContainerServices {
 
-    private final Logging log;
-    private final ClassDiscoveryImpl classDiscovery = new ClassDiscoveryImpl();
     private final ReferenceChainImpl referenceChain = new ReferenceChainImpl();
     private final ContextFactory contextFactory = new ContextFactoryImpl();
     private final ContextChain contextChain = new ContextChainImpl(contextFactory);
-    private final DependencyInjector dependencyInjector = new DependencyInjectorImpl(classDiscovery);
 
-    public ProductionServices(final Logging log) {
-        this.log = log;
+    private final LogFactory logs;
+    private final ClassDiscoveryImpl classDiscovery;
+    private final DependencyInjector dependencyInjector;
+
+    public ProductionServices(final LogFactory logs) {
+        this.logs = logs;
+        this.classDiscovery = new ClassDiscoveryImpl(logs);
+        this.dependencyInjector = new DependencyInjectorImpl(classDiscovery);
     }
 
     public ClassDiscovery classDiscovery() {
@@ -68,11 +71,11 @@ public final class ProductionServices implements ContainerServices {
         return dependencyInjector;
     }
 
-    public Logging log() {
-        return log;
+    public LogFactory log() {
+        return logs;
     }
 
     public ComponentCache newCache() {
-        return new ComponentCacheImpl(contextChain, referenceChain, log);
+        return new ComponentCacheImpl(contextChain, referenceChain, logs);
     }
 }

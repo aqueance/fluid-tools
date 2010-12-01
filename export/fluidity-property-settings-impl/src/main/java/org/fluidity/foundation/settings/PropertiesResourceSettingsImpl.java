@@ -19,6 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package org.fluidity.foundation.settings;
 
 import java.io.InputStream;
@@ -37,6 +38,8 @@ import org.fluidity.foundation.Resources;
  * <code>default.properties</code> resources are loaded from the context class loader and then if the application provides implementation for the {@link
  * org.fluidity.foundation.ApplicationInfo} interface then all <code>.properties</code> resources are loaded whose name equals to {@link
  * org.fluidity.foundation.ApplicationInfo#key()}.
+ *
+ * TODO: redesign the settings model to creation of setting objects for a set of properties
  *
  * @author Tibor Varga
  */

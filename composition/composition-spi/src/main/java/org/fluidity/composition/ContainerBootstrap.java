@@ -19,17 +19,20 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package org.fluidity.composition;
 
 import java.util.Map;
 
+import org.fluidity.composition.spi.ContainerServices;
+
 /**
- * Bootstraps the component container. A concrete implementation normally wraps and populates a third-party dependency injection container.
+ * Bootstraps the component container provided by a {@link org.fluidity.composition.ContainerProvider}.
  *
  * @author Tibor Varga
  */
 @ServiceProvider
-public interface ContainerBootstrap {
+interface ContainerBootstrap {
 
     /**
      * Finds all package component bindings and invokes them to add their bindings and initialises components after all components have been registered.
@@ -37,14 +40,18 @@ public interface ContainerBootstrap {
      * The idea is to find all <code>PackageBinding</code> objects using the supplied discovery component, invoke them to add their bindings and then invoke
      * their initialisation method. Shutdown hooks are also expected to be used.
      *
+     * @param services    provider basic services for containers
      * @param provider    is the provider of actual dependency injection containers and related functionality.
+     * @param properties  is the properties to bind to the container as a means to configure binding instances at run-time.
      * @param parent      is the container to use as the parent of the one returned; can be <code>null</code>, in which case a standalone container is
      *                    returned.
      * @param classLoader is the class loader to use to discover package bindings. Package bindings found in the class loader ancestry are ignored when the
-     *                    parent container is specified.
-     * @param properties  is the properties to bind to the container as a means to configure binding instances at run-time.
      *
      * @return the container containing the registered components.
      */
-    OpenComponentContainer populateContainer(ContainerProvider provider, Map properties, OpenComponentContainer parent, ClassLoader classLoader);
+    OpenComponentContainer populateContainer(ContainerServices services,
+                                             ContainerProvider provider,
+                                             Map properties,
+                                             OpenComponentContainer parent,
+                                             ClassLoader classLoader);
 }

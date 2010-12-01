@@ -30,6 +30,8 @@ import org.fluidity.composition.spi.ContainerServices;
 import org.fluidity.foundation.Exceptions;
 
 /**
+ * Class is public for sun.misc.Services to find it.
+ *
  * @author Tibor Varga
  */
 public final class ContainerProviderImpl implements ContainerProvider {

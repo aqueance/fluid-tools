@@ -33,6 +33,7 @@ import org.fluidity.composition.spi.ContextChain;
 import org.fluidity.composition.spi.ContextFactory;
 import org.fluidity.composition.spi.DependencyInjector;
 import org.fluidity.composition.spi.ReferenceChain;
+import org.fluidity.foundation.Log;
 
 /**
  * @author Tibor Varga
@@ -41,6 +42,7 @@ import org.fluidity.composition.spi.ReferenceChain;
 final class SimpleContainerImpl implements SimpleContainer {
 
     private final ContainerServices services;
+    private final Log log;
 
     private final SimpleContainer parent;
     private final Map<Class<?>, ComponentProducer> contents = new HashMap<Class<?>, ComponentProducer>();
@@ -51,6 +53,7 @@ final class SimpleContainerImpl implements SimpleContainer {
     public SimpleContainerImpl(final SimpleContainer parent, final ContainerServices services) {
         this.parent = parent;
         this.services = services;
+        this.log = services.log().createLog(getClass());
 
         this.referenceChain = this.services.referenceChain();
         this.contextChain = this.services.contextChain();
@@ -208,7 +211,7 @@ final class SimpleContainerImpl implements SimpleContainer {
             throw new ComponentContainer.BindingException("Component class for %s is null", key.getName());
         }
 
-        services.log().info(getClass(), this + ": binding " + key + " to " + implementation);
+        log.info("%s: binding %s to %s", this, key, implementation);
 
         return bindFactory(new ContentProducers() {
             public boolean isVariantFactory() {
@@ -251,7 +254,7 @@ final class SimpleContainerImpl implements SimpleContainer {
         final String value = instance instanceof String || instance instanceof Number
                              ? ('\'' + String.valueOf(instance) + '\'')
                              : ("instance of " + handleArrayClass(instance.getClass()));
-        services.log().info(getClass(), this + ": binding " + handleArrayClass(key) + " to '" + value + "'");
+        log.info("%s: binding %s to '%s'", this, handleArrayClass(key), value);
 
         return bindFactory(new ContentProducers() {
             public boolean isVariantFactory() {

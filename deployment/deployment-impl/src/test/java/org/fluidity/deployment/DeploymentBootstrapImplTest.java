@@ -19,6 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package org.fluidity.deployment;
 
 import java.util.ArrayList;
@@ -27,10 +28,8 @@ import java.util.List;
 
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentDiscovery;
-import org.fluidity.foundation.Logging;
-import org.fluidity.foundation.SystemSettings;
-import org.fluidity.foundation.logging.BootstrapLog;
-import org.fluidity.foundation.logging.StandardOutLogging;
+import org.fluidity.foundation.LogFactory;
+import org.fluidity.foundation.NullLogFactory;
 import org.fluidity.tests.MockGroupAbstractTest;
 
 import org.easymock.EasyMock;
@@ -41,11 +40,7 @@ import org.testng.annotations.Test;
 
 public final class DeploymentBootstrapImplTest extends MockGroupAbstractTest {
 
-    static {
-        SystemSettings.set(BootstrapLog.SUPPRESS_LOGS, BootstrapLog.ALL_LOGS);
-    }
-
-    private final Logging log = new StandardOutLogging("test");
+    private final LogFactory logs = new NullLogFactory();
     private final ComponentContainer container = addControl(ComponentContainer.class);
     private final ComponentDiscovery discovery = addControl(ComponentDiscovery.class);
     private final DeploymentControl deployments = addControl(DeploymentControl.class);
@@ -57,7 +52,7 @@ public final class DeploymentBootstrapImplTest extends MockGroupAbstractTest {
     private final DeploymentObserver observer1 = addStrictControl(DeploymentObserver.class);
     private final DeploymentObserver observer2 = addStrictControl(DeploymentObserver.class);
 
-    private final DeploymentBootstrap bootstrap = new DeploymentBootstrapImpl(log, container, discovery, deployments);
+    private final DeploymentBootstrap bootstrap = new DeploymentBootstrapImpl(logs, container, discovery, deployments);
 
     @Test
     public void forceTestOrdering() throws Exception {

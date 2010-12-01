@@ -19,6 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package org.fluidity.foundation.settings;
 
 import java.net.URL;
@@ -37,7 +38,7 @@ public interface PropertySettings extends Settings {
      * Updates and, in case of conflict, overwrites the maintained properties from the ones in the given <code>Properties</code> object.
      *
      * @param url is the origin of the <code>Properties</code>, such as a properties file.
-     * @param properties is the new properties to update the maintined properties with.
+     * @param properties is the new properties to update the maintained properties with.
      */
     void overrideProperties(URL url, Properties properties);
 }

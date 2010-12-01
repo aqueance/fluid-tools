@@ -31,9 +31,8 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.fluidity.composition.spi.ContainerServices;
-import org.fluidity.foundation.Logging;
-import org.fluidity.foundation.SystemSettings;
-import org.fluidity.foundation.logging.BootstrapLog;
+import org.fluidity.foundation.LogFactory;
+import org.fluidity.foundation.NullLogFactory;
 import org.fluidity.tests.MockGroupAbstractTest;
 
 import org.easymock.EasyMock;
@@ -46,11 +45,7 @@ import org.testng.annotations.Test;
  */
 public final class ContainerBootstrapImplTest extends MockGroupAbstractTest {
 
-    static {
-        SystemSettings.set(BootstrapLog.SUPPRESS_LOGS, BootstrapLog.ALL_LOGS);
-    }
-
-    private final Logging logging = new BootstrapLog("test");
+    private final LogFactory logs = new NullLogFactory();
 
     private final ContainerProvider provider = addControl(ContainerProvider.class);
     private final ContainerServices services = addControl(ContainerServices.class);
@@ -64,12 +59,9 @@ public final class ContainerBootstrapImplTest extends MockGroupAbstractTest {
 
     @BeforeMethod
     public void dependencies() {
-        EasyMock.expect(services.log()).andReturn(logging).anyTimes();
+        bootstrap = new ContainerBootstrapImpl();
 
-        replay();
-        bootstrap = new ContainerBootstrapImpl(services);
-        verify();
-
+        EasyMock.expect(services.log()).andReturn(logs).anyTimes();
         EasyMock.expect(services.classDiscovery()).andReturn(discovery).anyTimes();
     }
 
@@ -134,7 +126,7 @@ public final class ContainerBootstrapImplTest extends MockGroupAbstractTest {
         });
 
         replay();
-        assert container == bootstrap.populateContainer(provider, null, container, null);
+        assert container == bootstrap.populateContainer(services, provider, null, container, null);
         verify();
     }
 
@@ -170,7 +162,7 @@ public final class ContainerBootstrapImplTest extends MockGroupAbstractTest {
         shutdown.addTask(EasyMock.<String>notNull(), EasyMock.<Runnable>anyObject());
 
         replay();
-        assert bootstrap.populateContainer(provider, null, null, null) != null;
+        assert bootstrap.populateContainer(services, provider, null, null, null) != null;
         verify();
     }
 
@@ -204,7 +196,7 @@ public final class ContainerBootstrapImplTest extends MockGroupAbstractTest {
         });
 
         replay();
-        assert container == bootstrap.populateContainer(provider, properties, container, null);
+        assert container == bootstrap.populateContainer(services, provider, properties, container, null);
         verify();
     }
 
@@ -223,7 +215,7 @@ public final class ContainerBootstrapImplTest extends MockGroupAbstractTest {
         replay();
 
         try {
-            assert container == bootstrap.populateContainer(provider, null, container, null);
+            assert container == bootstrap.populateContainer(services, provider, null, container, null);
         } finally {
             verify();
         }

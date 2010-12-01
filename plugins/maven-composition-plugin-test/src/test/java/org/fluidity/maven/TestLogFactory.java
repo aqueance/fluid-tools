@@ -20,21 +20,22 @@
  * THE SOFTWARE.
  */
 
-package org.fluidity.composition;
+package org.fluidity.maven;
+
+import org.fluidity.composition.ServiceProvider;
+import org.fluidity.foundation.Log;
+import org.fluidity.foundation.LogFactory;
+import org.fluidity.foundation.NullLogFactory;
 
 /**
- * Wraps the Sun JDK service provider discovery implementation, which was private API until Java 6.
+ * Acts as a log factory during testing, used for suppressing the log output of the container.
  */
-interface BootstrapServices {
+@ServiceProvider
+public class TestLogFactory implements LogFactory {
 
-    /**
-     * Returns the first service provider implementation for the given interface.
-     *
-     * @param interfaceClass the service provider interface.
-     * @param classLoader    the class loader to look for implementations in.
-     * @param <T>            the service provider interface
-     *
-     * @return the first implementation of the given interface or <code>null</code> if none found.
-     */
-    <T> T findInstance(Class<T> interfaceClass, ClassLoader classLoader);
+    private final NullLogFactory delegate = new NullLogFactory();
+
+    public Log createLog(final Class<?> source) {
+        return delegate.createLog(source);
+    }
 }

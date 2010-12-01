@@ -19,6 +19,7 @@
   ~ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
   ~ THE SOFTWARE.
   -->
+
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
@@ -51,7 +52,7 @@ This project lists the exported modules of Fluid Tools.
         <module>fluidity-api</module>
         <module>fluidity-bootstrap</module>
         <module>fluidity-impl</module>
-        <module>fluidity-commons-logging-impl</module>
+        <module>fluidity-logging-slf4j-impl</module>
         <module>fluidity-property-settings-impl</module>
         <module>fluidity-manifest-appinfo-impl</module>
         <module>fluidity-tests</module>
@@ -108,7 +109,7 @@ This project lists the exported modules of Fluid Tools.
 
             <dependency>
                 <groupId>${fluidity.export.groupId}</groupId>
-                <artifactId>fluidity-commons-logging-impl</artifactId>
+                <artifactId>fluidity-logging-slf4j-impl</artifactId>
                 <version>${fluidity.version}</version>
             </dependency>
 

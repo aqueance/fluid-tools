@@ -23,7 +23,7 @@
 package org.fluidity.composition.spi;
 
 import org.fluidity.composition.ClassDiscovery;
-import org.fluidity.foundation.Logging;
+import org.fluidity.foundation.LogFactory;
 
 /**
  * Common services for container implementations.
@@ -72,7 +72,7 @@ public interface ContainerServices {
      *
      * @return the logger to use by the container.
      */
-    Logging log();
+    LogFactory log();
 
     /**
      * Creates and returns a new component cache instance.
