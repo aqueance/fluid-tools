@@ -19,6 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package org.fluidity.deployment;
 
 import java.io.File;
@@ -36,6 +37,7 @@ import org.mortbay.jetty.handler.HandlerCollection;
 import org.mortbay.jetty.handler.RequestLogHandler;
 import org.mortbay.jetty.nio.SelectChannelConnector;
 import org.mortbay.jetty.webapp.WebAppContext;
+import org.mortbay.thread.QueuedThreadPool;
 
 /**
  * Bootstraps a Jetty web container and deploys the .war file that contains this class.
@@ -82,6 +84,7 @@ public final class JettyBootstrap implements ServerBootstrap {
         server.setHandler(handlers);
 
         if (httpPort > 0) {
+            server.setThreadPool(new QueuedThreadPool());
             final SelectChannelConnector connector = new SelectChannelConnector();
             connector.setPort(httpPort);
             server.addConnector(connector);
