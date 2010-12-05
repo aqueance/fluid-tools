@@ -34,13 +34,14 @@ public interface ComponentCache {
     /**
      * Looks up and instantiates if necessary using the supplied command, the component whose class is also specified to find its annotations.
      *
-     * @param source         something to identify who is creating instances through this cache.
-     * @param componentClass the class of the component to return.
-     * @param create         the command that performs instantiation of the component.
+     * @param source             something to identify who is creating instances through this cache.
+     * @param componentInterface the interface the component implements.
+     * @param componentClass     the class of the component to return.
+     * @param create             the command that performs instantiation of the component.
      *
      * @return the component instance.
      */
-    Object lookup(Object source, Class<?> componentClass, Command create);
+    Object lookup(Object source, Class<?> componentInterface, Class<?> componentClass, Command create);
 
     /**
      * A command to create a component instance in some context.

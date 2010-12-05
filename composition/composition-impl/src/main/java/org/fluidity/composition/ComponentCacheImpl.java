@@ -47,7 +47,7 @@ final class ComponentCacheImpl implements ComponentCache {
         this.log = logs.createLog(getClass());
     }
 
-    public Object lookup(Object source, final Class<?> type, final Command create) {
+    public Object lookup(final Object source, final Class<?> api, final Class<?> type, final Command create) {
         final ComponentContext key = contextChain.currentContext();
 
         if (!cache.containsKey(key)) {
@@ -59,17 +59,24 @@ final class ComponentCacheImpl implements ComponentCache {
             if (!cache.containsKey(consumedContext)) {
                 cache.put(key, component);
                 cache.put(consumedContext, component);
-                log.info("%s: created %s@%s%s",
-                         source,
-                         component == null ? null : component.getClass().getName(),
-                         System.identityHashCode(component),
-                         consumedContext.keySet().isEmpty() ? "" : String.format(" for context %s", consumedContext));
+                if (component == null) {
+                    log.info("%s: not created component for %s%s",
+                             source,
+                             api,
+                             consumedContext.keySet().isEmpty() ? "" : String.format(" for context %s", consumedContext));
+                } else {
+                    log.info("%s: created %s@%s%s",
+                             source,
+                             component.getClass().getName(),
+                             System.identityHashCode(component),
+                             consumedContext.keySet().isEmpty() ? "" : String.format(" for context %s", consumedContext));
+                }
             } else {
                 cache.put(key, cache.get(consumedContext));
             }
         }
 
-        assert cache.containsKey(key) : String.format("Component %s not found in context %s", type, key);
+        assert cache.containsKey(key) : String.format("Component %s not found in context %s", api, key);
         return cache.get(key);
     }
 }

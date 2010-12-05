@@ -89,7 +89,7 @@ abstract class VariantProducer extends AbstractProducer {
 
     @Override
     public Object create(final SimpleContainer container, final boolean circular) {
-        return cache.lookup(container, componentClass(), new ComponentCache.Command() {
+        return cache.lookup(container, componentInterface, componentClass(), new ComponentCache.Command() {
             public Object run(final ComponentContext context) {
                 final ComponentVariantFactory factory = factory(container);
 

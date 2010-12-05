@@ -70,7 +70,7 @@ abstract class AbstractProducer implements ComponentProducer {
             return deferredCreate(container, componentClass, create, resolutions, null);
         } else {
             try {
-                return cache.lookup(container, componentClass, create);
+                return cache.lookup(container, componentInterface(), componentClass, create);
             } catch (final ComponentContainer.CircularReferencesException e) {
 
                 // handle circular reference that was noticed later in the reference chain that could not be handled at that point
@@ -93,7 +93,7 @@ abstract class AbstractProducer implements ComponentProducer {
                 public Object invoke(final Object proxy, final Method method, final Object[] arguments) throws Throwable {
                     synchronized (this) {
                         if (delegate == null) {
-                            delegate = cache.lookup(container, componentClass, create);
+                            delegate = cache.lookup(container, componentInterface(), componentClass, create);
                         }
                     }
 
