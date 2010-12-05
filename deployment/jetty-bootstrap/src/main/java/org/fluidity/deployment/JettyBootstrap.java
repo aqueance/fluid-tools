@@ -40,9 +40,7 @@ import org.mortbay.jetty.webapp.WebAppContext;
 import org.mortbay.thread.QueuedThreadPool;
 
 /**
- * Bootstraps a Jetty web container and deploys the .war file that contains this class.
- *
- * TODO: use JettyDeployer instead
+ * Bootstraps a Jetty web container and deploys the .war file that contains this class and then all other .war files supplied.
  */
 public final class JettyBootstrap implements ServerBootstrap {
 

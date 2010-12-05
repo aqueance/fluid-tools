@@ -37,7 +37,7 @@ import org.apache.maven.plugin.MojoExecutionException;
 
 /**
  * Creates a JAR manifest containing the values of evaluating the "${project.artifactId}" and "${project.name} (${project.version})" Maven expressions as the
- * application's ID and name, respectively. This Mojo is used in conjuction with the <code>org.fluidity.foundation.ManifestApplicationInfoImpl</code> that
+ * application's ID and name, respectively. This Mojo is used in conjunction with the <code>org.fluidity.foundation.ManifestApplicationInfoImpl</code> that
  * exposes these values to the application.
  *
  * @goal application-info
@@ -76,7 +76,7 @@ public class ManifestAppInfoMojo extends AbstractMojo {
     @SuppressWarnings("UnusedDeclaration")
     private String projectVersion;
 
-    @SuppressWarnings({ "unchecked", "ResultOfMethodCallIgnored" })
+    @SuppressWarnings({ "ResultOfMethodCallIgnored" })
     public void execute() throws MojoExecutionException {
         final File manifestFile = new File(outputDirectory, JarFile.MANIFEST_NAME);
         manifestFile.getParentFile().mkdirs();

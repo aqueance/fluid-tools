@@ -39,7 +39,7 @@ public interface ComponentFactory<T> {
      *
      * @param container is the container to resolve dependencies of the component from.
      * @param context   is the context for the instance to create. When this is null or empty, the default instance must be created. The key set in the context
-     *                  is taken from the list of names in the {@link Context#accept()} annotation of the component class.
+     *                  is taken from the list of names in the {@link org.fluidity.composition.Context#accept()} annotation of the component class.
      *
      * @return the component created, never <code>null</code>.
      */

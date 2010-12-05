@@ -134,7 +134,7 @@ final class SimpleContainerImpl implements SimpleContainer {
     }
 
     public <T> T create(final Class<T> type, final ComponentContext context) {
-        final SimpleContainerImpl nested = new SimpleContainerImpl(this, services);
+        final SimpleContainer nested = new SimpleContainerImpl(this, services);
         nested.bindComponent(type, type);
         return nested.get(type, context);
     }
