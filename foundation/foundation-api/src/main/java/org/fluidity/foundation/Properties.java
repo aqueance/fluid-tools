@@ -19,30 +19,36 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.fluidity.deployment;
 
-import java.io.File;
+package org.fluidity.foundation;
 
-import org.fluidity.foundation.ApplicationInfo;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * Web application descriptor.
+ * Context annotation for {@link StaticConfiguration} and {@link DynamicConfiguration} components.
  */
-public interface WebApplicationInfo extends ApplicationInfo {
-
-    String HTTP_ATTRIBUTE = "Http-Support";
-
-    /**
-     * Returns the .war file.
-     *
-     * @return the .war file.
-     */
-    File archive();
+@Documented
+@Retention(RetentionPolicy.RUNTIME)
+@Target( { ElementType.PARAMETER, ElementType.FIELD })
+public @interface Properties {
 
     /**
-     * Tells whether this application handles HTTP requests.
+     * Defines the interface defining the configuration methods used by the class employing this annotation.
+     * <p/>
+     * TODO: infer the same information from the generic type of the parameter
      *
-     * @return <code>true</code> if this application needs an HTTP server, <code>false</code> otherwise.
+     * @return a class object.
      */
-    boolean needsHttp();
+    Class<?> api();
+
+    /**
+     * The class implementing the {@link PropertyProvider} interface, used to map property keys to property values.
+     *
+     * @return a class object.
+     */
+    Class<? extends PropertyProvider> provider();
 }

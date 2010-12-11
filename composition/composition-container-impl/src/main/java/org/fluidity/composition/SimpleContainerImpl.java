@@ -347,7 +347,7 @@ final class SimpleContainerImpl implements SimpleContainer {
     }
 
     public <T> T initialize(final T component) {
-        return injector.injectFields(this, contextChain.currentContext(), component);
+        return injector.injectFields(this, component.getClass(), contextChain.currentContext(), component);
     }
 
     private <T> T find(final Class<? extends T> key) {
@@ -358,21 +358,23 @@ final class SimpleContainerImpl implements SimpleContainer {
                 final Class<?> componentClass = producer.componentClass();
 
                 if (key.isAssignableFrom(componentClass)) {
-                    if (found != null) {
+                    if (found != null && found != producer) {
                         throw new ComponentContainer.ResolutionException("Multiple components found matching %s", key);
                     }
 
                     found = producer;
                 }
             }
+
+            if (found != null) {
+                contents.put(key, found);
+            }
         }
 
         if (found == null) {
             return null;
         } else {
-            final T instance = referenceChain.nested(found, key, new CreateCommand<T>(found));
-            contents.put(key, found);
-            return instance;
+            return referenceChain.nested(found, key, new CreateCommand<T>(found));
         }
     }
 
@@ -385,14 +387,20 @@ final class SimpleContainerImpl implements SimpleContainer {
         }
 
         public T run(final boolean circular) {
-            final Context context = producer.componentClass().getAnnotation(Context.class);
+            final ComponentContext extracted = contextFactory().extractContext(producer.componentClass().getAnnotations());
 
-            if (context == null) {
-                return injector.injectFields(SimpleContainerImpl.this, contextChain.currentContext(), (T) producer.create(SimpleContainerImpl.this, circular));
+            if (extracted == null) {
+                return injector.injectFields(SimpleContainerImpl.this,
+                                             producer.componentInterface(),
+                                             contextChain.currentContext(),
+                                             (T) producer.create(SimpleContainerImpl.this, circular));
             } else {
-                return contextChain.nested(contextFactory().extractContext(context), new ContextChain.Command<T>() {
+                return contextChain.nested(extracted, new ContextChain.Command<T>() {
                     public T run(final ComponentContext context) {
-                        return injector.injectFields(SimpleContainerImpl.this, context, (T) producer.create(SimpleContainerImpl.this, circular));
+                        return injector.injectFields(SimpleContainerImpl.this,
+                                                     producer.componentInterface(),
+                                                     context,
+                                                     (T) producer.create(SimpleContainerImpl.this, circular));
                     }
                 });
             }

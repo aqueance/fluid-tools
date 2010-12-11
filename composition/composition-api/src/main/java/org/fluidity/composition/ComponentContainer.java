@@ -22,9 +22,6 @@
 
 package org.fluidity.composition;
 
-import java.util.Map;
-import java.util.Properties;
-
 /**
  * This is a dependency injection container. Containers may form a hierarchy. If a component is not found in a nested container, it tries to find the component
  * in its parent. Components are instantiated by the container on demand and their dependencies are resolved by means of constructor or field based dependency
@@ -87,38 +84,6 @@ public interface ComponentContainer {
      *          when dependency resolution fails
      */
     <T> T getComponent(Class<T> componentClass, Bindings bindings) throws ResolutionException;
-
-    /**
-     * Creates a new component context to be used with {@link #getComponent(Class, ComponentContext)}.
-     *
-     * @param properties the properties to copy into the context.
-     *
-     * @return a read-only context created from the properties.
-     */
-    ComponentContext makeContext(Properties properties);
-
-    /**
-     * Creates a new component context to be used with {@link #getComponent(Class, ComponentContext)}.
-     *
-     * @param map the map to copy into the context.
-     *
-     * @return a read-only context created from the map.
-     */
-    ComponentContext makeContext(Map<String, String> map);
-
-    /**
-     * Returns a component by interface or (super)class. This method is provided for factory objects (objects creating transient components) as a convenient
-     * shortcut to acquire a nested container, bind components to it and get the nested container instantiate the requested component.
-     *
-     * @param componentClass is a class object that was used to register a component against; never <code>null</code>.
-     * @param context        specifies the context for the instantiation. Multiple instances may be returned depending on context and component configuration.
-     *
-     * @return the component registered against the give class or <code>null</code> when none was found.
-     *
-     * @throws org.fluidity.composition.ComponentContainer.ResolutionException
-     *          when dependency resolution fails
-     */
-    <T> T getComponent(Class<T> componentClass, ComponentContext context) throws ResolutionException;
 
     /**
      * Creates another container whose components' dependencies will be satisfied from itself first and which will default to this container when it could find

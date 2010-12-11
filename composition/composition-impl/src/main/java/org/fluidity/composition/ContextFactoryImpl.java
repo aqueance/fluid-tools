@@ -22,9 +22,9 @@
 
 package org.fluidity.composition;
 
+import java.lang.annotation.Annotation;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
 
 import org.fluidity.composition.spi.ContextFactory;
 
@@ -33,29 +33,31 @@ import org.fluidity.composition.spi.ContextFactory;
  */
 final class ContextFactoryImpl implements ContextFactory {
 
-    @SuppressWarnings("unchecked")
-    public ComponentContext newContext(final Properties properties) {
-        return new ComponentContextImpl(properties);
-    }
-
-    public ComponentContext newContext(final Map<String, String> map) {
+    public ComponentContext newContext(final Map<Class<? extends Annotation>, Annotation[]> map) {
         return new ComponentContextImpl(map);
     }
 
-    public ComponentContext extractContext(final Context annotation) {
-        assert annotation != null;
-        final Map<String, String> map = new HashMap<String, String>();
-
-        for (final Context.Value value : annotation.value()) {
-            map.put(value.name(), value.value());
+    public ComponentContext extractContext(final Annotation[] context) {
+        if (context == null) {
+            return null;
         }
 
-        return new ComponentContextImpl(map);
+        final Map<Class<? extends Annotation>, Annotation[]> map = new HashMap<Class<? extends Annotation>, Annotation[]>();
+
+        for (final Annotation value : context) {
+            final Class<? extends Annotation> type = value.getClass();
+
+            if (!(value instanceof Component || value instanceof ServiceProvider || value instanceof Optional || value instanceof Context)) {
+                map.put(type, new Annotation[] { value });
+            }
+        }
+
+        return map.isEmpty() ? null : new ComponentContextImpl(map);
     }
 
     public ComponentContext deriveContext(final ComponentContext context, final Class<?> contextProvider) {
-        final Context annotation = contextProvider.getAnnotation(Context.class);
-        return annotation == null ? context : new ComponentContextImpl(context, extractContext(annotation));
+        final ComponentContext extracted = extractContext(contextProvider.getAnnotations());
+        return extracted == null ? context : new ComponentContextImpl(context, extracted);
     }
 
     public ComponentContext deriveContext(final ComponentContext parent, final ComponentContext child) {
@@ -63,12 +65,12 @@ final class ContextFactoryImpl implements ContextFactory {
     }
 
     public ComponentContext filteredContext(final ComponentContext filter, final ComponentContext context) {
-        final Map<String, String> map = new HashMap<String, String>();
+        final Map<Class<? extends Annotation>, Annotation[]> map = new HashMap<Class<? extends Annotation>, Annotation[]>();
 
         if (filter != null) {
-            for (final String key : filter.keySet()) {
-                if (context.defines(key)) {
-                    map.put(key, context.value(key, null));
+            for (final Class<? extends Annotation> type : filter.types()) {
+                if (context.defines(type)) {
+                    map.put(type, context.annotations(type));
                 }
             }
         }

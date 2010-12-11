@@ -37,20 +37,13 @@ final class EmbeddedContainer extends AbstractComponentContainer {
 
     public EmbeddedContainer(final SimpleContainer container, final ComponentContext base) {
         super(container);
+        assert base != null;
         this.base = base;
         this.contexts = container.services().contextChain();
     }
 
     public <T> T getComponent(final Class<T> componentClass) throws ResolutionException {
         return container.get(componentClass, base);
-    }
-
-    public <T> T getComponent(final Class<T> componentClass, final ComponentContext context) throws ResolutionException {
-        return contexts.nested(base, new ContextChain.Command<T>() {
-            public T run(final ComponentContext ignore) {
-                return container.get(componentClass, context);
-            }
-        });
     }
 
     public OpenComponentContainer makeNestedContainer() {

@@ -37,7 +37,7 @@ public interface ReferenceChain {
     Class<?> lastReference();
 
     /**
-     * Adds a new resolution to the chain and then removes it after the resolution completes.
+     * Adds a new reference to the chain and then removes it after the resolution completes.
      *
      * @param mapping    the mapping, e.g., the component interface and class, of the reference.
      * @param dependency the defined type of the reference.

@@ -19,6 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package org.fluidity.foundation;
 
 import java.util.Arrays;
@@ -199,7 +200,6 @@ public abstract class SettingsAbstractTest extends MockGroupAbstractTest {
         Assert.assertEquals(settings.setting("app", "key", 0), Integer.parseInt(System.getProperty("test.value")));
         Assert.assertEquals(settings.setting("app", "escaped", null), "${test.value}");
 
-        System.out.println("dynamic = " + System.getProperty("test.dynamic.key"));
         Assert.assertEquals(settings.setting("${test.dynamic.key|key0}", "value", null), System.getProperty("test.dynamic.value.0"));
         Assert.assertEquals(settings.setting("dynamic.key", null), "key0");
 

@@ -22,10 +22,14 @@
 
 package org.fluidity.composition;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Proxy;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 
 /**
@@ -33,42 +37,62 @@ import java.util.Set;
  */
 final class ComponentContextImpl implements ComponentContext {
 
-    private final Map<String, String> map = new HashMap<String, String>();
+    private final Map<Class<? extends Annotation>, Annotation[]> map = new HashMap<Class<? extends Annotation>, Annotation[]>();
 
-    public ComponentContextImpl(final Properties properties) {
-        for (final Map.Entry<Object, Object> entry : properties.entrySet()) {
-            this.map.put((String) entry.getKey(), (String) entry.getValue());
-        }
-    }
+    public ComponentContextImpl(final Map<Class<? extends Annotation>, Annotation[]> map) {
+        for (final Map.Entry<Class<? extends Annotation>, Annotation[]> entry : map.entrySet()) {
+            final Class<? extends Annotation> key = entry.getKey();
 
-    public ComponentContextImpl(final Map<String, String> map) {
-        for (final Map.Entry<String, String> entry : map.entrySet()) {
-            this.map.put(entry.getKey(), entry.getValue());
+            @SuppressWarnings({ "unchecked" })
+            final Class<? extends Annotation> type = Proxy.isProxyClass(key) ? (Class<? extends Annotation>) key.getInterfaces()[0] : key;
+
+            this.map.put(type, entry.getValue());
         }
     }
 
     public ComponentContextImpl(final ComponentContext parent, final ComponentContext child) {
         if (parent != null) {
-            for (final String key : parent.keySet()) {
-                this.map.put(key, parent.value(key, null));
+            for (final Class<? extends Annotation> type : parent.types()) {
+                map.put(type, parent.annotations(type));
             }
         }
 
         assert child != null;
-        for (final String key : child.keySet()) {
-            this.map.put(key, child.value(key, null));
+        for (final Class<? extends Annotation> type : child.types()) {
+            final Annotation[] addition = child.annotations(type);
+
+            if (map.containsKey(type)) {
+                map.put(type, combine(map.get(type), addition));
+            } else {
+                map.put(type, addition);
+            }
         }
     }
 
-    public String value(final String key, final String fallback) {
-        return map.containsKey(key) ? map.get(key) : fallback;
+    @SuppressWarnings({ "unchecked" })
+    private Annotation[] combine(final Annotation[] present, final Annotation[] addition) {
+        final Collection<Annotation> list = new LinkedHashSet<Annotation>();
+        list.addAll(Arrays.asList(present));
+        list.addAll(Arrays.asList(addition));
+        return list.toArray(new Annotation[list.size()]);
     }
 
-    public boolean defines(final String key) {
-        return map.containsKey(key);
+    @SuppressWarnings({ "unchecked" })
+    public <T extends Annotation> T[] annotations(final Class<T> type) {
+        return (T[]) map.get(type);
     }
 
-    public Set<String> keySet() {
+    @SuppressWarnings({ "unchecked" })
+    public <T extends Annotation> T annotation(final Class<T> type) {
+        final Annotation[] annotations = annotations(type);
+        return (T) (annotations == null || annotations.length == 0 ? null : annotations[annotations.length - 1]);
+    }
+
+    public boolean defines(final Class<? extends Annotation> type) {
+        return map.containsKey(type);
+    }
+
+    public Set<Class<? extends Annotation>> types() {
         return Collections.unmodifiableSet(map.keySet());
     }
 
@@ -93,6 +117,14 @@ final class ComponentContextImpl implements ComponentContext {
 
     @Override
     public String toString() {
-        return map.toString();
+        final StringBuilder builder = new StringBuilder();
+        for (final Map.Entry<Class<? extends Annotation>, Annotation[]> entry : map.entrySet()) {
+            if (builder.length() > 0) {
+                builder.append(", ");
+            }
+
+            builder.append(entry.getKey()).append('=').append(Arrays.asList(entry.getValue()));
+        }
+        return builder.insert(0, '{').append('}').toString();
     }
 }

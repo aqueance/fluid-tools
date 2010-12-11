@@ -84,7 +84,7 @@ final class ConstructingProducer extends AbstractProducer {
                         }
 
                         try {
-                            return constructor.newInstance(injector.injectConstructor(container, componentContext, constructor));
+                            return constructor.newInstance(injector.injectConstructor(container, componentInterface, componentContext, constructor));
                         } finally {
                             if (!accessible) {
                                 constructor.setAccessible(accessible);

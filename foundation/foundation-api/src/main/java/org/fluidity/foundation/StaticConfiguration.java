@@ -22,23 +22,8 @@
 
 package org.fluidity.foundation;
 
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
-
 /**
- * Returns {@link org.fluidity.foundation.Log} implementations that simply gobble up messages.
+ * Represents configuration that does not change at run-time. This is actually a marker interface and its properties may change at run-time. The purpose
+ * of this interface is to express the intention of its user that it will not care about properties changing once they have been read up.
  */
-public final class NullLogFactory implements LogFactory {
-
-    private final Log log = (Log) Proxy.newProxyInstance(NullLogFactory.class.getClassLoader(), new Class<?>[] { Log.class }, new InvocationHandler() {
-        public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
-            final Class<?> type = method.getReturnType();
-            return method.getDeclaringClass() == Object.class ? method.invoke(this, args) : type == Boolean.TYPE ? false : null;
-        }
-    });
-
-    public Log createLog(final Class<?> source) {
-        return log;
-    }
-}
+public interface StaticConfiguration<T> extends Configuration<T>{ }

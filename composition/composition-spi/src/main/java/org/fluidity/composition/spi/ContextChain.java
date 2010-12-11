@@ -30,17 +30,16 @@ import org.fluidity.composition.ComponentContext;
  * Contexts are the means to have multiple instances of the same component with different configuration by components that directly support contexts or that
  * have been complemented by a {@link org.fluidity.composition.ComponentVariantFactory} object to add context support.
  * <p/>
- * A context aware component or a {@link org.fluidity.composition.ComponentVariantFactory} declares, using the {@link org.fluidity.composition.Context#accept()}
+ * A context aware component or a {@link org.fluidity.composition.ComponentVariantFactory} declares, using the {@link org.fluidity.composition.Context#value()}
  * annotation, context keys that they consume. Upon instantiation a context is passed to such a component or the variant factory in the form of a {@link
  * java.util.Properties} object with keys that are a subset of the keys the component or factory declares to support.
  * <p/>
  * The values in the context object are calculated from a base context and any context encountered during the entire dependency chain starting at that base and
  * ending at the instantiation of a given component.
  * <p/>
- * The base context comes from either a call to {@link org.fluidity.composition.ComponentContainer#getComponent(Class,
- * org.fluidity.composition.ComponentContext)} in a container that has no base context itself, a {@link org.fluidity.composition.Context} annotated component,
- * or a field or constructor parameter reference thereto, or the prevalent context at the instantiation of a component that depends on and uses a {@link
- * org.fluidity.composition.ComponentContainer} directly to get other components from.
+ * The base context comes from either a {@link org.fluidity.composition.Context} annotated component, or a field or constructor parameter reference thereto, or
+ * the prevalent context at the instantiation of a component that depends on and uses a {@link org.fluidity.composition.ComponentContainer} directly to get
+ * other components from.
  * <p/>
  * Further contexts are added to the base at each {@link org.fluidity.composition.Context} annotated reference along a dependency chain. The context consumed by
  * a context aware component is inherited back through the dependency chain ending with the instantiation of that component up to the point where the context is
@@ -70,14 +69,15 @@ public interface ContextChain {
     /**
      * Returns the actual context supported by the given component type using the possibly larger context established at this point.
      *
-     * @param componentType the component type to check for supported context keys.
-     * @param context       the actual context established at this point.
-     * @param resolutions   the dependency resolution chain to search for {@link org.fluidity.composition.ComponentVariantFactory} objects that consume contexts
-     *                      on behalf of other components.
+     * @param componentType  the interface implemented by the component.
+     * @param componentClass the component type to check for supported context annotations.
+     * @param context        the actual context established at this point.
+     * @param resolutions    the dependency resolution chain to search for {@link org.fluidity.composition.ComponentVariantFactory} objects that consume
+     *                       contexts on behalf of other components.
      *
      * @return the narrowed context that can be passed to an instance of the given component class.
      */
-    ComponentContext consumedContext(Class<?> componentType, ComponentContext context, ReferenceChain resolutions);
+    ComponentContext consumedContext(Class<?> componentType, Class<?> componentClass, ComponentContext context, ReferenceChain resolutions);
 
     /**
      * Returns the context supported ahead at this point and ahead in the resolution chain.

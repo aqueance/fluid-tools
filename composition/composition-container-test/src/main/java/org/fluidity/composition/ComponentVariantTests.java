@@ -23,9 +23,16 @@
 package org.fluidity.composition;
 
 import java.io.Serializable;
+import java.lang.annotation.Annotation;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Properties;
+import java.util.Map;
 import java.util.Set;
 
 import org.easymock.EasyMock;
@@ -40,6 +47,9 @@ public final class ComponentVariantTests extends AbstractContainerTests {
 
     private ComponentVariantFactory variants = addControl(ComponentVariantFactory.class);
 
+    @SuppressWarnings({ "unchecked" })
+    private ComponentFactory<DependentKey> factory = (ComponentFactory<DependentKey>) addControl(ComponentFactory.class);
+
     public ComponentVariantTests(final ContainerFactory factory) {
         super(factory);
     }
@@ -47,6 +57,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
     @BeforeMethod
     public void setMockFactory() {
         Variants.delegate = this.variants;
+        Factory.delegate = this.factory;
     }
 
     @Test
@@ -92,58 +103,76 @@ public final class ComponentVariantTests extends AbstractContainerTests {
     private void checkContext(final ComponentContext check, final ComponentContext against) {
         if (against != null) {
             assert check != null;
-            assert !check.defines("invalid");
+            assert !check.defines(Annotation.class);
 
-            for (final String key : against.keySet()) {
-                final Object value = check.value(key, null);
+            for (final Class<? extends Annotation> key : against.types()) {
+                final Annotation[] value = check.annotations(key);
                 assert value != null : String.format("Context %s not found", key);
-                assert value.equals(against.value(key, null)) : String.format("Context %s expected %s, got %s", key, value, against.value(key, null));
+                assert Arrays.equals(value, against.annotations(key)) : String.format("Context %s expected %s, got %s",
+                                                                                      key,
+                                                                                      Arrays.asList(value),
+                                                                                      Arrays.asList(against.annotations(key)));
             }
         }
     }
 
-    private Properties context(final Class<?> componentClass, final Class<? extends ComponentVariantFactory> factoryClass) {
-        final Context contentContext = componentClass.getAnnotation(Context.class);
+    private ComponentContext context(final Class<?> componentClass, final Class<? extends ComponentVariantFactory> factoryClass) {
+        final Annotation[] contentContext = componentClass.getAnnotations();
         final Context factoryContext = factoryClass == null ? null : factoryClass.getAnnotation(Context.class);
-        final Set<String> validNames = factoryContext == null ? null : new HashSet<String>(Arrays.asList(factoryContext.accept()));
+        final Set<Class<? extends Annotation>> validTypes = factoryContext == null
+                                                            ? null
+                                                            : new HashSet<Class<? extends Annotation>>(Arrays.asList(factoryContext.value()));
 
-        final Properties properties = new Properties();
+        final Map<Class<? extends Annotation>, Annotation[]> map = new HashMap<Class<? extends Annotation>, Annotation[]>();
+
         if (contentContext != null) {
-            for (final Context.Value value : contentContext.value()) {
-                final String name = value.name();
+            for (final Annotation value : contentContext) {
+                final Class<? extends Annotation> type = value.getClass();
 
-                if (validNames == null || validNames.contains(name)) {
-                    properties.setProperty(name, value.value());
+                if (validTypes == null || validTypes.contains(type)) {
+                    map.put(type, new Annotation[] { value });
                 }
             }
         }
 
-        return properties;
+        return new ComponentContextImpl(map);
     }
 
-    private void verifyContext(final ComponentContainer container, final Class<? extends ContextProvider> contextProvider, Class<?> contextConsumer, final Properties context) {
-        final ContextProvider component = container.getComponent(contextProvider);
-        assert component != null : String.format("Component %s not instantiated", contextProvider);
-        checkContext(component.dependency.context(), filterContext(context, contextConsumer));
+    private void verifyContext(final ComponentContainer container, final Class<?> contextConsumer) {
+        final ComponentContext context0 = context(ContextProvider0.class, null);
+        final ComponentContext context1 = context(ContextProvider1.class, null);
+        final ComponentContext context2 = context(ContextProvider2.class, null);
 
-        assert component.dependency.context().equals(container.getComponent(DependentKey.class, container.makeContext(context)).context());
-        if (context != null && context.isEmpty()) {
-            assert component.dependency.context().equals(container.getComponent(DependentKey.class).context());
+        final DependentKey dependency0 = container.getComponent(ContextProvider0.class).dependency;
+        final DependentKey dependency1 = container.getComponent(ContextProvider1.class).dependency;
+        final DependentKey dependency2 = container.getComponent(ContextProvider2.class).dependency;
+
+        checkContext(dependency0.context(), filterContext(context0, contextConsumer));
+        checkContext(dependency1.context(), filterContext(context1, contextConsumer));
+        checkContext(dependency2.context(), filterContext(context2, contextConsumer));
+
+        assert dependency0 == container.getComponent(DependentKey.class);
+        assert dependency0 != dependency1;
+        assert dependency0 != dependency2;
+        assert dependency1 != dependency2;
+    }
+
+    private ComponentContext filterContext(final ComponentContext context, final Class<?> consumer) {
+        final Context accepted = consumer.getAnnotation(Context.class);
+
+        final Set<Class<? extends Annotation>> set = new HashSet<Class<? extends Annotation>>(context.types());
+        set.retainAll(Arrays.asList(accepted.value()));
+
+        final HashMap<Class<? extends Annotation>, Annotation[]> map = new HashMap<Class<? extends Annotation>, Annotation[]>();
+        for (final Class<? extends Annotation> type : set) {
+            map.put(type, context.annotations(type));
         }
-    }
 
-    private ComponentContext filterContext(final Properties properties, final Class<?> consumer) {
-        final Context context = consumer.getAnnotation(Context.class);
-        properties.keySet().retainAll(Arrays.asList(context.accept()));
-        return container.makeContext(properties);
+        return new ComponentContextImpl(map);
     }
 
     @Test
     public void containerCreatesMultipleInstances() throws Exception {
-        final Properties context0 = context(ContextProvider0.class, null);
-        final Properties context1 = context(ContextProvider1.class, null);
-        final Properties context2 = context(ContextProvider2.class, null);
-
         registry.bindComponent(Key.class, Value.class);
         registry.bindComponent(DependentKey.class, ContextDependentValue.class);
 
@@ -160,19 +189,46 @@ public final class ComponentVariantTests extends AbstractContainerTests {
         verifyComponent(Value.instanceCount, 1, container);
 
         // get objects that specify all contexts
-        verifyContext(container, ContextProvider0.class, ContextDependentValue.class, context0);
-        verifyContext(container, ContextProvider1.class, ContextDependentValue.class, context1);
-        verifyContext(container, ContextProvider2.class, ContextDependentValue.class, context2);
+        verifyContext(container, ContextDependentValue.class);
+
+        verify();
+    }
+
+    @Test
+    public void factoryCreatesMultipleInstances() throws Exception {
+        registry.bindComponent(Key.class, Value.class);
+        registry.bindComponent(Factory.class);
+        registry.bindComponent(FactoryDependency.class, FactoryDependency.class);
+
+        registry.bindDefault(ContextProvider0.class);
+        registry.bindDefault(ContextProvider1.class);
+        registry.bindDefault(ContextProvider2.class);
+
+        final String check = "check";
+
+        registry.bindInstance(Serializable.class, check);
+
+        EasyMock.expect(factory.newComponent(EasyMock.<OpenComponentContainer>notNull(), EasyMock.<ComponentContext>notNull()))
+                .andAnswer(new FactoryContainerCheck(container, Serializable.class, check));
+
+        EasyMock.expect(factory.newComponent(EasyMock.<OpenComponentContainer>notNull(), EasyMock.<ComponentContext>notNull()))
+                .andAnswer(new FactoryContainerCheck(container, Serializable.class, check));
+
+        EasyMock.expect(factory.newComponent(EasyMock.<OpenComponentContainer>notNull(), EasyMock.<ComponentContext>notNull()))
+                .andAnswer(new FactoryContainerCheck(container, Serializable.class, check));
+
+        replay();
+
+        verifyComponent(Value.instanceCount, 1, container);
+
+        // get objects that specify all contexts
+        verifyContext(container, ContextDependentValue.class);
 
         verify();
     }
 
     @Test
     public void variantsFactoryCreatesMultipleInstances() throws Exception {
-        final Properties context0 = context(ContextProvider0.class, Variants.class);
-        final Properties context1 = context(ContextProvider1.class, Variants.class);
-        final Properties context2 = context(ContextProvider2.class, Variants.class);
-
         registry.bindComponent(Key.class, Value.class);
         registry.bindComponent(DependentKey.class, ContextDependentValue.class);
 
@@ -188,13 +244,13 @@ public final class ComponentVariantTests extends AbstractContainerTests {
 
         registry.bindInstance(Serializable.class, check);
 
-        EasyMock.expect(variants.newComponent(EasyMock.<OpenComponentContainer>notNull(), EasyMock.eq(container.makeContext(context0))))
+        EasyMock.expect(variants.newComponent(EasyMock.<OpenComponentContainer>notNull(), EasyMock.<ComponentContext>notNull()))
                 .andAnswer(new VariantContainerCheck(container, Serializable.class, check));
 
-        EasyMock.expect(variants.newComponent(EasyMock.<OpenComponentContainer>notNull(), EasyMock.eq(container.makeContext(context1))))
+        EasyMock.expect(variants.newComponent(EasyMock.<OpenComponentContainer>notNull(), EasyMock.<ComponentContext>notNull()))
                 .andAnswer(new VariantContainerCheck(container, Serializable.class, check));
 
-        EasyMock.expect(variants.newComponent(EasyMock.<OpenComponentContainer>notNull(), EasyMock.eq(container.makeContext(context2))))
+        EasyMock.expect(variants.newComponent(EasyMock.<OpenComponentContainer>notNull(), EasyMock.<ComponentContext>notNull()))
                 .andAnswer(new VariantContainerCheck(container, Serializable.class, check));
 
         replay();
@@ -202,19 +258,13 @@ public final class ComponentVariantTests extends AbstractContainerTests {
         verifyComponent(Value.instanceCount, 1, container);
 
         // get objects that specify all contexts
-        verifyContext(container, ContextProvider0.class, Variants.class, context0);
-        verifyContext(container, ContextProvider1.class, Variants.class, context1);
-        verifyContext(container, ContextProvider2.class, Variants.class, context2);
+        verifyContext(container, Variants.class);
 
         verify();
     }
 
     @Test
     public void nestedVariantFactoryCreatesMultipleInstances() throws Exception {
-        final Properties context0 = context(ContextProvider0.class, Variants.class);
-        final Properties context1 = context(ContextProvider1.class, Variants.class);
-        final Properties context2 = context(ContextProvider2.class, Variants.class);
-
         registry.bindComponent(Key.class, Value.class);
         registry.bindComponent(FactoryDependency.class, FactoryDependency.class);
         final OpenComponentContainer nested = registry.makeNestedContainer(DependentKey.class, ContextDependentValue.class);
@@ -229,13 +279,13 @@ public final class ComponentVariantTests extends AbstractContainerTests {
         nestedRegistry.bindComponent(Variants.class, Variants.class);
         nestedRegistry.bindInstance(Serializable.class, check);
 
-        EasyMock.expect(variants.newComponent(EasyMock.<OpenComponentContainer>notNull(), EasyMock.eq(container.makeContext(context0))))
+        EasyMock.expect(variants.newComponent(EasyMock.<OpenComponentContainer>notNull(), EasyMock.<ComponentContext>notNull()))
                 .andAnswer(new VariantContainerCheck(nested, Serializable.class, check));
 
-        EasyMock.expect(variants.newComponent(EasyMock.<OpenComponentContainer>notNull(), EasyMock.eq(container.makeContext(context1))))
+        EasyMock.expect(variants.newComponent(EasyMock.<OpenComponentContainer>notNull(), EasyMock.<ComponentContext>notNull()))
                 .andAnswer(new VariantContainerCheck(nested, Serializable.class, check));
 
-        EasyMock.expect(variants.newComponent(EasyMock.<OpenComponentContainer>notNull(), EasyMock.eq(container.makeContext(context2))))
+        EasyMock.expect(variants.newComponent(EasyMock.<OpenComponentContainer>notNull(), EasyMock.<ComponentContext>notNull()))
                 .andAnswer(new VariantContainerCheck(nested, Serializable.class, check));
 
         replay();
@@ -243,19 +293,13 @@ public final class ComponentVariantTests extends AbstractContainerTests {
         verifyComponent(Value.instanceCount, 1, container);
 
         // get objects that specify all contexts
-        verifyContext(nested, ContextProvider0.class, Variants.class, context0);
-        verifyContext(nested, ContextProvider1.class, Variants.class, context1);
-        verifyContext(nested, ContextProvider2.class, Variants.class, context2);
+        verifyContext(nested, Variants.class);
 
         verify();
     }
 
     @Test
     public void variantsFactoryCreatesMultipleInstancesInNestedContainer() throws Exception {
-        final Properties context0 = context(ContextProvider0.class, Variants.class);
-        final Properties context1 = context(ContextProvider1.class, Variants.class);
-        final Properties context2 = context(ContextProvider2.class, Variants.class);
-
         registry.bindComponent(Key.class, Value.class);
         registry.bindComponent(DependentKey.class, ContextDependentValue.class);
         registry.bindComponent(FactoryDependency.class, FactoryDependency.class);
@@ -274,13 +318,13 @@ public final class ComponentVariantTests extends AbstractContainerTests {
 
         nestedRegistry.bindInstance(Serializable.class, check);
 
-        EasyMock.expect(variants.newComponent(EasyMock.<OpenComponentContainer>notNull(), EasyMock.eq(container.makeContext(context0))))
+        EasyMock.expect(variants.newComponent(EasyMock.<OpenComponentContainer>notNull(), EasyMock.<ComponentContext>notNull()))
                 .andAnswer(new VariantContainerCheck(nested, Serializable.class, check));
 
-        EasyMock.expect(variants.newComponent(EasyMock.<OpenComponentContainer>notNull(), EasyMock.eq(container.makeContext(context1))))
+        EasyMock.expect(variants.newComponent(EasyMock.<OpenComponentContainer>notNull(), EasyMock.<ComponentContext>notNull()))
                 .andAnswer(new VariantContainerCheck(nested, Serializable.class, check));
 
-        EasyMock.expect(variants.newComponent(EasyMock.<OpenComponentContainer>notNull(), EasyMock.eq(container.makeContext(context2))))
+        EasyMock.expect(variants.newComponent(EasyMock.<OpenComponentContainer>notNull(), EasyMock.<ComponentContext>notNull()))
                 .andAnswer(new VariantContainerCheck(nested, Serializable.class, check));
 
         replay();
@@ -288,9 +332,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
         verifyComponent(Value.instanceCount, 1, container);
 
         // get objects that specify all contexts
-        verifyContext(nested, ContextProvider0.class, Variants.class, context0);
-        verifyContext(nested, ContextProvider1.class, Variants.class, context1);
-        verifyContext(nested, ContextProvider2.class, Variants.class, context2);
+        verifyContext(nested, Variants.class);
 
         verify();
     }
@@ -298,7 +340,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
     /**
      * This is intentionally private - makes sure the container is able to instantiate non-public classes
      */
-    @Context(accept = "name1")
+    @Context(Setting1.class)
     private static class ContextDependentValue extends DependentValue {
 
         public ContextDependentValue(final ComponentContext context) {
@@ -307,7 +349,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
     }
 
     @Component(api = DependentKey.class)
-    @Context(accept = { "name1", "name2" })
+    @Context({ Setting1.class, Setting2.class })
     private static class Variants implements ComponentVariantFactory {
 
         public static ComponentVariantFactory delegate;
@@ -317,6 +359,22 @@ public final class ComponentVariantTests extends AbstractContainerTests {
         }
 
         public OpenComponentContainer newComponent(final OpenComponentContainer container, final ComponentContext context) {
+            assert delegate != null;
+            return delegate.newComponent(container, context);
+        }
+    }
+
+    @Component(api = DependentKey.class, type = ContextDependentValue.class)
+    @Context({ Setting1.class, Setting2.class })
+    private static class Factory implements ComponentFactory<DependentKey> {
+
+        public static ComponentFactory<DependentKey> delegate;
+
+        public Factory(final FactoryDependency dependent) {
+            assert dependent != null;
+        }
+
+        public DependentKey newComponent(final OpenComponentContainer container, final ComponentContext context) {
             assert delegate != null;
             return delegate.newComponent(container, context);
         }
@@ -338,7 +396,8 @@ public final class ComponentVariantTests extends AbstractContainerTests {
         }
     }
 
-    @Context({ @Context.Value(name = "name1", value = "value11"), @Context.Value(name = "name2", value = "value12") })
+    @Setting1("value11")
+    @Setting2("value12")
     private static class ContextProvider1 extends ContextProvider {
 
         public ContextProvider1(final DependentKey dependency) {
@@ -346,7 +405,8 @@ public final class ComponentVariantTests extends AbstractContainerTests {
         }
     }
 
-    @Context({ @Context.Value(name = "name1", value = "value21"), @Context.Value(name = "name2", value = "value22") })
+    @Setting1("value21")
+    @Setting2("value22")
     private static class ContextProvider2 extends ContextProvider {
 
         public ContextProvider2(final DependentKey dependency) {
@@ -373,5 +433,43 @@ public final class ComponentVariantTests extends AbstractContainerTests {
             assert received.getComponent(checkKey) == checkValue : "Expected " + container.toString() + ", got " + received.toString();
             return received;
         }
+    }
+
+    private static class FactoryContainerCheck implements IAnswer<DependentKey> {
+
+        private final OpenComponentContainer container;
+        private final Class<?> checkKey;
+        private final Object checkValue;
+
+        public FactoryContainerCheck(final OpenComponentContainer container, final Class<?> checkKey, final Object checkValue) {
+            this.container = container;
+            this.checkKey = checkKey;
+            this.checkValue = checkValue;
+        }
+
+        public DependentKey answer() throws Throwable {
+            final Object[] arguments = EasyMock.getCurrentArguments();
+            final OpenComponentContainer received = (OpenComponentContainer) arguments[0];
+
+            assert received != null : "Received no container";
+            assert received.getComponent(checkKey) == checkValue : "Expected " + container.toString() + ", got " + received.toString();
+            return new ContextDependentValue((ComponentContext) arguments[1]);
+        }
+    }
+
+    @Documented
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target({ ElementType.TYPE, ElementType.FIELD, ElementType.PARAMETER })
+    public static @interface Setting1 {
+
+        String value();
+    }
+
+    @Documented
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target({ ElementType.TYPE, ElementType.FIELD, ElementType.PARAMETER })
+    public static @interface Setting2 {
+
+        String value();
     }
 }

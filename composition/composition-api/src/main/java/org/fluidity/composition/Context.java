@@ -22,6 +22,7 @@
 
 package org.fluidity.composition;
 
+import java.lang.annotation.Annotation;
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Inherited;
@@ -41,36 +42,9 @@ import java.lang.annotation.Target;
 public @interface Context {
 
     /**
-     * Returns the context names whose values are used to cache instances of this semi-singleton component against.
+     * Returns the context annotations whose instances are used to cache instances of this semi-singleton component against.
      *
-     * @return a list of context names.
+     * @return a list of context annotation classes.
      */
-    String[] accept() default { };
-
-    /**
-     * Returns the context values provided by this component or reference thereto.
-     *
-     * @return a list of {@link Value} annotations}.
-     */
-    Value[] value() default { };
-
-    /**
-     * A context value, which is a name-value pair.
-     */
-    @interface Value {
-
-        /**
-         * Returns the name of the context variable.
-         *
-         * @return the name of the context variable.
-         */
-        String name();
-
-        /**
-         * Returns the value of the context variable.
-         *
-         * @return the value of the context variable.
-         */
-        String value();
-    }
+    Class<? extends Annotation>[] value();
 }

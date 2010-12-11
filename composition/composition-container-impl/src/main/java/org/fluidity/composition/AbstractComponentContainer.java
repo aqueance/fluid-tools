@@ -22,9 +22,6 @@
 
 package org.fluidity.composition;
 
-import java.util.Map;
-import java.util.Properties;
-
 /**
  * Provides common functionality to the component container implementation.
  *
@@ -50,13 +47,5 @@ public abstract class AbstractComponentContainer extends EmptyComponentContainer
 
     public String toString() {
         return container.toString();
-    }
-
-    public ComponentContext makeContext(final Properties properties) {
-        return container.services().contextFactory().newContext(properties);
-    }
-
-    public ComponentContext makeContext(final Map<String, String> map) {
-        return container.services().contextFactory().newContext(map);
     }
 }

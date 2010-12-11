@@ -37,24 +37,26 @@ public interface DependencyInjector {
     /**
      * Returns the argument array for the given constructor. The constructor must be satisfiable.
      *
-     * @param resolver    the resolver to satisfy dependencies.
-     * @param context     the instantiation context of the object being constructed.
-     * @param constructor the constructor to find the arguments for.
+     * @param resolver     the resolver to satisfy dependencies.
+     * @param componentApi the interface implemented by the component.
+     * @param context      the instantiation context of the object being constructed.
+     * @param constructor  the constructor to find the arguments for.
      *
      * @return the argument array for the given constructor.
      */
-    Object[] injectConstructor(Resolver resolver, ComponentContext context, Constructor<?> constructor);
+    Object[] injectConstructor(Resolver resolver, Class<?> componentApi, ComponentContext context, Constructor<?> constructor);
 
     /**
      * Sets all {@link org.fluidity.composition.Component} annotated fields of the receiver.
      *
-     * @param resolver the resolver to satisfy dependencies.
-     * @param context  the instantiation context of the object being constructed.
-     * @param instance the object to set the fields of.
+     * @param resolver     the resolver to satisfy dependencies.
+     * @param componentApi the interface implemented by the component.
+     * @param context      the instantiation context of the object being constructed.
+     * @param instance     the object to set the fields of.
      *
      * @return the received instance.
      */
-    <T> T injectFields(Resolver resolver, ComponentContext context, T instance);
+    <T> T injectFields(Resolver resolver, Class<?> componentApi, ComponentContext context, T instance);
 
     /**
      * Capable of resolving component references.

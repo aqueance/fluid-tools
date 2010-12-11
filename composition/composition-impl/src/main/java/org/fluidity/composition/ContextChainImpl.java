@@ -22,11 +22,12 @@
 
 package org.fluidity.composition;
 
+import java.lang.annotation.Annotation;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 
 import org.fluidity.composition.spi.ComponentMapping;
@@ -46,7 +47,25 @@ final class ContextChainImpl implements ContextChain {
 
     public ContextChainImpl(final ContextFactory factory) {
         this.factory = factory;
-        final ComponentContext context = factory.newContext(new Properties());
+
+        @SuppressWarnings({ "unchecked" })
+        final ComponentContext context = new ComponentContext() {
+            public <T extends Annotation> T[] annotations(final Class<T> type) {
+                return (T[]) Collections.EMPTY_LIST.toArray();
+            }
+
+            public <T extends Annotation> T annotation(Class<T> type) {
+                return null;
+            }
+
+            public boolean defines(Class<? extends Annotation> type) {
+                return false;
+            }
+
+            public Set<Class<? extends Annotation>> types() {
+                return (Set<Class<? extends Annotation>>) Collections.EMPTY_SET;
+            }
+        };
         establishedContext.set(context);
         consumedContext.set(context);
     }
@@ -58,10 +77,11 @@ final class ContextChainImpl implements ContextChain {
     public <T> T nested(final ComponentContext context, final Command<T> command) {
         final ComponentContext currentContext = establishedContext.get();
 
-        if (context == null || context.keySet().isEmpty() || context.equals(currentContext)) {
+        if (context == null || context.types().isEmpty() || context.equals(currentContext)) {
             return command.run(currentContext);
         } else {
-            establishedContext.set(factory.deriveContext(currentContext, context));
+            final ComponentContext derived = factory.deriveContext(currentContext, context);
+            establishedContext.set(derived);
             try {
                 return command.run(context);
             } finally {
@@ -71,14 +91,17 @@ final class ContextChainImpl implements ContextChain {
         }
     }
 
-    public ComponentContext consumedContext(final Class<?> componentType, final ComponentContext context, final ReferenceChain referenceChain) {
-        final String[] names = contextNames(componentType, referenceChain);
-        final Map<String, String> map = new HashMap<String, String>();
+    public ComponentContext consumedContext(final Class<?> componentType,
+                                            final Class<?> componentClass,
+                                            final ComponentContext context,
+                                            final ReferenceChain referenceChain) {
+        final Class<? extends Annotation>[] types = contextTypes(componentType, componentClass, referenceChain);
+        final Map<Class<? extends Annotation>, Annotation[]> map = new HashMap<Class<? extends Annotation>, Annotation[]>();
 
-        if (context != null && names != null) {
-            for (final String name : names) {
-                if (context.defines(name)) {
-                    map.put(name, context.value(name, null));
+        if (context != null && types != null) {
+            for (final Class<? extends Annotation> type : types) {
+                if (context.defines(type)) {
+                    map.put(type, context.annotations(type));
                 }
             }
         }
@@ -94,19 +117,21 @@ final class ContextChainImpl implements ContextChain {
         return consumedContext.get();
     }
 
-    private String[] contextNames(final Class<?> componentType, final ReferenceChain referenceChain) {
-        assert componentType != null;
-        final Set<String> names = new HashSet<String>();
+    @SuppressWarnings({ "unchecked" })
+    private Class<? extends Annotation>[] contextTypes(final Class<?> componentType, final Class<?> componentClass, final ReferenceChain referenceChain) {
+        assert componentClass != null;
+        final Set<Class<? extends Annotation>> types = new HashSet<Class<? extends Annotation>>();
 
+        // find the first factory for the given component type and take its @Context details to apply to the component at hand
         referenceChain.iterate(new ReferenceChain.Visitor<Void>() {
             public boolean visit(final ReferenceChain.Link item) {
                 final ComponentMapping mapping = item.mapping();
 
-                if (mapping.isVariantMapping() && mapping.componentInterface().isAssignableFrom(componentType)) {
+                if (mapping.factoryClass() != null && mapping.componentInterface() == componentType) {
                     final Context factoryContext = mapping.factoryClass().getAnnotation(Context.class);
 
                     if (factoryContext != null) {
-                        names.addAll(Arrays.asList(factoryContext.accept()));
+                        types.addAll(Arrays.asList(factoryContext.value()));
                         return false;
                     }
                 }
@@ -115,11 +140,14 @@ final class ContextChainImpl implements ContextChain {
             }
         });
 
-        final Context context = ComponentVariantFactory.class.isAssignableFrom(componentType) ? null : componentType.getAnnotation(Context.class);
+        final boolean isFactory = ComponentVariantFactory.class.isAssignableFrom(componentClass) || ComponentFactory.class.isAssignableFrom(componentClass);
+
+        // @Context on a factory does not apply to the factory itself
+        final Context context = isFactory ? null : componentClass.getAnnotation(Context.class);
         if (context != null) {
-            names.addAll(Arrays.asList(context.accept()));
+            types.addAll(Arrays.asList(context.value()));
         }
 
-        return names.size() > 0 ? names.toArray(new String[names.size()]) : null;
+        return (Class<Annotation>[]) (types.size() > 0 ? types.toArray(new Class<?>[types.size()]) : null);
     }
 }

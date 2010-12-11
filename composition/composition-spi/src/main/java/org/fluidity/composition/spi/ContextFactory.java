@@ -22,11 +22,10 @@
 
 package org.fluidity.composition.spi;
 
+import java.lang.annotation.Annotation;
 import java.util.Map;
-import java.util.Properties;
 
 import org.fluidity.composition.ComponentContext;
-import org.fluidity.composition.Context;
 
 /**
  * Creates component context objects.
@@ -36,35 +35,26 @@ import org.fluidity.composition.Context;
 public interface ContextFactory {
 
     /**
-     * Creates a new context from the given properties.
-     *
-     * @param properties the properties to turn into a {@link org.fluidity.composition.ComponentContext}.
-     *
-     * @return the new component context.
-     */
-    ComponentContext newContext(Properties properties);
-
-    /**
      * Creates a new context from the given map.
      *
      * @param map the properties to turn into a {@link org.fluidity.composition.ComponentContext}.
      *
      * @return the new component context.
      */
-    ComponentContext newContext(Map<String, String> map);
+    ComponentContext newContext(Map<Class<? extends Annotation>, Annotation[]> map);
 
     /**
      * Extracts the context from the given list of annotations.
      *
      * @param annotation the annotation to extract the context from; never <code>null</code>.
      *
-     * @return the extracted context; never <code>null</code>.
+     * @return the extracted context or <code>null</code> if there is no meaningful context.
      */
-    ComponentContext extractContext(Context annotation);
+    ComponentContext extractContext(Annotation[] annotation);
 
     /**
      * Calls {@link #deriveContext(org.fluidity.composition.ComponentContext, org.fluidity.composition.ComponentContext)} using the supplied context and the one
-     * extracted from the supplied class using {@link #extractContext(org.fluidity.composition.Context)}.
+     * extracted from the supplied class using {@link #extractContext(java.lang.annotation.Annotation[])}.
      *
      * @param context         the context to use as the parent of the derived context.
      * @param contextProvider the class to extract the context to use as the child in the derived context.

@@ -22,12 +22,14 @@
 
 package org.fluidity.composition;
 
+import java.lang.annotation.Annotation;
 import java.util.Set;
 
 /**
- * Provides a context for components. A context is a textual configuration that a component may elect to receive by listing the context names in a {@link
- * org.fluidity.composition.Context#accept()} type annotation. Context values are provided by components that depend, directly or indirectly, on context
- * consuming other components using the {@link org.fluidity.composition.Context#value()} annotation.
+ * Provides a context for components. A context represents configuration at the point of reference to a component, which the referring component elects to
+ * receive using {@link org.fluidity.composition.Context} annotation. Contexts is provided by components that
+ * depend, directly or indirectly, on context consuming other components using custom, user defined, annotations. The context consuming component lists these
+ * annotation types in its {@link org.fluidity.composition.Context} annotation.
  * <p/>
  * Context support can be added to a component not directly supporting contexts using {@link org.fluidity.composition.ComponentVariantFactory} components as
  * long as the component supports some other configuration mechanism that can be manipulated by the variant factory class.
@@ -37,30 +39,40 @@ import java.util.Set;
 public interface ComponentContext {
 
     /**
-     * Returns the value in the context for the specified key or the given default value if the context does not define a value for the given key.
+     * Returns all annotations in the context for the specified type.
      *
-     * @param key      the key to return the value for.
-     * @param fallback the value to return in case there is no value for the given key.
+     * @param type the annotation type to return instances of.
      *
-     * @return the value for the given key or the fallback value.
+     * @return all annotations in the context for the specified type or null if none present.
      *
-     * @see #defines(String)
+     * @see #defines(Class)
      */
-    String value(String key, String fallback);
+    <T extends Annotation> T[] annotations(Class<T> type);
+
+    /**
+     * Returns the last annotation in the context for the specified type.
+     *
+     * @param type the annotation type to return instances of.
+     *
+     * @return the last annotation in the context for the specified type or null if none present.
+     *
+     * @see #defines(Class)
+     */
+    <T extends Annotation> T annotation(Class<T> type);
 
     /**
      * Tells whether the context defines a value for the given key.
      *
-     * @param key the key to check the existence the value for.
+     * @param type the annotation type to check the existence of instances thereof.
      *
-     * @return <code>true</code> if there is a value for the given key, <code>false</code> otherwise.
+     * @return <code>true</code> if there is at least one annotation of the given type, <code>false</code> otherwise.
      */
-    boolean defines(String key);
+    boolean defines(Class<? extends Annotation> type);
 
     /**
      * Returns the set of keys the context defines a value for.
      *
      * @return the set of keys the context defines a value for.
      */
-    Set<String> keySet();
+    Set<Class<? extends Annotation>> types();
 }

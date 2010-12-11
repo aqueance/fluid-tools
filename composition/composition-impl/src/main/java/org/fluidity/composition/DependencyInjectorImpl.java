@@ -52,18 +52,18 @@ final class DependencyInjectorImpl implements DependencyInjector {
         this.discovery = discovery;
     }
 
-    public <T> T injectFields(final Resolver resolver, final ComponentContext context, final T instance) {
+    public <T> T injectFields(final Resolver resolver, final Class<?> componentApi, final ComponentContext context, final T instance) {
         assert resolver != null;
 
         if (instance != null) {
             final Class<?> componentType = instance.getClass();
-            injectFields(resolver, context, instance, componentType, componentType);
+            injectFields(resolver, context, instance, componentApi, componentType, componentType);
         }
 
         return instance;
     }
 
-    public Object[] injectConstructor(final Resolver resolver, final ComponentContext context, final Constructor<?> constructor) {
+    public Object[] injectConstructor(final Resolver resolver, final Class<?> componentApi, final ComponentContext context, final Constructor<?> constructor) {
         final Class<?> componentType = constructor.getDeclaringClass();
         final Annotation[][] annotations = constructor.getParameterAnnotations();
         final Class[] types = constructor.getParameterTypes();
@@ -71,7 +71,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
 
         for (int i = 0, length = types.length; i < length; ++i) {
             final int index = i;
-            injectDependency(resolver, context, componentType, componentType, new Dependency() {
+            injectDependency(resolver, context, componentApi, componentType, componentType, new Dependency() {
                 public Object itself() {
                     return null;
                 }
@@ -82,7 +82,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
 
                 @SuppressWarnings("unchecked")
                 public <T extends Annotation> T annotation(final Class<T> annotationClass) {
-                    for (final Annotation annotation : allAnnotations()) {
+                    for (final Annotation annotation : annotations()) {
                         if (annotationClass.isAssignableFrom(annotation.getClass())) {
                             return (T) annotation;
                         }
@@ -91,8 +91,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
                     return null;
                 }
 
-                @SuppressWarnings("UnnecessaryLocalVariable")
-                private Annotation[] allAnnotations() {
+                public Annotation[] annotations() {
                     return annotations[index];
                 }
 
@@ -108,6 +107,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
     private <T> void injectFields(final Resolver resolver,
                                   final ComponentContext context,
                                   final T instance,
+                                  final Class<?> componentApi,
                                   final Class<?> componentType,
                                   final Class<?> declaringType) {
         for (final Field field : declaringType.getDeclaredFields()) {
@@ -129,7 +129,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
                 }
 
                 if (field.isAnnotationPresent(Component.class) || field.isAnnotationPresent(ServiceProvider.class)) {
-                    injectDependency(resolver, context, componentType, declaringType, new Dependency() {
+                    injectDependency(resolver, context, componentApi, componentType, declaringType, new Dependency() {
                         public Object itself() {
                             return instance;
                         }
@@ -140,6 +140,10 @@ final class DependencyInjectorImpl implements DependencyInjector {
 
                         public <T extends Annotation> T annotation(Class<T> annotationClass) {
                             return field.getAnnotation(annotationClass);
+                        }
+
+                        public Annotation[] annotations() {
+                            return field.getAnnotations();
                         }
 
                         public void set(final Object value) {
@@ -161,12 +165,13 @@ final class DependencyInjectorImpl implements DependencyInjector {
 
         final Class<?> ancestor = declaringType.getSuperclass();
         if (ancestor != null) {
-            injectFields(resolver, context, instance, componentType, ancestor);
+            injectFields(resolver, context, instance, componentApi, componentType, ancestor);
         }
     }
 
     private void injectDependency(final Resolver resolver,
                                   final ComponentContext context,
+                                  final Class<?> componentApi,
                                   final Class<?> componentType,
                                   final Class<?> declaringType,
                                   final Dependency dependency) {
@@ -214,7 +219,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
 
             dependency.set(list.toArray((Object[]) Array.newInstance(providerType, list.size())));
         } else if (dependency.type() == ComponentContext.class) {
-            dependency.set(contextChain.consumedContext(componentType, context, referenceChain));
+            dependency.set(contextChain.consumedContext(componentApi, componentType, context, referenceChain));
         } else {
             Object value = null;
 
@@ -227,14 +232,13 @@ final class DependencyInjectorImpl implements DependencyInjector {
             }
 
             if (value == null) {
-                final Context annotation = dependency.annotation(Context.class);
-                value = annotation == null
-                        ? resolver.resolve(dependencyType, context)
-                        : contextChain.nested(contextFactory.extractContext(annotation), new ContextChain.Command<Object>() {
-                            public Object run(final ComponentContext context) {
-                                return resolver.resolve(dependencyType, context);
-                            }
-                        });
+                final ComponentContext extracted = contextFactory.extractContext(dependency.annotations());
+
+                value = extracted == null ? resolver.resolve(dependencyType, context) : contextChain.nested(extracted, new ContextChain.Command<Object>() {
+                    public Object run(final ComponentContext context) {
+                        return resolver.resolve(dependencyType, context);
+                    }
+                });
             }
 
             if (value == null) {
@@ -280,7 +284,14 @@ final class DependencyInjectorImpl implements DependencyInjector {
          *
          * @return the annotation of the given type attached to the reference, or <code>null</code> if no such annotation is present.
          */
-        public <T extends Annotation> T annotation(Class<T> annotationClass);
+        <T extends Annotation> T annotation(Class<T> annotationClass);
+
+        /**
+         * Returns all annotations present at the reference.
+         *
+         * @return all annotations present at the reference.
+         */
+        Annotation[] annotations();
 
         /**
          * Sets the resolved value of the reference.

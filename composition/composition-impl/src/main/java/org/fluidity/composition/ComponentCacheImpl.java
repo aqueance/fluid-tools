@@ -47,13 +47,16 @@ final class ComponentCacheImpl implements ComponentCache {
         this.log = logs.createLog(getClass());
     }
 
-    public Object lookup(final Object source, final Class<?> api, final Class<?> type, final Command create) {
+    public Object lookup(final Object source, final Class<?> componentInterface, final Class<?> componentClass, final Command create) {
         final ComponentContext key = contextChain.currentContext();
 
         if (!cache.containsKey(key)) {
 
             // go ahead and create the component and get the actual consumed context calculated
-            final Object component = create.run(contextChain.consumedContext(type, contextChain.currentContext(), referenceChain));
+            final Object component = create.run(contextChain.consumedContext(componentInterface,
+                                                                             componentClass,
+                                                                             contextChain.currentContext(),
+                                                                             referenceChain));
 
             final ComponentContext consumedContext = contextChain.consumedContext();
             if (!cache.containsKey(consumedContext)) {
@@ -62,21 +65,21 @@ final class ComponentCacheImpl implements ComponentCache {
                 if (component == null) {
                     log.info("%s: not created component for %s%s",
                              source,
-                             api,
-                             consumedContext.keySet().isEmpty() ? "" : String.format(" for context %s", consumedContext));
+                             componentInterface,
+                             consumedContext.types().isEmpty() ? "" : String.format(" for context %s", consumedContext));
                 } else {
                     log.info("%s: created %s@%s%s",
                              source,
                              component.getClass().getName(),
                              System.identityHashCode(component),
-                             consumedContext.keySet().isEmpty() ? "" : String.format(" for context %s", consumedContext));
+                             consumedContext.types().isEmpty() ? "" : String.format(" for context %s", consumedContext));
                 }
             } else {
                 cache.put(key, cache.get(consumedContext));
             }
         }
 
-        assert cache.containsKey(key) : String.format("Component %s not found in context %s", api, key);
+        assert cache.containsKey(key) : String.format("Component %s not found in context %s", componentInterface, key);
         return cache.get(key);
     }
 }

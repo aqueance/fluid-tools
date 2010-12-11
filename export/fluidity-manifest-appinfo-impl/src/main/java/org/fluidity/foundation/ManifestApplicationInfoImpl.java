@@ -19,6 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package org.fluidity.foundation;
 
 import java.io.IOException;
@@ -31,14 +32,10 @@ import org.fluidity.composition.Component;
 
 /**
  * Reads application key and name from two attributes in the host application's JAR manifest main section: Application-Key and Application-Name.
- *
  * <p/>
- *
  * This implementation is useful only for packaged applications such as <code>war</code> and <code>ear</code> files. Use the
  * <code>org.fluidity.maven:maven-composition-plugin</code> plugin's <code>application-info</code> goal to generate that MANIFEST file.
- *
  * <p/>
- *
  * For <code>jar</code> files configure Maven to provide these attributes by adding the following to your <code>pom.xml</code>:
  * <xmp>
  * ...

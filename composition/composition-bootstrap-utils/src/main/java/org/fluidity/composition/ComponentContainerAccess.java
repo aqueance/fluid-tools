@@ -28,7 +28,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 import java.util.WeakHashMap;
 
@@ -238,18 +237,6 @@ public final class ComponentContainerAccess implements ComponentContainer {
 
     public <T> T getComponent(final Class<T> componentClass, final Bindings bindings) {
         return getContainer(true).getComponent(componentClass, bindings);
-    }
-
-    public ComponentContext makeContext(final Properties properties) {
-        return getContainer(true).makeContext(properties);
-    }
-
-    public ComponentContext makeContext(final Map<String, String> map) {
-        return getContainer(true).makeContext(map);
-    }
-
-    public <T> T getComponent(final Class<T> componentClass, final ComponentContext context) {
-        return getContainer(true).getComponent(componentClass, context);
     }
 
     /**

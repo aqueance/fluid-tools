@@ -49,10 +49,6 @@ final class FluidComponentContainer extends AbstractComponentContainer implement
         return container.get(componentClass);
     }
 
-    public <T> T getComponent(final Class<T> componentClass, final ComponentContext context) {
-        return container.get(componentClass, context);
-    }
-
     public OpenComponentContainer makeNestedContainer() {
         return new FluidComponentContainer(container, true);
     }

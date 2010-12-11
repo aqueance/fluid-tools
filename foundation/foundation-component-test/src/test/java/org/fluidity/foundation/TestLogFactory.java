@@ -22,23 +22,17 @@
 
 package org.fluidity.foundation;
 
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
+import org.fluidity.composition.ServiceProvider;
 
 /**
- * Returns {@link org.fluidity.foundation.Log} implementations that simply gobble up messages.
+ * Acts as a log factory during testing, used for suppressing the log output of the container.
  */
-public final class NullLogFactory implements LogFactory {
+@ServiceProvider
+public class TestLogFactory implements LogFactory {
 
-    private final Log log = (Log) Proxy.newProxyInstance(NullLogFactory.class.getClassLoader(), new Class<?>[] { Log.class }, new InvocationHandler() {
-        public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
-            final Class<?> type = method.getReturnType();
-            return method.getDeclaringClass() == Object.class ? method.invoke(this, args) : type == Boolean.TYPE ? false : null;
-        }
-    });
+    private final NullLogFactory delegate = new NullLogFactory();
 
     public Log createLog(final Class<?> source) {
-        return log;
+        return delegate.createLog(source);
     }
 }

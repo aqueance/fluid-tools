@@ -27,7 +27,8 @@ package org.fluidity.composition;
  * org.fluidity.composition.Component#api()} annotation of the the factory implementation class and the class of the component is specified in the {@link
  * org.fluidity.composition.Component#type()} annotation. Both these annotation parameters must be present.
  * <p/>
- * If the components are context dependent, the factory class must provide the valid context keys using the {@link org.fluidity.composition.Context#accept()}
+ * If the components are context dependent, the factory class must provide the valid context annotation classes using the
+ * {@link org.fluidity.composition.Context#value()}
  * class annotation.
  *
  * @author Tibor Varga
@@ -39,7 +40,7 @@ public interface ComponentFactory<T> {
      *
      * @param container is the container to resolve dependencies of the component from.
      * @param context   is the context for the instance to create. When this is null or empty, the default instance must be created. The key set in the context
-     *                  is taken from the list of names in the {@link org.fluidity.composition.Context#accept()} annotation of the component class.
+     *                  is taken from the list of annotation classes in the {@link org.fluidity.composition.Context#value()} annotation of the component class.
      *
      * @return the component created, never <code>null</code>.
      */

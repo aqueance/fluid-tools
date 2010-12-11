@@ -22,6 +22,8 @@
 
 package org.fluidity.composition;
 
+import java.lang.annotation.Annotation;
+
 import org.fluidity.composition.spi.ContextChain;
 import org.fluidity.composition.spi.ContextFactory;
 import org.fluidity.composition.spi.DependencyInjector;
@@ -53,6 +55,7 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
         EasyMock.expect(resolver.contextChain()).andReturn(contextChain).anyTimes();
         EasyMock.expect(resolver.referenceChain()).andReturn(referenceChain).anyTimes();
         EasyMock.expect(resolver.contextFactory()).andReturn(contextFactory).anyTimes();
+        EasyMock.expect(contextFactory.extractContext(EasyMock.<Annotation[]>anyObject())).andReturn(null);
 
         final Dependency dependency = new DependencyImpl();
         EasyMock.expect(resolver.resolve(Dependency.class, context)).andReturn(dependency);
@@ -67,7 +70,7 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
         EasyMock.expect(resolver.create(ServiceImpl2.class, context)).andReturn(service2);
 
         replay();
-        assert component == injector.injectFields(resolver, context, component);
+        assert component == injector.injectFields(resolver, FieldInjected.class, context, component);
         verify();
 
         assert component.dependency == dependency : component.dependency;
@@ -85,11 +88,12 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
         EasyMock.expect(resolver.contextChain()).andReturn(contextChain).anyTimes();
         EasyMock.expect(resolver.referenceChain()).andReturn(referenceChain).anyTimes();
         EasyMock.expect(resolver.contextFactory()).andReturn(contextFactory).anyTimes();
+        EasyMock.expect(contextFactory.extractContext(EasyMock.<Annotation[]>anyObject())).andReturn(null);
 
         EasyMock.expect(resolver.resolve(Dependency.class, context)).andReturn(null);
 
         replay();
-        assert component == injector.injectFields(resolver, context, component);
+        assert component == injector.injectFields(resolver, FieldInjected.class, context, component);
         verify();
     }
 
@@ -100,11 +104,12 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
         EasyMock.expect(resolver.contextChain()).andReturn(contextChain).anyTimes();
         EasyMock.expect(resolver.referenceChain()).andReturn(referenceChain).anyTimes();
         EasyMock.expect(resolver.contextFactory()).andReturn(contextFactory).anyTimes();
+        EasyMock.expect(contextFactory.extractContext(EasyMock.<Annotation[]>anyObject())).andReturn(null);
 
         EasyMock.expect(resolver.resolve(Dependency.class, context)).andReturn(null);
 
         replay();
-        assert component == injector.injectFields(resolver, context, component);
+        assert component == injector.injectFields(resolver, OptionalFieldInjected.class, context, component);
         verify();
 
         assert component.dependency == null : component.dependency;
@@ -118,6 +123,7 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
         EasyMock.expect(resolver.contextChain()).andReturn(contextChain).anyTimes();
         EasyMock.expect(resolver.referenceChain()).andReturn(referenceChain).anyTimes();
         EasyMock.expect(resolver.contextFactory()).andReturn(contextFactory).anyTimes();
+        EasyMock.expect(contextFactory.extractContext(EasyMock.<Annotation[]>anyObject())).andReturn(null);
 
         final Dependency dependency = new DependencyImpl();
         EasyMock.expect(resolver.resolve(Dependency.class, context)).andReturn(dependency);
@@ -132,7 +138,9 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
         EasyMock.expect(resolver.create(ServiceImpl2.class, context)).andReturn(service2);
 
         replay();
-        Object[] arguments = injector.injectConstructor(resolver, context, ConstructorInjected.class.getDeclaredConstructor(Dependency.class, Object[].class));
+        Object[] arguments = injector.injectConstructor(resolver,
+                                                        ConstructorInjected.class,
+                                                        context, ConstructorInjected.class.getDeclaredConstructor(Dependency.class, Object[].class));
         verify();
 
         assert arguments[0] == dependency : component.dependency;
@@ -152,10 +160,10 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
         EasyMock.expect(resolver.contextFactory()).andReturn(contextFactory).anyTimes();
 
         EasyMock.expect(resolver.container(context)).andReturn(container);
-        EasyMock.expect(contextChain.consumedContext(SpecialDependent.class, context, referenceChain)).andReturn(context2);
+        EasyMock.expect(contextChain.consumedContext(SpecialDependent.class, SpecialDependent.class, context, referenceChain)).andReturn(context2);
 
         replay();
-        assert component == injector.injectFields(resolver, context, component);
+        assert component == injector.injectFields(resolver, SpecialDependent.class, context, component);
         verify();
 
         assert component.container == container : component.container;

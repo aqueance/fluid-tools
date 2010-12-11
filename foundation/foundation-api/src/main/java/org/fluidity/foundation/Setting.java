@@ -22,23 +22,34 @@
 
 package org.fluidity.foundation;
 
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * Returns {@link org.fluidity.foundation.Log} implementations that simply gobble up messages.
+ * Annotates a setting query method to specify what property to query and, optionally, what default value to return if the property is not defined.
+ * <p/>
+ * This annotation is to be used on interface methods that will be used in conjunction with either a {@link StaticConfiguration} or {@link DynamicConfiguration}
+ * component. See {@link Configuration} for details.
  */
-public final class NullLogFactory implements LogFactory {
+@Documented
+@Retention(RetentionPolicy.RUNTIME)
+@Target( { ElementType.METHOD })
+public @interface Setting {
 
-    private final Log log = (Log) Proxy.newProxyInstance(NullLogFactory.class.getClassLoader(), new Class<?>[] { Log.class }, new InvocationHandler() {
-        public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
-            final Class<?> type = method.getReturnType();
-            return method.getDeclaringClass() == Object.class ? method.invoke(this, args) : type == Boolean.TYPE ? false : null;
-        }
-    });
+    /**
+     * The property key to query.
+     *
+     * @return the property key to query.
+     */
+    String key();
 
-    public Log createLog(final Class<?> source) {
-        return log;
-    }
+    /**
+     * Returns the default value for the property.
+     *
+     * @return the default value for the property.
+     */
+    String fallback() default "";
 }
