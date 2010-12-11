@@ -53,7 +53,6 @@ This project lists the exported modules of Fluid Tools.
         <module>fluidity-bootstrap</module>
         <module>fluidity-impl</module>
         <module>fluidity-logging-slf4j-impl</module>
-        <module>fluidity-property-settings-impl</module>
         <module>fluidity-manifest-appinfo-impl</module>
         <module>fluidity-tests</module>
         <module>fluidity-war-deployment</module>
@@ -110,12 +109,6 @@ This project lists the exported modules of Fluid Tools.
             <dependency>
                 <groupId>${fluidity.export.groupId}</groupId>
                 <artifactId>fluidity-logging-slf4j-impl</artifactId>
-                <version>${fluidity.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>${fluidity.export.groupId}</groupId>
-                <artifactId>fluidity-property-settings-impl</artifactId>
                 <version>${fluidity.version}</version>
             </dependency>
 
