@@ -122,11 +122,72 @@ public class ConfigurationTest extends MockGroupAbstractTest {
         verify();
     }
 
-    private static void assertValue(String value, String expected) {
+    public static interface MultiTypeSettings {
+
+        @Setting(key = "boolean", fallback = "true")
+        boolean booleanValue();
+
+        @Setting(key = "Boolean", fallback = "true")
+        Boolean BooleanValue();
+
+        @Setting(key = "int", fallback = "123")
+        byte byteValue();
+
+        @Setting(key = "int", fallback = "-123")
+        Byte ByteValue();
+
+        @Setting(key = "int", fallback = "1234")
+        short shortValue();
+
+        @Setting(key = "int", fallback = "-1234")
+        Short ShortValue();
+
+        @Setting(key = "int", fallback = "12345")
+        int intValue();
+
+        @Setting(key = "int", fallback = "-12345")
+        Integer IntegerValue();
+
+        @Setting(key = "int", fallback = "123456")
+        long longValue();
+
+        @Setting(key = "int", fallback = "-123456")
+        Long LongValue();
+
+        @Setting(key = "float", fallback = "123456.25")
+        float floatValue();
+
+        @Setting(key = "float", fallback = "-123456.25")
+        Float FloatValue();
+
+        @Setting(key = "float", fallback = "1234567.25")
+        double doubleValue();
+
+        @Setting(key = "float", fallback = "-1234567.25")
+        Double DoubleValue();
+
+        @Setting(key = "class", fallback = "java.lang.Object")
+        Class classValue();
+
+        @Setting(key = "enum", fallback = "SAMPLE")
+        EnumType enumValue();
+    }
+
+    public static enum EnumType {
+        SAMPLE
+    }
+
+    @Test
+    public void typeCasts() throws Exception {
+        final MultTypeConfigured component = container.getComponent(MultTypeConfigured.class);
+        assert component != null : MultTypeConfigured.class;
+    }
+
+    static void assertValue(final String value, final String expected) {
         if (expected == null) {
-            assert value == null : value;
+            assert value == null : String.format("Expected null, got >%s<", value);
         } else {
-            assert expected.equals(value) : value;
+            assert expected.equals(value) : String.format("Expected %s, got >%s<", expected, value);
         }
     }
 
@@ -156,6 +217,7 @@ public class ConfigurationTest extends MockGroupAbstractTest {
             configuration = settings.configuration();
             assert configuration != null;
         }
+
         public void checkSettings(final String missing1, final String missing2, final String valid1, final String valid2) {
             checkSettings(configuration, missing1, missing2, valid1, valid2);
         }
@@ -180,7 +242,7 @@ public class ConfigurationTest extends MockGroupAbstractTest {
     public static class StaticPropertyProvider implements PropertyProvider {
         private static PropertyProvider delegate;
 
-        public String property(final String key) {
+        public Object property(final String key) {
             return delegate.property(key);
         }
 
@@ -202,7 +264,7 @@ public class ConfigurationTest extends MockGroupAbstractTest {
             DynamicPropertyProvider.instance = this;
         }
 
-        public String property(final String key) {
+        public Object property(final String key) {
             return delegate.property(key);
         }
 
@@ -218,6 +280,45 @@ public class ConfigurationTest extends MockGroupAbstractTest {
             for (final PropertyChangeListener listener : listeners) {
                 listener.propertiesChanged(this);
             }
+        }
+    }
+
+    @Component(fallback = true)
+    public static class EmptyPropertyProvider implements PropertyProvider {
+
+        public Object property(final String key) {
+            return null;
+        }
+
+        public void addChangeListener(PropertyChangeListener listener) {
+            // ignore
+        }
+    }
+
+    @Component
+    public static class MultTypeConfigured {
+
+        public MultTypeConfigured(
+                @Properties(api = MultiTypeSettings.class, provider = EmptyPropertyProvider.class) final StaticConfiguration<MultiTypeSettings> settings) {
+            final MultiTypeSettings configuration = settings.configuration();
+            assert configuration != null;
+
+            assert configuration.booleanValue();
+            assert configuration.BooleanValue();
+            assert configuration.byteValue() == 123;
+            assert configuration.ByteValue() == -123;
+            assert configuration.shortValue() == 1234;
+            assert configuration.ShortValue() == -1234;
+            assert configuration.intValue() == 12345;
+            assert configuration.IntegerValue() == -12345;
+            assert configuration.longValue() == 123456;
+            assert configuration.LongValue() == -123456;
+            assert configuration.floatValue() == 123456.25;
+            assert configuration.FloatValue() == -123456.25;
+            assert configuration.doubleValue() == 1234567.25;
+            assert configuration.DoubleValue() == -1234567.25;
+            assert configuration.classValue() == Object.class;
+            assert configuration.enumValue() == EnumType.SAMPLE;
         }
     }
 }

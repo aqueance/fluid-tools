@@ -35,7 +35,7 @@ public interface PropertyProvider {
      *
      * @return the configured value for the given property or <code>null</code> if no property was configured with the given name.
      */
-    String property(String key);
+    Object property(String key);
 
     /**
      * Registers an object to call when properties change. The receiver must accept multiple listeners and invoke each when properties change. The listener will

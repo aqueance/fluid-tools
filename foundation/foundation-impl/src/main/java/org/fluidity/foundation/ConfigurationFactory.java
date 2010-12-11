@@ -67,32 +67,63 @@ final class ConfigurationFactory implements ComponentFactory<Configuration> {
 
         @SuppressWarnings( { "unchecked" })
         ConfigurationImpl(final Properties properties, final PropertyProvider provider) {
-            final Class<Configuration> componentApi = (Class<Configuration>) properties.api();
+            final Class<Configuration> settingsApi = (Class<Configuration>) properties.api();
 
-            final ClassLoader loader = componentApi.getClassLoader();
-            final Class<?>[] interfaces = { componentApi };
+            final ClassLoader loader = settingsApi.getClassLoader();
+            final Class<?>[] interfaces = { settingsApi };
 
             final PropertyProvider.PropertyChangeListener listener = new PropertyProvider.PropertyChangeListener() {
                 public void propertiesChanged(final PropertyProvider provider) {
                     final Map<Method, Object> properties = new HashMap<Method, Object>();
 
-                    for (final Method method : componentApi.getMethods()) {
+                    for (final Method method : settingsApi.getMethods()) {
                         final Setting setting = method.getAnnotation(Setting.class);
                         assert setting != null : String.format("No @%s specified for method %s", Setting.class.getName(), method);
 
                         final String property = setting.key();
-                        final String value = provider.property(property);
-                        final String fallback = setting.fallback();
+                        final Object value = provider.property(property);
 
-                        properties.put(method, value == null ? (fallback.length() == 0 ? null : fallback) : value);
+                        properties.put(method, value == null ? cast(setting.fallback(), method.getReturnType()) : value);
                     }
 
                     configuration.set((T) Proxy.newProxyInstance(loader, interfaces, new InvocationHandler() {
                         public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
-                            assert componentApi.isAssignableFrom(method.getDeclaringClass()) : method;
+                            assert method.getDeclaringClass().isAssignableFrom(settingsApi) : method;
                             return properties.get(method);
                         }
                     }));
+                }
+
+                private Object cast(final String value, final Class<?> type) {
+                    if (value == null || value.length() == 0) {
+                        return null;
+                    } else if (type == String.class) {
+                        return value;
+                    } else if (type == Boolean.TYPE || type == Boolean.class) {
+                        return Boolean.valueOf(value);
+                    } else if (type == Byte.TYPE || type == Byte.class) {
+                        return Byte.valueOf(value);
+                    } else if (type == Short.TYPE || type == Short.class) {
+                        return Short.valueOf(value);
+                    } else if (type == Integer.TYPE || type == Integer.class) {
+                        return Integer.valueOf(value);
+                    } else if (type == Long.TYPE || type == Long.class) {
+                        return Long.valueOf(value);
+                    } else if (type == Float.TYPE || type == Float.class) {
+                        return Float.valueOf(value);
+                    } else if (type == Double.TYPE || type == Double.class) {
+                        return Double.valueOf(value);
+                    } else if (Enum.class.isAssignableFrom(type)) {
+                        return Enum.valueOf((Class<Enum>) type, value);
+                    } else if (type == Class.class) {
+                        try {
+                            return settingsApi.getClassLoader().loadClass(value);
+                        } catch (final ClassNotFoundException e) {
+                            throw new IllegalArgumentException(e);
+                        }
+                    } else {
+                        throw new IllegalArgumentException(String.format("Cannot convert %s to type %s", value, type));
+                    }
                 }
             };
 
