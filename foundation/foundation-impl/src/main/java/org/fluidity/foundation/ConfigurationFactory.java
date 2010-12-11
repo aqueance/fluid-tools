@@ -39,6 +39,10 @@ import org.fluidity.composition.OpenComponentContainer;
 /**
  * Factory for {@link org.fluidity.foundation.DynamicConfiguration} components. This is a context aware factory that uses the {@link @Properties} annotation to
  * decide what instance to produce.
+ * <p/>
+ * We use a factory instead of directly making the {@link Configuration} implementation context aware because one of its dependencies is actually defined by the
+ * context: {@link org.fluidity.foundation.Properties#provider()}. This factory is capable of reading that annotation and adding to the container the particular
+ * provider for the {@link Configuration} implementation to pick up as dependency.
  */
 @Component(api = Configuration.class, type = ConfigurationFactory.ConfigurationImpl.class)
 @Context(Properties.class)
@@ -71,7 +75,7 @@ final class ConfigurationFactory implements ComponentFactory<Configuration> {
             final PropertyProvider.PropertyChangeListener listener = new PropertyProvider.PropertyChangeListener() {
                 public void propertiesChanged(final PropertyProvider provider) {
                     final Map<Method, Object> properties = new HashMap<Method, Object>();
-                    
+
                     for (final Method method : componentApi.getMethods()) {
                         final Setting setting = method.getAnnotation(Setting.class);
                         assert setting != null : String.format("No @%s specified for method %s", Setting.class.getName(), method);
