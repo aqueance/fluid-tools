@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,8 +24,8 @@ package org.fluidity.deployment;
 import org.fluidity.composition.ServiceProvider;
 
 /**
- * This component gets notified when all {@link org.fluidity.deployment.DeployedComponent} objects have been started/stopped. These methods are invoked from the
- * main thread and block that thread until they return.
+ * This component gets notified when all {@link org.fluidity.deployment.DeployedComponent} objects have been started/stopped. Methods of this interface are
+ * invoked from the main thread and block that thread until they return.
  * <p/>
  * All subclasses of this interface will be marked as a service provider for this interface and will be automatically found and controlled by a suitable {@link
  * DeploymentBootstrap} implementation.

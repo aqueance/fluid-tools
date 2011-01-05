@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -44,20 +44,20 @@ final class ComponentDiscoveryImpl implements ComponentDiscovery {
         final Class<T>[] classes = discovery.findComponentClasses(componentClass, null, false);
         final List<T> instances = new ArrayList<T>();
 
+        final OpenComponentContainer nested = container.makeNestedContainer();
+        final ComponentContainer.Registry registry = nested.getRegistry();
+
         for (final Class<T> theClass : classes) {
             T component = container.getComponent(theClass);
 
             if (component == null) {
-                component = container.getComponent(theClass, new ComponentContainer.Bindings() {
-                    public void bindComponents(final ComponentContainer.Registry registry) {
-                        registry.bindDefault(theClass);
-                    }
-                });
-                assert component != null;
+                registry.bindDefault(theClass);
+            } else {
+                instances.add(component);
             }
-
-            instances.add(component);
         }
+
+        instances.addAll(nested.getComponents(componentClass));
 
         return instances.toArray((T[]) Array.newInstance(componentClass, instances.size()));
     }

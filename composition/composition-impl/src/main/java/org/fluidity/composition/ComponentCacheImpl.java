@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -47,7 +47,7 @@ final class ComponentCacheImpl implements ComponentCache {
         this.log = logs.createLog(getClass());
     }
 
-    public Object lookup(final Object source, final Class<?> componentInterface, final Class<?> componentClass, final Command create) {
+    public Object lookup(final Object source, final Class<?> componentInterface, final Class<?> componentClass, final Listener listener, final Command create) {
         final ComponentContext key = contextChain.currentContext();
 
         if (!cache.containsKey(key)) {
@@ -62,6 +62,7 @@ final class ComponentCacheImpl implements ComponentCache {
             if (!cache.containsKey(consumedContext)) {
                 cache.put(key, component);
                 cache.put(consumedContext, component);
+
                 if (component == null) {
                     log.info("%s: not created component for %s%s",
                              source,
@@ -73,6 +74,10 @@ final class ComponentCacheImpl implements ComponentCache {
                              component.getClass().getName(),
                              System.identityHashCode(component),
                              consumedContext.types().isEmpty() ? "" : String.format(" for context %s", consumedContext));
+                }
+
+                if (listener != null) {
+                    listener.created(componentInterface, component);
                 }
             } else {
                 cache.put(key, cache.get(consumedContext));

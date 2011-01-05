@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,6 +22,8 @@
 
 package org.fluidity.composition;
 
+import java.util.Collection;
+
 /**
  * This is a dependency injection container that components can be added to. For any component requested the implementation must check if there is a {@link
  * ComponentVariantFactory} supplied for that component. If so, it must give the factory a chance to return a new instance and only when it fails must the
@@ -37,4 +39,13 @@ public interface OpenComponentContainer extends ComponentContainer {
      * @return a <code>ComponentContainer.Registry</code> instance.
      */
     ComponentContainer.Registry getRegistry();
+
+    /**
+     * Returns all registered components having the given interface in instantiation order.
+     *
+     * @param componentInterface filters the component instances returned.
+     *
+     * @return all registered components in instantiation order.
+     */
+    <T> Collection<T> getComponents(Class<T> componentInterface);
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,11 +29,11 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 
 import org.fluidity.tests.MockGroupAbstractTest;
 
 import org.easymock.EasyMock;
-import org.easymock.IAnswer;
 import org.testng.annotations.Test;
 
 /**
@@ -43,7 +43,7 @@ import org.testng.annotations.Test;
 public class ComponentDiscoveryImplTest extends MockGroupAbstractTest {
 
     private final ComponentContainer container = addControl(ComponentContainer.class);
-
+    private final OpenComponentContainer nestedContainer = addControl(OpenComponentContainer.class);
     private final ComponentContainer.Registry registry = addControl(ComponentContainer.Registry.class);
 
     private final ClassDiscovery discovery = addControl(ClassDiscovery.class);
@@ -77,9 +77,14 @@ public class ComponentDiscoveryImplTest extends MockGroupAbstractTest {
 
             final Interface[] instances = new Interface[] { new Impl1(), new Impl2(), new Impl3() };
 
+            EasyMock.expect(container.makeNestedContainer()).andReturn(nestedContainer);
+            EasyMock.expect(nestedContainer.getRegistry()).andReturn(registry);
+
             for (final Interface instance : instances) {
                 EasyMock.expect(container.getComponent(instance.getClass())).andReturn(instance);
             }
+
+            EasyMock.expect(nestedContainer.getComponents(Interface.class)).andReturn(Collections.EMPTY_SET);
 
             replay();
             assert new ArrayList<Interface>(Arrays.asList(instances)).equals(new ArrayList<Interface>(
@@ -124,26 +129,17 @@ public class ComponentDiscoveryImplTest extends MockGroupAbstractTest {
 
             final Interface[] instances = new Interface[] { new Impl1(), new Impl2(), new Impl3() };
 
+            EasyMock.expect(container.makeNestedContainer()).andReturn(nestedContainer);
+            EasyMock.expect(nestedContainer.getRegistry()).andReturn(registry);
+
             for (final Interface instance : instances) {
                 final Class<? extends Interface> instanceClass = instance.getClass();
+
                 EasyMock.expect(container.getComponent(instanceClass)).andReturn(null);
-                EasyMock.expect(container.getComponent(EasyMock.same(instanceClass),
-                        EasyMock.<ComponentContainer.Bindings>notNull())).andAnswer(new IAnswer<Interface>() {
-                    public Interface answer() throws Throwable {
-                        ComponentContainer.Bindings bindings =
-                                (ComponentContainer.Bindings) EasyMock.getCurrentArguments()[1];
-
-                        // invoke the testee supplied parameter
-                        bindings.bindComponents(registry);
-
-                        // return to the testee
-                        return instance;
-                    }
-                });
-
-                // expect the testee to do this when invoked from the inner class above
                 registry.bindDefault(instanceClass);
             }
+
+            EasyMock.expect(nestedContainer.getComponents(Interface.class)).andReturn(Arrays.asList(instances));
 
             replay();
             assert new ArrayList<Interface>(Arrays.asList(instances)).equals(new ArrayList<Interface>(

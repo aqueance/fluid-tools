@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -290,13 +290,22 @@ final class SimpleContainerImpl implements SimpleContainer {
     public <T> List<T> allSingletons(final Class<T> componentInterface) {
         final List<T> instances = new ArrayList<T>();
 
-        for (Class<?> type : contents.keySet()) {
-            final Object component = get(type, null);
-
-            if (component != null && componentInterface.isAssignableFrom(component.getClass())) {
-                instances.add((T) component);
+        final ComponentCache.Listener listener = new ComponentCache.Listener() {
+            public void created(final Class<?> ignored, final Object component) {
+                if (componentInterface.isAssignableFrom(component.getClass())) {
+                    instances.add((T) component);
+                }
             }
-        }
+        };
+
+        // This smells like kludge: AbstractProducer may not be the best place for this conceptually
+        AbstractProducer.captureCreation(listener, new Runnable() {
+            public void run() {
+                for (final Class<?> type : contents.keySet()) {
+                    get(type, null);
+                }
+            }
+        });
 
         return instances;
     }

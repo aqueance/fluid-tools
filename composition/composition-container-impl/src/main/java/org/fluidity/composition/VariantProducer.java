@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -89,7 +89,7 @@ abstract class VariantProducer extends AbstractProducer {
 
     @Override
     public Object create(final SimpleContainer container, final boolean circular) {
-        return cache.lookup(container, componentInterface, componentClass(), new ComponentCache.Command() {
+        return cache.lookup(container, componentInterface, componentClass(), listener(), new ComponentCache.Command() {
             public Object run(final ComponentContext context) {
                 final ComponentVariantFactory factory = factory(container);
 

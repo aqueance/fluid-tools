@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -37,6 +37,8 @@ import org.fluidity.foundation.Reflection;
  */
 abstract class AbstractProducer implements ComponentProducer {
 
+    private static final ThreadLocal<ComponentCache.Listener> listeners = new ThreadLocal<ComponentCache.Listener>();
+
     protected final ComponentCache cache;
 
     protected AbstractProducer(final ComponentCache cache) {
@@ -70,7 +72,7 @@ abstract class AbstractProducer implements ComponentProducer {
             return deferredCreate(container, componentClass, create, resolutions, null);
         } else {
             try {
-                return cache.lookup(container, componentInterface(), componentClass, create);
+                return cache.lookup(container, componentInterface(), componentClass, listener(), create);
             } catch (final ComponentContainer.CircularReferencesException e) {
 
                 // handle circular reference that was noticed later in the reference chain that could not be handled at that point
@@ -79,11 +81,15 @@ abstract class AbstractProducer implements ComponentProducer {
         }
     }
 
+    protected final ComponentCache.Listener listener() {
+        return listeners.get();
+    }
+
     private Object deferredCreate(final SimpleContainer container,
                                   final Class<?> componentClass,
                                   final ComponentCache.Command create,
-                                  ReferenceChain resolutions,
-                                  ComponentContainer.CircularReferencesException error) {
+                                  final ReferenceChain resolutions,
+                                  final ComponentContainer.CircularReferencesException error) {
         final Class<?> reference = resolutions.lastReference();
 
         if (reference.isInterface()) {
@@ -93,7 +99,7 @@ abstract class AbstractProducer implements ComponentProducer {
                 public Object invoke(final Object proxy, final Method method, final Object[] arguments) throws Throwable {
                     synchronized (this) {
                         if (delegate == null) {
-                            delegate = cache.lookup(container, componentInterface(), componentClass, create);
+                            delegate = cache.lookup(container, componentInterface(), componentClass, null, create);
                         }
                     }
 
@@ -132,5 +138,15 @@ abstract class AbstractProducer implements ComponentProducer {
     @Override
     public String toString() {
         return String.format(" %s (%s)", componentClass(), componentInterface());
+    }
+
+    public static void captureCreation(final ComponentCache.Listener listener, final Runnable command) {
+        listeners.set(listener);
+
+        try {
+            command.run();
+        } finally {
+            listeners.set(null);
+        }
     }
 }
