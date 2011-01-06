@@ -36,17 +36,16 @@ import org.fluidity.foundation.LogFactory;
 
 /**
  * Static access to class loader specific dependency injection container. The child container - parent container hierarchy matches the child class loader -
- * parent class loader hierarchy. The root class loader to have a container is the one that can find the dependencies of this class: {@link
- * org.fluidity.composition.ContainerBootstrap} and {@link org.fluidity.composition.ClassDiscovery}.
+ * parent class loader hierarchy. The root class loader to have a container is the one that can find the dependencies of this class: {@link ContainerBootstrap},
+ * {@link ContainerProvider} and {@link ContainerServicesFactory}.
  * <p/>
  * This component also bootstraps the required container if it has not yet been populated. Instances of this class all work against the same data structure,
  * thereby giving classes instantiated by third parties access to the container relevant for their level in the application's class loader hierarchy. Due to the
  * bootstrap bubbling up, it is advised to explicitly bootstrap each level container, before any child container is bootstrapped, where binding properties are
  * specified so that those properties may take effect at the given level.
  * <p/>
- * This class is a special case in the design since it has to be self-sufficient, depending on nothing but what's always available, and it also has to be
- * visible as it acts as the root object of an application's dependency graph. Thus it has to depend on concrete classes, thus somewhat breaking the Dependency
- * Inversion Principle.
+ * This class is a special case in the design since it has to be self-sufficient, depending on nothing that's not always available, and it also has to be
+ * visible as it acts as the root object of an application's dependency graph. Thus it has to depend on concrete classes.
  * <p/>
  * Access to instances of this class is thread-safe.
  *
@@ -55,9 +54,9 @@ import org.fluidity.foundation.LogFactory;
 public final class ComponentContainerAccess implements ComponentContainer {
 
     private static final Map<ClassLoader, OpenComponentContainer> populatedContainers = new WeakHashMap<ClassLoader, OpenComponentContainer>();
-    private static final Set<ClassLoader> inflightContainers = new HashSet<ClassLoader>();
     private static final Map<ClassLoader, Map> propertiesMap = new HashMap<ClassLoader, Map>();
-    private static final Set<OpenComponentContainer> committedContainers = new HashSet<OpenComponentContainer>();
+    private static final Set<OpenComponentContainer> loadedContainers = new HashSet<OpenComponentContainer>();
+    private static final Object stateLock = new Object();
 
     /**
      * The component that can discover the above dependencies for us. The point is to have one single dependency for unit tests to override. This class is not
@@ -108,9 +107,8 @@ public final class ComponentContainerAccess implements ComponentContainer {
         this.services = services;
 
         ComponentContainerAccess.populatedContainers.clear();
-        ComponentContainerAccess.inflightContainers.clear();
         ComponentContainerAccess.propertiesMap.clear();
-        ComponentContainerAccess.committedContainers.clear();
+        ComponentContainerAccess.loadedContainers.clear();
 
         this.rootClassLoader = null;
         this.containerBootstrap = null;
@@ -118,32 +116,35 @@ public final class ComponentContainerAccess implements ComponentContainer {
     }
 
     /**
-     * Adds a property to a collection that will be passed to the bindings if they have a constructor that receives a <code>java.utils.Map</code> object.
+     * Makes the container for the nearest class loader available to the caller. Used for testing.
+     *
+     * @return the container for the nearest class loader.
+     */
+    /* package */ ComponentContainer getContainer() {
+        return loadContainer(true);
+    }
+
+    /**
+     * Adds a property to a collection that will be passed to any {@link PackageBindings} visible by the current class loader that has a constructor with a
+     * {@link Map} parameter.
      *
      * @param key   is the key of the property.
      * @param value is the value of the property.
      */
-    @SuppressWarnings({ "unchecked" })
+    @SuppressWarnings( { "unchecked" })
     public void setBindingsProperty(final Object key, final Object value) {
-        Map map = propertiesMap.get(classLoader);
+        synchronized (stateLock) {
+            Map map = propertiesMap.get(classLoader);
 
-        if (map == null) {
-            propertiesMap.put(classLoader, map = new HashMap());
+            if (map == null) {
+                propertiesMap.put(classLoader, map = new HashMap());
+            }
+
+            map.put(key, value);
         }
-
-        map.put(key, value);
     }
 
-    /**
-     * Makes the container with the least scope available to the caller.
-     *
-     * @return the application wide container.
-     */
-    public ComponentContainer getContainer() {
-        return getContainer(true);
-    }
-
-    private void makeContainer(final ClassLoader classLoader) {
+    private OpenComponentContainer makeContainer() {
         if (services == null) {
             services = new BootstrapServicesImpl();
         }
@@ -154,12 +155,11 @@ public final class ComponentContainerAccess implements ComponentContainer {
             classLoaders.add(loader);
         }
 
+        // going in reverse order because container for a given class loader has to use as its parent the container for the parent class loader
         for (final ListIterator<ClassLoader> i = classLoaders.listIterator(classLoaders.size()); i.hasPrevious();) {
             final ClassLoader loader = i.previous();
 
-            OpenComponentContainer container = populatedContainers.get(loader);
-
-            if (container == null) {
+            if (!populatedContainers.containsKey(loader)) {
                 if (containerBootstrap == null) {
                     containerBootstrap = services.findInstance(ContainerBootstrap.class, loader);
                 }
@@ -181,18 +181,13 @@ public final class ComponentContainerAccess implements ComponentContainer {
                         assert containerServices != null : ContainerServicesFactory.class;
                     }
 
-                    inflightContainers.add(loader);
-                    try {
-                        final Map map = propertiesMap.get(loader);
-                        container = containerBootstrap.populateContainer(containerServices,
-                                                                         containerProvider,
-                                                                         map == null ? new HashMap() : map,
-                                                                         populatedContainers.get(loader.getParent()),
-                                                                         loader);
-                        populatedContainers.put(loader, container);
-                    } finally {
-                        inflightContainers.remove(loader);
-                    }
+                    final Map map = propertiesMap.get(loader);
+                    final OpenComponentContainer container = containerBootstrap.populateContainer(containerServices,
+                                                                                                  containerProvider,
+                                                                                                  map == null ? new HashMap() : map,
+                                                                                                  populatedContainers.get(loader.getParent()),
+                                                                                                  loader);
+                    populatedContainers.put(loader, container);
                 } else {
                     populatedContainers.put(loader, null);
                 }
@@ -200,30 +195,30 @@ public final class ComponentContainerAccess implements ComponentContainer {
         }
 
         assert populatedContainers.containsKey(classLoader);
-    }
 
-    private synchronized OpenComponentContainer getContainer(final boolean commit) {
-        if (inflightContainers.contains(classLoader)) {
-            throw new IllegalStateException("Container for " + classLoader + " cannot be externally accessed while it is being populated");
-        } else if (!populatedContainers.containsKey(classLoader)) {
-            makeContainer(classLoader);
-        }
+        OpenComponentContainer container = null;
 
-        ClassLoader loader = classLoader;
-        OpenComponentContainer container = populatedContainers.get(loader);
-        while (container == null && (loader = loader.getParent()) != null) {
+        for (ClassLoader loader = classLoader; container == null && loader != null; loader = loader.getParent()) {
             container = populatedContainers.get(loader);
         }
 
-        if (container != null) {
-            if (commit) {
-                committedContainers.add(container);
-            } else if (committedContainers.contains(container)) {
-                throw new IllegalStateException("Component container is read-only.");
-            }
-        }
-
         return container;
+    }
+
+    private OpenComponentContainer loadContainer(final boolean load) {
+        synchronized (stateLock) {
+            final OpenComponentContainer container = makeContainer();
+
+            if (container != null) {
+                if (load) {
+                    loadedContainers.add(container);
+                } else if (loadedContainers.contains(container)) {
+                    throw new IllegalStateException("Component container is already loaded.");
+                }
+            }
+
+            return container;
+        }
     }
 
     /**
@@ -232,11 +227,11 @@ public final class ComponentContainerAccess implements ComponentContainer {
      * @see ComponentContainer#getComponent(Class)
      */
     public <T> T getComponent(final Class<T> componentClass) {
-        return getContainer(true).getComponent(componentClass);
+        return loadContainer(true).getComponent(componentClass);
     }
 
     public <T> T getComponent(final Class<T> componentClass, final Bindings bindings) {
-        return getContainer(true).getComponent(componentClass, bindings);
+        return loadContainer(true).getComponent(componentClass, bindings);
     }
 
     /**
@@ -245,19 +240,19 @@ public final class ComponentContainerAccess implements ComponentContainer {
      * @see OpenComponentContainer#makeNestedContainer()
      */
     public OpenComponentContainer makeNestedContainer() {
-        return getContainer(true).makeNestedContainer();
+        return loadContainer(true).makeNestedContainer();
     }
 
     public <T> T initialize(final T component) {
-        return getContainer(true).initialize(component);
+        return loadContainer(true).initialize(component);
     }
 
     /**
-     * Allows a bootstrap code to add components to the container. This method can only be invoked before any component is taken out of the container by any of
-     * the {@link #getComponent(Class)} or {@link #getComponent(Class, org.fluidity.composition.ComponentContainer.Bindings)} methods. Once that happens, this
-     * method will throw an <code>IllegalStateException</code>.
+     * Allows a bootstrap code to add components to the container. This method can only be invoked before any component is taken out of the container by any
+     * thread using any of the {@link #getComponent(Class)}, {@link #getComponent(Class, org.fluidity.composition.ComponentContainer.Bindings)}, {@link
+     * #initialize(Object)} or {@link #makeNestedContainer()} methods. Once that happens, this method will throw an <code>IllegalStateException</code>.
      * <p/>
-     * This method will trigger population of the associated container and its parents.
+     * Calling this method will trigger population of the associated container and its parents.
      *
      * @param key      the key by which to register the component; preferably an interface class.
      * @param instance the component instance.
@@ -265,6 +260,6 @@ public final class ComponentContainerAccess implements ComponentContainer {
      * @throws IllegalStateException if the container is made read only by getting any component out of it.
      */
     public <T> void bindBootComponent(final Class<? super T> key, final T instance) {
-        getContainer(false).getRegistry().bindInstance(key, instance);
+        loadContainer(false).getRegistry().bindInstance(key, instance);
     }
 }
