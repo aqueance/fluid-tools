@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,10 +30,10 @@ package org.fluidity.foundation;
  * <pre>
  * public interface MySettings {
  *
- *   @Setting(key = "setting.property.1", fallback = "default setting 1")
+ *   &#64;Setting(key = "setting.property.1", fallback = "default setting 1")
  *   String property1();
  *
- *   @Setting(key = "setting.property.2", fallback = "default setting 2")
+ *   &#64;Setting(key = "setting.property.2", fallback = "default setting 2")
  *   String property2();
  * }
  * </pre>
@@ -41,14 +41,14 @@ package org.fluidity.foundation;
  * Using the above and a suitable implementation of {@link PropertyProvider}, <code>MyPropertyProvider</code>, a component can now declare a dependency to a
  * configuration, either static or dynamic, like so:
  * <pre>
- *  @Component
+ *  &#64;Component
  *  public static class Configured {
  *
  *      private final String property1;
  *      private final String property2;
  *
- *      public Configured(@Properties(api = MySettings.class, provider = MyPropertyProvider.class) final Configuration<MySettings> settings) {
- *          final Settings configuration = settings.configuration();
+ *      public Configured(final @Properties(api = MySettings.class, provider = MyPropertyProvider.class) Configuration&lt;MySettings> settings) {
+ *          final MySettings configuration = settings.configuration();
  *          assert configuration != null;
  *
  *          property1 = configuration.property1();
@@ -64,7 +64,6 @@ package org.fluidity.foundation;
  * In place of {@link Configuration}, the configured class may use either {@link DynamicConfiguration} or {@link StaticConfiguration} to express its intention
  * to have or not have, respectively, the most up to date set of configuration settings available at run-time.
  */
-@SuppressWarnings("JavaDoc")
 public interface Configuration<T> {
 
     /**
