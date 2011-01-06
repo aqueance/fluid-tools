@@ -53,7 +53,7 @@ final class SimpleContainerImpl implements SimpleContainer {
     public SimpleContainerImpl(final SimpleContainer parent, final ContainerServices services) {
         this.parent = parent;
         this.services = services;
-        this.log = services.log().createLog(getClass());
+        this.log = services.logs().createLog(getClass());
 
         this.referenceChain = this.services.referenceChain();
         this.contextChain = this.services.contextChain();

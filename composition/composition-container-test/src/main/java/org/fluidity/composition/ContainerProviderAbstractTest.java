@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -76,7 +76,7 @@ public abstract class ContainerProviderAbstractTest extends MockGroupAbstractTes
 
     @BeforeMethod
     public void dependencies() {
-        EasyMock.expect(services.log()).andReturn(logs).anyTimes();
+        EasyMock.expect(services.logs()).andReturn(logs).anyTimes();
         EasyMock.expect(services.classDiscovery()).andReturn(classDiscovery).anyTimes();
         EasyMock.expect(services.referenceChain()).andReturn(referenceChain).anyTimes();
         EasyMock.expect(services.contextChain()).andReturn(contextChain).anyTimes();

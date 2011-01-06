@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -47,7 +47,7 @@ public final class ContainerBootstrapImpl implements ContainerBootstrap {
                                                     final Map properties,
                                                     final OpenComponentContainer parent,
                                                     final ClassLoader classLoader) {
-        final Log log = services.log().createLog(getClass());
+        final Log log = services.logs().createLog(getClass());
         final OpenComponentContainer container = parent == null ? provider.newContainer(services) : parent.makeNestedContainer();
 
         log.info("Created new %s%s", container, (classLoader == null ? "" : " for " + classLoader));
