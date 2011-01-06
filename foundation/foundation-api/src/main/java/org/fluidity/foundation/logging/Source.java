@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  */
 
-package org.fluidity.foundation;
+package org.fluidity.foundation.logging;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -29,26 +29,18 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Context annotation for {@link StaticConfiguration} and {@link DynamicConfiguration} components.
+ * Context annotation for {@link Log} components. See that for details.
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target( { ElementType.PARAMETER, ElementType.FIELD })
-public @interface Properties {
+public @interface Source {
 
     /**
-     * Defines the interface defining the configuration methods used by the class employing this annotation.
-     * <p/>
-     * TODO: infer the same information from the generic type of the parameter
+     * The class to pass to the {@link org.fluidity.foundation.LogFactory} implementation for the {@link Log} instance returned to the class using this
+     * annotation.
      *
-     * @return a class object.
+     * @return a {@link Class} object, never <code>null</code>.
      */
-    Class<?> api();
-
-    /**
-     * The class implementing the {@link PropertyProvider} interface, used to map property keys to property values.
-     *
-     * @return a class object.
-     */
-    Class<? extends PropertyProvider> provider();
+    Class<?> value();
 }

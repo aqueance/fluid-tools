@@ -23,21 +23,35 @@
 package org.fluidity.foundation;
 
 import org.fluidity.composition.Component;
-import org.fluidity.composition.ServiceProvider;
+import org.fluidity.composition.ComponentContainer;
+import org.fluidity.composition.ComponentContext;
+import org.fluidity.composition.ComponentFactory;
+import org.fluidity.composition.Context;
+import org.fluidity.composition.OpenComponentContainer;
 import org.fluidity.foundation.logging.Log;
+import org.fluidity.foundation.logging.Source;
 
 /**
- * Turns an instance of {@link org.fluidity.foundation.StandardOutLogFactory} into a component.
- *
- * Class is public for sun.misc.Services to find it.
+ * Creates {@link org.fluidity.foundation.logging.Log} objects for the source specified by a {@link org.fluidity.foundation.logging.Source} annotation, using
+ * the user provided implementation of the {@link LogFactory} interface.
  */
-@ServiceProvider
-@Component(fallback = true)
-public final class DefaultLogFactory implements LogFactory {
+@Component(api = Log.class, type = Log.class)
+@Context(Source.class)
+final class LogComponentFactory implements ComponentFactory<Log> {
 
-    private final LogFactory delegate = new StandardOutLogFactory();
+    private final LogFactory factory;
 
-    public Log createLog(final Class<?> source) {
-        return delegate.createLog(source);
+    public LogComponentFactory(final LogFactory factory) {
+        this.factory = factory;
+    }
+
+    public Log newComponent(final OpenComponentContainer container, final ComponentContext context) throws ComponentContainer.ResolutionException {
+        final Source source = context.annotation(Source.class);
+
+        if (source == null) {
+            throw new ComponentContainer.ResolutionException("Annotation %s is missing from Log dependency", Source.class);
+        }
+
+        return factory.createLog(source.value());
     }
 }

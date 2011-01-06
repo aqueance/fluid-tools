@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,7 +30,7 @@ import org.fluidity.composition.ComponentContext;
  * Contexts are the means to have multiple instances of the same component with different configuration by components that directly support contexts or that
  * have been complemented by a {@link org.fluidity.composition.ComponentVariantFactory} object to add context support.
  * <p/>
- * A context aware component or a {@link org.fluidity.composition.ComponentVariantFactory} declares, using the {@link org.fluidity.composition.Context#value()}
+ * A context aware component or a {@link org.fluidity.composition.ComponentVariantFactory} declares, using the {@link org.fluidity.composition.Context}
  * annotation, context keys that they consume. Upon instantiation a context is passed to such a component or the variant factory in the form of a {@link
  * java.util.Properties} object with keys that are a subset of the keys the component or factory declares to support.
  * <p/>
@@ -43,7 +43,7 @@ import org.fluidity.composition.ComponentContext;
  * <p/>
  * Further contexts are added to the base at each {@link org.fluidity.composition.Context} annotated reference along a dependency chain. The context consumed by
  * a context aware component is inherited back through the dependency chain ending with the instantiation of that component up to the point where the context is
- * fully defined and may cause new instantiation of components in between that are not themselves context aware.
+ * fully defined and may cause contextual instantiation of components in between that are not themselves context aware.
  *
  * @author Tibor Varga
  */
@@ -82,9 +82,11 @@ public interface ContextChain {
     /**
      * Returns the context supported ahead at this point and ahead in the resolution chain.
      *
+     * @param context the context consumed at the point of calling this method.
+     *
      * @return the context supported ahead at this point and ahead in the resolution chain.
      */
-    ComponentContext consumedContext();
+    ComponentContext consumedContext(ComponentContext context);
 
     /**
      * A command to run while establishing a new context. The established context is restored to its pre-flight value after the command completes.
@@ -96,7 +98,7 @@ public interface ContextChain {
          *
          * @param context the context established at the point of invocation.
          *
-         * @return whatever the caller of {@link org.fluidity.composition.spi.ContextChain#nested(org.fluidity.composition.ComponentContext,org.fluidity.composition.spi.ContextChain.Command)}
+         * @return whatever the caller of {@link org.fluidity.composition.spi.ContextChain#nested(org.fluidity.composition.ComponentContext, org.fluidity.composition.spi.ContextChain.Command)}
          *         wishes to receive back.
          */
         T run(ComponentContext context);

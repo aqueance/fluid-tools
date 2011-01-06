@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,6 +28,12 @@ import java.util.List;
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContainerAccess;
+import org.fluidity.foundation.configuration.Configuration;
+import org.fluidity.foundation.configuration.DynamicConfiguration;
+import org.fluidity.foundation.configuration.Properties;
+import org.fluidity.foundation.configuration.PropertyProvider;
+import org.fluidity.foundation.configuration.Setting;
+import org.fluidity.foundation.configuration.StaticConfiguration;
 import org.fluidity.tests.MockGroupAbstractTest;
 
 import org.easymock.EasyMock;

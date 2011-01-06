@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,8 +26,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.fluidity.composition.Component;
 import org.fluidity.composition.Optional;
-import org.fluidity.foundation.Log;
-import org.fluidity.foundation.LogFactory;
+import org.fluidity.foundation.logging.Log;
+import org.fluidity.foundation.logging.Source;
 
 /**
  * This run loop implementation expects the application loop to be in a {@link org.fluidity.deployment.cli.MainLoop.Application}, which when done invokes {@link
@@ -42,8 +42,8 @@ final class DefaultMainLoopImpl implements MainLoop {
     private final Application application;
     private final Log log;
 
-    public DefaultMainLoopImpl(@Optional final LogFactory logs, @Optional final Application application) {
-        this.log = logs.createLog(getClass());
+    public DefaultMainLoopImpl(final @Optional @Source(DefaultMainLoopImpl.class) Log log, final @Optional Application application) {
+        this.log = log;
         this.application = application;
     }
 

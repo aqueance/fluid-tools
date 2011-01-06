@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,8 +22,12 @@
 
 package org.fluidity.foundation;
 
+import org.fluidity.foundation.logging.Log;
+
 /**
- * Creates source-bound {@link org.fluidity.foundation.Log} objects. Your implementation should hook the {@link org.fluidity.foundation.Log} interface to the
+ * This is an service provider interface for Fluid Tools. For use in client code, see to the documentation of the {@link Log} class.
+ * <p/>
+ * Creates source-bound {@link org.fluidity.foundation.logging.Log} objects. Your implementation should hook the {@link org.fluidity.foundation.logging.Log} interface to the
  * respective log sink of the logging framework of your choice. The prevalent implementation of this interface will be looked for as a JAR Service Provider. See
  * the JAR file specification for details.
  * <p/>
@@ -32,7 +36,7 @@ package org.fluidity.foundation;
  * the composition framework then you should also annotate your implementation with org.fluidity.composition.Component for components of Fluid Tools to find
  * it.
  * <p/>
- * {@link org.fluidity.foundation.Log} objects returned by this factory are thread safe as long as the underlying log implementation is.
+ * {@link org.fluidity.foundation.logging.Log} objects returned by this factory are thread safe as long as the underlying log implementation is.
  */
 public interface LogFactory {
 

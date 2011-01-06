@@ -30,7 +30,7 @@ import java.util.ListIterator;
 import java.util.Map;
 
 import org.fluidity.composition.spi.ContainerServices;
-import org.fluidity.foundation.Log;
+import org.fluidity.foundation.logging.Log;
 
 /**
  * Bootstraps the component container. This class is exported via the standard service provider discovery mechanism described in the JAR file specification (for

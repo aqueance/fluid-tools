@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -35,8 +35,8 @@ import java.util.Set;
 
 import org.fluidity.foundation.ClassLoaderUtils;
 import org.fluidity.foundation.Exceptions;
-import org.fluidity.foundation.Log;
 import org.fluidity.foundation.LogFactory;
+import org.fluidity.foundation.logging.Log;
 
 /**
  * The component is instantiated by {@link org.fluidity.composition.ProductionServices} and

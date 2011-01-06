@@ -33,7 +33,7 @@ import org.fluidity.composition.spi.ContextChain;
 import org.fluidity.composition.spi.ContextFactory;
 import org.fluidity.composition.spi.DependencyInjector;
 import org.fluidity.composition.spi.ReferenceChain;
-import org.fluidity.foundation.Log;
+import org.fluidity.foundation.logging.Log;
 
 /**
  * @author Tibor Varga

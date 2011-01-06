@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -31,14 +31,14 @@ import javax.servlet.ServletContextListener;
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ServiceProvider;
 import org.fluidity.composition.ShutdownHook;
-import org.fluidity.foundation.Log;
-import org.fluidity.foundation.LogFactory;
+import org.fluidity.foundation.logging.Log;
+import org.fluidity.foundation.logging.Source;
 
 /**
  * Implements the component shutdown mechanism for web applications. The implementation requires a mechanism that auto-discovers
  * <code>ServletContextListeners</code> and dispatches the respective servlet events to all without each having to be registered in the web application's
- * web.xml file. Such mechanism is the {@link org.fluidity.composition.web.WebApplicationLifecycleListener} that should be added as a listener in the
- * host web application's <code>web.xml</code> file.
+ * web.xml file. Such mechanism is the {@link org.fluidity.composition.web.WebApplicationLifecycleListener} that should be added as a listener in the host web
+ * application's <code>web.xml</code> file.
  *
  * @author Tibor Varga
  */
@@ -50,8 +50,8 @@ final class WebApplicationShutdownHookImpl implements ShutdownHook, ServletConte
 
     private final Log log;
 
-    public WebApplicationShutdownHookImpl(final LogFactory logs) {
-        this.log = logs.createLog(getClass());
+    public WebApplicationShutdownHookImpl(final @Source(WebApplicationShutdownHookImpl.class) Log log) {
+        this.log = log;
     }
 
     public void addTask(final String threadName, final Runnable command) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -48,20 +48,22 @@ final class ContextChainImpl implements ContextChain {
     public ContextChainImpl(final ContextFactory factory) {
         this.factory = factory;
 
-        @SuppressWarnings({ "unchecked" })
         final ComponentContext context = new ComponentContext() {
+
+            @SuppressWarnings( { "unchecked" })
             public <T extends Annotation> T[] annotations(final Class<T> type) {
                 return (T[]) Collections.EMPTY_LIST.toArray();
             }
 
-            public <T extends Annotation> T annotation(Class<T> type) {
+            public <T extends Annotation> T annotation(final Class<T> type) {
                 return null;
             }
 
-            public boolean defines(Class<? extends Annotation> type) {
+            public boolean defines(final Class<? extends Annotation> type) {
                 return false;
             }
 
+            @SuppressWarnings( { "unchecked" })
             public Set<Class<? extends Annotation>> types() {
                 return (Set<Class<? extends Annotation>>) Collections.EMPTY_SET;
             }
@@ -86,6 +88,8 @@ final class ContextChainImpl implements ContextChain {
                 return command.run(context);
             } finally {
                 establishedContext.set(currentContext);
+
+                // collect context on the reference chain for components earlier in the chain
                 consumedContext.set(factory.filteredContext(currentContext, consumedContext.get()));
             }
         }
@@ -106,18 +110,17 @@ final class ContextChainImpl implements ContextChain {
             }
         }
 
-        final ComponentContext consumed = factory.deriveContext(consumedContext.get(), factory.newContext(map));
-
-        consumedContext.set(consumed);
-
-        return consumed;
+        return factory.deriveContext(consumedContext.get(), factory.newContext(map));
     }
 
-    public ComponentContext consumedContext() {
-        return consumedContext.get();
+    public ComponentContext consumedContext(final ComponentContext parent) {
+        final ComponentContext child = consumedContext.get();
+        final ComponentContext context = child == null ? parent : factory.deriveContext(parent, child);
+        consumedContext.set(context);
+        return context;
     }
 
-    @SuppressWarnings({ "unchecked" })
+    @SuppressWarnings( { "unchecked" })
     private Class<? extends Annotation>[] contextTypes(final Class<?> componentType, final Class<?> componentClass, final ReferenceChain referenceChain) {
         assert componentClass != null;
         final Set<Class<? extends Annotation>> types = new HashSet<Class<? extends Annotation>>();

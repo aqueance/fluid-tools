@@ -28,8 +28,8 @@ import java.util.Map;
 import org.fluidity.composition.spi.ComponentCache;
 import org.fluidity.composition.spi.ContextChain;
 import org.fluidity.composition.spi.ReferenceChain;
-import org.fluidity.foundation.Log;
 import org.fluidity.foundation.LogFactory;
+import org.fluidity.foundation.logging.Log;
 
 /**
  * @author Tibor Varga
@@ -51,14 +51,14 @@ final class ComponentCacheImpl implements ComponentCache {
         final ComponentContext key = contextChain.currentContext();
 
         if (!cache.containsKey(key)) {
+            final ComponentContext context = contextChain.consumedContext(componentInterface, componentClass, contextChain.currentContext(), referenceChain);
 
-            // go ahead and create the component and get the actual consumed context calculated
-            final Object component = create.run(contextChain.consumedContext(componentInterface,
-                                                                             componentClass,
-                                                                             contextChain.currentContext(),
-                                                                             referenceChain));
+            // go ahead and create the component and then see if it was actually necessary
+            final Object component = create.run(context);
 
-            final ComponentContext consumedContext = contextChain.consumedContext();
+            // get the context consumed further in the chain and pass the one consumed here
+            final ComponentContext consumedContext = contextChain.consumedContext(context);
+
             if (!cache.containsKey(consumedContext)) {
                 cache.put(key, component);
                 cache.put(consumedContext, component);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,8 +30,8 @@ import java.util.List;
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentDiscovery;
-import org.fluidity.foundation.Log;
-import org.fluidity.foundation.LogFactory;
+import org.fluidity.foundation.logging.Log;
+import org.fluidity.foundation.logging.Source;
 
 /**
  * @author Tibor Varga
@@ -49,11 +49,12 @@ final class DeploymentBootstrapImpl implements DeploymentBootstrap {
 
     private final Log log;
 
-    public DeploymentBootstrapImpl(final LogFactory logs,
+    public DeploymentBootstrapImpl(final @Source(DeploymentBootstrapImpl.class) Log log,
                                    final ComponentContainer container,
                                    final ComponentDiscovery discovery,
                                    final DeploymentControl deployments) {
-        this.log = logs.createLog(getClass());
+        this.log = log
+        ;
         this.container = container;
         this.discovery = discovery;
         this.deployments = deployments;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,9 +23,9 @@
 package org.fluidity.maven;
 
 import org.fluidity.composition.ServiceProvider;
-import org.fluidity.foundation.Log;
 import org.fluidity.foundation.LogFactory;
 import org.fluidity.foundation.NullLogFactory;
+import org.fluidity.foundation.logging.Log;
 
 /**
  * Acts as a log factory during testing, used for suppressing the log output of the container.

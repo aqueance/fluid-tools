@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  */
 
-package org.fluidity.foundation;
+package org.fluidity.foundation.configuration;
 
 /**
  * Represents some configuration. A configuration is a group of settings consumed by some entity. The generic type of this interface is the interface defining
@@ -42,12 +42,12 @@ package org.fluidity.foundation;
  * configuration, either static or dynamic, like so:
  * <pre>
  *  &#64;Component
- *  public static class Configured {
+ *  public class Configured {
  *
  *      private final String property1;
  *      private final String property2;
  *
- *      public Configured(final @Properties(api = MySettings.class, provider = MyPropertyProvider.class) Configuration&lt;MySettings> settings) {
+ *      public Configured(final &#64;Properties(api = MySettings.class, provider = MyPropertyProvider.class) Configuration&lt;MySettings> settings) {
  *          final MySettings configuration = settings.configuration();
  *          assert configuration != null;
  *

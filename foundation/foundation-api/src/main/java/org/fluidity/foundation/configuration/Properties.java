@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,10 +20,33 @@
  * THE SOFTWARE.
  */
 
-package org.fluidity.foundation;
+package org.fluidity.foundation.configuration;
+
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * Represents configuration that does not change at run-time. This is actually a marker interface and its properties may change at run-time. The purpose
- * of this interface is to express the intention of its user that it will not care about properties changing once they have been read up.
+ * Context annotation for {@link StaticConfiguration} and {@link DynamicConfiguration} components. See {@link Configuration} for details.
  */
-public interface StaticConfiguration<T> extends Configuration<T>{ }
+@Documented
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ ElementType.PARAMETER, ElementType.FIELD })
+public @interface Properties {
+
+    /**
+     * Defines the interface defining the configuration methods used by the class employing this annotation.
+     *
+     * @return a class object.
+     */
+    Class<?> api();
+
+    /**
+     * The class implementing the {@link PropertyProvider} interface, used to map property keys to property values.
+     *
+     * @return a class object.
+     */
+    Class<? extends PropertyProvider> provider();
+}

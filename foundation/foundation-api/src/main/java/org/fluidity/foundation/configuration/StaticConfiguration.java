@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,38 +20,10 @@
  * THE SOFTWARE.
  */
 
-package org.fluidity.foundation;
+package org.fluidity.foundation.configuration;
 
 /**
- * Log interface to use by Fluid Tools components.
+ * Represents configuration that does not change at run-time. This is actually a marker interface and its properties may change at run-time. The purpose
+ * of this interface is to express the intention of its user that it will not care about properties changing once they have been read up.
  */
-public interface Log {
-
-    boolean isTraceEnabled();
-
-    boolean isDebugEnabled();
-
-    boolean isInfoEnabled();
-
-    void trace(final String message, final Object... args);
-
-    void debug(final String message, final Object... args);
-
-    void info(final String message, final Object... args);
-
-    void warning(final String message, final Object... args);
-
-    void error(final String message, final Object... args);
-
-    void trace(final Throwable exception, final String message, final Object... args);
-
-    void debug(final Throwable exception, final String message, final Object... args);
-
-    void info(final Throwable exception, final String message, final Object... args);
-
-    void warning(final Throwable exception, final String message, final Object... args);
-
-    void error(final Throwable exception, final String message, final Object... args);
-
-    void timer(String message, long beginMillis);
-}
+public interface StaticConfiguration<T> extends Configuration<T>{ }

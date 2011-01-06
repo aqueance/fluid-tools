@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,8 +26,10 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 
+import org.fluidity.foundation.logging.Log;
+
 /**
- * Returns {@link org.fluidity.foundation.Log} implementations that simply gobble up messages.
+ * Returns {@link org.fluidity.foundation.logging.Log} implementations that simply gobble up messages.
  */
 public final class NullLogFactory implements LogFactory {
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,8 +28,8 @@ import java.util.List;
 
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentDiscovery;
-import org.fluidity.foundation.LogFactory;
 import org.fluidity.foundation.NullLogFactory;
+import org.fluidity.foundation.logging.Log;
 import org.fluidity.tests.MockGroupAbstractTest;
 
 import org.easymock.EasyMock;
@@ -40,7 +40,7 @@ import org.testng.annotations.Test;
 
 public final class DeploymentBootstrapImplTest extends MockGroupAbstractTest {
 
-    private final LogFactory logs = new NullLogFactory();
+    private final Log log = new NullLogFactory().createLog(null);
     private final ComponentContainer container = addControl(ComponentContainer.class);
     private final ComponentDiscovery discovery = addControl(ComponentDiscovery.class);
     private final DeploymentControl deployments = addControl(DeploymentControl.class);
@@ -52,7 +52,7 @@ public final class DeploymentBootstrapImplTest extends MockGroupAbstractTest {
     private final DeploymentObserver observer1 = addStrictControl(DeploymentObserver.class);
     private final DeploymentObserver observer2 = addStrictControl(DeploymentObserver.class);
 
-    private final DeploymentBootstrap bootstrap = new DeploymentBootstrapImpl(logs, container, discovery, deployments);
+    private final DeploymentBootstrap bootstrap = new DeploymentBootstrapImpl(log, container, discovery, deployments);
 
     @Test
     public void forceTestOrdering() throws Exception {

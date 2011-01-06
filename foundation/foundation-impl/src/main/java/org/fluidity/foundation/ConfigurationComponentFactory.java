@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -35,24 +35,35 @@ import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.ComponentFactory;
 import org.fluidity.composition.Context;
 import org.fluidity.composition.OpenComponentContainer;
+import org.fluidity.foundation.configuration.Configuration;
+import org.fluidity.foundation.configuration.DynamicConfiguration;
+import org.fluidity.foundation.configuration.Properties;
+import org.fluidity.foundation.configuration.PropertyProvider;
+import org.fluidity.foundation.configuration.Setting;
+import org.fluidity.foundation.configuration.StaticConfiguration;
 
 /**
- * Factory for {@link org.fluidity.foundation.DynamicConfiguration} components. This is a context aware factory that uses the {@link @Properties} annotation to
- * decide what instance to produce.
+ * Factory for {@link DynamicConfiguration} and {@link org.fluidity.foundation.configuration.StaticConfiguration} components. This is a context aware factory
+ * that uses the {@link @Properties} annotation to decide what instance to produce.
  * <p/>
- * We use a factory instead of directly making the {@link Configuration} implementation context aware because one of its dependencies is actually defined by the
- * context: {@link org.fluidity.foundation.Properties#provider()}. This factory is capable of reading that annotation and adding to the container the particular
- * provider for the {@link Configuration} implementation to pick up as dependency.
+ * We use a factory instead of directly making the {@link org.fluidity.foundation.configuration.Configuration} implementation context aware because one of its
+ * dependencies is actually defined by the context: {@link org.fluidity.foundation.configuration.Properties#provider()}. This factory is capable of reading that
+ * annotation and adding to the container the particular provider for the {@link org.fluidity.foundation.configuration.Configuration} implementation to pick up
+ * as dependency.
  */
-@Component(api = Configuration.class, type = ConfigurationFactory.ConfigurationImpl.class)
+@Component(api = Configuration.class, type = ConfigurationComponentFactory.ConfigurationImpl.class)
 @Context(Properties.class)
-final class ConfigurationFactory implements ComponentFactory<Configuration> {
+final class ConfigurationComponentFactory implements ComponentFactory<Configuration> {
 
     public Configuration newComponent(final OpenComponentContainer container, final ComponentContext context) throws ComponentContainer.ResolutionException {
         final OpenComponentContainer nested = container.makeNestedContainer();
         final ComponentContainer.Registry registry = nested.getRegistry();
 
         final Properties properties = context.annotation(Properties.class);
+
+        if (properties == null) {
+            throw new ComponentContainer.ResolutionException("Annotation %s is missing from Configuration dependency", Properties.class);
+        }
 
         registry.bindInstance(Properties.class, properties);
         registry.bindComponent(PropertyProvider.class, properties.provider());

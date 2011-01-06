@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -337,6 +337,17 @@ public final class ComponentVariantTests extends AbstractContainerTests {
         verify();
     }
 
+    @Test
+    public void ContextConsumerShieldsDependenciesFromConsumedContext() throws Exception {
+        registry.bindComponent(ContextConsumer.class);
+        registry.bindComponent(ContextOblivious.class);
+
+        final ContextConsumer consumer = container.getComponent(ContextConsumer.class);
+        final ContextOblivious oblivious = container.getComponent(ContextOblivious.class);
+
+        assert consumer.dependency == oblivious;
+    }
+
     /**
      * This is intentionally private - makes sure the container is able to instantiate non-public classes
      */
@@ -460,6 +471,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
     @Documented
     @Retention(RetentionPolicy.RUNTIME)
     @Target({ ElementType.TYPE, ElementType.FIELD, ElementType.PARAMETER })
+    @SuppressWarnings( { "UnusedDeclaration" })
     public static @interface Setting1 {
 
         String value();
@@ -468,8 +480,23 @@ public final class ComponentVariantTests extends AbstractContainerTests {
     @Documented
     @Retention(RetentionPolicy.RUNTIME)
     @Target({ ElementType.TYPE, ElementType.FIELD, ElementType.PARAMETER })
+    @SuppressWarnings( { "UnusedDeclaration" })
     public static @interface Setting2 {
 
         String value();
     }
+
+    @Setting1("value1")
+    @Setting2("value2")
+    @Context(Setting1.class)
+    public static class ContextConsumer {
+
+        public ContextOblivious dependency;
+
+        public ContextConsumer(final ContextOblivious dependency) {
+            this.dependency = dependency;
+        }
+    }
+
+    public static class ContextOblivious { }
 }

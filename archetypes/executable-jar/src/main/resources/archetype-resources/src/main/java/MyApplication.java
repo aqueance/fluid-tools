@@ -19,14 +19,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package ${package};
 
+import org.fluidity.foundation.logging.Log;
+import org.fluidity.foundation.logging.Source;
 import org.fluidity.composition.Component;
 import org.fluidity.deployment.RuntimeControl;
 import org.fluidity.deployment.cli.MainLoop;
 
 @Component
-public final class MyApplication implements MainLoop.Application {
+final class MyApplication implements MainLoop.Application {
 
     private final ComponentApi sink;
 
@@ -40,10 +43,15 @@ public final class MyApplication implements MainLoop.Application {
     }
 
     @Component
-    public static class EchoText implements ComponentApi.MessageSink {
+    private static class EchoText implements ComponentApi.MessageSink {
+        private final Log log;
+
+        public EchoText(final @Source(MyApplication.class) Log log) {
+            this.log = log;
+        }
 
         public boolean receiveText(String text) {
-            System.out.println(String.format("%s (received by %s)", text, getClass()));
+            log.info(text);
             return true;
         }
     }
