@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -43,7 +43,7 @@ public final class MyApplication implements MainLoop.Application {
     public static class EchoText implements ComponentApi.MessageSink {
 
         public boolean receiveText(String text) {
-            System.out.println(String.format("%s (accepted)", text));
+            System.out.println(String.format("%s (received by %s)", text, getClass()));
             return true;
         }
     }
