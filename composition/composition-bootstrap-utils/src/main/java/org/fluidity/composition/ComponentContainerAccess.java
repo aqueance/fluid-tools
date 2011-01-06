@@ -230,6 +230,11 @@ public final class ComponentContainerAccess implements ComponentContainer {
         return loadContainer(true).getComponent(componentClass);
     }
 
+    /**
+     * Delegates to the enclosed container.
+     *
+     * @see ComponentContainer#getComponent(Class, org.fluidity.composition.ComponentContainer.Bindings)
+     */
     public <T> T getComponent(final Class<T> componentClass, final Bindings bindings) {
         return loadContainer(true).getComponent(componentClass, bindings);
     }
@@ -243,6 +248,11 @@ public final class ComponentContainerAccess implements ComponentContainer {
         return loadContainer(true).makeNestedContainer();
     }
 
+    /**
+     * Delegates to the enclosed container.
+     *
+     * @see OpenComponentContainer#initialize(Object)
+     */
     public <T> T initialize(final T component) {
         return loadContainer(true).initialize(component);
     }
