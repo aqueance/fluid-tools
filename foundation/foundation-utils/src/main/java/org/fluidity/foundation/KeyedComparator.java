@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,10 +25,9 @@ import java.text.Collator;
 import java.util.Comparator;
 
 /**
- * Defines a sort ordering between <code>Keyed</code> objects.
+ * Defines a sort ordering between {@link Keyed} objects.
  *
  * @author Tibor Varga
- * @see org.fluidity.foundation.Keyed
  */
 public final class KeyedComparator implements Comparator<Keyed> {
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,23 +26,24 @@ import java.util.Collection;
 import java.util.Map;
 
 /**
- * Logic common to the various utility classes in this package, such as <code>KeyedUtils</code>, <code>NamedUtils</code>, etc.
+ * Logic common to the various utility classes in this package, such as {@link KeyMapping}, {@link NameMapping}, etc. You can also use this utility class
+ * directly to implement various mapping and filtering functions on collections of your objects.
  *
  * @author Tibor Varga
  */
-public final class MapUtils {
+public final class Mappings {
 
-    public MapUtils() {
+    public Mappings() {
         throw new UnsupportedOperationException("No instances allowed");
     }
 
     /**
-     * Extracts the keys from achitem in the given collection.
+     * Extracts the keys from each item in the given collection.
      *
      * @param objects   the collection of objects to return the keys of.
      * @param extractor knows how to extract the key from an item.
      *
-     * @return a <code>Collection</code>, never <code>null</code>.
+     * @return a {@link Collection}, never <code>null</code>.
      */
     public static <K> Collection<K> asKeys(final Collection objects, final Extractor<K, ?> extractor) {
         assert objects != null;
@@ -57,10 +58,11 @@ public final class MapUtils {
     }
 
     /**
-     * Turns the given collection in to a map.
+     * Turns the given collection in to a map. Keys in the map will be objects returned by {@link Extractor#getKey(Object)} while the values will be objects
+     * returned by the {@link Extractor#getValue(Object)}.
      *
      * @param objects   the collection of objects to extract the keys of.
-     * @param result    is where the results should go
+     * @param result    is where the results should go.
      * @param extractor knows how to extract the key and the value from an item.
      *
      * @return the value of the <code>result</code> parameter.
@@ -76,7 +78,8 @@ public final class MapUtils {
     }
 
     /**
-     * Knows how to extract the key and the value from an object pased on to the above methods.
+     * Knows how to extract the key and the value from an object passed on to the above methods. This interface is used when processing collections to extract
+     * some property to produce a new collection or two properties, a key and a value, to produce a maps.
      */
     static interface Extractor<K, V> {
 

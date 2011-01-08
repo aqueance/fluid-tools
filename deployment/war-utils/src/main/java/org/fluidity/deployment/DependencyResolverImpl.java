@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +26,7 @@ import javax.servlet.ServletException;
 
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContainerAccess;
-import org.fluidity.foundation.ClassLoaderUtils;
+import org.fluidity.foundation.ClassLoaders;
 
 /**
  * Enables boundary (i.e. environment controlled) objects to acquire their delegate from a component container.
@@ -44,7 +44,7 @@ final class DependencyResolverImpl implements DependencyResolver {
         assert componentClassName != null : COMPONENT_KEY;
 
         try {
-            final ClassLoader classLoader = ClassLoaderUtils.findClassLoader(DependencyResolver.class);
+            final ClassLoader classLoader = ClassLoaders.findClassLoader(DependencyResolver.class);
             assert classLoader != null : DependencyResolver.class;
 
             final Class<?> componentClass = classLoader.loadClass(componentClassName);

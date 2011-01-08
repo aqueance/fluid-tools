@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -38,11 +38,11 @@ import org.fluidity.composition.Component;
 final class ResourcesImpl implements Resources {
 
     public String resourceName(final String name) {
-        return ClassLoaderUtils.absoluteResourceName(name);
+        return ClassLoaders.absoluteResourceName(name);
     }
 
     public URL locateResource(final String name) {
-        return classLoader().getResource(absoluteName(name));
+        return classLoader().getResource(resourceName(name));
     }
 
     public URL[] locateResources(final String name) {
@@ -50,7 +50,7 @@ final class ResourcesImpl implements Resources {
 
         return Exceptions.wrap(String.format("locating %s resources", name), new Exceptions.Command<java.net.URL[]>() {
             public URL[] run() throws Exception {
-                for (final Enumeration<URL> resources = classLoader().getResources(absoluteName(name)); resources.hasMoreElements();) {
+                for (final Enumeration<URL> resources = classLoader().getResources(resourceName(name)); resources.hasMoreElements();) {
                     answer.add(resources.nextElement());
                 }
 
@@ -60,7 +60,7 @@ final class ResourcesImpl implements Resources {
     }
 
     public InputStream loadResource(final String name) {
-        return classLoader().getResourceAsStream(absoluteName(name));
+        return classLoader().getResourceAsStream(resourceName(name));
     }
 
     public InputStream loadClassResource(final String className) {
@@ -76,10 +76,6 @@ final class ResourcesImpl implements Resources {
     }
 
     private ClassLoader classLoader() {
-        return ClassLoaderUtils.findClassLoader(getClass());
-    }
-
-    private String absoluteName(final String name) {
-        return ClassLoaderUtils.absoluteResourceName(name);
+        return ClassLoaders.findClassLoader(getClass());
     }
 }

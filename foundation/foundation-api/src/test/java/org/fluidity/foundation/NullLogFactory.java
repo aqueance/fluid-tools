@@ -27,6 +27,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 
 import org.fluidity.foundation.logging.Log;
+import org.fluidity.foundation.spi.LogFactory;
 
 /**
  * Returns {@link org.fluidity.foundation.logging.Log} implementations that simply gobble up messages.
@@ -40,7 +41,7 @@ public final class NullLogFactory implements LogFactory {
         }
     });
 
-    public Log createLog(final Class<?> source) {
+    public Log createLog(final Class<?> ignored) {
         return log;
     }
 }

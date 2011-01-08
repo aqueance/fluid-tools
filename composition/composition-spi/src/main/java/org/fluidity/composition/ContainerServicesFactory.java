@@ -23,7 +23,7 @@
 package org.fluidity.composition;
 
 import org.fluidity.composition.spi.ContainerServices;
-import org.fluidity.foundation.LogFactory;
+import org.fluidity.foundation.spi.LogFactory;
 
 /**
  * Creates a {@link ContainerServices} object.

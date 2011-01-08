@@ -31,9 +31,9 @@ import org.fluidity.composition.ComponentContainerAccess;
 import org.fluidity.foundation.configuration.Configuration;
 import org.fluidity.foundation.configuration.DynamicConfiguration;
 import org.fluidity.foundation.configuration.Properties;
-import org.fluidity.foundation.configuration.PropertyProvider;
 import org.fluidity.foundation.configuration.Setting;
 import org.fluidity.foundation.configuration.StaticConfiguration;
+import org.fluidity.foundation.spi.PropertyProvider;
 import org.fluidity.tests.MockGroupAbstractTest;
 
 import org.easymock.EasyMock;
@@ -296,7 +296,7 @@ public class ConfigurationTest extends MockGroupAbstractTest {
             return null;
         }
 
-        public void addChangeListener(PropertyChangeListener listener) {
+        public void addChangeListener(final PropertyChangeListener listener) {
             // ignore
         }
     }

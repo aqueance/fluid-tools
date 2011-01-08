@@ -23,9 +23,9 @@
 package org.fluidity.maven;
 
 import org.fluidity.composition.ServiceProvider;
-import org.fluidity.foundation.LogFactory;
 import org.fluidity.foundation.NullLogFactory;
 import org.fluidity.foundation.logging.Log;
+import org.fluidity.foundation.spi.LogFactory;
 
 /**
  * Acts as a log factory during testing, used for suppressing the log output of the container.

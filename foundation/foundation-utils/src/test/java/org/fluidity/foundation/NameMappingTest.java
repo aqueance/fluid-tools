@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -36,12 +36,7 @@ import org.testng.annotations.Test;
 /**
  * @author Tibor Varga
  */
-public class NamedUtilsTest extends MockGroupAbstractTest {
-
-    @Test(expectedExceptions = UnsupportedOperationException.class)
-    public void noInstantation() throws Exception {
-        new NamedUtils();
-    }
+public class NameMappingTest extends MockGroupAbstractTest {
 
     @Test
     public void collectionNameExtraction() throws Exception {
@@ -50,7 +45,7 @@ public class NamedUtilsTest extends MockGroupAbstractTest {
 
         makeCollection(names, objects);
 
-        assert names.equals(NamedUtils.asNames(objects));
+        assert names.equals(NameMapping.asNames(objects));
     }
 
     @Test
@@ -58,7 +53,7 @@ public class NamedUtilsTest extends MockGroupAbstractTest {
         final Collection<String> names = new ArrayList<String>();
         final Named[] objects = makeCollection(names);
 
-        assert names.equals(NamedUtils.asNames(objects));
+        assert names.equals(NameMapping.asNames(objects));
     }
 
     @Test
@@ -68,7 +63,7 @@ public class NamedUtilsTest extends MockGroupAbstractTest {
 
         makeCollection(names, objects);
 
-        final Map<String, Named> map = NamedUtils.asOrderedMap(objects);
+        final Map<String, Named> map = NameMapping.asOrderedMap(objects);
 
         assert names.equals(new ArrayList<String>(map.keySet()));
         assert objects.equals(new ArrayList<Named>(map.values()));
@@ -81,7 +76,7 @@ public class NamedUtilsTest extends MockGroupAbstractTest {
 
         makeCollection(names, objects);
 
-        final Map<String, Named> map = NamedUtils.asUnorderedMap(objects);
+        final Map<String, Named> map = NameMapping.asUnorderedMap(objects);
 
         assert new HashSet<String>(names).equals(new HashSet<String>(map.keySet()));
         assert new HashSet<Named>(objects).equals(new HashSet<Named>(map.values()));
@@ -92,7 +87,7 @@ public class NamedUtilsTest extends MockGroupAbstractTest {
         final Collection<String> names = new ArrayList<String>();
         final Named[] objects = makeCollection(names);
 
-        final Map<String, Named> map = NamedUtils.asOrderedMap(objects);
+        final Map<String, Named> map = NameMapping.asOrderedMap(objects);
 
         assert names.equals(new ArrayList<String>(map.keySet()));
         assert Arrays.asList(objects).equals(new ArrayList<Named>(map.values()));
@@ -103,7 +98,7 @@ public class NamedUtilsTest extends MockGroupAbstractTest {
         final Collection<String> names = new ArrayList<String>();
         final Named[] objects = makeCollection(names);
 
-        final Map<String, Named> map = NamedUtils.asUnorderedMap(objects);
+        final Map<String, Named> map = NameMapping.asUnorderedMap(objects);
 
         assert new HashSet<String>(names).equals(new HashSet<String>(map.keySet()));
         assert new HashSet<Named>(Arrays.asList(objects)).equals(new HashSet<Named>(map.values()));
@@ -119,7 +114,7 @@ public class NamedUtilsTest extends MockGroupAbstractTest {
         final Set<String> orderedKeys = new TreeSet<String>();
         orderedKeys.addAll(names);
 
-        final Map<String, Named> map = NamedUtils.asSortedMap(objects, new NamedComparator());
+        final Map<String, Named> map = NameMapping.asSortedMap(objects, new NamedComparator());
 
         assert new ArrayList<String>(orderedKeys).equals(new ArrayList<String>(map.keySet()));
         assert new HashSet<Named>(objects).equals(new HashSet<Named>(map.values()));
@@ -133,7 +128,7 @@ public class NamedUtilsTest extends MockGroupAbstractTest {
         final Set<String> orderedKeys = new TreeSet<String>();
         orderedKeys.addAll(names);
 
-        final Map<String, Named> map = NamedUtils.asSortedMap(objects, new NamedComparator());
+        final Map<String, Named> map = NameMapping.asSortedMap(objects, new NamedComparator());
 
         assert new ArrayList<String>(orderedKeys).equals(new ArrayList<String>(map.keySet()));
         assert new HashSet<Named>(Arrays.asList(objects)).equals(new HashSet<Named>(map.values()));

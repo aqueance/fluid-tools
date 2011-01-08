@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -34,7 +34,7 @@ import org.fluidity.composition.spi.ContextChain;
 import org.fluidity.composition.spi.ContextFactory;
 import org.fluidity.composition.spi.DependencyInjector;
 import org.fluidity.composition.spi.ReferenceChain;
-import org.fluidity.foundation.ClassLoaderUtils;
+import org.fluidity.foundation.ClassLoaders;
 import org.fluidity.foundation.Exceptions;
 import org.fluidity.foundation.Reflection;
 
@@ -209,7 +209,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
 
             @SuppressWarnings("unchecked")
             final Class<Object>[] componentClasses = (Class<Object>[]) discovery.findComponentClasses(providerType,
-                                                                                                      ClassLoaderUtils.findClassLoader(declaringType),
+                                                                                                      ClassLoaders.findClassLoader(declaringType),
                                                                                                       false);
 
             for (final Class<Object> componentClass : componentClasses) {

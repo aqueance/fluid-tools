@@ -36,8 +36,8 @@ import org.fluidity.composition.spi.ContextChain;
 import org.fluidity.composition.spi.ContextFactory;
 import org.fluidity.composition.spi.DependencyInjector;
 import org.fluidity.composition.spi.ReferenceChain;
-import org.fluidity.foundation.LogFactory;
 import org.fluidity.foundation.NullLogFactory;
+import org.fluidity.foundation.spi.LogFactory;
 import org.fluidity.tests.MockGroupAbstractTest;
 
 import org.easymock.EasyMock;

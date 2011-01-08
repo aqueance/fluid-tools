@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -36,7 +36,7 @@ import java.lang.reflect.Modifier;
 public abstract class Reflection {
 
     /**
-     * Tells whether the given member is accessible by anyone. The method checks accessibility of all enclosing entities.
+     * Tells whether the given member is accessible by anyone. The method checks public accessibility of all enclosing entities.
      *
      * @param member the member to check the accessibility of.
      *
@@ -50,7 +50,7 @@ public abstract class Reflection {
     }
 
     /**
-     * Tells whether the given class is accessible by anyone. The method checks accessibility of all enclosing entities.
+     * Tells whether the given class is accessible by anyone. The method checks public accessibility of all enclosing entities.
      *
      * @param type the class to check the accessibility of.
      *

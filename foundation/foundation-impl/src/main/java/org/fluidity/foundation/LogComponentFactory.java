@@ -30,10 +30,11 @@ import org.fluidity.composition.Context;
 import org.fluidity.composition.OpenComponentContainer;
 import org.fluidity.foundation.logging.Log;
 import org.fluidity.foundation.logging.Source;
+import org.fluidity.foundation.spi.LogFactory;
 
 /**
  * Creates {@link org.fluidity.foundation.logging.Log} objects for the source specified by a {@link org.fluidity.foundation.logging.Source} annotation, using
- * the user provided implementation of the {@link LogFactory} interface.
+ * the user provided implementation of the {@link org.fluidity.foundation.spi.LogFactory} interface.
  */
 @Component(api = Log.class, type = Log.class)
 @Context(Source.class)
@@ -49,7 +50,7 @@ final class LogComponentFactory implements ComponentFactory<Log> {
         final Source source = context.annotation(Source.class);
 
         if (source == null) {
-            throw new ComponentContainer.ResolutionException("Annotation %s is missing from Log dependency", Source.class);
+            throw new ComponentContainer.ResolutionException("Annotation %s is missing from %s dependency", Source.class, Log.class);
         }
 
         return factory.createLog(source.value());

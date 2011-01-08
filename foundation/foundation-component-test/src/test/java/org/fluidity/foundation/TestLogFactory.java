@@ -24,6 +24,7 @@ package org.fluidity.foundation;
 
 import org.fluidity.composition.ServiceProvider;
 import org.fluidity.foundation.logging.Log;
+import org.fluidity.foundation.spi.LogFactory;
 
 /**
  * Acts as a log factory during testing, used for suppressing the log output of the container.

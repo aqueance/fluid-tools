@@ -38,8 +38,10 @@ package org.fluidity.foundation.configuration;
  * }
  * </pre>
  * <p/>
- * Using the above and a suitable implementation of {@link PropertyProvider}, <code>MyPropertyProvider</code>, a component can now declare a dependency to a
- * configuration, either static or dynamic, like so:
+ * A settings interface like the above must have all of its methods annotated by the {@link @Setting} annotation.
+ * <p/>
+ * Using the above and a suitable implementation of {@link org.fluidity.foundation.spi.PropertyProvider}, <code>MyPropertyProvider</code>, a component can now
+ * declare a dependency to a configuration, either static or dynamic, like so:
  * <pre>
  *  &#64;Component
  *  public class Configured {
@@ -58,8 +60,8 @@ package org.fluidity.foundation.configuration;
  * </pre>
  * <p/>
  * The value offered by the above is that you do not need to implement the <code>MySettings</code> interface, it will be done for you automatically. You only
- * need to provide an implementation for the {@link PropertyProvider} for each of the various ways you have your application configured - that is have property
- * names mapped to configuration setting values -, once.
+ * need to provide an implementation for the {@link org.fluidity.foundation.spi.PropertyProvider} for each of the various ways you have your application
+ * configured - that is have property names mapped to configuration setting values -, once.
  * <p/>
  * In place of {@link Configuration}, the configured class may use either {@link DynamicConfiguration} or {@link StaticConfiguration} to express its intention
  * to have or not have, respectively, the most up to date set of configuration settings available at run-time.

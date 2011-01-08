@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  */
 
-package org.fluidity.foundation;
+package org.fluidity.foundation.spi;
 
 import org.fluidity.foundation.logging.Log;
 

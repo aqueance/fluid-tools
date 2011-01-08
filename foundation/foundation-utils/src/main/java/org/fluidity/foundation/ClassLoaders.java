@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,28 +24,26 @@ package org.fluidity.foundation;
 import java.net.URL;
 
 /**
- * Finds a suitable class loader in known application containers (web, ejb, junit, testng, maven).
+ * Finds a suitable class loader in various application containers (web, ejb, junit, testng, maven).
  * <p/>
  * In test cases this class can be controlled by setting the context class loader to a mock class loader that returns what the test case desires. This is done
  * by calling
  * <pre>
- * Thread.currentThread.setContextClassLoader(...);
+ * Thread.currentThread().setContextClassLoader(...);
  * </pre>
  *
  * @author Tibor Varga
  */
-public abstract class ClassLoaderUtils {
+public final class ClassLoaders {
 
-    private ClassLoaderUtils() {
+    private ClassLoaders() {
         throw new UnsupportedOperationException("No instance allowed");
     }
 
     public static ClassLoader findClassLoader(final Class sourceClass) {
         ClassLoader result = Thread.currentThread().getContextClassLoader();
         result = result == null ? sourceClass.getClassLoader() : result;
-        result = result == null ? ClassLoaderUtils.class.getClassLoader() : result;
-
-        // TODO: any idea how to test defaulting to the system class loader?
+        result = result == null ? ClassLoaders.class.getClassLoader() : result;
         return result == null ? ClassLoader.getSystemClassLoader() : result;
     }
 

@@ -28,7 +28,7 @@ import org.fluidity.composition.spi.ContextChain;
 import org.fluidity.composition.spi.ContextFactory;
 import org.fluidity.composition.spi.DependencyInjector;
 import org.fluidity.composition.spi.ReferenceChain;
-import org.fluidity.foundation.LogFactory;
+import org.fluidity.foundation.spi.LogFactory;
 
 /**
  * Production services for a container implementation.

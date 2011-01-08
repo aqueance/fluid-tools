@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,7 +30,7 @@ package org.fluidity.foundation;
 public abstract class Exceptions {
 
     /**
-     * Retrows {@link RuntimeException}s and wraps other {@link Exception}s in a {@link RuntimeException}.
+     * Re-trows {@link RuntimeException}s and wraps other {@link Exception}s in a {@link RuntimeException}.
      *
      * @param context the action part of the "Error %s" message in the wrapping exception.
      * @param command the command to run.
@@ -92,11 +92,10 @@ public abstract class Exceptions {
          * <pre>
          * try {
          *   ...
+         *   Exceptions.wrap("...", new Exceptions.Command&lt;Void> {
          *     ...
-         *      Exceptions.wrap("...", new Exceptions.Command&lt;Void> {
-         *        ...
-         *      });
-         *     ...
+         *      return null;
+         *   });
          *   ...
          * } catch (final Exceptions.Wrapper wrapper) {
          *   throw wrapper

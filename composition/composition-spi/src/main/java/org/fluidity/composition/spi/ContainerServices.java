@@ -23,7 +23,7 @@
 package org.fluidity.composition.spi;
 
 import org.fluidity.composition.ClassDiscovery;
-import org.fluidity.foundation.LogFactory;
+import org.fluidity.foundation.spi.LogFactory;
 
 /**
  * Common services for container implementations.

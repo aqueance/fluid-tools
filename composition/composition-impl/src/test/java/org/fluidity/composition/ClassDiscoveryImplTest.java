@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -35,9 +35,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.fluidity.foundation.ClassLoaderUtils;
-import org.fluidity.foundation.LogFactory;
+import org.fluidity.foundation.ClassLoaders;
 import org.fluidity.foundation.NullLogFactory;
+import org.fluidity.foundation.spi.LogFactory;
 import org.fluidity.tests.MockGroupAbstractTest;
 
 import org.testng.annotations.Test;
@@ -148,7 +148,7 @@ public class ClassDiscoveryImplTest extends MockGroupAbstractTest {
         outputFile.createNewFile();
 
         final InputStream input =
-                getClass().getClassLoader().getResourceAsStream(ClassLoaderUtils.absoluteResourceName(fileName));
+                getClass().getClassLoader().getResourceAsStream(ClassLoaders.absoluteResourceName(fileName));
         OutputStream output = new FileOutputStream(outputFile);
 
         assert input != null : fileName;

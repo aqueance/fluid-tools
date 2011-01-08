@@ -38,9 +38,9 @@ import org.fluidity.composition.OpenComponentContainer;
 import org.fluidity.foundation.configuration.Configuration;
 import org.fluidity.foundation.configuration.DynamicConfiguration;
 import org.fluidity.foundation.configuration.Properties;
-import org.fluidity.foundation.configuration.PropertyProvider;
 import org.fluidity.foundation.configuration.Setting;
 import org.fluidity.foundation.configuration.StaticConfiguration;
+import org.fluidity.foundation.spi.PropertyProvider;
 
 /**
  * Factory for {@link DynamicConfiguration} and {@link org.fluidity.foundation.configuration.StaticConfiguration} components. This is a context aware factory
@@ -99,6 +99,10 @@ final class ConfigurationComponentFactory implements ComponentFactory<Configurat
 
                     configuration.set((T) Proxy.newProxyInstance(loader, interfaces, new InvocationHandler() {
                         public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
+                            if (method.getDeclaringClass() == Object.class) {
+                                return method.invoke(this, args);
+                            }
+
                             assert method.getDeclaringClass().isAssignableFrom(settingsApi) : method;
                             return properties.get(method);
                         }

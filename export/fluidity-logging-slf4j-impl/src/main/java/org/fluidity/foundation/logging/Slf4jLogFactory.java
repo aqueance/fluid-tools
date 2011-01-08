@@ -24,7 +24,7 @@ package org.fluidity.foundation.logging;
 
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ServiceProvider;
-import org.fluidity.foundation.LogFactory;
+import org.fluidity.foundation.spi.LogFactory;
 
 @Component
 @ServiceProvider

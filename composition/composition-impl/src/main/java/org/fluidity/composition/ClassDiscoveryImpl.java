@@ -33,10 +33,10 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import org.fluidity.foundation.ClassLoaderUtils;
+import org.fluidity.foundation.ClassLoaders;
 import org.fluidity.foundation.Exceptions;
-import org.fluidity.foundation.LogFactory;
 import org.fluidity.foundation.logging.Log;
+import org.fluidity.foundation.spi.LogFactory;
 
 /**
  * The component is instantiated by {@link org.fluidity.composition.ProductionServices} and
@@ -55,7 +55,7 @@ final class ClassDiscoveryImpl implements ClassDiscovery {
 
     @SuppressWarnings("unchecked")
     public <T> Class<T>[] findComponentClasses(final Class<T> componentInterface, final ClassLoader cl, final boolean strict) {
-        final ClassLoader classLoader = cl == null ? ClassLoaderUtils.findClassLoader(componentInterface) : cl;
+        final ClassLoader classLoader = cl == null ? ClassLoaders.findClassLoader(componentInterface) : cl;
         log.info("Loading service provider files for %s using class loader %s", componentInterface, classLoader);
 
         final Collection<Class<T>> componentList = Exceptions.wrap(new Exceptions.Command<Collection<Class<T>>>() {
@@ -64,8 +64,8 @@ final class ClassDiscoveryImpl implements ClassDiscovery {
 
                 final Set<URL> loaded = new HashSet<URL>();
 
-                final Enumeration<URL> resources = classLoader.getResources(ClassLoaderUtils.absoluteResourceName("META-INF/services/"
-                                                                                                                  + componentInterface.getName()));
+                final Enumeration<URL> resources = classLoader.getResources(ClassLoaders.absoluteResourceName("META-INF/services/"
+                                                                                                              + componentInterface.getName()));
 
                 for (final URL url : Collections.list(resources)) {
 

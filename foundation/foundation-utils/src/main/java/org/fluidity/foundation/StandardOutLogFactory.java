@@ -23,8 +23,9 @@
 package org.fluidity.foundation;
 
 import org.fluidity.foundation.logging.Log;
+import org.fluidity.foundation.spi.LogFactory;
 
-public final class StandardOutLogFactory implements LogFactory {
+final class StandardOutLogFactory implements LogFactory {
 
     public Log createLog(final Class<?> source) {
         return new StandardOutLog(source);

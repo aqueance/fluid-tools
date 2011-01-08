@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -31,52 +31,50 @@ import java.util.Set;
 import java.util.TreeSet;
 
 /**
- * Utilities for <code>Keyed</code> objects.
+ * Utilities for {@link Keyed} objects.
  *
  * @author Tibor Varga
- * @see org.fluidity.foundation.Keyed
  */
-public final class KeyedUtils {
-
-    public KeyedUtils() {
+public final class KeyMapping {
+    
+    private KeyMapping() {
         throw new UnsupportedOperationException("No instances allowed");
     }
 
     /**
-     * Converts the given collection of <code>Keyed</code> objects to a map whose keys are the objects' key. The returned map retains the original order of the
+     * Converts the given collection of {@link Keyed} objects to a map whose keys are the objects' key. The returned map retains the original order of the
      * items.
      *
      * @param objects the collection of objects to convert into a map.
      *
-     * @return a <code>Map</code>, never <code>null</code>.
+     * @return a {@link Map}, never <code>null</code>.
      */
     public static <T extends Keyed> Map<String, T> asOrderedMap(final Collection<T> objects) {
         return asMap(objects, new LinkedHashMap<String, T>());
     }
 
     /**
-     * Converts the given collection of <code>Keyed</code> objects to a map whose keys are the objects' key. The order of the items in the returned map is
+     * Converts the given collection of {@link Keyed} objects to a map whose keys are the objects' key. The order of the items in the returned map is
      * arbitrary.
      *
      * @param objects the collection of objects to convert into a map.
      *
-     * @return a <code>Map</code>, never <code>null</code>.
+     * @return a {@link Map}, never <code>null</code>.
      */
     public static <T extends Keyed> Map<String, T> asUnorderedMap(final Collection<T> objects) {
         return asMap(objects, new HashMap<String, T>());
     }
 
     /**
-     * Converts the given collection of <code>Keyed</code> objects to a map whose keys are the objects' key. The order of the items in the returned map is
+     * Converts the given collection of {@link Keyed} objects to a map whose keys are the objects' key. The order of the items in the returned map is
      * defined by the given comparator.
      *
      * @param objects    the collection of objects to convert into a map.
      * @param comparator determines the sort ordering of the elements in the returned map.
      *
-     * @return a <code>Map</code>, never <code>null</code>.
+     * @return a {@link Map}, never <code>null</code>.
      */
-    public static <T extends Keyed> Map<String, T> asSortedMap(final Collection<T> objects,
-                                                               final Comparator<T> comparator) {
+    public static <T extends Keyed> Map<String, T> asSortedMap(final Collection<T> objects, final Comparator<T> comparator) {
         assert objects != null;
         assert comparator != null;
 
@@ -87,77 +85,77 @@ public final class KeyedUtils {
     }
 
     /**
-     * Converts the given collection of <code>Keyed</code> objects to a map whose keys are the objects' key. The returned map retains the original order of the
+     * Converts the given collection of {@link Keyed} objects to a map whose keys are the objects' key. The returned map retains the original order of the
      * items.
      *
      * @param objects the collection of objects to convert into a map.
      *
-     * @return a <code>Map</code>, never <code>null</code>.
+     * @return a {@link Map}, never <code>null</code>.
      */
     public static <T extends Keyed> Map<String, T> asOrderedMap(final T[] objects) {
         return asOrderedMap(Arrays.asList(objects));
     }
 
     /**
-     * Converts the given collection of <code>Keyed</code> objects to a map whose keys are the objects' key. The order of the items in the returned map is
+     * Converts the given collection of {@link Keyed} objects to a map whose keys are the objects' key. The order of the items in the returned map is
      * arbitrary.
      *
      * @param objects the collection of objects to convert into a map.
      *
-     * @return a <code>Map</code>, never <code>null</code>.
+     * @return a {@link Map}, never <code>null</code>.
      */
     public static <T extends Keyed> Map<String, T> asUnorderedMap(final T[] objects) {
         return asUnorderedMap(Arrays.asList(objects));
     }
 
     /**
-     * Converts the given collection of <code>Keyed</code> objects to a map whose keys are the objects' key. The order of the items in the returned map is
+     * Converts the given collection of {@link Keyed} objects to a map whose keys are the objects' key. The order of the items in the returned map is
      * defined by the given comparator.
      *
      * @param objects    the collection of objects to convert into a map.
      * @param comparator determines the sort ordering of the elements in the returned map.
      *
-     * @return a <code>Map</code>, never <code>null</code>.
+     * @return a {@link Map}, never <code>null</code>.
      */
     public static <T extends Keyed> Map<String, T> asSortedMap(final T[] objects, final Comparator<T> comparator) {
         return asSortedMap(Arrays.asList(objects), comparator);
     }
 
     /**
-     * Extracts the keys of the given collection of <code>Keyed</code> objects.
+     * Extracts the keys of the given collection of {@link Keyed} objects.
      *
      * @param objects the collection of objects to return the keys of.
      *
-     * @return a <code>Collection</code>, never <code>null</code>.
+     * @return a {@link Collection}, never <code>null</code>.
      */
     public static <T extends Keyed> Collection<String> asKeys(final Collection<T> objects) {
-        return MapUtils.asKeys(objects, new KeyExtractor<T>());
+        return Mappings.asKeys(objects, new KeyExtractor<T>());
     }
 
     /**
-     * Extracts the keys of the given collection of <code>Keyed</code> objects.
+     * Extracts the keys of the given collection of {@link Keyed} objects.
      *
      * @param objects the collection of objects to return the keys of.
      *
-     * @return a <code>Collection</code>, never <code>null</code>.
+     * @return a {@link Collection}, never <code>null</code>.
      */
     public static <T extends Keyed> Collection<String> asKeys(final T[] objects) {
         return asKeys(Arrays.asList(objects));
     }
 
     /**
-     * Converts the given collection of <code>Keyed</code> objects to a map whose keys are the objects' key. The specified map is populated and returned.
+     * Converts the given collection of {@link Keyed} objects to a map whose keys are the objects' key. The specified map is populated and returned.
      *
      * @param objects the collection of objects to convert into a map.
      * @param result  is the map to be populated and returned.
      *
-     * @return a <code>Map</code>, never <code>null</code>.
+     * @return a {@link Map}, never <code>null</code>.
      */
     private static <T extends Keyed> Map<String, T> asMap(final Collection<T> objects, final Map<String, T> result) {
-        return MapUtils.asMap(objects, result, new KeyExtractor<T>());
+        return Mappings.asMap(objects, result, new KeyExtractor<T>());
     }
 
-    private static class KeyExtractor<T extends Keyed> implements MapUtils.Extractor<String, T> {
+    private static class KeyExtractor<T extends Keyed> implements Mappings.Extractor<String, T> {
 
         public String getKey(final Object object) {
             return ((Keyed) object).key();

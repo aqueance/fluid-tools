@@ -28,6 +28,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import org.fluidity.foundation.spi.PropertyProvider;
+
 /**
  * Context annotation for {@link StaticConfiguration} and {@link DynamicConfiguration} components. See {@link Configuration} for details.
  */

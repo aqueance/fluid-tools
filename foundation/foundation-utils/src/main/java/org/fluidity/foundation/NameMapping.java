@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -31,19 +31,18 @@ import java.util.Set;
 import java.util.TreeSet;
 
 /**
- * Utilities for <code>Named</code> objects.
+ * Utilities for {@link Named} objects.
  *
  * @author Tibor Varga
- * @see org.fluidity.foundation.Named
  */
-public final class NamedUtils {
+public final class NameMapping {
 
-    public NamedUtils() {
-        throw new UnsupportedOperationException("Not to be instantiated");
+    private NameMapping() {
+        throw new UnsupportedOperationException("No instances allowed");
     }
 
     /**
-     * Converts the given collection of <code>Named</code> objects to a map whose keys are the objects' name. The returned map retains the original order of the
+     * Converts the given collection of {@link Named} objects to a map whose keys are the objects' name. The returned map retains the original order of the
      * items.
      *
      * @param objects the collection of objects to convert into a map.
@@ -55,7 +54,7 @@ public final class NamedUtils {
     }
 
     /**
-     * Converts the given collection of <code>Named</code> objects to a map whose keys are the objects' name. The order of the items in the returned map is
+     * Converts the given collection of {@link Named} objects to a map whose keys are the objects' name. The order of the items in the returned map is
      * arbitrary.
      *
      * @param objects the collection of objects to convert into a map.
@@ -67,7 +66,7 @@ public final class NamedUtils {
     }
 
     /**
-     * Converts the given collection of <code>Named</code> objects to a map whose keys are the objects' name. The order of the items in the returned map is
+     * Converts the given collection of {@link Named} objects to a map whose keys are the objects' name. The order of the items in the returned map is
      * defined by the given comparator.
      *
      * @param objects    the collection of objects to convert into a map.
@@ -87,7 +86,7 @@ public final class NamedUtils {
     }
 
     /**
-     * Converts the given collection of <code>Named</code> objects to a map whose keys are the objects' name. The returned map retains the original order of the
+     * Converts the given collection of {@link Named} objects to a map whose keys are the objects' name. The returned map retains the original order of the
      * items.
      *
      * @param objects the collection of objects to convert into a map.
@@ -99,7 +98,7 @@ public final class NamedUtils {
     }
 
     /**
-     * Converts the given collection of <code>Named</code> objects to a map whose keys are the objects' name. The order of the items in the returned map is
+     * Converts the given collection of {@link Named} objects to a map whose keys are the objects' name. The order of the items in the returned map is
      * arbitrary.
      *
      * @param objects the collection of objects to convert into a map.
@@ -111,7 +110,7 @@ public final class NamedUtils {
     }
 
     /**
-     * Converts the given collection of <code>Named</code> objects to a map whose keys are the objects' name. The order of the items in the returned map is
+     * Converts the given collection of {@link Named} objects to a map whose keys are the objects' name. The order of the items in the returned map is
      * defined by the given comparator.
      *
      * @param objects    the collection of objects to convert into a map.
@@ -124,18 +123,18 @@ public final class NamedUtils {
     }
 
     /**
-     * Extracts the names of the given collection of <code>Named</code> objects.
+     * Extracts the names of the given collection of {@link Named} objects.
      *
      * @param objects the collection of objects to return the names of.
      *
      * @return a <code>Collection</code>, never <code>null</code>.
      */
     public static <T extends Named> Collection<String> asNames(final Collection<T> objects) {
-        return MapUtils.asKeys(objects, new NameExtractor<T>());
+        return Mappings.asKeys(objects, new NameExtractor<T>());
     }
 
     /**
-     * Extracts the names of the given collection of <code>Named</code> objects.
+     * Extracts the names of the given collection of {@link Named} objects.
      *
      * @param objects the collection of objects to return the names of.
      *
@@ -146,18 +145,18 @@ public final class NamedUtils {
     }
 
     /**
-     * Converts the given collection of <code>Named</code> objects to a map whose keys are the objects' name. The specified map is populated and returned.
+     * Converts the given collection of {@link Named} objects to a map whose keys are the objects' name. The specified map is populated and returned.
      *
      * @param objects the collection of objects to convert into a map.
      * @param result  is the map to be populated and returned.
      *
-     * @return a <code>Map</code>, never <code>null</code>.
+     * @return a {@link Map}, never <code>null</code>.
      */
     private static <T extends Named> Map<String, T> asMap(final Collection<T> objects, final Map<String, T> result) {
-        return MapUtils.asMap(objects, result, new NameExtractor<T>());
+        return Mappings.asMap(objects, result, new NameExtractor<T>());
     }
 
-    private static class NameExtractor<T extends Named> implements MapUtils.Extractor<String, T> {
+    private static class NameExtractor<T extends Named> implements Mappings.Extractor<String, T> {
 
         public String getKey(final Object object) {
             return ((Named) object).name();

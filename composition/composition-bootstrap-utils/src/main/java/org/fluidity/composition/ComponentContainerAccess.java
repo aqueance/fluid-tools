@@ -32,7 +32,7 @@ import java.util.Set;
 import java.util.WeakHashMap;
 
 import org.fluidity.composition.spi.ContainerServices;
-import org.fluidity.foundation.LogFactory;
+import org.fluidity.foundation.spi.LogFactory;
 
 /**
  * Static access to class loader specific dependency injection container. The child container - parent container hierarchy matches the child class loader -

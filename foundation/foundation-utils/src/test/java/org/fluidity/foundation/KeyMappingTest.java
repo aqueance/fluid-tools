@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -36,12 +36,7 @@ import org.testng.annotations.Test;
 /**
  * @author Tibor Varga
  */
-public class KeyedUtilsTest extends MockGroupAbstractTest {
-
-    @Test(expectedExceptions = UnsupportedOperationException.class)
-    public void noInstantation() throws Exception {
-        new KeyedUtils();
-    }
+public class KeyMappingTest extends MockGroupAbstractTest {
 
     @Test
     public void collectionKeyExtraction() throws Exception {
@@ -50,7 +45,7 @@ public class KeyedUtilsTest extends MockGroupAbstractTest {
 
         makeCollection(keys, objects);
 
-        assert keys.equals(KeyedUtils.asKeys(objects));
+        assert keys.equals(KeyMapping.asKeys(objects));
     }
 
     @Test
@@ -58,7 +53,7 @@ public class KeyedUtilsTest extends MockGroupAbstractTest {
         final Collection<String> keys = new ArrayList<String>();
         final Keyed[] objects = makeCollection(keys);
 
-        assert keys.equals(KeyedUtils.asKeys(objects));
+        assert keys.equals(KeyMapping.asKeys(objects));
     }
 
     @Test
@@ -68,7 +63,7 @@ public class KeyedUtilsTest extends MockGroupAbstractTest {
 
         makeCollection(keys, objects);
 
-        final Map<String, Keyed> map = KeyedUtils.asOrderedMap(objects);
+        final Map<String, Keyed> map = KeyMapping.asOrderedMap(objects);
 
         assert keys.equals(new ArrayList<String>(map.keySet()));
         assert objects.equals(new ArrayList<Keyed>(map.values()));
@@ -81,7 +76,7 @@ public class KeyedUtilsTest extends MockGroupAbstractTest {
 
         makeCollection(keys, objects);
 
-        final Map<String, Keyed> map = KeyedUtils.asUnorderedMap(objects);
+        final Map<String, Keyed> map = KeyMapping.asUnorderedMap(objects);
 
         assert new HashSet<String>(keys).equals(new HashSet<String>(map.keySet()));
         assert new HashSet<Keyed>(objects).equals(new HashSet<Keyed>(map.values()));
@@ -92,7 +87,7 @@ public class KeyedUtilsTest extends MockGroupAbstractTest {
         final Collection<String> keys = new ArrayList<String>();
         final Keyed[] objects = makeCollection(keys);
 
-        final Map<String, Keyed> map = KeyedUtils.asOrderedMap(objects);
+        final Map<String, Keyed> map = KeyMapping.asOrderedMap(objects);
 
         assert keys.equals(new ArrayList<String>(map.keySet()));
         assert Arrays.asList(objects).equals(new ArrayList<Keyed>(map.values()));
@@ -103,7 +98,7 @@ public class KeyedUtilsTest extends MockGroupAbstractTest {
         final Collection<String> keys = new ArrayList<String>();
         final Keyed[] objects = makeCollection(keys);
 
-        final Map<String, Keyed> map = KeyedUtils.asUnorderedMap(objects);
+        final Map<String, Keyed> map = KeyMapping.asUnorderedMap(objects);
 
         assert new HashSet<String>(keys).equals(new HashSet<String>(map.keySet()));
         assert new HashSet<Keyed>(Arrays.asList(objects)).equals(new HashSet<Keyed>(map.values()));
@@ -119,7 +114,7 @@ public class KeyedUtilsTest extends MockGroupAbstractTest {
         final Set<String> orderedKeys = new TreeSet<String>();
         orderedKeys.addAll(keys);
 
-        final Map<String, Keyed> map = KeyedUtils.asSortedMap(objects, new KeyedComparator());
+        final Map<String, Keyed> map = KeyMapping.asSortedMap(objects, new KeyedComparator());
 
         assert new ArrayList<String>(orderedKeys).equals(new ArrayList<String>(map.keySet()));
         assert new HashSet<Keyed>(objects).equals(new HashSet<Keyed>(map.values()));
@@ -133,7 +128,7 @@ public class KeyedUtilsTest extends MockGroupAbstractTest {
         final Set<String> orderedKeys = new TreeSet<String>();
         orderedKeys.addAll(keys);
 
-        final Map<String, Keyed> map = KeyedUtils.asSortedMap(objects, new KeyedComparator());
+        final Map<String, Keyed> map = KeyMapping.asSortedMap(objects, new KeyedComparator());
 
         assert new ArrayList<String>(orderedKeys).equals(new ArrayList<String>(map.keySet()));
         assert new HashSet<Keyed>(Arrays.asList(objects)).equals(new HashSet<Keyed>(map.values()));

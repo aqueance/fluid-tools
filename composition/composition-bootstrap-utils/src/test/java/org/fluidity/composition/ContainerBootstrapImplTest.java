@@ -31,8 +31,8 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.fluidity.composition.spi.ContainerServices;
-import org.fluidity.foundation.LogFactory;
 import org.fluidity.foundation.NullLogFactory;
+import org.fluidity.foundation.spi.LogFactory;
 import org.fluidity.tests.MockGroupAbstractTest;
 
 import org.easymock.EasyMock;

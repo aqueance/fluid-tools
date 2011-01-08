@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,7 +22,6 @@
 
 package org.fluidity.composition;
 
-import org.fluidity.foundation.Keyed;
 import org.fluidity.tests.MockGroupAbstractTest;
 
 import org.testng.annotations.BeforeMethod;
@@ -98,7 +97,10 @@ public abstract class AbstractContainerTests extends MockGroupAbstractTest {
         }
     }
 
-    public static interface Key extends Keyed { }
+    public static interface Key {
+
+        String key();
+    }
 
     /**
      * This is intentionally protected - makes sure the container is able to instantiate non-public classes

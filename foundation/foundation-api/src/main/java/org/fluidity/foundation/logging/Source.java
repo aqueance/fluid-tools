@@ -37,7 +37,7 @@ import java.lang.annotation.Target;
 public @interface Source {
 
     /**
-     * The class to pass to the {@link org.fluidity.foundation.LogFactory} implementation for the {@link Log} instance returned to the class using this
+     * The class to pass to the {@link org.fluidity.foundation.spi.LogFactory} implementation for the {@link Log} instance returned to the class using this
      * annotation.
      *
      * @return a {@link Class} object, never <code>null</code>.

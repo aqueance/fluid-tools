@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,10 +26,9 @@ import java.util.Comparator;
 import java.util.Locale;
 
 /**
- * Defines a sort ordering between <code>Named</code> objects.
+ * Defines a sort ordering between {@link Named} objects.
  *
  * @author Tibor Varga
- * @see org.fluidity.foundation.Named
  */
 public class NamedComparator implements Comparator<Named> {
 
@@ -40,13 +39,17 @@ public class NamedComparator implements Comparator<Named> {
     private final boolean ignoreCase;
 
     public NamedComparator() {
-        this(Collator.getInstance());
+        this(false);
     }
 
-    public NamedComparator(final Collator collator) {
+    public NamedComparator(final boolean ignoreCase) {
+        this(Collator.getInstance(), ignoreCase);
+    }
+
+    public NamedComparator(final Collator collator, final boolean ignoreCase) {
         this.collator = collator;
         this.locale = null;
-        this.ignoreCase = false;
+        this.ignoreCase = ignoreCase;
     }
 
     public NamedComparator(final Locale locale, final boolean ignoreCase) {
