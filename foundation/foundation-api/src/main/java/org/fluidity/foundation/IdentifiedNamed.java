@@ -21,27 +21,11 @@
  */
 package org.fluidity.foundation;
 
-import java.text.Collator;
-import java.util.Comparator;
-
 /**
- * Defines a sort ordering between {@link Keyed} objects.
+ * Key-name (or name-value) pair.
  *
  * @author Tibor Varga
  */
-public final class KeyedComparator implements Comparator<Keyed> {
+public interface IdentifiedNamed extends Identified, Named {
 
-    private final Collator collator;
-
-    public KeyedComparator() {
-        this(Collator.getInstance());
-    }
-
-    public KeyedComparator(final Collator collator) {
-        this.collator = collator;
-    }
-
-    public int compare(final Keyed o1, final Keyed o2) {
-        return collator.compare(o1.key(), o2.key());
-    }
 }

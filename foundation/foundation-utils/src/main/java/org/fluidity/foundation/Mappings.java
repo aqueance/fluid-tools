@@ -19,6 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package org.fluidity.foundation;
 
 import java.util.ArrayList;
@@ -26,7 +27,7 @@ import java.util.Collection;
 import java.util.Map;
 
 /**
- * Logic common to the various utility classes in this package, such as {@link KeyMapping}, {@link NameMapping}, etc. You can also use this utility class
+ * Logic common to the various utility classes in this package, such as {@link IdMapping}, {@link NameMapping}, etc. You can also use this utility class
  * directly to implement various mapping and filtering functions on collections of your objects.
  *
  * @author Tibor Varga

@@ -19,10 +19,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package org.fluidity.deployment;
 
 import org.fluidity.composition.ServiceProvider;
-import org.fluidity.foundation.KeyedNamed;
+import org.fluidity.foundation.IdentifiedNamed;
 
 /**
  * This is a component that is started/stopped as the application container starts/stops. There is no deterministic order in which deployed components are
@@ -43,14 +44,14 @@ import org.fluidity.foundation.KeyedNamed;
  * DeploymentBootstrap} implementation.
  */
 @ServiceProvider(api = DeployedComponent.class)
-public interface DeployedComponent extends KeyedNamed {
+public interface DeployedComponent extends IdentifiedNamed {
 
     /**
      * The component has an ID that is returned by this method.
      *
-     * @return a short String idenfifying this component among other {@link DeployedComponent}s.
+     * @return a short String identifying this component among other {@link DeployedComponent}s.
      */
-    String key();
+    String id();
 
     /**
      * The component has a name that is returned by this method.

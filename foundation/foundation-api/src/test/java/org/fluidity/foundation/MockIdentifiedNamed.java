@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,20 +19,52 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package org.fluidity.foundation;
 
 /**
- * Objects implementing this interface can be uniquely identified within some domain by a key. This enables various manipulations of collections of such
- * objects using <code>KeyedUtils</code>.
+ * Mock implementation of the {@link Identified}, the {@link Named} and the {@link IdentifiedNamed} interfaces.
  *
  * @author Tibor Varga
  */
-public interface Keyed {
+public final class MockIdentifiedNamed implements IdentifiedNamed {
 
-    /**
-     * Returns the key of this object.
-     *
-     * @return a string, may be <code>null</code>.
-     */
-    String key();
+    private final String key;
+
+    private final String name;
+
+    public MockIdentifiedNamed(final String key, final String name) {
+        this.key = key;
+        this.name = name;
+    }
+
+    public String id() {
+        return key;
+    }
+
+    public String name() {
+        return name;
+    }
+
+    @SuppressWarnings("RedundantIfStatement")
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof MockIdentifiedNamed)) {
+            return false;
+        }
+
+        final MockIdentifiedNamed mockKeyedNamed = (MockIdentifiedNamed) o;
+
+        if (!key.equals(mockKeyedNamed.key)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public int hashCode() {
+        return key.hashCode();
+    }
 }

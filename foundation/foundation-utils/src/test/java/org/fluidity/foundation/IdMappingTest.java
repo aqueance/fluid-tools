@@ -19,6 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package org.fluidity.foundation;
 
 import java.util.ArrayList;
@@ -36,116 +37,116 @@ import org.testng.annotations.Test;
 /**
  * @author Tibor Varga
  */
-public class KeyMappingTest extends MockGroupAbstractTest {
+public class IdMappingTest extends MockGroupAbstractTest {
 
     @Test
     public void collectionKeyExtraction() throws Exception {
         final Collection<String> keys = new ArrayList<String>();
-        final Collection<Keyed> objects = new ArrayList<Keyed>();
+        final Collection<Identified> objects = new ArrayList<Identified>();
 
         makeCollection(keys, objects);
 
-        assert keys.equals(KeyMapping.asKeys(objects));
+        assert keys.equals(IdMapping.asKeys(objects));
     }
 
     @Test
     public void arrayKeyExtraction() throws Exception {
         final Collection<String> keys = new ArrayList<String>();
-        final Keyed[] objects = makeCollection(keys);
+        final Identified[] objects = makeCollection(keys);
 
-        assert keys.equals(KeyMapping.asKeys(objects));
+        assert keys.equals(IdMapping.asKeys(objects));
     }
 
     @Test
     public void orderSensitiveCollectionToMapConversion() throws Exception {
         final Collection<String> keys = new ArrayList<String>();
-        final Collection<Keyed> objects = new ArrayList<Keyed>();
+        final Collection<Identified> objects = new ArrayList<Identified>();
 
         makeCollection(keys, objects);
 
-        final Map<String, Keyed> map = KeyMapping.asOrderedMap(objects);
+        final Map<String, Identified> map = IdMapping.asOrderedMap(objects);
 
         assert keys.equals(new ArrayList<String>(map.keySet()));
-        assert objects.equals(new ArrayList<Keyed>(map.values()));
+        assert objects.equals(new ArrayList<Identified>(map.values()));
     }
 
     @Test
     public void orderInsensitiveCollectionToMapConversion() throws Exception {
         final Collection<String> keys = new ArrayList<String>();
-        final Collection<Keyed> objects = new ArrayList<Keyed>();
+        final Collection<Identified> objects = new ArrayList<Identified>();
 
         makeCollection(keys, objects);
 
-        final Map<String, Keyed> map = KeyMapping.asUnorderedMap(objects);
+        final Map<String, Identified> map = IdMapping.asUnorderedMap(objects);
 
         assert new HashSet<String>(keys).equals(new HashSet<String>(map.keySet()));
-        assert new HashSet<Keyed>(objects).equals(new HashSet<Keyed>(map.values()));
+        assert new HashSet<Identified>(objects).equals(new HashSet<Identified>(map.values()));
     }
 
     @Test
     public void orderSensitiveArrayToMapConversion() throws Exception {
         final Collection<String> keys = new ArrayList<String>();
-        final Keyed[] objects = makeCollection(keys);
+        final Identified[] objects = makeCollection(keys);
 
-        final Map<String, Keyed> map = KeyMapping.asOrderedMap(objects);
+        final Map<String, Identified> map = IdMapping.asOrderedMap(objects);
 
         assert keys.equals(new ArrayList<String>(map.keySet()));
-        assert Arrays.asList(objects).equals(new ArrayList<Keyed>(map.values()));
+        assert Arrays.asList(objects).equals(new ArrayList<Identified>(map.values()));
     }
 
     @Test
     public void orderInsensitiveArrayToMapConversion() throws Exception {
         final Collection<String> keys = new ArrayList<String>();
-        final Keyed[] objects = makeCollection(keys);
+        final Identified[] objects = makeCollection(keys);
 
-        final Map<String, Keyed> map = KeyMapping.asUnorderedMap(objects);
+        final Map<String, Identified> map = IdMapping.asUnorderedMap(objects);
 
         assert new HashSet<String>(keys).equals(new HashSet<String>(map.keySet()));
-        assert new HashSet<Keyed>(Arrays.asList(objects)).equals(new HashSet<Keyed>(map.values()));
+        assert new HashSet<Identified>(Arrays.asList(objects)).equals(new HashSet<Identified>(map.values()));
     }
 
     @Test
     public void sortedMapConversion() throws Exception {
         final Collection<String> keys = new HashSet<String>();
-        final Collection<Keyed> objects = new HashSet<Keyed>();
+        final Collection<Identified> objects = new HashSet<Identified>();
 
         makeCollection(keys, objects);
 
         final Set<String> orderedKeys = new TreeSet<String>();
         orderedKeys.addAll(keys);
 
-        final Map<String, Keyed> map = KeyMapping.asSortedMap(objects, new KeyedComparator());
+        final Map<String, Identified> map = IdMapping.asSortedMap(objects, new IdentifiedComparator());
 
         assert new ArrayList<String>(orderedKeys).equals(new ArrayList<String>(map.keySet()));
-        assert new HashSet<Keyed>(objects).equals(new HashSet<Keyed>(map.values()));
+        assert new HashSet<Identified>(objects).equals(new HashSet<Identified>(map.values()));
     }
 
     @Test
     public void arrayToSortedMapConversion() throws Exception {
         final Collection<String> keys = new HashSet<String>();
-        final Keyed[] objects = makeCollection(keys);
+        final Identified[] objects = makeCollection(keys);
 
         final Set<String> orderedKeys = new TreeSet<String>();
         orderedKeys.addAll(keys);
 
-        final Map<String, Keyed> map = KeyMapping.asSortedMap(objects, new KeyedComparator());
+        final Map<String, Identified> map = IdMapping.asSortedMap(objects, new IdentifiedComparator());
 
         assert new ArrayList<String>(orderedKeys).equals(new ArrayList<String>(map.keySet()));
-        assert new HashSet<Keyed>(Arrays.asList(objects)).equals(new HashSet<Keyed>(map.values()));
+        assert new HashSet<Identified>(Arrays.asList(objects)).equals(new HashSet<Identified>(map.values()));
     }
 
-    private Collection<Keyed> makeCollection(Collection<String> keys, Collection<Keyed> objects) {
+    private Collection<Identified> makeCollection(Collection<String> keys, Collection<Identified> objects) {
 
         // first create the keys individually to allow the collection to determine their order
         for (int i = 0; i < 6; ++i) {
             keys.add(String.valueOf(i));
         }
 
-        // then create the objects in the order dictated by the key collection to allow reordering
+        // then create the objects in the order dictated by the id collection to allow reordering
         // by the underlying collection
         for (final String key : keys) {
-            objects.add(new Keyed() {
-                public String key() {
+            objects.add(new Identified() {
+                public String id() {
                     return key;
                 }
             });
@@ -154,8 +155,8 @@ public class KeyMappingTest extends MockGroupAbstractTest {
         return objects;
     }
 
-    private Keyed[] makeCollection(final Collection<String> keys) {
-        final Collection<Keyed> collection = makeCollection(keys, new ArrayList<Keyed>());
-        return collection.toArray(new Keyed[collection.size()]);
+    private Identified[] makeCollection(final Collection<String> keys) {
+        final Collection<Identified> collection = makeCollection(keys, new ArrayList<Identified>());
+        return collection.toArray(new Identified[collection.size()]);
     }
 }

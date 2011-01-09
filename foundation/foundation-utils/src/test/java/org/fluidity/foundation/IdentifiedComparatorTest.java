@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -32,17 +32,17 @@ import org.testng.annotations.Test;
 /**
  * @author Tibor Varga
  */
-public class KeyedComparatorTest extends MockGroupAbstractTest {
+public class IdentifiedComparatorTest extends MockGroupAbstractTest {
 
     @Test
     public void comparison() throws Exception {
-        final Keyed object1 = new MyKeyed("aaaa");
-        final Keyed object2 = new MyKeyed("bbbb");
-        final Keyed object3 = new MyKeyed("cccc");
-        final Keyed object4 = new MyKeyed("dddd");
-        final Keyed object5 = new MyKeyed("eeee");
+        final Identified object1 = new MyIdentified("aaaa");
+        final Identified object2 = new MyIdentified("bbbb");
+        final Identified object3 = new MyIdentified("cccc");
+        final Identified object4 = new MyIdentified("dddd");
+        final Identified object5 = new MyIdentified("eeee");
 
-        final Set<Keyed> sorted = new TreeSet<Keyed>(new KeyedComparator());
+        final Set<Identified> sorted = new TreeSet<Identified>(new IdentifiedComparator());
         sorted.add(object2);
         sorted.add(object4);
         sorted.add(object1);
@@ -58,15 +58,15 @@ public class KeyedComparatorTest extends MockGroupAbstractTest {
         assert !iterator.hasNext();
     }
 
-    private static class MyKeyed implements Keyed {
+    private static class MyIdentified implements Identified {
 
         private String key;
 
-        public MyKeyed(final String key) {
+        public MyIdentified(final String key) {
             this.key = key;
         }
 
-        public String key() {
+        public String id() {
             return key;
         }
     }

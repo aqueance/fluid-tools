@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,45 +24,45 @@ package org.fluidity.foundation;
 import org.testng.annotations.Test;
 
 /**
- * Tests the key in relation to the implementation's {@link Object#hashCode()} and {@link Object#equals(Object)} method.
+ * Tests the id in relation to the implementation's {@link Object#hashCode()} and {@link Object#equals(Object)} method.
  *
  * @author Tibor Varga
  */
-public abstract class KeyedAbstractTest {
+public abstract class IdentifiedAbstractTest {
 
-    protected abstract Keyed newKeyed(int id);
+    protected abstract Identified newIdentified(int id);
 
     @SuppressWarnings("StringEquality")
     @Test
     public void testKey() throws Exception {
-        final int key = 1;
-        assert newKeyed(key).key().equals(String.valueOf(key)) : "Did not retain key";
+        final int id = 1;
+        assert newIdentified(id).id().equals(String.valueOf(id)) : "Did not retain id";
     }
 
     @Test
     public void testEquality() throws Exception {
-        final Keyed keyed1 = newKeyed(1);
-        final Keyed keyed2 = newKeyed(2);
-        final Keyed keyed3 = newKeyed(1);
-        final Keyed keyed4 = new Keyed() {
-            public String key() {
+        final Identified identified1 = newIdentified(1);
+        final Identified identified2 = newIdentified(2);
+        final Identified identified3 = newIdentified(1);
+        final Identified identified4 = new Identified() {
+            public String id() {
                 return String.valueOf(4);
             }
         };
 
-        assert keyed1.equals(keyed1) : "Instance is not equal to itself";
-        assert !keyed1.equals(keyed2) : "Two instances with different keys are equal";
-        assert keyed1.equals(keyed3) : "Two instances with the same keys are not equal";
-        assert !keyed1.equals(keyed4) : "Two instances of incompatible classes are equal";
+        assert identified1.equals(identified1) : "Instance is not equal to itself";
+        assert !identified1.equals(identified2) : "Two instances with different ids are equal";
+        assert identified1.equals(identified3) : "Two instances with the same ids are not equal";
+        assert !identified1.equals(identified4) : "Two instances of incompatible classes are equal";
     }
 
     @Test
     public void testHashCode() throws Exception {
-        final Keyed keyed1 = newKeyed(1);
-        final Keyed keyed2 = newKeyed(2);
-        final Keyed keyed3 = newKeyed(1);
+        final Identified identified1 = newIdentified(1);
+        final Identified identified2 = newIdentified(2);
+        final Identified identified3 = newIdentified(1);
 
-        assert keyed1.hashCode() != keyed2.hashCode() : "Two instances with different keys have the same hash code";
-        assert keyed1.hashCode() == keyed3.hashCode() : "Two instances with the same keys have different hash code";
+        assert identified1.hashCode() != identified2.hashCode() : "Two instances with different ids have the same hash code";
+        assert identified1.hashCode() == identified3.hashCode() : "Two instances with the same ids have different hash code";
     }
 }
