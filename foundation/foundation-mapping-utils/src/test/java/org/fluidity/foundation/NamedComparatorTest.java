@@ -19,6 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package org.fluidity.foundation;
 
 import java.util.Iterator;
@@ -67,7 +68,7 @@ public class NamedComparatorTest extends MockGroupAbstractTest {
         final Named object3 = new MyNamed("CcCc");
         final Named object4 = new MyNamed("dDdD");
         final Named object5 = new MyNamed("eeee");
-        final Named object6 = new MyNamed("����");            // this is at the end of the alphabet in Finnish
+        final Named object6 = new MyNamed("öÖäÄ");            // this is at the end of the alphabet in Finnish
 
         final Set<Named> sorted = new TreeSet<Named>(new NamedComparator(new Locale("FI"), true));
         sorted.add(object2);
