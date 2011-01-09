@@ -30,7 +30,7 @@ import javax.servlet.ServletContextListener;
 
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ServiceProvider;
-import org.fluidity.composition.ShutdownHook;
+import org.fluidity.composition.spi.ShutdownHook;
 import org.fluidity.foundation.logging.Log;
 import org.fluidity.foundation.logging.Source;
 

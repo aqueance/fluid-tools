@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,12 +20,10 @@
  * THE SOFTWARE.
  */
 
-package org.fluidity.composition.spi;
+package org.fluidity.composition;
 
 import java.lang.annotation.Annotation;
 import java.util.Map;
-
-import org.fluidity.composition.ComponentContext;
 
 /**
  * Creates component context objects.
@@ -37,7 +35,7 @@ public interface ContextFactory {
     /**
      * Creates a new context from the given map.
      *
-     * @param map the properties to turn into a {@link org.fluidity.composition.ComponentContext}.
+     * @param map the properties to turn into a {@link ComponentContext}.
      *
      * @return the new component context.
      */
@@ -53,7 +51,7 @@ public interface ContextFactory {
     ComponentContext extractContext(Annotation[] annotation);
 
     /**
-     * Calls {@link #deriveContext(org.fluidity.composition.ComponentContext, org.fluidity.composition.ComponentContext)} using the supplied context and the one
+     * Calls {@link #deriveContext(org.fluidity.composition.ComponentContext, ComponentContext)} using the supplied context and the one
      * extracted from the supplied class using {@link #extractContext(java.lang.annotation.Annotation[])}.
      *
      * @param context         the context to use as the parent of the derived context.

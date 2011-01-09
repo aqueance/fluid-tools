@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,13 +26,12 @@ import java.lang.annotation.Annotation;
 import java.util.Set;
 
 /**
- * Provides a context for components. A context represents configuration at the point of reference to a component, which the referring component elects to
- * receive using {@link org.fluidity.composition.Context} annotation. Contexts is provided by components that
- * depend, directly or indirectly, on context consuming other components using custom, user defined, annotations. The context consuming component lists these
- * annotation types in its {@link org.fluidity.composition.Context} annotation.
+ * Provides a runtime context for components. A context represents configuration at the point of reference to a component, which the referring component elects
+ * to receive using {@link Context} annotation. Contexts are provided by components that depend, directly or indirectly, on context consuming components using
+ * custom, user defined, annotations. The context consuming components list these annotation types in their respective {@link Context} annotations.
  * <p/>
- * Context support can be added to a component not directly supporting contexts using {@link org.fluidity.composition.ComponentVariantFactory} components as
- * long as the component supports some other configuration mechanism that can be manipulated by the variant factory class.
+ * Context support can be added to a component that itself does not support contexts using {@link org.fluidity.composition.spi.ComponentVariantFactory}
+ * components as long as the component does supports some other configuration mechanism that can be manipulated by the variant factory class.
  *
  * @author Tibor Varga
  */

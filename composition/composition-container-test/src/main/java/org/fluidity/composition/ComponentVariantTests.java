@@ -35,6 +35,9 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.fluidity.composition.spi.ComponentFactory;
+import org.fluidity.composition.spi.ComponentVariantFactory;
+
 import org.easymock.EasyMock;
 import org.easymock.IAnswer;
 import org.testng.annotations.BeforeMethod;

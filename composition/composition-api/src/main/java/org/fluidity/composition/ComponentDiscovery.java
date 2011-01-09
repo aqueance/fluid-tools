@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,9 +26,11 @@ package org.fluidity.composition;
  * Implements the Service Provider discovery mechanism described in the Jar File Specification. This mechanism is documented at
  * http://java.sun.com/j2se/1.4.2/docs/guide/jar/jar.html#Service%20Provider
  * <p/>
- * The difference between this implementation and the one provided with the JDK is, in addition to this not being under the <code>com.sun</code> package, that
- * components are not instantiated by their default constructor but placed in an anonymous nested container of the host application's dependency injection
- * container to get their dependencies resolved.
+ * The difference between this implementation and the one provided with the JDK is that, in addition to this not being under the <code>com.sun</code> package as
+ * with JDK up to and including version 5, rather than instantiating components by calling their default constructor, components are placed in an anonymous
+ * nested container of the host application's dependency injection container nearest to the component class to get their dependencies resolved.
+ * <p/>
+ * Components depending on this may also need to depend on a {@link ComponentContainer}.
  *
  * @author Tibor Varga
  */

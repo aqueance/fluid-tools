@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  */
 
-package org.fluidity.composition.spi;
+package org.fluidity.composition;
 
 /**
  * Provides means to keep track of a dependency reference chain.
@@ -48,7 +48,7 @@ public interface ReferenceChain {
     <T> T nested(ComponentMapping mapping, Class<?> dependency, Command<T> command);
 
     /**
-     * The command to invoke in the context of a new dependency reference established by calling {@link org.fluidity.composition.spi.ReferenceChain#nested(ComponentMapping,Class,org.fluidity.composition.spi.ReferenceChain.Command)}.
+     * The command to invoke in the context of a new dependency reference established by calling {@link ReferenceChain#nested(ComponentMapping,Class, ReferenceChain.Command)}.
      *
      * @author Tibor Varga
      */
@@ -57,7 +57,7 @@ public interface ReferenceChain {
         /**
          * @param circular tells whether this particular producer has already been asked for a component in the current reference chain.
          *
-         * @return whatever the caller of {@link org.fluidity.composition.spi.ReferenceChain#nested(ComponentMapping,Class,org.fluidity.composition.spi.ReferenceChain.Command)}
+         * @return whatever the caller of {@link ReferenceChain#nested(ComponentMapping,Class, ReferenceChain.Command)}
          *         expects to get returned.
          */
         T run(boolean circular);
@@ -78,7 +78,7 @@ public interface ReferenceChain {
     String print();
 
     /**
-     * The visitor to invoke while iterating through the reference chain using the {@link ReferenceChain#iterate(org.fluidity.composition.spi.ReferenceChain.Visitor)}
+     * The visitor to invoke while iterating through the reference chain using the {@link ReferenceChain#iterate(ReferenceChain.Visitor)}
      * method.
      *
      * @author Tibor Varga

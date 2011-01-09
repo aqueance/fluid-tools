@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,9 +22,13 @@
 
 package org.fluidity.maven;
 
+import java.util.Iterator;
+
 import org.fluidity.composition.ComponentContainerAccess;
 
 import org.testng.annotations.Test;
+
+import sun.misc.Service;
 
 public class ComponentRegistrationTest {
 
@@ -47,6 +51,18 @@ public class ComponentRegistrationTest {
         serviceConsumer(SimpleServiceConsumer.class);
         serviceConsumer(MultipleServiceConsumer.class);
         serviceConsumer(MultipleServicesConsumer.class);
+    }
+
+    @Test
+    public void testJdkServiceProviders() throws Exception {
+        jdkProvider(JdkServiceProvider.class);
+        jdkProvider(UnwittingJdkServiceProvider.class);
+    }
+
+    private void jdkProvider(final Class<?> providerInterface) {
+        final Iterator providers = Service.providers(providerInterface);
+        assert providers.hasNext() : providerInterface;
+        assert providerInterface.isAssignableFrom(providers.next().getClass()) : providerInterface;
     }
 
     private <T> void component(final Class<T> componentInterface, final Class<? extends T> componentClass) {

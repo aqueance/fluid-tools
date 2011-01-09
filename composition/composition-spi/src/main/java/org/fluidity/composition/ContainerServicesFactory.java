@@ -22,14 +22,13 @@
 
 package org.fluidity.composition;
 
-import org.fluidity.composition.spi.ContainerServices;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**
- * Creates a {@link ContainerServices} object.
+ * Creates a {@link org.fluidity.composition.ContainerServices} object.
  */
 @ServiceProvider
-public interface ContainerServicesFactory {
+interface ContainerServicesFactory {
 
     ContainerServices containerServices(LogFactory logs);
 }

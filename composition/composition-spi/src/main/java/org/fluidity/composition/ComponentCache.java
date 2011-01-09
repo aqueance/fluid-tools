@@ -20,9 +20,7 @@
  * THE SOFTWARE.
  */
 
-package org.fluidity.composition.spi;
-
-import org.fluidity.composition.ComponentContext;
+package org.fluidity.composition;
 
 /**
  * Caches components by context.

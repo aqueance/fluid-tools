@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,16 +20,18 @@
  * THE SOFTWARE.
  */
 
-package org.fluidity.composition;
+package org.fluidity.composition.spi;
+
+import org.fluidity.composition.ComponentContext;
+import org.fluidity.composition.OpenComponentContainer;
 
 /**
  * Poses as a factory for a particular component. This factory produces a component when requested. The interface of the component is specified in the {@link
  * org.fluidity.composition.Component#api()} annotation of the the factory implementation class and the class of the component is specified in the {@link
  * org.fluidity.composition.Component#type()} annotation. Both these annotation parameters must be present.
  * <p/>
- * If the components are context dependent, the factory class must provide the valid context annotation classes using the
- * {@link org.fluidity.composition.Context#value()}
- * class annotation.
+ * If the components are context dependent, the factory class must specify the valid context annotation classes using the {@link
+ * org.fluidity.composition.Context} class annotation.
  *
  * @author Tibor Varga
  */
@@ -40,7 +42,7 @@ public interface ComponentFactory<T> {
      *
      * @param container is the container to resolve dependencies of the component from.
      * @param context   is the context for the instance to create. When this is null or empty, the default instance must be created. The key set in the context
-     *                  is taken from the list of annotation classes in the {@link org.fluidity.composition.Context#value()} annotation of the component class.
+     *                  is taken from the list of annotation classes in the {@link org.fluidity.composition.Context} annotation of the component class.
      *
      * @return the component created, never <code>null</code>.
      */

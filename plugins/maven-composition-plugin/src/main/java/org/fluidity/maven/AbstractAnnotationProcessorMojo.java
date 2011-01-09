@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,6 +23,7 @@
 package org.fluidity.maven;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -40,12 +41,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
-import org.fluidity.composition.EmptyPackageBindings;
-import org.fluidity.composition.PackageBindings;
 import org.fluidity.composition.ServiceProvider;
+import org.fluidity.composition.spi.EmptyPackageBindings;
+import org.fluidity.composition.spi.PackageBindings;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.Build;
@@ -55,6 +57,7 @@ import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.DirectoryScanner;
 import org.objectweb.asm.AnnotationVisitor;
+import org.objectweb.asm.ClassAdapter;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.FieldVisitor;
@@ -72,7 +75,10 @@ import org.objectweb.asm.commons.EmptyVisitor;
  *
  * @threadSafe
  */
+@SuppressWarnings( { "RedundantCast" })
 public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo implements Opcodes {
+
+    private static final String CONSTRUCTOR_METHOD_NAME = "<init>";
 
     private static final String CLASS_FILE_SUFFIX = ".class";
     private static final String OBJECT_CLASS_NAME = Type.getInternalName(Object.class);
@@ -82,6 +88,7 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
     private static final String ATR_API = "api";
     private static final String ATR_AUTOMATIC = "automatic";
     private static final String ATR_FALLBACK = "fallback";
+    private static final String ATR_JDK = "jdk";
     private static final String PACKAGE_BINDINGS = PackageBindings.class.getName();
     private static final String GENERATED_PACKAGE_BINDINGS = PACKAGE_BINDINGS.substring(PACKAGE_BINDINGS.lastIndexOf(".") + 1) + "$";
 
@@ -102,7 +109,7 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
         return project.getBuild();
     }
 
-    @SuppressWarnings({ "unchecked", "ResultOfMethodCallIgnored" })
+    @SuppressWarnings( { "unchecked", "ResultOfMethodCallIgnored" })
     protected final void processDirectory(File classesDirectory) throws MojoExecutionException {
         projectName = getProjectNameId();
 
@@ -181,7 +188,7 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
         }
     }
 
-    @SuppressWarnings({ "ResultOfMethodCallIgnored" })
+    @SuppressWarnings( { "ResultOfMethodCallIgnored" })
     private void generateBindingClass(final String className, final Map.Entry<String, Map<String, String>> bindings, final File classesDirectory)
             throws MojoExecutionException {
         log.info("Service provider " + className + " binds:");
@@ -190,11 +197,11 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
         generator.visit(V1_5, ACC_FINAL | ACC_PUBLIC, className.replace(".", "/"), null, EMPTY_BINDINGS_CLASS_NAME, null);
 
         {
-            final MethodVisitor method = generator.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null);
+            final MethodVisitor method = generator.visitMethod(ACC_PUBLIC, CONSTRUCTOR_METHOD_NAME, "()V", null, null);
             method.visitCode();
 
             method.visitVarInsn(ALOAD, 0);
-            method.visitMethodInsn(INVOKESPECIAL, EMPTY_BINDINGS_CLASS_NAME, "<init>", "()V");
+            method.visitMethodInsn(INVOKESPECIAL, EMPTY_BINDINGS_CLASS_NAME, CONSTRUCTOR_METHOD_NAME, "()V");
             method.visitInsn(RETURN);
 
             method.visitMaxs(0, 0);
@@ -235,13 +242,7 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
         final File file = new File(classesDirectory, className.replace('.', '/') + CLASS_FILE_SUFFIX);
         file.getParentFile().mkdirs();
 
-        try {
-            final OutputStream stateOutput = new FileOutputStream(file);
-            stateOutput.write(generator.toByteArray());
-            stateOutput.close();
-        } catch (final IOException e) {
-            throw new MojoExecutionException("Could not generate default package bindings class", e);
-        }
+        writeClassContents(file, generator);
     }
 
     private ClassReader reader(final String className, final ClassLoader repository, final Map<String, ClassReader> readers) throws IOException {
@@ -293,6 +294,9 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
         final Type serviceProviderAnnotationType = Type.getType(ServiceProvider.class);
         final Type componentAnnotationType = Type.getType(Component.class);
 
+        final Set<String> jdkServiceProviders = new HashSet<String>();
+        final Map<String, Set<String>> serviceProviders = new HashMap<String, Set<String>>();
+
         for (final String fileName : scanner.getIncludedFiles()) {
             final String className = fileName.substring(0, fileName.length() - ".class".length()).replace(File.separatorChar, '.');
             final String componentPackage = className.substring(0, className.lastIndexOf(".") + 1);
@@ -342,6 +346,8 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
                     final boolean abstractClass;
                     final Set<String> serviceProviderApis;
 
+                    private boolean jdk;
+
                     ServiceProviderAnnotationVisitor(final ClassReader classData, boolean abstractClass, final Set<String> serviceProviderApis) {
                         this.classData = classData;
                         this.abstractClass = abstractClass;
@@ -362,12 +368,26 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
                     }
 
                     @Override
+                    public void visit(final String name, final Object value) {
+                        assert ATR_JDK.equals(name) : name;
+                        if (ATR_JDK.equals(name) && ((Boolean) value)) {
+                            jdk = true;
+                        }
+                    }
+
+                    @Override
                     public void visitEnd() {
                         if (serviceProviderApis.isEmpty()) {
                             try {
                                 findServiceProviders(abstractClass, classData, serviceProviderApis, repository, readers);
                             } catch (final Exception e) {
                                 throw new RuntimeException(e);
+                            }
+                        }
+
+                        if (jdk) {
+                            for (final String api : serviceProviderApis) {
+                                jdkServiceProviders.add(api);
                             }
                         }
                     }
@@ -480,9 +500,100 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
                             log.warn("No component interface could be identified for " + className);
                         }
                     }
+
+                    for (final String api : serviceProviderApis) {
+                        Set<String> providers = serviceProviders.get(api);
+
+                        if (providers == null) {
+                            serviceProviders.put(api, providers = new HashSet<String>());
+                        }
+
+                        providers.add(className);
+                    }
                 }
             } else {
                 new File(classesDirectory, fileName).delete();
+            }
+        }
+
+        for (final String className : jdkServiceProviders) {
+            final Set<String> providers = serviceProviders.get(className);
+
+            if (providers != null) {
+                for (final String provider : providers) {
+                    makePublic(classesDirectory, readers, provider);
+                }
+            } else {
+                assert (readers.get(className.replace('/', '.')).getAccess() & ACC_ABSTRACT) != 0 : className;
+            }
+        }
+    }
+
+    private void makePublic(final File classesDirectory, final Map<String, ClassReader> readers, final String provider) throws MojoExecutionException {
+        final File file = new File(classesDirectory, provider.replace('.', '/') + CLASS_FILE_SUFFIX);
+
+        if (file.exists()) {
+            final ClassReader reader = readers.get(provider);
+            assert reader != null : readers;
+            final ClassWriter writer = new ClassWriter(0);
+
+            final AtomicBoolean constructorFound = new AtomicBoolean(false);
+
+            // make class and its default constructor public
+            reader.accept(new ClassAdapter(writer) {
+
+                @Override
+                public void visit(final int version,
+                                  final int access,
+                                  final String name,
+                                  final String signature,
+                                  final String superName,
+                                  final String[] interfaces) {
+                    super.visit(version, access & ~ACC_PRIVATE & ~ACC_PROTECTED | ACC_PUBLIC, name, signature, superName, interfaces);
+                }
+
+                @Override
+                public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
+                    final boolean defaultConstructor = name.equals(CONSTRUCTOR_METHOD_NAME) && Type.getArgumentTypes(desc).length == 0;
+
+                    if (defaultConstructor) {
+                        constructorFound.set(true);
+                    }
+
+                    return super.visitMethod(defaultConstructor ? access & ~ACC_PRIVATE & ~ACC_PROTECTED | ACC_PUBLIC : access,
+                                             name,
+                                             desc,
+                                             signature,
+                                             exceptions);
+                }
+            }, 0);
+
+            if (constructorFound.get()) {
+                writeClassContents(file, writer);
+            } else {
+                throw new MojoExecutionException(String.format("Class %s does not have a default constructor", provider));
+            }
+        }
+    }
+
+    private void writeClassContents(final File file, final ClassWriter writer) throws MojoExecutionException {
+        final OutputStream stream;
+
+        try {
+            stream = new FileOutputStream(file);
+        } catch (final FileNotFoundException e) {
+            throw new MojoExecutionException(String.format("Could not write %s", file), e);
+        }
+
+        try {
+            stream.write(writer.toByteArray());
+        } catch (final IOException e) {
+            throw new MojoExecutionException(String.format("Could not write %s", file), e);
+        } finally {
+            try {
+                stream.close();
+            } catch (final IOException e) {
+                // ignore
             }
         }
     }

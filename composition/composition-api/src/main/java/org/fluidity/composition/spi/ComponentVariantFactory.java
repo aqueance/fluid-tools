@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,17 +20,19 @@
  * THE SOFTWARE.
  */
 
-package org.fluidity.composition;
+package org.fluidity.composition.spi;
+
+import org.fluidity.composition.ComponentContainer;
+import org.fluidity.composition.ComponentContext;
+import org.fluidity.composition.OpenComponentContainer;
 
 /**
  * A variants factory offers context dependent instance variants of an otherwise singleton component that itself can in some way be configured to adapt to
- * various externally defined contexts. The variant factory lists the context annotations it understands in its {@link org.fluidity.composition.Context#value()}
- * class annotation.
+ * various externally defined contexts. The variant factory lists the context annotations it understands in its {@link org.fluidity.composition.Context} class
+ * annotation.
  * <p/>
- * A <code>ComponentVariantFactory</code> works in conjunction with an otherwise singleton component bound by either {@link
- * ComponentContainer.Registry#bindComponent(Class, Class)} or {@link ComponentContainer.Registry#bindDefault(Class)} such that contextual information collected
- * from the component instantiation stack and passed forward to the variant factory, it has the possibility to get various instances of the otherwise singleton
- * component.
+ * A {@link ComponentVariantFactory} works in conjunction with an otherwise singleton component independently registered in a dependency injection container
+ * accessible to the factory and allowing instances to be created, i.e., not bound by {@link ComponentContainer.Registry#bindInstance(Class, Object)}.
  *
  * @author Tibor Varga
  */
@@ -45,9 +47,9 @@ public interface ComponentVariantFactory {
      *
      * @return a container to get the instance from; may be <code>null</code>, in which case no instance will be created, otherwise either the component bound
      *         by the factory is returned or the default one if the factory binds no component. The key set in the context is taken from the list of annotation
-     *         classes in the {@link org.fluidity.composition.Context#value()} annotation.
+     *         classes in the {@link org.fluidity.composition.Context} annotation.
      *
-     * @throws org.fluidity.composition.ComponentContainer.ResolutionException
+     * @throws ComponentContainer.ResolutionException
      *          of a component cannot be created.
      */
     OpenComponentContainer newComponent(OpenComponentContainer container, ComponentContext context) throws ComponentContainer.ResolutionException;

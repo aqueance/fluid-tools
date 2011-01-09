@@ -20,9 +20,8 @@
  * THE SOFTWARE.
  */
 
-package org.fluidity.composition.spi;
+package org.fluidity.composition;
 
-import org.fluidity.composition.ClassDiscovery;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -32,7 +32,7 @@ package org.fluidity.composition;
  * dynamic dependencies, e.g. that depend on some run-time criteria.
  * <p/>
  * The registry offers several ways to map an implementation to interface in the host container. Which one you need depends on your requirements. These methods
- * are normally invoked from the {@link PackageBindings#bindComponents(org.fluidity.composition.ComponentContainer.Registry)} method.
+ * are normally invoked from the {@link org.fluidity.composition.spi.PackageBindings#bindComponents(ComponentContainer.Registry)} method.
  * <ul>
  * <li>To simply register a component implementation for a component interface, use {@link ComponentContainer.Registry#bindComponent(Class,Class)}. For
  * auto-wired components this is achieved by annotating the implementation class with {@link org.fluidity.composition.Component}.
@@ -66,7 +66,7 @@ public interface ComponentContainer {
      *
      * @return the component registered against the give class or <code>null</code> when none was found.
      *
-     * @throws org.fluidity.composition.ComponentContainer.ResolutionException
+     * @throws ComponentContainer.ResolutionException
      *          when dependency resolution fails
      */
     <T> T getComponent(Class<T> componentClass) throws ResolutionException;
@@ -80,7 +80,7 @@ public interface ComponentContainer {
      *
      * @return the component registered against the give class or <code>null</code> when none was found.
      *
-     * @throws org.fluidity.composition.ComponentContainer.ResolutionException
+     * @throws ComponentContainer.ResolutionException
      *          when dependency resolution fails
      */
     <T> T getComponent(Class<T> componentClass, Bindings bindings) throws ResolutionException;
@@ -103,7 +103,7 @@ public interface ComponentContainer {
      *
      * @return the field injected object - the same that was passed as the method parameter.
      *
-     * @throws org.fluidity.composition.ComponentContainer.ResolutionException
+     * @throws ComponentContainer.ResolutionException
      *          when dependency resolution fails
      */
     <T> T initialize(T component) throws ResolutionException;
@@ -125,7 +125,7 @@ public interface ComponentContainer {
      * Allow registration of components into a container. This registry supports access to a nested container in the parent by means of linking. The nested
      * container exposes one component that will be accessible through the parent but its dependencies will be resolved in the context of the nested container.
      * <p/>
-     * This object is mainly used by {@link org.fluidity.composition.PackageBindings} objects when the host application populates its dependency injection
+     * This object is mainly used by {@link org.fluidity.composition.spi.PackageBindings} objects when the host application populates its dependency injection
      * container.
      * <p/>
      * Objects implementing this interface can be acquired by calling {@link OpenComponentContainer#getRegistry()}.
@@ -139,8 +139,8 @@ public interface ComponentContainer {
          * the single interface the class implements, unless the {@link Component#fallback()} annotation parameter is <code>true</code>, in which case the
          * component is bound as a default implementation that can be overridden by another binding against the same API interface.
          * <p/>
-         * Two special cases must be handled by the receiver: when the implementation is either a {@link org.fluidity.composition.ComponentFactory} or a {@link
-         * org.fluidity.composition.ComponentVariantFactory}. In the latter case, two bindings must take place, one for the variant factory and one for the
+         * Two special cases must be handled by the receiver: when the implementation is either a {@link org.fluidity.composition.spi.ComponentFactory} or a {@link
+         * org.fluidity.composition.spi.ComponentVariantFactory}. In the latter case, two bindings must take place, one for the variant factory and one for the
          * component it creates variants of, and they can take place in any order. Irrespective of the order, the variant factory must receive any component
          * lookup for the target component.
          * <p/>
@@ -149,21 +149,21 @@ public interface ComponentContainer {
          *
          * @param implementation the component class.
          *
-         * @throws org.fluidity.composition.ComponentContainer.BindingException
+         * @throws ComponentContainer.BindingException
          *          when the binding cannot be performed
          */
         void bindComponent(Class<?> implementation) throws BindingException;
 
         /**
          * Binds a component class to its interface. Two special cases must be handled by the receiver: when the implementation is either a {@link
-         * org.fluidity.composition.ComponentFactory} or a {@link org.fluidity.composition.ComponentVariantFactory}. In the latter case, two bindings must take
+         * org.fluidity.composition.spi.ComponentFactory} or a {@link org.fluidity.composition.spi.ComponentVariantFactory}. In the latter case, two bindings must take
          * place, one for the variant factory and one for the component it creates variants of, and they can take place in any order. Irrespective of the order,
          * the variant factory must receive any component lookup for the target component.
          *
          * @param key            the key by which to register the component; preferably an interface class.
          * @param implementation the component class.
          *
-         * @throws org.fluidity.composition.ComponentContainer.BindingException
+         * @throws ComponentContainer.BindingException
          *          when the binding cannot be performed
          */
         <T> void bindComponent(Class<T> key, Class<? extends T> implementation) throws BindingException;
@@ -173,7 +173,7 @@ public interface ComponentContainer {
          *
          * @param implementation the class of the component to register.
          *
-         * @throws org.fluidity.composition.ComponentContainer.BindingException
+         * @throws ComponentContainer.BindingException
          *          when the binding cannot be performed
          */
         <T> void bindDefault(Class<? extends T> implementation) throws BindingException;
@@ -183,21 +183,21 @@ public interface ComponentContainer {
          * the component yourself. Use this method when you have no control over the instantiation of a class, such as those created by third party tools, but
          * you still want to make them available for components in the container to depend on.
          * <p/>
-         * The supplied component instance may be a {@link org.fluidity.composition.ComponentFactory} or a {@link
-         * org.fluidity.composition.ComponentVariantFactory} instance, in which case the receiver must support their respective functionality as described in
+         * The supplied component instance may be a {@link org.fluidity.composition.spi.ComponentFactory} or a {@link
+         * org.fluidity.composition.spi.ComponentVariantFactory} instance, in which case the receiver must support their respective functionality as described in
          * their documentation and at {@link #bindComponent(Class, Class)}.
          *
          * @param key      the key by which to register the component; preferably an interface class.
          * @param instance the component instance.
          *
-         * @throws org.fluidity.composition.ComponentContainer.BindingException
+         * @throws ComponentContainer.BindingException
          *          when the binding cannot be performed
          */
         <T> void bindInstance(Class<? super T> key, T instance) throws BindingException;
 
         /**
          * Returns a new child registry whose container will use the container for this registry as its parent. See {@link
-         * org.fluidity.composition.OpenComponentContainer#makeNestedContainer()}.
+         * OpenComponentContainer#makeNestedContainer()}.
          *
          * @return an open container, never <code>null</code>.
          */
@@ -211,7 +211,7 @@ public interface ComponentContainer {
          *
          * @return an open container, never <code>null</code>.
          *
-         * @throws org.fluidity.composition.ComponentContainer.BindingException
+         * @throws ComponentContainer.BindingException
          *          when the binding cannot be performed
          */
         <T> OpenComponentContainer makeNestedContainer(Class<T> key, Class<? extends T> implementation) throws BindingException;

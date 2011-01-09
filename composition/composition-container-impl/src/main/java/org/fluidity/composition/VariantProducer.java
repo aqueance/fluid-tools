@@ -22,10 +22,10 @@
 
 package org.fluidity.composition;
 
-import org.fluidity.composition.spi.ComponentCache;
+import org.fluidity.composition.spi.ComponentVariantFactory;
 
 /**
- * Component mapping for a {@link org.fluidity.composition.ComponentVariantFactory} component.
+ * Component mapping for a {@link org.fluidity.composition.spi.ComponentVariantFactory} component.
  *
  * @author Tibor Varga
  */
@@ -40,11 +40,11 @@ abstract class VariantProducer extends AbstractProducer {
     private Class<?> componentClass;        // caches what the delegate returns
 
     /**
-     * Returns the {@link org.fluidity.composition.ComponentVariantFactory} instance this is a mapping for.
+     * Returns the {@link org.fluidity.composition.spi.ComponentVariantFactory} instance this is a mapping for.
      *
      * @param container the container in which to resolve dependencies of the factory.
      *
-     * @return the {@link org.fluidity.composition.ComponentVariantFactory} instance this is a mapping for.
+     * @return the {@link org.fluidity.composition.spi.ComponentVariantFactory} instance this is a mapping for.
      */
     protected abstract ComponentVariantFactory factory(final SimpleContainer container);
 

@@ -25,9 +25,6 @@ package org.fluidity.composition;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.fluidity.composition.spi.ComponentCache;
-import org.fluidity.composition.spi.ContextChain;
-import org.fluidity.composition.spi.ReferenceChain;
 import org.fluidity.foundation.logging.Log;
 import org.fluidity.foundation.spi.LogFactory;
 

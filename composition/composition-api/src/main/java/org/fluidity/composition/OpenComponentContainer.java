@@ -26,8 +26,8 @@ import java.util.Collection;
 
 /**
  * This is a dependency injection container that components can be added to. For any component requested the implementation must check if there is a {@link
- * ComponentVariantFactory} supplied for that component. If so, it must give the factory a chance to return a new instance and only when it fails must the
- * default instantiation route be followed.
+ * org.fluidity.composition.spi.ComponentVariantFactory} supplied for that component. If so, it must give the factory a chance to return a new instance and only
+ * when it fails must the default instantiation route be followed.
  *
  * @author Tibor Varga
  */

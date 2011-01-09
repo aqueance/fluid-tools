@@ -26,8 +26,6 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 
-import org.fluidity.composition.spi.ComponentCache;
-import org.fluidity.composition.spi.ReferenceChain;
 import org.fluidity.foundation.Reflection;
 
 /**
@@ -59,7 +57,7 @@ abstract class AbstractProducer implements ComponentProducer {
     /**
      * Checks for circular references and, if possible, wraps the first component that is referenced by interface back the reference chain with a proxy that
      * defers the instantiation of that component. Uses the {@link #createCommand(SimpleContainer)} method to perform actual component creation along with the
-     * producer's {@link org.fluidity.composition.spi.ComponentCache} to cache instances.
+     * producer's {@link ComponentCache} to cache instances.
      */
     public Object create(final SimpleContainer container, final boolean circular) {
         final Class<?> componentClass = componentClass();

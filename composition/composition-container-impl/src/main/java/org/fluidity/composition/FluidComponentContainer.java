@@ -24,8 +24,6 @@ package org.fluidity.composition;
 
 import java.util.Collection;
 
-import org.fluidity.composition.spi.ContainerServices;
-
 /**
  * In-house dependency injection container. Supports hierarchies of containers, context dependent variants of singletons, seamless resolution of cyclic
  * dependencies when target is interface.

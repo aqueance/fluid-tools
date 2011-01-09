@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,13 +20,15 @@
  * THE SOFTWARE.
  */
 
-package org.fluidity.composition;
+package org.fluidity.composition.spi;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-import org.fluidity.composition.spi.ContainerServices;
+import org.fluidity.composition.ContainerServices;
+import org.fluidity.composition.OpenComponentContainer;
+import org.fluidity.composition.ServiceProvider;
 
 /**
  * Provides actual dependency injection container instances and related functionality. The implementing class must be public so as to be able to find using the
@@ -34,7 +36,7 @@ import org.fluidity.composition.spi.ContainerServices;
  *
  * @author Tibor Varga
  */
-@ServiceProvider
+@ServiceProvider(jdk = true)
 public interface ContainerProvider {
 
     /**
@@ -47,13 +49,13 @@ public interface ContainerProvider {
     OpenComponentContainer newContainer(ContainerServices services);
 
     /**
-     * Instantiates all {@link org.fluidity.composition.PackageBindings} classes in the given assemblySet and returns the instances in instantiation order.
+     * Instantiates all {@link org.fluidity.composition.spi.PackageBindings} classes in the given assemblySet and returns the instances in instantiation order.
      *
      * @param services    provides service components for containers, in case needed.
-     * @param properties  is to be made available to any {@link org.fluidity.composition.PackageBindings} object that may depend on it
+     * @param properties  is to be made available to any {@link org.fluidity.composition.spi.PackageBindings} object that may depend on it
      * @param assemblySet the collection of classes to instantiate. Some may depend on others in the set.
      *
-     * @return the list of {@link org.fluidity.composition.PackageBindings} instances in instantiation order.
+     * @return the list of {@link org.fluidity.composition.spi.PackageBindings} instances in instantiation order.
      */
     List<PackageBindings> instantiateBindings(ContainerServices services, Map properties, Collection<Class<PackageBindings>> assemblySet);
 }

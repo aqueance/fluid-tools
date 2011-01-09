@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,12 +20,9 @@
  * THE SOFTWARE.
  */
 
-package org.fluidity.composition.spi;
+package org.fluidity.composition;
 
 import java.lang.reflect.Constructor;
-
-import org.fluidity.composition.ComponentContainer;
-import org.fluidity.composition.ComponentContext;
 
 /**
  * Performs dependency injection.
@@ -92,7 +89,7 @@ public interface DependencyInjector {
          *
          * @return the resolved component instance or <code>null</code> is no unique resolution is possible.
          *
-         * @throws org.fluidity.composition.ComponentContainer.ResolutionException
+         * @throws ComponentContainer.ResolutionException
          *          when the type cannot be resolved.
          */
         <T> T resolve(Class<T> type, ComponentContext context) throws ComponentContainer.ResolutionException;
@@ -105,7 +102,7 @@ public interface DependencyInjector {
          *
          * @return the resolved component instance or <code>null</code> is no unique resolution is possible.
          *
-         * @throws org.fluidity.composition.ComponentContainer.ResolutionException
+         * @throws ComponentContainer.ResolutionException
          *          when the type cannot be resolved.
          */
         <T> T create(Class<T> type, ComponentContext context);

@@ -28,13 +28,11 @@ import org.fluidity.foundation.logging.Log;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**
- * Turns an instance of {@link org.fluidity.foundation.StandardOutLogFactory} into a component.
- *
- * Class is public for sun.misc.Services to find it.
+ * Turns an instance of {@link StandardOutLogFactory} into a component.
  */
-@ServiceProvider
+@ServiceProvider(jdk = true)
 @Component(fallback = true)
-public final class DefaultLogFactory implements LogFactory {
+final class DefaultLogFactory implements LogFactory {
 
     private final LogFactory delegate = new StandardOutLogFactory();
 

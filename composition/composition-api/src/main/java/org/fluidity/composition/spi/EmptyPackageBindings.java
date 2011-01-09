@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,31 +22,24 @@
 
 package org.fluidity.composition.spi;
 
+import org.fluidity.composition.ComponentContainer;
+import org.fluidity.composition.ServiceProvider;
+
 /**
- * Component mapping details used by container services.
- *
- * @author Tibor Varga
+ * Empty package bindings to simplify creation of actual implementations.
  */
-public interface ComponentMapping {
+@ServiceProvider
+public abstract class EmptyPackageBindings implements PackageBindings {
 
-    /**
-     * Returns the (interface) class the component has been bound to.
-     *
-     * @return the (interface) class the component has been bound to.
-     */
-    Class<?> componentInterface();
+    public void bindComponents(final ComponentContainer.Registry registry) {
+        // empty
+    }
 
-    /**
-     * Tells whther the mapping is that of a {@link org.fluidity.composition.ComponentVariantFactory}.
-     *
-     * @return <code>true</code> if the mapping is that of a {@link org.fluidity.composition.ComponentVariantFactory}, <code>false</code> otherwise.
-     */
-    boolean isVariantMapping();
+    public void initializeComponents(final ComponentContainer container) {
+        // empty
+    }
 
-    /**
-     * Returns the component class in case of a {@link org.fluidity.composition.ComponentVariantFactory} or a {@link sun.awt.ComponentFactory} mapping.
-     *
-     * @return the component class in case of a {@link org.fluidity.composition.ComponentVariantFactory} or a {@link sun.awt.ComponentFactory} mapping.
-     */
-    Class<?> factoryClass();
+    public void shutdownComponents(final ComponentContainer container) {
+        // empty
+    }
 }

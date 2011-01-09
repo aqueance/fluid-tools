@@ -22,7 +22,6 @@
 
 package org.fluidity.composition;
 
-import org.fluidity.composition.spi.ContainerServices;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**

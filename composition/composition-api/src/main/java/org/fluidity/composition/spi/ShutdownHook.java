@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  */
 
-package org.fluidity.composition;
+package org.fluidity.composition.spi;
 
 /**
  * Enables tasks to be hooked to the application shutdown event. This is used by component bootstrap implementations to provide means to shut down components
@@ -35,7 +35,7 @@ public interface ShutdownHook {
      * Adds a task to be run when the application is shut down. Concrete implementations are needed for the various application types, i.e. command line, web,
      * etc.
      *
-     * @param threadName is the name of the thread to add to the shutdown hook when a thread is required.
+     * @param threadName is the name of the thread to add to the shutdown hook, in case a thread is required.
      * @param command    is the command to run prior application shutdown.
      */
     void addTask(String threadName, Runnable command);

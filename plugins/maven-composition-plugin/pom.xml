@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+  ~ Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
   ~
   ~ Permission is hereby granted, free of charge, to any person obtaining a copy
   ~ of this software and associated documentation files (the "Software"), to deal
@@ -54,7 +54,7 @@ be PackageBindings$ followed by the module's name. The package of the
 PackageBindings class will be the same as that of the @Component. Each
 PackageBinding class that has been generated is added to a service provider
 descriptor file in the project artifact's classpath under
-META-INF/services/org.fluidity.composition.PackageBindings. That file will be
+META-INF/services/org.fluidity.composition.spi.PackageBindings. That file will be
 created if none exists in the project.
 
 The @org.fluidity.composition.ServiceProvider annotation marks a component

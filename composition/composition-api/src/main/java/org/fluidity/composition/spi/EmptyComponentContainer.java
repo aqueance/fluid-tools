@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,10 +20,14 @@
  * THE SOFTWARE.
  */
 
-package org.fluidity.composition;
+package org.fluidity.composition.spi;
+
+import org.fluidity.composition.Component;
+import org.fluidity.composition.ComponentContainer;
+import org.fluidity.composition.OpenComponentContainer;
 
 /**
- * Implements basic method relationships and useful functionality to container and registry implementations.
+ * Implements basic method relationships and functionality useful for container and registry implementations.
  *
  * @author Tibor Varga
  */
@@ -31,7 +35,6 @@ public abstract class EmptyComponentContainer implements ComponentContainer {
 
     /**
      * Implements this convenience method using the primary methods of the container.
-     * <p/>
      * <p/>
      * {@inheritDoc}
      */

@@ -22,30 +22,31 @@
 
 package org.fluidity.composition;
 
-import java.lang.annotation.Annotation;
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Inherited;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-
 /**
- * Allows the component to specify the annotation classes that will configure particular dependencies to the component. Such a configuration could, for
- * instance, contain a database identifier for a database access dependency, etc.
+ * Component mapping details used by container services.
  *
  * @author Tibor Varga
  */
-@Documented
-@Retention(RetentionPolicy.RUNTIME)
-@Target({ ElementType.TYPE, ElementType.PARAMETER, ElementType.FIELD })
-@Inherited
-public @interface Context {
+public interface ComponentMapping {
 
     /**
-     * Returns the context annotations whose instances are used to cache instances of this semi-singleton component against.
+     * Returns the (interface) class the component has been bound to.
      *
-     * @return a list of context annotation classes.
+     * @return the (interface) class the component has been bound to.
      */
-    Class<? extends Annotation>[] value();
+    Class<?> componentInterface();
+
+    /**
+     * Tells whther the mapping is that of a {@link org.fluidity.composition.spi.ComponentVariantFactory}.
+     *
+     * @return <code>true</code> if the mapping is that of a {@link org.fluidity.composition.spi.ComponentVariantFactory}, <code>false</code> otherwise.
+     */
+    boolean isVariantMapping();
+
+    /**
+     * Returns the component class in case of a {@link org.fluidity.composition.spi.ComponentVariantFactory} or a {@link sun.awt.ComponentFactory} mapping.
+     *
+     * @return the component class in case of a {@link org.fluidity.composition.spi.ComponentVariantFactory} or a {@link sun.awt.ComponentFactory} mapping.
+     */
+    Class<?> factoryClass();
 }

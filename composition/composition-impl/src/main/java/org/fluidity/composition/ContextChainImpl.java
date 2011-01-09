@@ -30,10 +30,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.fluidity.composition.spi.ComponentMapping;
-import org.fluidity.composition.spi.ContextChain;
-import org.fluidity.composition.spi.ContextFactory;
-import org.fluidity.composition.spi.ReferenceChain;
+import org.fluidity.composition.spi.ComponentFactory;
+import org.fluidity.composition.spi.ComponentVariantFactory;
 
 /**
  * @author Tibor Varga

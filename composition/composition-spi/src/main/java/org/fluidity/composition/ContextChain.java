@@ -20,17 +20,15 @@
  * THE SOFTWARE.
  */
 
-package org.fluidity.composition.spi;
-
-import org.fluidity.composition.ComponentContext;
+package org.fluidity.composition;
 
 /**
  * Provides context related functionality to the container.
  * <p/>
  * Contexts are the means to have multiple instances of the same component with different configuration by components that directly support contexts or that
- * have been complemented by a {@link org.fluidity.composition.ComponentVariantFactory} object to add context support.
+ * have been complemented by a {@link org.fluidity.composition.spi.ComponentVariantFactory} object to add context support.
  * <p/>
- * A context aware component or a {@link org.fluidity.composition.ComponentVariantFactory} declares, using the {@link org.fluidity.composition.Context}
+ * A context aware component or a {@link org.fluidity.composition.spi.ComponentVariantFactory} declares, using the {@link org.fluidity.composition.Context}
  * annotation, context keys that they consume. Upon instantiation a context is passed to such a component or the variant factory in the form of a {@link
  * java.util.Properties} object with keys that are a subset of the keys the component or factory declares to support.
  * <p/>
@@ -72,7 +70,7 @@ public interface ContextChain {
      * @param componentType  the interface implemented by the component.
      * @param componentClass the component type to check for supported context annotations.
      * @param context        the actual context established at this point.
-     * @param resolutions    the dependency resolution chain to search for {@link org.fluidity.composition.ComponentVariantFactory} objects that consume
+     * @param resolutions    the dependency resolution chain to search for {@link org.fluidity.composition.spi.ComponentVariantFactory} objects that consume
      *                       contexts on behalf of other components.
      *
      * @return the narrowed context that can be passed to an instance of the given component class.
@@ -98,7 +96,7 @@ public interface ContextChain {
          *
          * @param context the context established at the point of invocation.
          *
-         * @return whatever the caller of {@link org.fluidity.composition.spi.ContextChain#nested(org.fluidity.composition.ComponentContext, org.fluidity.composition.spi.ContextChain.Command)}
+         * @return whatever the caller of {@link ContextChain#nested(ComponentContext, ContextChain.Command)}
          *         wishes to receive back.
          */
         T run(ComponentContext context);

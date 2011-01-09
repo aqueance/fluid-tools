@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -31,7 +31,7 @@ import java.lang.annotation.Target;
 
 /**
  * Declares that the annotated class, or implementing classes of the annotated interface, are service providers in the JAR file specification's sense. When used
- * on a field or constructor parameter of array type, the annotation declares that the array argument must contain an instance of all implementations of the
+ * on a field or constructor parameter of array type, the annotation declares that the array argument must contain an instance of each implementation of the
  * service provider that is the component type of the array.
  * <p/>
  * The org.fluidity.maven:maven-composition-plugin Maven plugin will create the appropriate service provider descriptor file.
@@ -45,9 +45,18 @@ import java.lang.annotation.Target;
 public @interface ServiceProvider {
 
     /**
-     * Returns the interfaces that this service provider implements.
+     * Returns the interfaces that this service provider implements. For abstract classes or interfaces the value defaults to the annotated class itself. In
+     * other cases the annotation must specify a value.
      *
      * @return an array of Class objects.
      */
     Class[] api() default { };
+
+    /**
+     * Specifies that service provider classes should be instantiable by the JDK service discovery mechanism. Defaults to Fluid Tools service discovery only.
+     *
+     * @return <code>true</ocde> if the JDK service discovery mechanism should be able to instantiate the implementing classes, <code>false</code> to indicate
+     *         the Fluid Tools service discovery will be used.
+     */
+    boolean jdk() default false;
 }

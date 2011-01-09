@@ -27,12 +27,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.fluidity.composition.spi.ComponentCache;
-import org.fluidity.composition.spi.ContainerServices;
-import org.fluidity.composition.spi.ContextChain;
-import org.fluidity.composition.spi.ContextFactory;
-import org.fluidity.composition.spi.DependencyInjector;
-import org.fluidity.composition.spi.ReferenceChain;
+import org.fluidity.composition.spi.ComponentFactory;
+import org.fluidity.composition.spi.ComponentVariantFactory;
 import org.fluidity.foundation.logging.Log;
 
 /**

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,14 +24,14 @@ package org.fluidity.composition;
 
 import java.util.Map;
 
-import org.fluidity.composition.spi.ContainerServices;
+import org.fluidity.composition.spi.ContainerProvider;
 
 /**
- * Bootstraps the component container provided by a {@link org.fluidity.composition.ContainerProvider}.
+ * Bootstraps the component container provided by a {@link org.fluidity.composition.spi.ContainerProvider}.
  *
  * @author Tibor Varga
  */
-@ServiceProvider
+@ServiceProvider(jdk = true)
 interface ContainerBootstrap {
 
     /**

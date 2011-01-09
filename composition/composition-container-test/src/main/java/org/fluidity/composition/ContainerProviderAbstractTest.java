@@ -29,13 +29,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.fluidity.composition.spi.ComponentCache;
-import org.fluidity.composition.spi.ComponentMapping;
-import org.fluidity.composition.spi.ContainerServices;
-import org.fluidity.composition.spi.ContextChain;
-import org.fluidity.composition.spi.ContextFactory;
-import org.fluidity.composition.spi.DependencyInjector;
-import org.fluidity.composition.spi.ReferenceChain;
+import org.fluidity.composition.spi.ContainerProvider;
+import org.fluidity.composition.spi.EmptyPackageBindings;
+import org.fluidity.composition.spi.PackageBindings;
 import org.fluidity.foundation.NullLogFactory;
 import org.fluidity.foundation.spi.LogFactory;
 import org.fluidity.tests.MockGroupAbstractTest;
@@ -46,7 +42,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 /**
- * Abstract test case for {@link org.fluidity.composition.ContainerProvider} implementations.
+ * Abstract test case for {@link org.fluidity.composition.spi.ContainerProvider} implementations.
  *
  * @author Tibor Varga
  */

@@ -29,18 +29,18 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 
-import org.fluidity.composition.spi.ContainerServices;
+import org.fluidity.composition.spi.ContainerProvider;
+import org.fluidity.composition.spi.PackageBindings;
+import org.fluidity.composition.spi.ShutdownHook;
 import org.fluidity.foundation.logging.Log;
 
 /**
  * Bootstraps the component container. This class is exported via the standard service provider discovery mechanism described in the JAR file specification (for
  * dummies: the fully qualified name of this class can be found in a file whose name is the fully qualified class name of the implemented interface).
  *
- * Class is public for sun.misc.Services to find it.
- *
  * @author Tibor Varga
  */
-public final class ContainerBootstrapImpl implements ContainerBootstrap {
+final class ContainerBootstrapImpl implements ContainerBootstrap {
 
     public OpenComponentContainer populateContainer(final ContainerServices services,
                                                     final ContainerProvider provider,
@@ -71,7 +71,7 @@ public final class ContainerBootstrapImpl implements ContainerBootstrap {
         assert assemblies != null;
 
         if (parent == null) {
-            registry.bindInstance(ClassDiscovery.class, services.classDiscovery());     // TODO: any automatic way of doing this?
+            registry.bindInstance(ClassDiscovery.class, services.classDiscovery());
         }
 
         /*

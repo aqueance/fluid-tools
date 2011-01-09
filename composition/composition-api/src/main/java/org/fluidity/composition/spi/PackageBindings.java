@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,12 +20,14 @@
  * THE SOFTWARE.
  */
 
-package org.fluidity.composition;
+package org.fluidity.composition.spi;
+
+import org.fluidity.composition.ComponentContainer;
 
 /**
- * An implementation of this interface is placed in each package that contains component implementations. The goal of these classes is to add component bindings
- * with component implementations in the respective package to the supplied registry. The components thus bound may depend on other components in the container
- * and vice versa.
+ * An implementation of this interface is placed, either automatically by the org.fluidity.composition:maven-composition-plugin or manually by the component
+ * developer, in each package that contains component implementations. The goal of these classes is to add component bindings for component implementations in
+ * the respective package to the supplied registry. The components thus bound may depend on other components in the container and vice versa.
  *
  * @author Tibor Varga
  */

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,23 +20,16 @@
  * THE SOFTWARE.
  */
 
-package org.fluidity.composition;
+package org.fluidity.maven;
 
-/**
- * Empty package bindings to simplify creation of actual implementations.
- */
-@ServiceProvider
-public abstract class EmptyPackageBindings implements PackageBindings {
+import org.fluidity.composition.ServiceProvider;
 
-    public void bindComponents(final ComponentContainer.Registry registry) {
-        // empty
-    }
+@ServiceProvider(jdk = true)
+public interface JdkServiceProvider {
 
-    public void initializeComponents(final ComponentContainer container) {
-        // empty
-    }
-
-    public void shutdownComponents(final ComponentContainer container) {
-        // empty
-    }
 }
+
+class JdkServiceProviderImpl implements JdkServiceProvider {
+
+}
+

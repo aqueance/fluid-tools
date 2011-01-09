@@ -31,7 +31,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
 
-import org.fluidity.composition.spi.ContainerServices;
+import org.fluidity.composition.spi.ContainerProvider;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**
@@ -125,7 +125,7 @@ public final class ComponentContainerAccess implements ComponentContainer {
     }
 
     /**
-     * Adds a property to a collection that will be passed to any {@link PackageBindings} visible by the current class loader that has a constructor with a
+     * Adds a property to a collection that will be passed to any {@link org.fluidity.composition.spi.PackageBindings} visible by the current class loader that has a constructor with a
      * {@link Map} parameter.
      *
      * @param key   is the key of the property.
@@ -233,7 +233,7 @@ public final class ComponentContainerAccess implements ComponentContainer {
     /**
      * Delegates to the enclosed container.
      *
-     * @see ComponentContainer#getComponent(Class, org.fluidity.composition.ComponentContainer.Bindings)
+     * @see ComponentContainer#getComponent(Class, ComponentContainer.Bindings)
      */
     public <T> T getComponent(final Class<T> componentClass, final Bindings bindings) {
         return loadContainer(true).getComponent(componentClass, bindings);
@@ -259,7 +259,7 @@ public final class ComponentContainerAccess implements ComponentContainer {
 
     /**
      * Allows a bootstrap code to add components to the container. This method can only be invoked before any component is taken out of the container by any
-     * thread using any of the {@link #getComponent(Class)}, {@link #getComponent(Class, org.fluidity.composition.ComponentContainer.Bindings)}, {@link
+     * thread using any of the {@link #getComponent(Class)}, {@link #getComponent(Class, ComponentContainer.Bindings)}, {@link
      * #initialize(Object)} or {@link #makeNestedContainer()} methods. Once that happens, this method will throw an <code>IllegalStateException</code>.
      * <p/>
      * Calling this method will trigger population of the associated container and its parents.

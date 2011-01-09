@@ -20,32 +20,15 @@
  * THE SOFTWARE.
  */
 
-package org.fluidity.composition;
+package org.fluidity.maven;
 
-import java.lang.annotation.Annotation;
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Inherited;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import org.fluidity.composition.ServiceProvider;
 
-/**
- * Allows the component to specify the annotation classes that will configure particular dependencies to the component. Such a configuration could, for
- * instance, contain a database identifier for a database access dependency, etc.
- *
- * @author Tibor Varga
- */
-@Documented
-@Retention(RetentionPolicy.RUNTIME)
-@Target({ ElementType.TYPE, ElementType.PARAMETER, ElementType.FIELD })
-@Inherited
-public @interface Context {
+public interface UnwittingJdkServiceProvider {
 
-    /**
-     * Returns the context annotations whose instances are used to cache instances of this semi-singleton component against.
-     *
-     * @return a list of context annotation classes.
-     */
-    Class<? extends Annotation>[] value();
+}
+
+@ServiceProvider(jdk = true)
+class UnwittingJdkServiceProviderImpl implements UnwittingJdkServiceProvider {
+
 }
