@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,24 +19,32 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package org.fluidity.foundation;
 
-import org.fluidity.tests.MockGroupAbstractTest;
+import java.text.Collator;
+import java.util.Comparator;
 
-import org.testng.annotations.Test;
+import org.fluidity.foundation.spi.Identified;
 
 /**
- * Tests that the implementation retains and returns the name it was given.
+ * Defines a sort ordering between {@link Identified} objects.
  *
  * @author Tibor Varga
  */
-public abstract class NamedAbstractTest extends MockGroupAbstractTest {
+public final class IdentifiedComparator implements Comparator<Identified> {
 
-    protected abstract Named newNamed(String name);
+    private final Collator collator;
 
-    @Test
-    public void testName() throws Exception {
-        final String name = "name";
-        assert newNamed(name).name().equals(name);
+    public IdentifiedComparator() {
+        this(Collator.getInstance());
+    }
+
+    public IdentifiedComparator(final Collator collator) {
+        this.collator = collator;
+    }
+
+    public int compare(final Identified o1, final Identified o2) {
+        return collator.compare(o1.id(), o2.id());
     }
 }

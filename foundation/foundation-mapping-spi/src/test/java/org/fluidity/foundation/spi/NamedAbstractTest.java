@@ -19,52 +19,24 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package org.fluidity.foundation.spi;
 
-package org.fluidity.foundation;
+import org.fluidity.tests.MockGroupAbstractTest;
+
+import org.testng.annotations.Test;
 
 /**
- * Mock implementation of the {@link Identified}, the {@link Named} and the {@link IdentifiedNamed} interfaces.
+ * Tests that the implementation retains and returns the name it was given.
  *
  * @author Tibor Varga
  */
-public final class MockIdentifiedNamed implements IdentifiedNamed {
+public abstract class NamedAbstractTest extends MockGroupAbstractTest {
 
-    private final String key;
+    protected abstract Named newNamed(String name);
 
-    private final String name;
-
-    public MockIdentifiedNamed(final String key, final String name) {
-        this.key = key;
-        this.name = name;
-    }
-
-    public String id() {
-        return key;
-    }
-
-    public String name() {
-        return name;
-    }
-
-    @SuppressWarnings("RedundantIfStatement")
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (!(o instanceof MockIdentifiedNamed)) {
-            return false;
-        }
-
-        final MockIdentifiedNamed mockKeyedNamed = (MockIdentifiedNamed) o;
-
-        if (!key.equals(mockKeyedNamed.key)) {
-            return false;
-        }
-
-        return true;
-    }
-
-    public int hashCode() {
-        return key.hashCode();
+    @Test
+    public void testName() throws Exception {
+        final String name = "name";
+        assert newNamed(name).name().equals(name);
     }
 }

@@ -19,20 +19,51 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package org.fluidity.foundation;
 
+import java.text.Collator;
+import java.util.Comparator;
+import java.util.Locale;
+
+import org.fluidity.foundation.spi.Named;
+
 /**
- * Objects implementing this interface can be uniquely identified within some domain by a id. This enables various manipulations of collections of such
- * objects using <code>KeyedUtils</code>.
+ * Defines a sort ordering between {@link Named} objects.
  *
  * @author Tibor Varga
  */
-public interface Identified {
+public class NamedComparator implements Comparator<Named> {
 
-    /**
-     * Returns the id of this object.
-     *
-     * @return a string, may be <code>null</code>.
-     */
-    String id();
+    private final Collator collator;
+
+    private final Locale locale;
+
+    private final boolean ignoreCase;
+
+    public NamedComparator() {
+        this(false);
+    }
+
+    public NamedComparator(final boolean ignoreCase) {
+        this(Collator.getInstance(), ignoreCase);
+    }
+
+    public NamedComparator(final Collator collator, final boolean ignoreCase) {
+        this.collator = collator;
+        this.locale = null;
+        this.ignoreCase = ignoreCase;
+    }
+
+    public NamedComparator(final Locale locale, final boolean ignoreCase) {
+        this.collator = Collator.getInstance(locale);
+        this.locale = locale;
+        this.ignoreCase = ignoreCase;
+    }
+
+    public int compare(final Named o1, final Named o2) {
+        final String n1 = o1.name();
+        final String n2 = o2.name();
+        return collator.compare(ignoreCase ? n1.toLowerCase(locale) : n1, ignoreCase ? n2.toLowerCase(locale) : n2);
+    }
 }

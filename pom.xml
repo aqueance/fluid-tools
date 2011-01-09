@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  ~ Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+  ~ Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
   ~
   ~ Permission is hereby granted, free of charge, to any person obtaining a copy
   ~ of this software and associated documentation files (the "Software"), to deal
@@ -151,7 +151,26 @@
 
             <dependency>
                 <groupId>${fluidity.foundation.groupId}</groupId>
+                <artifactId>foundation-mapping-spi</artifactId>
+                <version>${fluidity.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>${fluidity.foundation.groupId}</groupId>
+                <artifactId>foundation-mapping-utils</artifactId>
+                <version>${fluidity.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>${fluidity.foundation.groupId}</groupId>
                 <artifactId>foundation-api</artifactId>
+                <version>${fluidity.version}</version>
+                <classifier>tests</classifier>
+            </dependency>
+
+            <dependency>
+                <groupId>${fluidity.foundation.groupId}</groupId>
+                <artifactId>foundation-mapping-spi</artifactId>
                 <version>${fluidity.version}</version>
                 <classifier>tests</classifier>
             </dependency>

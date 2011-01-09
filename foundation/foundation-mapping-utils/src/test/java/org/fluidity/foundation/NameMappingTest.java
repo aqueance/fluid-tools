@@ -19,6 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package org.fluidity.foundation;
 
 import java.util.ArrayList;
@@ -29,6 +30,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
+import org.fluidity.foundation.spi.Named;
 import org.fluidity.tests.MockGroupAbstractTest;
 
 import org.testng.annotations.Test;

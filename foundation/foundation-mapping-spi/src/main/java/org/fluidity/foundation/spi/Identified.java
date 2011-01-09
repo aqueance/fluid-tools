@@ -19,13 +19,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.fluidity.foundation;
+
+package org.fluidity.foundation.spi;
 
 /**
- * Key-name (or name-value) pair.
+ * Objects implementing this interface can be uniquely identified within some domain by a id. This enables various manipulations of collections of such
+ * objects using <code>KeyedUtils</code>.
  *
  * @author Tibor Varga
  */
-public interface IdentifiedNamed extends Identified, Named {
+public interface Identified {
 
+    /**
+     * Returns the id of this object.
+     *
+     * @return a string, may be <code>null</code>.
+     */
+    String id();
 }

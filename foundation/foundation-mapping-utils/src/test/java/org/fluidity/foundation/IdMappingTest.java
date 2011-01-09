@@ -30,6 +30,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
+import org.fluidity.foundation.spi.Identified;
 import org.fluidity.tests.MockGroupAbstractTest;
 
 import org.testng.annotations.Test;

@@ -20,29 +20,51 @@
  * THE SOFTWARE.
  */
 
-package org.fluidity.foundation;
-
-import java.text.Collator;
-import java.util.Comparator;
+package org.fluidity.foundation.spi;
 
 /**
- * Defines a sort ordering between {@link Identified} objects.
+ * Mock implementation of the {@link Identified}, the {@link Named} and the {@link IdentifiedNamed} interfaces.
  *
  * @author Tibor Varga
  */
-public final class IdentifiedComparator implements Comparator<Identified> {
+public final class MockIdentifiedNamed implements IdentifiedNamed {
 
-    private final Collator collator;
+    private final String key;
 
-    public IdentifiedComparator() {
-        this(Collator.getInstance());
+    private final String name;
+
+    public MockIdentifiedNamed(final String key, final String name) {
+        this.key = key;
+        this.name = name;
     }
 
-    public IdentifiedComparator(final Collator collator) {
-        this.collator = collator;
+    public String id() {
+        return key;
     }
 
-    public int compare(final Identified o1, final Identified o2) {
-        return collator.compare(o1.id(), o2.id());
+    public String name() {
+        return name;
+    }
+
+    @SuppressWarnings("RedundantIfStatement")
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof MockIdentifiedNamed)) {
+            return false;
+        }
+
+        final MockIdentifiedNamed mockKeyedNamed = (MockIdentifiedNamed) o;
+
+        if (!key.equals(mockKeyedNamed.key)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public int hashCode() {
+        return key.hashCode();
     }
 }
