@@ -52,10 +52,10 @@ This project lists the exported modules of Fluid Tools.
         <module>fluidity-api</module>
         <module>fluidity-bootstrap</module>
         <module>fluidity-impl</module>
-        <module>fluidity-logging-slf4j-impl</module>
         <module>fluidity-tests</module>
         <module>fluidity-war-deployment</module>
         <module>fluidity-cli-deployment</module>
+        <module>fluidity-logging-slf4j-impl</module>
     </modules>
 
     <dependencyManagement>
