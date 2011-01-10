@@ -452,11 +452,8 @@
             </resource>
             <resource>
                 <directory>src/licenses</directory>
+                <filtering>true</filtering>
                 <targetPath>META-INF</targetPath>
-                <filtering>false</filtering>
-                <includes>
-                    <include>LICENSE.txt</include>
-                </includes>
             </resource>
         </resources>
 
@@ -464,6 +461,11 @@
             <testResource>
                 <directory>src/test/resources</directory>
                 <filtering>true</filtering>
+            </testResource>
+            <testResource>
+                <directory>src/licenses</directory>
+                <filtering>true</filtering>
+                <targetPath>META-INF</targetPath>
             </testResource>
         </testResources>
     </build>
