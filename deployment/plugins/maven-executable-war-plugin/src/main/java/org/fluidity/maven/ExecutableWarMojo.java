@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -110,7 +110,7 @@ public class ExecutableWarMojo extends AbstractMojo {
      * @parameter expression="${plugin.artifactMap}"
      * @required
      */
-    @SuppressWarnings({ "UnusedDeclaration", "MismatchedQueryAndUpdateOfCollection" })
+    @SuppressWarnings( { "UnusedDeclaration", "MismatchedQueryAndUpdateOfCollection" })
     private Map<String, Artifact> pluginArtifactMap;
 
     /**
@@ -178,7 +178,7 @@ public class ExecutableWarMojo extends AbstractMojo {
      * @parameter default-value="${project.remoteProjectRepositories}"
      * @readonly
      */
-    @SuppressWarnings({ "UnusedDeclaration", "MismatchedQueryAndUpdateOfCollection" })
+    @SuppressWarnings( { "UnusedDeclaration", "MismatchedQueryAndUpdateOfCollection" })
     private List<RemoteRepository> projectRepositories;
 
     @SuppressWarnings("unchecked")
@@ -234,7 +234,9 @@ public class ExecutableWarMojo extends AbstractMojo {
                             final String entryName = entry.getName();
 
                             if (!processedEntries.contains(entryName)) {
-                                if (!entryName.equals(JarFile.MANIFEST_NAME)) {
+
+                                // copy all entries except the META-INF directory
+                                if (!entryName.startsWith("META-INF")) {
                                     outputStream.putNextEntry(entry);
                                     copyStream(outputStream, jarInput.getInputStream(entry), buffer);
                                     processedEntries.add(entryName);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,16 +24,15 @@ package org.fluidity.maven;
 
 import org.fluidity.composition.Component;
 
-public interface DefaultComponent {
+interface ComponentInterface1 {
 
 }
 
-@Component(fallback = true)
-class DefaultComponentImpl implements DefaultComponent {
+interface ComponentInterface2 {
 
 }
 
-@Component
-class PriorityComponentImpl implements DefaultComponent {
+@Component(api = ComponentInterface2.class)
+public class MultipleInterfacesComponent implements ComponentInterface1, ComponentInterface2 {
 
 }

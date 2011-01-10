@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,32 +22,24 @@
 
 package org.fluidity.maven;
 
-import org.fluidity.composition.Component;
-import org.fluidity.composition.ServiceProvider;
+import java.io.File;
 
-@ServiceProvider(api = { Service1.class, Service2.class })
-public interface MultipleServicesProvider extends Service1, Service2 {
+import org.apache.maven.plugin.MojoExecutionException;
 
-}
+/**
+ * @goal process-test-annotations
+ * @phase process-test-classes
+ * @requiresDependencyResolution test
+ * @threadSafe
+ */
+public class TestAnnotationProcessorMojo extends AbstractAnnotationProcessorMojo {
 
-class MultipleServicesProviderImpl implements MultipleServicesProvider {
-
-}
-
-@Component
-class MultipleServicesConsumer {
-
-    MultipleServicesConsumer(@ServiceProvider final Service1[] providers1, @ServiceProvider final Service2[] providers2) {
-        assert providers1.length == 1 : providers1.length;
-        assert providers2.length == 1 : providers2.length;
-        assert providers1[0] == providers2[0];
+    public void execute() throws MojoExecutionException {
+        processDirectory(new File(build().getTestOutputDirectory()));
     }
-}
 
-interface Service1 {
-
-}
-
-interface Service2 {
-
+    @Override
+    protected String getProjectNameId() {
+        return String.format("%sTest", super.getProjectNameId());
+    }
 }

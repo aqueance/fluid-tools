@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,16 +23,28 @@
 package org.fluidity.maven;
 
 import org.fluidity.composition.Component;
+import org.fluidity.composition.ServiceProvider;
 
-interface ComponentInterface1 {
-
-}
-
-interface ComponentInterface2 {
+public class MultipleServiceProviders implements ServiceProvider1, ServiceProvider2 {
 
 }
 
-@Component(api = ComponentInterface2.class)
-public class MultipleInterfacesComponent implements ComponentInterface1, ComponentInterface2 {
+@Component
+class MultipleServiceConsumer {
+
+    MultipleServiceConsumer(@ServiceProvider final ServiceProvider1[] providers1, @ServiceProvider final ServiceProvider2[] providers2) {
+        assert providers1.length == 1 : providers1.length;
+        assert providers2.length == 1 : providers2.length;
+        assert providers1[0] == providers2[0];
+    }
+}
+
+@ServiceProvider
+interface ServiceProvider1 {
+
+}
+
+@ServiceProvider
+interface ServiceProvider2 {
 
 }
