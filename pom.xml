@@ -41,9 +41,9 @@
     </prerequisites>
 
     <scm>
-        <connection>scm:svn:http://fluid-tools.googlecode.com/svn/trunk/</connection>
-        <developerConnection>scm:svn:https://fluid-tools.googlecode.com/svn/trunk/</developerConnection>
-        <url>http://fluid-tools.googlecode.com/svn/trunk/</url>
+        <connection>scm:hg:https://fluid-tools.googlecode.com/hg/</connection>
+        <developerConnection>scm:hg:https://fluid-tools.googlecode.com/hg/</developerConnection>
+        <url>https://fluid-tools.googlecode.com/hg/</url>
     </scm>
 
     <properties>
@@ -451,7 +451,7 @@
                 <filtering>true</filtering>
             </resource>
             <resource>
-                <directory>.</directory>
+                <directory>src/licenses</directory>
                 <targetPath>META-INF</targetPath>
                 <filtering>false</filtering>
                 <includes>
@@ -464,14 +464,6 @@
             <testResource>
                 <directory>src/test/resources</directory>
                 <filtering>true</filtering>
-            </testResource>
-            <testResource>
-                <directory>.</directory>
-                <targetPath>META-INF</targetPath>
-                <filtering>false</filtering>
-                <includes>
-                    <include>LICENSE.txt</include>
-                </includes>
             </testResource>
         </testResources>
     </build>
