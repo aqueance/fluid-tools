@@ -24,12 +24,14 @@ package org.fluidity.composition;
 
 import java.util.List;
 
+import org.fluidity.composition.spi.DependencyResolver;
+
 /**
  * A dependency injection container interface.
  *
  * @author Tibor Varga
  */
-interface SimpleContainer extends DependencyInjector.Resolver {
+interface SimpleContainer extends DependencyResolver {
 
     /**
      * Returns the container services provided by Fluid Tools.

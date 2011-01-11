@@ -22,6 +22,8 @@
 
 package org.fluidity.composition;
 
+import org.fluidity.composition.spi.ComponentMapping;
+
 /**
  * Extends the {@link ComponentMapping} interface with methods requied by the actual container implementation.
  *

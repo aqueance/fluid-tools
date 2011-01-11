@@ -19,6 +19,7 @@
   ~ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
   ~ THE SOFTWARE.
   -->
+
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
@@ -30,10 +31,10 @@
 
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.fluidity.composition</groupId>
-    <artifactId>composition-spi</artifactId>
+    <artifactId>composition-container-support-api</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
-    <name>Composition: Core SPI</name>
+    <name>Composition: Container Support API</name>
 
     <licenses>
         <license>
@@ -48,6 +49,11 @@
         <dependency>
             <groupId>${fluidity.composition.groupId}</groupId>
             <artifactId>composition-api</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>${fluidity.foundation.groupId}</groupId>
+            <artifactId>foundation-api</artifactId>
         </dependency>
 
     </dependencies>

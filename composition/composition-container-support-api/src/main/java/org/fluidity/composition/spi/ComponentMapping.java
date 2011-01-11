@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  */
 
-package org.fluidity.composition;
+package org.fluidity.composition.spi;
 
 /**
  * Component mapping details used by container services.

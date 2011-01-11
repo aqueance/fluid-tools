@@ -24,6 +24,7 @@ package org.fluidity.composition;
 
 import java.lang.annotation.Annotation;
 
+import org.fluidity.composition.spi.DependencyResolver;
 import org.fluidity.tests.MockGroupAbstractTest;
 
 import org.easymock.EasyMock;
@@ -31,7 +32,7 @@ import org.testng.annotations.Test;
 
 public class DependencyInjectorImplTest extends MockGroupAbstractTest {
 
-    private final DependencyInjector.Resolver resolver = addControl(DependencyInjector.Resolver.class);
+    private final DependencyResolver resolver = addControl(DependencyResolver.class);
     private final ClassDiscovery discovery = addControl(ClassDiscovery.class);
     private final ContextChain contextChain = addControl(ContextChain.class);
     private final ReferenceChain referenceChain = addControl(ReferenceChain.class);

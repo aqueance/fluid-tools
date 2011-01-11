@@ -22,6 +22,8 @@
 
 package org.fluidity.composition;
 
+import org.fluidity.composition.spi.ComponentMapping;
+
 /**
  * Provides means to keep track of a dependency reference chain.
  *

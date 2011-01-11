@@ -31,10 +31,10 @@
 
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.fluidity.composition</groupId>
-    <artifactId>composition-container-test</artifactId>
+    <artifactId>composition-container-support-impl</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
-    <name>Composition: Core Test</name>
+    <name>Composition: Container Support Implementation</name>
 
     <licenses>
         <license>
@@ -48,24 +48,30 @@
 
         <dependency>
             <groupId>${fluidity.composition.groupId}</groupId>
-            <artifactId>composition-impl</artifactId>
+            <artifactId>composition-container-support-api</artifactId>
         </dependency>
 
         <dependency>
-            <groupId>${fluidity.composition.groupId}</groupId>
-            <artifactId>composition-container-support-impl</artifactId>
+            <groupId>${fluidity.foundation.groupId}</groupId>
+            <artifactId>foundation-api</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>${fluidity.foundation.groupId}</groupId>
+            <artifactId>foundation-utils</artifactId>
         </dependency>
 
         <dependency>
             <groupId>${fluidity.foundation.groupId}</groupId>
             <artifactId>foundation-easymock</artifactId>
+            <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>${fluidity.foundation.groupId}</groupId>
             <artifactId>foundation-api</artifactId>
             <classifier>tests</classifier>
-            <scope>compile</scope>
+            <scope>test</scope>
         </dependency>
 
     </dependencies>
@@ -85,15 +91,18 @@
 
     <build>
         <plugins>
-
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <configuration>
-                    <skip>true</skip>
-                </configuration>
+                <groupId>${fluidity.plugin.groupId}</groupId>
+                <artifactId>maven-composition-plugin</artifactId>
+                <version>${fluidity.version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>process-annotations</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
-
         </plugins>
     </build>
 

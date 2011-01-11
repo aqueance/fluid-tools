@@ -25,10 +25,12 @@ package org.fluidity.composition;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**
- * Creates a {@link org.fluidity.composition.ContainerServices} object.
+ * Public for sun.misc.Service to be able to find it.
  */
-@ServiceProvider
-interface ContainerServicesFactory {
+final class ProductionServicesFactory implements ContainerServicesFactory {
 
-    ContainerServices containerServices(LogFactory logs);
+    public ContainerServices containerServices(final LogFactory logs) {
+        assert logs != null : LogFactory.class;
+        return new ProductionServices(logs);
+    }
 }

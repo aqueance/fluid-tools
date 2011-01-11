@@ -30,6 +30,7 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.fluidity.composition.spi.DependencyResolver;
 import org.fluidity.foundation.ClassLoaders;
 import org.fluidity.foundation.Exceptions;
 import org.fluidity.foundation.Reflection;
@@ -48,7 +49,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
         this.discovery = discovery;
     }
 
-    public <T> T injectFields(final Resolver resolver, final Class<?> componentApi, final ComponentContext context, final T instance) {
+    public <T> T injectFields(final DependencyResolver resolver, final Class<?> componentApi, final ComponentContext context, final T instance) {
         assert resolver != null;
 
         if (instance != null) {
@@ -59,7 +60,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
         return instance;
     }
 
-    public Object[] injectConstructor(final Resolver resolver, final Class<?> componentApi, final ComponentContext context, final Constructor<?> constructor) {
+    public Object[] injectConstructor(final DependencyResolver resolver, final Class<?> componentApi, final ComponentContext context, final Constructor<?> constructor) {
         final Class<?> componentType = constructor.getDeclaringClass();
         final Annotation[][] annotations = constructor.getParameterAnnotations();
         final Class[] types = constructor.getParameterTypes();
@@ -100,7 +101,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
         return arguments;
     }
 
-    private <T> void injectFields(final Resolver resolver,
+    private <T> void injectFields(final DependencyResolver resolver,
                                   final ComponentContext context,
                                   final T instance,
                                   final Class<?> componentApi,
@@ -165,7 +166,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
         }
     }
 
-    private void injectDependency(final Resolver resolver,
+    private void injectDependency(final DependencyResolver resolver,
                                   final ComponentContext context,
                                   final Class<?> componentApi,
                                   final Class<?> componentType,
