@@ -50,7 +50,6 @@
         <module>composition-container-impl</module>
         <module>composition-container-test</module>
         <module>composition-container-support-api</module>
-        <module>composition-container-support-impl</module>
         <module>composition-bootstrap-utils</module>
         <module>composition-command-line-impl</module>
         <module>composition-web-impl</module>

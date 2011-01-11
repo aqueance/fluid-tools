@@ -71,11 +71,6 @@ injection container associated with.
 
         <dependency>
             <groupId>${fluidity.composition.groupId}</groupId>
-            <artifactId>composition-container-support-impl</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>${fluidity.composition.groupId}</groupId>
             <artifactId>composition-bootstrap-utils</artifactId>
         </dependency>
 
