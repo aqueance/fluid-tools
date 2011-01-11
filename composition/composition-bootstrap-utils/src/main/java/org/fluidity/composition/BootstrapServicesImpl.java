@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,19 +23,31 @@
 package org.fluidity.composition;
 
 import java.util.Iterator;
+import java.util.ServiceLoader;
 
 import sun.misc.Service;
 import sun.misc.ServiceConfigurationError;
 
+@SuppressWarnings( { "unchecked" })
 final class BootstrapServicesImpl implements BootstrapServices {
 
-    @SuppressWarnings({ "unchecked" })
+    @SuppressWarnings("unchecked")
     public <T> T findInstance(final Class<T> interfaceClass, final ClassLoader classLoader) {
+        try {
 
-        // TODO: Java 6: use java.util.ServiceLoader.load(interfaceClass, classLoader).iterator()
-        for (final Iterator providers = Service.providers(interfaceClass, classLoader); providers.hasNext();) {
+            // Java 6+
+            return findInstance(interfaceClass, classLoader, ServiceLoader.load(interfaceClass, classLoader).iterator());
+        } catch (final NoClassDefFoundError e) {
+
+            // Java 5-
+            return findInstance(interfaceClass, classLoader, (Iterator<T>) Service.providers(interfaceClass, classLoader));
+        }
+    }
+
+    private <T> T findInstance(final Class<T> interfaceClass, final ClassLoader classLoader, final Iterator<T> providers) {
+        while (providers.hasNext()) {
             try {
-                return (T) providers.next();
+                return providers.next();
             } catch (final ServiceConfigurationError e) {
                 System.err.printf("Finding service providers for %s using %s", interfaceClass, classLoader);
                 e.printStackTrace(System.err);
