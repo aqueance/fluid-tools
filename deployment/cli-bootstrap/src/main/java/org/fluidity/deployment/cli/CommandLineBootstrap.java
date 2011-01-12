@@ -19,6 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package org.fluidity.deployment.cli;
 
 import org.fluidity.composition.Component;
@@ -29,7 +30,9 @@ import org.fluidity.deployment.DeploymentBootstrap;
 /**
  * A command line main class that bootstraps the application's dependency injection container, invokes {@link org.fluidity.deployment.DeploymentBootstrap} to
  * load and control deployment units and to invokes the application supplied main loop, {@link MainLoop}. Any component can access the command line parameters
- * by having a constructor with, among other dependencies, a <code>final String[] args</code> parameter.
+ * by having a constructor with, among other dependencies, a <code>String[]</code> parameter.
+ * <p/>
+ * This class is public for its main method to be found by the launcher.
  */
 @Component(api = CommandLineBootstrap.class)
 public final class CommandLineBootstrap implements Runnable {

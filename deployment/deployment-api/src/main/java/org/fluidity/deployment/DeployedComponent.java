@@ -30,15 +30,15 @@ import org.fluidity.foundation.spi.IdentifiedNamed;
  * started/stopped other than the following guarantee: a deployed component that depends, directly or indirectly, on other deployed components will be started
  * later and stopped sooner than those it depends on. However, they may of course depend on components that happens to be deployed components, too.
  * <p/>
- * The component is started in the main thread and halts the application startup until its {@link #start(org.fluidity.deployment.DeployedComponent.Context)}
- * method returns. The component may start its own thread if it wants to but that thread must stop when the component receives a {@link #stop()} method call.
+ * The component is started in the main thread and halts the application startup until its {@link #start(DeployedComponent.Context)} method returns. The
+ * component may start its own thread if it wants to but that thread must stop when the component receives a {@link #stop()} method call.
  * <p/>
- * A component should notify the system that it is no longer active by calling {@link org.fluidity.deployment.DeployedComponent.Context#complete()} on the
- * observer passed in the {@link org.fluidity.deployment.DeployedComponent#start(org.fluidity.deployment.DeployedComponent.Context)} method. If the component
- * stops and notifies the observer, the component's {@link DeployedComponent#stop()} method will not be invoked.
+ * A component should notify the system that it is no longer active by calling {@link DeployedComponent.Context#complete()} on the observer passed in the {@link
+ * DeployedComponent#start(DeployedComponent.Context)} method. If the component stops and notifies the observer, the component's {@link
+ * DeployedComponent#stop()} method will not be invoked.
  * <p/>
- * If the component fails to call {@link org.fluidity.deployment.DeployedComponent.Context#complete()} when its {@link #stop()} method is called, the system
- * will wait indefinitely for the component to stop.
+ * If the component fails to call {@link DeployedComponent.Context#complete()} when its {@link #stop()} method is called, the system will wait indefinitely for
+ * the component to stop.
  * <p/>
  * All subclasses of this interface will be marked as a service provider for this interface and will be automatically found and controlled by a suitable {@link
  * DeploymentBootstrap} implementation.
@@ -70,8 +70,8 @@ public interface DeployedComponent extends IdentifiedNamed {
     void start(Context observer) throws Exception;
 
     /**
-     * Stops the component, unless the component notified the observer passed in {@link org.fluidity.deployment.DeployedComponent#start(org.fluidity.deployment.DeployedComponent.Context)}
-     * that it had stopped.
+     * Stops the component, unless the component notified the observer passed in {@link DeployedComponent#start(DeployedComponent.Context)} that it had
+     * stopped.
      *
      * @throws Exception when thrown is logged.
      */

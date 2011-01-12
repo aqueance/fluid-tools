@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -63,7 +63,7 @@ public final class DependencyResolverServlet implements Servlet {
     }
 
     /*
-     * Package visible for test cases to see.
+     * Package visible to make accessible to test cases.
      */
     void init(final ServletConfig config, final DependencyResolver resolver) throws ServletException {
         assert resolver != null;

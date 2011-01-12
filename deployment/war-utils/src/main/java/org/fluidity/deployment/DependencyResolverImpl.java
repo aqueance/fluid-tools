@@ -39,7 +39,9 @@ final class DependencyResolverImpl implements DependencyResolver {
         return findComponent(Bootstrap.container, componentClassName);
     }
 
-    // This is the method that can be tested
+    /*
+     * Package visible to make accessible to test cases.
+     */
     Object findComponent(final ComponentContainer container, final String componentClassName) throws ServletException {
         assert componentClassName != null : COMPONENT_KEY;
 

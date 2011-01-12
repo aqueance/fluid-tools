@@ -54,8 +54,8 @@ final class DefaultMainLoopImpl implements MainLoop {
             log.info("Application started. Press Ctrl-C to stop it.");
         }
 
-        if (!stopped.get()) {
-            synchronized (lock) {
+        synchronized (lock) {
+            if (!stopped.get()) {
                 try {
                     lock.wait();
                 } catch (final InterruptedException e) {

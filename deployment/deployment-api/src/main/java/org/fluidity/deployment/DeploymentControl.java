@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,7 +22,7 @@
 package org.fluidity.deployment;
 
 /**
- * Receives notifications concerning the deployment of {@link org.fluidity.deployment.DeployedComponent} and {@link org.fluidity.deployment.DeploymentObserver}
+ * Receives notifications concerning the deployment of {@link DeployedComponent} and {@link DeploymentObserver}
  * components.
  */
 public interface DeploymentControl extends RuntimeControl {
@@ -33,7 +33,7 @@ public interface DeploymentControl extends RuntimeControl {
     void completed();
 
     /**
-     * Tells if the deployment is designed to function without any {@link org.fluidity.deployment.DeployedComponent} object running. Returning
+     * Tells if the deployment is designed to function without any {@link DeployedComponent} object running. Returning
      * <code>false</code> when no such deployed component is running results in a call to {@link RuntimeControl#stop()}.
      *
      * @return <code>true</code> if the system should run even when no deployed components are running, <code>false</code> otherwise.

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,19 +27,16 @@ package org.fluidity.deployment;
 public interface DeploymentBootstrap {
 
     /**
-     * Loads all {@link org.fluidity.deployment.DeployedComponent} and {@link org.fluidity.deployment.DeploymentObserver}
-     * objects and calls their {@link DeployedComponent#start(org.fluidity.deployment.DeployedComponent.Context)} and
-     * {@link org.fluidity.deployment.DeploymentObserver#started()} methods, respectively.
+     * Loads all {@link DeployedComponent} and {@link DeploymentObserver} objects and calls their {@link DeployedComponent#start(DeployedComponent.Context)} and
+     * {@link DeploymentObserver#started()} methods, respectively.
      *
      * @throws Exception will cause the bootstrap to be aborted.
      */
     void load() throws Exception;
 
     /**
-     * Locates all loaded {@link org.fluidity.deployment.DeployedComponent} and {@link
-     * org.fluidity.deployment.DeploymentObserver} objects and calls their {@link org.fluidity.deployment.DeployedComponent#stop()}
-     * and {@link org.fluidity.deployment.DeploymentObserver#stopped()} methods, respectively, and in a reverse order
-     * than in the {@link #load()} method.
+     * Locates all loaded {@link DeployedComponent} and {@link DeploymentObserver} objects and calls their {@link DeployedComponent#stop()} and {@link
+     * DeploymentObserver#stopped()} methods, respectively, and in a reverse order than in the {@link #load()} method.
      */
     void unload();
 }

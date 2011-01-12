@@ -19,13 +19,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package org.fluidity.deployment;
 
 import org.fluidity.composition.ServiceProvider;
 
 /**
- * This component gets notified when all {@link org.fluidity.deployment.DeployedComponent} objects have been started/stopped. Methods of this interface are
- * invoked from the main thread and block that thread until they return.
+ * This component gets notified when all {@link DeployedComponent} objects have been started/stopped. Methods of this interface are invoked from the main thread
+ * and block that thread until they return.
  * <p/>
  * All subclasses of this interface will be marked as a service provider for this interface and will be automatically found and controlled by a suitable {@link
  * DeploymentBootstrap} implementation.
@@ -34,14 +35,14 @@ import org.fluidity.composition.ServiceProvider;
 public interface DeploymentObserver {
 
     /**
-     * Notifies the component that all {@link org.fluidity.deployment.DeployedComponent} objects have been started.
+     * Notifies the component that all {@link DeployedComponent} objects have been started.
      *
      * @throws Exception when thrown is logged.
      */
     void started() throws Exception;
 
     /**
-     * Notifies the component that all {@link org.fluidity.deployment.DeployedComponent} objects have been stopped.
+     * Notifies the component that all {@link DeployedComponent} objects have been stopped.
      *
      * @throws Exception when thrown is logged.
      */
