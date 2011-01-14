@@ -51,8 +51,8 @@ public interface ContextFactory {
     ComponentContext extractContext(Annotation[] annotation);
 
     /**
-     * Calls {@link #deriveContext(org.fluidity.composition.ComponentContext, ComponentContext)} using the supplied context and the one
-     * extracted from the supplied class using {@link #extractContext(java.lang.annotation.Annotation[])}.
+     * Calls {@link #deriveContext(ComponentContext, ComponentContext)} using the supplied context and the one
+     * extracted from the supplied class using {@link #extractContext(Annotation[])}.
      *
      * @param context         the context to use as the parent of the derived context.
      * @param contextProvider the class to extract the context to use as the child in the derived context.

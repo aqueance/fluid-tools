@@ -39,9 +39,9 @@ public interface ContainerServices {
     ClassDiscovery classDiscovery();
 
     /**
-     * Returns the service that can create {@link org.fluidity.composition.ComponentContext} instances.
+     * Returns the service that can create {@link ComponentContext} instances.
      *
-     * @return the service that can create {@link org.fluidity.composition.ComponentContext} instances.
+     * @return the service that can create {@link ComponentContext} instances.
      */
     ContextFactory contextFactory();
 

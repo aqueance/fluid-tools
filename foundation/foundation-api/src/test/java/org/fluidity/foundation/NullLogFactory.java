@@ -30,7 +30,7 @@ import org.fluidity.foundation.logging.Log;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**
- * Returns {@link org.fluidity.foundation.logging.Log} implementations that simply gobble up messages.
+ * Returns {@link Log} implementations that simply gobble up messages.
  */
 public final class NullLogFactory implements LogFactory {
 

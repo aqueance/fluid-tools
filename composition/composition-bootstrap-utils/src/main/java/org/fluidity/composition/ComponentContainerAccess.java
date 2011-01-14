@@ -125,8 +125,8 @@ public final class ComponentContainerAccess implements ComponentContainer {
     }
 
     /**
-     * Adds a property to a collection that will be passed to any {@link org.fluidity.composition.spi.PackageBindings} visible by the current class loader that has a constructor with a
-     * {@link Map} parameter.
+     * Adds a property to a collection that will be passed to any {@link org.fluidity.composition.spi.PackageBindings} visible by the current class loader that
+     * has a constructor with a {@link Map} parameter.
      *
      * @param key   is the key of the property.
      * @param value is the value of the property.

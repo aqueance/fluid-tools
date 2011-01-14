@@ -43,7 +43,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 /**
- * Abstract test case for {@link org.fluidity.composition.spi.ContainerProvider} implementations.
+ * Abstract test case for {@link ContainerProvider} implementations.
  *
  * @author Tibor Varga
  */

@@ -71,7 +71,7 @@ import org.objectweb.asm.commons.EmptyVisitor;
  * specification, find all components, generate a package bindings class for each and add these package bindings as service provider descriptor files.
  * <p/>
  * Subclasses should call {@link AbstractAnnotationProcessorMojo#processDirectory(java.io.File)} with the directory containing the classes to process. The Maven
- * build object can be obtained by calling {@link org.fluidity.maven.AbstractAnnotationProcessorMojo#build()}.
+ * build object can be obtained by calling {@link AbstractAnnotationProcessorMojo#build()}.
  *
  * @threadSafe
  */

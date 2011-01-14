@@ -66,8 +66,8 @@ public abstract class Exceptions {
         /**
          * Code to run and wrap the exceptions therefrom.
          *
-         * @return whatever the caller of the {@link org.fluidity.foundation.Exceptions#wrap(org.fluidity.foundation.Exceptions.Command)} or {@link
-         *         org.fluidity.foundation.Exceptions#wrap(String,org.fluidity.foundation.Exceptions.Command)} wishes to receive.
+         * @return whatever the caller of the {@link Exceptions#wrap(Exceptions.Command)} or {@link Exceptions#wrap(String, Exceptions.Command)} wishes to
+         *         receive.
          *
          * @throws Exception to turn to {@link RuntimeException} if necessary.
          */
@@ -118,7 +118,7 @@ public abstract class Exceptions {
         public <T extends Exception> Wrapper rethrow(final Class<T> accept) throws T {
             final Throwable cause = getCause();
 
-            @SuppressWarnings({ "unchecked" })
+            @SuppressWarnings( { "unchecked" })
             final T exception = accept.isAssignableFrom(cause.getClass()) ? (T) cause : null;
 
             if (exception != null) {

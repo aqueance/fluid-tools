@@ -25,7 +25,7 @@ package org.fluidity.composition;
 import org.fluidity.composition.spi.ComponentFactory;
 
 /**
- * Component mapping of a {@link org.fluidity.composition.spi.ComponentFactory} instance.
+ * Component mapping of a {@link ComponentFactory} instance.
  *
  * @author Tibor Varga
  */

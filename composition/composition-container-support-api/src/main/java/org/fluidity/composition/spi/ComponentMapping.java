@@ -37,16 +37,16 @@ public interface ComponentMapping {
     Class<?> componentInterface();
 
     /**
-     * Tells whther the mapping is that of a {@link org.fluidity.composition.spi.ComponentVariantFactory}.
+     * Tells whther the mapping is that of a {@link ComponentVariantFactory}.
      *
-     * @return <code>true</code> if the mapping is that of a {@link org.fluidity.composition.spi.ComponentVariantFactory}, <code>false</code> otherwise.
+     * @return <code>true</code> if the mapping is that of a {@link ComponentVariantFactory}, <code>false</code> otherwise.
      */
     boolean isVariantMapping();
 
     /**
-     * Returns the component class in case of a {@link org.fluidity.composition.spi.ComponentVariantFactory} or a {@link sun.awt.ComponentFactory} mapping.
+     * Returns the component class in case of a {@link ComponentVariantFactory} or a {@link sun.awt.ComponentFactory} mapping.
      *
-     * @return the component class in case of a {@link org.fluidity.composition.spi.ComponentVariantFactory} or a {@link sun.awt.ComponentFactory} mapping.
+     * @return the component class in case of a {@link ComponentVariantFactory} or a {@link sun.awt.ComponentFactory} mapping.
      */
     Class<?> factoryClass();
 }

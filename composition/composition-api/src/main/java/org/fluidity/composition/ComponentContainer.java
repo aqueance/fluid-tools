@@ -35,7 +35,7 @@ package org.fluidity.composition;
  * are normally invoked from the {@link org.fluidity.composition.spi.PackageBindings#bindComponents(ComponentContainer.Registry)} method.
  * <ul>
  * <li>To simply register a component implementation for a component interface, use {@link ComponentContainer.Registry#bindComponent(Class,Class)}. For
- * auto-wired components this is achieved by annotating the implementation class with {@link org.fluidity.composition.Component}.
+ * auto-wired components this is achieved by annotating the implementation class with {@link Component}.
  * </li>
  * <li>To register a default implementation of some component interface, use {@link ComponentContainer.Registry#bindDefault(Class)}. For auto-wired components
  * this is achieved by annotating the implementation class with {@link Component#fallback()} set to <code>true</code>.

@@ -25,7 +25,7 @@ package org.fluidity.composition;
 import org.fluidity.composition.spi.ComponentVariantFactory;
 
 /**
- * Component mapping for a {@link org.fluidity.composition.spi.ComponentVariantFactory} class.
+ * Component mapping for a {@link ComponentVariantFactory} class.
  *
  * @author Tibor Varga
  */

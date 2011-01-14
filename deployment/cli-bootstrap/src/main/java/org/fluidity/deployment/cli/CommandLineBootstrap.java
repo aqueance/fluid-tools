@@ -28,9 +28,9 @@ import org.fluidity.composition.spi.ShutdownHook;
 import org.fluidity.deployment.DeploymentBootstrap;
 
 /**
- * A command line main class that bootstraps the application's dependency injection container, invokes {@link org.fluidity.deployment.DeploymentBootstrap} to
- * load and control deployment units and to invokes the application supplied main loop, {@link MainLoop}. Any component can access the command line parameters
- * by having a constructor with, among other dependencies, a <code>String[]</code> parameter.
+ * A command line main class that bootstraps the application's dependency injection container, invokes {@link DeploymentBootstrap} to load and control
+ * deployment units and to invokes the application supplied main loop, {@link MainLoop}. Any component can access the command line parameters by having a
+ * constructor with, among other dependencies, a <code>String[]</code> parameter.
  * <p/>
  * This class is public for its main method to be found by the launcher.
  */

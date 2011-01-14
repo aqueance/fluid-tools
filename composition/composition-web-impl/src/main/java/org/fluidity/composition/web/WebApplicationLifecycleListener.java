@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,7 +30,7 @@ import org.fluidity.composition.ComponentContainerAccess;
 import org.fluidity.composition.ComponentDiscovery;
 
 /**
- * Finds all implementations of the {@link javax.servlet.ServletContextListener} that have been marked with the
+ * Finds all implementations of the {@link ServletContextListener} that have been marked with the
  * @{@link org.fluidity.composition.ServiceProvider} annotation and dispatches the listener events to all.
  */
 public final class WebApplicationLifecycleListener implements ServletContextListener {

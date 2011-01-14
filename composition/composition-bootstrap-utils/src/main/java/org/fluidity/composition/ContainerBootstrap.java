@@ -27,7 +27,7 @@ import java.util.Map;
 import org.fluidity.composition.spi.ContainerProvider;
 
 /**
- * Bootstraps the component container provided by a {@link org.fluidity.composition.spi.ContainerProvider}.
+ * Bootstraps the component container provided by a {@link ContainerProvider}.
  *
  * @author Tibor Varga
  */

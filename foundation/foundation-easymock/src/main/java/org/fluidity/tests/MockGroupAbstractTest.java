@@ -19,6 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package org.fluidity.tests;
 
 import java.lang.reflect.InvocationHandler;
@@ -176,7 +177,7 @@ public abstract class MockGroupAbstractTest {
     }
 
     /**
-     * Calls {@link org.easymock.IMocksControl#replay()} on all mock objects added to the test. Mock objects are added by calling {@link #addControl(Class)},
+     * Calls {@link IMocksControl#replay()} on all mock objects added to the test. Mock objects are added by calling {@link #addControl(Class)},
      * {@link #addNiceControl(Class)}, {@link #addStrictControl(Class)} and {@link #addControls(Class, Class[])}.
      */
     protected final void replay() {
@@ -186,7 +187,7 @@ public abstract class MockGroupAbstractTest {
     }
 
     /**
-     * Calls {@link org.easymock.IMocksControl#verify()} on all mock objects added to the test. Mock objects are added by calling {@link #addControl(Class)},
+     * Calls {@link IMocksControl#verify()} on all mock objects added to the test. Mock objects are added by calling {@link #addControl(Class)},
      * {@link #addNiceControl(Class)}, {@link #addStrictControl(Class)} and {@link #addControls(Class, Class[])}.
      */
     protected final void verify() {
@@ -204,7 +205,7 @@ public abstract class MockGroupAbstractTest {
     }
 
     /**
-     * Calls {@link org.easymock.IMocksControl#reset()} on all mock objects added to the test. Mock objects are added by calling {@link #addControl(Class)},
+     * Calls {@link IMocksControl#reset()} on all mock objects added to the test. Mock objects are added by calling {@link #addControl(Class)},
      * {@link #addNiceControl(Class)}, {@link #addStrictControl(Class)} and {@link #addControls(Class, Class[])}.
      */
     protected final void reset() {

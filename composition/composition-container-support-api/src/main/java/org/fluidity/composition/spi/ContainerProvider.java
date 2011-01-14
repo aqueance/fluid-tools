@@ -49,13 +49,13 @@ public interface ContainerProvider {
     OpenComponentContainer newContainer(ContainerServices services);
 
     /**
-     * Instantiates all {@link org.fluidity.composition.spi.PackageBindings} classes in the given assemblySet and returns the instances in instantiation order.
+     * Instantiates all {@link PackageBindings} classes in the given assemblySet and returns the instances in instantiation order.
      *
      * @param services    provides service components for containers, in case needed.
-     * @param properties  is to be made available to any {@link org.fluidity.composition.spi.PackageBindings} object that may depend on it
+     * @param properties  is to be made available to any {@link PackageBindings} object that may depend on it
      * @param assemblySet the collection of classes to instantiate. Some may depend on others in the set.
      *
-     * @return the list of {@link org.fluidity.composition.spi.PackageBindings} instances in instantiation order.
+     * @return the list of {@link PackageBindings} instances in instantiation order.
      */
     List<PackageBindings> instantiateBindings(ContainerServices services, Map properties, Collection<Class<PackageBindings>> assemblySet);
 }

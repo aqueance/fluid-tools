@@ -30,18 +30,17 @@ package org.fluidity.composition;
  * <p/>
  * A context aware component or a {@link org.fluidity.composition.spi.ComponentVariantFactory} declares, using the {@link org.fluidity.composition.Context}
  * annotation, context keys that they consume. Upon instantiation a context is passed to such a component or the variant factory in the form of a {@link
- * java.util.Properties} object with keys that are a subset of the keys the component or factory declares to support.
+ * ComponentContext} object containing the annotation instances used to define the context of the instantiation.
  * <p/>
  * The values in the context object are calculated from a base context and any context encountered during the entire dependency chain starting at that base and
  * ending at the instantiation of a given component.
  * <p/>
- * The base context comes from either a {@link org.fluidity.composition.Context} annotated component, or a field or constructor parameter reference thereto, or
- * the prevalent context at the instantiation of a component that depends on and uses a {@link org.fluidity.composition.ComponentContainer} directly to get
- * other components from.
+ * The base context comes from either a {@link Context} annotated component, or a field or constructor parameter reference thereto, or the prevalent context at
+ * the instantiation of a component that depends on and uses a {@link ComponentContainer} directly to get other components from.
  * <p/>
- * Further contexts are added to the base at each {@link org.fluidity.composition.Context} annotated reference along a dependency chain. The context consumed by
- * a context aware component is inherited back through the dependency chain ending with the instantiation of that component up to the point where the context is
- * fully defined and may cause contextual instantiation of components in between that are not themselves context aware.
+ * Further contexts are added to the base at each {@link Context} annotated reference along a dependency chain. The context consumed by a context aware
+ * component is inherited back through the dependency chain ending with the instantiation of that component up to the point where the context is fully defined
+ * and may cause contextual instantiation of components in between that are not themselves context aware.
  *
  * @author Tibor Varga
  */
@@ -96,8 +95,7 @@ public interface ContextChain {
          *
          * @param context the context established at the point of invocation.
          *
-         * @return whatever the caller of {@link ContextChain#nested(ComponentContext, ContextChain.Command)}
-         *         wishes to receive back.
+         * @return whatever the caller of {@link ContextChain#nested(ComponentContext, ContextChain.Command)} wishes to receive back.
          */
         T run(ComponentContext context);
     }

@@ -46,7 +46,7 @@ public interface DependencyInjector {
     Object[] injectConstructor(DependencyResolver resolver, Class<?> componentApi, ComponentContext context, Constructor<?> constructor);
 
     /**
-     * Sets all {@link org.fluidity.composition.Component} annotated fields of the receiver.
+     * Sets all {@link Component} annotated fields of the receiver.
      *
      * @param resolver     the resolver to satisfy dependencies.
      * @param componentApi the interface implemented by the component.

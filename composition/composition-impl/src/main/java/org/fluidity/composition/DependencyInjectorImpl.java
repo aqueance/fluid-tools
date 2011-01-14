@@ -36,8 +36,7 @@ import org.fluidity.foundation.Exceptions;
 import org.fluidity.foundation.Reflection;
 
 /**
- * Finds, resolves and sets, using the given container, all @{@link org.fluidity.composition.Component} annotated fields of an object that have not yet been
- * set.
+ * Finds, resolves and sets, using the given container, all @{@link Component} annotated fields of an object that have not yet been set.
  *
  * @author Tibor Varga
  */
@@ -60,7 +59,10 @@ final class DependencyInjectorImpl implements DependencyInjector {
         return instance;
     }
 
-    public Object[] injectConstructor(final DependencyResolver resolver, final Class<?> componentApi, final ComponentContext context, final Constructor<?> constructor) {
+    public Object[] injectConstructor(final DependencyResolver resolver,
+                                      final Class<?> componentApi,
+                                      final ComponentContext context,
+                                      final Constructor<?> constructor) {
         final Class<?> componentType = constructor.getDeclaringClass();
         final Annotation[][] annotations = constructor.getParameterAnnotations();
         final Class[] types = constructor.getParameterTypes();

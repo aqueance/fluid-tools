@@ -33,8 +33,8 @@ import org.fluidity.foundation.logging.Source;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**
- * Creates {@link org.fluidity.foundation.logging.Log} objects for the source specified by a {@link org.fluidity.foundation.logging.Source} annotation, using
- * the user provided implementation of the {@link org.fluidity.foundation.spi.LogFactory} interface.
+ * Creates {@link Log} objects for the source specified by a {@link Source} annotation, using the user provided implementation of the {@link LogFactory}
+ * interface.
  */
 @Component(api = Log.class, type = Log.class)
 @Context(Source.class)

@@ -25,7 +25,7 @@ package org.fluidity.composition;
 import org.fluidity.composition.spi.ComponentFactory;
 
 /**
- * Component producer for a {@link org.fluidity.composition.spi.ComponentFactory} component.
+ * Component producer for a {@link ComponentFactory} component.
  *
  * @author Tibor Varga
  */

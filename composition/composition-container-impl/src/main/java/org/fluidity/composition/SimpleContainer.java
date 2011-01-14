@@ -143,7 +143,7 @@ interface SimpleContainer extends DependencyResolver {
     <T> T get(Class<? extends T> key, ComponentContext context) throws ComponentContainer.ResolutionException;
 
     /**
-     * Injects the {@link org.fluidity.composition.Component} annotated fields of the given component instance.
+     * Injects the {@link Component} annotated fields of the given component instance.
      *
      * @param component the component instance.
      *

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,7 +29,7 @@ package org.fluidity.composition;
  * The implementation is partial because this component does not instantiate the discovered classes, it merely discovers them.
  * <p/>
  * This is useful not so much for client components as for those providing core composition functionality such as component container bootstrap. Client
- * components normally need to use a {@link  org.fluidity.composition.ServiceProvider} annotated array parameter or {@link
+ * components normally need to use a {@link  ServiceProvider} annotated array parameter or {@link
  * org.fluidity.composition.ComponentDiscovery} instead.
  *
  * @author Tibor Varga

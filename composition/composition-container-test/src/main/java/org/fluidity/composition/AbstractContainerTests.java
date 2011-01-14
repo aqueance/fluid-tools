@@ -27,7 +27,7 @@ import org.fluidity.tests.MockGroupAbstractTest;
 import org.testng.annotations.BeforeMethod;
 
 /**
- * Abstract test for container related test cases. Used by {@link org.fluidity.composition.ComponentContainerAbstractTest}.
+ * Abstract test for container related test cases. Used by {@link ComponentContainerAbstractTest}.
  *
  * @author Tibor Varga
  */
