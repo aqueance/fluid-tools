@@ -25,7 +25,7 @@ package org.fluidity.composition;
 import java.util.Collection;
 
 /**
- * In-house dependency injection container. Supports hierarchies of containers, context dependent variants of singletons, seamless resolution of cyclic
+ * Dependency injection container. Supports hierarchies of containers, context dependent variants of singletons, seamless resolution of cyclic
  * dependencies when target is interface.
  * <p/>
  * This is a shell around a {@link SimpleContainer} object.

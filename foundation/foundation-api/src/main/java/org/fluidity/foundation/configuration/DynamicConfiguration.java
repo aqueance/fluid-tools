@@ -25,5 +25,7 @@ package org.fluidity.foundation.configuration;
 /**
  * Represents configuration that may change at run-time. This is a marker interface and serves no other purpose than expressing its user's intention of being
  * able to access a fully up to date and consistent set of configuration settings.
+ *
+ * @author Tibor Varga
  */
 public interface DynamicConfiguration<T> extends Configuration<T>{ }

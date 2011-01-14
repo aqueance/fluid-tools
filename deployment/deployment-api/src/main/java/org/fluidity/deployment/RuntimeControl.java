@@ -24,6 +24,8 @@ package org.fluidity.deployment;
 
 /**
  * Allows stopping the runtime controlled by the implementation.
+ *
+ * @author Tibor Varga
  */
 public interface RuntimeControl {
 

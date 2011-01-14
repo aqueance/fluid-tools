@@ -49,6 +49,8 @@ import org.fluidity.foundation.spi.PropertyProvider;
  * We use a factory instead of directly making the {@link Configuration} implementation context aware because one of its dependencies is actually defined by the
  * context: {@link Properties#provider()}. This factory is capable of reading that annotation and adding to the container the particular provider for the {@link
  * Configuration} implementation to pick up as dependency.
+ *
+ * @author Tibor Varga
  */
 @Component(api = Configuration.class, type = ConfigurationComponentFactory.ConfigurationImpl.class)
 @Context(Properties.class)

@@ -32,6 +32,8 @@ import org.fluidity.foundation.logging.Source;
 /**
  * This run loop implementation expects the application loop to be in a {@link MainLoop.Application}, which when done invokes {@link
  * org.fluidity.deployment.RuntimeControl#stop()}. The application loop is optional and when not present, the application can be stopped using Ctrl-C.
+ *
+ * @author Tibor Varga
  */
 @Component(api = MainLoop.class)
 final class DefaultMainLoopImpl implements MainLoop {

@@ -35,6 +35,8 @@ import org.fluidity.foundation.spi.LogFactory;
 /**
  * Creates {@link Log} objects for the source specified by a {@link Source} annotation, using the user provided implementation of the {@link LogFactory}
  * interface.
+ *
+ * @author Tibor Varga
  */
 @Component(api = Log.class, type = Log.class)
 @Context(Source.class)

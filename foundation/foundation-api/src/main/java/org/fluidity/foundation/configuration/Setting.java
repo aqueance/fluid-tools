@@ -33,6 +33,8 @@ import java.lang.annotation.Target;
  * <p/>
  * This annotation is to be used on interface methods that will be used in conjunction with either a {@link StaticConfiguration} or {@link DynamicConfiguration}
  * component. See {@link Configuration} for details.
+ *
+ * @author Tibor Varga
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)

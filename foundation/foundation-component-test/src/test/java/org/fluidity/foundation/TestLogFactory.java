@@ -28,6 +28,8 @@ import org.fluidity.foundation.spi.LogFactory;
 
 /**
  * Acts as a log factory during testing, used for suppressing the log output of the container.
+ *
+ * @author Tibor Varga
  */
 @ServiceProvider
 public class TestLogFactory implements LogFactory {

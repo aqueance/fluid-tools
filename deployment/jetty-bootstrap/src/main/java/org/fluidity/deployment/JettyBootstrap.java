@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -41,6 +41,8 @@ import org.mortbay.thread.QueuedThreadPool;
 
 /**
  * Bootstraps a Jetty web container and deploys the .war file that contains this class and then all other .war files supplied.
+ *
+ * @author Tibor Varga
  */
 public final class JettyBootstrap implements ServerBootstrap {
 

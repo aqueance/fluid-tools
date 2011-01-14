@@ -30,6 +30,8 @@ import java.lang.annotation.Target;
 
 /**
  * Context annotation for {@link Log} components. See that for details.
+ *
+ * @author Tibor Varga
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)

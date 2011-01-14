@@ -19,11 +19,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package org.fluidity.deployment;
 
 /**
  * Receives notifications concerning the deployment of {@link DeployedComponent} and {@link DeploymentObserver}
  * components.
+ *
+ * @author Tibor Varga
  */
 public interface DeploymentControl extends RuntimeControl {
 

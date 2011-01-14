@@ -30,6 +30,9 @@ import org.fluidity.tests.MockGroupAbstractTest;
 import org.easymock.EasyMock;
 import org.testng.annotations.Test;
 
+/**
+ * @author Tibor Varga
+ */
 public class DependencyInjectorImplTest extends MockGroupAbstractTest {
 
     private final DependencyResolver resolver = addControl(DependencyResolver.class);

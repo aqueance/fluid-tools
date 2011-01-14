@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,6 +29,8 @@ import org.fluidity.composition.ComponentContainerAccess;
 
 /**
  * A servlet that bootstraps and controls all {@link DeployedComponent} and {@link DeploymentObserver} objects in the application.
+ *
+ * @author Tibor Varga
  */
 public final class BootstrapServlet extends HttpServlet {
 

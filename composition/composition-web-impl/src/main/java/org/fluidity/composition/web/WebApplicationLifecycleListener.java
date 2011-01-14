@@ -32,6 +32,8 @@ import org.fluidity.composition.ComponentDiscovery;
 /**
  * Finds all implementations of the {@link ServletContextListener} that have been marked with the
  * @{@link org.fluidity.composition.ServiceProvider} annotation and dispatches the listener events to all.
+ *
+ * @author Tibor Varga
  */
 public final class WebApplicationLifecycleListener implements ServletContextListener {
 

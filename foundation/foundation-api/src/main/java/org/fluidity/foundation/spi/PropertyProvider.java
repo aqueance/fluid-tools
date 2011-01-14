@@ -24,6 +24,8 @@ package org.fluidity.foundation.spi;
 
 /**
  * Maps from property keys to property values. You provide an implementation that suits your configuration strategy.
+ *
+ * @author Tibor Varga
  */
 public interface PropertyProvider {
 

@@ -31,6 +31,8 @@ import org.fluidity.foundation.spi.LogFactory;
 
 /**
  * Returns {@link Log} implementations that simply gobble up messages.
+ *
+ * @author Tibor Varga
  */
 public final class NullLogFactory implements LogFactory {
 

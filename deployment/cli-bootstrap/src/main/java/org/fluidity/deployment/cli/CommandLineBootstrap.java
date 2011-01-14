@@ -33,6 +33,8 @@ import org.fluidity.deployment.DeploymentBootstrap;
  * constructor with, among other dependencies, a <code>String[]</code> parameter.
  * <p/>
  * This class is public for its main method to be found by the launcher.
+ *
+ * @author Tibor Varga
  */
 @Component(api = CommandLineBootstrap.class)
 public final class CommandLineBootstrap implements Runnable {

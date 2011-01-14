@@ -36,6 +36,8 @@ import java.lang.annotation.Target;
  * This annotation can also be used to mark instance fields of components to request field inject of dependencies. In that case the annotation is processed at
  * run-time after the component has been instantiated - either by the container or externally and in the latter case the container has to be asked to initialize
  * the externally instantiated object by calling {@link ComponentContainer#initialize(Object)}.
+ *
+ * @author Tibor Varga
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)

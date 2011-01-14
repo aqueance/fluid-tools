@@ -71,6 +71,8 @@ import org.sonatype.aether.util.graph.PreorderNodeListGenerator;
  *
  * @goal package
  * @phase package
+ *
+ * @author Tibor Varga
  */
 public class ExecutableWarMojo extends AbstractMojo {
 

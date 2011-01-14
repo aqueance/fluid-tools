@@ -65,6 +65,8 @@ package org.fluidity.foundation.configuration;
  * <p/>
  * In place of {@link Configuration}, the configured class may use either {@link DynamicConfiguration} or {@link StaticConfiguration} to express its intention
  * to have or not have, respectively, the most up to date set of configuration settings available at run-time.
+ *
+ * @author Tibor Varga
  */
 public interface Configuration<T> {
 

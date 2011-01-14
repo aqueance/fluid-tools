@@ -42,6 +42,8 @@ import org.fluidity.foundation.spi.IdentifiedNamed;
  * <p/>
  * All subclasses of this interface will be marked as a service provider for this interface and will be automatically found and controlled by a suitable {@link
  * DeploymentBootstrap} implementation.
+ *
+ * @author Tibor Varga
  */
 @ServiceProvider(api = DeployedComponent.class)
 public interface DeployedComponent extends IdentifiedNamed {

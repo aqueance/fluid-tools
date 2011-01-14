@@ -32,6 +32,8 @@ import org.fluidity.foundation.spi.PropertyProvider;
 
 /**
  * Context annotation for {@link StaticConfiguration} and {@link DynamicConfiguration} components. See {@link Configuration} for details.
+ *
+ * @author Tibor Varga
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)

@@ -25,5 +25,7 @@ package org.fluidity.foundation.configuration;
 /**
  * Represents configuration that does not change at run-time. This is actually a marker interface and its properties may change at run-time. The purpose
  * of this interface is to express the intention of its user that it will not care about properties changing once they have been read up.
+ *
+ * @author Tibor Varga
  */
 public interface StaticConfiguration<T> extends Configuration<T>{ }

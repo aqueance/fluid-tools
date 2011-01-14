@@ -22,6 +22,9 @@
 
 package org.fluidity.composition;
 
+/**
+ * @author Tibor Varga
+ */
 public class FluidComponentContainerTest extends ComponentContainerAbstractTest {
 
     @Override

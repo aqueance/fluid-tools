@@ -30,6 +30,9 @@ import org.testng.annotations.Test;
 
 import sun.misc.Service;
 
+/**
+ * @author Tibor Varga
+ */
 public class ComponentRegistrationTest {
 
     private final ComponentContainerAccess container = new ComponentContainerAccess();

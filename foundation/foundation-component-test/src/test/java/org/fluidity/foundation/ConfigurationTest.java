@@ -41,6 +41,9 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+/**
+ * @author Tibor Varga
+ */
 public class ConfigurationTest extends MockGroupAbstractTest {
 
     private PropertyProvider propertyProvider = addControl(PropertyProvider.class);

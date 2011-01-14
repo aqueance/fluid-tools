@@ -32,6 +32,8 @@ import org.fluidity.foundation.logging.Log;
 
 /**
  * Logs to the standard output. All log levels are enabled.
+ *
+ * @author Tibor Varga
  */
 final class StandardOutLog implements Log {
 

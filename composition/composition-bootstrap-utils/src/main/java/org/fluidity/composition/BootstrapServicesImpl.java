@@ -28,6 +28,9 @@ import java.util.ServiceLoader;
 import sun.misc.Service;
 import sun.misc.ServiceConfigurationError;
 
+/**
+ * @author Tibor Varga
+ */
 @SuppressWarnings( { "unchecked" })
 final class BootstrapServicesImpl implements BootstrapServices {
 

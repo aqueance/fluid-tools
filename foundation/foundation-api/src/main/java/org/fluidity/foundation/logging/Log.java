@@ -36,6 +36,8 @@ package org.fluidity.foundation.logging;
  *   }
  * }
  * </pre>
+ *
+ * @author Tibor Varga
  */
 public interface Log {
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,6 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package org.fluidity.deployment.cli;
 
 import org.fluidity.deployment.DeploymentControl;
@@ -29,6 +30,8 @@ import org.fluidity.deployment.RuntimeControl;
  * access the command line parameters by having a constructor with, among other dependencies, a <code>final String[] args</code> parameter.
  * <p/>
  * The application exits when the call to the {@link Runnable#run()} method returns, unless the developer has started but failed to stop non-daemon threads.
+ *
+ * @author Tibor Varga
  */
 public interface MainLoop extends Runnable, DeploymentControl {
 

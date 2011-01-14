@@ -38,6 +38,9 @@ import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+/**
+ * @author Tibor Varga
+ */
 public final class DeploymentBootstrapImplTest extends MockGroupAbstractTest {
 
     private final Log log = new NullLogFactory().createLog(null);

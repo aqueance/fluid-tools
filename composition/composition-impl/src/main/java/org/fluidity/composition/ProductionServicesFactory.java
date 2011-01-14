@@ -26,6 +26,8 @@ import org.fluidity.foundation.spi.LogFactory;
 
 /**
  * Public for sun.misc.Service to be able to find it.
+ *
+ * @author Tibor Varga
  */
 final class ProductionServicesFactory implements ContainerServicesFactory {
 

@@ -36,6 +36,8 @@ import org.fluidity.foundation.logging.Log;
  * it.
  * <p/>
  * {@link Log} objects returned by this factory are thread safe as long as the underlying log implementation is.
+ *
+ * @author Tibor Varga
  */
 public interface LogFactory {
 

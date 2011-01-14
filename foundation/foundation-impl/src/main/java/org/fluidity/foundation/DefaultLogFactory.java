@@ -29,6 +29,8 @@ import org.fluidity.foundation.spi.LogFactory;
 
 /**
  * Turns an instance of {@link StandardOutLogFactory} into a component.
+ *
+ * @author Tibor Varga
  */
 @ServiceProvider(jdk = true)
 @Component(fallback = true)

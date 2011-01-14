@@ -19,10 +19,13 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package org.fluidity.deployment;
 
 /**
  * Bootstraps the application. The singleton implementing instance is not thread safe.
+ *
+ * @author Tibor Varga
  */
 public interface DeploymentBootstrap {
 
