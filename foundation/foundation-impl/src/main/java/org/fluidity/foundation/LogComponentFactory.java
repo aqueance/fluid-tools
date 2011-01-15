@@ -29,17 +29,17 @@ import org.fluidity.composition.Context;
 import org.fluidity.composition.OpenComponentContainer;
 import org.fluidity.composition.spi.ComponentFactory;
 import org.fluidity.foundation.logging.Log;
-import org.fluidity.foundation.logging.Source;
+import org.fluidity.foundation.logging.Marker;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**
- * Creates {@link Log} objects for the source specified by a {@link Source} annotation, using the user provided implementation of the {@link LogFactory}
+ * Creates {@link Log} objects for the source specified by a {@link org.fluidity.foundation.logging.Marker} annotation, using the user provided implementation of the {@link LogFactory}
  * interface.
  *
  * @author Tibor Varga
  */
 @Component(api = Log.class, type = Log.class)
-@Context(Source.class)
+@Context(Marker.class)
 final class LogComponentFactory implements ComponentFactory<Log> {
 
     private final LogFactory factory;
@@ -49,12 +49,12 @@ final class LogComponentFactory implements ComponentFactory<Log> {
     }
 
     public Log newComponent(final OpenComponentContainer container, final ComponentContext context) throws ComponentContainer.ResolutionException {
-        final Source source = context.annotation(Source.class);
+        final Marker marker = context.annotation(Marker.class);
 
-        if (source == null) {
-            throw new ComponentContainer.ResolutionException("Annotation %s is missing from %s dependency", Source.class, Log.class);
+        if (marker == null) {
+            throw new ComponentContainer.ResolutionException("Annotation %s is missing from %s dependency", Marker.class, Log.class);
         }
 
-        return factory.createLog(source.value());
+        return factory.createLog(marker.value());
     }
 }

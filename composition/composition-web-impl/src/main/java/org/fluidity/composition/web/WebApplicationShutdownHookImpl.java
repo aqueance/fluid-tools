@@ -32,7 +32,7 @@ import org.fluidity.composition.Component;
 import org.fluidity.composition.ServiceProvider;
 import org.fluidity.composition.spi.ShutdownHook;
 import org.fluidity.foundation.logging.Log;
-import org.fluidity.foundation.logging.Source;
+import org.fluidity.foundation.logging.Marker;
 
 /**
  * Implements the component shutdown mechanism for web applications. The implementation requires a mechanism that auto-discovers
@@ -50,7 +50,7 @@ final class WebApplicationShutdownHookImpl implements ShutdownHook, ServletConte
 
     private final Log log;
 
-    public WebApplicationShutdownHookImpl(final @Source(WebApplicationShutdownHookImpl.class) Log log) {
+    public WebApplicationShutdownHookImpl(final @Marker(WebApplicationShutdownHookImpl.class) Log log) {
         this.log = log;
     }
 

@@ -36,7 +36,7 @@ import java.lang.annotation.Target;
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target( { ElementType.PARAMETER, ElementType.FIELD })
-public @interface Source {
+public @interface Marker {
 
     /**
      * The class to pass to the {@link org.fluidity.foundation.spi.LogFactory} implementation for the {@link Log} instance returned to the class using this

@@ -23,7 +23,7 @@
 package ${package};
 
 import org.fluidity.foundation.logging.Log;
-import org.fluidity.foundation.logging.Source;
+import org.fluidity.foundation.logging.Marker;
 import org.fluidity.composition.Component;
 import org.fluidity.deployment.RuntimeControl;
 import org.fluidity.deployment.cli.MainLoop;
@@ -46,7 +46,7 @@ final class MyApplication implements MainLoop.Application {
     private static class EchoText implements ComponentApi.MessageSink {
         private final Log log;
 
-        public EchoText(final @Source(MyApplication.class) Log log) {
+        public EchoText(final @Marker(MyApplication.class) Log log) {
             this.log = log;
         }
 

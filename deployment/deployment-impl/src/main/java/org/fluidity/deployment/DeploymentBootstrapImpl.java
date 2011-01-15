@@ -31,7 +31,7 @@ import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentDiscovery;
 import org.fluidity.foundation.logging.Log;
-import org.fluidity.foundation.logging.Source;
+import org.fluidity.foundation.logging.Marker;
 
 /**
  * @author Tibor Varga
@@ -49,7 +49,7 @@ final class DeploymentBootstrapImpl implements DeploymentBootstrap {
 
     private final Log log;
 
-    public DeploymentBootstrapImpl(final @Source(DeploymentBootstrapImpl.class) Log log,
+    public DeploymentBootstrapImpl(final @Marker(DeploymentBootstrapImpl.class) Log log,
                                    final ComponentContainer container,
                                    final ComponentDiscovery discovery,
                                    final DeploymentControl deployments) {

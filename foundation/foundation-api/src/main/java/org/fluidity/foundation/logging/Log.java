@@ -31,7 +31,7 @@ package org.fluidity.foundation.logging;
  *
  *   private final Log log;
 
- *   public MyComponent(&#64;Source(MyComponent.class) Log log) {
+ *   public MyComponent(&#64;Marker(MyComponent.class) Log log) {
  *     this.log = log;
  *   }
  * }
