@@ -58,12 +58,6 @@ This project exports the unit testing related modules of Fluid Tools.
 
         <dependency>
             <groupId>${fluidity.foundation.groupId}</groupId>
-            <artifactId>foundation-mapping-utils-spi</artifactId>
-            <classifier>tests</classifier>
-        </dependency>
-
-        <dependency>
-            <groupId>${fluidity.foundation.groupId}</groupId>
             <artifactId>foundation-easymock</artifactId>
         </dependency>
 

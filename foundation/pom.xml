@@ -50,8 +50,6 @@
         <module>foundation-utils</module>
         <module>foundation-easymock</module>
         <module>foundation-component-test</module>
-        <module>foundation-mapping-utils-spi</module>
-        <module>foundation-mapping-utils</module>
     </modules>
 
 </project>

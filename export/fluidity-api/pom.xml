@@ -57,17 +57,7 @@ This project exports the API modules of Fluid Tools.
 
         <dependency>
             <groupId>${fluidity.foundation.groupId}</groupId>
-            <artifactId>foundation-mapping-utils-spi</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>${fluidity.foundation.groupId}</groupId>
             <artifactId>foundation-utils</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>${fluidity.foundation.groupId}</groupId>
-            <artifactId>foundation-mapping-utils</artifactId>
         </dependency>
 
         <dependency>

@@ -51,11 +51,6 @@
             <artifactId>composition-api</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>${fluidity.foundation.groupId}</groupId>
-            <artifactId>foundation-mapping-utils-spi</artifactId>
-        </dependency>
-
     </dependencies>
 
     <profiles>

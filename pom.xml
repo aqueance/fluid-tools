@@ -150,26 +150,7 @@
 
             <dependency>
                 <groupId>${fluidity.foundation.groupId}</groupId>
-                <artifactId>foundation-mapping-utils-spi</artifactId>
-                <version>${fluidity.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>${fluidity.foundation.groupId}</groupId>
-                <artifactId>foundation-mapping-utils</artifactId>
-                <version>${fluidity.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>${fluidity.foundation.groupId}</groupId>
                 <artifactId>foundation-api</artifactId>
-                <version>${fluidity.version}</version>
-                <classifier>tests</classifier>
-            </dependency>
-
-            <dependency>
-                <groupId>${fluidity.foundation.groupId}</groupId>
-                <artifactId>foundation-mapping-utils-spi</artifactId>
                 <version>${fluidity.version}</version>
                 <classifier>tests</classifier>
             </dependency>
