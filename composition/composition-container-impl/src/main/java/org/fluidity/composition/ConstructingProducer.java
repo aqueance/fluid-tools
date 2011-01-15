@@ -23,6 +23,7 @@
 package org.fluidity.composition;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -95,65 +96,88 @@ final class ConstructingProducer extends AbstractProducer {
     }
 
     private Constructor<?> findComponentConstructor() {
-        try {
-            return checkConstructors(componentClass.getConstructors());
-        } catch (final ComponentContainer.ResolutionException e) {
-            return checkConstructors(componentClass.getDeclaredConstructors());
-        }
-    }
-
-    private Constructor<?> checkConstructors(final Constructor[] constructors) {
 
         /*
          * There is no check for any constructor parameter being satisfiable. Synthetic constructors are ignored. If there is any constructor annotated with
          * @Component, all other constructors are ignored. If there's only one constructor, it is returned. If there is a default constructor
          * and another, and neither is annotated with @Component, the other one is returned. If there are more constructors, the only one annotated with
-         * @Component is returned. If these checks do not yield a single constructor, a ComponentContainer.ResolutionException is thrown.
+         * @Component is returned. If these checks do not yield a single constructor, the same is repeated for public constructors only. If that yields no or
+         * multiple constructors, a ComponentContainer.ResolutionException is thrown.
          *
          * For synthetic constructors see http://java.sun.com/docs/books/jls/third_edition/html/binaryComp.html#13.1, "synthetic"
          */
 
-        Constructor<?> designed = null;
+        Constructor<?> designated = null;
 
-        final List<Constructor<?>> list = new ArrayList<Constructor<?>>();
-        for (final Constructor constructor : constructors) {
-            if (!constructor.isSynthetic()) {
-                if (designed == null) {
-                    list.add(constructor);
+        final List<Constructor<?>> validConstructors = new ArrayList<Constructor<?>>();
+        for (final Constructor constructor1 : componentClass.getDeclaredConstructors()) {
+            if (!constructor1.isSynthetic()) {
+                if (designated == null) {
+                    validConstructors.add(constructor1);
                 }
 
                 @SuppressWarnings("unchecked")
-                final boolean annotated = constructor.getAnnotation(Component.class) != null;
-                if (designed != null && annotated) {
+                final boolean annotated = constructor1.getAnnotation(Component.class) != null;
+                if (designated != null && annotated) {
                     throw new ComponentContainer.ResolutionException("Multiple @Component constructors found for %s", componentClass);
                 } else if (annotated) {
-                    designed = constructor;
+                    designated = constructor1;
                 }
             }
         }
 
-        if (designed != null) {
-            return designed;
+        if (designated != null) {
+            return designated;
         }
 
-        switch (list.size()) {
+        try {
+            return selectConstructor(validConstructors);
+        } catch (final MultipleConstructorsException e) {
+            final List<Constructor<?>> publicConstructors = new ArrayList<Constructor<?>>();
+
+            for (final Constructor<?> constructor1 : validConstructors) {
+                if (Modifier.isPublic(constructor1.getModifiers())) {
+                    publicConstructors.add(constructor1);
+                }
+            }
+
+            return selectConstructor(publicConstructors);
+        }
+    }
+
+    private Constructor<?> selectConstructor(final List<Constructor<?>> constructors) {
+        switch (constructors.size()) {
         case 0:
-            throw new ComponentContainer.ResolutionException("No suitable constructor found for %s", componentClass);
+            throw new NoConstructorException(componentClass);
         case 1:
-            return list.get(0);
+            return constructors.get(0);
         case 2:
 
             // return the one with more than 0 parameters
-            final int parameters0 = list.get(0).getParameterTypes().length;
-            final int parameters1 = list.get(1).getParameterTypes().length;
+            final int parameters0 = constructors.get(0).getParameterTypes().length;
+            final int parameters1 = constructors.get(1).getParameterTypes().length;
 
             if (parameters0 == 0 && parameters1 != 0) {
-                return list.get(1);
+                return constructors.get(1);
             } else if (parameters0 != 0 && parameters1 == 0) {
-                return list.get(0);
+                return constructors.get(0);
             }
         default:
-            throw new ComponentContainer.ResolutionException("Multiple constructors found for %s", componentClass);
+            throw new MultipleConstructorsException(componentClass);
+        }
+    }
+
+    private static class MultipleConstructorsException extends ComponentContainer.ResolutionException {
+
+        public MultipleConstructorsException(final Class<?> componentClass) {
+            super("Multiple constructors found for %s", componentClass);
+        }
+    }
+
+    private static class NoConstructorException extends ComponentContainer.ResolutionException {
+
+        public NoConstructorException(final Class<?> componentClass) {
+            super("No suitable constructor found for %s", componentClass);
         }
     }
 }

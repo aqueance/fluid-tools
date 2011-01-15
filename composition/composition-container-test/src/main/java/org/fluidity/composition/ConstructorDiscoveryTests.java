@@ -42,7 +42,6 @@ public class ConstructorDiscoveryTests extends AbstractContainerTests {
     @Test
     public void testTwoConstructors0() throws Exception {
         registry.bindInstance(String.class, "string");
-        registry.bindInstance(Integer.class, 1);
         registry.bindComponent(TwoConstructors0.class);
         assert container.getComponent(TwoConstructors0.class) != null : "Non-default constructor not accepted";
     }
@@ -50,9 +49,15 @@ public class ConstructorDiscoveryTests extends AbstractContainerTests {
     @Test
     public void testSingleComponentConstructor() throws Exception {
         registry.bindInstance(String.class, "string");
-        registry.bindInstance(Integer.class, 1);
         registry.bindComponent(SingleComponentConstructor.class);
         assert container.getComponent(SingleComponentConstructor.class) != null : "Single annotated constructor not accepted";
+    }
+
+    @Test
+    public void testHiddenComponentConstructor() throws Exception {
+        registry.bindInstance(Integer.TYPE, 1);
+        registry.bindComponent(HiddenComponentConstructor.class);
+        assert container.getComponent(HiddenComponentConstructor.class) != null : "Private annotated constructor not accepted";
     }
 
     @Test(expectedExceptions = ComponentContainer.ResolutionException.class, expectedExceptionsMessageRegExp = ".*constructor.*")
@@ -71,6 +76,13 @@ public class ConstructorDiscoveryTests extends AbstractContainerTests {
     public void testMultipleComponentConstructors() throws Exception {
         registry.bindComponent(MultipleComponentConstructors.class);
         assert container.getComponent(MultipleComponentConstructors.class) == null : "Ambiguous constructor accepted";
+    }
+
+    @Test(expectedExceptions = ComponentContainer.ResolutionException.class, expectedExceptionsMessageRegExp = ".*constructor.*")
+    public void testMixedComponentConstructors() throws Exception {
+        registry.bindInstance(Integer.TYPE, 1);
+        registry.bindComponent(MixedComponentConstructors.class);
+        assert container.getComponent(MixedComponentConstructors.class) == null : "Ambiguous constructor accepted";
     }
 
     private static class SingleConstructor {
@@ -136,6 +148,33 @@ public class ConstructorDiscoveryTests extends AbstractContainerTests {
 
         @Component
         private MultipleComponentConstructors(final String ignore) {
+        }
+    }
+
+    private static class HiddenComponentConstructor {
+
+        private HiddenComponentConstructor() {
+        }
+
+        public HiddenComponentConstructor(final String ignore) {
+        }
+
+        @Component
+        private HiddenComponentConstructor(final int ignore) {
+        }
+    }
+
+    private static class MixedComponentConstructors {
+
+        private MixedComponentConstructors() {
+        }
+
+        @Component
+        public MixedComponentConstructors(final int ignore) {
+        }
+
+        @Component
+        private MixedComponentConstructors(final String ignore) {
         }
     }
 }
