@@ -20,32 +20,28 @@
  * THE SOFTWARE.
  */
 
-package org.fluidity.composition;
+package org.fluidity.maven;
 
-import java.util.Collection;
+import org.fluidity.composition.Component;
+import org.fluidity.composition.ComponentContainer;
 
-/**
- * This is a dependency injection container that components can be added to. For any component requested the implementation must check if there is a {@link
- * org.fluidity.composition.spi.ComponentVariantFactory} supplied for that component. If so, it must give the factory a chance to return a new instance and only
- * when it fails must the default instantiation route be followed.
- *
- * @author Tibor Varga
- */
-public interface OpenComponentContainer extends ComponentContainer {
+@Component
+public class OuterClass {
 
-    /**
-     * Returns the interface through which component bindings can be added to this container.
-     *
-     * @return a <code>ComponentContainer.Registry</code> instance.
-     */
-    ComponentContainer.Registry getRegistry();
+    @Component
+    public class InnerClass {
+        private final ComponentContainer container;
 
-    /**
-     * Returns in instantiation order all registered components having the given interface.
-     *
-     * @param componentInterface filters the component instances returned.
-     *
-     * @return in instantiation order all registered components having the given interface.
-     */
-    <T> Collection<T> getAllComponents(Class<T> componentInterface);
+        public InnerClass(final ComponentContainer container) {
+            this.container = container;
+        }
+
+        public Object getLocal() {
+
+            @Component
+            class LocalClass { }
+
+            return container.getComponent(LocalClass.class);
+        }
+    }
 }

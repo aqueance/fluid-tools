@@ -84,7 +84,7 @@ public class ComponentDiscoveryImplTest extends MockGroupAbstractTest {
                 EasyMock.expect(container.getComponent(instance.getClass())).andReturn(instance);
             }
 
-            EasyMock.expect(nestedContainer.getComponents(Interface.class)).andReturn(Collections.EMPTY_SET);
+            EasyMock.expect(nestedContainer.getAllComponents(Interface.class)).andReturn(Collections.EMPTY_SET);
 
             replay();
             assert new ArrayList<Interface>(Arrays.asList(instances)).equals(new ArrayList<Interface>(
@@ -139,7 +139,7 @@ public class ComponentDiscoveryImplTest extends MockGroupAbstractTest {
                 registry.bindDefault(instanceClass);
             }
 
-            EasyMock.expect(nestedContainer.getComponents(Interface.class)).andReturn(Arrays.asList(instances));
+            EasyMock.expect(nestedContainer.getAllComponents(Interface.class)).andReturn(Arrays.asList(instances));
 
             replay();
             assert new ArrayList<Interface>(Arrays.asList(instances)).equals(new ArrayList<Interface>(

@@ -180,7 +180,7 @@ public final class BasicResolutionTests extends AbstractContainerTests {
         AbstractService.createList.clear();
         AbstractService.callList.clear();
 
-        for (final AbstractService service : container.getComponents(AbstractService.class)) {
+        for (final AbstractService service : container.getAllComponents(AbstractService.class)) {
             service.call();
         }
 
@@ -205,6 +205,32 @@ public final class BasicResolutionTests extends AbstractContainerTests {
         final SerializableComponent clone = (SerializableComponent) new ObjectInputStream(new ByteArrayInputStream(out.toByteArray())).readObject();
 
         clone.verify("cloned object");
+    }
+
+    @Test()
+    public void checkLocalClass() throws Exception {
+        class Local { }
+
+        registry.bindInstance(BasicResolutionTests.class, this);
+        registry.bindComponent(Local.class);
+
+        assert container.getComponent(Local.class) != null : "Local class was not instantiated";
+    }
+
+    @Test
+    public void checkNonStaticInnerClass() throws Exception {
+        registry.bindComponent(OuterClass.class);
+        registry.bindComponent(OuterClass.InnerClass.class);
+
+        assert container.getComponent(OuterClass.InnerClass.class) != null : "Non-static inner class was not instantiated";
+    }
+
+    @Test(expectedExceptions = ComponentContainer.BindingException.class, expectedExceptionsMessageRegExp = ".*anonymous.*")
+    public void checkAnonymousClass() throws Exception {
+        registry.bindInstance(BasicResolutionTests.class, this);
+        registry.bindComponent(Serializable.class, new Serializable() { }.getClass());
+
+        assert container.getComponent(Serializable.class) == null : "Anonymous inner class should not be instantiated";
     }
 
     // this is how to inject dependencies into a serializable component
@@ -292,4 +318,11 @@ public final class BasicResolutionTests extends AbstractContainerTests {
 
     private static class Service4 extends AbstractService {}
 
+    public static class OuterClass {
+
+        @Component(automatic = false)
+        public class InnerClass {
+
+        }
+    }
 }

@@ -60,7 +60,6 @@ import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassAdapter;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
@@ -401,7 +400,6 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
                     private final Set<String> components = new HashSet<String>();
 
                     private boolean abstractClass;
-                    private boolean innerClass;
 
                     AnnotationsVisitor(final ClassReader classData) {
                         this.classData = classData;
@@ -433,27 +431,16 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
                     }
 
                     @Override
-                    public FieldVisitor visitField(final int access, final String name, final String desc, final String signature, final Object value) {
-                        if ((access & ACC_SYNTHETIC) != 0 && name.startsWith("this$")) {
-                            innerClass = true;
-                        }
-
-                        return null;
-                    }
-
-                    @Override
                     public void visitEnd() {
                         if (componentApis.size() > 1) {
                             throw new IllegalStateException(String.format("Component class %s defines multiple component APIs", classData.getClassName()));
                         }
 
-                        if (!innerClass) {
-                            serviceProviderApis.addAll(serviceProviders);
+                        serviceProviderApis.addAll(serviceProviders);
 
-                            if (!abstractClass) {
-                                if (componentApis.isEmpty()) {
-                                    componentApis.addAll(components);
-                                }
+                        if (!abstractClass) {
+                            if (componentApis.isEmpty()) {
+                                componentApis.addAll(components);
                             }
                         }
                     }
@@ -466,7 +453,7 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
                         classData.accept(visitor, ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES | ClassReader.SKIP_CODE);
 
                         // components and service providers are always concrete classes that can be instantiated on their own
-                        final boolean instantiableClass = !visitor.abstractClass && !visitor.innerClass;
+                        final boolean instantiableClass = !visitor.abstractClass;
 
                         if (instantiableClass) {
                             processAncestry(this, classData, repository, readers);

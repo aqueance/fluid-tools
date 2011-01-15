@@ -19,6 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package org.fluidity.composition;
 
 import java.lang.reflect.Array;
@@ -57,7 +58,7 @@ final class ComponentDiscoveryImpl implements ComponentDiscovery {
             }
         }
 
-        instances.addAll(nested.getComponents(componentClass));
+        instances.addAll(nested.getAllComponents(componentClass));
 
         return instances.toArray((T[]) Array.newInstance(componentClass, instances.size()));
     }

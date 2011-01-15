@@ -207,6 +207,18 @@ final class SimpleContainerImpl implements SimpleContainer {
             throw new ComponentContainer.BindingException("Component class for %s is null", key.getName());
         }
 
+        /*
+         * No synthetic classes or anonymous inner classes are allowed.
+         */
+        final boolean isSyntheticClass = implementation.isSynthetic();
+        final boolean isAnonymousClass = implementation.isAnonymousClass();
+
+        if (isSyntheticClass || isAnonymousClass) {
+            throw new ComponentContainer.BindingException("Component %s is not instantiable as it is %s",
+                                                          implementation,
+                                                          isSyntheticClass ? "synthetic" : "anonymous");
+        }
+
         log.info("%s: binding %s to %s", this, key, implementation);
 
         return bindFactory(new ContentProducers() {

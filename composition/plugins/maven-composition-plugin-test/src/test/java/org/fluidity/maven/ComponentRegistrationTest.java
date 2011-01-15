@@ -62,6 +62,13 @@ public class ComponentRegistrationTest {
         jdkProvider(UnwittingJdkServiceProvider.class);
     }
 
+    @Test
+    public void testInnerAndLocalClasses() throws Exception {
+        final OuterClass.InnerClass inner = container.getComponent(OuterClass.InnerClass.class);
+        assert inner != null : String.format("Inner class %s not instantiated", OuterClass.InnerClass.class);
+        assert inner.getLocal() != null : String.format("Local class not instantiated");
+    }
+
     private void jdkProvider(final Class<?> providerInterface) {
         final Iterator providers = Service.providers(providerInterface);
         assert providers.hasNext() : providerInterface;

@@ -61,7 +61,7 @@ final class FluidComponentContainer extends AbstractComponentContainer implement
         return registry;
     }
 
-    public <T> Collection<T> getComponents(final Class<T> componentInterface) {
+    public <T> Collection<T> getAllComponents(final Class<T> componentInterface) {
         return container.allSingletons(componentInterface);
     }
 }

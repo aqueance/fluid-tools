@@ -41,7 +41,7 @@ import java.lang.annotation.Target;
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ ElementType.TYPE, ElementType.FIELD })
+@Target({ ElementType.TYPE, ElementType.FIELD, ElementType.CONSTRUCTOR })
 public @interface Component {
 
     /**

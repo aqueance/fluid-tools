@@ -102,34 +102,58 @@ final class ConstructingProducer extends AbstractProducer {
         }
     }
 
-    private Constructor<?> checkConstructors(Constructor[] constructors) {
+    private Constructor<?> checkConstructors(final Constructor[] constructors) {
 
         /*
-         * There is no check for any constructor parameter being satisfiable. If there's only one constructor, it is returned. If there is a default constructor and
-         * another, the other one is returned. If there are more, the one annotated with @Component is returned. If the above does not yield a single constructor, a
-         * ComponentContainer.ResolutionException is thrown.
+         * There is no check for any constructor parameter being satisfiable. Synthetic constructors are ignored. If there is any constructor annotated with
+         * @Component, all other constructors are ignored. If there's only one constructor, it is returned. If there is a default constructor
+         * and another, and neither is annotated with @Component, the other one is returned. If there are more constructors, the only one annotated with
+         * @Component is returned. If these checks do not yield a single constructor, a ComponentContainer.ResolutionException is thrown.
+         *
+         * For synthetic constructors see http://java.sun.com/docs/books/jls/third_edition/html/binaryComp.html#13.1, "synthetic"
          */
 
-        if (constructors.length == 1) {
-            return constructors[0];
-        } else if (constructors.length == 2 && constructors[0].getParameterTypes().length * constructors[1].getParameterTypes().length == 0) {
-            return constructors[0].getParameterTypes().length == 0 ? constructors[1] : constructors[0];
-        } else {
-            final List<Constructor<?>> componentConstructors = new ArrayList<Constructor<?>>();
+        Constructor<?> designed = null;
 
-            for (final Constructor<?> constructor : constructors) {
-                if (constructor.getAnnotation(Component.class) != null) {
-                    componentConstructors.add(constructor);
+        final List<Constructor<?>> list = new ArrayList<Constructor<?>>();
+        for (final Constructor constructor : constructors) {
+            if (!constructor.isSynthetic()) {
+                if (designed == null) {
+                    list.add(constructor);
+                }
+
+                @SuppressWarnings("unchecked")
+                final boolean annotated = constructor.getAnnotation(Component.class) != null;
+                if (designed != null && annotated) {
+                    throw new ComponentContainer.ResolutionException("Multiple @Component constructors found for %s", componentClass);
+                } else if (annotated) {
+                    designed = constructor;
                 }
             }
+        }
 
-            if (componentConstructors.isEmpty()) {
-                throw new ComponentContainer.ResolutionException("No @Component constructor found for %s", componentClass);
-            } else if (componentConstructors.size() > 1) {
-                throw new ComponentContainer.ResolutionException("Multiple @Component constructor found for %s", componentClass);
-            } else {
-                return componentConstructors.get(0);
+        if (designed != null) {
+            return designed;
+        }
+
+        switch (list.size()) {
+        case 0:
+            throw new ComponentContainer.ResolutionException("No suitable constructor found for %s", componentClass);
+        case 1:
+            return list.get(0);
+        case 2:
+
+            // return the one with more than 0 parameters
+            final int parameters0 = list.get(0).getParameterTypes().length;
+            final int parameters1 = list.get(1).getParameterTypes().length;
+
+            if (parameters0 == 0 && parameters1 != 0) {
+                return list.get(1);
+            } else if (parameters0 != 0 && parameters1 == 0) {
+                return list.get(0);
             }
+        default:
+            throw new ComponentContainer.ResolutionException("Multiple constructors found for %s", componentClass);
         }
     }
 }
