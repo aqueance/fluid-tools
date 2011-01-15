@@ -22,41 +22,14 @@
 
 package org.fluidity.composition;
 
-import java.util.Iterator;
-import java.util.ServiceLoader;
-
-import sun.misc.Service;
-import sun.misc.ServiceConfigurationError;
+import org.fluidity.foundation.ServiceProviders;
 
 /**
  * @author Tibor Varga
  */
-@SuppressWarnings( { "unchecked" })
 final class BootstrapServicesImpl implements BootstrapServices {
 
-    @SuppressWarnings("unchecked")
     public <T> T findInstance(final Class<T> interfaceClass, final ClassLoader classLoader) {
-        try {
-
-            // Java 6+
-            return findInstance(interfaceClass, classLoader, ServiceLoader.load(interfaceClass, classLoader).iterator());
-        } catch (final NoClassDefFoundError e) {
-
-            // Java 5-
-            return findInstance(interfaceClass, classLoader, (Iterator<T>) Service.providers(interfaceClass, classLoader));
-        }
-    }
-
-    private <T> T findInstance(final Class<T> interfaceClass, final ClassLoader classLoader, final Iterator<T> providers) {
-        while (providers.hasNext()) {
-            try {
-                return providers.next();
-            } catch (final ServiceConfigurationError e) {
-                System.err.printf("Finding service providers for %s using %s", interfaceClass, classLoader);
-                e.printStackTrace(System.err);
-            }
-        }
-
-        return null;
+        return ServiceProviders.findInstance(interfaceClass, classLoader);
     }
 }

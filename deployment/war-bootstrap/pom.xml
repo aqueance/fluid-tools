@@ -19,6 +19,7 @@
   ~ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
   ~ THE SOFTWARE.
   -->
+
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
@@ -48,6 +49,13 @@
     </description>
 
     <dependencies>
+        <!-- optional dependencies will not be removed from the list of jars to be placed in /WEB-INF/boot; see maven-executable-war-plugin -->
+
+        <dependency>
+            <groupId>${fluidity.foundation.groupId}</groupId>
+            <artifactId>foundation-bootstrap-utils</artifactId>
+            <optional>true</optional>
+        </dependency>
 
         <dependency>
             <groupId>${fluidity.deployment.groupId}</groupId>

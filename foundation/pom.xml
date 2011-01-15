@@ -48,6 +48,7 @@
         <module>foundation-api</module>
         <module>foundation-impl</module>
         <module>foundation-utils</module>
+        <module>foundation-bootstrap-utils</module>
         <module>foundation-easymock</module>
         <module>foundation-component-test</module>
     </modules>

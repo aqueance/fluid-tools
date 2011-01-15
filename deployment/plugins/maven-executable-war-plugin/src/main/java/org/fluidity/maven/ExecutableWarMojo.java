@@ -66,8 +66,8 @@ import org.sonatype.aether.resolution.ArtifactResolutionException;
 import org.sonatype.aether.util.FilterRepositorySystemSession;
 import org.sonatype.aether.util.artifact.ArtifactProperties;
 import org.sonatype.aether.util.artifact.DefaultArtifactType;
+import org.sonatype.aether.util.artifact.JavaScopes;
 import org.sonatype.aether.util.graph.PreorderNodeListGenerator;
-import org.sonatype.aether.util.graph.selector.AndDependencySelector;
 
 /**
  * Adds code to the project .war file that allows it to be run as a .jar file, e.g. <code>$ java -jar &lt;file name>.war</code>. More .war files can be
@@ -81,6 +81,7 @@ import org.sonatype.aether.util.graph.selector.AndDependencySelector;
 public class ExecutableWarMojo extends AbstractMojo {
 
     private static final String WAR_TYPE = "war";
+    private static final String JAR_TYPE = "jar";
 
     /**
      * Instructs the plugin, when set, to remove from the WEB-INF/lib directory all .jar files that the plugin puts in the WEB-INF/boot directory, effectively
@@ -90,7 +91,7 @@ public class ExecutableWarMojo extends AbstractMojo {
      * @parameter default-value="false"
      */
     @SuppressWarnings("UnusedDeclaration")
-    private boolean bootOnly;
+    private boolean commandLineOnly;
 
     /**
      * The location of the compiled classes.
@@ -184,7 +185,7 @@ public class ExecutableWarMojo extends AbstractMojo {
      * @parameter default-value="${project.remoteProjectRepositories}"
      * @readonly
      */
-    @SuppressWarnings( { "UnusedDeclaration", "MismatchedQueryAndUpdateOfCollection" })
+    @SuppressWarnings({ "UnusedDeclaration", "MismatchedQueryAndUpdateOfCollection" })
     private List<RemoteRepository> projectRepositories;
 
     @SuppressWarnings("unchecked")
@@ -198,25 +199,27 @@ public class ExecutableWarMojo extends AbstractMojo {
         final String pluginKey = Plugin.constructKey(pluginGroupId, pluginArtifactId);
         final Artifact pluginArtifact = project.getPluginArtifactMap().get(pluginKey);
 
-        final Collection<Artifact> bootstrapDependencies = transitiveDependencies(pluginArtifact, projectRepositories);
+        final Collection<Artifact> bootstrapDependencies = transitiveDependencies(pluginArtifact, projectRepositories, true);
         bootstrapDependencies.remove(pluginArtifact);
 
         final Set<Artifact> serverDependencies = new HashSet<Artifact>();
         for (final Dependency dependency : project.getPlugin(pluginKey).getDependencies()) {
             if (!dependency.isOptional()) {
-                serverDependencies.addAll(transitiveDependencies(dependencyArtifact(dependency), projectRepositories));
+                serverDependencies.addAll(transitiveDependencies(dependencyArtifact(dependency), projectRepositories, false));
             }
         }
 
         for (final Iterator<Artifact> list = serverDependencies.iterator(); list.hasNext();) {
             final Artifact dependency = list.next();
-            if (!dependency.getType().equals("jar")) {
+            if (!dependency.getType().equals(JAR_TYPE)) {
                 list.remove();
             }
         }
 
-        serverDependencies.removeAll(transitiveDependencies(project.getArtifact(), projectRepositories));
-        serverDependencies.removeAll(bootstrapDependencies);
+        serverDependencies.removeAll(transitiveDependencies(project.getArtifact(), projectRepositories, false));
+        serverDependencies.removeAll(transitiveDependencies(pluginArtifact, projectRepositories, false));
+
+        serverDependencies.add(pluginArtifact);
 
         final Set<String> processedEntries = new HashSet<String>();
 
@@ -296,7 +299,7 @@ public class ExecutableWarMojo extends AbstractMojo {
                             }
                         } else {
                             if (!processedEntries.contains(entryName)) {
-                                if (!bootOnly || !bootLibraries.contains(entryName)) {
+                                if (!commandLineOnly || !bootLibraries.contains(entryName)) {
                                     outputStream.putNextEntry(entry);
                                     copyStream(outputStream, warInput.getInputStream(entry), buffer);
                                 }
@@ -353,7 +356,8 @@ public class ExecutableWarMojo extends AbstractMojo {
         }
     }
 
-    private Collection<Artifact> transitiveDependencies(final Artifact root, final List<RemoteRepository> remoteRepositories) throws MojoExecutionException {
+    private Collection<Artifact> transitiveDependencies(final Artifact root, final List<RemoteRepository> remoteRepositories, final boolean optionals)
+            throws MojoExecutionException {
 
         /*
          * https://docs.sonatype.org/display/AETHER/Home
@@ -370,33 +374,7 @@ public class ExecutableWarMojo extends AbstractMojo {
         }
 
         // we must override the getDependencySelector() method to add our own selector
-        final FilterRepositorySystemSession filteringSession = new FilterRepositorySystemSession(repositorySession) {
-
-            private final DependencySelector selector;
-
-            // instance initializer in lieu of a constructor
-            {
-
-                // a new selector that filters out optional dependencies
-                final DependencySelector requiredDependencySelector = new DependencySelector() {
-                    public boolean selectDependency(org.sonatype.aether.graph.Dependency dependency) {
-                        return !dependency.isOptional();
-                    }
-
-                    public DependencySelector deriveChildSelector(DependencyCollectionContext context) {
-                        return this;
-                    }
-                };
-
-                // we must retain the existing selector because it performs valuable functions
-                selector = new AndDependencySelector(requiredDependencySelector, repositorySession.getDependencySelector());
-            }
-
-            @Override
-            public DependencySelector getDependencySelector() {
-                return selector;
-            }
-        };
+        final FilterRepositorySystemSession filteringSession = new DependencyFilterSession(repositorySession, optionals);
 
         final DependencyNode node;
         try {
@@ -531,5 +509,31 @@ public class ExecutableWarMojo extends AbstractMojo {
 
         final org.sonatype.aether.artifact.Artifact artifact = aetherArtifact(original);
         return new org.sonatype.aether.graph.Dependency(artifact, original.getScope(), original.isOptional(), exclusions == null ? null : exclusionList);
+    }
+
+    private class DependencyFilterSession extends FilterRepositorySystemSession {
+
+        private final DependencySelector selector;
+
+        public DependencyFilterSession(final RepositorySystemSession parent, final boolean optionals) {
+            super(parent);
+
+            // filters out optional dependencies unless explicitly requested, in addition to dependencies not packaged in thw war
+            selector = new DependencySelector() {
+                public boolean selectDependency(final org.sonatype.aether.graph.Dependency dependency) {
+                    final String scope = dependency.getScope();
+                    return (JavaScopes.COMPILE.equals(scope) || JavaScopes.RUNTIME.equals(scope)) && (optionals || !dependency.isOptional());
+                }
+
+                public DependencySelector deriveChildSelector(final DependencyCollectionContext context) {
+                    return this;
+                }
+            };
+        }
+
+        @Override
+        public DependencySelector getDependencySelector() {
+            return selector;
+        }
     }
 }

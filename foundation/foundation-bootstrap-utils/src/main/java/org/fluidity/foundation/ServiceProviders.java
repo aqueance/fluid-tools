@@ -20,14 +20,24 @@
  * THE SOFTWARE.
  */
 
-package org.fluidity.composition;
+package org.fluidity.foundation;
+
+import java.util.Iterator;
+import java.util.ServiceLoader;
+
+import sun.misc.Service;
+import sun.misc.ServiceConfigurationError;
 
 /**
- * Assists the container bootstrapping process.
+ * Wraps the Sun JDK service provider discovery implementation, which was private API prior to Java 6.
  *
  * @author Tibor Varga
  */
-interface BootstrapServices {
+public final class ServiceProviders {
+
+    private ServiceProviders() {
+        throw new UnsupportedOperationException("No instantiation");
+    }
 
     /**
      * Returns the first service provider implementation for the given interface.
@@ -38,5 +48,29 @@ interface BootstrapServices {
      *
      * @return the first implementation of the given interface or <code>null</code> if none found.
      */
-    <T> T findInstance(Class<T> interfaceClass, ClassLoader classLoader);
+    public static <T> T findInstance(final Class<T> interfaceClass, final ClassLoader classLoader) {
+        for (final Iterator<T> providers = providers(interfaceClass, classLoader); providers.hasNext(); ) {
+            try {
+                return providers.next();
+            } catch (final ServiceConfigurationError e) {
+                System.err.printf("Finding service providers for %s using %s", interfaceClass, classLoader);
+                e.printStackTrace(System.err);
+            }
+        }
+
+        return null;
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T> Iterator<T> providers(final Class<T> interfaceClass, final ClassLoader classLoader) {
+        try {
+
+            // Java 6+
+            return ServiceLoader.load(interfaceClass, classLoader).iterator();
+        } catch (final NoClassDefFoundError e) {
+
+            // Java 5-
+            return (Iterator<T>) Service.providers(interfaceClass, classLoader);
+        }
+    }
 }

@@ -35,14 +35,13 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Enumeration;
-import java.util.Iterator;
 import java.util.List;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import sun.misc.Service;
+import org.fluidity.foundation.ServiceProviders;
 
 /**
  * Prepares the web container bootstrap process, e.g. creating a work directory, setting up the boot classpath and loading and invoking the bootstrap
@@ -73,9 +72,6 @@ public final class WarBootstrapLoader {
             final File bootWar = new File(warPath);
             assert bootWar.exists() : bootWar;
 
-            final File workDirectory = createWorkDirectory(bootWar);
-            final List<URL> classpath = unpackBootModules(workDirectory, bootWar);
-
             int httpPort = 0;
             final List<String> params = new ArrayList<String>();
 
@@ -104,6 +100,9 @@ public final class WarBootstrapLoader {
                     params.add(param);
                 }
             }
+
+            final File workDirectory = createWorkDirectory(bootWar);
+            final List<URL> classpath = unpackBootModules(workDirectory, bootWar);
 
             bootstrapServer(httpPort, classpath, bootWar, managedApps, workDirectory, params.toArray(new String[params.size()]));
         } else {
@@ -166,7 +165,8 @@ public final class WarBootstrapLoader {
                         }
                     }
 
-                    classpath.add(new URL("file:" + file.getAbsolutePath()));
+                    // new URL("file:" + file.getAbsolutePath())
+                    classpath.add(file.toURI().toURL());
                 }
             }
         } finally {
@@ -186,18 +186,17 @@ public final class WarBootstrapLoader {
                                  final List<File> managedApps,
                                  final File workDirectory,
                                  final String args[]) {
-
         final URLClassLoader classLoader = new URLClassLoader(classpath.toArray(new URL[classpath.size()]));
 
-        final Iterator providers = Service.providers(ServerBootstrap.class, classLoader);
+        final ServerBootstrap server = ServiceProviders.findInstance(ServerBootstrap.class, classLoader);
 
-        if (providers.hasNext()) {
+        if (server != null) {
             final Thread currentThread = Thread.currentThread();
             final ClassLoader contextLoader = currentThread.getContextClassLoader();
 
             currentThread.setContextClassLoader(classLoader);
             try {
-                ((ServerBootstrap) providers.next()).bootstrap(httpPort, bootApp, managedApps, workDirectory, args);
+                server.bootstrap(httpPort, bootApp, managedApps, workDirectory, args);
             } finally {
                 currentThread.setContextClassLoader(contextLoader);
             }
