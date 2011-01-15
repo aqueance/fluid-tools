@@ -57,13 +57,17 @@ import org.apache.maven.project.MavenProject;
 import org.sonatype.aether.RepositorySystem;
 import org.sonatype.aether.RepositorySystemSession;
 import org.sonatype.aether.collection.CollectRequest;
+import org.sonatype.aether.collection.DependencyCollectionContext;
 import org.sonatype.aether.collection.DependencyCollectionException;
+import org.sonatype.aether.collection.DependencySelector;
 import org.sonatype.aether.graph.DependencyNode;
 import org.sonatype.aether.repository.RemoteRepository;
 import org.sonatype.aether.resolution.ArtifactResolutionException;
+import org.sonatype.aether.util.FilterRepositorySystemSession;
 import org.sonatype.aether.util.artifact.ArtifactProperties;
 import org.sonatype.aether.util.artifact.DefaultArtifactType;
 import org.sonatype.aether.util.graph.PreorderNodeListGenerator;
+import org.sonatype.aether.util.graph.selector.AndDependencySelector;
 
 /**
  * Adds code to the project .war file that allows it to be run as a .jar file, e.g. <code>$ java -jar &lt;file name>.war</code>. More .war files can be
@@ -199,7 +203,9 @@ public class ExecutableWarMojo extends AbstractMojo {
 
         final Set<Artifact> serverDependencies = new HashSet<Artifact>();
         for (final Dependency dependency : project.getPlugin(pluginKey).getDependencies()) {
-            serverDependencies.addAll(transitiveDependencies(dependencyArtifact(dependency), projectRepositories));
+            if (!dependency.isOptional()) {
+                serverDependencies.addAll(transitiveDependencies(dependencyArtifact(dependency), projectRepositories));
+            }
         }
 
         for (final Iterator<Artifact> list = serverDependencies.iterator(); list.hasNext();) {
@@ -363,32 +369,61 @@ public class ExecutableWarMojo extends AbstractMojo {
             collectRequest.addRepository(repository);
         }
 
+        // we must override the getDependencySelector() method to add our own selector
+        final FilterRepositorySystemSession filteringSession = new FilterRepositorySystemSession(repositorySession) {
+
+            private final DependencySelector selector;
+
+            // instance initializer in lieu of a constructor
+            {
+
+                // a new selector that filters out optional dependencies
+                final DependencySelector requiredDependencySelector = new DependencySelector() {
+                    public boolean selectDependency(org.sonatype.aether.graph.Dependency dependency) {
+                        return !dependency.isOptional();
+                    }
+
+                    public DependencySelector deriveChildSelector(DependencyCollectionContext context) {
+                        return this;
+                    }
+                };
+
+                // we must retain the existing selector because it performs valuable functions
+                selector = new AndDependencySelector(requiredDependencySelector, repositorySession.getDependencySelector());
+            }
+
+            @Override
+            public DependencySelector getDependencySelector() {
+                return selector;
+            }
+        };
+
         final DependencyNode node;
         try {
-            node = repositorySystem.collectDependencies(repositorySession, collectRequest).getRoot();
-            repositorySystem.resolveDependencies(repositorySession, node, null);
+            node = repositorySystem.collectDependencies(filteringSession, collectRequest).getRoot();
+            repositorySystem.resolveDependencies(filteringSession, node, null);
         } catch (final DependencyCollectionException e) {
             throw new MojoExecutionException("Finding transitive dependencies of " + root, e);
         } catch (final ArtifactResolutionException e) {
             throw new MojoExecutionException("Finding transitive dependencies of " + root, e);
         }
 
-        final PreorderNodeListGenerator nlg = new PreorderNodeListGenerator();
-        node.accept(nlg);
+        final PreorderNodeListGenerator generator = new PreorderNodeListGenerator();
+        node.accept(generator);
 
-        final Collection<Artifact> bootstrapDependencies = new HashSet<Artifact>();
+        final Collection<Artifact> dependencies = new HashSet<Artifact>();
 
-        for (final org.sonatype.aether.artifact.Artifact artifact : nlg.getArtifacts(true)) {
+        for (final org.sonatype.aether.artifact.Artifact artifact : generator.getArtifacts(true)) {
             final Artifact mavenArtifact = mavenArtifact(artifact);
 
             if (!mavenArtifact.isResolved()) {
                 throw new MojoExecutionException(String.format("Could not resolve %s", mavenArtifact));
             }
 
-            bootstrapDependencies.add(mavenArtifact);
+            dependencies.add(mavenArtifact);
         }
 
-        return bootstrapDependencies;
+        return dependencies;
     }
 
     private void copyStream(final JarOutputStream output, final InputStream input, final byte[] buffer) throws IOException {

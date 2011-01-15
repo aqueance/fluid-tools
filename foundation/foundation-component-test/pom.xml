@@ -50,9 +50,23 @@ Internal module that tests foundation components that require dependency resolut
 
     <dependencies>
 
+        <!-- Required for dependency injection container bootstrap -->
+        <!-- Also pulls in all our classes to test -->
         <dependency>
-            <groupId>${fluidity.foundation.groupId}</groupId>
-            <artifactId>foundation-impl</artifactId>
+            <groupId>org.fluidity.export</groupId>
+            <artifactId>fluidity-bootstrap</artifactId>
+            <version>${fluidity.version}</version>
+            <type>pom</type>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Required for dependency injection container bootstrap -->
+        <dependency>
+            <groupId>org.fluidity.export</groupId>
+            <artifactId>fluidity-cli-deployment</artifactId>
+            <version>${fluidity.version}</version>
+            <type>pom</type>
+            <scope>test</scope>
         </dependency>
 
         <dependency>
@@ -65,22 +79,6 @@ Internal module that tests foundation components that require dependency resolut
             <groupId>${fluidity.foundation.groupId}</groupId>
             <artifactId>foundation-api</artifactId>
             <classifier>tests</classifier>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.fluidity.export</groupId>
-            <artifactId>fluidity-bootstrap</artifactId>
-            <version>${fluidity.version}</version>
-            <type>pom</type>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.fluidity.export</groupId>
-            <artifactId>fluidity-cli-deployment</artifactId>
-            <version>${fluidity.version}</version>
-            <type>pom</type>
             <scope>test</scope>
         </dependency>
 

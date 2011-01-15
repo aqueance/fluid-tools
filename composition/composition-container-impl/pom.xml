@@ -47,6 +47,16 @@
     <dependencies>
 
         <dependency>
+            <groupId>${fluidity.foundation.groupId}</groupId>
+            <artifactId>foundation-api</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>${fluidity.composition.groupId}</groupId>
+            <artifactId>composition-api</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>${fluidity.composition.groupId}</groupId>
             <artifactId>composition-container-support-api</artifactId>
         </dependency>
@@ -59,12 +69,6 @@
         <dependency>
             <groupId>${fluidity.composition.groupId}</groupId>
             <artifactId>composition-container-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>${fluidity.foundation.groupId}</groupId>
-            <artifactId>foundation-easymock</artifactId>
             <scope>test</scope>
         </dependency>
 
