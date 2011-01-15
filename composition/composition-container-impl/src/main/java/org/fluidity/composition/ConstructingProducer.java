@@ -110,18 +110,18 @@ final class ConstructingProducer extends AbstractProducer {
         Constructor<?> designated = null;
 
         final List<Constructor<?>> validConstructors = new ArrayList<Constructor<?>>();
-        for (final Constructor constructor1 : componentClass.getDeclaredConstructors()) {
-            if (!constructor1.isSynthetic()) {
+        for (final Constructor constructor : componentClass.getDeclaredConstructors()) {
+            if (!constructor.isSynthetic()) {
                 if (designated == null) {
-                    validConstructors.add(constructor1);
+                    validConstructors.add(constructor);
                 }
 
                 @SuppressWarnings("unchecked")
-                final boolean annotated = constructor1.getAnnotation(Component.class) != null;
+                final boolean annotated = constructor.getAnnotation(Component.class) != null;
                 if (designated != null && annotated) {
                     throw new ComponentContainer.ResolutionException("Multiple @Component constructors found for %s", componentClass);
                 } else if (annotated) {
-                    designated = constructor1;
+                    designated = constructor;
                 }
             }
         }
@@ -154,14 +154,16 @@ final class ConstructingProducer extends AbstractProducer {
         case 2:
 
             // return the one with more than 0 parameters
-            final int parameters0 = constructors.get(0).getParameterTypes().length;
-            final int parameters1 = constructors.get(1).getParameterTypes().length;
+            final int parameterCount0 = constructors.get(0).getParameterTypes().length;
+            final int parameterCount1 = constructors.get(1).getParameterTypes().length;
 
-            if (parameters0 == 0 && parameters1 != 0) {
+            if (parameterCount0 == 0 && parameterCount1 != 0) {
                 return constructors.get(1);
-            } else if (parameters0 != 0 && parameters1 == 0) {
+            } else if (parameterCount0 != 0 && parameterCount1 == 0) {
                 return constructors.get(0);
             }
+
+            // fall through
         default:
             throw new MultipleConstructorsException(componentClass);
         }
