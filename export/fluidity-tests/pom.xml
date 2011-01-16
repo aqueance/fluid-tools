@@ -63,7 +63,7 @@ This project exports the unit testing related modules of Fluid Tools.
 
         <dependency>
             <groupId>${fluidity.composition.groupId}</groupId>
-            <artifactId>composition-container-test</artifactId>
+            <artifactId>composition-container-tests</artifactId>
         </dependency>
 
     </dependencies>

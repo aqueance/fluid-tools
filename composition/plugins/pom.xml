@@ -48,7 +48,7 @@
 
     <modules>
         <module>maven-composition-plugin</module>
-        <module>maven-composition-plugin-test</module>
+        <module>maven-composition-plugin-tests</module>
     </modules>
 
 </project>

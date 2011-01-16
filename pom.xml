@@ -191,7 +191,7 @@
 
             <dependency>
                 <groupId>${fluidity.composition.groupId}</groupId>
-                <artifactId>composition-container-test</artifactId>
+                <artifactId>composition-container-tests</artifactId>
                 <version>${fluidity.version}</version>
             </dependency>
 

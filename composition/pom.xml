@@ -48,7 +48,7 @@
         <module>composition-api</module>
         <module>composition-impl</module>
         <module>composition-container-impl</module>
-        <module>composition-container-test</module>
+        <module>composition-container-tests</module>
         <module>composition-container-support-api</module>
         <module>composition-bootstrap-utils</module>
         <module>composition-command-line-impl</module>

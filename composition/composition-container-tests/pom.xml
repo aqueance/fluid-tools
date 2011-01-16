@@ -31,10 +31,10 @@
 
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.fluidity.composition</groupId>
-    <artifactId>composition-container-test</artifactId>
+    <artifactId>composition-container-tests</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
-    <name>Composition: Core Test</name>
+    <name>Composition: Core Tests</name>
 
     <licenses>
         <license>
