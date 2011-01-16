@@ -52,6 +52,11 @@ Common classes and components to control an embedded Jetty server.
 
         <dependency>
             <groupId>${fluidity.composition.groupId}</groupId>
+            <artifactId>composition-api</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>${fluidity.composition.groupId}</groupId>
             <artifactId>composition-bootstrap-utils</artifactId>
         </dependency>
 
@@ -68,11 +73,6 @@ Common classes and components to control an embedded Jetty server.
         <dependency>
             <groupId>org.mortbay.jetty</groupId>
             <artifactId>jetty</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.mortbay.jetty</groupId>
-            <artifactId>jetty-util</artifactId>
         </dependency>
 
         <dependency>
