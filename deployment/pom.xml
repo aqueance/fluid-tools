@@ -44,49 +44,13 @@
         </license>
     </licenses>
 
-    <properties>
-        <jetty.version>7.0.0.pre5</jetty.version>
-    </properties>
-
     <modules>
         <module>deployment-api</module>
         <module>deployment-impl</module>
         <module>war-bootstrap-spi</module>
         <module>cli-bootstrap</module>
-        <module>jetty-bootstrap</module>
-        <module>war-utils</module>
-        <module>jetty-server</module>
+        <module>war-boundary-utils</module>
         <module>plugins</module>
     </modules>
-
-    <dependencyManagement>
-        <dependencies>
-
-            <dependency>
-                <groupId>org.mortbay.jetty</groupId>
-                <artifactId>jetty</artifactId>
-                <version>${jetty.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.mortbay.jetty</groupId>
-                <artifactId>jetty-util</artifactId>
-                <version>${jetty.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.mortbay.jetty</groupId>
-                <artifactId>jetty-webapp</artifactId>
-                <version>${jetty.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.mortbay.jetty</groupId>
-                <artifactId>jsp-2.1-jetty</artifactId>
-                <version>${jetty.version}</version>
-            </dependency>
-
-        </dependencies>
-    </dependencyManagement>
 
 </project>

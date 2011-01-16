@@ -246,7 +246,7 @@
 
             <dependency>
                 <groupId>${fluidity.deployment.groupId}</groupId>
-                <artifactId>war-utils</artifactId>
+                <artifactId>war-boundary-utils</artifactId>
                 <version>${fluidity.version}</version>
                 <scope>compile</scope>
             </dependency>
@@ -274,7 +274,7 @@
 
             <dependency>
                 <groupId>${fluidity.deployment.groupId}</groupId>
-                <artifactId>jetty-server</artifactId>
+                <artifactId>jetty-server-utils</artifactId>
                 <version>${fluidity.version}</version>
                 <scope>compile</scope>
             </dependency>

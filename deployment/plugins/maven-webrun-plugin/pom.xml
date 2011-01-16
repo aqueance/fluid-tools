@@ -86,7 +86,7 @@ pressing Ctrl-C.
 
         <dependency>
             <groupId>${fluidity.deployment.groupId}</groupId>
-            <artifactId>jetty-server</artifactId>
+            <artifactId>jetty-server-utils</artifactId>
         </dependency>
 
         <dependency>

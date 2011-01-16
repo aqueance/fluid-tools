@@ -19,70 +19,63 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package org.fluidity.deployment;
 
 import java.io.IOException;
 
-import javax.servlet.Servlet;
-import javax.servlet.ServletConfig;
+import javax.servlet.Filter;
+import javax.servlet.FilterChain;
+import javax.servlet.FilterConfig;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 
 /**
- * A servlet decorator that enables the decorated servlet to have its dependencies injected.
+ * A filter decorator that enables its delegate to have its dependencies injected.
  *
  * <p/>
  *
  * Usage:<pre>
  * &lt;web-app>
  *   ...
- *   &lt;servlet>
+ *   &lt;filter>
  *     ...
- *     &lt;servlet-class>org.fluidity.deployment.DependencyResolverServlet&lt;/servlet-class>
+ *     &lt;filter-class>org.fluidity.deployment.DependencyResolverFilter&lt;/filter-class>
  *     ...
  *     &lt;init-param>
  *       &lt;param-name>component-key&lt;/param-name>
- *       &lt;param-value><i>the requested component's key in the container that resolves to this servlet's
+ *       &lt;param-value><i>the requested component's key in the container that resolves to this filter's
  * delegate</i>&lt;/param-value>
  *     &lt;/init-param>
- *   &lt;/servlet>
+ *   &lt;/filter>
  * &lt;/web-app>
  * </pre>
  *
  * @author Tibor Varga
  */
-public final class DependencyResolverServlet implements Servlet {
+public final class DependencyResolverFilter implements Filter {
 
     private final DependencyResolver resolver = new DependencyResolverImpl();
 
-    private Servlet delegate;
+    private Filter delegate;
 
-    public void init(final ServletConfig config) throws ServletException {
+    public void init(final FilterConfig config) throws ServletException {
         init(config, resolver);
     }
 
     /*
      * Package visible to make accessible to test cases.
      */
-    void init(final ServletConfig config, final DependencyResolver resolver) throws ServletException {
+    void init(final FilterConfig config, final DependencyResolver resolver) throws ServletException {
         assert resolver != null;
-        delegate = (Servlet) resolver.findComponent(config.getInitParameter(DependencyResolver.COMPONENT_KEY));
+        delegate = (Filter) resolver.findComponent(config.getInitParameter(DependencyResolver.COMPONENT_KEY));
         assert delegate != null;
         delegate.init(config);
     }
 
-    public ServletConfig getServletConfig() {
-        return delegate.getServletConfig();
-    }
-
-    public void service(final ServletRequest request, final ServletResponse response)
-            throws ServletException, IOException {
-        delegate.service(request, response);
-    }
-
-    public String getServletInfo() {
-        return delegate.getServletInfo();
+    public void doFilter(final ServletRequest request, final ServletResponse response, final FilterChain chain) throws IOException, ServletException {
+        delegate.doFilter(request, response, chain);
     }
 
     public void destroy() {
