@@ -24,8 +24,8 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <parent>
-        <groupId>org.fluidity.deployment</groupId>
-        <artifactId>deployment-root</artifactId>
+        <groupId>org.fluidity.maven</groupId>
+        <artifactId>deployment-plugins-root</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
 
@@ -49,7 +49,7 @@
     </description>
 
     <dependencies>
-        <!-- optional dependencies will not be removed from the list of jars to be placed in /WEB-INF/boot; see maven-executable-war-plugin -->
+        <!-- optional dependencies and their dependencies, transitively, will be placed in /WEB-INF/boot; see maven-executable-war-plugin -->
 
         <dependency>
             <groupId>${fluidity.foundation.groupId}</groupId>
@@ -59,7 +59,7 @@
 
         <dependency>
             <groupId>${fluidity.deployment.groupId}</groupId>
-            <artifactId>war-bootstrap-api</artifactId>
+            <artifactId>war-bootstrap-spi</artifactId>
         </dependency>
 
     </dependencies>

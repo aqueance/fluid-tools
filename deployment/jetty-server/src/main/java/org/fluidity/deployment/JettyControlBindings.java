@@ -20,29 +20,34 @@
  * THE SOFTWARE.
  */
 
-package org.fluidity.foundation.logging;
+package org.fluidity.deployment;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.util.Map;
+
+import org.fluidity.composition.ComponentContainer;
+import org.fluidity.composition.spi.EmptyPackageBindings;
+
+import org.mortbay.jetty.Server;
 
 /**
- * Context annotation for {@link Log} components. See that for details.
- *
  * @author Tibor Varga
  */
-@Documented
-@Retention(RetentionPolicy.RUNTIME)
-@Target({ ElementType.PARAMETER, ElementType.FIELD })
-public @interface Marker {
+public class JettyControlBindings extends EmptyPackageBindings {
 
-    /**
-     * The class to pass to the {@link org.fluidity.foundation.spi.LogFactory} implementation for the {@link Log} instance returned to the class using this
-     * annotation.
-     *
-     * @return a {@link Class} object, never <code>null</code>.
-     */
-    Class<?> value();
+    private final Server server;
+    private final boolean standalone;
+
+    public JettyControlBindings(final Map<Object, Object> properties) {
+        server = (Server) properties.get(DeploymentControl.SERVER_KEY);
+        standalone = (Boolean) properties.get(DeploymentControl.STANDALONE_KEY);
+    }
+
+    @Override
+    public void bindComponents(final ComponentContainer.Registry registry) {
+        if (server != null) {
+            registry.bindInstance(Server.class, server);
+            registry.bindInstance(Boolean.TYPE, standalone);
+            registry.bindComponent(DeploymentControl.class, JettyDeploymentControl.class);
+        }
+    }
 }

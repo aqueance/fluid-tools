@@ -19,6 +19,7 @@
   ~ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
   ~ THE SOFTWARE.
   -->
+
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
@@ -30,10 +31,10 @@
 
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.fluidity.deployment</groupId>
-    <artifactId>war-bootstrap-api</artifactId>
+    <artifactId>war-bootstrap-spi</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
-    <name>Deployment: WAR Bootstrap API</name>
+    <name>Deployment: WAR Bootstrap SPI</name>
 
     <licenses>
         <license>

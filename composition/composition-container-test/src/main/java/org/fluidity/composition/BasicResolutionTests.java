@@ -288,28 +288,28 @@ public final class BasicResolutionTests extends AbstractContainerTests {
         }
     }
 
-    @SuppressWarnings( { "UnusedDeclaration" })
+    @SuppressWarnings("UnusedDeclaration")
     private static class Service1 extends AbstractService {
 
         private Service1(final Service2 dependency2, final Service4 dependency4) {
         }
     }
 
-    @SuppressWarnings( { "UnusedDeclaration" })
+    @SuppressWarnings("UnusedDeclaration")
     private static class Service2 extends AbstractService {
 
         private Service2(final Intermediate dependency) {
         }
     }
 
-    @SuppressWarnings( { "UnusedDeclaration" })
+    @SuppressWarnings("UnusedDeclaration")
     private static class Intermediate {
 
         private Intermediate(final Service3 dependency) {
         }
     }
 
-    @SuppressWarnings( { "UnusedDeclaration" })
+    @SuppressWarnings("UnusedDeclaration")
     private static class Service3 extends AbstractService {
 
         private Service3(final Service4 dependency) {

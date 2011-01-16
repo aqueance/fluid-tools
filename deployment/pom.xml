@@ -51,11 +51,11 @@
     <modules>
         <module>deployment-api</module>
         <module>deployment-impl</module>
-        <module>war-bootstrap-api</module>
-        <module>war-bootstrap</module>
+        <module>war-bootstrap-spi</module>
         <module>cli-bootstrap</module>
         <module>jetty-bootstrap</module>
         <module>war-utils</module>
+        <module>jetty-server</module>
         <module>plugins</module>
     </modules>
 

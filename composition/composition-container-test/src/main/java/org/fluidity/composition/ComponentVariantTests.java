@@ -474,7 +474,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
     @Documented
     @Retention(RetentionPolicy.RUNTIME)
     @Target({ ElementType.TYPE, ElementType.FIELD, ElementType.PARAMETER })
-    @SuppressWarnings( { "UnusedDeclaration" })
+    @SuppressWarnings("UnusedDeclaration")
     public static @interface Setting1 {
 
         String value();
@@ -483,7 +483,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
     @Documented
     @Retention(RetentionPolicy.RUNTIME)
     @Target({ ElementType.TYPE, ElementType.FIELD, ElementType.PARAMETER })
-    @SuppressWarnings( { "UnusedDeclaration" })
+    @SuppressWarnings("UnusedDeclaration")
     public static @interface Setting2 {
 
         String value();

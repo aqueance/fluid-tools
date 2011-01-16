@@ -20,29 +20,41 @@
  * THE SOFTWARE.
  */
 
-package org.fluidity.foundation.logging;
+package org.fluidity.deployment;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import org.fluidity.composition.Component;
+import org.fluidity.foundation.Exceptions;
+
+import org.mortbay.jetty.Server;
 
 /**
- * Context annotation for {@link Log} components. See that for details.
- *
- * @author Tibor Varga
- */
-@Documented
-@Retention(RetentionPolicy.RUNTIME)
-@Target({ ElementType.PARAMETER, ElementType.FIELD })
-public @interface Marker {
+* @author Tibor Varga
+*/
+@Component(automatic = false)
+final class JettyDeploymentControl implements DeploymentControl {
 
-    /**
-     * The class to pass to the {@link org.fluidity.foundation.spi.LogFactory} implementation for the {@link Log} instance returned to the class using this
-     * annotation.
-     *
-     * @return a {@link Class} object, never <code>null</code>.
-     */
-    Class<?> value();
+    private final Server server;
+    private final boolean standalone;
+
+    public JettyDeploymentControl(final Server server, final boolean standalone) {
+        this.server = server;
+        this.standalone = standalone;
+    }
+
+    public void completed() {
+        // empty
+    }
+
+    public boolean isStandalone() {
+        return standalone;
+    }
+
+    public void stop() {
+        Exceptions.wrap("stopping Jetty server", new Exceptions.Command<Void>() {
+            public Void run() throws Exception {
+                server.stop();
+                return null;
+            }
+        });
+    }
 }

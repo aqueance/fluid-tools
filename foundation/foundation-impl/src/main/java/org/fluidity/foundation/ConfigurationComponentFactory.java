@@ -77,7 +77,7 @@ final class ConfigurationComponentFactory implements ComponentFactory<Configurat
 
         private final AtomicReference<T> configuration = new AtomicReference<T>();
 
-        @SuppressWarnings( { "unchecked" })
+        @SuppressWarnings("unchecked")
         ConfigurationImpl(final Properties properties, final PropertyProvider provider) {
             final Class<Configuration> settingsApi = (Class<Configuration>) properties.api();
 

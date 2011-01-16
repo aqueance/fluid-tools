@@ -49,7 +49,7 @@ final class ContextChainImpl implements ContextChain {
 
         final ComponentContext context = new ComponentContext() {
 
-            @SuppressWarnings( { "unchecked" })
+            @SuppressWarnings("unchecked")
             public <T extends Annotation> T[] annotations(final Class<T> type) {
                 return (T[]) Collections.EMPTY_LIST.toArray();
             }
@@ -62,7 +62,7 @@ final class ContextChainImpl implements ContextChain {
                 return false;
             }
 
-            @SuppressWarnings( { "unchecked" })
+            @SuppressWarnings("unchecked")
             public Set<Class<? extends Annotation>> types() {
                 return (Set<Class<? extends Annotation>>) Collections.EMPTY_SET;
             }
@@ -119,7 +119,7 @@ final class ContextChainImpl implements ContextChain {
         return context;
     }
 
-    @SuppressWarnings( { "unchecked" })
+    @SuppressWarnings("unchecked")
     private Class<? extends Annotation>[] contextTypes(final Class<?> componentType, final Class<?> componentClass, final ReferenceChain referenceChain) {
         assert componentClass != null;
         final Set<Class<? extends Annotation>> types = new HashSet<Class<? extends Annotation>>();

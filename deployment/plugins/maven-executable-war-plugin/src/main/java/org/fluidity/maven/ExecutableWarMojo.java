@@ -72,11 +72,24 @@ import org.sonatype.aether.util.graph.PreorderNodeListGenerator;
 /**
  * Adds code to the project .war file that allows it to be run as a .jar file, e.g. <code>$ java -jar &lt;file name>.war</code>. More .war files can be
  * specified in the command line and all will be deployed to the same application server.
- *
- * @goal package
- * @phase package
+ * <p/>
+ * <b>Technical Details</b>
+ * <p/>
+ * Three different set of libraries are managed: bootstrap dependencies i.e., classes in the JAR/WAR root for <code>java -jar</code> to see, server dependencies
+ * i.e., JARs needed to boot up the HTTP server, and application dependencies i.e., JARs in WEB-INF/lib.
+ * <p/>
+ * Bootstrap dependencies come from the transitive non-optional run-time dependencies of this plugin itself.
+ * <p/>
+ * Server dependencies come from the transitive non-optional run-time dependencies declared for the plugin in the host project's POM and are copied to
+ * WEB-INF/boot.
+ * <p/>
+ * The list of JARs in WEB-INF/lib is already in the WAR file itself.
+ * <p/>
+ * There are various set operations performed in these dependencies to make sure nothing is included that shouldn't.
  *
  * @author Tibor Varga
+ * @goal package
+ * @phase package
  */
 public class ExecutableWarMojo extends AbstractMojo {
 
@@ -104,7 +117,7 @@ public class ExecutableWarMojo extends AbstractMojo {
     private File outputDirectory;
 
     /**
-     * The location of the compiled classes.
+     * The project artifact file.
      *
      * @parameter expression="${project.build.directory}/${project.build.finalName}.${project.packaging}"
      * @required
@@ -117,7 +130,7 @@ public class ExecutableWarMojo extends AbstractMojo {
      * @parameter expression="${plugin.artifactMap}"
      * @required
      */
-    @SuppressWarnings( { "UnusedDeclaration", "MismatchedQueryAndUpdateOfCollection" })
+    @SuppressWarnings({ "UnusedDeclaration", "MismatchedQueryAndUpdateOfCollection" })
     private Map<String, Artifact> pluginArtifactMap;
 
     /**
@@ -511,7 +524,7 @@ public class ExecutableWarMojo extends AbstractMojo {
         return new org.sonatype.aether.graph.Dependency(artifact, original.getScope(), original.isOptional(), exclusions == null ? null : exclusionList);
     }
 
-    private class DependencyFilterSession extends FilterRepositorySystemSession {
+    private static class DependencyFilterSession extends FilterRepositorySystemSession {
 
         private final DependencySelector selector;
 

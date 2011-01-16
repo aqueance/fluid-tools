@@ -47,6 +47,7 @@
     <modules>
         <module>maven-executable-war-plugin</module>
         <module>maven-webrun-plugin</module>
+        <module>war-bootstrap</module>
     </modules>
 
 </project>

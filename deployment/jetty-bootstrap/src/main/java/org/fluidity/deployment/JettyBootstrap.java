@@ -23,21 +23,12 @@
 package org.fluidity.deployment;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.fluidity.composition.ComponentContainerAccess;
-import org.fluidity.foundation.Exceptions;
-
-import org.mortbay.jetty.Server;
-import org.mortbay.jetty.handler.ContextHandlerCollection;
-import org.mortbay.jetty.handler.DefaultHandler;
-import org.mortbay.jetty.handler.HandlerCollection;
-import org.mortbay.jetty.handler.RequestLogHandler;
-import org.mortbay.jetty.nio.SelectChannelConnector;
 import org.mortbay.jetty.webapp.WebAppContext;
-import org.mortbay.thread.QueuedThreadPool;
 
 /**
  * Bootstraps a Jetty web container and deploys the .war file that contains this class and then all other .war files supplied.
@@ -47,61 +38,14 @@ import org.mortbay.thread.QueuedThreadPool;
 public final class JettyBootstrap implements ServerBootstrap {
 
     public void bootstrap(final int httpPort, final File bootApp, final List<File> managedApps, final File workDirectory, final String args[]) {
-        final ContextHandlerCollection contexts = new ContextHandlerCollection();
-
-        final HandlerCollection handlers = new HandlerCollection();
-        handlers.addHandler(contexts);
-        handlers.addHandler(new DefaultHandler());
-        handlers.addHandler(new RequestLogHandler());
-
-        contexts.addHandler(deployWar(bootApp, workDirectory, true));
+        final WebAppContext defaultContext = deployWar(bootApp, workDirectory, true);
+        final List<WebAppContext> contextList = new ArrayList<WebAppContext>();
 
         for (final File app : managedApps) {
-            contexts.addHandler(deployWar(app, workDirectory, false));
+            contextList.add(deployWar(app, workDirectory, false));
         }
 
-        final Server server = new Server();
-
-        final ComponentContainerAccess container = new ComponentContainerAccess();
-
-        container.setBindingProperty(LaunchArguments.ARGUMENTS_KEY, args);
-        container.bindBootComponent(DeploymentControl.class, new DeploymentControl() {
-            public void completed() {
-                // empty
-            }
-
-            public boolean isStandalone() {
-                return false;
-            }
-
-            public void stop() {
-                Exceptions.wrap("stopping Jetty server", new Exceptions.Command<Void>() {
-                    public Void run() throws Exception {
-                        server.stop();
-                        return null;
-                    }
-                });
-            }
-        });
-
-        server.setHandler(handlers);
-
-        if (httpPort > 0) {
-            server.setThreadPool(new QueuedThreadPool());
-            final SelectChannelConnector connector = new SelectChannelConnector();
-            connector.setPort(httpPort);
-            server.addConnector(connector);
-        }
-
-        try {
-            System.out.println("Starting server - press Ctrl-C to kill.");
-            server.setStopAtShutdown(true);
-            server.start();
-            server.join();
-        } catch (final Exception e) {
-            throw new RuntimeException("Starting server", e);
-        }
-
+        JettyServer.start(httpPort, args, defaultContext, contextList);
     }
 
     private WebAppContext deployWar(final File warFile, final File workDirectory, final boolean root) {

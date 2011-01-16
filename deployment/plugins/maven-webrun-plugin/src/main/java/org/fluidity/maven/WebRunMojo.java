@@ -23,36 +23,27 @@
 package org.fluidity.maven;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
-import org.fluidity.composition.ComponentContainerAccess;
-import org.fluidity.deployment.DeploymentControl;
-import org.fluidity.foundation.Exceptions;
+import org.fluidity.deployment.JettyServer;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
-import org.mortbay.jetty.Server;
-import org.mortbay.jetty.handler.ContextHandlerCollection;
-import org.mortbay.jetty.handler.DefaultHandler;
-import org.mortbay.jetty.handler.HandlerCollection;
-import org.mortbay.jetty.handler.RequestLogHandler;
-import org.mortbay.jetty.nio.SelectChannelConnector;
 import org.mortbay.jetty.webapp.WebAppContext;
-import org.mortbay.resource.Resource;
-import org.mortbay.thread.QueuedThreadPool;
 
 /**
  * Takes all WAR files that it can find in the host project, deploys them in a Jetty server and then starts the server.
  *
+ * @author Tibor Varga
  * @goal start
  * @phase package
  * @requiresDependencyResolution compile
- *
- * @author Tibor Varga
  */
 public final class WebRunMojo extends AbstractMojo {
 
@@ -100,66 +91,32 @@ public final class WebRunMojo extends AbstractMojo {
     public void execute() throws MojoExecutionException {
         final File jettyDirectory = createTempDirectory();
 
-        final ContextHandlerCollection contexts = new ContextHandlerCollection();
-
-        final HandlerCollection handlers = new HandlerCollection();
-        handlers.addHandler(contexts);
-        handlers.addHandler(new DefaultHandler());
-        handlers.addHandler(new RequestLogHandler());
-
         final Set<String> deployed = new HashSet<String>();
 
-        addWebArtifact(jettyDirectory, project.getArtifact(), contexts, deployed, true);
+        final WebAppContext defaultContext = addWebArtifact(jettyDirectory, project.getArtifact(), deployed, true);
+        final List<WebAppContext> contextList = new ArrayList<WebAppContext>();
 
         for (final Artifact dependency : project.getDependencyArtifacts()) {
-            addWebArtifact(jettyDirectory, dependency, contexts, deployed, false);
+            final WebAppContext context = addWebArtifact(jettyDirectory, dependency, deployed, false);
+            if (context != null) {
+                contextList.add(context);
+            }
         }
 
         if (!deployed.isEmpty()) {
-            final Server server = new Server();
-
-            new ComponentContainerAccess().bindBootComponent(DeploymentControl.class, new DeploymentControl() {
-                public void completed() {
-                    // empty
-                }
-
-                public boolean isStandalone() {
-                    return false;
-                }
-
-                public void stop() {
-                    Exceptions.wrap("stopping Jetty server", new Exceptions.Command<Void>() {
-                        public Void run() throws Exception {
-                            server.stop();
-                            return null;
-                        }
-                    });
-                }
-            });
-
-            server.setThreadPool(new QueuedThreadPool());
-            server.setHandler(handlers);
+            final int httpPort;
 
             if (listenPort != null) {
                 try {
-                    final SelectChannelConnector connector = new SelectChannelConnector();
-                    connector.setPort(Integer.parseInt(listenPort));
-                    server.addConnector(connector);
+                    httpPort = Integer.parseInt(listenPort);
                 } catch (final NumberFormatException e) {
                     throw new MojoExecutionException("Listen port not a number: " + listenPort);
                 }
+            } else {
+                httpPort = 0;
             }
 
-            Resource.setDefaultUseCaches(false);
-
-            try {
-                log.info("Starting server - press Ctrl-C to kill.");
-                server.setStopAtShutdown(true);
-                server.start();
-                server.join();
-            } catch (final Exception e) {
-                throw new MojoExecutionException("Starting server", e);
-            }
+            JettyServer.start(httpPort, null, defaultContext, contextList);
         } else {
             log.warn("No web applications to deploy");
         }
@@ -179,18 +136,14 @@ public final class WebRunMojo extends AbstractMojo {
         return tempDirectory;
     }
 
-    private void addWebArtifact(final File jettyDirectory,
-                                final Artifact artifact,
-                                final ContextHandlerCollection webContexts,
-                                final Set<String> deployed,
-                                final boolean acceptAnyScope) {
+    private WebAppContext addWebArtifact(final File jettyDirectory, final Artifact artifact, final Set<String> deployed, final boolean defaultApp) {
         final File file = artifact.getFile();
 
         if (file != null) {
-            if (WAR_TYPE.equals(artifact.getType()) && (acceptAnyScope || Artifact.SCOPE_PROVIDED.equals(artifact.getScope()))) {
+            if (WAR_TYPE.equals(artifact.getType()) && (defaultApp || Artifact.SCOPE_PROVIDED.equals(artifact.getScope()))) {
                 final WebAppContext context = new WebAppContext();
                 final String archiveName = artifact.getArtifactId();
-                final String contextPath = "/" + archiveName;
+                final String contextPath = String.format("/%s", defaultApp ? "" : archiveName);
 
                 context.setTempDirectory(new File(jettyDirectory, archiveName));
                 context.setContextPath(contextPath);
@@ -200,12 +153,15 @@ public final class WebRunMojo extends AbstractMojo {
 
                 if (!deployed.contains(filePath)) {
                     context.setWar(filePath);
-                    webContexts.addHandler(context);
                     deployed.add(filePath);
 
                     log.info("Context " + context.getContextPath() + ": " + context.getWar());
+
+                    return context;
                 }
             }
         }
+
+        return null;
     }
 }

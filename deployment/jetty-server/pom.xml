@@ -31,10 +31,10 @@
 
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.fluidity.deployment</groupId>
-    <artifactId>jetty-bootstrap</artifactId>
+    <artifactId>jetty-server</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
-    <name>Deployment: Jetty Bootstrap</name>
+    <name>Deployment: Jetty Server</name>
 
     <licenses>
         <license>
@@ -45,7 +45,7 @@
     </licenses>
 
     <description>
-        TODO
+Common classes and components to control an embedded Jetty server.
     </description>
 
     <dependencies>
@@ -62,17 +62,7 @@
 
         <dependency>
             <groupId>${fluidity.deployment.groupId}</groupId>
-            <artifactId>war-bootstrap-spi</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>${fluidity.deployment.groupId}</groupId>
             <artifactId>deployment-api</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>${fluidity.deployment.groupId}</groupId>
-            <artifactId>jetty-server</artifactId>
         </dependency>
 
         <dependency>
@@ -88,26 +78,6 @@
         <dependency>
             <groupId>org.mortbay.jetty</groupId>
             <artifactId>jetty-webapp</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.mortbay.jetty</groupId>
-            <artifactId>jsp-2.1-jetty</artifactId>
-            <optional>true</optional>
-        </dependency>
-
-        <dependency>
-            <groupId>${fluidity.composition.groupId}</groupId>
-            <artifactId>composition-command-line-impl</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>${fluidity.export.groupId}</groupId>
-            <artifactId>fluidity-bootstrap</artifactId>
-            <version>${fluidity.version}</version>
-            <type>pom</type>
-            <scope>runtime</scope>
         </dependency>
 
     </dependencies>

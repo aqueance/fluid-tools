@@ -260,7 +260,7 @@
 
             <dependency>
                 <groupId>${fluidity.deployment.groupId}</groupId>
-                <artifactId>war-bootstrap-api</artifactId>
+                <artifactId>war-bootstrap-spi</artifactId>
                 <version>${fluidity.version}</version>
                 <scope>compile</scope>
             </dependency>
@@ -268,6 +268,13 @@
             <dependency>
                 <groupId>${fluidity.deployment.groupId}</groupId>
                 <artifactId>jetty-bootstrap</artifactId>
+                <version>${fluidity.version}</version>
+                <scope>compile</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>${fluidity.deployment.groupId}</groupId>
+                <artifactId>jetty-server</artifactId>
                 <version>${fluidity.version}</version>
                 <scope>compile</scope>
             </dependency>

@@ -74,7 +74,6 @@ import org.objectweb.asm.commons.EmptyVisitor;
  *
  * @threadSafe
  */
-@SuppressWarnings( { "RedundantCast" })
 public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo implements Opcodes {
 
     private static final String CONSTRUCTOR_METHOD_NAME = "<init>";
@@ -108,7 +107,7 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
         return project.getBuild();
     }
 
-    @SuppressWarnings( { "unchecked", "ResultOfMethodCallIgnored" })
+    @SuppressWarnings({ "unchecked", "RedundantCast", "ResultOfMethodCallIgnored" })
     protected final void processDirectory(File classesDirectory) throws MojoExecutionException {
         projectName = getProjectNameId();
 
@@ -187,7 +186,7 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
         }
     }
 
-    @SuppressWarnings( { "ResultOfMethodCallIgnored" })
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     private void generateBindingClass(final String className, final Map.Entry<String, Map<String, String>> bindings, final File classesDirectory)
             throws MojoExecutionException {
         log.info("Service provider " + className + " binds:");
