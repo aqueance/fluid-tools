@@ -116,7 +116,7 @@ public final class WarBootstrapLoader {
 
         final File classpathRoot = new File(workDirectory, archiveName(warFile) + '-' + df.format(new Date(warFile.lastModified())));
         if (!classpathRoot.exists() && !classpathRoot.mkdir()) {
-            throw new RuntimeException("Cannot create direcory " + classpathRoot);
+            throw new RuntimeException("Cannot create directory " + classpathRoot);
         }
 
         try {

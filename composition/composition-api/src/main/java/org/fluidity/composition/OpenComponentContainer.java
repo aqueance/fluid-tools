@@ -25,18 +25,17 @@ package org.fluidity.composition;
 import java.util.Collection;
 
 /**
- * This is a dependency injection container that components can be added to. For any component requested the implementation must check if there is a {@link
- * org.fluidity.composition.spi.ComponentVariantFactory} supplied for that component. If so, it must give the factory a chance to return a new instance and only
- * when it fails must the default instantiation route be followed.
+ * This is a dependency injection container that components can be added to.
  *
  * @author Tibor Varga
  */
 public interface OpenComponentContainer extends ComponentContainer {
 
     /**
-     * Returns the interface through which component bindings can be added to this container.
+     * Returns the interface through which component bindings can be added to this container. The returned interface cannot be used to get components out of
+     * the container. Thus, a container is write-only when it is being populated and read-only after it has been populated.
      *
-     * @return a <code>ComponentContainer.Registry</code> instance.
+     * @return a {@link ComponentContainer.Registry} instance.
      */
     ComponentContainer.Registry getRegistry();
 

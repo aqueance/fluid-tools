@@ -106,7 +106,7 @@ public abstract class Exceptions {
          * </pre>
          * <p/>
          * The above will throw re-throw either <code>ExpectedCheckedException1</code>, <code>ExpectedCheckedException2</code>,
-         * <code>ExpectedCheckedException3</code> or <code>wrapper</code>.
+         * <code>ExpectedCheckedException3</code> or <code>wrapper</code>, which is an unchecked exception.
          *
          * @param accept the class of the exception to check.
          * @param <T>    the type of the exception to check.

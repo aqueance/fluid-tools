@@ -21,6 +21,7 @@
   ~ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
   ~ THE SOFTWARE.
   -->
+
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
@@ -54,7 +55,8 @@ parent container for the deployed web applications.
 
 You configure the web server's classpath by a &lt;dependencies> section
 in the plugin configuration of your host project. To use the default
-bootstrap, add the following dependency to the plugin in your project:
+Jetty server bootstrap, add the following dependency to the plugin in your
+project:
 
 &lt;dependency>
     &lt;groupId>org.fluidity.deployment&lt;/groupId>
@@ -67,6 +69,19 @@ global ComponentContainer. That object can be used to programmatically stop
 the Jetty server started by this plugin. The server can also be stopped by
 pressing Ctrl-C.
 
+You can implement your own server bootstrap with the web container of your choice
+by providing an implementation to the org.fluidity.deployment.ServerBootstrap
+interface from the org.fluidity.deployment:war-bootstrap-api module and package
+it in a JAR file or, ideally, in a Maven module.
+
+In case of a Maven module, the module may not depend on anything used by the WAR
+applications themselves because class incompatibilities are likely to occur due
+to different class loader domains. Moreover, any dependency of the Maven module
+that should not be visible to the deployed WAR applications must be declared
+optional in the POM.
+
+You can then use the Maven module containing your own server bootstrap in place
+of the org.fluidity.deployment:jetty-bootstrap dependency above.
     ]]></description>
 
     <dependencies>

@@ -20,28 +20,29 @@
  * THE SOFTWARE.
  */
 
-package org.fluidity.deployment.cli;
-
-import org.fluidity.deployment.DeploymentControl;
-import org.fluidity.deployment.RuntimeControl;
+package org.fluidity.deployment;
 
 /**
- * The main class of the command line application that parses parameters and keeps the application's main thread running until stopped. The implementation can
- * access the command line parameters by having a constructor with, among other dependencies, a {@link org.fluidity.deployment.LaunchArguments} parameter.
- * <p/>
- * The application exits when the call to the {@link Runnable#run()} method returns, unless the developer has started but failed to stop non-daemon threads.
+ * Provides access to the raw command line arguments. There may not always be an implementation so you may want to make your dependency on this interface {@link
+ * org.fluidity.composition.Optional}.
+ *
+ * The reasons for this interface to exist is to give a type to the launch argument so that components requiring access won't get just any stale string array
+ * that happens to be in the container but the actual arguments that was given when the application was launched.
  *
  * @author Tibor Varga
  */
-public interface MainLoop extends Runnable, DeploymentControl {
+public interface LaunchArguments {
 
-    interface Application {
+    /**
+     * Used to assist passing the launch arguments to the implementation.
+     */
+    Object ARGUMENTS_KEY = new Object();
 
-        /**
-         * Execute the main application logic.
-         *
-         * @param control the runtime control object.
-         */
-        void run(RuntimeControl control);
-    }
+    /**
+     * Returns the list of arguments received from the command line. You can modify the array returned by this method as it is not linked to the array returned
+     * by the same method some time later.
+     *
+     * @return the list of arguments received from the command line.
+     */
+    String[] arguments();
 }

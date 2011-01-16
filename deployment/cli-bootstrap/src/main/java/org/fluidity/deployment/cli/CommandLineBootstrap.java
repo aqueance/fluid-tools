@@ -24,42 +24,46 @@ package org.fluidity.deployment.cli;
 
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainerAccess;
+import org.fluidity.composition.Optional;
 import org.fluidity.composition.spi.ShutdownHook;
 import org.fluidity.deployment.DeploymentBootstrap;
+import org.fluidity.deployment.LaunchArguments;
 
 /**
- * A command line main class that bootstraps the application's dependency injection container, invokes {@link DeploymentBootstrap} to load and control
- * deployment units and to invokes the application supplied main loop, {@link MainLoop}. Any component can access the command line parameters by having a
- * constructor with, among other dependencies, a <code>String[]</code> parameter.
+ * A command line main class that bootstraps the application's dependency injection container, invokes {@link DeploymentBootstrap} if implemented to load and
+ * control deployment units and invokes the application supplied main loop, {@link MainLoop}. Any component can access the command line parameters by having a
+ * constructor with, among other dependencies, a {@link LaunchArguments} parameter.
  * <p/>
  * This class is public for its main method to be found by the launcher.
  *
  * @author Tibor Varga
  */
-@Component(api = CommandLineBootstrap.class)
-public final class CommandLineBootstrap implements Runnable {
+@Component
+public final class CommandLineBootstrap {
 
     private final MainLoop main;
 
-    public CommandLineBootstrap(final DeploymentBootstrap bootstrap, final MainLoop main, final ShutdownHook shutdown) throws Exception {
+    public CommandLineBootstrap(final @Optional DeploymentBootstrap bootstrap, final MainLoop main, final ShutdownHook shutdown) throws Exception {
         this.main = main;
 
-        shutdown.addTask("bootstrap", new Runnable() {
-            public void run() {
-                bootstrap.unload();
-            }
-        });
+        if (bootstrap != null) {
+            shutdown.addTask("bootstrap", new Runnable() {
+                public void run() {
+                    bootstrap.unload();
+                }
+            });
 
-        bootstrap.load();
+            bootstrap.load();
+        }
     }
 
-    public void run() {
+    private void run() {
         main.run();
     }
 
     public static void main(final String[] args) throws Exception {
         final ComponentContainerAccess container = new ComponentContainerAccess();
-        container.bindBootComponent(String[].class, args);
+        container.setBindingProperty(LaunchArguments.ARGUMENTS_KEY, args);
         container.getComponent(CommandLineBootstrap.class).run();
     }
 }

@@ -62,7 +62,10 @@ public final class JettyBootstrap implements ServerBootstrap {
 
         final Server server = new Server();
 
-        new ComponentContainerAccess().bindBootComponent(DeploymentControl.class, new DeploymentControl() {
+        final ComponentContainerAccess container = new ComponentContainerAccess();
+
+        container.setBindingProperty(LaunchArguments.ARGUMENTS_KEY, args);
+        container.bindBootComponent(DeploymentControl.class, new DeploymentControl() {
             public void completed() {
                 // empty
             }

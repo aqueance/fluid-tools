@@ -20,28 +20,31 @@
  * THE SOFTWARE.
  */
 
-package org.fluidity.deployment.cli;
+package org.fluidity.deployment;
 
-import org.fluidity.deployment.DeploymentControl;
-import org.fluidity.deployment.RuntimeControl;
+import java.util.Map;
+
+import org.fluidity.composition.ComponentContainer;
+import org.fluidity.composition.spi.EmptyPackageBindings;
 
 /**
- * The main class of the command line application that parses parameters and keeps the application's main thread running until stopped. The implementation can
- * access the command line parameters by having a constructor with, among other dependencies, a {@link org.fluidity.deployment.LaunchArguments} parameter.
- * <p/>
- * The application exits when the call to the {@link Runnable#run()} method returns, unless the developer has started but failed to stop non-daemon threads.
+ * Binds the launch arguments implementation if the launch argument string array has been made available via a call to
+ * <code>ComponentContainerAccess.setBindingProperty(LaunchArguments.ARGUMENTS_KEY, ...)</code>.
  *
  * @author Tibor Varga
  */
-public interface MainLoop extends Runnable, DeploymentControl {
+public class LaunchArgumentsBindings extends EmptyPackageBindings {
 
-    interface Application {
+    private final String[] arguments;
 
-        /**
-         * Execute the main application logic.
-         *
-         * @param control the runtime control object.
-         */
-        void run(RuntimeControl control);
+    public LaunchArgumentsBindings(final Map<Object, String[]> properties) {
+        arguments = properties.get(LaunchArguments.ARGUMENTS_KEY);
+    }
+
+    @Override
+    public void bindComponents(final ComponentContainer.Registry registry) {
+        if (arguments != null) {
+            registry.makeNestedContainer(LaunchArguments.class, LaunchArgumentsImpl.class).getRegistry().bindInstance(String[].class, arguments);
+        }
     }
 }

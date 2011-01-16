@@ -44,7 +44,7 @@ public interface ServerBootstrap {
      *                      be found under <code>WEB-INF/boot</code> of this .war file. This .war file shall be deployed under the root (<code>/</code>)
      *                      context.
      * @param managedApps   The web application .war files to deploy. These .war files shall be deployed under a context that is derived from the .war name
-     *                      exlucing the version number and the extension.
+     *                      excluding the version number and the extension.
      * @param workDirectory The working directory for use by the web server.
      * @param args          The list of command line arguments left unprocessed by the invoker.
      */

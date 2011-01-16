@@ -83,7 +83,7 @@ public class ComponentContainerAccessTest extends MockGroupAbstractTest {
         access.reset(providers);
 
         for (final Map.Entry<String, String> entry : properties.entrySet()) {
-            access.setBindingsProperty(entry.getKey(), entry.getValue());
+            access.setBindingProperty(entry.getKey(), entry.getValue());
         }
 
         // make testee receive its dependencies from the top-level class loader
@@ -129,7 +129,7 @@ public class ComponentContainerAccessTest extends MockGroupAbstractTest {
         access.reset(providers);
 
         for (final Map.Entry<String, String> entry : properties.entrySet()) {
-            access.setBindingsProperty(entry.getKey(), entry.getValue());
+            access.setBindingProperty(entry.getKey(), entry.getValue());
         }
 
         // find all class loaders on the ancestry except ours

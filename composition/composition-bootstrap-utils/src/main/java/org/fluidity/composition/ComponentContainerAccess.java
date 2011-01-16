@@ -131,8 +131,11 @@ public final class ComponentContainerAccess implements ComponentContainer {
      * @param key   is the key of the property.
      * @param value is the value of the property.
      */
-    @SuppressWarnings( { "unchecked" })
-    public void setBindingsProperty(final Object key, final Object value) {
+    @SuppressWarnings("unchecked")
+    public void setBindingProperty(final Object key, final Object value) {
+
+        // never intended to be modified concurrently as this method is by nature should be used by one single object in one single thread
+        // but you never know and it's better to ensure data consistency than to blame the user for the corrupt results stemming from poor design
         synchronized (stateLock) {
             Map map = propertiesMap.get(classLoader);
 
@@ -258,9 +261,9 @@ public final class ComponentContainerAccess implements ComponentContainer {
     }
 
     /**
-     * Allows a bootstrap code to add components to the container. This method can only be invoked before any component is taken out of the container by any
-     * thread using any of the {@link #getComponent(Class)}, {@link #getComponent(Class, ComponentContainer.Bindings)}, {@link
-     * #initialize(Object)} or {@link #makeNestedContainer()} methods. Once that happens, this method will throw an <code>IllegalStateException</code>.
+     * Allows a bootstrap code to add component instances to the container before it bootstraps. This method can only be invoked before any component is taken
+     * out of the container by any thread using any of the {@link #getComponent(Class)}, {@link #getComponent(Class, ComponentContainer.Bindings)}, {@link
+     * #initialize(Object)} or {@link #makeNestedContainer()} methods. Once that happens, this method will throw an {@link IllegalStateException}.
      * <p/>
      * Calling this method will trigger population of the associated container and its parents.
      *
