@@ -52,7 +52,7 @@
         <module>maven-executable-war-plugin</module>
         <module>maven-webrun-plugin</module>
         <module>war-bootstrap</module>
-        <module>jetty-bootstrap</module>
+        <module>war-bootstrap-jetty-impl</module>
         <module>jetty-server-utils</module>
     </modules>
 

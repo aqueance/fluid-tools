@@ -44,7 +44,7 @@ import org.fluidity.composition.ServiceProvider;
  *
  * @author Tibor Varga
  */
-@ServiceProvider(api = DeployedComponent.class)
+@ServiceProvider
 public interface DeployedComponent {
 
     /**

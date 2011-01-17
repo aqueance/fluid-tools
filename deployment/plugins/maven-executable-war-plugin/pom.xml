@@ -60,7 +60,7 @@ project:
 
 &lt;dependency>
     &lt;groupId>org.fluidity.deployment&lt;/groupId>
-    &lt;artifactId>jetty-bootstrap&lt;/artifactId>
+    &lt;artifactId>war-bootstrap-jetty-impl&lt;/artifactId>
     &lt;version>${fluidity-version}&lt;/version>
 &lt;/dependency>
 
@@ -81,7 +81,7 @@ that should not be visible to the deployed WAR applications must be declared
 optional in the POM.
 
 You can then use the Maven module containing your own server bootstrap in place
-of the org.fluidity.deployment:jetty-bootstrap dependency above.
+of the org.fluidity.deployment:war-bootstrap-jetty-impl dependency above.
     ]]></description>
 
     <dependencies>

@@ -267,7 +267,7 @@
 
             <dependency>
                 <groupId>${fluidity.deployment.groupId}</groupId>
-                <artifactId>jetty-bootstrap</artifactId>
+                <artifactId>war-bootstrap-jetty-impl</artifactId>
                 <version>${fluidity.version}</version>
                 <scope>compile</scope>
             </dependency>
