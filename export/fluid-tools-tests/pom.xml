@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+  ~ Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
   ~
   ~ Permission is hereby granted, free of charge, to any person obtaining a copy
   ~ of this software and associated documentation files (the "Software"), to deal
@@ -31,10 +31,10 @@
 
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.fluidity.export</groupId>
-    <artifactId>fluidity-logging-slf4j-impl</artifactId>
+    <artifactId>fluid-tools-tests</artifactId>
     <version>1.0-SNAPSHOT</version>
-    <packaging>jar</packaging>
-    <name>Export: Commons Logging Implementation</name>
+    <packaging>pom</packaging>
+    <name>Fluid Tools: Testing Support</name>
 
     <licenses>
         <license>
@@ -45,21 +45,21 @@
     </licenses>
 
     <description><![CDATA[
-This project exports the Commons Logging based implementation of the &lt;code>org.fluidity.foundation.Logging&lt;/code> interface.
+This project is intended to be the Fluid Tools dependency of Maven modules
+that make use of Fluid Tools testing support classes.
     ]]></description>
 
     <dependencies>
 
         <dependency>
-            <groupId>${fluidity.export.groupId}</groupId>
-            <artifactId>fluidity-api</artifactId>
-            <type>pom</type>
+            <groupId>${fluidity.foundation.groupId}</groupId>
+            <artifactId>foundation-api</artifactId>
+            <classifier>tests</classifier>
         </dependency>
 
         <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>1.6.1</version>
+            <groupId>${fluidity.foundation.groupId}</groupId>
+            <artifactId>foundation-easymock</artifactId>
         </dependency>
 
     </dependencies>
@@ -76,22 +76,5 @@ This project exports the Commons Logging based implementation of the &lt;code>or
             </build>
         </profile>
     </profiles>
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>${fluidity.plugin.groupId}</groupId>
-                <artifactId>maven-composition-plugin</artifactId>
-                <version>${fluidity.version}</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>process-annotations</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
 
 </project>

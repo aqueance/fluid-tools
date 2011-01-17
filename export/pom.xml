@@ -34,7 +34,7 @@
     <artifactId>exports</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
-    <name>Export: Fluid Tools Export Modules</name>
+    <name>Fluid Tools: Export Modules</name>
 
     <licenses>
         <license>
@@ -49,13 +49,14 @@ This project lists the exported modules of Fluid Tools.
     ]]></description>
 
     <modules>
-        <module>fluidity-api</module>
-        <module>fluidity-bootstrap</module>
-        <module>fluidity-impl</module>
-        <module>fluidity-tests</module>
-        <module>fluidity-war-deployment</module>
-        <module>fluidity-cli-deployment</module>
-        <module>fluidity-logging-slf4j-impl</module>
+        <module>fluid-tools-component-api</module>
+        <module>fluid-tools-boundary-api</module>
+        <module>fluid-tools-bootstrap</module>
+        <module>fluid-tools-generic-application</module>
+        <module>fluid-tools-cli-application</module>
+        <module>fluid-tools-tests</module>
+        <module>fluid-tools-web-application</module>
+        <module>fluid-tools-slf4j-logging</module>
     </modules>
 
     <dependencyManagement>
@@ -64,42 +65,49 @@ This project lists the exported modules of Fluid Tools.
 
             <dependency>
                 <groupId>${fluidity.export.groupId}</groupId>
-                <artifactId>fluidity-api</artifactId>
+                <artifactId>fluid-tools-component-api</artifactId>
                 <version>${fluidity.version}</version>
                 <type>pom</type>
             </dependency>
 
             <dependency>
                 <groupId>${fluidity.export.groupId}</groupId>
-                <artifactId>fluidity-impl</artifactId>
+                <artifactId>fluid-tools-boundary-api</artifactId>
                 <version>${fluidity.version}</version>
                 <type>pom</type>
             </dependency>
 
             <dependency>
                 <groupId>${fluidity.export.groupId}</groupId>
-                <artifactId>fluidity-bootstrap</artifactId>
+                <artifactId>fluid-tools-generic-application</artifactId>
                 <version>${fluidity.version}</version>
                 <type>pom</type>
             </dependency>
 
             <dependency>
                 <groupId>${fluidity.export.groupId}</groupId>
-                <artifactId>fluidity-cli-deployment</artifactId>
+                <artifactId>fluid-tools-cli-application</artifactId>
                 <version>${fluidity.version}</version>
                 <type>pom</type>
             </dependency>
 
             <dependency>
                 <groupId>${fluidity.export.groupId}</groupId>
-                <artifactId>fluidity-war-deployment</artifactId>
+                <artifactId>fluid-tools-bootstrap</artifactId>
                 <version>${fluidity.version}</version>
                 <type>pom</type>
             </dependency>
 
             <dependency>
                 <groupId>${fluidity.export.groupId}</groupId>
-                <artifactId>fluidity-tests</artifactId>
+                <artifactId>fluid-tools-web-application</artifactId>
+                <version>${fluidity.version}</version>
+                <type>pom</type>
+            </dependency>
+
+            <dependency>
+                <groupId>${fluidity.export.groupId}</groupId>
+                <artifactId>fluid-tools-tests</artifactId>
                 <version>${fluidity.version}</version>
                 <type>pom</type>
                 <scope>test</scope>
@@ -107,7 +115,7 @@ This project lists the exported modules of Fluid Tools.
 
             <dependency>
                 <groupId>${fluidity.export.groupId}</groupId>
-                <artifactId>fluidity-logging-slf4j-impl</artifactId>
+                <artifactId>fluid-tools-slf4j-logging</artifactId>
                 <version>${fluidity.version}</version>
             </dependency>
 

@@ -31,10 +31,10 @@
 
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.fluidity.export</groupId>
-    <artifactId>fluidity-tests</artifactId>
+    <artifactId>fluid-tools-component-api</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
-    <name>Export: Fluid Tools Tests</name>
+    <name>Fluid Tools: Component API</name>
 
     <licenses>
         <license>
@@ -45,7 +45,8 @@
     </licenses>
 
     <description><![CDATA[
-This project exports the unit testing related modules of Fluid Tools.
+This project is intended to be the Fluid Tools dependency in Maven projects
+not listing on any other Fluid Tools dependency.
     ]]></description>
 
     <dependencies>
@@ -53,17 +54,21 @@ This project exports the unit testing related modules of Fluid Tools.
         <dependency>
             <groupId>${fluidity.foundation.groupId}</groupId>
             <artifactId>foundation-api</artifactId>
-            <classifier>tests</classifier>
         </dependency>
 
         <dependency>
             <groupId>${fluidity.foundation.groupId}</groupId>
-            <artifactId>foundation-easymock</artifactId>
+            <artifactId>foundation-utils</artifactId>
         </dependency>
 
         <dependency>
             <groupId>${fluidity.composition.groupId}</groupId>
-            <artifactId>composition-container-tests</artifactId>
+            <artifactId>composition-api</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>${fluidity.deployment.groupId}</groupId>
+            <artifactId>deployment-api</artifactId>
         </dependency>
 
     </dependencies>

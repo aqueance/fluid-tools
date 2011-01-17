@@ -54,7 +54,7 @@ Internal module that tests foundation components that require dependency resolut
         <!-- Also pulls in all our classes to test -->
         <dependency>
             <groupId>org.fluidity.export</groupId>
-            <artifactId>fluidity-bootstrap</artifactId>
+            <artifactId>fluid-tools-bootstrap</artifactId>
             <version>${fluidity.version}</version>
             <type>pom</type>
             <scope>test</scope>
@@ -63,7 +63,7 @@ Internal module that tests foundation components that require dependency resolut
         <!-- Required for dependency injection container bootstrap -->
         <dependency>
             <groupId>org.fluidity.export</groupId>
-            <artifactId>fluidity-cli-deployment</artifactId>
+            <artifactId>fluid-tools-cli-application</artifactId>
             <version>${fluidity.version}</version>
             <type>pom</type>
             <scope>test</scope>

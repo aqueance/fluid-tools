@@ -44,22 +44,14 @@
 
         <dependency>
             <groupId>org.fluidity.export</groupId>
-            <artifactId>fluidity-api</artifactId>
+            <artifactId>fluid-tools-component-api</artifactId>
             <version>${fluidity.version}</version>
             <type>pom</type>
         </dependency>
 
         <dependency>
             <groupId>org.fluidity.export</groupId>
-            <artifactId>fluidity-tests</artifactId>
-            <version>${fluidity.version}</version>
-            <type>pom</type>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.fluidity.export</groupId>
-            <artifactId>fluidity-bootstrap</artifactId>
+            <artifactId>fluid-tools-tests</artifactId>
             <version>${fluidity.version}</version>
             <type>pom</type>
             <scope>test</scope>
@@ -67,7 +59,7 @@
 
         <dependency>
             <groupId>org.fluidity.export</groupId>
-            <artifactId>fluidity-cli-deployment</artifactId>
+            <artifactId>fluid-tools-bootstrap</artifactId>
             <version>${fluidity.version}</version>
             <type>pom</type>
             <scope>test</scope>
@@ -75,7 +67,15 @@
 
         <dependency>
             <groupId>org.fluidity.export</groupId>
-            <artifactId>fluidity-logging-slf4j-impl</artifactId>
+            <artifactId>fluid-tools-cli-application</artifactId>
+            <version>${fluidity.version}</version>
+            <type>pom</type>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.fluidity.export</groupId>
+            <artifactId>fluid-tools-slf4j-logging</artifactId>
             <version>${fluidity.version}</version>
             <scope>test</scope>
         </dependency>

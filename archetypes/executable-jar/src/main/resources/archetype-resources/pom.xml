@@ -62,14 +62,7 @@ THE SOFTWARE.
 
         <dependency>
             <groupId>org.fluidity.export</groupId>
-            <artifactId>fluidity-bootstrap</artifactId>
-            <version>${symbol_dollar}{fluidity-version}</version>
-            <type>pom</type>
-        </dependency>
-
-        <dependency>
-            <groupId>org.fluidity.export</groupId>
-            <artifactId>fluidity-cli-deployment</artifactId>
+            <artifactId>fluid-tools-cli-application</artifactId>
             <version>${symbol_dollar}{fluidity-version}</version>
             <type>pom</type>
         </dependency>
@@ -102,6 +95,10 @@ THE SOFTWARE.
         </profile>
     </profiles>
 
+    <properties>
+        <cli.bootstrap>org.fluidity.deployment.cli.CommandLineBootstrap</cli.bootstrap>
+    </properties>
+
     <build>
         <plugins>
 
@@ -126,7 +123,7 @@ THE SOFTWARE.
                     <archive>
                         <manifest>
                             <addClasspath>true</addClasspath>
-                            <mainClass>org.fluidity.deployment.cli.CommandLineBootstrap</mainClass>
+                            <mainClass>${cli.bootstrap}</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
@@ -144,7 +141,7 @@ THE SOFTWARE.
                     </execution>
                 </executions>
                 <configuration>
-                    <mainClass>org.fluidity.deployment.cli.CommandLineBootstrap</mainClass>
+                    <mainClass>${cli.bootstrap}</mainClass>
                 </configuration>
             </plugin>
 

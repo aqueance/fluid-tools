@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+  ~ Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
   ~
   ~ Permission is hereby granted, free of charge, to any person obtaining a copy
   ~ of this software and associated documentation files (the "Software"), to deal
@@ -19,6 +19,7 @@
   ~ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
   ~ THE SOFTWARE.
   -->
+
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
@@ -30,10 +31,10 @@
 
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.fluidity.export</groupId>
-    <artifactId>fluidity-impl</artifactId>
+    <artifactId>fluid-tools-bootstrap</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
-    <name>Export: Fluid Tools Implementation</name>
+    <name>Fluid Tools: Bootstrap Module</name>
 
     <licenses>
         <license>
@@ -44,12 +45,27 @@
     </licenses>
 
     <description><![CDATA[
-This project exports the implementation modules of Fluid Tools
-shared between the various application typed implementation modules,
-e.g. cli, web, etc.
+This project is intended to be the Fluid Tools dependency in Maven projects
+whose classes are to be loaded by the top level class loader of your
+application.
+
+Examples of such Maven projects include:
+ * war projects for web applications
+ * ear projects for enterprise applications
+ * jar projects for the main module of command line tools
+
+These applications contain boundary classes that must bootstrap and / or reach
+into the dependency injection container using ComponentContainerAccess, which
+is also available via this module.
     ]]></description>
 
     <dependencies>
+
+        <dependency>
+            <groupId>${fluidity.export.groupId}</groupId>
+            <artifactId>fluid-tools-component-api</artifactId>
+            <type>pom</type>
+        </dependency>
 
         <dependency>
             <groupId>${fluidity.foundation.groupId}</groupId>
@@ -59,6 +75,16 @@ e.g. cli, web, etc.
         <dependency>
             <groupId>${fluidity.composition.groupId}</groupId>
             <artifactId>composition-impl</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>${fluidity.composition.groupId}</groupId>
+            <artifactId>composition-bootstrap-utils</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>${fluidity.composition.groupId}</groupId>
+            <artifactId>composition-container-impl</artifactId>
         </dependency>
 
     </dependencies>

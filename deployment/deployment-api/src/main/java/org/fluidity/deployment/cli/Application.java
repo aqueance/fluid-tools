@@ -20,39 +20,22 @@
  * THE SOFTWARE.
  */
 
-package ${package};
+package org.fluidity.deployment.cli;
 
-import org.fluidity.foundation.logging.Log;
-import org.fluidity.foundation.logging.Marker;
-import org.fluidity.composition.Component;
 import org.fluidity.deployment.RuntimeControl;
-import org.fluidity.deployment.cli.Application;
 
-@Component
-final class MyApplication implements Application {
+/**
+ * Command line application root object. Command line applications may provide an implementation of this interface to have a main application loop. Without this,
+ * {@link org.fluidity.deployment.DeployedComponent} will determine alone what the application does and how long it's running.
+ * <p/>
+ * The application exits when the call to the {@link Runnable#run()} method returns, unless the developer has started but failed to stop non-daemon threads.
+ */
+public interface Application {
 
-    private final ComponentApi sink;
-
-    public MyApplication(final ComponentApi sink) {
-        this.sink = sink;
-    }
-
-    public void run(final RuntimeControl runtime) {
-        sink.sendText("--- Hello from the main application!");
-        runtime.stop();
-    }
-
-    @Component
-    private static class EchoText implements ComponentApi.MessageSink {
-        private final Log log;
-
-        public EchoText(final @Marker(MyApplication.class) Log log) {
-            this.log = log;
-        }
-
-        public boolean receiveText(String text) {
-            log.info(text);
-            return true;
-        }
-    }
+    /**
+     * Run the application's main loop.
+     *
+     * @param control the runtime control object.
+     */
+    void run(RuntimeControl control);
 }

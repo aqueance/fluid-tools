@@ -24,17 +24,17 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <parent>
-        <groupId>org.fluidity.maven</groupId>
-        <artifactId>deployment-plugins-root</artifactId>
+        <groupId>org.fluidity</groupId>
+        <artifactId>exports</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
-    <groupId>org.fluidity.deployment</groupId>
-    <artifactId>war-bootstrap-jetty-impl</artifactId>
+    <groupId>org.fluidity.export</groupId>
+    <artifactId>fluid-tools-boundary-api</artifactId>
     <version>1.0-SNAPSHOT</version>
-    <packaging>jar</packaging>
-    <name>Deployment: Jetty Bootstrap</name>
+    <packaging>pom</packaging>
+    <name>Fluid Tools: Boundary API</name>
 
     <licenses>
         <license>
@@ -44,45 +44,24 @@
         </license>
     </licenses>
 
-    <description>
-Jetty implementation of the war-bootstrap-spi module.
-    </description>
+    <description><![CDATA[
+This project is intended to be the Fluid Tools dependency in Maven projects
+containing boundary objects - objects instantiated externally to the
+application and needing to reach into the dependency injection container to
+resolve some dependency.
+    ]]></description>
 
     <dependencies>
 
         <dependency>
-            <groupId>${fluidity.deployment.groupId}</groupId>
-            <artifactId>war-bootstrap-spi</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>${fluidity.deployment.groupId}</groupId>
-            <artifactId>jetty-server-utils</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.mortbay.jetty</groupId>
-            <artifactId>jetty-webapp</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.mortbay.jetty</groupId>
-            <artifactId>jsp-2.1-jetty</artifactId>
-            <optional>true</optional>
+            <groupId>${fluidity.export.groupId}</groupId>
+            <artifactId>fluid-tools-component-api</artifactId>
+            <type>pom</type>
         </dependency>
 
         <dependency>
             <groupId>${fluidity.composition.groupId}</groupId>
-            <artifactId>composition-command-line-impl</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>${fluidity.export.groupId}</groupId>
-            <artifactId>fluid-tools-bootstrap</artifactId>
-            <version>${fluidity.version}</version>
-            <type>pom</type>
-            <scope>runtime</scope>
+            <artifactId>composition-bootstrap-utils</artifactId>
         </dependency>
 
     </dependencies>
@@ -99,22 +78,5 @@ Jetty implementation of the war-bootstrap-spi module.
             </build>
         </profile>
     </profiles>
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>${fluidity.plugin.groupId}</groupId>
-                <artifactId>maven-composition-plugin</artifactId>
-                <version>${fluidity.version}</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>process-annotations</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
 
 </project>

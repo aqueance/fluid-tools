@@ -73,7 +73,7 @@ pressing Ctrl-C.
 
         <dependency>
             <groupId>${fluidity.export.groupId}</groupId>
-            <artifactId>fluidity-bootstrap</artifactId>
+            <artifactId>fluid-tools-bootstrap</artifactId>
             <type>pom</type>
             <version>${fluidity.version}</version>
         </dependency>
