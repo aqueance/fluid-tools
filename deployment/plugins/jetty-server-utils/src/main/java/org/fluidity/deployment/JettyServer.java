@@ -33,9 +33,10 @@ import org.mortbay.jetty.handler.HandlerCollection;
 import org.mortbay.jetty.handler.RequestLogHandler;
 import org.mortbay.jetty.nio.SelectChannelConnector;
 import org.mortbay.jetty.webapp.WebAppContext;
-import org.mortbay.thread.QueuedThreadPool;
 
 /**
+ * Starts an embedded Jetty server.
+ *
  * @author Tibor Varga
  */
 public final class JettyServer {
@@ -49,8 +50,6 @@ public final class JettyServer {
 
         final HandlerCollection handlers = new HandlerCollection();
         handlers.addHandler(contexts);
-        handlers.addHandler(new DefaultHandler());
-        handlers.addHandler(new RequestLogHandler());
 
         contexts.addHandler(defaultContext);
         for (final WebAppContext context : contextList) {
@@ -68,15 +67,16 @@ public final class JettyServer {
         container.setBindingProperty(DeploymentControl.SERVER_KEY, server);
         container.setBindingProperty(DeploymentControl.STANDALONE_KEY, false);
 
-        server.setHandler(handlers);
-
         if (httpPort > 0) {
-            server.setThreadPool(new QueuedThreadPool());
+            handlers.addHandler(new DefaultHandler());
+            handlers.addHandler(new RequestLogHandler());
 
             final SelectChannelConnector connector = new SelectChannelConnector();
             connector.setPort(httpPort);
             server.addConnector(connector);
         }
+
+        server.setHandler(handlers);
 
         try {
             System.out.println("Starting server - press Ctrl-C to kill.");

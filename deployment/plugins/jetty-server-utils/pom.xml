@@ -34,7 +34,7 @@
     <artifactId>jetty-server-utils</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
-    <name>Deployment: Jetty Server</name>
+    <name>Plugins: Jetty Server</name>
 
     <licenses>
         <license>

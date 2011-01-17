@@ -39,8 +39,8 @@ import org.fluidity.foundation.logging.Log;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**
- * The component is instantiated by {@link org.fluidity.composition.ProductionServices} and
- * picked up at container bootstrap to be made available as a component.
+ * The component is instantiated by {@link org.fluidity.composition.ProductionServices} and picked up at container bootstrap to be made available as a
+ * component.
  *
  * @author Tibor Varga
  */
