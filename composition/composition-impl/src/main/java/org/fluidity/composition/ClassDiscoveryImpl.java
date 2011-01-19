@@ -106,7 +106,7 @@ final class ClassDiscoveryImpl implements ClassDiscovery {
                                             }
                                         }
                                     } else {
-                                        log.error(rawClass + " does not implemement %s", componentInterface);
+                                        log.error(rawClass + " does not implement %s", componentInterface);
                                     }
                                 }
                             } catch (final ClassNotFoundException e) {
