@@ -27,7 +27,7 @@ import java.util.Map;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.spi.EmptyPackageBindings;
 
-import org.mortbay.jetty.Server;
+import org.eclipse.jetty.server.Server;
 
 /**
  * @author Tibor Varga

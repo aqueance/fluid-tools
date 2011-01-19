@@ -54,7 +54,7 @@ import org.fluidity.composition.Component;
  * THE SOFTWARE.
  */
 
-@Component
+@Component(fallback = true)
 public class MyServlet extends HttpServlet {
 
     private final ComponentApi sink;

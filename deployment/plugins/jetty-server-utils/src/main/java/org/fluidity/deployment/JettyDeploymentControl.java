@@ -25,7 +25,7 @@ package org.fluidity.deployment;
 import org.fluidity.composition.Component;
 import org.fluidity.foundation.Exceptions;
 
-import org.mortbay.jetty.Server;
+import org.eclipse.jetty.server.Server;
 
 /**
 * @author Tibor Varga
