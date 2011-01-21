@@ -23,6 +23,7 @@
 package org.fluidity.composition;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.Modifier;
 import java.net.URL;
@@ -79,38 +80,46 @@ final class ClassDiscoveryImpl implements ClassDiscovery {
                         final BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream(), "UTF-8"));
                         String line;
 
-                        while ((line = reader.readLine()) != null) {
-                            if (line.startsWith("#")) {
-                                continue;
-                            }
+                        try {
+                            while ((line = reader.readLine()) != null) {
+                                if (line.startsWith("#")) {
+                                    continue;
+                                }
 
-                            try {
-                                final Class<?> rawClass = classLoader.loadClass(line.trim());
+                                try {
+                                    final Class<?> rawClass = classLoader.loadClass(line.trim());
 
-                                if (!strict || rawClass.getClassLoader() == classLoader) {
-                                    if (componentInterface.isAssignableFrom(rawClass)) {
-                                        final Class<T> componentClass = (Class<T>) rawClass;
+                                    if (!strict || rawClass.getClassLoader() == classLoader) {
+                                        if (componentInterface.isAssignableFrom(rawClass)) {
+                                            final Class<T> componentClass = (Class<T>) rawClass;
 
-                                        if (Modifier.isAbstract(componentClass.getModifiers())) {
-                                            log.info("Ignoring abstract service provider %s", componentClass);
-                                        } else {
-                                            if (componentList.contains(componentClass)) {
-                                                log.error("Multiple export of %s", componentClass);
+                                            if (Modifier.isAbstract(componentClass.getModifiers())) {
+                                                log.info("Ignoring abstract service provider %s", componentClass);
                                             } else {
-                                                if (localList.contains(componentClass)) {
-                                                    log.error("Duplicate %s", componentClass);
+                                                if (componentList.contains(componentClass)) {
+                                                    log.error("Multiple export of %s", componentClass);
                                                 } else {
-                                                    log.info("Found service provider %s", componentClass);
-                                                    localList.add(componentClass);
+                                                    if (localList.contains(componentClass)) {
+                                                        log.error("Duplicate %s", componentClass);
+                                                    } else {
+                                                        log.info("Found service provider %s", componentClass);
+                                                        localList.add(componentClass);
+                                                    }
                                                 }
                                             }
+                                        } else {
+                                            log.error(rawClass + " does not implement %s", componentInterface);
                                         }
-                                    } else {
-                                        log.error(rawClass + " does not implement %s", componentInterface);
                                     }
+                                } catch (final ClassNotFoundException e) {
+                                    log.error("Invalid class name: %s", line);
                                 }
-                            } catch (final ClassNotFoundException e) {
-                                log.error("Invalid class name: %s", line);
+                            }
+                        } finally {
+                            try {
+                                reader.close();
+                            } catch (final IOException e) {
+                                // ignore
                             }
                         }
 

@@ -51,6 +51,11 @@
             <artifactId>foundation-api</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>${fluidity.foundation.groupId}</groupId>
+            <artifactId>foundation-easymock</artifactId>
+        </dependency>
+
     </dependencies>
 
     <profiles>
@@ -65,5 +70,14 @@
             </build>
         </profile>
     </profiles>
+
+    <build>
+        <testResources>
+            <testResource>
+                <directory>src/test/resources</directory>
+                <filtering>false</filtering>
+            </testResource>
+        </testResources>
+    </build>
 
 </project>
