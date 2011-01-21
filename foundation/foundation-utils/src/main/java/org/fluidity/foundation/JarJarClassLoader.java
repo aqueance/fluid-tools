@@ -24,6 +24,8 @@ package org.fluidity.foundation;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.lang.ref.Reference;
+import java.lang.ref.SoftReference;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
@@ -35,22 +37,31 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 
 import org.fluidity.foundation.jarjar.Handler;
 
 /**
- * A class loader that looks into jar files inside a jar file, one level only.
+ * A class loader that looks into jar files inside a jar file, one level only. The implementation loads and caches in a memory sensitive cache that is
+ * automatically purged by the garbage collector all yet unused byte codes from any nested jar that was used to load a class from. If a nested jar is larger
+ * than the available heap, this will cause thrashing. Don't go wild with your nested jars, keep them of reasonable size.
  *
  * @author Tibor Varga
  */
 public final class JarJarClassLoader extends URLClassLoader {
 
+    private static final String CLASS_SUFFIX = ".class";
+
     private final URL url;
 
+    // linked so that it retains order of entries in the root jar file
     private final Map<String, Set<String>> nameMap = new LinkedHashMap<String, Set<String>>();
-    private final Map<String, Map<String, byte[]>> bytecodeMap = new HashMap<String, Map<String, byte[]>>();
+    private final Map<String, Lock> lockMap = new HashMap<String, Lock>();
+    private final Map<String, Map<String, Reference<byte[]>>> bytecodeMap = new ConcurrentHashMap<String, Map<String, Reference<byte[]>>>();
 
     public JarJarClassLoader(final URL url, final ClassLoader parent, final String dependencies) throws IOException {
         super(new URL[] { url }, parent);
@@ -71,7 +82,9 @@ public final class JarJarClassLoader extends URLClassLoader {
                     }
                 }
 
-                nameMap.put(entry.getName(), names);
+                final String name = entry.getName();
+                nameMap.put(name, names);
+                lockMap.put(name, new ReentrantLock());
 
                 return true;
             }
@@ -83,54 +96,57 @@ public final class JarJarClassLoader extends URLClassLoader {
         try {
             return super.findClass(name);
         } catch (final ClassNotFoundException e) {
+
             if (e.getCause() != null) {
                 throw e;
             } else {
                 try {
-                    final String resource = name.replace('.', '/').concat(".class");
+                    final String resource = name.replace('.', '/').concat(CLASS_SUFFIX);
 
                     for (final Map.Entry<String, Set<String>> mapping : nameMap.entrySet()) {
                         if (mapping.getValue().contains(resource)) {
                             final String dependency = mapping.getKey();
+                            final Lock lock = lockMap.get(dependency);
 
-                            if (!bytecodeMap.containsKey(dependency)) {
-                                final Map<String, byte[]> bytecodes = new HashMap<String, byte[]>();
-                                bytecodeMap.put(dependency, bytecodes);
+                            byte[] bytes = null;
 
-                                JarStreams.readEntry(url, new JarStreams.JarEntryReader() {
-                                    public boolean matches(final JarEntry entry) {
-                                        return dependency.equals(entry.getName());
-                                    }
+                            try {
 
-                                    public boolean read(JarEntry entry, final JarInputStream stream) throws IOException {
-                                        final ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-                                        final byte[] buffer = new byte[1024];
+                                // prevent another thread from loading the same dependency
+                                lock.lockInterruptibly();
 
-                                        JarEntry next;
-                                        while ((next = stream.getNextJarEntry()) != null) {
-                                            if (!next.isDirectory()) {
-                                                final String entryName = next.getName();
+                                try {
+                                    final Map<String, Reference<byte[]>> bytecodes = bytecodeMap.get(dependency);
 
-                                                int read;
-                                                while ((read = stream.read(buffer, 0, buffer.length)) != -1) {
-                                                    bytes.write(buffer, 0, read);
-                                                }
+                                    if (bytecodes == null) {
 
-                                                bytecodes.put(entryName, bytes.toByteArray());
-                                            }
+                                        // not loaded yet: load it
+
+                                        bytecodeMap.put(dependency, new HashMap<String, Reference<byte[]>>());
+                                        bytes = loadDependency(resource, dependency, bytecodeMap.get(dependency), false);
+                                    } else {
+
+                                        // loaded already but not yet defined: remove reference from cache to signify that it should not be loaded any more
+                                        final Reference<byte[]> reference = bytecodes.remove(resource);
+
+                                        if (reference == null) {
+
+                                            // we don't have such a class
+                                            throw new ClassNotFoundException(name);
+                                        } else if ((bytes = reference.get()) == null) {
+
+                                            // we have a class but our byte code has been purged: load the whole thing again
+                                            bytes = loadDependency(resource, dependency, bytecodes, true);
                                         }
-
-                                        return false;
                                     }
-                                });
-                            }
-
-                            final Map<String, byte[]> bytecodes = bytecodeMap.get(dependency);
-                            if (bytecodes == null) {
+                                } finally {
+                                    lock.unlock();
+                                }
+                            } catch (final InterruptedException i) {
+                                Thread.currentThread().interrupt();     // set the interrupted flag
                                 throw new ClassNotFoundException(name);
                             }
 
-                            final byte[] bytes = bytecodes.remove(resource);
                             if (bytes == null) {
                                 throw new ClassNotFoundException(name);
                             }
@@ -145,6 +161,55 @@ public final class JarJarClassLoader extends URLClassLoader {
                 }
             }
         }
+    }
+
+    private byte[] loadDependency(final String resource, final String dependency, final Map<String, Reference<byte[]>> bytecodes, final boolean reloading)
+            throws IOException {
+
+        // strong reference to the bytecode we're actually after prevents it from purged while we fill up the cache (i.e., class is found even when thrashing)
+        final byte[][] found = new byte[1][];
+
+        JarStreams.readEntry(url, new JarStreams.JarEntryReader() {
+            public boolean matches(final JarEntry entry) {
+                return dependency.equals(entry.getName());
+            }
+
+            public boolean read(final JarEntry entry, final JarInputStream stream) throws IOException {
+                final ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+                final byte[] buffer = new byte[1024];
+
+                JarEntry next;
+                while ((next = stream.getNextJarEntry()) != null) {
+                    if (!next.isDirectory()) {
+                        final String entryName = next.getName();
+                        final Reference<byte[]> reference = bytecodes.get(entryName);
+                        final byte[] cached = reference == null ? null : reference.get();
+
+                        if (entryName.endsWith(CLASS_SUFFIX) && (!reloading || (reference != null && cached == null))) {
+
+                            int read;
+                            while ((read = stream.read(buffer, 0, buffer.length)) != -1) {
+                                bytes.write(buffer, 0, read);
+                            }
+
+                            final byte[] code = bytes.toByteArray();
+
+                            if (resource.equals(entryName)) {
+                                found[0] = code;
+                            } else {
+
+                                // only cached if needed later
+                                bytecodes.put(entryName, new SoftReference<byte[]>(code));
+                            }
+                        }
+                    }
+                }
+
+                return false;
+            }
+        });
+
+        return found[0];
     }
 
     @Override
