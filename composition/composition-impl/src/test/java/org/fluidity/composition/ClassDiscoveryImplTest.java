@@ -51,7 +51,6 @@ public class ClassDiscoveryImplTest extends MockGroupAbstractTest {
     private final LogFactory logs = new NullLogFactory();
 
     @Test
-    @SuppressWarnings("unchecked")
     public void findsClassesInAnyClassLoader() throws Exception {
 
         // we need to create a new service provider (http://java.sun.com/j2se/1.4.2/docs/guide/jar/jar.html#Service%20Provider)
@@ -89,7 +88,6 @@ public class ClassDiscoveryImplTest extends MockGroupAbstractTest {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     public void findsClassesOnlyByGivenClassLoader() throws Exception {
 
         // we need to create a new service provider (http://java.sun.com/j2se/1.4.2/docs/guide/jar/jar.html#Service%20Provider)
@@ -137,8 +135,8 @@ public class ClassDiscoveryImplTest extends MockGroupAbstractTest {
         }
     }
 
-    private void copyClassFile(Class impl, File classDir, List<File> fileList) throws IOException {
-        final String fileName = impl.getName().replace('.', '/') + ".class";
+    private void copyClassFile(final Class<?> impl, final File classDir, final List<File> fileList) throws IOException {
+        final String fileName = ClassLoaders.classResourceName(impl);
 
         final File outputFile = new File(classDir, fileName);
         fileList.add(outputFile);

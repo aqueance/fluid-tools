@@ -107,7 +107,7 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
         return project.getBuild();
     }
 
-    @SuppressWarnings({ "unchecked", "RedundantCast", "ResultOfMethodCallIgnored" })
+    @SuppressWarnings({ "RedundantCast", "ResultOfMethodCallIgnored" })
     protected final void processDirectory(File classesDirectory) throws MojoExecutionException {
         projectName = getProjectNameId();
 
@@ -296,7 +296,7 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
         final Map<String, Set<String>> serviceProviders = new HashMap<String, Set<String>>();
 
         for (final String fileName : scanner.getIncludedFiles()) {
-            final String className = fileName.substring(0, fileName.length() - ".class".length()).replace(File.separatorChar, '.');
+            final String className = fileName.substring(0, fileName.length() - CLASS_FILE_SUFFIX.length()).replace(File.separatorChar, '.');
             final String componentPackage = className.substring(0, className.lastIndexOf(".") + 1);
             final String generatedBindings = componentPackage + GENERATED_PACKAGE_BINDINGS + projectName;
 

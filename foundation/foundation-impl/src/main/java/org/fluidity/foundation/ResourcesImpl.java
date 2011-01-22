@@ -19,6 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package org.fluidity.foundation;
 
 import java.io.InputStream;
@@ -64,7 +65,7 @@ final class ResourcesImpl implements Resources {
     }
 
     public InputStream loadClassResource(final String className) {
-        return classLoader().getResourceAsStream(className.replace('.', '/') + ".class");
+        return classLoader().getResourceAsStream(ClassLoaders.classResourceName(className));
     }
 
     public Class loadClass(final String className) {

@@ -54,8 +54,6 @@ import org.fluidity.foundation.jarjar.Handler;
  */
 public final class JarJarClassLoader extends URLClassLoader {
 
-    private static final String CLASS_SUFFIX = ".class";
-
     private final URL url;
 
     // linked so that it retains order of entries in the root jar file
@@ -101,7 +99,7 @@ public final class JarJarClassLoader extends URLClassLoader {
                 throw e;
             } else {
                 try {
-                    final String resource = name.replace('.', '/').concat(CLASS_SUFFIX);
+                    final String resource = ClassLoaders.classResourceName(name);
 
                     for (final Map.Entry<String, Set<String>> mapping : nameMap.entrySet()) {
                         if (mapping.getValue().contains(resource)) {
@@ -166,7 +164,7 @@ public final class JarJarClassLoader extends URLClassLoader {
     private byte[] loadDependency(final String resource, final String dependency, final Map<String, Reference<byte[]>> bytecodes, final boolean reloading)
             throws IOException {
 
-        // strong reference to the bytecode we're actually after prevents it from purged while we fill up the cache (i.e., class is found even when thrashing)
+        // strong reference prevents collection as garbage while we fill up the cache (i.e., class is found even when thrashing)
         final byte[][] found = new byte[1][];
 
         JarStreams.readEntries(url, new JarStreams.JarEntryReader() {
@@ -185,7 +183,8 @@ public final class JarJarClassLoader extends URLClassLoader {
                         final Reference<byte[]> reference = bytecodes.get(entryName);
                         final byte[] cached = reference == null ? null : reference.get();
 
-                        if (entryName.endsWith(CLASS_SUFFIX) && (!reloading || (reference != null && cached == null))) {
+                        if (entryName.endsWith(ClassLoaders.CLASS_SUFFIX) && (!reloading || (reference != null && cached == null))) {
+                            bytes.reset();
 
                             int read;
                             while ((read = stream.read(buffer, 0, buffer.length)) != -1) {
@@ -234,6 +233,8 @@ public final class JarJarClassLoader extends URLClassLoader {
 
         for (final Map.Entry<String, Set<String>> mapping : nameMap.entrySet()) {
             if (mapping.getValue().contains(resource)) {
+
+                // Handler.formatURL has a side effect of loading Handler as an URL stream handler
                 list.add(Handler.formatURL(url, mapping.getKey() + "!/" + ClassLoaders.absoluteResourceName(resource)));
             }
         }

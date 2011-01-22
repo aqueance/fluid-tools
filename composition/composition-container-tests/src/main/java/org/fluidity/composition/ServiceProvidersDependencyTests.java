@@ -51,7 +51,6 @@ public final class ServiceProvidersDependencyTests extends AbstractContainerTest
 
     }
 
-    @SuppressWarnings("unchecked")
     @Component
     public static class Processor {
 

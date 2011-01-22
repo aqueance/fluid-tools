@@ -54,7 +54,7 @@ final class ClassDiscoveryImpl implements ClassDiscovery {
         log = logs.createLog(getClass());
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({ "unchecked", "SuspiciousToArrayCall" })
     public <T> Class<T>[] findComponentClasses(final Class<T> componentInterface, final ClassLoader cl, final boolean strict) {
         final ClassLoader classLoader = cl == null ? ClassLoaders.findClassLoader(componentInterface) : cl;
         log.info("Loading service provider files for %s using class loader %s", componentInterface, classLoader);
@@ -131,6 +131,6 @@ final class ClassDiscoveryImpl implements ClassDiscovery {
             }
         });
 
-        return componentList.toArray(new Class[componentList.size()]);
+        return (Class<T>[]) componentList.toArray(new Class[componentList.size()]);
     }
 }

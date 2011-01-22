@@ -27,9 +27,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -42,32 +40,18 @@ import java.util.jar.JarFile;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
 
+import org.fluidity.deployment.maven.MavenDependencies;
+
 import org.apache.maven.artifact.Artifact;
-import org.apache.maven.artifact.DefaultArtifact;
-import org.apache.maven.artifact.handler.ArtifactHandler;
-import org.apache.maven.artifact.handler.DefaultArtifactHandler;
 import org.apache.maven.artifact.repository.ArtifactRepository;
-import org.apache.maven.artifact.versioning.VersionRange;
 import org.apache.maven.model.Dependency;
-import org.apache.maven.model.Exclusion;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 import org.sonatype.aether.RepositorySystem;
 import org.sonatype.aether.RepositorySystemSession;
-import org.sonatype.aether.collection.CollectRequest;
-import org.sonatype.aether.collection.DependencyCollectionContext;
-import org.sonatype.aether.collection.DependencyCollectionException;
-import org.sonatype.aether.collection.DependencySelector;
-import org.sonatype.aether.graph.DependencyNode;
 import org.sonatype.aether.repository.RemoteRepository;
-import org.sonatype.aether.resolution.ArtifactResolutionException;
-import org.sonatype.aether.util.FilterRepositorySystemSession;
-import org.sonatype.aether.util.artifact.ArtifactProperties;
-import org.sonatype.aether.util.artifact.DefaultArtifactType;
-import org.sonatype.aether.util.artifact.JavaScopes;
-import org.sonatype.aether.util.graph.PreorderNodeListGenerator;
 
 /**
  * Adds code to the project .war file that allows it to be run as a .jar file, e.g. <code>$ java -jar &lt;file name>.war</code>. More .war files can be
@@ -201,7 +185,6 @@ public class ExecutableWarMojo extends AbstractMojo {
     @SuppressWarnings({ "UnusedDeclaration", "MismatchedQueryAndUpdateOfCollection" })
     private List<RemoteRepository> projectRepositories;
 
-    @SuppressWarnings("unchecked")
     public void execute() throws MojoExecutionException {
         if (!WAR_TYPE.equals(packaging)) {
             throw new MojoExecutionException("This is not a .war project");
@@ -212,13 +195,22 @@ public class ExecutableWarMojo extends AbstractMojo {
         final String pluginKey = Plugin.constructKey(pluginGroupId, pluginArtifactId);
         final Artifact pluginArtifact = project.getPluginArtifactMap().get(pluginKey);
 
-        final Collection<Artifact> bootstrapDependencies = transitiveDependencies(pluginArtifact, projectRepositories, true);
+        final String exclusion = MavenDependencies.GROUP_ID + ':' + MavenDependencies.ARTIFACT_ID;
+        final Collection<Artifact> bootstrapDependencies = MavenDependencies.transitiveDependencies(repositorySystem,
+                                                                                                    repositorySession,
+                                                                                                    projectRepositories,
+                                                                                                    pluginArtifact,
+                                                                                                    true, exclusion);
         bootstrapDependencies.remove(pluginArtifact);
 
         final Set<Artifact> serverDependencies = new HashSet<Artifact>();
         for (final Dependency dependency : project.getPlugin(pluginKey).getDependencies()) {
             if (!dependency.isOptional()) {
-                serverDependencies.addAll(transitiveDependencies(dependencyArtifact(dependency), projectRepositories, false));
+                serverDependencies.addAll(MavenDependencies.transitiveDependencies(repositorySystem,
+                                                                                   repositorySession,
+                                                                                   projectRepositories,
+                                                                                   MavenDependencies.dependencyArtifact(dependency),
+                                                                                   false));
             }
         }
 
@@ -229,10 +221,9 @@ public class ExecutableWarMojo extends AbstractMojo {
             }
         }
 
-        serverDependencies.removeAll(transitiveDependencies(project.getArtifact(), projectRepositories, false));
-        serverDependencies.removeAll(transitiveDependencies(pluginArtifact, projectRepositories, false));
-
-        serverDependencies.add(pluginArtifact);
+        serverDependencies.removeAll(MavenDependencies.transitiveDependencies(repositorySystem, repositorySession, projectRepositories, project.getArtifact(), false));
+        serverDependencies.removeAll(MavenDependencies.transitiveDependencies(repositorySystem, repositorySession, projectRepositories, pluginArtifact, false));
+        serverDependencies.remove(pluginArtifact);
 
         final Set<String> processedEntries = new HashSet<String>();
 
@@ -253,8 +244,8 @@ public class ExecutableWarMojo extends AbstractMojo {
                     }
 
                     try {
-                        for (final Enumeration entries = jarInput.entries(); entries.hasMoreElements();) {
-                            final JarEntry entry = (JarEntry) entries.nextElement();
+                        for (final Enumeration<JarEntry> entries = jarInput.entries(); entries.hasMoreElements();) {
+                            final JarEntry entry = entries.nextElement();
                             final String entryName = entry.getName();
 
                             if (!processedEntries.contains(entryName)) {
@@ -304,7 +295,7 @@ public class ExecutableWarMojo extends AbstractMojo {
                         final JarEntry entry = (JarEntry) entries.nextElement();
                         final String entryName = entry.getName();
 
-                        if (entryName.equals(JarFile.MANIFEST_NAME)) {
+                        if (entryName.equalsIgnoreCase(JarFile.MANIFEST_NAME)) {
                             if (!manifestFound) {
                                 outputStream.putNextEntry(new JarEntry(JarFile.MANIFEST_NAME));
                                 manifest.write(outputStream);
@@ -335,7 +326,7 @@ public class ExecutableWarMojo extends AbstractMojo {
                             final File dependency = new File(localRepository.getBasedir(), localRepository.pathOf(artifact));
 
                             if (!dependency.exists()) {
-                                throw new MojoExecutionException(String.format("Dependency %s not found (checked: %s)", artifact, dependency));
+                                throw new MojoExecutionException(String.format("Dependency %s not found (tried: %s)", artifact, dependency));
                             }
 
                             outputStream.putNextEntry(new JarEntry(bootDirectory + dependency.getName()));
@@ -367,54 +358,6 @@ public class ExecutableWarMojo extends AbstractMojo {
         } catch (final IOException e) {
             throw new MojoExecutionException(String.format("Processing %s", packageFile), e);
         }
-    }
-
-    private Collection<Artifact> transitiveDependencies(final Artifact root, final List<RemoteRepository> remoteRepositories, final boolean optionals)
-            throws MojoExecutionException {
-
-        /*
-         * https://docs.sonatype.org/display/AETHER/Home
-         * https://docs.sonatype.org/display/AETHER/Using+Aether+in+Maven+Plugins
-         * https://docs.sonatype.org/display/AETHER/Introduction
-         */
-
-        final CollectRequest collectRequest = new CollectRequest();
-
-        collectRequest.setRoot(aetherDependency(root, null));
-
-        for (final RemoteRepository repository : remoteRepositories) {
-            collectRequest.addRepository(repository);
-        }
-
-        // we must override the getDependencySelector() method to add our own selector
-        final FilterRepositorySystemSession filteringSession = new DependencyFilterSession(repositorySession, optionals);
-
-        final DependencyNode node;
-        try {
-            node = repositorySystem.collectDependencies(filteringSession, collectRequest).getRoot();
-            repositorySystem.resolveDependencies(filteringSession, node, null);
-        } catch (final DependencyCollectionException e) {
-            throw new MojoExecutionException("Finding transitive dependencies of " + root, e);
-        } catch (final ArtifactResolutionException e) {
-            throw new MojoExecutionException("Finding transitive dependencies of " + root, e);
-        }
-
-        final PreorderNodeListGenerator generator = new PreorderNodeListGenerator();
-        node.accept(generator);
-
-        final Collection<Artifact> dependencies = new HashSet<Artifact>();
-
-        for (final org.sonatype.aether.artifact.Artifact artifact : generator.getArtifacts(true)) {
-            final Artifact mavenArtifact = mavenArtifact(artifact);
-
-            if (!mavenArtifact.isResolved()) {
-                throw new MojoExecutionException(String.format("Could not resolve %s", mavenArtifact));
-            }
-
-            dependencies.add(mavenArtifact);
-        }
-
-        return dependencies;
     }
 
     private void copyStream(final JarOutputStream output, final InputStream input, final byte[] buffer) throws IOException {
@@ -450,103 +393,4 @@ public class ExecutableWarMojo extends AbstractMojo {
     /*
      * The following conversion methods were created based on the logic found in org.apache.maven.RepositoryUtils
      */
-
-    private DefaultArtifact dependencyArtifact(final Dependency dependency) {
-        return new DefaultArtifact(dependency.getGroupId(),
-                                   dependency.getArtifactId(),
-                                   dependency.getVersion(),
-                                   dependency.getScope(),
-                                   dependency.getType(),
-                                   dependency.getClassifier(),
-                                   new DefaultArtifactHandler(dependency.getType()));
-    }
-
-    public Artifact mavenArtifact(final org.sonatype.aether.artifact.Artifact original) {
-        final String setClassifier = original.getClassifier();
-        final String classifier = (setClassifier == null || setClassifier.length() == 0) ? null : setClassifier;
-
-        final String type = original.getProperty(ArtifactProperties.TYPE, original.getExtension());
-        final DefaultArtifactHandler handler = new DefaultArtifactHandler(type);
-
-        handler.setExtension(original.getExtension());
-        handler.setLanguage(original.getProperty(ArtifactProperties.LANGUAGE, null));
-
-        final Artifact artifact = new DefaultArtifact(original.getGroupId(), original.getArtifactId(), original.getVersion(), null, type, classifier, handler);
-
-        final File file = original.getFile();
-        artifact.setFile(file);
-        artifact.setResolved(file != null);
-
-        artifact.setDependencyTrail(Collections.singletonList(artifact.getId()));
-
-        return artifact;
-    }
-
-    public org.sonatype.aether.artifact.Artifact aetherArtifact(final Artifact original) {
-        final String explicitVersion = original.getVersion();
-        final VersionRange versionRange = original.getVersionRange();
-        final String version = explicitVersion == null && versionRange != null ? versionRange.toString() : explicitVersion;
-
-        final boolean isSystem = Artifact.SCOPE_SYSTEM.equals(original.getScope());
-        final String path = (original.getFile() != null) ? original.getFile().getPath() : "";
-        final Map<String, String> properties = isSystem ? Collections.singletonMap(ArtifactProperties.LOCAL_PATH, path) : null;
-
-        final ArtifactHandler handler = original.getArtifactHandler();
-
-        final String extension = handler.getExtension();
-        final DefaultArtifactType type = new DefaultArtifactType(original.getType(),
-                                                                 extension,
-                                                                 handler.getClassifier(),
-                                                                 handler.getLanguage(),
-                                                                 handler.isAddedToClasspath(),
-                                                                 handler.isIncludesDependencies());
-
-        final org.sonatype.aether.artifact.Artifact artifact = new org.sonatype.aether.util.artifact.DefaultArtifact(original.getGroupId(),
-                                                                                                                     original.getArtifactId(),
-                                                                                                                     original.getClassifier(),
-                                                                                                                     extension,
-                                                                                                                     version,
-                                                                                                                     properties,
-                                                                                                                     type);
-        return artifact.setFile(original.getFile());
-    }
-
-    public org.sonatype.aether.graph.Dependency aetherDependency(final Artifact original, final Collection<Exclusion> exclusions) {
-        final List<org.sonatype.aether.graph.Exclusion> exclusionList = new ArrayList<org.sonatype.aether.graph.Exclusion>();
-
-        if (exclusions != null) {
-            for (final Exclusion exclusion : exclusions) {
-                exclusionList.add(new org.sonatype.aether.graph.Exclusion(exclusion.getGroupId(), exclusion.getArtifactId(), "*", "*"));
-            }
-        }
-
-        final org.sonatype.aether.artifact.Artifact artifact = aetherArtifact(original);
-        return new org.sonatype.aether.graph.Dependency(artifact, original.getScope(), original.isOptional(), exclusions == null ? null : exclusionList);
-    }
-
-    private static class DependencyFilterSession extends FilterRepositorySystemSession {
-
-        private final DependencySelector selector;
-
-        public DependencyFilterSession(final RepositorySystemSession parent, final boolean optionals) {
-            super(parent);
-
-            // filters out optional dependencies unless explicitly requested, in addition to dependencies not packaged in thw war
-            selector = new DependencySelector() {
-                public boolean selectDependency(final org.sonatype.aether.graph.Dependency dependency) {
-                    final String scope = dependency.getScope();
-                    return (JavaScopes.COMPILE.equals(scope) || JavaScopes.RUNTIME.equals(scope)) && (optionals || !dependency.isOptional());
-                }
-
-                public DependencySelector deriveChildSelector(final DependencyCollectionContext context) {
-                    return this;
-                }
-            };
-        }
-
-        @Override
-        public DependencySelector getDependencySelector() {
-            return selector;
-        }
-    }
 }

@@ -31,10 +31,10 @@
 
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.fluidity.foundation</groupId>
-    <artifactId>foundation-bootstrap-utils</artifactId>
+    <artifactId>foundation-classloader-utils</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
-    <name>Foundation: Bootstrap Utilities</name>
+    <name>Foundation: ClassLoader Utilities</name>
 
     <licenses>
         <license>
@@ -43,16 +43,6 @@
             <distribution>repo</distribution>
         </license>
     </licenses>
-
-    <dependencies>
-
-        <dependency>
-            <groupId>${fluidity.foundation.groupId}</groupId>
-            <artifactId>foundation-easymock</artifactId>
-            <scope>test</scope>
-        </dependency>
-
-    </dependencies>
 
     <profiles>
         <profile>

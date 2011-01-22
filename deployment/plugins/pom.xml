@@ -49,11 +49,13 @@
     </properties>
 
     <modules>
+        <module>maven-executable-jar-plugin</module>
         <module>maven-executable-war-plugin</module>
         <module>maven-webrun-plugin</module>
         <module>war-bootstrap</module>
         <module>war-bootstrap-jetty-impl</module>
         <module>jetty-server-utils</module>
+        <module>maven-dependency-utils</module>
     </modules>
 
     <dependencyManagement>

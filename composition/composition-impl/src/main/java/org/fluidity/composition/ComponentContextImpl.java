@@ -69,7 +69,6 @@ final class ComponentContextImpl implements ComponentContext {
         }
     }
 
-    @SuppressWarnings({ "unchecked" })
     private Annotation[] combine(final Annotation[] present, final Annotation[] addition) {
         final Collection<Annotation> list = new LinkedHashSet<Annotation>();
         list.addAll(Arrays.asList(present));

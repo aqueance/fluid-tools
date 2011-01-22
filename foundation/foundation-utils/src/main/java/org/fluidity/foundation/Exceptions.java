@@ -118,7 +118,7 @@ public abstract class Exceptions {
         public <T extends Exception> Wrapper rethrow(final Class<T> accept) throws T {
             final Throwable cause = getCause();
 
-            @SuppressWarnings("unchecked")
+            @SuppressWarnings({ "unchecked", "ThrowableResultOfMethodCallIgnored"})
             final T exception = accept.isAssignableFrom(cause.getClass()) ? (T) cause : null;
 
             if (exception != null) {

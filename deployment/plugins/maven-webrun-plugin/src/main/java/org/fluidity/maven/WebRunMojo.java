@@ -87,7 +87,6 @@ public final class WebRunMojo extends AbstractMojo {
 
     private final Log log = getLog();
 
-    @SuppressWarnings("unchecked")
     public void execute() throws MojoExecutionException {
         final File jettyDirectory = createTempDirectory();
 

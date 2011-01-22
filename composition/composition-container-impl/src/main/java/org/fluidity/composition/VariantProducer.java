@@ -29,7 +29,6 @@ import org.fluidity.composition.spi.ComponentVariantFactory;
  *
  * @author Tibor Varga
  */
-@SuppressWarnings("unchecked")
 abstract class VariantProducer extends AbstractProducer {
 
     private final Class<? extends ComponentVariantFactory> factoryClass;

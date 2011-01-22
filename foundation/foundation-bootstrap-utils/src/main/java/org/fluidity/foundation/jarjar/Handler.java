@@ -46,6 +46,7 @@ public class Handler extends URLStreamHandler {
     public static final String PROTOCOL;
 
     private static final String PROTOCOL_HANDLERS_PROPERTY = "java.protocol.handler.pkgs";
+    private static final String DELIMITER = "!/";
 
     static {
         final String canonicalName = Handler.class.getName();
@@ -92,7 +93,7 @@ public class Handler extends URLStreamHandler {
     }
 
     public static URL formatURL(final URL root, final String path) throws MalformedURLException {
-        return new URL(PROTOCOL + ':' + root.toExternalForm() + "!/" + ClassLoaders.absoluteResourceName(path));
+        return new URL(PROTOCOL + ':' + root.toExternalForm() + DELIMITER + ClassLoaders.absoluteResourceName(path));
     }
 
     public static class EmbeddedConnection extends URLConnection {
@@ -113,14 +114,14 @@ public class Handler extends URLStreamHandler {
             final JarInputStream container = new JarInputStream(new URL(URLDecoder.decode(getURL().getHost(), "UTF-8")).openStream());
 
             // each successive path is nested in the stream at the previous index
-            final String[] paths = getURL().getPath().split("!");
+            final String[] paths = getURL().getPath().split(DELIMITER);
 
             // first stream is the container
             JarInputStream stream = container;
 
             // the first path is an empty string since spec starts with a ! and we split around !s
             for (int i = 1, pathCount = paths.length; i < pathCount; i++) {
-                final String path = ClassLoaders.absoluteResourceName(paths[i]);
+                final String path = paths[i];
 
                 JarEntry next;
                 while ((next = stream.getNextJarEntry()) != null) {

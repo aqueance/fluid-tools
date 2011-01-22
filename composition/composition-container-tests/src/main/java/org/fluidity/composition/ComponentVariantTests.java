@@ -50,7 +50,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
 
     private ComponentVariantFactory variants = addControl(ComponentVariantFactory.class);
 
-    @SuppressWarnings({ "unchecked" })
+    @SuppressWarnings("unchecked")
     private ComponentFactory<DependentKey> factory = (ComponentFactory<DependentKey>) addControl(ComponentFactory.class);
 
     public ComponentVariantTests(final ContainerFactory factory) {

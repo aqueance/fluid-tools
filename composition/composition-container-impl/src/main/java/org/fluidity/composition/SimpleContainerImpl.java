@@ -34,7 +34,6 @@ import org.fluidity.foundation.logging.Log;
 /**
  * @author Tibor Varga
  */
-@SuppressWarnings("unchecked")
 final class SimpleContainerImpl implements SimpleContainer {
 
     private final ContainerServices services;
@@ -295,6 +294,7 @@ final class SimpleContainerImpl implements SimpleContainer {
         return child;
     }
 
+    @SuppressWarnings("unchecked")
     public <T> List<T> allSingletons(final Class<T> componentInterface) {
         final List<T> instances = new ArrayList<T>();
 
@@ -403,6 +403,7 @@ final class SimpleContainerImpl implements SimpleContainer {
             this.producer = producer;
         }
 
+        @SuppressWarnings("unchecked")
         public T run(final boolean circular) {
             final ComponentContext extracted = contextFactory().extractContext(producer.componentClass().getAnnotations());
 

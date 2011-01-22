@@ -71,15 +71,13 @@ public final class ContainerBootstrapImplTest extends MockGroupAbstractTest {
     @SuppressWarnings("unchecked")
     @Test
     public void connectedComponentAssembly() throws Exception {
-        final Class[] assemblies = {
-                PackageBindingsImpl.class, DependentPackageBindingsImpl.class, ResponsiblePackageBindingsImpl.class,
-        };
+        final Class[] assemblies = { PackageBindingsImpl.class, DependentPackageBindingsImpl.class, ResponsiblePackageBindingsImpl.class };
 
         EasyMock.expect(discovery.findComponentClasses(PackageBindings.class, null, true)).andReturn(assemblies);
 
         EasyMock.expect(provider.instantiateBindings(EasyMock.same(services), EasyMock.<Map>isNull(), EasyMock.<Collection<Class<PackageBindings>>>notNull()))
-                .andAnswer(new IAnswer() {
-                    public Object answer() throws Throwable {
+                .andAnswer(new IAnswer<List<PackageBindings>>() {
+                    public List<PackageBindings> answer() throws Throwable {
                         final ResponsiblePackageBindingsImpl bindings1 = new ResponsiblePackageBindingsImpl();
                         final PackageBindingsImpl bindings2 = new PackageBindingsImpl(bindings1);
                         final DependentPackageBindingsImpl bindings3 = new DependentPackageBindingsImpl(bindings2);
@@ -148,9 +146,9 @@ public final class ContainerBootstrapImplTest extends MockGroupAbstractTest {
         EasyMock.expect(discovery.findComponentClasses(PackageBindings.class, null, false)).andReturn(assemblies);
 
         EasyMock.expect(provider.instantiateBindings(EasyMock.same(services), EasyMock.<Map>isNull(), EasyMock.<Collection<Class<PackageBindings>>>notNull()))
-                .andAnswer(new IAnswer() {
-                    public Object answer() throws Throwable {
-                        return Collections.singletonList(new ShutdownHookPackageBindingsImpl());
+                .andAnswer(new IAnswer<List<PackageBindings>>() {
+                    public List<PackageBindings> answer() throws Throwable {
+                        return Collections.singletonList((PackageBindings) new ShutdownHookPackageBindingsImpl());
                     }
                 });
 
@@ -172,15 +170,14 @@ public final class ContainerBootstrapImplTest extends MockGroupAbstractTest {
     @SuppressWarnings("unchecked")
     @Test
     public void bindingProperties() throws Exception {
-        final Class<?>[] assemblies = new Class<?>[0];
-        EasyMock.expect(discovery.findComponentClasses(PackageBindings.class, null, true)).andReturn((Class<PackageBindings>[]) assemblies);
+        EasyMock.expect(discovery.findComponentClasses(PackageBindings.class, null, true)).andReturn(new Class[0]);
 
         final Properties properties = new Properties();
 
         final String value = "value";
         properties.setProperty(ConfigurablePackageBindingsImpl.KEY, value);
         EasyMock.expect(provider.instantiateBindings(EasyMock.same(services), EasyMock.eq(properties), EasyMock.<Collection<Class<PackageBindings>>>notNull()))
-                .andReturn(new ArrayList());
+                .andReturn(new ArrayList<PackageBindings>());
 
         EasyMock.expect(container.getRegistry()).andReturn(registry);
 
@@ -209,7 +206,7 @@ public final class ContainerBootstrapImplTest extends MockGroupAbstractTest {
         EasyMock.expect(discovery.findComponentClasses(PackageBindings.class, null, true)).andReturn(new Class[0]);
 
         EasyMock.expect(provider.instantiateBindings(EasyMock.same(services), EasyMock.<Map>isNull(), EasyMock.<Collection<Class<PackageBindings>>>notNull()))
-                .andReturn(new ArrayList());
+                .andReturn(new ArrayList<PackageBindings>());
         EasyMock.expect(container.getComponent(ShutdownHook.class)).andReturn(null);
 
         EasyMock.expect(container.makeNestedContainer()).andReturn(container);

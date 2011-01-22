@@ -47,8 +47,8 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
 
     private final DependencyInjector injector = new DependencyInjectorImpl(discovery);
 
-    @Test
     @SuppressWarnings({ "unchecked" })
+    @Test
     public void injectsFields() throws Exception {
         final FieldInjected component = new FieldInjected();
 
@@ -61,7 +61,7 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
         EasyMock.expect(resolver.resolve(Dependency.class, context)).andReturn(dependency);
 
         EasyMock.expect(discovery.findComponentClasses(EasyMock.same(Service.class), EasyMock.<ClassLoader>notNull(), EasyMock.eq(false)))
-                .andReturn((Class<Service>[]) new Class<?>[] { ServiceImpl1.class, ServiceImpl2.class });
+                .andReturn(new Class[] { ServiceImpl1.class, ServiceImpl2.class });
 
         final ServiceImpl1 service1 = new ServiceImpl1();
         final ServiceImpl2 service2 = new ServiceImpl2();
@@ -129,7 +129,7 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
         EasyMock.expect(resolver.resolve(Dependency.class, context)).andReturn(dependency);
 
         EasyMock.expect(discovery.findComponentClasses(EasyMock.same(Service.class), EasyMock.<ClassLoader>notNull(), EasyMock.eq(false)))
-                .andReturn((Class<Service>[]) new Class<?>[] { ServiceImpl1.class, ServiceImpl2.class });
+                .andReturn(new Class[] { ServiceImpl1.class, ServiceImpl2.class });
 
         final ServiceImpl1 service1 = new ServiceImpl1();
         final ServiceImpl2 service2 = new ServiceImpl2();

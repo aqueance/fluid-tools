@@ -23,14 +23,20 @@
 package org.fluidity.foundation;
 
 import java.io.IOException;
+import java.net.JarURLConnection;
 import java.net.URL;
+import java.net.URLConnection;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
+import java.util.jar.Manifest;
 
 /**
  * Convenience methods to traverse jar streams
  */
-final class JarStreams {
+public final class JarStreams {
 
     private JarStreams() {
         throw new UnsupportedOperationException("No instance allowed");
@@ -74,6 +80,47 @@ final class JarStreams {
             } catch (final IOException e) {
                 // ignore
             }
+        }
+    }
+
+    /**
+     * Loads manifest attributes from the jar file where the given class was loaded from.
+     *
+     * @param aClass the class whose source jar is to be processed.
+     * @param names  the list of attribute names to load.
+     *
+     * @return an array of Strings, each being the value of the attribute name at the same index.
+     */
+    public static String[] manifestAttributes(final Class<?> aClass, final String... names) {
+        final URL url = aClass.getClassLoader().getResource(ClassLoaders.classResourceName(aClass));
+
+        try {
+            final URLConnection connection = url.openConnection();
+
+            if (connection instanceof JarURLConnection) {
+                final Attributes manifest = loadManifest(((JarURLConnection) connection).getJarFileURL()).getMainAttributes();
+
+                final List<String> list = new ArrayList<String>();
+                for (final String name : names) {
+                    list.add(manifest.getValue(name));
+                }
+
+                return list.toArray(new String[list.size()]);
+            } else {
+                throw new IllegalArgumentException(String.format("Class %s was not loaded from a jar file: %s", aClass.getName(), url));
+            }
+        } catch (final IOException e) {
+            throw new IllegalArgumentException(e);
+        }
+    }
+
+    private static Manifest loadManifest(final URL url) throws IOException {
+        final JarInputStream stream = new JarInputStream(url.openStream());
+
+        try {
+            return stream.getManifest();
+        } finally {
+            stream.close();
         }
     }
 

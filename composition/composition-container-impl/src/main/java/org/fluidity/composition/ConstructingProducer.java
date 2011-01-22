@@ -110,13 +110,12 @@ final class ConstructingProducer extends AbstractProducer {
         Constructor<?> designated = null;
 
         final List<Constructor<?>> validConstructors = new ArrayList<Constructor<?>>();
-        for (final Constructor constructor : componentClass.getDeclaredConstructors()) {
+        for (final Constructor<?> constructor : componentClass.getDeclaredConstructors()) {
             if (!constructor.isSynthetic()) {
                 if (designated == null) {
                     validConstructors.add(constructor);
                 }
 
-                @SuppressWarnings("unchecked")
                 final boolean annotated = constructor.getAnnotation(Component.class) != null;
                 if (designated != null && annotated) {
                     throw new ComponentContainer.ResolutionException("Multiple @Component constructors found for %s", componentClass);

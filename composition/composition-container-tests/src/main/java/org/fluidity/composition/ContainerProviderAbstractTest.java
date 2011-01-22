@@ -47,7 +47,6 @@ import org.testng.annotations.Test;
  *
  * @author Tibor Varga
  */
-@SuppressWarnings("unchecked")
 public abstract class ContainerProviderAbstractTest extends MockGroupAbstractTest {
 
     private final LogFactory logs = new NullLogFactory();

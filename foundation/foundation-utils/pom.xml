@@ -53,7 +53,7 @@
 
         <dependency>
             <groupId>${fluidity.foundation.groupId}</groupId>
-            <artifactId>foundation-easymock</artifactId>
+            <artifactId>foundation-bootstrap-utils</artifactId>
         </dependency>
 
     </dependencies>
@@ -70,14 +70,5 @@
             </build>
         </profile>
     </profiles>
-
-    <build>
-        <testResources>
-            <testResource>
-                <directory>src/test/resources</directory>
-                <filtering>false</filtering>
-            </testResource>
-        </testResources>
-    </build>
 
 </project>

@@ -77,14 +77,15 @@ final class ConfigurationComponentFactory implements ComponentFactory<Configurat
 
         private final AtomicReference<T> configuration = new AtomicReference<T>();
 
-        @SuppressWarnings("unchecked")
         ConfigurationImpl(final Properties properties, final PropertyProvider provider) {
-            final Class<Configuration> settingsApi = (Class<Configuration>) properties.api();
+            @SuppressWarnings("unchecked")
+            final Class<T> settingsApi = (Class<T>) properties.api();
 
             final ClassLoader loader = settingsApi.getClassLoader();
-            final Class<?>[] interfaces = { settingsApi };
+            final Class[] interfaces = { settingsApi };
 
             final PropertyProvider.PropertyChangeListener listener = new PropertyProvider.PropertyChangeListener() {
+                @SuppressWarnings("unchecked")
                 public void propertiesChanged(final PropertyProvider provider) {
                     final Map<Method, Object> properties = new HashMap<Method, Object>();
 
@@ -110,6 +111,7 @@ final class ConfigurationComponentFactory implements ComponentFactory<Configurat
                     }));
                 }
 
+                @SuppressWarnings("unchecked")
                 private Object cast(final String value, final Class<?> type) {
                     if (value == null || value.length() == 0) {
                         return null;

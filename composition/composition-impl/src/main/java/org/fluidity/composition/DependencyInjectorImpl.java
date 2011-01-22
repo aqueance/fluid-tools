@@ -206,12 +206,9 @@ final class DependencyInjectorImpl implements DependencyInjector {
 
             final List<Object> list = new ArrayList<Object>();
 
-            @SuppressWarnings("unchecked")
-            final Class<Object>[] componentClasses = (Class<Object>[]) discovery.findComponentClasses(providerType,
-                                                                                                      ClassLoaders.findClassLoader(declaringType),
-                                                                                                      false);
+            final Class<?>[] componentClasses = discovery.findComponentClasses(providerType, ClassLoaders.findClassLoader(declaringType), false);
 
-            for (final Class<Object> componentClass : componentClasses) {
+            for (final Class<?> componentClass : componentClasses) {
                 final Object component = resolver.resolve(componentClass, context);
                 list.add(component == null ? resolver.create(componentClass, context) : component);
             }

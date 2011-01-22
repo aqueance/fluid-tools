@@ -134,7 +134,7 @@ public abstract class MockGroupAbstractTest {
      *
      * @return the mock object for the interface.
      */
-    @SuppressWarnings({ "unchecked" })
+    @SuppressWarnings("unchecked")
     public final <T> T addControls(final Class<T> mainInterface, final Class<?>... otherInterfaces) {
         if (otherInterfaces.length == 0) {
             return addControl(mainInterface);

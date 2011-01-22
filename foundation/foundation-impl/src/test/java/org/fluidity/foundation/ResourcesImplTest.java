@@ -105,7 +105,7 @@ public class ResourcesImplTest extends MockGroupAbstractTest {
     @Test
     public void loadClassResource() throws Exception {
         final String className = getClass().getName();
-        final String resourceName = className.replace('.', '/') + ".class";
+        final String resourceName = ClassLoaders.classResourceName(getClass());
 
         final InputStream stream = new ByteArrayInputStream(new byte[0]);
 

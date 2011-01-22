@@ -29,7 +29,6 @@ import org.fluidity.composition.spi.ComponentFactory;
  *
  * @author Tibor Varga
  */
-@SuppressWarnings("unchecked")
 abstract class FactoryProducer extends AbstractProducer {
 
     private final Class<? extends ComponentFactory> factoryClass;
@@ -63,8 +62,8 @@ abstract class FactoryProducer extends AbstractProducer {
         }
     }
 
-    public final Class<Object> componentInterface() {
-        return (Class<Object>) componentInterface;
+    public final Class<?> componentInterface() {
+        return componentInterface;
     }
 
     public final Class<?> componentClass() {

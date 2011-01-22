@@ -19,6 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package org.fluidity.foundation;
 
 import java.net.URL;
@@ -36,6 +37,8 @@ import java.net.URL;
  */
 public final class ClassLoaders {
 
+    public static final String CLASS_SUFFIX = ".class";
+
     private ClassLoaders() {
         throw new UnsupportedOperationException("No instance allowed");
     }
@@ -52,7 +55,11 @@ public final class ClassLoaders {
     }
 
     public static String classResourceName(final Class sourceClass) {
-        return sourceClass.getName().replace('.', '/') + ".class";
+        return classResourceName(sourceClass.getName());
+    }
+
+    public static String classResourceName(final String sourceClass) {
+        return sourceClass.replace('.', '/').concat(CLASS_SUFFIX);
     }
 
     public static URL findClassResource(final Class sourceClass) {

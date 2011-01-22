@@ -24,17 +24,17 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <parent>
-        <groupId>org.fluidity.foundation</groupId>
-        <artifactId>foundation-root</artifactId>
+        <groupId>org.fluidity.maven</groupId>
+        <artifactId>deployment-plugins-root</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
-    <groupId>org.fluidity.foundation</groupId>
-    <artifactId>foundation-bootstrap-utils</artifactId>
+    <groupId>org.fluidity.deployment</groupId>
+    <artifactId>maven-dependency-utils</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
-    <name>Foundation: Bootstrap Utilities</name>
+    <name>Plugins: Maven Dependency Utilities</name>
 
     <licenses>
         <license>
@@ -44,12 +44,39 @@
         </license>
     </licenses>
 
+    <description>
+Utilities that aid in finding Maven project dependencies.
+    </description>
+
     <dependencies>
 
         <dependency>
             <groupId>${fluidity.foundation.groupId}</groupId>
-            <artifactId>foundation-easymock</artifactId>
-            <scope>test</scope>
+            <artifactId>foundation-bootstrap-utils</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.maven</groupId>
+            <artifactId>maven-plugin-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.maven</groupId>
+            <artifactId>maven-core</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.maven</groupId>
+            <artifactId>maven-artifact</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.sonatype.aether</groupId>
+            <artifactId>aether-impl</artifactId>
+            <scope>provided</scope>
         </dependency>
 
     </dependencies>
@@ -66,14 +93,5 @@
             </build>
         </profile>
     </profiles>
-
-    <build>
-        <testResources>
-            <testResource>
-                <directory>src/test/resources</directory>
-                <filtering>false</filtering>
-            </testResource>
-        </testResources>
-    </build>
 
 </project>
