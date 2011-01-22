@@ -24,9 +24,9 @@ package org.fluidity.foundation.jarjar;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
-import java.net.URLConnection;
 
 import org.testng.annotations.Test;
 
@@ -35,11 +35,10 @@ import org.testng.annotations.Test;
  */
 public class HandlerTest {
     private final Handler handler = new Handler();
+    private final String container = "level0.jar";
 
     @Test
     public void testHandler() throws Exception {
-        final String container = "level0.jar";
-
         assertContent(container, "/level0.txt", "level 0");
         assertContent(container, "/level1-1.jar!/level1.txt", "level 1");
         assertContent(container, "/level1-2.jar!/level1.txt", "level 1");
@@ -47,10 +46,30 @@ public class HandlerTest {
         assertContent(container, "/level1-2.jar!/level2.jar!/level2.txt", "level 2");
     }
 
-    private void assertContent(final String container, final String file, final String content) throws IOException {
+    @Test
+    public void testURL() throws Exception {
         final URL root = getClass().getClassLoader().getResource(container);
-        final URLConnection connection = handler.openConnection(Handler.formatURL(root, file));
-        final BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+        assertContent(root, "/level0.txt", "level 0");
+        assertContent(root, "/level1-1.jar!/level1.txt", "level 1");
+        assertContent(root, "/level1-2.jar!/level1.txt", "level 1");
+        assertContent(root, "/level1-1.jar!/level2.jar!/level2.txt", "level 2");
+        assertContent(root, "/level1-2.jar!/level2.jar!/level2.txt", "level 2");
+    }
+
+    private void assertContent(final URL root, final String file, final String content) throws IOException {
+        final URL url = Handler.formatURL(root, file);
+        final InputStream stream = url.openStream();
+        assertContent(stream, content);
+    }
+
+    private void assertContent(final String container, final String file, final String content) throws IOException {
+        final URL url = getClass().getClassLoader().getResource(container);
+        final InputStream stream = handler.openConnection(Handler.formatURL(url, file)).getInputStream();
+        assertContent(stream, content);
+    }
+
+    private void assertContent(final InputStream stream, final String content) throws IOException {
+        final BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
 
         try {
             final String line = reader.readLine();

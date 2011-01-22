@@ -44,7 +44,7 @@ final class JarStreams {
      *
      * @throws java.io.IOException when something goes wrong reading the jar file.
      */
-    public static void readEntry(final URL jar, final JarEntryReader reader) throws IOException {
+    public static void readEntries(final URL jar, final JarEntryReader reader) throws IOException {
         final JarInputStream container = new JarInputStream(jar.openStream(), false);
 
         try {

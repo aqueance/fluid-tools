@@ -70,7 +70,18 @@ public class JarJarClassLoaderTest {
     }
 
     @Test
-    public void testResourcesInAllLevels() throws Exception {
+    public void testFindingOneResource() throws Exception {
+        final URL url1 = loader.getResource("resource-1.txt");
+        assert url1 != null;
+        assert url1.getProtocol().equals("jar");
+
+        final URL url2 = loader.getResource("resource-2.txt");
+        assert url2 != null;
+        assert url2.getProtocol().equals("jarjar");
+    }
+
+    @Test
+    public void testFindingAllResources() throws Exception {
         final List<URL> resources = Collections.list(loader.getResources("resource-1.txt"));
         assert resources.size() == 4 : resources;
 

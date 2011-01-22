@@ -67,7 +67,7 @@ public final class JarJarClassLoader extends URLClassLoader {
         super(new URL[] { url }, parent);
         this.url = url;
 
-        JarStreams.readEntry(url, new JarStreams.JarEntryReader() {
+        JarStreams.readEntries(url, new JarStreams.JarEntryReader() {
             public boolean matches(final JarEntry entry) {
                 return entry.getName().startsWith(dependencies);
             }
@@ -169,7 +169,7 @@ public final class JarJarClassLoader extends URLClassLoader {
         // strong reference to the bytecode we're actually after prevents it from purged while we fill up the cache (i.e., class is found even when thrashing)
         final byte[][] found = new byte[1][];
 
-        JarStreams.readEntry(url, new JarStreams.JarEntryReader() {
+        JarStreams.readEntries(url, new JarStreams.JarEntryReader() {
             public boolean matches(final JarEntry entry) {
                 return dependency.equals(entry.getName());
             }
@@ -210,6 +210,22 @@ public final class JarJarClassLoader extends URLClassLoader {
         });
 
         return found[0];
+    }
+
+    @Override
+    public URL findResource(final String name) {
+        final URL url = super.findResource(name);
+
+        if (url == null) {
+            try {
+                final Enumeration<URL> resources = findResources(name);
+                return resources.hasMoreElements() ? resources.nextElement() : null;
+            } catch (final IOException e) {
+                throw new RuntimeException(e);
+            }
+        } else {
+            return url;
+        }
     }
 
     @Override
