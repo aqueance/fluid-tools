@@ -27,7 +27,7 @@ import java.util.List;
 
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
-import org.fluidity.composition.ComponentContainerAccess;
+import org.fluidity.composition.ContainerBoundary;
 import org.fluidity.foundation.configuration.Configuration;
 import org.fluidity.foundation.configuration.DynamicConfiguration;
 import org.fluidity.foundation.configuration.Properties;
@@ -48,7 +48,7 @@ public class ConfigurationTest extends MockGroupAbstractTest {
 
     private PropertyProvider propertyProvider = addControl(PropertyProvider.class);
 
-    private final ComponentContainer container = new ComponentContainerAccess();
+    private final ComponentContainer container = new ContainerBoundary();
 
     @BeforeClass
     public void setupClass() throws Exception {

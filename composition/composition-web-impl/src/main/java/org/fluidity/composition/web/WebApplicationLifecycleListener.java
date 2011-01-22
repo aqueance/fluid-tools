@@ -26,8 +26,8 @@ import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
 import org.fluidity.composition.ComponentContainer;
-import org.fluidity.composition.ComponentContainerAccess;
 import org.fluidity.composition.ComponentDiscovery;
+import org.fluidity.composition.ContainerBoundary;
 
 /**
  * Finds all implementations of the {@link ServletContextListener} that have been marked with the
@@ -40,7 +40,7 @@ public final class WebApplicationLifecycleListener implements ServletContextList
     private final ServletContextListener listeners[];
 
     public WebApplicationLifecycleListener() {
-        final ComponentContainer container = new ComponentContainerAccess();
+        final ComponentContainer container = new ContainerBoundary();
         final ComponentDiscovery discovery = container.getComponent(ComponentDiscovery.class);
 
         this.listeners = discovery.findComponentInstances(container, ServletContextListener.class);

@@ -24,7 +24,7 @@ package org.fluidity.deployment;
 
 import java.util.List;
 
-import org.fluidity.composition.ComponentContainerAccess;
+import org.fluidity.composition.ContainerBoundary;
 
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
@@ -58,7 +58,7 @@ public final class JettyServer {
 
         final Server server = new Server();
 
-        final ComponentContainerAccess container = new ComponentContainerAccess();
+        final ContainerBoundary container = new ContainerBoundary();
 
         if (args != null) {
             container.setBindingProperty(LaunchArguments.ARGUMENTS_KEY, args);

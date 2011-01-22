@@ -236,7 +236,7 @@ public final class BasicResolutionTests extends AbstractContainerTests {
     // this is how to inject dependencies into a serializable component
     public static class SerializableComponent implements Serializable {
 
-        /* in real life you'd use new ComponentContainerAccess() here */
+        /* in real life you'd use new ContainerBoundary() here */
         private static ComponentContainer container;
 
         @Component(automatic = false)

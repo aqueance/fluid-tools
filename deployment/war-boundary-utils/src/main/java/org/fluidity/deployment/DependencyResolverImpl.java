@@ -25,7 +25,7 @@ package org.fluidity.deployment;
 import javax.servlet.ServletException;
 
 import org.fluidity.composition.ComponentContainer;
-import org.fluidity.composition.ComponentContainerAccess;
+import org.fluidity.composition.ContainerBoundary;
 import org.fluidity.foundation.ClassLoaders;
 
 /**
@@ -72,6 +72,6 @@ final class DependencyResolverImpl implements DependencyResolver {
     }
 
     private static class Bootstrap {
-        private static final ComponentContainer container = new ComponentContainerAccess();
+        private static final ComponentContainer container = new ContainerBoundary();
     }
 }

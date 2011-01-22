@@ -25,7 +25,7 @@ package org.fluidity.deployment;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 
-import org.fluidity.composition.ComponentContainerAccess;
+import org.fluidity.composition.ContainerBoundary;
 
 /**
  * A servlet that bootstraps and controls all {@link DeployedComponent} and {@link DeploymentObserver} objects in the application.
@@ -34,7 +34,7 @@ import org.fluidity.composition.ComponentContainerAccess;
  */
 public final class BootstrapServlet extends HttpServlet {
 
-    private final DeploymentBootstrap bootstrap = new ComponentContainerAccess().getComponent(DeploymentBootstrap.class);
+    private final DeploymentBootstrap bootstrap = new ContainerBoundary().getComponent(DeploymentBootstrap.class);
 
     @Override
     public void init() throws ServletException {

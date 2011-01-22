@@ -51,7 +51,7 @@ import org.fluidity.foundation.spi.LogFactory;
  *
  * @author Tibor Varga
  */
-public final class ComponentContainerAccess implements ComponentContainer {
+public final class ContainerBoundary implements ComponentContainer {
 
     private static final Map<ClassLoader, OpenComponentContainer> populatedContainers = new WeakHashMap<ClassLoader, OpenComponentContainer>();
     private static final Map<ClassLoader, Map> propertiesMap = new HashMap<ClassLoader, Map>();
@@ -89,12 +89,12 @@ public final class ComponentContainerAccess implements ComponentContainer {
      */
     private final ClassLoader classLoader;
 
-    public ComponentContainerAccess() {
+    public ContainerBoundary() {
         final ClassLoader cl = Thread.currentThread().getContextClassLoader();
         this.classLoader = cl == null ? getClass().getClassLoader() : cl;
     }
 
-    public ComponentContainerAccess(final ClassLoader classLoader) {
+    public ContainerBoundary(final ClassLoader classLoader) {
         this.classLoader = classLoader;
     }
 
@@ -106,9 +106,9 @@ public final class ComponentContainerAccess implements ComponentContainer {
     /* package */ void reset(final BootstrapServices services) {
         this.services = services;
 
-        ComponentContainerAccess.populatedContainers.clear();
-        ComponentContainerAccess.propertiesMap.clear();
-        ComponentContainerAccess.loadedContainers.clear();
+        ContainerBoundary.populatedContainers.clear();
+        ContainerBoundary.propertiesMap.clear();
+        ContainerBoundary.loadedContainers.clear();
 
         this.rootClassLoader = null;
         this.containerBootstrap = null;

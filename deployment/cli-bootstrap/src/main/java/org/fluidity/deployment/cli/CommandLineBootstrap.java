@@ -23,7 +23,7 @@
 package org.fluidity.deployment.cli;
 
 import org.fluidity.composition.Component;
-import org.fluidity.composition.ComponentContainerAccess;
+import org.fluidity.composition.ContainerBoundary;
 import org.fluidity.composition.Optional;
 import org.fluidity.composition.spi.ShutdownHook;
 import org.fluidity.deployment.DeploymentBootstrap;
@@ -62,7 +62,7 @@ public final class CommandLineBootstrap {
     }
 
     public static void main(final String[] args) throws Exception {
-        final ComponentContainerAccess container = new ComponentContainerAccess();
+        final ContainerBoundary container = new ContainerBoundary();
         container.setBindingProperty(LaunchArguments.ARGUMENTS_KEY, args);
         container.getComponent(CommandLineBootstrap.class).run();
     }

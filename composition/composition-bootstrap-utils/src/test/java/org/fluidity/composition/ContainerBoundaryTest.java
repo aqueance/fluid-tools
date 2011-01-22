@@ -42,7 +42,7 @@ import org.testng.annotations.Test;
 /**
  * @author Tibor Varga
  */
-public class ComponentContainerAccessTest extends MockGroupAbstractTest {
+public class ContainerBoundaryTest extends MockGroupAbstractTest {
 
     private final BootstrapServices providers = addControl(BootstrapServices.class);
     private final ContainerBootstrap bootstrap = addControl(ContainerBootstrap.class);
@@ -79,11 +79,11 @@ public class ComponentContainerAccessTest extends MockGroupAbstractTest {
         }
 
         // set up the test class
-        final ComponentContainerAccess access = new ComponentContainerAccess(classLoader);
-        access.reset(providers);
+        final ContainerBoundary boundary = new ContainerBoundary(classLoader);
+        boundary.reset(providers);
 
         for (final Map.Entry<String, String> entry : properties.entrySet()) {
-            access.setBindingProperty(entry.getKey(), entry.getValue());
+            boundary.setBindingProperty(entry.getKey(), entry.getValue());
         }
 
         // make testee receive its dependencies from the top-level class loader
@@ -106,15 +106,15 @@ public class ComponentContainerAccessTest extends MockGroupAbstractTest {
 
         replay();
 
-        // first access goes through the above interaction
-        assert access.getContainer() == container;
+        // first boundary goes through the above interaction
+        assert boundary.getContainer() == container;
 
         verify();
 
         replay();
 
-        // second access should simply return the cached container
-        assert access.getContainer() == container;
+        // second boundary should simply return the cached container
+        assert boundary.getContainer() == container;
 
         verify();
     }
@@ -125,11 +125,11 @@ public class ComponentContainerAccessTest extends MockGroupAbstractTest {
         properties.put("key1", "value1");
         properties.put("key2", "value2");
 
-        final ComponentContainerAccess access = new ComponentContainerAccess();
-        access.reset(providers);
+        final ContainerBoundary boundary = new ContainerBoundary();
+        boundary.reset(providers);
 
         for (final Map.Entry<String, String> entry : properties.entrySet()) {
-            access.setBindingProperty(entry.getKey(), entry.getValue());
+            boundary.setBindingProperty(entry.getKey(), entry.getValue());
         }
 
         // find all class loaders on the ancestry except ours
@@ -167,23 +167,23 @@ public class ComponentContainerAccessTest extends MockGroupAbstractTest {
 
         replay();
 
-        // first access goes through the above interaction
-        assert access.getContainer() == container;
+        // first boundary goes through the above interaction
+        assert boundary.getContainer() == container;
 
         verify();
 
         replay();
 
-        // second access should simply return the cached container
-        assert access.getContainer() == container;
+        // second boundary should simply return the cached container
+        assert boundary.getContainer() == container;
 
         verify();
     }
 
     @Test
     public void populatesConnectedContainer() throws Exception {
-        final ComponentContainerAccess access = new ComponentContainerAccess();
-        access.reset(providers);
+        final ContainerBoundary boundary = new ContainerBoundary();
+        boundary.reset(providers);
 
         final IMocksControl containersControl = EasyMock.createControl();
         final Map<ClassLoader, OpenComponentContainer> containers = new HashMap<ClassLoader, OpenComponentContainer>();
@@ -221,23 +221,23 @@ public class ComponentContainerAccessTest extends MockGroupAbstractTest {
 
         replay();
 
-        // first access goes through the above interaction
-        assert access.getContainer() == ourContainer;
+        // first boundary goes through the above interaction
+        assert boundary.getContainer() == ourContainer;
 
         verify();
 
         replay();
 
-        // second access should simply return the cached container
-        assert access.getContainer() == ourContainer;
+        // second boundary should simply return the cached container
+        assert boundary.getContainer() == ourContainer;
 
         verify();
 
         if (ourClassLoader.getParent() != null) {
             replay();
 
-            // access to higher level container should simply return the cached container
-            assert new ComponentContainerAccess(ourClassLoader.getParent()).getContainer() == containers.get(ourClassLoader.getParent());
+            // boundary to higher level container should simply return the cached container
+            assert new ContainerBoundary(ourClassLoader.getParent()).getContainer() == containers.get(ourClassLoader.getParent());
 
             verify();
         }
@@ -253,8 +253,8 @@ public class ComponentContainerAccessTest extends MockGroupAbstractTest {
         }
 
         // set up the test class
-        final ComponentContainerAccess access = new ComponentContainerAccess(classLoader);
-        access.reset(providers);
+        final ContainerBoundary boundary = new ContainerBoundary(classLoader);
+        boundary.reset(providers);
 
         // make testee receive its dependencies from the top-level class loader
         setupDependencies(classLoader, true);
@@ -277,18 +277,18 @@ public class ComponentContainerAccessTest extends MockGroupAbstractTest {
 
         replay();
 
-        access.bindBootComponent(BootComponent1.class, component1);
-        access.bindBootComponent(BootComponent2.class, component2);
+        boundary.bindBootComponent(BootComponent1.class, component1);
+        boundary.bindBootComponent(BootComponent2.class, component2);
 
-        // first access goes through the above interaction
-        assert access.getContainer() == container;
+        // first boundary goes through the above interaction
+        assert boundary.getContainer() == container;
 
         verify();
 
         replay();
 
         try {
-            access.bindBootComponent(BootComponent3.class, new BootComponent3());
+            boundary.bindBootComponent(BootComponent3.class, new BootComponent3());
         } catch (final IllegalStateException e) {
             // ignore
         }

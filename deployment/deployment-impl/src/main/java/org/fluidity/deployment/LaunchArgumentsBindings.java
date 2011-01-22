@@ -29,7 +29,7 @@ import org.fluidity.composition.spi.EmptyPackageBindings;
 
 /**
  * Binds the launch arguments implementation if the launch argument string array has been made available via a call to
- * <code>ComponentContainerAccess.setBindingProperty(LaunchArguments.ARGUMENTS_KEY, ...)</code>.
+ * <code>ContainerBoundary.setBindingProperty(LaunchArguments.ARGUMENTS_KEY, ...)</code>.
  *
  * @author Tibor Varga
  */

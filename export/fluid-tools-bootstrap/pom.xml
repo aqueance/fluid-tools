@@ -55,7 +55,7 @@ Examples of such Maven projects include:
  * jar projects for the main module of command line tools
 
 These applications contain boundary classes that must bootstrap and / or reach
-into the dependency injection container using ComponentContainerAccess, which
+into the dependency injection container using ContainerBoundary, which
 is also available via this module.
     ]]></description>
 

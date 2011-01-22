@@ -24,7 +24,7 @@ package org.fluidity.maven;
 
 import java.util.Iterator;
 
-import org.fluidity.composition.ComponentContainerAccess;
+import org.fluidity.composition.ContainerBoundary;
 
 import org.testng.annotations.Test;
 
@@ -35,7 +35,7 @@ import sun.misc.Service;
  */
 public class ComponentRegistrationTest {
 
-    private final ComponentContainerAccess container = new ComponentContainerAccess();
+    private final ContainerBoundary container = new ContainerBoundary();
 
     @Test
     public void testComponents() throws Exception {
