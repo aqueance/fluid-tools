@@ -160,7 +160,7 @@ final class ContainerBootstrapImpl implements ContainerBootstrap {
                 log.info("Shutting down %s", container);
 
                 /*
-                 * Perform pre-shutdown tasks.
+                 * Perform pre-shutdown tasks in reverse order.
                  */
                 for (final ListIterator i = assemblies.listIterator(assemblies.size()); i.hasPrevious();) {
                     ((PackageBindings) i.previous()).shutdownComponents(container);
