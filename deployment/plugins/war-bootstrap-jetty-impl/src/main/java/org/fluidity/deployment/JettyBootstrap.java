@@ -70,7 +70,7 @@ public final class JettyBootstrap implements ServerBootstrap {
         final Matcher matcher = archiveNamePattern.matcher(archiveName);
 
         if (!matcher.matches()) {
-            throw new RuntimeException(String.format("Could not parse archive name %s using pattern %s", archiveName, archiveNamePattern));
+            throw new IllegalArgumentException(String.format("Could not parse archive name %s using pattern %s", archiveName, archiveNamePattern));
         }
 
         return matcher.group(1);
