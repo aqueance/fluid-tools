@@ -42,7 +42,6 @@ import org.fluidity.deployment.maven.MavenDependencies;
 import org.fluidity.foundation.JarJarLauncher;
 
 import org.apache.maven.artifact.Artifact;
-import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -114,16 +113,6 @@ public class ExecutableJarMojo extends AbstractMojo {
      */
     @SuppressWarnings("UnusedDeclaration")
     private MavenProject project;
-
-    /**
-     * The local repository.
-     *
-     * @parameter expression="${localRepository}"
-     * @required
-     * @readonly
-     */
-    @SuppressWarnings("UnusedDeclaration")
-    private ArtifactRepository localRepository;
 
     /**
      * The current repository/network configuration of Maven.
@@ -244,7 +233,7 @@ public class ExecutableJarMojo extends AbstractMojo {
 
                 // copy all entries except the manifest from all bootstrap artifacts to the new jar file
                 for (final Artifact artifact : bootstrapDependencies) {
-                    final JarFile input = new JarFile(new File(localRepository.getBasedir(), localRepository.pathOf(artifact)));
+                    final JarFile input = new JarFile(artifact.getFile());
 
                     try {
                         for (final Enumeration entries = input.entries(); entries.hasMoreElements();) {
@@ -276,7 +265,7 @@ public class ExecutableJarMojo extends AbstractMojo {
 
                 // copy the dependencies, including the original project artifact
                 for (final Artifact artifact : projectDependencies) {
-                    final File dependency = new File(localRepository.getBasedir(), localRepository.pathOf(artifact));
+                    final File dependency = artifact.getFile();
 
                     if (!dependency.exists()) {
                         throw new MojoExecutionException(String.format("Dependency %s not found (tried: %s)", artifact, dependency));

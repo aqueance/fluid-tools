@@ -43,7 +43,6 @@ import java.util.jar.Manifest;
 import org.fluidity.deployment.maven.MavenDependencies;
 
 import org.apache.maven.artifact.Artifact;
-import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.plugin.AbstractMojo;
@@ -150,16 +149,6 @@ public class ExecutableWarMojo extends AbstractMojo {
     private MavenProject project;
 
     /**
-     * The local repository.
-     *
-     * @parameter expression="${localRepository}"
-     * @required
-     * @readonly
-     */
-    @SuppressWarnings("UnusedDeclaration")
-    private ArtifactRepository localRepository;
-
-    /**
      * The current repository/network configuration of Maven.
      *
      * @parameter default-value="${repositorySystemSession}"
@@ -237,7 +226,7 @@ public class ExecutableWarMojo extends AbstractMojo {
                 final byte buffer[] = new byte[1024 * 16];
 
                 for (final Artifact artifact : bootstrapDependencies) {
-                    final JarFile jarInput = new JarFile(new File(localRepository.getBasedir(), localRepository.pathOf(artifact)));
+                    final JarFile jarInput = new JarFile(artifact.getFile());
 
                     if (mainClass == null) {
                         mainClass = (String) jarInput.getManifest().getMainAttributes().get(Attributes.Name.MAIN_CLASS);
@@ -274,7 +263,7 @@ public class ExecutableWarMojo extends AbstractMojo {
                 final Set<String> bootLibraries = new HashSet<String>();
 
                 for (final Artifact artifact : serverDependencies) {
-                    bootLibraries.add("WEB-INF/lib/" + new File(localRepository.pathOf(artifact)).getName());
+                    bootLibraries.add("WEB-INF/lib/" + new File(artifact.getFile().getName()));
                 }
 
                 final JarFile warInput = new JarFile(packageFile);
@@ -323,7 +312,7 @@ public class ExecutableWarMojo extends AbstractMojo {
                         outputStream.putNextEntry(new JarEntry(bootDirectory));
 
                         for (final Artifact artifact : serverDependencies) {
-                            final File dependency = new File(localRepository.getBasedir(), localRepository.pathOf(artifact));
+                            final File dependency = artifact.getFile();
 
                             if (!dependency.exists()) {
                                 throw new MojoExecutionException(String.format("Dependency %s not found (tried: %s)", artifact, dependency));
