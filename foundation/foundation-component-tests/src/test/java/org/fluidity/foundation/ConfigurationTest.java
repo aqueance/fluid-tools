@@ -222,7 +222,7 @@ public class ConfigurationTest extends MockGroupAbstractTest {
         private final Settings configuration;
 
         // Uses StaticPropertyProvider for actual property lookup
-        public StaticConfigured(@Properties(api = Settings.class, provider = StaticPropertyProvider.class) final StaticConfiguration<Settings> settings) {
+        public StaticConfigured(final @Properties(api = Settings.class, provider = StaticPropertyProvider.class) StaticConfiguration<Settings> settings) {
             configuration = settings.configuration();
             assert configuration != null;
         }
@@ -238,7 +238,7 @@ public class ConfigurationTest extends MockGroupAbstractTest {
 
         private final Configuration<Settings> settings;
 
-        public DynamicConfigured(@Properties(api = Settings.class, provider = DynamicPropertyProvider.class) final DynamicConfiguration<Settings> settings) {
+        public DynamicConfigured(final @Properties(api = Settings.class, provider = DynamicPropertyProvider.class) DynamicConfiguration<Settings> settings) {
             this.settings = settings;
         }
         public void checkSettings(final String missing1, final String missing2, final String valid1, final String valid2) {
@@ -307,8 +307,7 @@ public class ConfigurationTest extends MockGroupAbstractTest {
     @Component
     public static class MultTypeConfigured {
 
-        public MultTypeConfigured(
-                @Properties(api = MultiTypeSettings.class, provider = EmptyPropertyProvider.class) final StaticConfiguration<MultiTypeSettings> settings) {
+        public MultTypeConfigured(final @Properties(api = MultiTypeSettings.class, provider = EmptyPropertyProvider.class) StaticConfiguration<MultiTypeSettings> settings) {
             final MultiTypeSettings configuration = settings.configuration();
             assert configuration != null;
 

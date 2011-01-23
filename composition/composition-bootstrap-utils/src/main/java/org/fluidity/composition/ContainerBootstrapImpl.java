@@ -23,11 +23,11 @@
 package org.fluidity.composition;
 
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.Set;
 
 import org.fluidity.composition.spi.ContainerProvider;
 import org.fluidity.composition.spi.PackageBindings;
@@ -52,23 +52,21 @@ final class ContainerBootstrapImpl implements ContainerBootstrap {
 
         log.info("Created new %s%s", container, (classLoader == null ? "" : " for " + classLoader));
 
-        final ComponentContainer.Registry registry = container.getRegistry();
-
         /*
          * Find instances of classes implementing the PackageBindings interface.
          */
-        final Collection<Class<PackageBindings>> assemblySet = new HashSet<Class<PackageBindings>>(Arrays.asList(services.classDiscovery().findComponentClasses(
-                PackageBindings.class,
-                classLoader,
-                parent != null)));
+        final List<Class<PackageBindings>> classes = Arrays.asList(services.classDiscovery()
+                                                                           .findComponentClasses(PackageBindings.class, classLoader, parent != null));
 
-        log.info("Found %s package(s).", assemblySet.size());
+        log.info("Found %s binding set(s).", classes.size());
 
         /*
          * Let the container provider instantiate them using an actual container to resolve inter-binding dependencies.
          */
-        final List<PackageBindings> assemblies = provider.instantiateBindings(services, properties, assemblySet);
+        final List<PackageBindings> assemblies = provider.instantiateBindings(services, properties, new HashSet<Class<PackageBindings>>(classes));
         assert assemblies != null;
+
+        final ComponentContainer.Registry registry = container.getRegistry();
 
         if (parent == null) {
             registry.bindInstance(ClassDiscovery.class, services.classDiscovery());
@@ -82,12 +80,26 @@ final class ContainerBootstrapImpl implements ContainerBootstrap {
             bindings.bindComponents(registry);
         }
 
-        /*
-         * Perform post-registration initialization.
-         */
-        for (final PackageBindings bindings : assemblies) {
-            bindings.initializeComponents(container);
+        final BindingsState state = new BindingsState(container, assemblies);
+        registry.bindInstance(BindingsState.class, state);
+
+        final BindingsState parentState = parent != null ? parent.getComponent(BindingsState.class) : null;
+        if (parentState != null) {
+            parentState.addChild(state);
         }
+
+        return container;
+    }
+
+    public void initializeContainer(final OpenComponentContainer container, final ContainerServices services) {
+        final Log log = services.logs().createLog(getClass());
+        final BindingsState state = container.getComponent(BindingsState.class);
+
+        if (state == null) {
+            throw new IllegalStateException(String.format("Container %s has not been populated", container));
+        }
+
+        state.initialize();
 
         final ShutdownHook shutdown = container.getComponent(ShutdownHook.class);
         if (shutdown == null) {
@@ -96,6 +108,56 @@ final class ContainerBootstrapImpl implements ContainerBootstrap {
 
         shutdown.addTask("container-shutdown", new Runnable() {
             public void run() {
+                state.shutdown(log);
+            }
+        });
+    }
+
+    private static class BindingsState {
+
+        final OpenComponentContainer container;
+        final List<PackageBindings> assemblies;
+
+        BindingsState(final OpenComponentContainer container, final List<PackageBindings> assemblies) {
+            this.container = container;
+            this.assemblies = assemblies;
+        }
+
+        boolean initialized;
+
+        void initialize() {
+            if (!initialized) {
+                initialized = true;
+
+                /*
+                 * Perform post-registration initialization.
+                 */
+                for (final PackageBindings bindings : assemblies) {
+                    bindings.initializeComponents(container);
+                }
+            } else {
+                throw new IllegalStateException(String.format("Container %s has already been initialized", container));
+            }
+        }
+
+        final Set<BindingsState> children = new HashSet<BindingsState>();
+
+        public void addChild(final BindingsState child) {
+            children.add(child);
+        }
+
+        boolean shutdown;
+
+        synchronized void shutdown(final Log log) {
+            if (!shutdown) {
+                shutdown = true;
+
+                // child containers are shut down first
+                for (final BindingsState child : children) {
+                    child.shutdown(log);
+                }
+
+                log.info("Shutting down %s", container);
 
                 /*
                  * Perform pre-shutdown tasks.
@@ -104,9 +166,7 @@ final class ContainerBootstrapImpl implements ContainerBootstrap {
                     ((PackageBindings) i.previous()).shutdownComponents(container);
                 }
             }
-        });
-
-        return container;
+        }
     }
 }
 

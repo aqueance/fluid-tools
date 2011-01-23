@@ -104,16 +104,18 @@ public class ContainerBoundaryTest extends MockGroupAbstractTest {
             }
         });
 
+        bootstrap.initializeContainer(container, services);
+
         replay();
 
-        // first boundary goes through the above interaction
+        // first access goes through the above interaction
         assert boundary.getContainer() == container;
 
         verify();
 
         replay();
 
-        // second boundary should simply return the cached container
+        // second access should simply return the cached container
         assert boundary.getContainer() == container;
 
         verify();
@@ -165,16 +167,18 @@ public class ContainerBoundaryTest extends MockGroupAbstractTest {
             }
         });
 
+        bootstrap.initializeContainer(container, services);
+
         replay();
 
-        // first boundary goes through the above interaction
+        // first access goes through the above interaction
         assert boundary.getContainer() == container;
 
         verify();
 
         replay();
 
-        // second boundary should simply return the cached container
+        // second access should simply return the cached container
         assert boundary.getContainer() == container;
 
         verify();
@@ -207,13 +211,17 @@ public class ContainerBoundaryTest extends MockGroupAbstractTest {
         // go through the whole class loader ancestry
         for (final ListIterator<ClassLoader> i = classLoaders.listIterator(classLoaders.size()); i.hasPrevious();) {
             final ClassLoader cl = i.previous();
+            final OpenComponentContainer container = containers.get(cl);
 
             // make testee receive a container (the same) at each level
             EasyMock.expect(bootstrap.populateContainer(EasyMock.same(services),
                                                         EasyMock.same(provider),
                                                         EasyMock.<Properties>notNull(),
                                                         EasyMock.same(containers.get(cl.getParent())),
-                                                        EasyMock.same(cl))).andReturn(containers.get(cl));
+                                                        EasyMock.same(cl))).andReturn(container);
+
+            // container must also be initialized at some point
+            bootstrap.initializeContainer(container, services);
         }
 
         final OpenComponentContainer ourContainer = containers.get(ourClassLoader);
@@ -221,14 +229,14 @@ public class ContainerBoundaryTest extends MockGroupAbstractTest {
 
         replay();
 
-        // first boundary goes through the above interaction
+        // first access goes through the above interaction
         assert boundary.getContainer() == ourContainer;
 
         verify();
 
         replay();
 
-        // second boundary should simply return the cached container
+        // second access should simply return the cached container
         assert boundary.getContainer() == ourContainer;
 
         verify();
@@ -236,7 +244,7 @@ public class ContainerBoundaryTest extends MockGroupAbstractTest {
         if (ourClassLoader.getParent() != null) {
             replay();
 
-            // boundary to higher level container should simply return the cached container
+            // access to higher level container should simply return the cached container
             assert new ContainerBoundary(ourClassLoader.getParent()).getContainer() == containers.get(ourClassLoader.getParent());
 
             verify();
@@ -275,12 +283,15 @@ public class ContainerBoundaryTest extends MockGroupAbstractTest {
         EasyMock.expect(container.getRegistry()).andReturn(registry);
         registry.bindInstance(BootComponent2.class, component2);
 
+        // container is initialized
+        bootstrap.initializeContainer(container, services);
+
         replay();
 
         boundary.bindBootComponent(BootComponent1.class, component1);
         boundary.bindBootComponent(BootComponent2.class, component2);
 
-        // first boundary goes through the above interaction
+        // first access goes through the above interaction
         assert boundary.getContainer() == container;
 
         verify();

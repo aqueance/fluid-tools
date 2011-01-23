@@ -84,7 +84,7 @@ public class ComponentDiscoveryImplTest extends MockGroupAbstractTest {
                 EasyMock.expect(container.getComponent(instance.getClass())).andReturn(instance);
             }
 
-            EasyMock.expect(nestedContainer.getAllComponents(Interface.class)).andReturn(Collections.EMPTY_SET);
+            EasyMock.expect(nestedContainer.getAllComponents(Interface.class)).andReturn(Collections.EMPTY_LIST);
 
             replay();
             assert new ArrayList<Interface>(Arrays.asList(instances)).equals(new ArrayList<Interface>(

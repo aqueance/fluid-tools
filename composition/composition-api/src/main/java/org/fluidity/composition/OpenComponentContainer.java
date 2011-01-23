@@ -22,7 +22,7 @@
 
 package org.fluidity.composition;
 
-import java.util.Collection;
+import java.util.List;
 
 /**
  * This is a dependency injection container that components can be added to.
@@ -32,8 +32,15 @@ import java.util.Collection;
 public interface OpenComponentContainer extends ComponentContainer {
 
     /**
-     * Returns the interface through which component bindings can be added to this container. The returned interface cannot be used to get components out of
-     * the container. Thus, a container is write-only when it is being populated and read-only after it has been populated.
+     * Returns the parent container, if any.
+     *
+     * @return th parent container, if any.
+     */
+    OpenComponentContainer getParentContainer();
+
+    /**
+     * Returns the interface through which component bindings can be added to this container. The returned interface cannot be used to get components out of the
+     * container. Thus, a container is write-only when it is being populated and read-only after it has been populated.
      *
      * @return a {@link ComponentContainer.Registry} instance.
      */
@@ -46,5 +53,5 @@ public interface OpenComponentContainer extends ComponentContainer {
      *
      * @return in instantiation order all registered components having the given interface.
      */
-    <T> Collection<T> getAllComponents(Class<T> componentInterface);
+    <T> List<T> getAllComponents(Class<T> componentInterface);
 }

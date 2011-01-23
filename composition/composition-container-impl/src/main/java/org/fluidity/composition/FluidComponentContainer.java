@@ -22,7 +22,7 @@
 
 package org.fluidity.composition;
 
-import java.util.Collection;
+import java.util.List;
 
 /**
  * Dependency injection container. Supports hierarchies of containers, context dependent variants of singletons, seamless resolution of cyclic
@@ -57,11 +57,15 @@ final class FluidComponentContainer extends AbstractComponentContainer implement
         return container.initialize(component);
     }
 
+    public OpenComponentContainer getParentContainer() {
+        return new FluidComponentContainer(container, false);
+    }
+
     public Registry getRegistry() {
         return registry;
     }
 
-    public <T> Collection<T> getAllComponents(final Class<T> componentInterface) {
+    public <T> List<T> getAllComponents(final Class<T> componentInterface) {
         return container.allSingletons(componentInterface);
     }
 }

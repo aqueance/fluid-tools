@@ -55,7 +55,7 @@ public final class ContainerBoundary implements ComponentContainer {
 
     private static final Map<ClassLoader, OpenComponentContainer> populatedContainers = new WeakHashMap<ClassLoader, OpenComponentContainer>();
     private static final Map<ClassLoader, Map> propertiesMap = new HashMap<ClassLoader, Map>();
-    private static final Set<OpenComponentContainer> loadedContainers = new HashSet<OpenComponentContainer>();
+    private static final Set<OpenComponentContainer> lockedContainers = new HashSet<OpenComponentContainer>();
     private static final Object stateLock = new Object();
 
     /**
@@ -108,7 +108,7 @@ public final class ContainerBoundary implements ComponentContainer {
 
         ContainerBoundary.populatedContainers.clear();
         ContainerBoundary.propertiesMap.clear();
-        ContainerBoundary.loadedContainers.clear();
+        ContainerBoundary.lockedContainers.clear();
 
         this.rootClassLoader = null;
         this.containerBootstrap = null;
@@ -147,18 +147,22 @@ public final class ContainerBoundary implements ComponentContainer {
         }
     }
 
-    private OpenComponentContainer makeContainer() {
+    /*
+     * Returns list of populated container at and above the current class loader
+     */
+    private List<OpenComponentContainer> makeContainer() {
         if (services == null) {
             services = new BootstrapServicesImpl();
         }
 
+        // list of class loaders from current one up the hierarchy
         final List<ClassLoader> classLoaders = new ArrayList<ClassLoader>();
 
         for (ClassLoader loader = classLoader; loader != rootClassLoader; loader = loader.getParent()) {
             classLoaders.add(loader);
         }
 
-        // going in reverse order because container for a given class loader has to use as its parent the container for the parent class loader
+        // going in reverse order because container for a given class loader has to use as its parent container for the parent class loader
         for (final ListIterator<ClassLoader> i = classLoaders.listIterator(classLoaders.size()); i.hasPrevious();) {
             final ClassLoader loader = i.previous();
 
@@ -199,28 +203,48 @@ public final class ContainerBoundary implements ComponentContainer {
 
         assert populatedContainers.containsKey(classLoader);
 
-        OpenComponentContainer container = null;
+        // list of containers at and above current class loader
+        final List<OpenComponentContainer> containers = new ArrayList<OpenComponentContainer>();
 
-        for (ClassLoader loader = classLoader; container == null && loader != null; loader = loader.getParent()) {
-            container = populatedContainers.get(loader);
-        }
-
-        return container;
-    }
-
-    private OpenComponentContainer loadContainer(final boolean load) {
-        synchronized (stateLock) {
-            final OpenComponentContainer container = makeContainer();
+        for (ClassLoader loader = classLoader; loader != null; loader = loader.getParent()) {
+            final OpenComponentContainer container = populatedContainers.get(loader);
 
             if (container != null) {
-                if (load) {
-                    loadedContainers.add(container);
-                } else if (loadedContainers.contains(container)) {
-                    throw new IllegalStateException("Component container is already loaded.");
+                containers.add(container);
+            }
+        }
+
+        return containers;
+    }
+
+    /**
+     * A container can be updated any time until it is locked once. After it has been locked, it can only be queried. When a container is loaded, all containers
+     * up the class loader chain are also loaded. If one is locked, all above it are also locked.
+     *
+     * @param lock whether to lock the container. If it has not yet been locked and this parameter is <code>true</code>, the container is initialized and
+     *             locked. If the value is <code>false</code> and the container has already been locked, an {@link IllegalStateException} is thrown.
+     *
+     * @return the loaded and populated container. If lock is <code>true</code>, the container is also initialized.
+     */
+    private OpenComponentContainer loadContainer(final boolean lock) {
+        synchronized (stateLock) {
+            final List<OpenComponentContainer> containers = makeContainer();
+
+            boolean first = true;
+            for (final OpenComponentContainer container : containers) {
+                if (lock) {
+                    if (!lockedContainers.contains(container)) {
+                        lockedContainers.add(container);
+                        containerBootstrap.initializeContainer(container, containerServices);
+                    }
+                } else if (first && lockedContainers.contains(container)) {
+                    throw new IllegalStateException("Component container is locked.");
                 }
+
+                first = false;
             }
 
-            return container;
+            return containers.isEmpty() ? null : containers.get(0);
         }
     }
 

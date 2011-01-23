@@ -54,4 +54,12 @@ interface ContainerBootstrap {
                                              Map properties,
                                              OpenComponentContainer parent,
                                              ClassLoader classLoader);
+
+    /**
+     * Calls the {@link org.fluidity.composition.spi.PackageBindings#initializeComponents(ComponentContainer)} method on all bindings.
+     *
+     * @param container the container to initialize.
+     * @param services    provider basic services for containers
+     */
+    void initializeContainer(OpenComponentContainer container, ContainerServices services);
 }
