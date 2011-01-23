@@ -45,25 +45,17 @@
     </licenses>
 
     <description><![CDATA[
-This project is intended to be the Fluid Tools dependency in Maven projects
-whose classes are to be loaded by the top level class loader of your
-application.
-
-Examples of such Maven projects include:
- * war projects for web applications
- * ear projects for enterprise applications
- * jar projects for the main module of command line tools
-
-These applications contain boundary objects that must bootstrap and / or reach
-into the dependency injection container using ContainerBoundary, which
-is also available via this module.
+This project is intended to be transitively depended on by Maven projects
+containing application wrappers. Each kind may need some other dependencies
+listed by other Fluid Tools export projects so you rarely need to directly
+include this dependency in your projects.
     ]]></description>
 
     <dependencies>
 
         <dependency>
             <groupId>${fluidity.export.groupId}</groupId>
-            <artifactId>fluid-tools-component-api</artifactId>
+            <artifactId>fluid-tools-boundary-api</artifactId>
             <type>pom</type>
         </dependency>
 
@@ -75,11 +67,6 @@ is also available via this module.
         <dependency>
             <groupId>${fluidity.composition.groupId}</groupId>
             <artifactId>composition-impl</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>${fluidity.composition.groupId}</groupId>
-            <artifactId>composition-bootstrap-utils</artifactId>
         </dependency>
 
         <dependency>
