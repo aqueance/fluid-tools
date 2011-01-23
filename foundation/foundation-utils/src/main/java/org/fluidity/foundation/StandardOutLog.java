@@ -120,6 +120,6 @@ final class StandardOutLog implements Log {
     }
 
     public void timer(final String message, final long beginMillis) {
-        info(source, message + " took " + (System.currentTimeMillis() - beginMillis) + " ms");
+        info(source, String.format("%s took %d ms", message, System.currentTimeMillis() - beginMillis));
     }
 }

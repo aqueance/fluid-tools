@@ -59,7 +59,7 @@ public final class JettyBootstrap implements ServerBootstrap {
 
         context.setWar(warFile.getPath());
 
-        System.out.println("Context " + context.getContextPath() + ": " + context.getWar());
+        System.out.printf("Context %s: %s%n", context.getContextPath(), context.getWar());
 
         return context;
     }
@@ -70,7 +70,7 @@ public final class JettyBootstrap implements ServerBootstrap {
         final Matcher matcher = archiveNamePattern.matcher(archiveName);
 
         if (!matcher.matches()) {
-            throw new RuntimeException("Could not parse archive name " + archiveName + " using pattern " + archiveNamePattern);
+            throw new RuntimeException(String.format("Could not parse archive name %s using pattern %s", archiveName, archiveNamePattern));
         }
 
         return matcher.group(1);

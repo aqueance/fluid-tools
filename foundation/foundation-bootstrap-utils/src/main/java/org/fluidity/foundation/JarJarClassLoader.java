@@ -235,7 +235,7 @@ public final class JarJarClassLoader extends URLClassLoader {
             if (mapping.getValue().contains(resource)) {
 
                 // Handler.formatURL has a side effect of loading Handler as an URL stream handler
-                list.add(Handler.formatURL(url, mapping.getKey() + "!/" + ClassLoaders.absoluteResourceName(resource)));
+                list.add(Handler.formatURL(url, mapping.getKey(), ClassLoaders.absoluteResourceName(resource)));
             }
         }
 

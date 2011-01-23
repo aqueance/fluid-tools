@@ -41,6 +41,7 @@ import java.util.jar.JarFile;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.fluidity.foundation.ClassLoaders;
 import org.fluidity.foundation.ServiceProviders;
 
 /**
@@ -60,7 +61,7 @@ public final class WarBootstrapLoader {
 
     private void boot(final String[] args) throws Exception {
         final Class<? extends WarBootstrapLoader> bootstrapClass = getClass();
-        final String name = bootstrapClass.getName().replace('.', '/') + ".class";
+        final String name = ClassLoaders.classResourceName(bootstrapClass);
         final ClassLoader bootstrapLoader = bootstrapClass.getClassLoader();
         final String bootUrl = URLDecoder.decode(bootstrapLoader.getResource(name).toExternalForm(), "UTF-8");
 
@@ -90,7 +91,7 @@ public final class WarBootstrapLoader {
                             ++i;
                         } catch (final NumberFormatException e) {
                             if (!args[i + 1].endsWith(".war")) {
-                                throw new RuntimeException("Parameter " + args[i + 1] + " is not a port number");
+                                throw new RuntimeException(String.format("Parameter %s is not a port number", args[i + 1]));
                             }
                         }
                     } else {
@@ -201,7 +202,7 @@ public final class WarBootstrapLoader {
                 currentThread.setContextClassLoader(contextLoader);
             }
         } else {
-            throw new RuntimeException("No server bootstrap found (service provider for " + ServerBootstrap.class + ")");
+            throw new RuntimeException(String.format("No server bootstrap found (service provider for %s)", ServerBootstrap.class));
         }
     }
 

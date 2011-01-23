@@ -346,7 +346,7 @@ public final class ContainerBootstrapImplTest extends MockGroupAbstractTest {
 
     public static class ConfigurablePackageBindingsImpl extends EmptyPackageBindings {
 
-        public static final String KEY = ConfigurablePackageBindingsImpl.class.getName() + ".key";
+        public static final String KEY = ConfigurablePackageBindingsImpl.class.getName().concat(".key");
         public static String value;
 
         public ConfigurablePackageBindingsImpl(final Map<String, String> properties) {

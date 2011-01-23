@@ -92,8 +92,16 @@ public class Handler extends URLStreamHandler {
         }
     }
 
-    public static URL formatURL(final URL root, final String path) throws MalformedURLException {
-        return new URL(PROTOCOL + ':' + root.toExternalForm() + DELIMITER + ClassLoaders.absoluteResourceName(path));
+    public static URL formatURL(final URL root, final String... paths) throws MalformedURLException {
+        final StringBuilder specification = new StringBuilder(256);
+
+        specification.append(PROTOCOL).append(':').append(root.toExternalForm());
+
+        for (final String path : paths) {
+            specification.append(DELIMITER).append(ClassLoaders.absoluteResourceName(path));
+        }
+
+        return new URL(specification.toString());
     }
 
     public static class EmbeddedConnection extends URLConnection {

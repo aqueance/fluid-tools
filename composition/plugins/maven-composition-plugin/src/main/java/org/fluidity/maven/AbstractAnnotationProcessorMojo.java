@@ -88,7 +88,7 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
     private static final String ATR_FALLBACK = "fallback";
     private static final String ATR_JDK = "jdk";
     private static final String PACKAGE_BINDINGS = PackageBindings.class.getName();
-    private static final String GENERATED_PACKAGE_BINDINGS = PACKAGE_BINDINGS.substring(PACKAGE_BINDINGS.lastIndexOf(".") + 1) + "$";
+    private static final String GENERATED_PACKAGE_BINDINGS = PACKAGE_BINDINGS.substring(PACKAGE_BINDINGS.lastIndexOf(".") + 1).concat("$");
 
     /**
      * Reference of the maven project
@@ -156,7 +156,7 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
 
         for (final Map.Entry<String, Collection<String>> entry : serviceProviderMap.entrySet()) {
             if (!entry.getValue().isEmpty()) {
-                log.info("Service provider descriptor META-INF/services/" + entry.getKey() + " contains:");
+                log.info(String.format("Service provider descriptor META-INF/services/%s contains:", entry.getKey()));
                 final File serviceProviderFile = new File(servicesDirectory, entry.getKey());
                 serviceProviderFile.delete();
 
@@ -166,7 +166,7 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
                     try {
                         for (final String className : entry.getValue()) {
                             writer.println(className);
-                            log.info("  " + className + (componentMap.containsKey(className) ? " (generated)" : ""));
+                            log.info(String.format("  %s%s", className, componentMap.containsKey(className) ? " (generated)" : ""));
                         }
                     } finally {
                         writer.close();
@@ -189,7 +189,7 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
     @SuppressWarnings("ResultOfMethodCallIgnored")
     private void generateBindingClass(final String className, final Map.Entry<String, Map<String, String>> bindings, final File classesDirectory)
             throws MojoExecutionException {
-        log.info("Service provider " + className + " binds:");
+        log.info(String.format("Service provider %s binds:", className));
 
         final ClassWriter generator = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
         generator.visit(V1_5, ACC_FINAL | ACC_PUBLIC, className.replace(".", "/"), null, EMPTY_BINDINGS_CLASS_NAME, null);
@@ -218,7 +218,7 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
                 final String interfaceName = entry.getKey();
                 final String implementationName = entry.getValue();
 
-                log.info("  " + interfaceName + " to " + implementationName);
+                log.info(String.format("  %s to %s", interfaceName, implementationName));
 
                 method.visitVarInsn(ALOAD, 1);
                 method.visitLdcInsn(Type.getObjectType(interfaceName.replace('.', '/')));

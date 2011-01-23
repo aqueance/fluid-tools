@@ -154,7 +154,7 @@ public final class WebRunMojo extends AbstractMojo {
                     context.setWar(filePath);
                     deployed.add(filePath);
 
-                    log.info("Context " + context.getContextPath() + ": " + context.getWar());
+                    log.info(String.format("Context %s: %s", context.getContextPath(), context.getWar()));
 
                     return context;
                 }

@@ -444,7 +444,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
             final OpenComponentContainer received = (OpenComponentContainer) EasyMock.getCurrentArguments()[0];
 
             assert received != null : "Received no container";
-            assert received.getComponent(checkKey) == checkValue : "Expected " + container.toString() + ", got " + received.toString();
+            assert received.getComponent(checkKey) == checkValue : String.format("Expected %s, got %s", container.toString(), received.toString());
             return received;
         }
     }
@@ -466,7 +466,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
             final OpenComponentContainer received = (OpenComponentContainer) arguments[0];
 
             assert received != null : "Received no container";
-            assert received.getComponent(checkKey) == checkValue : "Expected " + container.toString() + ", got " + received.toString();
+            assert received.getComponent(checkKey) == checkValue : String.format("Expected %s, got %s", container.toString(), received.toString());
             return new ContextDependentValue((ComponentContext) arguments[1]);
         }
     }

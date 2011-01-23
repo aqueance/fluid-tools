@@ -50,7 +50,7 @@ final class ContainerBootstrapImpl implements ContainerBootstrap {
         final Log log = services.logs().createLog(getClass());
         final OpenComponentContainer container = parent == null ? provider.newContainer(services) : parent.makeNestedContainer();
 
-        log.info("Created new %s%s", container, (classLoader == null ? "" : " for " + classLoader));
+        log.info("Created new %s%s", container, (classLoader == null ? "" : String.format(" for %s", classLoader)));
 
         /*
          * Find instances of classes implementing the PackageBindings interface.
@@ -103,7 +103,7 @@ final class ContainerBootstrapImpl implements ContainerBootstrap {
 
         final ShutdownHook shutdown = container.getComponent(ShutdownHook.class);
         if (shutdown == null) {
-            throw new RuntimeException(String.format("%s requires a %s component to function", getClass(), ShutdownHook.class.getName()));
+            throw new RuntimeException(String.format("%s requires a %s component to function", container, ShutdownHook.class.getName()));
         }
 
         shutdown.addTask("container-shutdown", new Runnable() {
