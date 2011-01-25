@@ -44,19 +44,9 @@
         </license>
     </licenses>
 
-    <dependencies>
-
-        <dependency>
-            <groupId>${fluidity.foundation.groupId}</groupId>
-            <artifactId>foundation-api</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>${fluidity.foundation.groupId}</groupId>
-            <artifactId>foundation-bootstrap-utils</artifactId>
-        </dependency>
-
-    </dependencies>
+    <description>
+Lowest level utility classes that depend on absolutely no other module.
+    </description>
 
     <profiles>
         <profile>

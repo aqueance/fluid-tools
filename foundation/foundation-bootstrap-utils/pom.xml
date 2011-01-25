@@ -48,6 +48,11 @@
 
         <dependency>
             <groupId>${fluidity.foundation.groupId}</groupId>
+            <artifactId>foundation-utils</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>${fluidity.foundation.groupId}</groupId>
             <artifactId>foundation-easymock</artifactId>
             <scope>test</scope>
         </dependency>

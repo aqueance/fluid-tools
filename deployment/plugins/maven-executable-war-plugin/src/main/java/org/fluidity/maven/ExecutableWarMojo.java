@@ -40,6 +40,7 @@ import java.util.jar.JarFile;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
 
+import org.fluidity.deployment.WarBootstrapLoader;
 import org.fluidity.deployment.maven.MavenDependencies;
 
 import org.apache.maven.artifact.Artifact;
@@ -184,14 +185,11 @@ public class ExecutableWarMojo extends AbstractMojo {
         final String pluginKey = Plugin.constructKey(pluginGroupId, pluginArtifactId);
         final Artifact pluginArtifact = project.getPluginArtifactMap().get(pluginKey);
 
-        final String exclusion = MavenDependencies.GROUP_ID + ':' + MavenDependencies.ARTIFACT_ID;
         final Collection<Artifact> bootstrapDependencies = MavenDependencies.transitiveDependencies(repositorySystem,
                                                                                                     repositorySession,
                                                                                                     projectRepositories,
                                                                                                     pluginArtifact,
-                                                                                                    true, exclusion);
-        bootstrapDependencies.remove(pluginArtifact);
-
+                                                                                                    WarBootstrapLoader.class);
         final Set<Artifact> serverDependencies = new HashSet<Artifact>();
         for (final Dependency dependency : project.getPlugin(pluginKey).getDependencies()) {
             if (!dependency.isOptional()) {

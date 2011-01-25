@@ -24,17 +24,17 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <parent>
-        <groupId>org.fluidity.maven</groupId>
-        <artifactId>deployment-plugins-root</artifactId>
+        <groupId>org.fluidity.foundation</groupId>
+        <artifactId>foundation-root</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
-    <groupId>org.fluidity.deployment</groupId>
-    <artifactId>war-bootstrap</artifactId>
+    <groupId>org.fluidity.foundation</groupId>
+    <artifactId>foundation-logging</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
-    <name>Plugins: WAR Bootstrap</name>
+    <name>Foundation: Default Logging</name>
 
     <licenses>
         <license>
@@ -44,20 +44,11 @@
         </license>
     </licenses>
 
-    <description>
-Contains the class that loads an embedded Jetty and deploys one or more war artifacts.
-    </description>
-
     <dependencies>
 
         <dependency>
             <groupId>${fluidity.foundation.groupId}</groupId>
-            <artifactId>foundation-utils</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>${fluidity.deployment.groupId}</groupId>
-            <artifactId>war-bootstrap-spi</artifactId>
+            <artifactId>foundation-api</artifactId>
         </dependency>
 
     </dependencies>
@@ -74,23 +65,5 @@ Contains the class that loads an embedded Jetty and deploys one or more war arti
             </build>
         </profile>
     </profiles>
-
-    <build>
-        <plugins>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <configuration>
-                    <archive>
-                        <manifest>
-                            <mainClass>org.fluidity.deployment.WarBootstrapLoader</mainClass>
-                        </manifest>
-                    </archive>
-                </configuration>
-            </plugin>
-
-        </plugins>
-    </build>
 
 </project>
