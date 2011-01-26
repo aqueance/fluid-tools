@@ -28,7 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.fluidity.foundation.Exceptions;
-import org.fluidity.foundation.Reflection;
+import org.fluidity.foundation.spi.LogFactory;
 
 /**
  * Component producer that works by instantiating a class.
@@ -47,8 +47,9 @@ final class ConstructingProducer extends AbstractProducer {
     public ConstructingProducer(final Class<?> componentInterface,
                                 final Class<?> componentClass,
                                 final ComponentCache cache,
-                                final DependencyInjector injector) {
-        super(cache);
+                                final DependencyInjector injector,
+                                final LogFactory logs) {
+        super(cache, logs);
         this.injector = injector;
         this.componentInterface = componentInterface;
         this.componentClass = componentClass;
@@ -76,19 +77,8 @@ final class ConstructingProducer extends AbstractProducer {
 
                 return Exceptions.wrap(String.format("instantiating %s", componentClass()), new Exceptions.Command<Object>() {
                     public Object run() throws Exception {
-                        final boolean accessible = Reflection.isAccessible(constructor);
-
-                        if (!accessible) {
-                            constructor.setAccessible(true);
-                        }
-
-                        try {
-                            return constructor.newInstance(injector.injectConstructor(container, componentInterface, componentContext, constructor));
-                        } finally {
-                            if (!accessible) {
-                                constructor.setAccessible(accessible);
-                            }
-                        }
+                        constructor.setAccessible(true);
+                        return constructor.newInstance(injector.injectConstructor(container, componentInterface, componentContext, constructor));
                     }
                 });
             }

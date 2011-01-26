@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,6 +22,8 @@
 
 package org.fluidity.composition;
 
+import org.fluidity.foundation.spi.LogFactory;
+
 /**
  * Links a component binding in the parent container to a producer in the child. The component when looked up in the parent ends up handled by the child.
  *
@@ -32,8 +34,8 @@ final class LinkingProducer extends AbstractProducer {
     private final ComponentProducer delegate;
     private final SimpleContainer target;
 
-    public LinkingProducer(final ComponentProducer delegate, final SimpleContainer container) {
-        super(null);
+    public LinkingProducer(final SimpleContainer container, final ComponentProducer delegate, final LogFactory logs) {
+        super(null, logs);
         this.delegate = delegate;
         this.target = container;
     }

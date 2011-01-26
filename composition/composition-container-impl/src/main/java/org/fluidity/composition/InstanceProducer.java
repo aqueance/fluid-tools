@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,6 +22,8 @@
 
 package org.fluidity.composition;
 
+import org.fluidity.foundation.spi.LogFactory;
+
 /**
  * Component mapping for a pre-instantiated component.
  *
@@ -33,8 +35,8 @@ final class InstanceProducer extends AbstractProducer {
     private final Class<?> componentInterface;
     private final Class<?> componentClass;
 
-    public InstanceProducer(final Class<?> componentInterface, final Class<?> componentClass, final Object instance) {
-        super(null);
+    public InstanceProducer(final Class<?> componentInterface, final Class<?> componentClass, final Object instance, final LogFactory logs) {
+        super(null, logs);
         this.componentInterface = componentInterface;
         this.componentClass = componentClass;
         this.instance = instance;

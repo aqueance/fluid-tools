@@ -23,6 +23,7 @@
 package org.fluidity.composition;
 
 import org.fluidity.composition.spi.ComponentVariantFactory;
+import org.fluidity.foundation.spi.LogFactory;
 
 /**
  * Component mapping for a {@link ComponentVariantFactory} instance.
@@ -33,8 +34,8 @@ final class VariantProducerInstance extends VariantProducer {
 
     private final ComponentVariantFactory factory;
 
-    public VariantProducerInstance(final ComponentVariantFactory factory, final ComponentCache cache, final SimpleContainer container) {
-        super(factory.getClass(), cache, container);
+    public VariantProducerInstance(final SimpleContainer container, final ComponentVariantFactory factory, final ComponentCache cache, final LogFactory logs) {
+        super(container, factory.getClass(), cache, logs);
         this.factory = factory;
     }
 

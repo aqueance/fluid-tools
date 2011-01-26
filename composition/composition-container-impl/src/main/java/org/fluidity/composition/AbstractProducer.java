@@ -26,7 +26,8 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 
-import org.fluidity.foundation.Reflection;
+import org.fluidity.foundation.logging.Log;
+import org.fluidity.foundation.spi.LogFactory;
 
 /**
  * Common functionality for component producers.
@@ -38,9 +39,11 @@ abstract class AbstractProducer implements ComponentProducer {
     private static final ThreadLocal<ComponentCache.Listener> listeners = new ThreadLocal<ComponentCache.Listener>();
 
     protected final ComponentCache cache;
+    protected final Log log;
 
-    protected AbstractProducer(final ComponentCache cache) {
+    protected AbstractProducer(final ComponentCache cache, final LogFactory logs) {
         this.cache = cache;
+        this.log = logs.createLog(getClass());
     }
 
     /**
@@ -91,6 +94,7 @@ abstract class AbstractProducer implements ComponentProducer {
         final Class<?> reference = resolutions.lastReference();
 
         if (reference.isInterface()) {
+            log.info("%s: deferred creation of %s", container, componentClass.getName());
             return Proxy.newProxyInstance(componentClass.getClassLoader(), new Class<?>[] { reference }, new InvocationHandler() {
                 private Object delegate;
 
@@ -101,19 +105,8 @@ abstract class AbstractProducer implements ComponentProducer {
                         }
                     }
 
-                    final boolean accessible = Reflection.isAccessible(method);
-
-                    if (!accessible) {
-                        method.setAccessible(true);
-                    }
-
-                    try {
-                        return method.invoke(delegate, arguments);
-                    } finally {
-                        if (!accessible) {
-                            method.setAccessible(accessible);
-                        }
-                    }
+                    method.setAccessible(true);
+                    return method.invoke(delegate, arguments);
                 }
             });
         } else {

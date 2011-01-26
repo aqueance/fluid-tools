@@ -33,7 +33,6 @@ import java.util.List;
 import org.fluidity.composition.spi.DependencyResolver;
 import org.fluidity.foundation.ClassLoaders;
 import org.fluidity.foundation.Exceptions;
-import org.fluidity.foundation.Reflection;
 
 /**
  * Finds, resolves and sets, using the given container, all @{@link Component} annotated fields of an object that have not yet been set.
@@ -110,55 +109,45 @@ final class DependencyInjectorImpl implements DependencyInjector {
                                   final Class<?> componentType,
                                   final Class<?> declaringType) {
         for (final Field field : declaringType.getDeclaredFields()) {
-            final boolean accessible = Reflection.isAccessible(field);
+            field.setAccessible(true);
 
-            if (!accessible) {
-                field.setAccessible(true);
+            final Exceptions.Command<?> fieldValue = new Exceptions.Command<Object>() {
+                public Object run() throws Exception {
+                    return field.get(instance);
+                }
+            };
+
+            if ((field.getModifiers() & Modifier.FINAL) != 0 || Exceptions.wrap(String.format("getting %s", field), fieldValue) != null) {
+                continue;
             }
 
-            try {
-                final Exceptions.Command<?> fieldValue = new Exceptions.Command<Object>() {
-                    public Object run() throws Exception {
-                        return field.get(instance);
+            if (field.isAnnotationPresent(Component.class) || field.isAnnotationPresent(ServiceProvider.class)) {
+                injectDependency(resolver, context, componentApi, componentType, declaringType, new Dependency() {
+                    public Object itself() {
+                        return instance;
                     }
-                };
 
-                if ((field.getModifiers() & Modifier.FINAL) != 0 || Exceptions.wrap(String.format("getting %s", field), fieldValue) != null) {
-                    continue;
-                }
+                    public Class<?> type() {
+                        return field.getType();
+                    }
 
-                if (field.isAnnotationPresent(Component.class) || field.isAnnotationPresent(ServiceProvider.class)) {
-                    injectDependency(resolver, context, componentApi, componentType, declaringType, new Dependency() {
-                        public Object itself() {
-                            return instance;
-                        }
+                    public <T extends Annotation> T annotation(final Class<T> annotationClass) {
+                        return field.getAnnotation(annotationClass);
+                    }
 
-                        public Class<?> type() {
-                            return field.getType();
-                        }
+                    public Annotation[] annotations() {
+                        return field.getAnnotations();
+                    }
 
-                        public <T extends Annotation> T annotation(Class<T> annotationClass) {
-                            return field.getAnnotation(annotationClass);
-                        }
-
-                        public Annotation[] annotations() {
-                            return field.getAnnotations();
-                        }
-
-                        public void set(final Object value) {
-                            Exceptions.wrap(String.format("setting %s", field), new Exceptions.Command<Void>() {
-                                public Void run() throws Exception {
-                                    field.set(instance, value);
-                                    return null;
-                                }
-                            });
-                        }
-                    });
-                }
-            } finally {
-                if (!accessible) {
-                    field.setAccessible(accessible);
-                }
+                    public void set(final Object value) {
+                        Exceptions.wrap(String.format("setting %s", field), new Exceptions.Command<Void>() {
+                            public Void run() throws Exception {
+                                field.set(instance, value);
+                                return null;
+                            }
+                        });
+                    }
+                });
             }
         }
 
