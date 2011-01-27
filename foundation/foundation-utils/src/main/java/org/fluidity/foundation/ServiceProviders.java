@@ -36,7 +36,7 @@ import sun.misc.ServiceConfigurationError;
 public final class ServiceProviders {
 
     private ServiceProviders() {
-        throw new UnsupportedOperationException("No instantiation");
+        throw new UnsupportedOperationException("No instance allowed");
     }
 
     /**
