@@ -92,7 +92,7 @@ public final class JarStreams {
      * @return an array of Strings, each being the value of the attribute name at the same index.
      */
     public static String[] manifestAttributes(final Class<?> aClass, final String... names) {
-        final URL url = aClass.getClassLoader().getResource(ClassLoaders.classResourceName(aClass));
+        final URL url = ClassLoaders.findClassResource(aClass);
 
         try {
             final URLConnection connection = url.openConnection();

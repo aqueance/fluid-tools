@@ -26,7 +26,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashSet;
@@ -42,6 +41,7 @@ import java.util.jar.Manifest;
 
 import org.fluidity.deployment.WarBootstrapLoader;
 import org.fluidity.deployment.maven.MavenDependencies;
+import org.fluidity.foundation.Streams;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.Dependency;
@@ -240,7 +240,7 @@ public class ExecutableWarMojo extends AbstractMojo {
                                 // copy all entries except the META-INF directory
                                 if (!entryName.startsWith("META-INF")) {
                                     outputStream.putNextEntry(entry);
-                                    copyStream(outputStream, jarInput.getInputStream(entry), buffer);
+                                    Streams.copy(jarInput.getInputStream(entry), outputStream, buffer, true, false);
                                     processedEntries.add(entryName);
                                 }
                             } else if (!entryName.endsWith("/")) {
@@ -292,7 +292,7 @@ public class ExecutableWarMojo extends AbstractMojo {
                             if (!processedEntries.contains(entryName)) {
                                 if (!commandLineOnly || !bootLibraries.contains(entryName)) {
                                     outputStream.putNextEntry(entry);
-                                    copyStream(outputStream, warInput.getInputStream(entry), buffer);
+                                    Streams.copy(warInput.getInputStream(entry), outputStream, buffer, true, false);
                                 }
                             } else if (!entryName.endsWith("/")) {
                                 throw new MojoExecutionException(String.format("Duplicate entry: %s", entryName));
@@ -317,7 +317,7 @@ public class ExecutableWarMojo extends AbstractMojo {
                             }
 
                             outputStream.putNextEntry(new JarEntry(bootDirectory + dependency.getName()));
-                            copyStream(outputStream, new FileInputStream(dependency), buffer);
+                            Streams.copy(new FileInputStream(dependency), outputStream, buffer, true, false);
                         }
                     }
                 } finally {
@@ -344,22 +344,6 @@ public class ExecutableWarMojo extends AbstractMojo {
             }
         } catch (final IOException e) {
             throw new MojoExecutionException(String.format("Processing %s", packageFile), e);
-        }
-    }
-
-    private void copyStream(final JarOutputStream output, final InputStream input, final byte[] buffer) throws IOException {
-        int bytesRead;
-
-        try {
-            while ((bytesRead = input.read(buffer)) != -1) {
-                output.write(buffer, 0, bytesRead);
-            }
-        } finally {
-            try {
-                input.close();
-            } catch (final IOException e) {
-                // ignore
-            }
         }
     }
 

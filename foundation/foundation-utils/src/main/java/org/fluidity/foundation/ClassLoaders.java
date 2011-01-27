@@ -22,6 +22,7 @@
 
 package org.fluidity.foundation;
 
+import java.io.InputStream;
 import java.net.URL;
 
 /**
@@ -64,5 +65,9 @@ public final class ClassLoaders {
 
     public static URL findClassResource(final Class sourceClass) {
         return findClassLoader(sourceClass).getResource(classResourceName(sourceClass));
+    }
+
+    public static InputStream getClassResource(final Class sourceClass) {
+        return findClassLoader(sourceClass).getResourceAsStream(classResourceName(sourceClass));
     }
 }

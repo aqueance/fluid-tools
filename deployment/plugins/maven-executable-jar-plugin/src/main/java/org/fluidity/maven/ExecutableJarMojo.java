@@ -26,7 +26,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashSet;
@@ -40,6 +39,7 @@ import java.util.jar.Manifest;
 
 import org.fluidity.deployment.maven.MavenDependencies;
 import org.fluidity.foundation.JarJarLauncher;
+import org.fluidity.foundation.Streams;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.Plugin;
@@ -240,7 +240,7 @@ public class ExecutableJarMojo extends AbstractMojo {
                             if (!processedEntries.contains(entryName)) {
                                 if (!entryName.equals(JarFile.MANIFEST_NAME)) {
                                     outputStream.putNextEntry(entry);
-                                    copyStream(outputStream, input.getInputStream(entry), buffer);
+                                    Streams.copy(input.getInputStream(entry), outputStream, buffer, true, false);
                                     processedEntries.add(entryName);
                                 }
                             }
@@ -269,7 +269,7 @@ public class ExecutableJarMojo extends AbstractMojo {
                     }
 
                     outputStream.putNextEntry(new JarEntry(dependencyPath.concat(dependency.getName())));
-                    copyStream(outputStream, new FileInputStream(dependency), buffer);
+                    Streams.copy(new FileInputStream(dependency), outputStream, buffer, true, false);
                 }
             } finally {
                 try {
@@ -299,22 +299,6 @@ public class ExecutableJarMojo extends AbstractMojo {
         }
 
         return list;
-    }
-
-    private void copyStream(final JarOutputStream output, final InputStream input, final byte[] buffer) throws IOException {
-        int bytesRead;
-
-        try {
-            while ((bytesRead = input.read(buffer)) != -1) {
-                output.write(buffer, 0, bytesRead);
-            }
-        } finally {
-            try {
-                input.close();
-            } catch (final IOException e) {
-                // ignore
-            }
-        }
     }
 
     private File createTempFile() throws MojoExecutionException {

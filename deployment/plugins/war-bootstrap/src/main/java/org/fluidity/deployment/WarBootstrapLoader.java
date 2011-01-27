@@ -25,8 +25,6 @@ package org.fluidity.deployment;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.net.URLDecoder;
@@ -43,6 +41,7 @@ import java.util.regex.Pattern;
 
 import org.fluidity.foundation.ClassLoaders;
 import org.fluidity.foundation.ServiceProviders;
+import org.fluidity.foundation.Streams;
 
 /**
  * Prepares the web container bootstrap process, e.g. creating a work directory, setting up the boot classpath and loading and invoking the bootstrap
@@ -143,27 +142,7 @@ public final class WarBootstrapLoader {
                     }
 
                     if (!file.exists()) {
-                        final InputStream inputStream = warInput.getInputStream(entry);
-                        final OutputStream outputStream = new FileOutputStream(file);
-                        int bytesRead;
-
-                        try {
-                            while ((bytesRead = inputStream.read(buffer)) != -1) {
-                                outputStream.write(buffer, 0, bytesRead);
-                            }
-                        } finally {
-                            try {
-                                inputStream.close();
-                            } catch (final IOException e) {
-                                // ignore
-                            }
-
-                            try {
-                                outputStream.close();
-                            } catch (final IOException e) {
-                                // ignore
-                            }
-                        }
+                        Streams.copy(warInput.getInputStream(entry), new FileOutputStream(file), buffer, true, true);
                     }
 
                     // new URL("file:" + file.getAbsolutePath())

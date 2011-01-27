@@ -44,9 +44,8 @@ public class JarJarLauncher {
     public static void main(final String[] args)
             throws IOException, ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         final Class<?> main = JarJarLauncher.class;
-        final ClassLoader parent = main.getClassLoader();
-        final URL url = parent.getResource(ClassLoaders.classResourceName(main));
 
+        final URL url = ClassLoaders.findClassResource(main);
         final URLConnection connection = url.openConnection();
 
         if (connection instanceof JarURLConnection) {
@@ -59,10 +58,17 @@ public class JarJarLauncher {
             final String mainClass = getMandatoryAttribute(jarPath, attributes, ORIGINAL_MAIN_CLASS);
             final String dependenciesPath = getMandatoryAttribute(jarPath, attributes, DEPENDENCIES_PATH);
 
-            final JarJarClassLoader loader = new JarJarClassLoader(jarURL, parent, dependenciesPath);
-            Thread.currentThread().setContextClassLoader(loader);
+            final JarJarClassLoader loader = new JarJarClassLoader(jarURL, ClassLoaders.findClassLoader(main), dependenciesPath);
 
-            loader.loadClass(mainClass).getMethod("main", String[].class).invoke(null, new Object[] { args });
+            final Thread thread = Thread.currentThread();
+            final ClassLoader saved = thread.getContextClassLoader();
+
+            thread.setContextClassLoader(loader);
+            try {
+                loader.loadClass(mainClass).getMethod("main", String[].class).invoke(null, new Object[] { args });
+            } finally {
+                thread.setContextClassLoader(saved);
+            }
         } else {
             throw new IllegalStateException(String.format("%s does not point to a jar file", url));
         }

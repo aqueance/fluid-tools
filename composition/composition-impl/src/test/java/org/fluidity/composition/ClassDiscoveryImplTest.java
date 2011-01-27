@@ -37,6 +37,7 @@ import java.util.List;
 
 import org.fluidity.foundation.ClassLoaders;
 import org.fluidity.foundation.NullLogFactory;
+import org.fluidity.foundation.Streams;
 import org.fluidity.foundation.spi.LogFactory;
 import org.fluidity.tests.MockGroupAbstractTest;
 
@@ -73,15 +74,13 @@ public class ClassDiscoveryImplTest extends MockGroupAbstractTest {
         assert servicesFile.exists();
 
         try {
-            final URLClassLoader classLoader =
-                    new URLClassLoader(new URL[] { classDir.toURI().toURL() }, getClass().getClassLoader());
+            final URLClassLoader classLoader = new URLClassLoader(new URL[] { classDir.toURI().toURL() }, getClass().getClassLoader());
 
             replay();
             final Class[] classes = new ClassDiscoveryImpl(logs).findComponentClasses(Interface.class, classLoader, false);
             verify();
 
-            assert new ArrayList<Class>(Arrays.asList(Impl1.class, Impl2.class, Impl3.class))
-                    .equals(new ArrayList<Class>(Arrays.asList(classes)));
+            assert new ArrayList<Class>(Arrays.asList(Impl1.class, Impl2.class, Impl3.class)).equals(new ArrayList<Class>(Arrays.asList(classes)));
         } finally {
             deleteDirectory(classDir, fileList);
         }
@@ -123,12 +122,10 @@ public class ClassDiscoveryImplTest extends MockGroupAbstractTest {
             final URLClassLoader classLoader2 = new URLClassLoader(new URL[] { classDir2.toURI().toURL() }, classLoader1);
 
             replay();
-            final Class[] classes = new ClassDiscoveryImpl(logs)
-                    .findComponentClasses(classLoader1.loadClass(Interface.class.getName()), classLoader2, true);
+            final Class[] classes = new ClassDiscoveryImpl(logs).findComponentClasses(classLoader1.loadClass(Interface.class.getName()), classLoader2, true);
             verify();
 
-            assert new ArrayList<Class>(Arrays.asList(classLoader2.loadClass(Impl1.class.getName())))
-                    .equals(new ArrayList<Class>(Arrays.asList(classes)));
+            assert new ArrayList<Class>(Arrays.asList(classLoader2.loadClass(Impl1.class.getName()))).equals(new ArrayList<Class>(Arrays.asList(classes)));
         } finally {
             deleteDirectory(classDir1, fileList);
             deleteDirectory(classDir2, fileList);
@@ -145,40 +142,19 @@ public class ClassDiscoveryImplTest extends MockGroupAbstractTest {
         outputFile.delete();
         outputFile.createNewFile();
 
-        final InputStream input =
-                getClass().getClassLoader().getResourceAsStream(ClassLoaders.absoluteResourceName(fileName));
+        final InputStream input = ClassLoaders.getClassResource(impl);
         OutputStream output = new FileOutputStream(outputFile);
 
         assert input != null : fileName;
 
-        try {
-            final byte buffer[] = new byte[1024];
-            int len;
-            while ((len = input.read(buffer)) > 0) {
-                output.write(buffer, 0, len);
-            }
-        } finally {
-            try {
-                input.close();
-            } catch (final IOException e) {
-                e.printStackTrace();
-            }
-
-            try {
-                output.close();
-            } catch (final IOException e) {
-                e.printStackTrace();
-            }
-        }
+        Streams.copy(input, output, new byte[1024], true, true);
     }
 
     private void deleteDirectory(File rootDir, List<File> fileList) {
         for (final File file : fileList) {
             file.delete();
 
-            for (File directory = file.getParentFile();
-                 !directory.equals(rootDir);
-                 directory = directory.getParentFile()) {
+            for (File directory = file.getParentFile(); !directory.equals(rootDir); directory = directory.getParentFile()) {
                 if (!directory.delete()) {
                     break;
                 }
