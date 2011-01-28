@@ -31,7 +31,7 @@ import java.lang.annotation.Target;
 import org.fluidity.foundation.spi.PropertyProvider;
 
 /**
- * Context annotation for {@link StaticConfiguration} and {@link DynamicConfiguration} components. See {@link Configuration} for details.
+ * Context annotation for {@link Configuration} components.
  *
  * @author Tibor Varga
  */

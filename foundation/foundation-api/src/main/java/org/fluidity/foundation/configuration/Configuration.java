@@ -62,9 +62,6 @@ package org.fluidity.foundation.configuration;
  * The value offered by the above is that you do not need to implement the <code>MySettings</code> interface, it will be done for you automatically. You only
  * need to provide an implementation for the {@link org.fluidity.foundation.spi.PropertyProvider} for each of the various ways you have your application
  * configured - that is have property names mapped to configuration setting values -, once.
- * <p/>
- * In place of {@link Configuration}, the configured class may use either {@link DynamicConfiguration} or {@link StaticConfiguration} to express its intention
- * to have or not have, respectively, the most up to date set of configuration settings available at run-time.
  *
  * @author Tibor Varga
  */

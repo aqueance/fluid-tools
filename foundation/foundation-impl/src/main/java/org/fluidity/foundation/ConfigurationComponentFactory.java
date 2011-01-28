@@ -36,15 +36,13 @@ import org.fluidity.composition.Context;
 import org.fluidity.composition.OpenComponentContainer;
 import org.fluidity.composition.spi.ComponentFactory;
 import org.fluidity.foundation.configuration.Configuration;
-import org.fluidity.foundation.configuration.DynamicConfiguration;
 import org.fluidity.foundation.configuration.Properties;
 import org.fluidity.foundation.configuration.Setting;
-import org.fluidity.foundation.configuration.StaticConfiguration;
 import org.fluidity.foundation.spi.PropertyProvider;
 
 /**
- * Factory for {@link DynamicConfiguration} and {@link StaticConfiguration} components. This is a context aware factory that uses the {@link @Properties}
- * annotation to decide what instance to produce.
+ * Factory for {@link Configuration} components. This is a context aware factory that uses the {@link @Properties} annotation to decide what instance to
+ * produce.
  * <p/>
  * We use a factory instead of directly making the {@link Configuration} implementation context aware because one of its dependencies is actually defined by the
  * context: {@link Properties#provider()}. This factory is capable of reading that annotation and adding to the container the particular provider for the {@link
@@ -73,7 +71,7 @@ final class ConfigurationComponentFactory implements ComponentFactory<Configurat
         return nested.getComponent(Configuration.class);
     }
 
-    static class ConfigurationImpl<T> implements StaticConfiguration<T>, DynamicConfiguration<T> {
+    static class ConfigurationImpl<T> implements Configuration<T> {
 
         private final AtomicReference<T> configuration = new AtomicReference<T>();
 
@@ -96,7 +94,7 @@ final class ConfigurationComponentFactory implements ComponentFactory<Configurat
                         final String property = setting.key();
                         final Object value = provider.property(property);
 
-                        properties.put(method, value == null ? cast(setting.fallback(), method.getReturnType()) : value);
+                        properties.put(method, value == null ? convert(setting.fallback(), method.getReturnType()) : value);
                     }
 
                     configuration.set((T) Proxy.newProxyInstance(loader, interfaces, new InvocationHandler() {
@@ -112,7 +110,7 @@ final class ConfigurationComponentFactory implements ComponentFactory<Configurat
                 }
 
                 @SuppressWarnings("unchecked")
-                private Object cast(final String value, final Class<?> type) {
+                private Object convert(final String value, final Class<?> type) {
                     if (value == null || value.length() == 0) {
                         return null;
                     } else if (type == String.class) {

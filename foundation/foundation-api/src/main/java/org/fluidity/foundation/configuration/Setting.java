@@ -31,8 +31,8 @@ import java.lang.annotation.Target;
 /**
  * Annotates a setting query method to specify what property to query and, optionally, what default value to return if the property is not defined.
  * <p/>
- * This annotation is to be used on interface methods that will be used in conjunction with either a {@link StaticConfiguration} or {@link DynamicConfiguration}
- * component. See {@link Configuration} for details.
+ * This annotation is to be used on interface methods that will be used in conjunction with either a {@link Configuration}
+ * component.
  *
  * @author Tibor Varga
  */

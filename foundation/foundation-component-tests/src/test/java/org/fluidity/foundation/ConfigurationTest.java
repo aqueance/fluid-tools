@@ -29,10 +29,8 @@ import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ContainerBoundary;
 import org.fluidity.foundation.configuration.Configuration;
-import org.fluidity.foundation.configuration.DynamicConfiguration;
 import org.fluidity.foundation.configuration.Properties;
 import org.fluidity.foundation.configuration.Setting;
-import org.fluidity.foundation.configuration.StaticConfiguration;
 import org.fluidity.foundation.spi.PropertyProvider;
 import org.fluidity.tests.MockGroupAbstractTest;
 
@@ -222,7 +220,7 @@ public class ConfigurationTest extends MockGroupAbstractTest {
         private final Settings configuration;
 
         // Uses StaticPropertyProvider for actual property lookup
-        public StaticConfigured(final @Properties(api = Settings.class, provider = StaticPropertyProvider.class) StaticConfiguration<Settings> settings) {
+        public StaticConfigured(final @Properties(api = Settings.class, provider = StaticPropertyProvider.class) Configuration<Settings> settings) {
             configuration = settings.configuration();
             assert configuration != null;
         }
@@ -238,7 +236,7 @@ public class ConfigurationTest extends MockGroupAbstractTest {
 
         private final Configuration<Settings> settings;
 
-        public DynamicConfigured(final @Properties(api = Settings.class, provider = DynamicPropertyProvider.class) DynamicConfiguration<Settings> settings) {
+        public DynamicConfigured(final @Properties(api = Settings.class, provider = DynamicPropertyProvider.class) Configuration<Settings> settings) {
             this.settings = settings;
         }
         public void checkSettings(final String missing1, final String missing2, final String valid1, final String valid2) {
@@ -307,7 +305,7 @@ public class ConfigurationTest extends MockGroupAbstractTest {
     @Component
     public static class MultTypeConfigured {
 
-        public MultTypeConfigured(final @Properties(api = MultiTypeSettings.class, provider = EmptyPropertyProvider.class) StaticConfiguration<MultiTypeSettings> settings) {
+        public MultTypeConfigured(final @Properties(api = MultiTypeSettings.class, provider = EmptyPropertyProvider.class) Configuration<MultiTypeSettings> settings) {
             final MultiTypeSettings configuration = settings.configuration();
             assert configuration != null;
 
