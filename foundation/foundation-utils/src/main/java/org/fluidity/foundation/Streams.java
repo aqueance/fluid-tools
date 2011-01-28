@@ -36,33 +36,29 @@ public final class Streams {
     }
 
     /**
-     * Fully copies the contents of one stream to another.
+     * Fully copies the contents of one stream into another. The input stream is closed afterwards.
      *
-     * @param input       the input stream to copy data from.
-     * @param output      the output stream to copy data to.
-     * @param buffer      the buffer to use.
-     * @param closeInput  closes the input stream if <code>true</code>.
-     * @param closeOutput closes the output stream if <code>true</code>.
+     * @param input  the input stream to copy data from.
+     * @param output the output stream to copy data to.
+     * @param buffer the buffer to use.
+     * @param close  closes the output stream if <code>true</code>.
      *
-     * @throws IOException thrown when copying fails.
+     * @throws IOException thrown when reading or writing fails.
      */
-    public static void copy(final InputStream input, final OutputStream output, final byte[] buffer, final boolean closeInput, final boolean closeOutput)
-            throws IOException {
+    public static void copy(final InputStream input, final OutputStream output, final byte[] buffer, final boolean close) throws IOException {
         try {
             int len;
             while ((len = input.read(buffer)) != -1) {
                 output.write(buffer, 0, len);
             }
         } finally {
-            if (closeInput) {
-                try {
-                    input.close();
-                } catch (final IOException e) {
-                    // ignore
-                }
+            try {
+                input.close();
+            } catch (final IOException e) {
+                // ignore
             }
 
-            if (closeOutput) {
+            if (close) {
                 try {
                     output.close();
                 } catch (final IOException e) {

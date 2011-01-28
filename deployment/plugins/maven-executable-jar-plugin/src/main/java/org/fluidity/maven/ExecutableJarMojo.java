@@ -240,7 +240,7 @@ public class ExecutableJarMojo extends AbstractMojo {
                             if (!processedEntries.contains(entryName)) {
                                 if (!entryName.equals(JarFile.MANIFEST_NAME)) {
                                     outputStream.putNextEntry(entry);
-                                    Streams.copy(input.getInputStream(entry), outputStream, buffer, true, false);
+                                    Streams.copy(input.getInputStream(entry), outputStream, buffer, false);
                                     processedEntries.add(entryName);
                                 }
                             }
@@ -269,7 +269,7 @@ public class ExecutableJarMojo extends AbstractMojo {
                     }
 
                     outputStream.putNextEntry(new JarEntry(dependencyPath.concat(dependency.getName())));
-                    Streams.copy(new FileInputStream(dependency), outputStream, buffer, true, false);
+                    Streams.copy(new FileInputStream(dependency), outputStream, buffer, false);
                 }
             } finally {
                 try {

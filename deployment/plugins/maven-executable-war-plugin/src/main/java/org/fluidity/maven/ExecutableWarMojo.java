@@ -240,7 +240,7 @@ public class ExecutableWarMojo extends AbstractMojo {
                                 // copy all entries except the META-INF directory
                                 if (!entryName.startsWith("META-INF")) {
                                     outputStream.putNextEntry(entry);
-                                    Streams.copy(jarInput.getInputStream(entry), outputStream, buffer, true, false);
+                                    Streams.copy(jarInput.getInputStream(entry), outputStream, buffer, false);
                                     processedEntries.add(entryName);
                                 }
                             } else if (!entryName.endsWith("/")) {
@@ -292,7 +292,7 @@ public class ExecutableWarMojo extends AbstractMojo {
                             if (!processedEntries.contains(entryName)) {
                                 if (!commandLineOnly || !bootLibraries.contains(entryName)) {
                                     outputStream.putNextEntry(entry);
-                                    Streams.copy(warInput.getInputStream(entry), outputStream, buffer, true, false);
+                                    Streams.copy(warInput.getInputStream(entry), outputStream, buffer, false);
                                 }
                             } else if (!entryName.endsWith("/")) {
                                 throw new MojoExecutionException(String.format("Duplicate entry: %s", entryName));
@@ -317,7 +317,7 @@ public class ExecutableWarMojo extends AbstractMojo {
                             }
 
                             outputStream.putNextEntry(new JarEntry(bootDirectory + dependency.getName()));
-                            Streams.copy(new FileInputStream(dependency), outputStream, buffer, true, false);
+                            Streams.copy(new FileInputStream(dependency), outputStream, buffer, false);
                         }
                     }
                 } finally {

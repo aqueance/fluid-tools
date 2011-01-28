@@ -142,7 +142,7 @@ public final class WarBootstrapLoader {
                     }
 
                     if (!file.exists()) {
-                        Streams.copy(warInput.getInputStream(entry), new FileOutputStream(file), buffer, true, true);
+                        Streams.copy(warInput.getInputStream(entry), new FileOutputStream(file), buffer, true);
                     }
 
                     // new URL("file:" + file.getAbsolutePath())

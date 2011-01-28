@@ -147,7 +147,7 @@ public class ClassDiscoveryImplTest extends MockGroupAbstractTest {
 
         assert input != null : fileName;
 
-        Streams.copy(input, output, new byte[1024], true, true);
+        Streams.copy(input, output, new byte[1024], true);
     }
 
     private void deleteDirectory(File rootDir, List<File> fileList) {
