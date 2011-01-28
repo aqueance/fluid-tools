@@ -57,11 +57,6 @@
         </dependency>
 
         <dependency>
-            <groupId>${fluidity.foundation.groupId}</groupId>
-            <artifactId>foundation-logging</artifactId>
-        </dependency>
-
-        <dependency>
             <groupId>${fluidity.composition.groupId}</groupId>
             <artifactId>composition-api</artifactId>
         </dependency>

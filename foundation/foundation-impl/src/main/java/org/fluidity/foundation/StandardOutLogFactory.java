@@ -22,12 +22,16 @@
 
 package org.fluidity.foundation;
 
+import org.fluidity.composition.Component;
+import org.fluidity.composition.ServiceProvider;
 import org.fluidity.foundation.logging.Log;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**
  * @author Tibor Varga
  */
+@ServiceProvider(jdk = true)
+@Component(fallback = true)
 final class StandardOutLogFactory implements LogFactory {
 
     public Log createLog(final Class<?> source) {

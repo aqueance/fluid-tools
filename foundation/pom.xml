@@ -51,7 +51,6 @@
         <module>foundation-bootstrap-utils</module>
         <module>foundation-easymock</module>
         <module>foundation-component-tests</module>
-        <module>foundation-logging</module>
     </modules>
 
 </project>

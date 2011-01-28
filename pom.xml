@@ -140,12 +140,6 @@
 
             <dependency>
                 <groupId>${fluidity.foundation.groupId}</groupId>
-                <artifactId>foundation-logging</artifactId>
-                <version>${fluidity.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>${fluidity.foundation.groupId}</groupId>
                 <artifactId>foundation-bootstrap-utils</artifactId>
                 <version>${fluidity.version}</version>
             </dependency>
