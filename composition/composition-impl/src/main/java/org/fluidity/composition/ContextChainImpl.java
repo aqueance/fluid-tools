@@ -129,8 +129,9 @@ final class ContextChainImpl implements ContextChain {
             public boolean visit(final ReferenceChain.Link item) {
                 final ComponentMapping mapping = item.mapping();
 
-                if (mapping.factoryClass() != null && mapping.componentInterface() == componentType) {
-                    final Context factoryContext = mapping.factoryClass().getAnnotation(Context.class);
+                final Class<?> factoryClass = mapping.factoryClass();
+                if (factoryClass != null && factoryClass != componentClass && mapping.componentInterface() == componentType) {
+                    final Context factoryContext = factoryClass.getAnnotation(Context.class);
 
                     if (factoryContext != null) {
                         types.addAll(Arrays.asList(factoryContext.value()));

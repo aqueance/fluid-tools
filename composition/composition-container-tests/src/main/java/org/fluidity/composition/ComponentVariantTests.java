@@ -61,6 +61,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
     public void setMockFactory() {
         Variants.delegate = this.variants;
         Factory.delegate = this.factory;
+        Factory.instances.clear();
     }
 
     @Test
@@ -228,6 +229,9 @@ public final class ComponentVariantTests extends AbstractContainerTests {
         verifyContext(container, ContextDependentValue.class);
 
         verify();
+
+        // only one factory instance should be created as opposed to one for every context
+        assert Factory.instances.size() == 1 : Factory.instances.size();
     }
 
     @Test
@@ -383,12 +387,14 @@ public final class ComponentVariantTests extends AbstractContainerTests {
     private static class Factory implements ComponentFactory<DependentKey> {
 
         public static ComponentFactory<DependentKey> delegate;
+        public static Set<Factory> instances = new HashSet<Factory>();
 
         public Factory(final FactoryDependency dependent) {
             assert dependent != null;
         }
 
         public DependentKey newComponent(final OpenComponentContainer container, final ComponentContext context) {
+            instances.add(this);        // only instances in actual use count
             assert delegate != null;
             return delegate.newComponent(container, context);
         }
