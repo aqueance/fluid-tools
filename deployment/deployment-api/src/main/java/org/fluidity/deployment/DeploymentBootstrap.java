@@ -23,7 +23,7 @@
 package org.fluidity.deployment;
 
 /**
- * Bootstraps the application. The singleton implementing instance is not thread safe.
+ * Bootstraps the application.
  *
  * @author Tibor Varga
  */

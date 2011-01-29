@@ -26,9 +26,9 @@ import org.fluidity.deployment.RuntimeControl;
 
 /**
  * Command line application root object. Command line applications may provide an implementation of this interface to have a main application loop. Without this,
- * {@link org.fluidity.deployment.DeployedComponent} will determine alone what the application does and how long it's running.
+ * {@link org.fluidity.deployment.DeployedComponent} will alone determine what the application does and how long it's running.
  * <p/>
- * The application exits when the call to the {@link Runnable#run()} method returns, unless the developer has started but failed to stop non-daemon threads.
+ * The application exits when the call to the {@link Runnable#run()} method returns, unless the developer has started and failed to stop non-daemon threads.
  */
 public interface Application {
 

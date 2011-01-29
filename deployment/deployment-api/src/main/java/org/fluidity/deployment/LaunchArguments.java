@@ -34,7 +34,7 @@ package org.fluidity.deployment;
 public interface LaunchArguments {
 
     /**
-     * Used to assist passing the launch arguments to the implementation.
+     * Assist in passing the launch arguments to the implementation.
      */
     Object ARGUMENTS_KEY = new Object();
 

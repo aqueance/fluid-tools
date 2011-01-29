@@ -31,12 +31,12 @@ package org.fluidity.deployment;
 public interface DeploymentControl extends RuntimeControl {
 
     /**
-     * Used to assist passing the HTTP server control object to the implementation.
+     * Assists in passing the HTTP server control object to the implementation, if applicable.
      */
     Object SERVER_KEY = new Object();
 
     /**
-     * Used to assist passing to the implementation whether the server started should stop when no deployed components are active.
+     * Assists in passing to the implementation whether the server started should stop when no deployed components are active, if applicable.
      */
     Object STANDALONE_KEY = new Object();
 

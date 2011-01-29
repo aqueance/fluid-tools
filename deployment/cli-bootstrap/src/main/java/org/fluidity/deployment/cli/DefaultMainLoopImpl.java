@@ -30,7 +30,7 @@ import org.fluidity.foundation.logging.Log;
 import org.fluidity.foundation.logging.Marker;
 
 /**
- * This run loop implementation expects the application loop to be in a {@link Application}, which when done invokes {@link
+ * This run loop implementation expects the application loop to be in an {@link Application} implementation, which when done invokes {@link
  * org.fluidity.deployment.RuntimeControl#stop()}. The application loop is optional and when not present, the application can be stopped using Ctrl-C.
  *
  * @author Tibor Varga
@@ -44,7 +44,7 @@ final class DefaultMainLoopImpl implements MainLoop {
     private final Application application;
     private final Log log;
 
-    public DefaultMainLoopImpl(final @Optional @Marker(DefaultMainLoopImpl.class) Log log, final @Optional Application application) {
+    public DefaultMainLoopImpl(final @Marker(DefaultMainLoopImpl.class) Log log, final @Optional Application application) {
         this.log = log;
         this.application = application;
     }
@@ -52,7 +52,7 @@ final class DefaultMainLoopImpl implements MainLoop {
     public void run() {
         if (application != null) {
             application.run(this);
-        } else if (log != null) {
+        } else {
             log.info("Application started. Press Ctrl-C to stop it.");
         }
 

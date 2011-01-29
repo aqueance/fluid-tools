@@ -25,13 +25,14 @@ package org.fluidity.deployment.cli;
 import org.fluidity.deployment.DeploymentControl;
 
 /**
- * The main class of the command line application that parses parameters and keeps the application's main thread running until stopped. The implementation can
- * access the command line parameters by having a constructor with, among other dependencies, a {@link org.fluidity.deployment.LaunchArguments} parameter.
+ * The main class of a command line application that parses command line arguments and keeps the application's main thread running until stopped. The
+ * implementation can access the command line arguments by having a constructor with, among other dependencies, a {@link
+ * org.fluidity.deployment.LaunchArguments} parameter.
  * <p/>
- * The application loop is expected in a {@link Application}, which when done invokes {@link org.fluidity.deployment.RuntimeControl#stop()}. The application
- * loop is optional and when not present, the application can be stopped using Ctrl-C.
+ * An application loop can be provided in an {@link Application} implementation, which when done invokes {@link org.fluidity.deployment.RuntimeControl#stop()}.
+ * The application loop is optional and when not present, the application can be stopped using Ctrl-C.
  * <p/>
- * The application exits when the call to the {@link Runnable#run()} method returns, unless the developer has started but failed to stop non-daemon threads.
+ * The application exits when the call to the {@link Runnable#run()} method returns, unless the developer has started and failed to stop non-daemon threads.
  *
  * @author Tibor Varga
  */

@@ -31,10 +31,10 @@ import org.fluidity.deployment.LaunchArguments;
 
 /**
  * A command line main class that bootstraps the application's dependency injection container, invokes {@link DeploymentBootstrap} if implemented to load and
- * control deployment units and invokes the application supplied main loop, {@link MainLoop}. Any component can access the command line parameters by having a
- * constructor with, among other dependencies, a {@link LaunchArguments} parameter.
+ * control deployment units and invokes the application supplied main loop, a class implementing the {@link MainLoop} interface. Any component can access the
+ * command line parameters by having a constructor with, among other dependencies, a {@link LaunchArguments} parameter.
  * <p/>
- * This class is public for its main method to be found by the launcher.
+ * This class is public for its main method to be found by the Java launcher.
  *
  * @author Tibor Varga
  */

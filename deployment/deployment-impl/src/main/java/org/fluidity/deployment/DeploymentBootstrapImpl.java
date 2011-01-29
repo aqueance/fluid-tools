@@ -64,7 +64,7 @@ final class DeploymentBootstrapImpl implements DeploymentBootstrap {
         log.info(message, args);
     }
 
-    public void load() throws Exception {
+    public synchronized void load() throws Exception {
         deployedComponents.clear();
         observers.clear();
 
@@ -109,7 +109,7 @@ final class DeploymentBootstrapImpl implements DeploymentBootstrap {
         deployments.completed();
     }
 
-    public void unload() {
+    public synchronized void unload() {
         Collections.reverse(deployedComponents);
         Collections.reverse(activeComponents);
 

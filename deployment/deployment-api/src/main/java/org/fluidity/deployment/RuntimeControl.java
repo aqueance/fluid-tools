@@ -23,7 +23,8 @@
 package org.fluidity.deployment;
 
 /**
- * Allows stopping the runtime controlled by the implementation.
+ * Allows stopping the runtime controlled by the implementation. An implementation is not always available, especially in application containers not in control
+ * of your application.
  *
  * @author Tibor Varga
  */

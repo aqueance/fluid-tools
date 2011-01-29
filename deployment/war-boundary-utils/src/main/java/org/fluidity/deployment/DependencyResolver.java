@@ -19,6 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package org.fluidity.deployment;
 
 import javax.servlet.ServletException;
@@ -35,9 +36,9 @@ interface DependencyResolver {
     /**
      * Returns a component from the host application's component container.
      *
-     * @param componentClassName the key of the requested component.
+     * @param componentClassName names the component interface class.
      *
-     * @return a component for the given key or <code>null</code> if none found.
+     * @return a component for the given interface class or <code>null</code> if none found.
      *
      * @throws ServletException when anything goes wrong.
      */

@@ -27,7 +27,7 @@ import org.fluidity.composition.ServiceProvider;
 /**
  * This is a component that is started/stopped as the application container starts/stops. There is no deterministic order in which deployed components are
  * started/stopped other than the following guarantee: a deployed component that depends, directly or indirectly, on other deployed components will be started
- * later and stopped sooner than those it depends on. However, they may of course depend on components that happens to be deployed components, too.
+ * later and stopped sooner than those it depends on.
  * <p/>
  * The component is started in the main thread and halts the application startup until its {@link #start(DeployedComponent.Context)} method returns. The
  * component may start its own thread if it wants to but that thread must stop when the component receives a {@link #stop()} method call.
@@ -37,7 +37,8 @@ import org.fluidity.composition.ServiceProvider;
  * DeployedComponent#stop()} method will not be invoked.
  * <p/>
  * If the component fails to call {@link DeployedComponent.Context#complete()} when its {@link #stop()} method is called, the system will wait indefinitely for
- * the component to stop.
+ * the component to stop. This allows the component to asynchronously invoke the {@link DeployedComponent.Context#complete()} method once the component has been
+ * asked to stop.
  * <p/>
  * All subclasses of this interface will be marked as a service provider for this interface and will be automatically found and controlled by a suitable {@link
  * DeploymentBootstrap} implementation.
@@ -71,8 +72,8 @@ public interface DeployedComponent {
     void start(Context observer) throws Exception;
 
     /**
-     * Stops the component, unless the component notified the observer passed in {@link DeployedComponent#start(DeployedComponent.Context)} that it had
-     * stopped.
+     * Stops the component, unless the component notified the observer passed in {@link DeployedComponent#start(DeployedComponent.Context)} that it had stopped.
+     * The component must, synchronously or asynchronously, call {@link DeployedComponent.Context#complete()} to allow the host application to terminate.
      *
      * @throws Exception when thrown is logged.
      */
