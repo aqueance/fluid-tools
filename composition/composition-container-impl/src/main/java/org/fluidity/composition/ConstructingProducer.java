@@ -106,11 +106,12 @@ final class ConstructingProducer extends AbstractProducer {
                     validConstructors.add(constructor);
                 }
 
-                final boolean annotated = constructor.getAnnotation(Component.class) != null;
-                if (designated != null && annotated) {
-                    throw new ComponentContainer.ResolutionException("Multiple @Component constructors found for %s", componentClass);
-                } else if (annotated) {
-                    designated = constructor;
+                if (constructor.getAnnotation(Component.class) != null) {
+                    if (designated != null) {
+                        throw new ComponentContainer.ResolutionException("Multiple @Component constructors found for %s", componentClass);
+                    } else {
+                        designated = constructor;
+                    }
                 }
             }
         }

@@ -56,7 +56,7 @@ final class ReferenceChainImpl implements ReferenceChain {
         return stack.get(stack.size() - 1).reference();
     }
 
-    public <T> T nested(final ComponentMapping mapping, final Class<?> dependency, final Command<T> command) {
+    public <T> T track(final ComponentMapping mapping, final Class<?> dependency, final Command<T> command) {
         final List<Link> stack = reference.get();
         final Set<ComponentMapping> loop = mappings.get();
 

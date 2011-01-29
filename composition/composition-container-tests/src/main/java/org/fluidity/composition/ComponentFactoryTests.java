@@ -54,8 +54,8 @@ public final class ComponentFactoryTests extends AbstractContainerTests {
     }
 
     @Test(expectedExceptions = ComponentContainer.BindingException.class)
-    public void reportsNestedBrokenFactory() throws Exception {
-        registry.makeNestedContainer(BrokenFactory.class, BrokenFactory.class);
+    public void reportsBrokenFactoryInChildContainer() throws Exception {
+        registry.makeChildContainer(BrokenFactory.class, BrokenFactory.class);
     }
 
     @Test
@@ -77,16 +77,16 @@ public final class ComponentFactoryTests extends AbstractContainerTests {
     }
 
     @Test
-    public void invokesNestedStandaloneFactoryClassOnce() throws Exception {
+    public void invokesStandaloneFactoryClassOnceInChildContainer() throws Exception {
         registry.bindComponent(Key.class, Value.class);
 
-        final OpenComponentContainer nested = registry.makeNestedContainer(Factory.class, Factory.class);
+        final OpenComponentContainer child = registry.makeChildContainer(Factory.class, Factory.class);
 
         final String check = "check";
-        final ComponentContainer.Registry nestedRegistry = nested.getRegistry();
+        final ComponentContainer.Registry childRegistry = child.getRegistry();
 
-        nestedRegistry.bindComponent(FactoryDependency.class);
-        nestedRegistry.bindInstance(Serializable.class, check);
+        childRegistry.bindComponent(FactoryDependency.class);
+        childRegistry.bindInstance(Serializable.class, check);
 
         EasyMock.expect(factory.newComponent(EasyMock.<OpenComponentContainer>notNull(), EasyMock.<ComponentContext>notNull()))
                 .andAnswer(new FactoryInvocation(Serializable.class, check));

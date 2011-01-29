@@ -55,7 +55,7 @@ final class ContextChainImpl implements ContextChain {
         return establishedContext.get();
     }
 
-    public <T> T nested(final ComponentContext context, final Command<T> command) {
+    public <T> T track(final ComponentContext context, final Command<T> command) {
         final ComponentContext currentContext = establishedContext.get();
 
         if (context == null || context.types().isEmpty() || context.equals(currentContext)) {

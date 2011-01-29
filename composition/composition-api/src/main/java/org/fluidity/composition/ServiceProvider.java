@@ -30,9 +30,10 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Declares that the annotated class, or implementing classes of the annotated interface, are service providers in the JAR file specification's sense. When used
- * on a field or constructor parameter of array type, the annotation declares that the array argument must contain an instance of each implementation of the
- * service provider that is the component type of the array.
+ * Declares that the annotated class, or implementing classes of the annotated interface, are service providers in the <a
+ * href="http://download.oracle.com/javase/1.5.0/docs/guide/jar/jar.html#Service Provider">JAR File Specification</a>'s sense. When used on a field or
+ * constructor parameter of array type, the annotation declares that the array argument must contain an instance of each implementation of the service provider
+ * that is the component type of the array.
  * <p/>
  * The org.fluidity.maven:maven-composition-plugin Maven plugin will create the appropriate service provider descriptor file.
  *

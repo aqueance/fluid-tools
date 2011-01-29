@@ -30,26 +30,26 @@ package org.fluidity.composition;
  */
 final class EmbeddedContainer extends AbstractComponentContainer {
 
-    private final ComponentContext base;
+    private final ComponentContext context;
     private final ContextChain contexts;
 
-    public EmbeddedContainer(final SimpleContainer container, final ComponentContext base) {
+    public EmbeddedContainer(final SimpleContainer container, final ComponentContext context) {
         super(container);
-        assert base != null;
-        this.base = base;
+        assert context != null;
+        this.context = context;
         this.contexts = container.services().contextChain();
     }
 
-    public <T> T getComponent(final Class<T> componentClass) throws ResolutionException {
-        return container.get(componentClass, base);
+    public <T> T getComponent(final Class<T> componentInterface) throws ResolutionException {
+        return container.get(componentInterface, context);
     }
 
-    public OpenComponentContainer makeNestedContainer() {
-        return new FluidComponentContainer(container, true);
+    public OpenComponentContainer makeChildContainer() {
+        return new ComponentContainerShell(container, true);
     }
 
     public <T> T initialize(final T component) throws ResolutionException {
-        return contexts.nested(base, new ContextChain.Command<T>() {
+        return contexts.track(context, new ContextChain.Command<T>() {
             public T run(final ComponentContext ignore) {
                 return container.initialize(component);
             }

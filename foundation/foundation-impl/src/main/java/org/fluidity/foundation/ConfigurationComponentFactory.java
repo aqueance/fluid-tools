@@ -55,8 +55,8 @@ import org.fluidity.foundation.spi.PropertyProvider;
 final class ConfigurationComponentFactory implements ComponentFactory<Configuration> {
 
     public Configuration newComponent(final OpenComponentContainer container, final ComponentContext context) throws ComponentContainer.ResolutionException {
-        final OpenComponentContainer nested = container.makeNestedContainer();
-        final ComponentContainer.Registry registry = nested.getRegistry();
+        final OpenComponentContainer child = container.makeChildContainer();
+        final ComponentContainer.Registry registry = child.getRegistry();
 
         final Properties properties = context.annotation(Properties.class, Configuration.class);
 
@@ -64,7 +64,7 @@ final class ConfigurationComponentFactory implements ComponentFactory<Configurat
         registry.bindComponent(PropertyProvider.class, properties.provider());
         registry.bindComponent(Configuration.class, ConfigurationImpl.class);
 
-        return nested.getComponent(Configuration.class);
+        return child.getComponent(Configuration.class);
     }
 
     static class ConfigurationImpl<T> implements Configuration<T> {

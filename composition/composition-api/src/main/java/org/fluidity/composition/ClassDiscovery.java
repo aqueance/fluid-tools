@@ -23,14 +23,13 @@
 package org.fluidity.composition;
 
 /**
- * Partially implements the Service Provider discovery mechanism described in the Jar File Specification. This mechanism is documented at
- * http://java.sun.com/j2se/1.4.2/docs/guide/jar/jar.html#Service%20Provider
+ * Partially implements the Service Provider discovery mechanism described in the <a href="http://download.oracle.com/javase/1.5.0/docs/guide/jar/jar.html#Service
+ * Provider">JAR File Specification</a>.
  * <p/>
  * The implementation is partial because this component does not instantiate the discovered classes, it merely discovers them.
  * <p/>
  * This is useful not so much for client components as for those providing core composition functionality such as component container bootstrap. Client
- * components normally need to use a {@link  ServiceProvider} annotated array parameter or {@link
- * org.fluidity.composition.ComponentDiscovery} instead.
+ * components normally need to use a {@link  ServiceProvider} annotated array parameter or {@link org.fluidity.composition.ComponentDiscovery} instead.
  *
  * @author Tibor Varga
  */

@@ -32,7 +32,8 @@ import org.fluidity.composition.ServiceProvider;
 
 /**
  * Provides actual dependency injection container instances and related functionality. The implementing class must be public so as to be able to find using the
- * Service Provider discovery mechanism described in the JAR file specification.
+ * Service Provider discovery mechanism described in the <a href="http://download.oracle.com/javase/1.5.0/docs/guide/jar/jar.html#Service
+ * Provider">JAR File Specification</a>.
  *
  * @author Tibor Varga
  */

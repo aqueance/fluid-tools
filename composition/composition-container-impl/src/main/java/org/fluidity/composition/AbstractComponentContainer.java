@@ -44,7 +44,7 @@ public abstract class AbstractComponentContainer extends EmptyComponentContainer
 
     @Override
     public boolean equals(final Object object) {
-        return object instanceof FluidComponentContainer ? container.equals(((FluidComponentContainer) object).container) : super.equals(object);
+        return object instanceof ComponentContainerShell ? container.equals(((ComponentContainerShell) object).container) : super.equals(object);
     }
 
     public String toString() {

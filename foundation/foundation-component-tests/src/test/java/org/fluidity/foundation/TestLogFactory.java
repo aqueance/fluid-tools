@@ -34,7 +34,7 @@ import org.fluidity.foundation.spi.LogFactory;
 @ServiceProvider
 public class TestLogFactory implements LogFactory {
 
-    private final NullLogFactory delegate = new NullLogFactory();
+    private final NoLogFactory delegate = new NoLogFactory();
 
     public Log createLog(final Class<?> source) {
         return delegate.createLog(source);

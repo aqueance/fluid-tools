@@ -42,7 +42,8 @@
 
     <description><![CDATA[
 This plugin scans class files for annotations that instruct it to generate
-service provider descriptor files as per the JAR file specification.
+service provider descriptor files as per the JAR file specification:
+http://download.oracle.com/javase/1.5.0/docs/guide/jar/jar.html#Service%20Provider.
 
 There are two annotations that this plugin looks for.
 

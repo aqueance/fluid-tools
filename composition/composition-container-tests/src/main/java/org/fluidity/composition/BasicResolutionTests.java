@@ -58,7 +58,7 @@ public final class BasicResolutionTests extends AbstractContainerTests {
         }
 
         for (int i = 0; i < 100000 && !collected; ++i) {
-            container.makeNestedContainer().getRegistry().bindInstance(Object.class, new FinalizationAware());
+            container.makeChildContainer().getRegistry().bindInstance(Object.class, new FinalizationAware());
             Runtime.getRuntime().gc();
         }
 
@@ -138,20 +138,20 @@ public final class BasicResolutionTests extends AbstractContainerTests {
 
     @Test
     public void identifiesContainerChain() throws Exception {
-        final OpenComponentContainer nested = container.makeNestedContainer();
+        final OpenComponentContainer child = container.makeChildContainer();
 
         final String topString = container.toString();
-        final String nestedString = nested.toString();
+        final String childString = child.toString();
         assert topString.startsWith("container ") : String.format("Wrong container ID: %s", topString);
 
         final int prefix = "container ".length();
         final String topId = topString.substring(prefix);
-        assert nestedString.startsWith("container ") : String.format("Wrong container ID: %s", nestedString);
-        final String nestedSuffix = " > " + topId;
-        assert nestedString.endsWith(nestedSuffix) : String.format("Wrong container ID: %s", nestedString);
+        assert childString.startsWith("container ") : String.format("Wrong container ID: %s", childString);
+        final String childSuffix = " > " + topId;
+        assert childString.endsWith(childSuffix) : String.format("Wrong container ID: %s", childString);
 
-        final String nestedId = nestedString.substring(prefix, nestedString.length() - nestedSuffix.length());
-        assert !topId.equals(nestedId) : "Nested container has the same ID as its parent";
+        final String childId = childString.substring(prefix, childString.length() - childSuffix.length());
+        assert !topId.equals(childId) : "Child container has the same ID as its parent";
     }
 
     @Test

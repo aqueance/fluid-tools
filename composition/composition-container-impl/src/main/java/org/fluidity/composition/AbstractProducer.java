@@ -58,7 +58,7 @@ abstract class AbstractProducer implements ComponentProducer {
     }
 
     /**
-     * Checks for circular references and, if possible, wraps the first component that is referenced by interface back the reference chain with a proxy that
+     * Checks for circular references and, if possible, wraps the first component up the reference chain that is referenced by interface with a proxy that
      * defers the instantiation of that component. Uses the {@link #createCommand(SimpleContainer)} method to perform actual component creation along with the
      * producer's {@link ComponentCache} to cache instances.
      */
@@ -131,7 +131,7 @@ abstract class AbstractProducer implements ComponentProducer {
         return String.format(" %s (%s)", componentClass(), componentInterface());
     }
 
-    public static void captureCreation(final ComponentCache.Listener listener, final Runnable command) {
+    public static void captureInstantiations(final ComponentCache.Listener listener, final Runnable command) {
         listeners.set(listener);
 
         try {

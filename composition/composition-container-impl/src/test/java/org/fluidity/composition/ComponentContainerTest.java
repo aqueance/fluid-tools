@@ -25,10 +25,10 @@ package org.fluidity.composition;
 /**
  * @author Tibor Varga
  */
-public class FluidComponentContainerTest extends ComponentContainerAbstractTest {
+public class ComponentContainerTest extends ComponentContainerAbstractTest {
 
     @Override
     protected OpenComponentContainer newContainer(final ContainerServices services) {
-        return new FluidComponentContainer(null, services, true);
+        return new ComponentContainerShell(null, services, true);
     }
 }

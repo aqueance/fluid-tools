@@ -31,8 +31,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Allows the component to specify the annotation classes that will configure particular dependencies to the component. Such a configuration could, for
- * instance, contain a database identifier for a database access dependency, etc.
+ * Allows the component to specify the annotation classes that will configure instances of the component at the points of dependency reference to the component.
+ * Such a configuration could, for instance, contain a database identifier for a database access dependency, etc.
  *
  * @author Tibor Varga
  */
@@ -43,7 +43,7 @@ import java.lang.annotation.Target;
 public @interface Context {
 
     /**
-     * Returns the context annotations whose instances are used to cache instances of this semi-singleton component against.
+     * Returns the context annotations that configure the class annotated with {@link Context}.
      *
      * @return a list of context annotation classes.
      */

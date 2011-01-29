@@ -43,7 +43,7 @@ import org.testng.annotations.Test;
 public class ComponentDiscoveryImplTest extends MockGroupAbstractTest {
 
     private final ComponentContainer container = addControl(ComponentContainer.class);
-    private final OpenComponentContainer nestedContainer = addControl(OpenComponentContainer.class);
+    private final OpenComponentContainer childContainer = addControl(OpenComponentContainer.class);
     private final ComponentContainer.Registry registry = addControl(ComponentContainer.Registry.class);
 
     private final ClassDiscovery discovery = addControl(ClassDiscovery.class);
@@ -77,14 +77,14 @@ public class ComponentDiscoveryImplTest extends MockGroupAbstractTest {
 
             final Interface[] instances = new Interface[] { new Impl1(), new Impl2(), new Impl3() };
 
-            EasyMock.expect(container.makeNestedContainer()).andReturn(nestedContainer);
-            EasyMock.expect(nestedContainer.getRegistry()).andReturn(registry);
+            EasyMock.expect(container.makeChildContainer()).andReturn(childContainer);
+            EasyMock.expect(childContainer.getRegistry()).andReturn(registry);
 
             for (final Interface instance : instances) {
                 EasyMock.expect(container.getComponent(instance.getClass())).andReturn(instance);
             }
 
-            EasyMock.expect(nestedContainer.getAllComponents(Interface.class)).andReturn(Collections.EMPTY_LIST);
+            EasyMock.expect(childContainer.getAllComponents(Interface.class)).andReturn(Collections.EMPTY_LIST);
 
             replay();
             assert new ArrayList<Interface>(Arrays.asList(instances)).equals(new ArrayList<Interface>(
@@ -129,8 +129,8 @@ public class ComponentDiscoveryImplTest extends MockGroupAbstractTest {
 
             final Interface[] instances = new Interface[] { new Impl1(), new Impl2(), new Impl3() };
 
-            EasyMock.expect(container.makeNestedContainer()).andReturn(nestedContainer);
-            EasyMock.expect(nestedContainer.getRegistry()).andReturn(registry);
+            EasyMock.expect(container.makeChildContainer()).andReturn(childContainer);
+            EasyMock.expect(childContainer.getRegistry()).andReturn(registry);
 
             for (final Interface instance : instances) {
                 final Class<? extends Interface> instanceClass = instance.getClass();
@@ -139,7 +139,7 @@ public class ComponentDiscoveryImplTest extends MockGroupAbstractTest {
                 registry.bindDefault(instanceClass);
             }
 
-            EasyMock.expect(nestedContainer.getAllComponents(Interface.class)).andReturn(Arrays.asList(instances));
+            EasyMock.expect(childContainer.getAllComponents(Interface.class)).andReturn(Arrays.asList(instances));
 
             replay();
             assert new ArrayList<Interface>(Arrays.asList(instances)).equals(new ArrayList<Interface>(

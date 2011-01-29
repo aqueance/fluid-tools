@@ -25,26 +25,31 @@ package org.fluidity.composition.spi;
 import org.fluidity.composition.ComponentContainer;
 
 /**
- * An implementation of this interface is placed, either automatically by the org.fluidity.composition:maven-composition-plugin or manually by the component
+ * An implementation of this interface is placed, either automatically by the org.fluidity.maven:maven-composition-plugin or manually by the component
  * developer, in each package that contains component implementations. The goal of these classes is to add component bindings for component implementations in
  * the respective package to the supplied registry. The components thus bound may depend on other components in the container and vice versa.
+ * <p/>
+ * Placing the implementation of this interface in the same package as the components it binds allows those component classes to be package protected and thus
+ * hiding them from inadvertent use.
  *
  * @author Tibor Varga
  */
 public interface PackageBindings extends ComponentContainer.Bindings {
 
     /**
-     * Perform component specific initialisation if necessary. This method is invoked once after the <code>registerComponents()</code> method of all
-     * <code>PackageBinding</code> objects have been invoked.
+     * Perform component specific initialization if necessary. This method is invoked once after the {@link org.fluidity.composition.ComponentContainer.Bindings#bindComponents(org.fluidity.composition.ComponentContainer.Registry)}
+     * method of all {@link PackageBindings} objects have been invoked and before any component is accessed in the provided container from outside the container.
      *
-     * @param container is the container containing all global components that will be available during the life
+     * @param container is the container that was populated by the {@link org.fluidity.composition.ComponentContainer.Bindings#bindComponents(org.fluidity.composition.ComponentContainer.Registry)}
+     *                  method.
      */
     void initializeComponents(ComponentContainer container);
 
     /**
      * Perform component specific shutdown if necessary. This method is invoked once when the application is being shut down.
      *
-     * @param container is the container containing all global components that will be available during the life
+     * @param container is the container that was populated by the {@link org.fluidity.composition.ComponentContainer.Bindings#bindComponents(org.fluidity.composition.ComponentContainer.Registry)}
+     *                  method.
      */
     void shutdownComponents(ComponentContainer container);
 }

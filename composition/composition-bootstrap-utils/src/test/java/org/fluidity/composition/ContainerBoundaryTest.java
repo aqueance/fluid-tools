@@ -30,7 +30,7 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.fluidity.composition.spi.ContainerProvider;
-import org.fluidity.foundation.NullLogFactory;
+import org.fluidity.foundation.NoLogFactory;
 import org.fluidity.foundation.spi.LogFactory;
 import org.fluidity.tests.MockGroupAbstractTest;
 
@@ -53,7 +53,7 @@ public class ContainerBoundaryTest extends MockGroupAbstractTest {
     private final ContainerServicesFactory servicesFactory = addControl(ContainerServicesFactory.class);
     private final ContainerServices services = addControl(ContainerServices.class);
 
-    private final LogFactory logs = new NullLogFactory();
+    private final LogFactory logs = new NoLogFactory();
 
     private void setupDependencies(final ClassLoader classLoader, final boolean assign) {
         EasyMock.expect(providers.<ContainerBootstrap>findInstance(ContainerBootstrap.class, classLoader)).andReturn(assign ? bootstrap : null);

@@ -29,11 +29,11 @@ import org.fluidity.composition.spi.EmptyComponentContainer;
  *
  * @author Tibor Varga
  */
-final class FluidComponentRegistry extends EmptyComponentContainer.EmptyRegistry {
+final class ComponentRegistryShell extends EmptyComponentContainer.EmptyRegistry {
 
     private final SimpleContainer container;
 
-    public FluidComponentRegistry(final SimpleContainer container) {
+    public ComponentRegistryShell(final SimpleContainer container) {
         this.container = container;
     }
 
@@ -53,11 +53,11 @@ final class FluidComponentRegistry extends EmptyComponentContainer.EmptyRegistry
         container.bindInstance(key, instance);
     }
 
-    public OpenComponentContainer makeNestedContainer() {
-        return new FluidComponentContainer(container.newChildContainer(), true);
+    public OpenComponentContainer makeChildContainer() {
+        return new ComponentContainerShell(container.newChildContainer(), true);
     }
 
-    public <T> OpenComponentContainer makeNestedContainer(final Class<T> key, final Class<? extends T> implementation) {
-        return new FluidComponentContainer(container.linkComponent(key, implementation), false);
+    public <T> OpenComponentContainer makeChildContainer(final Class<T> key, final Class<? extends T> implementation) {
+        return new ComponentContainerShell(container.linkComponent(key, implementation), false);
     }
 }

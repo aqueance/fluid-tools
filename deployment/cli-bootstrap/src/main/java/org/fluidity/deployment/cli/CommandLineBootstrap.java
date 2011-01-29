@@ -25,7 +25,7 @@ package org.fluidity.deployment.cli;
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ContainerBoundary;
 import org.fluidity.composition.Optional;
-import org.fluidity.composition.spi.ShutdownHook;
+import org.fluidity.composition.spi.ShutdownTasks;
 import org.fluidity.deployment.DeploymentBootstrap;
 import org.fluidity.deployment.LaunchArguments;
 
@@ -43,11 +43,11 @@ public final class CommandLineBootstrap {
 
     private final MainLoop main;
 
-    public CommandLineBootstrap(final @Optional DeploymentBootstrap bootstrap, final MainLoop main, final ShutdownHook shutdown) throws Exception {
+    public CommandLineBootstrap(final @Optional DeploymentBootstrap bootstrap, final MainLoop main, final ShutdownTasks shutdown) throws Exception {
         this.main = main;
 
         if (bootstrap != null) {
-            shutdown.addTask("bootstrap", new Runnable() {
+            shutdown.add("bootstrap", new Runnable() {
                 public void run() {
                     bootstrap.unload();
                 }

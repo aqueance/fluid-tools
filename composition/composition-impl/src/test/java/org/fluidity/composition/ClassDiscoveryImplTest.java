@@ -35,7 +35,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.fluidity.foundation.ClassLoaders;
-import org.fluidity.foundation.NullLogFactory;
+import org.fluidity.foundation.NoLogFactory;
 import org.fluidity.foundation.Streams;
 import org.fluidity.foundation.spi.LogFactory;
 import org.fluidity.tests.MockGroupAbstractTest;
@@ -48,7 +48,7 @@ import org.testng.annotations.Test;
 @SuppressWarnings("ResultOfMethodCallIgnored")
 public class ClassDiscoveryImplTest extends MockGroupAbstractTest {
 
-    private final LogFactory logs = new NullLogFactory();
+    private final LogFactory logs = new NoLogFactory();
 
     @Test
     public void findsClassesInAnyClassLoader() throws Exception {

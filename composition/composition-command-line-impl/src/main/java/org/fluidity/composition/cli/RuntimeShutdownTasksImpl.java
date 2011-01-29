@@ -19,10 +19,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package org.fluidity.composition.cli;
 
 import org.fluidity.composition.Component;
-import org.fluidity.composition.spi.ShutdownHook;
+import org.fluidity.composition.spi.ShutdownTasks;
 
 /**
  * Uses the {@link Runtime} object to add shutdown tasks to. The caller must make sure it has enough privileges to add a runtime shutdown hook.
@@ -30,9 +31,9 @@ import org.fluidity.composition.spi.ShutdownHook;
  * @author Tibor Varga
  */
 @Component
-final class RuntimeShutdownHook implements ShutdownHook {
+final class RuntimeShutdownTasksImpl implements ShutdownTasks {
 
-    public void addTask(final String threadName, final Runnable command) {
-        Runtime.getRuntime().addShutdownHook(new Thread(command, threadName));
+    public void add(final String name, final Runnable command) {
+        Runtime.getRuntime().addShutdownHook(new Thread(command, name));
     }
 }

@@ -43,14 +43,10 @@ abstract class FactoryProducer extends AbstractProducer {
         super(cache, logs);
         this.factoryClass = factoryClass;
 
-        final ComponentContainer.BindingException error = new ComponentContainer.BindingException(
-                "Factory %s must have a @Component(api = ..., type = ...) annotation",
-                factoryClass);
-
         final Component annotation = factoryClass.getAnnotation(Component.class);
 
         if (annotation == null) {
-            throw error;
+            throw new ComponentContainer.BindingException("Factory %s must have a @%s annotation", factoryClass, Component.class);
         }
 
         this.componentInterface = annotation.api();
@@ -58,8 +54,9 @@ abstract class FactoryProducer extends AbstractProducer {
 
         assert componentInterface != null;
         assert componentClass != null;
+
         if (componentInterface == Object.class || componentClass == Object.class) {
-            throw error;
+            throw new ComponentContainer.BindingException("Factory %s must have a @%s(api = ..., type = ...) annotation", factoryClass, Component.class);
         }
     }
 
@@ -75,7 +72,7 @@ abstract class FactoryProducer extends AbstractProducer {
     protected ComponentCache.Command createCommand(final SimpleContainer container) {
         return new ComponentCache.Command() {
             public Object run(final ComponentContext context) {
-                return factory(container).newComponent(new FluidComponentContainer(container, true), context);
+                return factory(container).newComponent(new ComponentContainerShell(container, true), context);
             }
         };
     }

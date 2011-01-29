@@ -96,9 +96,9 @@ abstract class VariantProducer extends AbstractProducer {
             public Object run(final ComponentContext context) {
                 final ComponentVariantFactory factory = factory(container);
 
-                final SimpleContainer nested = container.newChildContainer();
-                nested.bindProducer(delegate.componentInterface(), delegate);
-                final OpenComponentContainer returned = factory.newComponent(new FluidComponentContainer(nested, false), context);
+                final SimpleContainer child = container.newChildContainer();
+                child.bindProducer(delegate.componentInterface(), delegate);
+                final OpenComponentContainer returned = factory.newComponent(new ComponentContainerShell(child, false), context);
 
                 if (returned == null) {
                     return null;

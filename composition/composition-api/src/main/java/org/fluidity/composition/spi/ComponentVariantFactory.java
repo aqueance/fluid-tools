@@ -27,27 +27,28 @@ import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.OpenComponentContainer;
 
 /**
- * A variants factory offers context dependent instance variants of an otherwise singleton component that itself can in some way be configured to adapt to
+ * A variant factory offers context dependent instance variants of an otherwise singleton component that itself can in some way be configured to adapt to
  * various externally defined contexts. The variant factory lists the context annotations it understands in its {@link org.fluidity.composition.Context} class
  * annotation.
  * <p/>
  * A {@link ComponentVariantFactory} works in conjunction with an otherwise singleton component independently registered in a dependency injection container
- * accessible to the factory and allowing instances to be created, i.e., not bound by {@link ComponentContainer.Registry#bindInstance(Class, Object)}.
+ * accessible to the factory with a binding that allows new instances to be created, i.e., the component has not been bound by {@link
+ * ComponentContainer.Registry#bindInstance(Class, Object)}.
  *
  * @author Tibor Varga
  */
 public interface ComponentVariantFactory {
 
     /**
-     * Binds the component that this is a factory for in the provided container. The component bindings, if any, will be applied to the container returned by
-     * the factory.
+     * Binds the component that this is a factory for in the provided container. The original bindings for the component will be applied to the container
+     * returned by the factory.
      *
      * @param container is the container to resolve dependencies of the component from.
-     * @param context   is the context for the instance to create. When this is null or empty, the default instance must be returned.
+     * @param context   is the context for the instance to create. When this is null or empty, the default instance must be returned. The key set in the context
+     *                  is taken from the list of annotation classes in the {@link org.fluidity.composition.Context} annotation of this factory.
      *
      * @return a container to get the instance from; may be <code>null</code>, in which case no instance will be created, otherwise either the component bound
-     *         by the factory is returned or the default one if the factory binds no component. The key set in the context is taken from the list of annotation
-     *         classes in the {@link org.fluidity.composition.Context} annotation.
+     *         by the factory is returned or the default one if the factory binds no component.
      *
      * @throws ComponentContainer.ResolutionException
      *          of a component cannot be created.

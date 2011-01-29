@@ -30,7 +30,7 @@ import javax.servlet.ServletContextListener;
 
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ServiceProvider;
-import org.fluidity.composition.spi.ShutdownHook;
+import org.fluidity.composition.spi.ShutdownTasks;
 import org.fluidity.foundation.logging.Log;
 import org.fluidity.foundation.logging.Marker;
 
@@ -42,20 +42,20 @@ import org.fluidity.foundation.logging.Marker;
  *
  * @author Tibor Varga
  */
-@Component(api = ShutdownHook.class)
+@Component(api = ShutdownTasks.class)
 @ServiceProvider(api = ServletContextListener.class)
-final class WebApplicationShutdownHookImpl implements ShutdownHook, ServletContextListener {
+final class WebApplicationShutdownTasksImpl implements ShutdownTasks, ServletContextListener {
 
     private static final Map<String, Runnable> tasks = new HashMap<String, Runnable>();
 
     private final Log log;
 
-    public WebApplicationShutdownHookImpl(final @Marker(WebApplicationShutdownHookImpl.class) Log log) {
+    public WebApplicationShutdownTasksImpl(final @Marker(WebApplicationShutdownTasksImpl.class) Log log) {
         this.log = log;
     }
 
-    public void addTask(final String threadName, final Runnable command) {
-        tasks.put(threadName, command);
+    public void add(final String name, final Runnable command) {
+        tasks.put(name, command);
     }
 
     public void contextInitialized(final ServletContextEvent event) {

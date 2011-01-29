@@ -35,14 +35,15 @@ import org.fluidity.composition.spi.ContainerProvider;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**
- * Static access to class loader specific dependency injection container. The child container - parent container hierarchy matches the child class loader -
- * parent class loader hierarchy. The root class loader to have a container is the one that can find the dependencies of this class: {@link ContainerBootstrap},
- * {@link ContainerProvider} and {@link ContainerServicesFactory}.
+ * Static access to class loader specific dependency injection container. This utility class ensures that the child container - parent container hierarchy
+ * matches the child class loader - parent class loader hierarchy. The root class loader to have a container is the one that can find the dependencies of this
+ * class: {@link ContainerBootstrap}, {@link ContainerProvider} and {@link ContainerServicesFactory}.
  * <p/>
- * This component also bootstraps the required container if it has not yet been populated. Instances of this class all work against the same data structure,
- * thereby giving classes instantiated by third parties access to the container relevant for their level in the application's class loader hierarchy. Due to the
- * bootstrap bubbling up, it is advised to explicitly bootstrap each level container, before any child container is bootstrapped, where binding properties are
- * specified so that those properties may take effect at the given level.
+ * This class bootstraps containers that have not yet been populated. Instances of this class all work against the same data structure, thereby giving classes
+ * instantiated by third parties access to the container relevant to their level in the application's class loader hierarchy. Bootstrapping a container
+ * hierarchy is performed up in the hierarchy from the requested container and if a higher level container is attempted to add bootstrap bindings or properties
+ * to when it has already been bootstrapped due to earlier access to one of its child containers, the bootstrap binding or property registration operation will
+ * fail. In such a case it is advised to explicitly bootstrap the higher level container before the lower level container is bootstrapped.
  * <p/>
  * This class is a special case in the design since it has to be self-sufficient, depending on nothing that's not always available, and it also has to be
  * visible as it acts as the root object of an application's dependency graph. Thus it has to depend on concrete classes.
@@ -99,6 +100,81 @@ public final class ContainerBoundary implements ComponentContainer {
     }
 
     /**
+     * Adds a property to a collection that will be passed to any {@link org.fluidity.composition.spi.PackageBindings} visible by the current class loader that
+     * has a constructor with a {@link Map} parameter.
+     *
+     * @param key   is the property key.
+     * @param value is the property value.
+     */
+    @SuppressWarnings("unchecked")
+    public void setBindingProperty(final Object key, final Object value) {
+
+        // never intended to be modified concurrently as this method is by nature should be used by one single object in one single thread
+        // but you never know and it's better to ensure data consistency than to blame the user for the corrupt results stemming from poor design
+        synchronized (stateLock) {
+            Map map = propertiesMap.get(classLoader);
+
+            if (map == null) {
+                propertiesMap.put(classLoader, map = new HashMap());
+            }
+
+            map.put(key, value);
+        }
+    }
+
+    /**
+     * Allows a bootstrap code to add component instances to the container before it bootstraps. This method can only be invoked before any component is taken
+     * out of the container by any thread using any of the {@link #getComponent(Class)}, {@link #getComponent(Class, ComponentContainer.Bindings)}, {@link
+     * #initialize(Object)} or {@link #makeChildContainer()} methods. Once that happens, this method will throw an {@link IllegalStateException}.
+     * <p/>
+     * Calling this method will trigger population of the associated container and its parents.
+     *
+     * @param key      the key by which to register the component; preferably an interface class.
+     * @param instance the component instance.
+     *
+     * @throws IllegalStateException if the container is made read only by getting any component out of it.
+     */
+    public <T> void bindBootComponent(final Class<? super T> key, final T instance) {
+        loadContainer(false).getRegistry().bindInstance(key, instance);
+    }
+
+    /**
+     * Delegates to the enclosed container.
+     * <p/>
+     * {@inheritDoc}
+     */
+    public <T> T getComponent(final Class<T> componentInterface) {
+        return loadContainer(true).getComponent(componentInterface);
+    }
+
+    /**
+     * Delegates to the enclosed container.
+     * <p/>
+     * {@inheritDoc}
+     */
+    public <T> T getComponent(final Class<T> componentInterface, final Bindings bindings) {
+        return loadContainer(true).getComponent(componentInterface, bindings);
+    }
+
+    /**
+     * Delegates to the enclosed container.
+     * <p/>
+     * {@inheritDoc}
+     */
+    public OpenComponentContainer makeChildContainer() {
+        return loadContainer(true).makeChildContainer();
+    }
+
+    /**
+     * Delegates to the enclosed container.
+     * <p/>
+     * {@inheritDoc}
+     */
+    public <T> T initialize(final T component) {
+        return loadContainer(true).initialize(component);
+    }
+
+    /**
      * This is for the unit test cases to override our single dependency.
      *
      * @param services is a mock object.
@@ -125,30 +201,9 @@ public final class ContainerBoundary implements ComponentContainer {
     }
 
     /**
-     * Adds a property to a collection that will be passed to any {@link org.fluidity.composition.spi.PackageBindings} visible by the current class loader that
-     * has a constructor with a {@link Map} parameter.
+     * Returns list of populated containers at and above the current class loader.
      *
-     * @param key   is the key of the property.
-     * @param value is the value of the property.
-     */
-    @SuppressWarnings("unchecked")
-    public void setBindingProperty(final Object key, final Object value) {
-
-        // never intended to be modified concurrently as this method is by nature should be used by one single object in one single thread
-        // but you never know and it's better to ensure data consistency than to blame the user for the corrupt results stemming from poor design
-        synchronized (stateLock) {
-            Map map = propertiesMap.get(classLoader);
-
-            if (map == null) {
-                propertiesMap.put(classLoader, map = new HashMap());
-            }
-
-            map.put(key, value);
-        }
-    }
-
-    /*
-     * Returns list of populated container at and above the current class loader
+     * @return list of populated containers at and above the current class loader.
      */
     private List<OpenComponentContainer> makeContainer() {
         if (services == null) {
@@ -246,57 +301,5 @@ public final class ContainerBoundary implements ComponentContainer {
 
             return containers.isEmpty() ? null : containers.get(0);
         }
-    }
-
-    /**
-     * Delegates to the enclosed container.
-     *
-     * @see ComponentContainer#getComponent(Class)
-     */
-    public <T> T getComponent(final Class<T> componentClass) {
-        return loadContainer(true).getComponent(componentClass);
-    }
-
-    /**
-     * Delegates to the enclosed container.
-     *
-     * @see ComponentContainer#getComponent(Class, ComponentContainer.Bindings)
-     */
-    public <T> T getComponent(final Class<T> componentClass, final Bindings bindings) {
-        return loadContainer(true).getComponent(componentClass, bindings);
-    }
-
-    /**
-     * Delegates to the enclosed container.
-     *
-     * @see OpenComponentContainer#makeNestedContainer()
-     */
-    public OpenComponentContainer makeNestedContainer() {
-        return loadContainer(true).makeNestedContainer();
-    }
-
-    /**
-     * Delegates to the enclosed container.
-     *
-     * @see OpenComponentContainer#initialize(Object)
-     */
-    public <T> T initialize(final T component) {
-        return loadContainer(true).initialize(component);
-    }
-
-    /**
-     * Allows a bootstrap code to add component instances to the container before it bootstraps. This method can only be invoked before any component is taken
-     * out of the container by any thread using any of the {@link #getComponent(Class)}, {@link #getComponent(Class, ComponentContainer.Bindings)}, {@link
-     * #initialize(Object)} or {@link #makeNestedContainer()} methods. Once that happens, this method will throw an {@link IllegalStateException}.
-     * <p/>
-     * Calling this method will trigger population of the associated container and its parents.
-     *
-     * @param key      the key by which to register the component; preferably an interface class.
-     * @param instance the component instance.
-     *
-     * @throws IllegalStateException if the container is made read only by getting any component out of it.
-     */
-    public <T> void bindBootComponent(final Class<? super T> key, final T instance) {
-        loadContainer(false).getRegistry().bindInstance(key, instance);
     }
 }

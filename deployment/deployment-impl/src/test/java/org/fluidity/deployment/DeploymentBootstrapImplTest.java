@@ -28,7 +28,7 @@ import java.util.List;
 
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentDiscovery;
-import org.fluidity.foundation.NullLogFactory;
+import org.fluidity.foundation.NoLogFactory;
 import org.fluidity.foundation.logging.Log;
 import org.fluidity.tests.MockGroupAbstractTest;
 
@@ -43,7 +43,7 @@ import org.testng.annotations.Test;
  */
 public final class DeploymentBootstrapImplTest extends MockGroupAbstractTest {
 
-    private final Log log = new NullLogFactory().createLog(null);
+    private final Log log = new NoLogFactory().createLog(null);
     private final ComponentContainer container = addControl(ComponentContainer.class);
     private final ComponentDiscovery discovery = addControl(ComponentDiscovery.class);
     private final DeploymentControl deployments = addControl(DeploymentControl.class);

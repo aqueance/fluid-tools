@@ -22,7 +22,7 @@
 
 package org.fluidity.composition;
 
-import org.fluidity.foundation.NullLogFactory;
+import org.fluidity.foundation.NoLogFactory;
 import org.fluidity.tests.MockGroupAbstractTest;
 
 import org.testng.annotations.Factory;
@@ -48,7 +48,7 @@ public abstract class ComponentContainerAbstractTest extends MockGroupAbstractTe
     public Object[] tests() {
         final ContainerFactory containers = new ContainerFactory() {
             public OpenComponentContainer createContainer() {
-                return newContainer(new ProductionServices(new NullLogFactory()));
+                return newContainer(new ProductionServices(new NoLogFactory()));
             }
         };
 

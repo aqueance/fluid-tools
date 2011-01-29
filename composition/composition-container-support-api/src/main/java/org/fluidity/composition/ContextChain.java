@@ -61,7 +61,7 @@ public interface ContextChain {
      *
      * @return whatever the given command returns.
      */
-    <T> T nested(ComponentContext context, Command<T> command);
+    <T> T track(ComponentContext context, Command<T> command);
 
     /**
      * Returns the actual context supported by the given component type using the possibly larger context established at this point.
@@ -95,7 +95,7 @@ public interface ContextChain {
          *
          * @param context the context established at the point of invocation.
          *
-         * @return whatever the caller of {@link ContextChain#nested(ComponentContext, ContextChain.Command)} wishes to receive back.
+         * @return whatever the caller of {@link ContextChain#track(ComponentContext, ContextChain.Command)} wishes to receive back.
          */
         T run(ComponentContext context);
     }

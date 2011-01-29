@@ -219,7 +219,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
             if (value == null) {
                 final ComponentContext extracted = contextFactory.extractContext(dependency.annotations());
 
-                value = extracted == null ? resolver.resolve(dependencyType, context) : contextChain.nested(extracted, new ContextChain.Command<Object>() {
+                value = extracted == null ? resolver.resolve(dependencyType, context) : contextChain.track(extracted, new ContextChain.Command<Object>() {
                     public Object run(final ComponentContext context) {
                         return resolver.resolve(dependencyType, context);
                     }

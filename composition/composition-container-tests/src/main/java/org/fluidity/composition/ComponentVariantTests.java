@@ -85,19 +85,19 @@ public final class ComponentVariantTests extends AbstractContainerTests {
     }
 
     @Test
-    public void invokesNestedVariantsFactoryClassOnce() throws Exception {
+    public void invokesVariantsFactoryClassOnceInChildContainer() throws Exception {
         registry.bindComponent(Key.class, Value.class);
         registry.bindDefault(FactoryDependency.class);
-        final OpenComponentContainer nested = registry.makeNestedContainer(DependentKey.class, ContextDependentValue.class);
+        final OpenComponentContainer child = registry.makeChildContainer(DependentKey.class, ContextDependentValue.class);
 
         final String check = "check";
-        final ComponentContainer.Registry nestedRegistry = nested.getRegistry();
+        final ComponentContainer.Registry childRegistry = child.getRegistry();
 
-        nestedRegistry.bindDefault(Variants.class);
-        nestedRegistry.bindInstance(Serializable.class, check);
+        childRegistry.bindDefault(Variants.class);
+        childRegistry.bindInstance(Serializable.class, check);
 
         EasyMock.expect(variants.newComponent(EasyMock.<OpenComponentContainer>notNull(), EasyMock.<ComponentContext>notNull()))
-                .andAnswer(new VariantContainerCheck(nested, Serializable.class, check));
+                .andAnswer(new VariantContainerCheck(child, Serializable.class, check));
 
         replay();
         verifyComponent(Value.instanceCount, 1, container);
@@ -271,75 +271,75 @@ public final class ComponentVariantTests extends AbstractContainerTests {
     }
 
     @Test
-    public void nestedVariantFactoryCreatesMultipleInstances() throws Exception {
+    public void variantFactoryCreatesMultipleInstancesInChildContainer() throws Exception {
         registry.bindComponent(Key.class, Value.class);
         registry.bindComponent(FactoryDependency.class, FactoryDependency.class);
-        final OpenComponentContainer nested = registry.makeNestedContainer(DependentKey.class, ContextDependentValue.class);
+        final OpenComponentContainer child = registry.makeChildContainer(DependentKey.class, ContextDependentValue.class);
 
         final String check = "check";
-        final ComponentContainer.Registry nestedRegistry = nested.getRegistry();
+        final ComponentContainer.Registry childRegistry = child.getRegistry();
 
-        nestedRegistry.bindDefault(ContextProvider0.class);
-        nestedRegistry.bindDefault(ContextProvider1.class);
-        nestedRegistry.bindDefault(ContextProvider2.class);
+        childRegistry.bindDefault(ContextProvider0.class);
+        childRegistry.bindDefault(ContextProvider1.class);
+        childRegistry.bindDefault(ContextProvider2.class);
 
-        nestedRegistry.bindComponent(Variants.class, Variants.class);
-        nestedRegistry.bindInstance(Serializable.class, check);
-
-        EasyMock.expect(variants.newComponent(EasyMock.<OpenComponentContainer>notNull(), EasyMock.<ComponentContext>notNull()))
-                .andAnswer(new VariantContainerCheck(nested, Serializable.class, check));
+        childRegistry.bindComponent(Variants.class, Variants.class);
+        childRegistry.bindInstance(Serializable.class, check);
 
         EasyMock.expect(variants.newComponent(EasyMock.<OpenComponentContainer>notNull(), EasyMock.<ComponentContext>notNull()))
-                .andAnswer(new VariantContainerCheck(nested, Serializable.class, check));
+                .andAnswer(new VariantContainerCheck(child, Serializable.class, check));
 
         EasyMock.expect(variants.newComponent(EasyMock.<OpenComponentContainer>notNull(), EasyMock.<ComponentContext>notNull()))
-                .andAnswer(new VariantContainerCheck(nested, Serializable.class, check));
+                .andAnswer(new VariantContainerCheck(child, Serializable.class, check));
+
+        EasyMock.expect(variants.newComponent(EasyMock.<OpenComponentContainer>notNull(), EasyMock.<ComponentContext>notNull()))
+                .andAnswer(new VariantContainerCheck(child, Serializable.class, check));
 
         replay();
 
         verifyComponent(Value.instanceCount, 1, container);
 
         // get objects that specify all contexts
-        verifyContext(nested, Variants.class);
+        verifyContext(child, Variants.class);
 
         verify();
     }
 
     @Test
-    public void variantsFactoryCreatesMultipleInstancesInNestedContainer() throws Exception {
+    public void variantsFactoryCreatesMultipleInstancesInChildContainer() throws Exception {
         registry.bindComponent(Key.class, Value.class);
         registry.bindComponent(DependentKey.class, ContextDependentValue.class);
         registry.bindComponent(FactoryDependency.class, FactoryDependency.class);
 
-        final OpenComponentContainer nested = registry.makeNestedContainer();
-        final ComponentContainer.Registry nestedRegistry = nested.getRegistry();
+        final OpenComponentContainer child = registry.makeChildContainer();
+        final ComponentContainer.Registry childRegistry = child.getRegistry();
 
-        nestedRegistry.bindDefault(ContextProvider0.class);
-        nestedRegistry.bindDefault(ContextProvider1.class);
-        nestedRegistry.bindDefault(ContextProvider2.class);
+        childRegistry.bindDefault(ContextProvider0.class);
+        childRegistry.bindDefault(ContextProvider1.class);
+        childRegistry.bindDefault(ContextProvider2.class);
 
         // corresponding binding component took place in the parent container but must still be found
-        nestedRegistry.bindComponent(Variants.class, Variants.class);
+        childRegistry.bindComponent(Variants.class, Variants.class);
 
         final String check = "check";
 
-        nestedRegistry.bindInstance(Serializable.class, check);
+        childRegistry.bindInstance(Serializable.class, check);
 
         EasyMock.expect(variants.newComponent(EasyMock.<OpenComponentContainer>notNull(), EasyMock.<ComponentContext>notNull()))
-                .andAnswer(new VariantContainerCheck(nested, Serializable.class, check));
+                .andAnswer(new VariantContainerCheck(child, Serializable.class, check));
 
         EasyMock.expect(variants.newComponent(EasyMock.<OpenComponentContainer>notNull(), EasyMock.<ComponentContext>notNull()))
-                .andAnswer(new VariantContainerCheck(nested, Serializable.class, check));
+                .andAnswer(new VariantContainerCheck(child, Serializable.class, check));
 
         EasyMock.expect(variants.newComponent(EasyMock.<OpenComponentContainer>notNull(), EasyMock.<ComponentContext>notNull()))
-                .andAnswer(new VariantContainerCheck(nested, Serializable.class, check));
+                .andAnswer(new VariantContainerCheck(child, Serializable.class, check));
 
         replay();
 
         verifyComponent(Value.instanceCount, 1, container);
 
         // get objects that specify all contexts
-        verifyContext(nested, Variants.class);
+        verifyContext(child, Variants.class);
 
         verify();
     }

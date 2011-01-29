@@ -36,15 +36,15 @@ public final class ContainerHierarchyTests extends AbstractContainerTests {
     @Test
     public void linkingComponentDependencyResolvesInParent() throws Exception {
         registry.bindComponent(DependentKey.class, DependentValue.class);
-        registry.makeNestedContainer(Key.class, Value.class);
+        registry.makeChildContainer(Key.class, Value.class);
 
         verifyComponent(Value.instanceCount, 1, container);
     }
 
     @Test
     public void linkingComponentDependencyResolvesInChild() throws Exception {
-        final OpenComponentContainer nested = registry.makeNestedContainer(Key.class, Value.class);
-        nested.getRegistry().bindComponent(DependentKey.class, DependentValue.class);
+        final OpenComponentContainer child = registry.makeChildContainer(Key.class, Value.class);
+        child.getRegistry().bindComponent(DependentKey.class, DependentValue.class);
 
         verifyComponent(Value.instanceCount, 1, container);
     }
@@ -53,26 +53,26 @@ public final class ContainerHierarchyTests extends AbstractContainerTests {
     public void dependencyFromChildResolvesInParent() throws Exception {
         registry.bindComponent(DependentKey.class, DependentValue.class);
 
-        final OpenComponentContainer nested = container.makeNestedContainer();
-        nested.getRegistry().bindComponent(Key.class, Value.class);
+        final OpenComponentContainer child = container.makeChildContainer();
+        child.getRegistry().bindComponent(Key.class, Value.class);
 
-        verifyComponent(Value.instanceCount, 1, nested);
+        verifyComponent(Value.instanceCount, 1, child);
     }
 
     @Test
     public void linkingComponentDependencyResolvesOnOther0LinkingComponentAtSameLevel() throws Exception {
-        registry.makeNestedContainer(DependentKey.class, DependentValue.class);
-        registry.makeNestedContainer(Key.class, Value.class);
+        registry.makeChildContainer(DependentKey.class, DependentValue.class);
+        registry.makeChildContainer(Key.class, Value.class);
 
         verifyComponent(Value.instanceCount, 1, container);
     }
 
     @Test
     public void linkingComponentDependencyResolvesOnOther0LinkingComponentAtHigherLevel() throws Exception {
-        registry.makeNestedContainer(DependentKey.class, DependentValue.class);
-        final OpenComponentContainer nested = registry.makeNestedContainer().getRegistry().makeNestedContainer(Key.class, Value.class);
+        registry.makeChildContainer(DependentKey.class, DependentValue.class);
+        final OpenComponentContainer child = registry.makeChildContainer().getRegistry().makeChildContainer(Key.class, Value.class);
 
-        verifyComponent(Value.instanceCount, 1, nested);
+        verifyComponent(Value.instanceCount, 1, child);
     }
 
     @Test
@@ -80,30 +80,30 @@ public final class ContainerHierarchyTests extends AbstractContainerTests {
         registry.bindComponent(DependentKey.class, OtherDependentValue.class);
         registry.bindComponent(Key.class, OtherValue.class);
 
-        final OpenComponentContainer nested = container.makeNestedContainer();
-        final ComponentContainer.Registry nestedRegistry = nested.getRegistry();
-        nestedRegistry.bindComponent(DependentKey.class, DependentValue.class);
-        nestedRegistry.bindComponent(Key.class, Value.class);
+        final OpenComponentContainer child = container.makeChildContainer();
+        final ComponentContainer.Registry childRegistry = child.getRegistry();
+        childRegistry.bindComponent(DependentKey.class, DependentValue.class);
+        childRegistry.bindComponent(Key.class, Value.class);
 
         final int originalCount = Value.instanceCount;
 
-        assert nested.getComponent(Key.class) instanceof Value;
-        assert nested.getComponent(DependentKey.class) instanceof DependentValue;
+        assert child.getComponent(Key.class) instanceof Value;
+        assert child.getComponent(DependentKey.class) instanceof DependentValue;
 
         assert container.getComponent(Key.class) instanceof OtherValue;
         assert container.getComponent(DependentKey.class) instanceof OtherDependentValue;
 
-        verifyComponent(originalCount, 1, nested);
+        verifyComponent(originalCount, 1, child);
     }
 
     @Test
-    public void nestedContainerContainsItself() throws Exception {
-        final OpenComponentContainer nestedContainer = registry.makeNestedContainer();
-        final ComponentContainer.Registry nestedRegistry = nestedContainer.getRegistry();
+    public void childContainerContainsItself() throws Exception {
+        final OpenComponentContainer childContainer = registry.makeChildContainer();
+        final ComponentContainer.Registry childRegistry = childContainer.getRegistry();
 
-        nestedRegistry.bindDefault(ContainerDependent.class);
+        childRegistry.bindDefault(ContainerDependent.class);
 
-        final ContainerDependent component = nestedContainer.getComponent(ContainerDependent.class);
+        final ContainerDependent component = childContainer.getComponent(ContainerDependent.class);
         assert component != null;
 
         final ComponentContainer container = component.container();

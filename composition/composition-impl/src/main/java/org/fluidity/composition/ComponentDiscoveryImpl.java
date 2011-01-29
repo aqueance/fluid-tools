@@ -45,8 +45,8 @@ final class ComponentDiscoveryImpl implements ComponentDiscovery {
         final Class<T>[] classes = discovery.findComponentClasses(componentClass, null, false);
         final List<T> instances = new ArrayList<T>();
 
-        final OpenComponentContainer nested = container.makeNestedContainer();
-        final ComponentContainer.Registry registry = nested.getRegistry();
+        final OpenComponentContainer child = container.makeChildContainer();
+        final ComponentContainer.Registry registry = child.getRegistry();
 
         for (final Class<T> theClass : classes) {
             T component = container.getComponent(theClass);
@@ -58,7 +58,7 @@ final class ComponentDiscoveryImpl implements ComponentDiscovery {
             }
         }
 
-        instances.addAll(nested.getAllComponents(componentClass));
+        instances.addAll(child.getAllComponents(componentClass));
 
         return instances.toArray((T[]) Array.newInstance(componentClass, instances.size()));
     }

@@ -26,11 +26,15 @@ import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.OpenComponentContainer;
 
 /**
- * Poses as a factory for a particular component. This factory produces a component when requested. The interface of the component is specified in the {@link
- * org.fluidity.composition.Component#api()} annotation of the the factory implementation class and the class of the component is specified in the {@link
- * org.fluidity.composition.Component#type()} annotation. Both these annotation parameters must be present.
+ * Poses as a factory for a particular component, taking over component instantiation from the host container. You only need to provide an implementation of
+ * this interface for a given component if that component requires instantiation logic more complex than {@link
+ * java.lang.reflect.Constructor#newInstance(Object...)} with dependency injected parameters.
  * <p/>
- * If the components are context dependent, the factory class must specify the valid context annotation classes using the {@link
+ * The interface of the component is specified in the {@link org.fluidity.composition.Component#api()} annotation of the the factory implementation class and
+ * the class of the component is specified in the {@link org.fluidity.composition.Component#type()} annotation. Both these annotation parameters must be
+ * present.
+ * <p/>
+ * If the component is context dependent, the factory class must specify on behalf of the components the valid context annotation classes using the {@link
  * org.fluidity.composition.Context} class annotation.
  *
  * @author Tibor Varga
@@ -44,7 +48,7 @@ public interface ComponentFactory<T> {
      * @param context   is the context for the instance to create. When this is null or empty, the default instance must be created. The key set in the context
      *                  is taken from the list of annotation classes in the {@link org.fluidity.composition.Context} annotation of the component class.
      *
-     * @return the component created, never <code>null</code>.
+     * @return the component created or <code>null</code> if no component could be created, not even a default, context independent instance.
      */
     T newComponent(OpenComponentContainer container, ComponentContext context);
 }

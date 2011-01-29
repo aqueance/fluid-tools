@@ -47,11 +47,11 @@ public interface OpenComponentContainer extends ComponentContainer {
     ComponentContainer.Registry getRegistry();
 
     /**
-     * Returns in instantiation order all registered components having the given interface.
+     * Returns in instantiation order all registered components implementing the given interface.
      *
      * @param componentInterface filters the component instances returned.
      *
-     * @return in instantiation order all registered components having the given interface.
+     * @return in instantiation order all registered components implementing the given interface.
      */
     <T> List<T> getAllComponents(Class<T> componentInterface);
 }

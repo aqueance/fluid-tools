@@ -30,12 +30,13 @@ import java.lang.annotation.Target;
 
 /**
  * In case of simple interface to implementation mapping, this annotation can be used to specify at the implementation class what interface it should be bound
- * to. The org.fluidity.maven:maven-composition-plugin Maven plugin will generate the necessary {@link org.fluidity.composition.spi.PackageBindings} object and
- * create the appropriate service provider descriptor file, unless {@link #automatic()} is set to <code>false</code>.
+ * to. The org.fluidity.maven:maven-composition-plugin Maven plugin will generate the necessary {@link org.fluidity.composition.spi.PackageBindings} object
+ * unless {@link #automatic()} is set to <code>false</code>, and will create the appropriate service provider descriptor file even if you manually supply the
+ * bindings by implementing the {@link org.fluidity.composition.spi.EmptyPackageBindings} class.
  * <p/>
- * This annotation can also be used to mark instance fields of components to request field inject of dependencies. In that case the annotation is processed at
- * run-time after the component has been instantiated - either by the container or externally and in the latter case the container has to be asked to initialize
- * the externally instantiated object by calling {@link ComponentContainer#initialize(Object)}.
+ * This annotation can also be used to mark instance fields of components for dependency injection. In that case the annotation is processed at run-time after
+ * the component has been instantiated - either by the container or externally and in the latter case the container has to be explicitly asked to initialize the
+ * externally instantiated object by calling {@link ComponentContainer#initialize(Object)}.
  *
  * @author Tibor Varga
  */
@@ -49,6 +50,8 @@ public @interface Component {
      * org.fluidity.composition.spi.PackageBindings} object. All other properties are ignored for manually bound components.
      *
      * @return <code>true</code> if this component should be automatically bound; ignored for annotated fields.
+     *
+     * @see org.fluidity.composition.spi.EmptyPackageBindings
      */
     boolean automatic() default true;
 
@@ -57,12 +60,12 @@ public @interface Component {
      * itself if it implements no interface. In case of {@link org.fluidity.composition.spi.ComponentFactory} and {@link
      * org.fluidity.composition.spi.ComponentVariantFactory} components, the value applies to the component the factory creates, not the factory itself.
      *
-     * @return a Class object.
+     * @return a Class object; ignored for annotated fields.
      */
     Class api() default Object.class;
 
     /**
-     * Tells whether this component should be bound as a fallback if no other component has been bound to its API interface.
+     * Tells whether this component should be bound as a fallback to use when no other component has been bound to its API interface.
      *
      * @return <code>true</code> if this component should be mapped as a fallback; ignored for annotated fields.
      */
@@ -70,9 +73,9 @@ public @interface Component {
 
     /**
      * Used by {@link org.fluidity.composition.spi.ComponentFactory} components, this annotation specifies the component class the factory component creates
-     * instances of.
+     * instances of. If that class is not known in advance, return the class returned from {@link #api()}.
      *
-     * @return the component class this factory component creates instances of.
+     * @return the component class this factory component creates instances of; ignored for annotated fields.
      *
      * @see org.fluidity.composition.spi.ComponentFactory
      */

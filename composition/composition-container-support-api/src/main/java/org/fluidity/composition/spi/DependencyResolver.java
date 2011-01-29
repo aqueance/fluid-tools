@@ -81,7 +81,7 @@ public interface DependencyResolver {
     <T> T create(Class<T> type, ComponentContext context);
 
     /**
-     * Returns a new nested container with its base context set to the given properties.
+     * Returns a new child container with its base context set to the given properties.
      *
      * @param context the properties for the new container to use as base context.
      *

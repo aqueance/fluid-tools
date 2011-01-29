@@ -25,32 +25,29 @@ package org.fluidity.composition;
 import java.util.List;
 
 /**
- * Dependency injection container. Supports hierarchies of containers, context dependent variants of singletons, seamless resolution of cyclic
- * dependencies when target is interface.
- * <p/>
  * This is a shell around a {@link SimpleContainer} object.
  *
  * @author Tibor Varga
  */
-final class FluidComponentContainer extends AbstractComponentContainer implements OpenComponentContainer {
+final class ComponentContainerShell extends AbstractComponentContainer implements OpenComponentContainer {
 
     private final ComponentContainer.Registry registry;
 
-    public FluidComponentContainer(final SimpleContainer container, boolean child) {
+    public ComponentContainerShell(final SimpleContainer container, boolean child) {
         this(container, container.services(), child);
     }
 
-    public FluidComponentContainer(final SimpleContainer container, final ContainerServices services, final boolean child) {
+    public ComponentContainerShell(final SimpleContainer container, final ContainerServices services, final boolean child) {
         super(child ? new SimpleContainerImpl(container, services) : container);
-        this.registry = new FluidComponentRegistry(this.container);
+        this.registry = new ComponentRegistryShell(this.container);
     }
 
-    public <T> T getComponent(final Class<T> componentClass) {
-        return container.get(componentClass);
+    public <T> T getComponent(final Class<T> componentInterface) {
+        return container.get(componentInterface);
     }
 
-    public OpenComponentContainer makeNestedContainer() {
-        return new FluidComponentContainer(container, true);
+    public OpenComponentContainer makeChildContainer() {
+        return new ComponentContainerShell(container, true);
     }
 
     public <T> T initialize(final T component) {
@@ -58,7 +55,7 @@ final class FluidComponentContainer extends AbstractComponentContainer implement
     }
 
     public OpenComponentContainer getParentContainer() {
-        return new FluidComponentContainer(container, false);
+        return new ComponentContainerShell(container, false);
     }
 
     public Registry getRegistry() {

@@ -128,9 +128,9 @@ final class SimpleContainerImpl implements SimpleContainer {
     }
 
     public <T> T create(final Class<T> type, final ComponentContext context) {
-        final SimpleContainer nested = new SimpleContainerImpl(this, services);
-        nested.bindComponent(type, type);
-        return nested.get(type, context);
+        final SimpleContainer child = new SimpleContainerImpl(this, services);
+        child.bindComponent(type, type);
+        return child.get(type, context);
     }
 
     public ComponentContainer container(final ComponentContext context) {
@@ -306,7 +306,7 @@ final class SimpleContainerImpl implements SimpleContainer {
         };
 
         // This smells like kludge: AbstractProducer may not be the best place for this conceptually
-        AbstractProducer.captureCreation(listener, new Runnable() {
+        AbstractProducer.captureInstantiations(listener, new Runnable() {
             public void run() {
                 for (final Class<?> type : contents.keySet()) {
                     get(type, null);
@@ -334,7 +334,7 @@ final class SimpleContainerImpl implements SimpleContainer {
                 return parent.get(key);
             }
         } else {
-            return referenceChain.nested(producer, key, new CreateCommand<T>(producer));
+            return referenceChain.track(producer, key, new CreateCommand<T>(producer));
         }
     }
 
@@ -342,7 +342,7 @@ final class SimpleContainerImpl implements SimpleContainer {
         final ComponentProducer producer = contents.get(key);
 
         if (producer == null) {
-            final T found = contextChain.nested(context, new ContextChain.Command<T>() {
+            final T found = contextChain.track(context, new ContextChain.Command<T>() {
                 public T run(final ComponentContext ignore) {
                     return find(key);
                 }
@@ -354,9 +354,9 @@ final class SimpleContainerImpl implements SimpleContainer {
                 return parent.get(key, context);
             }
         } else {
-            return contextChain.nested(context, new ContextChain.Command<T>() {
+            return contextChain.track(context, new ContextChain.Command<T>() {
                 public T run(final ComponentContext context) {
-                    return referenceChain.nested(producer, key, new CreateCommand<T>(producer));
+                    return referenceChain.track(producer, key, new CreateCommand<T>(producer));
                 }
             });
         }
@@ -390,7 +390,7 @@ final class SimpleContainerImpl implements SimpleContainer {
         if (found == null) {
             return null;
         } else {
-            return referenceChain.nested(found, key, new CreateCommand<T>(found));
+            return referenceChain.track(found, key, new CreateCommand<T>(found));
         }
     }
 
@@ -412,7 +412,7 @@ final class SimpleContainerImpl implements SimpleContainer {
                                              contextChain.currentContext(),
                                              (T) producer.create(SimpleContainerImpl.this, circular));
             } else {
-                return contextChain.nested(extracted, new ContextChain.Command<T>() {
+                return contextChain.track(extracted, new ContextChain.Command<T>() {
                     public T run(final ComponentContext context) {
                         return injector.injectFields(SimpleContainerImpl.this,
                                                      producer.componentInterface(),

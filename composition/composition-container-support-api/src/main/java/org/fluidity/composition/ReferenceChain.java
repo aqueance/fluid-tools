@@ -47,10 +47,10 @@ public interface ReferenceChain {
      *
      * @return whatever the command returns.
      */
-    <T> T nested(ComponentMapping mapping, Class<?> dependency, Command<T> command);
+    <T> T track(ComponentMapping mapping, Class<?> dependency, Command<T> command);
 
     /**
-     * The command to invoke in the context of a new dependency reference established by calling {@link ReferenceChain#nested(ComponentMapping,Class, ReferenceChain.Command)}.
+     * The command to invoke in the context of a new dependency reference established by calling {@link ReferenceChain#track(ComponentMapping,Class, ReferenceChain.Command)}.
      *
      * @author Tibor Varga
      */
@@ -59,7 +59,7 @@ public interface ReferenceChain {
         /**
          * @param circular tells whether this particular producer has already been asked for a component in the current reference chain.
          *
-         * @return whatever the caller of {@link ReferenceChain#nested(ComponentMapping,Class, ReferenceChain.Command)}
+         * @return whatever the caller of {@link ReferenceChain#track(ComponentMapping,Class, ReferenceChain.Command)}
          *         expects to get returned.
          */
         T run(boolean circular);

@@ -20,30 +20,22 @@
  * THE SOFTWARE.
  */
 
-package org.fluidity.foundation;
-
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
-
-import org.fluidity.foundation.logging.Log;
-import org.fluidity.foundation.spi.LogFactory;
+package org.fluidity.composition.spi;
 
 /**
- * Returns {@link Log} implementations that simply gobble up messages.
+ * Enables tasks to be executed when the application shuts down. A suitable implementation is used by dependency injection containers to provide means to shut
+ * down components when the application shuts down.
  *
  * @author Tibor Varga
  */
-public final class NullLogFactory implements LogFactory {
+public interface ShutdownTasks {
 
-    private final Log log = (Log) Proxy.newProxyInstance(NullLogFactory.class.getClassLoader(), new Class<?>[] { Log.class }, new InvocationHandler() {
-        public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
-            final Class<?> type = method.getReturnType();
-            return method.getDeclaringClass() == Object.class ? method.invoke(this, args) : type == Boolean.TYPE ? false : null;
-        }
-    });
-
-    public Log createLog(final Class<?> ignored) {
-        return log;
-    }
+    /**
+     * Adds a task to be run when the application is shut down. Concrete implementations are needed for the various application types, i.e. command line, web,
+     * etc.
+     *
+     * @param name    is the name of the thread to add to the shutdown hook, in case a thread is required.
+     * @param command is the command to run prior application shutdown.
+     */
+    void add(String name, Runnable command);
 }

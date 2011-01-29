@@ -38,10 +38,10 @@ public abstract class EmptyComponentContainer implements ComponentContainer {
      * <p/>
      * {@inheritDoc}
      */
-    public <T> T getComponent(final Class<T> componentClass, final Bindings bindings) throws ResolutionException {
-        final OpenComponentContainer nested = makeNestedContainer();
-        bindings.bindComponents(nested.getRegistry());
-        return nested.getComponent(componentClass);
+    public <T> T getComponent(final Class<T> componentInterface, final Bindings bindings) throws ResolutionException {
+        final OpenComponentContainer child = makeChildContainer();
+        bindings.bindComponents(child.getRegistry());
+        return child.getComponent(componentInterface);
     }
 
     /**

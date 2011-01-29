@@ -23,31 +23,43 @@
 package org.fluidity.composition;
 
 /**
- * This is a dependency injection container. Containers may form a hierarchy. If a component is not found in a nested container, it tries to find the component
- * in its parent. Components are instantiated by the container on demand and their dependencies are resolved by means of constructor or field based dependency
- * injection. No setter injection or other means of injections are supported. Components may be context aware in that different instance is created for
- * different contexs. Entire dependency chains of dependencies may be instantiated multiple times for different contexts.
+ * This is a dependency injection container.
+ * <p/>
+ * Containers may form a hierarchy. If a component is not found in a child container, it tries to find the component in its parent.
+ * <p/>
+ * Components are instantiated by the container on demand and their dependencies are resolved by means of constructor or field based dependency injection. No
+ * setter injection or other means of injections are supported.
+ * <p/>
+ * Components may be context aware, meaning that separate instances are created for different contexts. Entire dependency chains of dependencies may be
+ * instantiated multiple times for different contexts.
  * <p/>
  * Most of your components should never interact directly with this interface. Exceptions to this are objects created by third party tools, or components with
  * dynamic dependencies, e.g. that depend on some run-time criteria.
  * <p/>
- * The registry offers several ways to map an implementation to interface in the host container. Which one you need depends on your requirements. These methods
- * are normally invoked from the {@link org.fluidity.composition.spi.PackageBindings#bindComponents(ComponentContainer.Registry)} method.
+ * Each container has a registry, which allows components to be programmatically added to the container when it is booting. Except in rare circumstances, you do
+ * not need to directly interact with a registry as the <code>org.fluidity.maven:maven-composition-plugin</code> does that for you. You should not need to know
+ * about the registry unless you really have some fancy component binding logic. In those rare cases, the followings are provided to help you.
+ * <p/>
+ * The registry offers several ways to map an implementation to an interface in the host container. Which one you need depends on your requirements. These
+ * methods are invoked from the {@link org.fluidity.composition.spi.PackageBindings#bindComponents(ComponentContainer.Registry)} method of your binding
+ * implementation.
  * <ul>
- * <li>To simply register a component implementation for a component interface, use {@link ComponentContainer.Registry#bindComponent(Class,Class)}. For
- * auto-wired components this is achieved by annotating the implementation class with {@link Component}.
+ * <li>To simply register a component implementation for a component interface, use {@link ComponentContainer.Registry#bindComponent(Class,Class)}. This is
+ * exactly what the Maven plugin uses for a {@link Component} annotated class with no {@link Component#automatic()} or {@link Component#fallback()} setting so
+ * if this method is all you need then you should simply use the plugin instead of creating your own binding class.
  * </li>
- * <li>To register a default implementation of some component interface, use {@link ComponentContainer.Registry#bindDefault(Class)}. For auto-wired components
- * this is achieved by annotating the implementation class with {@link Component#fallback()} set to <code>true</code>.
+ * <li>To register a default implementation of some component interface, use {@link ComponentContainer.Registry#bindDefault(Class)}. This is
+ * exactly what the Maven plugin uses for a {@link Component} annotated class with {@link Component#fallback()}<code>=true</code> so if this method is all you
+ * need then you should simply use the plugin instead of creating your own binding class.
  * </li>
  * <li>To register an already instantiated component implementation for a component interface, use
- * {@link ComponentContainer.Registry#bindInstance(Class,Object)}. This use precludes auto-wiring, which must be switched off by annotating the implementation
- * class with the {@link Component#automatic()} annotation set to <code>false</code>.
+ * {@link ComponentContainer.Registry#bindInstance(Class,Object)}. If the implementation is annotated with {@link Component} then its
+ * {@link Component#automatic()} setting must be set to <code>false</code>.
  * </li>
  * <li>To register a component implementation without having some or all of its dependencies accessible in the same container, use
- * {@link ComponentContainer.Registry#makeNestedContainer(Class,Class)} method and use the returned container's {@link OpenComponentContainer#getRegistry()}
- * method to gain access to the registry in which to bind the hidden dependencies. This use precludes auto-wiring, which must be switched off by annotating the
- * implementation class with {@link Component#automatic()} annotation set to <code>false</code>.
+ * {@link ComponentContainer.Registry#makeChildContainer(Class,Class)} method and use the returned container's {@link OpenComponentContainer#getRegistry()}
+ * method to gain access to the registry in which to bind the hidden dependencies. If the implementation is annotated with {@link Component} then its
+ * {@link Component#automatic()} setting must be set to <code>false</code>.
  * </li>
  * </ul>
  *
@@ -62,39 +74,39 @@ public interface ComponentContainer {
      * If there is no component bound to the given class itself, an attempt is made to locate a single component that implements the given interface or is an
      * instance of the given class or any of its subclasses.
      *
-     * @param componentClass is a class object that was used to register a component against; never <code>null</code>.
+     * @param componentInterface is a class object that was used to bind a component against; never <code>null</code>.
      *
-     * @return the component registered against the give class or <code>null</code> when none was found.
+     * @return the component bound against the give class or <code>null</code> when none was found.
      *
      * @throws ComponentContainer.ResolutionException
      *          when dependency resolution fails
      */
-    <T> T getComponent(Class<T> componentClass) throws ResolutionException;
+    <T> T getComponent(Class<T> componentInterface) throws ResolutionException;
 
     /**
      * Returns a component by interface or (super)class. This method is provided for factory objects (objects creating transient components) as a convenient
-     * shortcut to acquire a nested container, bind components to it and get the nested container instantiate the requested component.
+     * shortcut to acquire a child container, register component bindings in it and get the child container instantiate the requested component.
      *
-     * @param componentClass is a class object that was used to register a component against; never <code>null</code>.
-     * @param bindings       is invoked to add component bindings to the nested container.
+     * @param componentInterface is a class object that was used to bind a component against.
+     * @param bindings           is invoked to add component bindings to the child container.
      *
-     * @return the component registered against the give class or <code>null</code> when none was found.
+     * @return the component bound against the give class or <code>null</code> when none was found.
      *
      * @throws ComponentContainer.ResolutionException
      *          when dependency resolution fails
      */
-    <T> T getComponent(Class<T> componentClass, Bindings bindings) throws ResolutionException;
+    <T> T getComponent(Class<T> componentInterface, Bindings bindings) throws ResolutionException;
 
     /**
-     * Creates another container whose components' dependencies will be satisfied from itself first and which will default to this container when it could find
-     * no component to satisfy a dependency with.
+     * Creates another container whose components' dependencies will be satisfied from itself first and then from this container when the child could find no
+     * component to satisfy a dependency with.
      * <p/>
      * This method can be used to gain access to the dependency resolution and injection functionality of the container without polluting it with new components
-     * after it has been set up. Components placed in the nested container will not be visible to clients of, or components in, this container.
+     * after it has been set up. Components placed in the child container will not be visible to clients of, or components in, this container.
      *
      * @return a container that defaults to this container for satisfying component dependencies.
      */
-    OpenComponentContainer makeNestedContainer();
+    OpenComponentContainer makeChildContainer();
 
     /**
      * Post-initialize the @{@link Component} annotated fields of the given object.
@@ -109,12 +121,12 @@ public interface ComponentContainer {
     <T> T initialize(T component) throws ResolutionException;
 
     /**
-     * Created to be add component bindings to a registry.
+     * Component bindings.
      */
     interface Bindings {
 
         /**
-         * Add component bindings into the given registry.
+         * Add component bindings to the given registry.
          *
          * @param registry is an interface to register component bindings.
          */
@@ -122,8 +134,8 @@ public interface ComponentContainer {
     }
 
     /**
-     * Allow registration of components into a container. This registry supports access to a nested container in the parent by means of linking. The nested
-     * container exposes one component that will be accessible through the parent but its dependencies will be resolved in the context of the nested container.
+     * Allow registration of components into a container. This registry supports access to a child container in the parent by means of linking. The child
+     * container exposes one component that will be accessible through the parent but its dependencies will be resolved in the context of the child container.
      * <p/>
      * This object is mainly used by {@link org.fluidity.composition.spi.PackageBindings} objects when the host application populates its dependency injection
      * container.
@@ -139,10 +151,10 @@ public interface ComponentContainer {
          * the single interface the class implements, unless the {@link Component#fallback()} annotation parameter is <code>true</code>, in which case the
          * component is bound as a default implementation that can be overridden by another binding against the same API interface.
          * <p/>
-         * Two special cases must be handled by the receiver: when the implementation is either a {@link org.fluidity.composition.spi.ComponentFactory} or a {@link
-         * org.fluidity.composition.spi.ComponentVariantFactory}. In the latter case, two bindings must take place, one for the variant factory and one for the
-         * component it creates variants of, and they can take place in any order. Irrespective of the order, the variant factory must receive any component
-         * lookup for the target component.
+         * Two special cases must be handled by the receiver: when the implementation is either a {@link org.fluidity.composition.spi.ComponentFactory} or a
+         * {@link org.fluidity.composition.spi.ComponentVariantFactory}. In the latter case, two bindings must take place, one for the variant factory and one
+         * for the component it creates variants of, and they can take place in any order. Irrespective of the order, the variant factory must receive any
+         * component lookup for the target component.
          * <p/>
          * This is a convenience method whose functionality is also provided by other methods collectively, namely {@link #bindDefault(Class)} and {@link
          * #bindComponent(Class, Class)}.
@@ -155,12 +167,12 @@ public interface ComponentContainer {
         void bindComponent(Class<?> implementation) throws BindingException;
 
         /**
-         * Binds a component class to its interface. Two special cases must be handled by the receiver: when the implementation is either a {@link
-         * org.fluidity.composition.spi.ComponentFactory} or a {@link org.fluidity.composition.spi.ComponentVariantFactory}. In the latter case, two bindings must take
-         * place, one for the variant factory and one for the component it creates variants of, and they can take place in any order. Irrespective of the order,
-         * the variant factory must receive any component lookup for the target component.
+         * Binds a component class to its interface. Two special cases must be handled by the receiver: when <code>implementation</code> is either a {@link
+         * org.fluidity.composition.spi.ComponentFactory} or a {@link org.fluidity.composition.spi.ComponentVariantFactory}. In the latter case, a total of two
+         * bindings must take place, one for the variant factory and one for the component it creates variants of, and they can take place in any order.
+         * Irrespective of the order, the variant factory must receive any component lookup for the target component.
          *
-         * @param key            the key by which to register the component; preferably an interface class.
+         * @param key            the key against which to bind the component; preferably an interface class.
          * @param implementation the component class.
          *
          * @throws ComponentContainer.BindingException
@@ -169,9 +181,9 @@ public interface ComponentContainer {
         <T> void bindComponent(Class<T> key, Class<? extends T> implementation) throws BindingException;
 
         /**
-         * Calls {@link #bindComponent(Class, Class)} passing implementation as both parameters.
+         * Calls {@link #bindComponent(Class, Class)} passing <code>implementation</code> as both parameters.
          *
-         * @param implementation the class of the component to register.
+         * @param implementation the class of the component to bind.
          *
          * @throws ComponentContainer.BindingException
          *          when the binding cannot be performed
@@ -180,14 +192,14 @@ public interface ComponentContainer {
 
         /**
          * Binds a component instance to its interface. In most case you should use the other registration methods that accept a class rather then instantiating
-         * the component yourself. Use this method when you have no control over the instantiation of a class, such as those created by third party tools, but
-         * you still want to make them available for components in the container to depend on.
+         * the component yourself. Use this method when you have no control over the instantiation of a class, such as those performed by third party tools, but
+         * you still want to make the instances available for components in the container to depend on.
          * <p/>
          * The supplied component instance may be a {@link org.fluidity.composition.spi.ComponentFactory} or a {@link
-         * org.fluidity.composition.spi.ComponentVariantFactory} instance, in which case the receiver must support their respective functionality as described in
-         * their documentation and at {@link #bindComponent(Class, Class)}.
+         * org.fluidity.composition.spi.ComponentVariantFactory} instance, in which case the receiver must support their respective functionality as described
+         * in their documentation and at {@link #bindComponent(Class, Class)}.
          *
-         * @param key      the key by which to register the component; preferably an interface class.
+         * @param key      the key against which to bind the component; preferably an interface class.
          * @param instance the component instance.
          *
          * @throws ComponentContainer.BindingException
@@ -196,17 +208,17 @@ public interface ComponentContainer {
         <T> void bindInstance(Class<? super T> key, T instance) throws BindingException;
 
         /**
-         * Returns a new child registry whose container will use the container for this registry as its parent. See {@link
-         * OpenComponentContainer#makeNestedContainer()}.
+         * Returns a new child container that will use the container for this registry as its parent. See {@link OpenComponentContainer#makeChildContainer()}.
          *
          * @return an open container, never <code>null</code>.
          */
-        OpenComponentContainer makeNestedContainer();
+        OpenComponentContainer makeChildContainer();
 
         /**
-         * Returns a new child registry whose container will use the container for this registry as its parent.
+         * Returns a new child container that will use the container for this registry as its parent, for the purpose of resolving through the parent
+         * dependencies on <code>key</code>.
          *
-         * @param key            the key under which the child container will be accessible through its parent.
+         * @param key            the key to bind <code>implementation</code> against in both the parent and the child container.
          * @param implementation the component whose dependencies the child container will help resolving.
          *
          * @return an open container, never <code>null</code>.
@@ -214,9 +226,12 @@ public interface ComponentContainer {
          * @throws ComponentContainer.BindingException
          *          when the binding cannot be performed
          */
-        <T> OpenComponentContainer makeNestedContainer(Class<T> key, Class<? extends T> implementation) throws BindingException;
+        <T> OpenComponentContainer makeChildContainer(Class<T> key, Class<? extends T> implementation) throws BindingException;
     }
 
+    /**
+     * Exceptions related to the dependency injection container.
+     */
     class ContainerException extends RuntimeException {
 
         public ContainerException(final String format, final Object... data) {
@@ -224,6 +239,9 @@ public interface ComponentContainer {
         }
     }
 
+    /**
+     * Exception related to component bindings.
+     */
     class BindingException extends ContainerException {
 
         public BindingException(final String format, final Object... data) {
@@ -231,6 +249,9 @@ public interface ComponentContainer {
         }
     }
 
+    /**
+     * Exception related to dependency resolution.
+     */
     class ResolutionException extends ContainerException {
 
         public ResolutionException(final String format, final Object... data) {
@@ -238,6 +259,9 @@ public interface ComponentContainer {
         }
     }
 
+    /**
+     * Exception signifying a circular dependency.
+     */
     class CircularReferencesException extends ResolutionException {
 
         public CircularReferencesException(final Class<?> componentClass) {

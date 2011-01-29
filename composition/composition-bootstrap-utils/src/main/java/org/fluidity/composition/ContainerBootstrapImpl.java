@@ -31,12 +31,12 @@ import java.util.Set;
 
 import org.fluidity.composition.spi.ContainerProvider;
 import org.fluidity.composition.spi.PackageBindings;
-import org.fluidity.composition.spi.ShutdownHook;
+import org.fluidity.composition.spi.ShutdownTasks;
 import org.fluidity.foundation.logging.Log;
 
 /**
- * Bootstraps the component container. This class is exported via the standard service provider discovery mechanism described in the JAR file specification (for
- * dummies: the fully qualified name of this class can be found in a file whose name is the fully qualified class name of the implemented interface).
+ * Bootstraps the component container. This class is exported via the standard service provider discovery mechanism described in the <a
+ * href="http://download.oracle.com/javase/1.5.0/docs/guide/jar/jar.html#Service Provider">JAR File Specification</a>.
  *
  * @author Tibor Varga
  */
@@ -48,7 +48,7 @@ final class ContainerBootstrapImpl implements ContainerBootstrap {
                                                     final OpenComponentContainer parent,
                                                     final ClassLoader classLoader) {
         final Log log = services.logs().createLog(getClass());
-        final OpenComponentContainer container = parent == null ? provider.newContainer(services) : parent.makeNestedContainer();
+        final OpenComponentContainer container = parent == null ? provider.newContainer(services) : parent.makeChildContainer();
 
         log.info("Created new %s%s", container, (classLoader == null ? "" : String.format(" for %s", classLoader)));
 
@@ -101,12 +101,12 @@ final class ContainerBootstrapImpl implements ContainerBootstrap {
 
         state.initialize();
 
-        final ShutdownHook shutdown = container.getComponent(ShutdownHook.class);
+        final ShutdownTasks shutdown = container.getComponent(ShutdownTasks.class);
         if (shutdown == null) {
-            throw new RuntimeException(String.format("%s requires a %s component to function", container, ShutdownHook.class.getName()));
+            throw new RuntimeException(String.format("%s requires a %s component to function", container, ShutdownTasks.class.getName()));
         }
 
-        shutdown.addTask("container-shutdown", new Runnable() {
+        shutdown.add("container-shutdown", new Runnable() {
             public void run() {
                 state.shutdown(log);
             }

@@ -44,7 +44,7 @@ public class LaunchArgumentsBindings extends EmptyPackageBindings {
     @Override
     public void bindComponents(final ComponentContainer.Registry registry) {
         if (arguments != null) {
-            registry.makeNestedContainer(LaunchArguments.class, LaunchArgumentsImpl.class).getRegistry().bindInstance(String[].class, arguments);
+            registry.makeChildContainer(LaunchArguments.class, LaunchArgumentsImpl.class).getRegistry().bindInstance(String[].class, arguments);
         }
     }
 }

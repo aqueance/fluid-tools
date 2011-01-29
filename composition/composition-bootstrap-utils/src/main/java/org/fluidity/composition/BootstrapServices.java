@@ -23,7 +23,7 @@
 package org.fluidity.composition;
 
 /**
- * Assists the container bootstrapping process.
+ * Assists the container bootstrapping process. Used internally.
  *
  * @author Tibor Varga
  */

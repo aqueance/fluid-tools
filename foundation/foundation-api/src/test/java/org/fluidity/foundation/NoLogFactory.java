@@ -20,23 +20,33 @@
  * THE SOFTWARE.
  */
 
-package org.fluidity.composition.spi;
+package org.fluidity.foundation;
+
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
+
+import org.fluidity.foundation.logging.Log;
+import org.fluidity.foundation.spi.LogFactory;
 
 /**
- * Enables tasks to be hooked to the application shutdown event. This is used by component bootstrap implementations to provide means to shut down components
- * when the application shuts down. For instance, a command line application may want to use the runtime system to do this while a web application would use a
- * context listener for the same purpose.
+ * Returns a {@link Log} object that simply gobbles up messages.
  *
  * @author Tibor Varga
  */
-public interface ShutdownHook {
+public final class NoLogFactory implements LogFactory {
 
     /**
-     * Adds a task to be run when the application is shut down. Concrete implementations are needed for the various application types, i.e. command line, web,
-     * etc.
-     *
-     * @param threadName is the name of the thread to add to the shutdown hook, in case a thread is required.
-     * @param command    is the command to run prior application shutdown.
+     * A log sink that gobbles up all log messages.
      */
-    void addTask(String threadName, Runnable command);
+    public static final Log sink = (Log) Proxy.newProxyInstance(Log.class.getClassLoader(), new Class<?>[] { Log.class }, new InvocationHandler() {
+        public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
+            final Class<?> type = method.getReturnType();
+            return method.getDeclaringClass() == Object.class ? method.invoke(this, args) : type == Boolean.TYPE ? false : null;
+        }
+    });
+
+    public Log createLog(final Class<?> ignored) {
+        return sink;
+    }
 }

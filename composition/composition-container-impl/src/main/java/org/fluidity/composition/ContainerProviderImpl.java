@@ -28,7 +28,6 @@ import java.util.Map;
 
 import org.fluidity.composition.spi.ContainerProvider;
 import org.fluidity.composition.spi.PackageBindings;
-import org.fluidity.foundation.Exceptions;
 
 /**
  * @author Tibor Varga
@@ -36,7 +35,7 @@ import org.fluidity.foundation.Exceptions;
 final class ContainerProviderImpl implements ContainerProvider {
 
     public OpenComponentContainer newContainer(final ContainerServices services) {
-        return new FluidComponentContainer(null, services, true);
+        return new ComponentContainerShell(null, services, true);
     }
 
     public List<PackageBindings> instantiateBindings(final ContainerServices services,
@@ -58,10 +57,6 @@ final class ContainerProviderImpl implements ContainerProvider {
         /*
          * Get the instances in instantiation order
          */
-        return Exceptions.wrap("instantiating package bindings", new Exceptions.Command<List<PackageBindings>>() {
-            public List<PackageBindings> run() {
-                return container.allSingletons(PackageBindings.class);
-            }
-        });
+        return container.allSingletons(PackageBindings.class);
     }
 }

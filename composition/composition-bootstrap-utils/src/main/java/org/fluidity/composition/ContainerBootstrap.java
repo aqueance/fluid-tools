@@ -35,19 +35,19 @@ import org.fluidity.composition.spi.ContainerProvider;
 interface ContainerBootstrap {
 
     /**
-     * Finds all package component bindings and invokes them to add their bindings and initialises components after all components have been registered.
+     * Finds all package component bindings and invokes them to add their bindings and initializes components after all components have been bound.
      * <p/>
-     * The idea is to find all <code>PackageBinding</code> objects using the supplied discovery component, invoke them to add their bindings and then invoke
-     * their initialisation method. Shutdown hooks are also expected to be used.
+     * The idea is to find all {@link org.fluidity.composition.spi.PackageBindings} objects and invoke their {@link
+     * org.fluidity.composition.spi.PackageBindings#bindComponents(org.fluidity.composition.ComponentContainer.Registry)} method.
      *
-     * @param services    provider basic services for containers
+     * @param services    provides basic services for containers
      * @param provider    is the provider of actual dependency injection containers and related functionality.
      * @param properties  is the properties to bind to the container as a means to configure binding instances at run-time.
      * @param parent      is the container to use as the parent of the one returned; can be <code>null</code>, in which case a standalone container is
      *                    returned.
      * @param classLoader is the class loader to use to discover package bindings. Package bindings found in the class loader ancestry are ignored when the
      *
-     * @return the container containing the registered components.
+     * @return the container with the bindings registered.
      */
     OpenComponentContainer populateContainer(ContainerServices services,
                                              ContainerProvider provider,
@@ -56,10 +56,12 @@ interface ContainerBootstrap {
                                              ClassLoader classLoader);
 
     /**
-     * Calls the {@link org.fluidity.composition.spi.PackageBindings#initializeComponents(ComponentContainer)} method on all bindings.
+     * Calls the {@link org.fluidity.composition.spi.PackageBindings#initializeComponents(ComponentContainer)} method on all bindings and adds shutdown tasks to
+     * call the {@link org.fluidity.composition.spi.PackageBindings#shutdownComponents(ComponentContainer)} method on the bindings, in reverse order.
      *
-     * @param container the container to initialize.
-     * @param services    provider basic services for containers
+     * @param container the container, returned by the {@link #populateContainer(ContainerServices, org.fluidity.composition.spi.ContainerProvider,
+     *                  java.util.Map, OpenComponentContainer, ClassLoader)} method, to initialize.
+     * @param services  provides basic services for containers
      */
     void initializeContainer(OpenComponentContainer container, ContainerServices services);
 }
