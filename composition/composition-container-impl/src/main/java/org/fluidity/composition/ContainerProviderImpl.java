@@ -40,7 +40,7 @@ final class ContainerProviderImpl implements ContainerProvider {
 
     public List<PackageBindings> instantiateBindings(final ContainerServices services,
                                                      final Map properties,
-                                                     final Collection<Class<PackageBindings>> assemblySet) {
+                                                     final Collection<Class<PackageBindings>> bindings) {
         final SimpleContainer container = new SimpleContainerImpl(null, services);
 
         if (properties != null) {
@@ -50,8 +50,8 @@ final class ContainerProviderImpl implements ContainerProvider {
         /*
          * Add each to the container
          */
-        for (final Class<?> componentClass : assemblySet) {
-            container.bindComponent(componentClass, componentClass);
+        for (final Class<?> binding : bindings) {
+            container.bindComponent(binding, binding);
         }
 
         /*

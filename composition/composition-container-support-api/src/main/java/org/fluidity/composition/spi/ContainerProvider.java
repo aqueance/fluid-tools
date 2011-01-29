@@ -31,9 +31,7 @@ import org.fluidity.composition.OpenComponentContainer;
 import org.fluidity.composition.ServiceProvider;
 
 /**
- * Provides actual dependency injection container instances and related functionality. The implementing class must be public so as to be able to find using the
- * Service Provider discovery mechanism described in the <a href="http://download.oracle.com/javase/1.5.0/docs/guide/jar/jar.html#Service
- * Provider">JAR File Specification</a>.
+ * Provides actual dependency injection container instances and related functionality.
  *
  * @author Tibor Varga
  */
@@ -50,13 +48,13 @@ public interface ContainerProvider {
     OpenComponentContainer newContainer(ContainerServices services);
 
     /**
-     * Instantiates all {@link PackageBindings} classes in the given assemblySet and returns the instances in instantiation order.
+     * Instantiates all {@link PackageBindings} classes in the given set of bindings and returns the instances in instantiation order.
      *
-     * @param services    provides service components for containers, in case needed.
-     * @param properties  is to be made available to any {@link PackageBindings} object that may depend on it
-     * @param assemblySet the collection of classes to instantiate. Some may depend on others in the set.
+     * @param services   provides service components for containers, in case needed.
+     * @param properties is to be made available to any {@link PackageBindings} object that may depend on it
+     * @param bindings the collection of classes to instantiate. Some may depend on others in the set.
      *
      * @return the list of {@link PackageBindings} instances in instantiation order.
      */
-    List<PackageBindings> instantiateBindings(ContainerServices services, Map properties, Collection<Class<PackageBindings>> assemblySet);
+    List<PackageBindings> instantiateBindings(ContainerServices services, Map properties, Collection<Class<PackageBindings>> bindings);
 }

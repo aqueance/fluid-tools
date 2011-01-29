@@ -38,10 +38,12 @@ abstract class AbstractProducer implements ComponentProducer {
 
     private static final ThreadLocal<ComponentCache.Listener> listeners = new ThreadLocal<ComponentCache.Listener>();
 
+    protected final ReferenceChain references;
     protected final ComponentCache cache;
     protected final Log log;
 
-    protected AbstractProducer(final ComponentCache cache, final LogFactory logs) {
+    protected AbstractProducer(final ReferenceChain references, final ComponentCache cache, final LogFactory logs) {
+        this.references = references;
         this.cache = cache;
         this.log = logs.createLog(getClass());
     }
@@ -65,19 +67,18 @@ abstract class AbstractProducer implements ComponentProducer {
     public Object create(final SimpleContainer container, final boolean circular) {
         final Class<?> componentClass = componentClass();
         final ComponentCache.Command create = createCommand(container);
-        final ReferenceChain resolutions = container.referenceChain();
 
         if (create == null) {
             return null;
         } else if (circular) {
-            return deferredCreate(container, componentClass, create, resolutions, null);
+            return deferredCreate(container, componentClass, create, null);
         } else {
             try {
                 return cache.lookup(container, componentInterface(), componentClass, listener(), create);
             } catch (final ComponentContainer.CircularReferencesException e) {
 
                 // handle circular reference that was noticed later in the reference chain that could not be handled at that point
-                return deferredCreate(container, componentClass, create, resolutions, e);
+                return deferredCreate(container, componentClass, create, e);
             }
         }
     }
@@ -89,9 +90,8 @@ abstract class AbstractProducer implements ComponentProducer {
     private Object deferredCreate(final SimpleContainer container,
                                   final Class<?> componentClass,
                                   final ComponentCache.Command create,
-                                  final ReferenceChain resolutions,
                                   final ComponentContainer.CircularReferencesException error) {
-        final Class<?> reference = resolutions.lastReference();
+        final Class<?> reference = references.lastReference();
 
         if (reference.isInterface()) {
             log.info("%s: deferred creation of %s", container, componentClass.getName());
@@ -110,7 +110,7 @@ abstract class AbstractProducer implements ComponentProducer {
                 }
             });
         } else {
-            throw error == null ? new ComponentContainer.CircularReferencesException(componentClass, resolutions.print()) : error;
+            throw error == null ? new ComponentContainer.CircularReferencesException(componentClass, references.print()) : error;
         }
     }
 

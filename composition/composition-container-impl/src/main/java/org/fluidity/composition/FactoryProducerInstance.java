@@ -34,8 +34,8 @@ final class FactoryProducerInstance extends FactoryProducer {
 
     private final ComponentFactory factory;
 
-    public FactoryProducerInstance(final ComponentFactory factory, final ComponentCache cache, final LogFactory logs) {
-        super(factory.getClass(), cache, logs);
+    public FactoryProducerInstance(final ComponentFactory factory, final ReferenceChain references, final ComponentCache cache, final LogFactory logs) {
+        super(factory.getClass(), references, cache, logs);
         this.factory = factory;
     }
 

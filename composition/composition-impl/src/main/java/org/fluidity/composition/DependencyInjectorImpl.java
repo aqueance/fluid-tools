@@ -41,10 +41,17 @@ import org.fluidity.foundation.Exceptions;
  */
 final class DependencyInjectorImpl implements DependencyInjector {
 
-    final ClassDiscovery discovery;
+    private final ClassDiscovery discovery;
+    private final ReferenceChain referenceChain;
+    private final ContextChain contextChain;
+    private final ContextFactory contextFactory;
 
-    public DependencyInjectorImpl(final ClassDiscovery discovery) {
+
+    public DependencyInjectorImpl(final ClassDiscovery discovery, final ReferenceChain referenceChain, final ContextChain contextChain, final ContextFactory contextFactory) {
         this.discovery = discovery;
+        this.referenceChain = referenceChain;
+        this.contextChain = contextChain;
+        this.contextFactory = contextFactory;
     }
 
     public <T> T injectFields(final DependencyResolver resolver, final Class<?> componentApi, final ComponentContext context, final T instance) {
@@ -163,10 +170,6 @@ final class DependencyInjectorImpl implements DependencyInjector {
                                   final Class<?> componentType,
                                   final Class<?> declaringType,
                                   final Dependency dependency) {
-        final ContextChain contextChain = resolver.contextChain();
-        final ContextFactory contextFactory = resolver.contextFactory();
-        final ReferenceChain referenceChain = resolver.referenceChain();
-
         final ServiceProvider serviceProvider = dependency.annotation(ServiceProvider.class);
         final Class<?> dependencyType = findInterfaceType(dependency.annotation(Component.class), dependency.type());
 

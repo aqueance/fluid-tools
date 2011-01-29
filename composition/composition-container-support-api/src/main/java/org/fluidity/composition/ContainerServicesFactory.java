@@ -30,5 +30,12 @@ import org.fluidity.foundation.spi.LogFactory;
 @ServiceProvider(jdk = true)
 interface ContainerServicesFactory {
 
+    /**
+     * Creates a {@link ContainerServices} object.
+     *
+     * @param logs the logger factory to use.
+     *
+     * @return a {@link ContainerServices} object.
+     */
     ContainerServices containerServices(LogFactory logs);
 }

@@ -37,7 +37,7 @@ public interface ComponentMapping {
     Class<?> componentInterface();
 
     /**
-     * Tells whther the mapping is that of a {@link ComponentVariantFactory}.
+     * Tells whether the mapping is that of a {@link ComponentVariantFactory}.
      *
      * @return <code>true</code> if the mapping is that of a {@link ComponentVariantFactory}, <code>false</code> otherwise.
      */

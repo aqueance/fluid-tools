@@ -43,6 +43,7 @@ final class SimpleContainerImpl implements SimpleContainer {
     private final Map<Class<?>, ComponentProducer> contents = new HashMap<Class<?>, ComponentProducer>();
     private final ReferenceChain referenceChain;
     private final ContextChain contextChain;
+    private final ContextFactory contextFactory;
     private final DependencyInjector injector;
 
     public SimpleContainerImpl(final SimpleContainer parent, final ContainerServices services) {
@@ -51,6 +52,7 @@ final class SimpleContainerImpl implements SimpleContainer {
         this.log = this.services.logs().createLog(getClass());
         this.referenceChain = this.services.referenceChain();
         this.contextChain = this.services.contextChain();
+        this.contextFactory = this.services.contextFactory();
         this.injector = this.services.dependencyInjector();
     }
 
@@ -109,18 +111,6 @@ final class SimpleContainerImpl implements SimpleContainer {
         }
 
         return entry;
-    }
-
-    public ReferenceChain referenceChain() {
-        return referenceChain;
-    }
-
-    public ContextChain contextChain() {
-        return contextChain;
-    }
-
-    public ContextFactory contextFactory() {
-        return services.contextFactory();
     }
 
     public <T> T resolve(final Class<T> type, final ComponentContext context) {
@@ -229,15 +219,18 @@ final class SimpleContainerImpl implements SimpleContainer {
             }
 
             public ComponentProducer component(final ComponentCache cache) {
-                return new ConstructingProducer(key, implementation, cache, injector, services.logs());
+                return new ConstructingProducer(key, implementation, cache, referenceChain, contextFactory, injector, services.logs());
             }
 
             public VariantProducer variant(final ComponentCache cache) {
-                return new VariantProducerClass(SimpleContainerImpl.this, implementation.asSubclass(ComponentVariantFactory.class), cache, services.logs());
+                return new VariantProducerClass(SimpleContainerImpl.this, implementation.asSubclass(ComponentVariantFactory.class),
+                                                referenceChain,
+                                                cache,
+                                                services.logs());
             }
 
             public FactoryProducer factory(final ComponentCache cache) {
-                return new FactoryProducerClass(implementation.asSubclass(ComponentFactory.class), cache, services.logs());
+                return new FactoryProducerClass(implementation.asSubclass(ComponentFactory.class), referenceChain, cache, services.logs());
             }
         });
     }
@@ -272,24 +265,24 @@ final class SimpleContainerImpl implements SimpleContainer {
             }
 
             public ComponentProducer component(final ComponentCache cache) {
-                return new InstanceProducer(key, instance.getClass(), instance, services.logs());
+                return new InstanceProducer(key, instance.getClass(), instance, referenceChain, services.logs());
             }
 
             @SuppressWarnings("ConstantConditions")
             public VariantProducer variant(final ComponentCache cache) {
-                return new VariantProducerInstance(SimpleContainerImpl.this, (ComponentVariantFactory) instance, cache, services.logs());
+                return new VariantProducerInstance(SimpleContainerImpl.this, (ComponentVariantFactory) instance, referenceChain, cache, services.logs());
             }
 
             @SuppressWarnings("ConstantConditions")
             public FactoryProducer factory(final ComponentCache cache) {
-                return new FactoryProducerInstance((ComponentFactory) instance, cache, services.logs());
+                return new FactoryProducerInstance((ComponentFactory) instance, referenceChain, cache, services.logs());
             }
         });
     }
 
     public SimpleContainer linkComponent(final Class<?> key, final Class<?> implementation) throws ComponentContainer.BindingException {
         final SimpleContainer child = newChildContainer();
-        bindProducer(key, new LinkingProducer(child, child.bindComponent(key, implementation), services.logs()));
+        bindProducer(key, new LinkingProducer(child, child.bindComponent(key, implementation), referenceChain, services.logs()));
         return child;
     }
 
@@ -404,7 +397,7 @@ final class SimpleContainerImpl implements SimpleContainer {
 
         @SuppressWarnings("unchecked")
         public T run(final boolean circular) {
-            final ComponentContext extracted = contextFactory().extractContext(producer.componentClass().getAnnotations());
+            final ComponentContext extracted = contextFactory.extractContext(producer.componentClass().getAnnotations());
 
             if (extracted == null) {
                 return injector.injectFields(SimpleContainerImpl.this,

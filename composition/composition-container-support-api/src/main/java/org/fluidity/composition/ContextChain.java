@@ -23,38 +23,31 @@
 package org.fluidity.composition;
 
 /**
- * Provides context related functionality to the container.
+ * Tracks context definitions and consumption along a reference chain.
  * <p/>
- * Contexts are the means to have multiple instances of the same component with different configuration by components that directly support contexts or that
- * have been complemented by a {@link org.fluidity.composition.spi.ComponentVariantFactory} object to add context support.
+ * A context aware component or its factory declares, using the {@link org.fluidity.composition.Context} annotation, context annotations that they understand.
+ * Upon instantiation, a context is passed to such a component or its factory in the form of a {@link ComponentContext} object, containing the annotation
+ * instances used to define the context of the instantiation.
  * <p/>
- * A context aware component or a {@link org.fluidity.composition.spi.ComponentVariantFactory} declares, using the {@link org.fluidity.composition.Context}
- * annotation, context keys that they consume. Upon instantiation a context is passed to such a component or the variant factory in the form of a {@link
- * ComponentContext} object containing the annotation instances used to define the context of the instantiation.
+ * The values in the context object are calculated from any context annotation encountered during the entire dependency chain starting at that base and ending
+ * at the instantiation of a given component.
  * <p/>
- * The values in the context object are calculated from a base context and any context encountered during the entire dependency chain starting at that base and
- * ending at the instantiation of a given component.
- * <p/>
- * The base context comes from either a {@link Context} annotated component, or a field or constructor parameter reference thereto, or the prevalent context at
- * the instantiation of a component that depends on and uses a {@link ComponentContainer} directly to get other components from.
- * <p/>
- * Further contexts are added to the base at each {@link Context} annotated reference along a dependency chain. The context consumed by a context aware
- * component is inherited back through the dependency chain ending with the instantiation of that component up to the point where the context is fully defined
- * and may cause contextual instantiation of components in between that are not themselves context aware.
+ * The context consumed by a context aware component is inherited back through the dependency chain ending with the instantiation of that component up to the
+ * point where the context is fully defined and may cause contextual instantiation of components in between that are not themselves context aware.
  *
  * @author Tibor Varga
  */
 public interface ContextChain {
 
     /**
-     * Returns the context currently established.
+     * Returns the currently established context.
      *
-     * @return the context currently established.
+     * @return the currently established context.
      */
     ComponentContext currentContext();
 
     /**
-     * Adds the given properties to the stack and then removes it when the given command completes.
+     * Adds the given context to the chain and then removes it when the given command completes.
      *
      * @param context the context to add to the stack.
      * @param command the command that will receive the new context, which includes the given properties and all others from the stack.
@@ -69,24 +62,26 @@ public interface ContextChain {
      * @param componentType  the interface implemented by the component.
      * @param componentClass the component type to check for supported context annotations.
      * @param context        the actual context established at this point.
-     * @param resolutions    the dependency resolution chain to search for {@link org.fluidity.composition.spi.ComponentVariantFactory} objects that consume
-     *                       contexts on behalf of other components.
+     * @param resolutions    the dependency reference chain to search for the factory object that consumes the context on behalf of
+     *                       <code>componentClass</code>.
      *
      * @return the narrowed context that can be passed to an instance of the given component class.
      */
     ComponentContext consumedContext(Class<?> componentType, Class<?> componentClass, ComponentContext context, ReferenceChain resolutions);
 
     /**
-     * Returns the context supported ahead at this point and ahead in the resolution chain.
+     * Returns the context consumed at this point and down the reference chain.
      *
      * @param context the context consumed at the point of calling this method.
      *
-     * @return the context supported ahead at this point and ahead in the resolution chain.
+     * @return the context consumed at this point and down the reference chain.
      */
     ComponentContext consumedContext(ComponentContext context);
 
     /**
-     * A command to run while establishing a new context. The established context is restored to its pre-flight value after the command completes.
+     * A command to run while tracking a new context. The established context is restored to its prior value after the command completes.
+     *
+     * @author Tibor Varga
      */
     interface Command<T> {
 
@@ -95,7 +90,7 @@ public interface ContextChain {
          *
          * @param context the context established at the point of invocation.
          *
-         * @return whatever the caller of {@link ContextChain#track(ComponentContext, ContextChain.Command)} wishes to receive back.
+         * @return whatever the caller of {@link ContextChain#track(ComponentContext, ContextChain.Command)} wishes to receive from the command.
          */
         T run(ComponentContext context);
     }

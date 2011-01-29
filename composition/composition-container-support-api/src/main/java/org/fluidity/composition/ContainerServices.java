@@ -67,9 +67,9 @@ public interface ContainerServices {
     DependencyInjector dependencyInjector();
 
     /**
-     * Returns the logger to use by the container.
+     * Returns the logger factory to use by the container.
      *
-     * @return the logger to use by the container.
+     * @return the logger factory to use by the container.
      */
     LogFactory logs();
 

@@ -105,7 +105,7 @@ final class ContextChainImpl implements ContextChain {
         final Set<Class<? extends Annotation>> types = new HashSet<Class<? extends Annotation>>();
 
         // find the first factory for the given component type and take its @Context details to apply to the component at hand
-        referenceChain.iterate(new ReferenceChain.Visitor<Void>() {
+        referenceChain.iterate(new ReferenceChain.Visitor() {
             public boolean visit(final ReferenceChain.Link item) {
                 final ComponentMapping mapping = item.mapping();
 

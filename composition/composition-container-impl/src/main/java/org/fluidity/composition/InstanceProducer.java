@@ -35,8 +35,8 @@ final class InstanceProducer extends AbstractProducer {
     private final Class<?> componentInterface;
     private final Class<?> componentClass;
 
-    public InstanceProducer(final Class<?> componentInterface, final Class<?> componentClass, final Object instance, final LogFactory logs) {
-        super(null, logs);
+    public InstanceProducer(final Class<?> componentInterface, final Class<?> componentClass, final Object instance, final ReferenceChain references, final LogFactory logs) {
+        super(references, null, logs);
         this.componentInterface = componentInterface;
         this.componentClass = componentClass;
         this.instance = instance;

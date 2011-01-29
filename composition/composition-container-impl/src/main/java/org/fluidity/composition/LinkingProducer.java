@@ -34,8 +34,8 @@ final class LinkingProducer extends AbstractProducer {
     private final ComponentProducer delegate;
     private final SimpleContainer target;
 
-    public LinkingProducer(final SimpleContainer container, final ComponentProducer delegate, final LogFactory logs) {
-        super(null, logs);
+    public LinkingProducer(final SimpleContainer container, final ComponentProducer delegate, final ReferenceChain references, final LogFactory logs) {
+        super(references, null, logs);
         this.delegate = delegate;
         this.target = container;
     }

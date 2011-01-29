@@ -34,9 +34,10 @@ final class VariantProducerClass extends VariantProducer {
 
     public VariantProducerClass(final SimpleContainer container,
                                 final Class<? extends ComponentVariantFactory> factoryClass,
+                                final ReferenceChain references,
                                 final ComponentCache cache,
                                 final LogFactory logs) {
-        super(container, factoryClass, cache, logs);
+        super(container, factoryClass, references, cache, logs);
     }
 
     @Override

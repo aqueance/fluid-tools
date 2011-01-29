@@ -39,8 +39,11 @@ abstract class FactoryProducer extends AbstractProducer {
 
     protected abstract ComponentFactory factory(final SimpleContainer container);
 
-    public FactoryProducer(final Class<? extends ComponentFactory> factoryClass, final ComponentCache cache, final LogFactory logs) {
-        super(cache, logs);
+    public FactoryProducer(final Class<? extends ComponentFactory> factoryClass,
+                           final ReferenceChain references,
+                           final ComponentCache cache,
+                           final LogFactory logs) {
+        super(references, cache, logs);
         this.factoryClass = factoryClass;
 
         final Component annotation = factoryClass.getAnnotation(Component.class);

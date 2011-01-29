@@ -50,9 +50,10 @@ abstract class VariantProducer extends AbstractProducer {
 
     public VariantProducer(final SimpleContainer container,
                            final Class<? extends ComponentVariantFactory> factoryClass,
+                           final ReferenceChain references,
                            final ComponentCache cache,
                            final LogFactory logs) {
-        super(cache, logs);
+        super(references, cache, logs);
         this.parent = container.parentContainer();
         this.factoryClass = factoryClass;
 
@@ -103,7 +104,7 @@ abstract class VariantProducer extends AbstractProducer {
                 if (returned == null) {
                     return null;
                 } else {
-                    return returned.getComponent(container.referenceChain().lastReference());
+                    return returned.getComponent(references.lastReference());
                 }
             }
         });

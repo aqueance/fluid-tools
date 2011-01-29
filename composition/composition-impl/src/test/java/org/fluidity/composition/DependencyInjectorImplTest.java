@@ -45,16 +45,13 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
     private final ComponentContext context2= addControl(ComponentContext.class);
     private final ComponentContainer container = addControl(ComponentContainer.class);
 
-    private final DependencyInjector injector = new DependencyInjectorImpl(discovery);
+    private final DependencyInjector injector = new DependencyInjectorImpl(discovery, referenceChain, contextChain, contextFactory);
 
     @SuppressWarnings({ "unchecked" })
     @Test
     public void injectsFields() throws Exception {
         final FieldInjected component = new FieldInjected();
 
-        EasyMock.expect(resolver.contextChain()).andReturn(contextChain).anyTimes();
-        EasyMock.expect(resolver.referenceChain()).andReturn(referenceChain).anyTimes();
-        EasyMock.expect(resolver.contextFactory()).andReturn(contextFactory).anyTimes();
         EasyMock.expect(contextFactory.extractContext(EasyMock.<Annotation[]>anyObject())).andReturn(null);
 
         final Dependency dependency = new DependencyImpl();
@@ -85,9 +82,6 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
     public void complainsAboutMissingFields() throws Exception {
         final FieldInjected component = new FieldInjected();
 
-        EasyMock.expect(resolver.contextChain()).andReturn(contextChain).anyTimes();
-        EasyMock.expect(resolver.referenceChain()).andReturn(referenceChain).anyTimes();
-        EasyMock.expect(resolver.contextFactory()).andReturn(contextFactory).anyTimes();
         EasyMock.expect(contextFactory.extractContext(EasyMock.<Annotation[]>anyObject())).andReturn(null);
 
         EasyMock.expect(resolver.resolve(Dependency.class, context)).andReturn(null);
@@ -101,9 +95,6 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
     public void injectsNullForOptionalFields() throws Exception {
         final OptionalFieldInjected component = new OptionalFieldInjected();
 
-        EasyMock.expect(resolver.contextChain()).andReturn(contextChain).anyTimes();
-        EasyMock.expect(resolver.referenceChain()).andReturn(referenceChain).anyTimes();
-        EasyMock.expect(resolver.contextFactory()).andReturn(contextFactory).anyTimes();
         EasyMock.expect(contextFactory.extractContext(EasyMock.<Annotation[]>anyObject())).andReturn(null);
 
         EasyMock.expect(resolver.resolve(Dependency.class, context)).andReturn(null);
@@ -120,9 +111,6 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
     public void injectsConstructor() throws Exception {
         final FieldInjected component = new FieldInjected();
 
-        EasyMock.expect(resolver.contextChain()).andReturn(contextChain).anyTimes();
-        EasyMock.expect(resolver.referenceChain()).andReturn(referenceChain).anyTimes();
-        EasyMock.expect(resolver.contextFactory()).andReturn(contextFactory).anyTimes();
         EasyMock.expect(contextFactory.extractContext(EasyMock.<Annotation[]>anyObject())).andReturn(null);
 
         final Dependency dependency = new DependencyImpl();
@@ -154,10 +142,6 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
     @Test
     public void handlesSpecialDependencies() throws Exception {
         final SpecialDependent component = new SpecialDependent();
-
-        EasyMock.expect(resolver.contextChain()).andReturn(contextChain).anyTimes();
-        EasyMock.expect(resolver.referenceChain()).andReturn(referenceChain).anyTimes();
-        EasyMock.expect(resolver.contextFactory()).andReturn(contextFactory).anyTimes();
 
         EasyMock.expect(resolver.container(context)).andReturn(container);
         EasyMock.expect(contextChain.consumedContext(SpecialDependent.class, SpecialDependent.class, context, referenceChain)).andReturn(context2);

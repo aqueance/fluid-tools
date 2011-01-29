@@ -85,7 +85,7 @@ public interface ReferenceChain {
      *
      * @author Tibor Varga
      */
-    interface Visitor<T> {
+    interface Visitor {
 
         /**
          * Visits one reference in the reference chain.

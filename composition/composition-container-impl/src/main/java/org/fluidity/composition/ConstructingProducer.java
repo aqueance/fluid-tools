@@ -38,6 +38,7 @@ import org.fluidity.foundation.spi.LogFactory;
 final class ConstructingProducer extends AbstractProducer {
 
     private final DependencyInjector injector;
+    private final ContextFactory contexts;
 
     private final Class<?> componentInterface;
     private final Class<?> componentClass;
@@ -47,10 +48,13 @@ final class ConstructingProducer extends AbstractProducer {
     public ConstructingProducer(final Class<?> componentInterface,
                                 final Class<?> componentClass,
                                 final ComponentCache cache,
+                                final ReferenceChain references,
+                                final ContextFactory contexts,
                                 final DependencyInjector injector,
                                 final LogFactory logs) {
-        super(cache, logs);
+        super(references, cache, logs);
         this.injector = injector;
+        this.contexts = contexts;
         this.componentInterface = componentInterface;
         this.componentClass = componentClass;
         this.constructor = findComponentConstructor();
@@ -73,7 +77,7 @@ final class ConstructingProducer extends AbstractProducer {
         return new ComponentCache.Command() {
             public Object run(final ComponentContext context) {
                 final Constructor constructor = constructor();
-                final ComponentContext componentContext = container.contextFactory().deriveContext(context, componentClass());
+                final ComponentContext componentContext = contexts.deriveContext(context, componentClass());
 
                 return Exceptions.wrap(String.format("instantiating %s", componentClass()), new Exceptions.Command<Object>() {
                     public Object run() throws Exception {

@@ -42,7 +42,7 @@ public final class ProductionServices implements ContainerServices {
     public ProductionServices(final LogFactory logs) {
         this.logs = logs;
         this.classDiscovery = new ClassDiscoveryImpl(logs);
-        this.dependencyInjector = new DependencyInjectorImpl(classDiscovery);
+        this.dependencyInjector = new DependencyInjectorImpl(classDiscovery, referenceChain, contextChain, contextFactory);
     }
 
     public ClassDiscovery classDiscovery() {

@@ -32,13 +32,12 @@ public interface ComponentCache {
     /**
      * Looks up and instantiates if necessary using the supplied command, the component whose class is also specified to find its annotations.
      *
-     *
      * @param source             something to identify who is creating instances through this cache.
      * @param componentInterface the interface the component implements.
      * @param componentClass     the class of the component to return.
      * @param listener           a listener to invoke when a component has been instantiated.
-     *
      * @param create             the command that performs instantiation of the component.
+     *
      * @return the component instance.
      */
     Object lookup(Object source, Class<?> componentInterface, Class<?> componentClass, Listener listener, Command create);
@@ -67,7 +66,7 @@ public interface ComponentCache {
          * Called when a component is instantiated.
          *
          * @param componentInterface the interface reference that triggered the instantiation.
-         * @param component the component that has just been instantiated.
+         * @param component          the component that has just been instantiated.
          */
         void created(Class<?> componentInterface, Object component);
     }
