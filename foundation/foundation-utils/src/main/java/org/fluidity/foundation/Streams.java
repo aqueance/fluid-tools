@@ -28,6 +28,8 @@ import java.io.OutputStream;
 
 /**
  * General stream related convenience methods.
+ *
+ * @author Tibor Varga
  */
 public final class Streams {
 

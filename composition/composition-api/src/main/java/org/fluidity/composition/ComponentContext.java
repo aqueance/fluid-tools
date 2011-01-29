@@ -51,13 +51,17 @@ public interface ComponentContext {
     /**
      * Returns the last annotation in the context for the specified type.
      *
-     * @param type the annotation type to return instances of.
+     * @param type      the annotation type to return instances of.
+     * @param reference the reference whose annotation is being queried. The method throws a {@link ComponentContainer.ResolutionException} exception if this
+     *                  parameter is not <code>null</code> and no annotation is found for the given <code>type</code>.
      *
      * @return the last annotation in the context for the specified type or null if none present.
      *
+     * @throws org.fluidity.composition.ComponentContainer.ResolutionException
+     *          when the <code>reference</code> parameter is not <code>null</code> and no annotation of the given <code>type</code> is found.
      * @see #defines(Class)
      */
-    <T extends Annotation> T annotation(Class<T> type);
+    <T extends Annotation> T annotation(Class<T> type, Class<?> reference) throws ComponentContainer.ResolutionException;
 
     /**
      * Tells whether the context defines a value for the given key.

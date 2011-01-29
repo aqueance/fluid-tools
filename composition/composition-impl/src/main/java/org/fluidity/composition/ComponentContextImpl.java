@@ -43,9 +43,8 @@ final class ComponentContextImpl implements ComponentContext {
         for (final Map.Entry<Class<? extends Annotation>, Annotation[]> entry : map.entrySet()) {
             final Class<? extends Annotation> key = entry.getKey();
 
-            @SuppressWarnings({ "unchecked" })
+            @SuppressWarnings("unchecked")
             final Class<? extends Annotation> type = Proxy.isProxyClass(key) ? (Class<? extends Annotation>) key.getInterfaces()[0] : key;
-
             this.map.put(type, entry.getValue());
         }
     }
@@ -76,19 +75,27 @@ final class ComponentContextImpl implements ComponentContext {
         return list.toArray(new Annotation[list.size()]);
     }
 
-    @SuppressWarnings({ "unchecked" })
+    @SuppressWarnings("unchecked")
     public <T extends Annotation> T[] annotations(final Class<T> type) {
         return (T[]) map.get(type);
     }
 
-    @SuppressWarnings({ "unchecked" })
-    public <T extends Annotation> T annotation(final Class<T> type) {
+    @SuppressWarnings("unchecked")
+    public <T extends Annotation> T annotation(final Class<T> type, final Class<?> reference) {
         final Annotation[] annotations = annotations(type);
-        return (T) (annotations == null || annotations.length == 0 ? null : annotations[annotations.length - 1]);
+
+        if (annotations != null && annotations.length > 0) {
+            return (T) annotations[annotations.length - 1];
+        } else if (reference == null) {
+            return null;
+        } else {
+            throw new ComponentContainer.ResolutionException("Annotation %s is missing from %s dependency", type, reference);
+        }
     }
 
     public boolean defines(final Class<? extends Annotation> type) {
-        return map.containsKey(type);
+        final Annotation[] annotations = annotations(type);
+        return annotations != null && annotations.length > 0;
     }
 
     public Set<Class<? extends Annotation>> types() {
@@ -96,17 +103,8 @@ final class ComponentContextImpl implements ComponentContext {
     }
 
     @Override
-    @SuppressWarnings("SimplifiableIfStatement")
     public boolean equals(final Object o) {
-        if (this == o) {
-            return true;
-        }
-
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        return map.equals(((ComponentContextImpl) o).map);
+        return this == o || (o != null && getClass() == o.getClass() && map.equals(((ComponentContextImpl) o).map));
     }
 
     @Override
@@ -117,6 +115,7 @@ final class ComponentContextImpl implements ComponentContext {
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();
+
         for (final Map.Entry<Class<? extends Annotation>, Annotation[]> entry : map.entrySet()) {
             if (builder.length() > 0) {
                 builder.append(", ");
@@ -124,6 +123,7 @@ final class ComponentContextImpl implements ComponentContext {
 
             builder.append(Arrays.asList(entry.getValue()));
         }
+
         return builder.toString();
     }
 }

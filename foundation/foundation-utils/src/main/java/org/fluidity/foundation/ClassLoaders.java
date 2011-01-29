@@ -67,7 +67,7 @@ public final class ClassLoaders {
         return findClassLoader(sourceClass).getResource(classResourceName(sourceClass));
     }
 
-    public static InputStream getClassResource(final Class sourceClass) {
+    public static InputStream readClassResource(final Class sourceClass) {
         return findClassLoader(sourceClass).getResourceAsStream(classResourceName(sourceClass));
     }
 }

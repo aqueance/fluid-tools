@@ -27,7 +27,6 @@ import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -142,15 +141,13 @@ public class ClassDiscoveryImplTest extends MockGroupAbstractTest {
         outputFile.delete();
         outputFile.createNewFile();
 
-        final InputStream input = ClassLoaders.getClassResource(impl);
-        OutputStream output = new FileOutputStream(outputFile);
-
+        final InputStream input = ClassLoaders.readClassResource(impl);
         assert input != null : fileName;
 
-        Streams.copy(input, output, new byte[1024], true);
+        Streams.copy(input, new FileOutputStream(outputFile), new byte[1024], true);
     }
 
-    private void deleteDirectory(File rootDir, List<File> fileList) {
+    private void deleteDirectory(final File rootDir, final List<File> fileList) {
         for (final File file : fileList) {
             file.delete();
 

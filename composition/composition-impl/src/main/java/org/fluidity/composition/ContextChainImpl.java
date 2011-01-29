@@ -24,7 +24,6 @@ package org.fluidity.composition;
 
 import java.lang.annotation.Annotation;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -47,26 +46,7 @@ final class ContextChainImpl implements ContextChain {
     public ContextChainImpl(final ContextFactory factory) {
         this.factory = factory;
 
-        final ComponentContext context = new ComponentContext() {
-
-            @SuppressWarnings("unchecked")
-            public <T extends Annotation> T[] annotations(final Class<T> type) {
-                return (T[]) Collections.EMPTY_LIST.toArray();
-            }
-
-            public <T extends Annotation> T annotation(final Class<T> type) {
-                return null;
-            }
-
-            public boolean defines(final Class<? extends Annotation> type) {
-                return false;
-            }
-
-            @SuppressWarnings("unchecked")
-            public Set<Class<? extends Annotation>> types() {
-                return (Set<Class<? extends Annotation>>) Collections.EMPTY_SET;
-            }
-        };
+        final ComponentContext context = new ComponentContextImpl(new HashMap<Class<? extends Annotation>, Annotation[]>());
         establishedContext.set(context);
         consumedContext.set(context);
     }

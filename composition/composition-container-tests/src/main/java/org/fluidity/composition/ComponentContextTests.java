@@ -45,10 +45,10 @@ public final class ComponentContextTests extends AbstractContainerTests {
     @DataProvider(name = "component-types")
     public Object[][] componentTypes() {
         return new Object[][] {
-                new Object[] { ContextAwareComponent1Impl.class, null, "setting1" },
-                new Object[] { ContextAwareComponent2Impl.class, null, "setting2" },
-                new Object[] { OrdinaryComponent1Impl.class, OrdinaryVariants1.class, "setting1" },
-                new Object[] { OrdinaryComponent2Impl.class, OrdinaryVariants2.class, "setting2" },
+                new Object[] { ContextAwareComponent1Impl.class, null},
+                new Object[] { ContextAwareComponent2Impl.class, null },
+                new Object[] { OrdinaryComponent1Impl.class, OrdinaryVariants1.class },
+                new Object[] { OrdinaryComponent2Impl.class, OrdinaryVariants2.class },
         };
     }
 
@@ -59,6 +59,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
     @Setting2("value1")
     private static class Test1 extends TestDependent {
 
+        @SuppressWarnings("UnusedDeclaration")
         private Test1(@Setting1("value1") final ContextAware dependency) {
             this.dependency = dependency;
         }
@@ -67,6 +68,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
     @Setting1("value2")
     private static class Test2 extends TestDependent {
 
+        @SuppressWarnings("UnusedDeclaration")
         private Test2(@Setting2("value2") final ContextAware dependency) {
             this.dependency = dependency;
         }
@@ -74,13 +76,14 @@ public final class ComponentContextTests extends AbstractContainerTests {
 
     private static class Test3 extends TestDependent {
 
+        @SuppressWarnings("UnusedDeclaration")
         private Test3(@Setting3("value") final ContextAware dependency) {
             this.dependency = dependency;
         }
     }
 
     @Test(dataProvider = "component-types")
-    public void explicitContext(final Class<? extends ContextAware> type, final Class<? extends ComponentVariantFactory> factory, final String key)
+    public void explicitContext(final Class<? extends ContextAware> type, final Class<? extends ComponentVariantFactory> factory)
             throws Exception {
         registry.bindComponent(type);
         registry.bindComponent(Test1.class);
@@ -200,7 +203,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
         private final String setting;
 
         public ContextAwareComponent1Impl(final ComponentContext context) {
-            final Setting1 setting = context.annotation(Setting1.class);
+            final Setting1 setting = context.annotation(Setting1.class, null);
             final String value = setting == null ? null : setting.value();
             this.setting = value == null ? "missing-value" : value;
         }
@@ -216,7 +219,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
         private final String setting;
 
         public ContextAwareComponent2Impl(ComponentContext context) {
-            final Setting2 setting = context.annotation(Setting2.class);
+            final Setting2 setting = context.annotation(Setting2.class, null);
             final String value = setting == null ? null : setting.value();
             this.setting = value == null ? "missing-value" : value;
         }
@@ -261,7 +264,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
         public OpenComponentContainer newComponent(final OpenComponentContainer container, final ComponentContext context) {
             container.getRegistry().bindInstance(ContextAware.Settings.class, new ContextAware.Settings() {
                 public String setting() {
-                    final Setting1 setting = context.annotation(Setting1.class);
+                    final Setting1 setting = context.annotation(Setting1.class, null);
                     final String value = setting == null ? null : setting.value();
                     return value == null ? "missing-value" : value;
                 }
@@ -278,7 +281,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
         public OpenComponentContainer newComponent(final OpenComponentContainer container, final ComponentContext context) {
             container.getRegistry().bindInstance(ContextAware.Settings.class, new ContextAware.Settings() {
                 public String setting() {
-                    final Setting2 setting = context.annotation(Setting2.class);
+                    final Setting2 setting = context.annotation(Setting2.class, null);
                     final String value = setting == null ? null : setting.value();
                     return value == null ? "missing-value" : value;
                 }
@@ -408,6 +411,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
 
         public final OrdinaryComponent2 ordinary2;
 
+        @SuppressWarnings("UnusedDeclaration")
         private OverridingComponent(final OrdinaryComponent2 ordinary2) {
             this.ordinary2 = ordinary2;
         }
@@ -434,6 +438,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
     @Target({ ElementType.TYPE, ElementType.FIELD, ElementType.PARAMETER })
     public static @interface Setting3 {
 
+        @SuppressWarnings("UnusedDeclaration")
         String value();
     }
 }

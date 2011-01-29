@@ -48,7 +48,7 @@ public abstract class Exceptions {
     }
 
     /**
-     * Retrows {@link RuntimeException}s and wraps other {@link Exception}s in a {@link RuntimeException}.
+     * Re-trows {@link RuntimeException}s and wraps other {@link Exception}s in a {@link RuntimeException}.
      *
      * @param command the command to run.
      *
@@ -79,11 +79,11 @@ public abstract class Exceptions {
      */
     public static final class Wrapper extends RuntimeException {
 
-        public Wrapper(final Exception cause) {
+        Wrapper(final Exception cause) {
             super(cause);
         }
 
-        public Wrapper(final Exception cause, final String format, final Object... args) {
+        Wrapper(final Exception cause, final String format, final Object... args) {
             super(String.format(format, args), cause);
         }
 
@@ -92,7 +92,7 @@ public abstract class Exceptions {
          * <pre>
          * try {
          *   ...
-         *   Exceptions.wrap("...", new Exceptions.Command&lt;Void> {
+         *   Exceptions.wrap(new Exceptions.Command&lt;Void> {
          *     ...
          *      return null;
          *   });
@@ -115,14 +115,13 @@ public abstract class Exceptions {
          *
          * @throws T the wrapped exception if it is of the given type.
          */
+        @SuppressWarnings("unchecked")
         public <T extends Exception> Wrapper rethrow(final Class<T> accept) throws T {
             final Throwable cause = getCause();
+            assert cause != null : this;
 
-            @SuppressWarnings({ "unchecked", "ThrowableResultOfMethodCallIgnored"})
-            final T exception = accept.isAssignableFrom(cause.getClass()) ? (T) cause : null;
-
-            if (exception != null) {
-                throw exception;
+            if (accept.isAssignableFrom(cause.getClass())) {
+                throw (T) cause;
             } else {
                 return this;
             }

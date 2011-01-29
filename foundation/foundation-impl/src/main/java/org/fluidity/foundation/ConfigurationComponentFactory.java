@@ -58,11 +58,7 @@ final class ConfigurationComponentFactory implements ComponentFactory<Configurat
         final OpenComponentContainer nested = container.makeNestedContainer();
         final ComponentContainer.Registry registry = nested.getRegistry();
 
-        final Properties properties = context.annotation(Properties.class);
-
-        if (properties == null) {
-            throw new ComponentContainer.ResolutionException("Annotation %s is missing from Configuration dependency", Properties.class);
-        }
+        final Properties properties = context.annotation(Properties.class, Configuration.class);
 
         registry.bindInstance(Properties.class, properties);
         registry.bindComponent(PropertyProvider.class, properties.provider());

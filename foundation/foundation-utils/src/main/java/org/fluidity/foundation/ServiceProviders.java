@@ -29,7 +29,9 @@ import sun.misc.Service;
 import sun.misc.ServiceConfigurationError;
 
 /**
- * Wraps the Sun JDK service provider discovery implementation, which was private API prior to Java 6.
+ * Wraps the Sun JDK service provider discovery implementation, which was private API prior to Java 6. This class is used internally before the more convenient
+ * service provider mechanism is available. Use the <code>@ServiceProvider</code> annotation instead of this low level utility to make your tasks in dealing
+ * with service providers much, much simpler.
  *
  * @author Tibor Varga
  */
