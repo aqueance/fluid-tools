@@ -35,10 +35,11 @@ import org.fluidity.foundation.logging.Log;
 import org.fluidity.foundation.logging.Marker;
 
 /**
- * Implements the component shutdown mechanism for web applications. The implementation requires a mechanism that auto-discovers
- * <code>ServletContextListeners</code> and dispatches the respective servlet events to all without each having to be registered in the web application's
- * web.xml file. Such mechanism is the {@link WebApplicationLifecycleListener} that should be added as a listener in the host web
- * application's <code>web.xml</code> file.
+ * Implements the component shutdown mechanism for web applications. The implementation requires either to be explicitly registered as a
+ * <code>ServletContextListeners</code> or a mechanism that finds this class and forwards listener method invocations to it. Fluid Tools has such mechanism in
+ * the form of a <code>ServletContextListeners</code>, <code>AggregatingServletContextListener</code>, which uses service provider discovery to find any
+ * implementation of the <code>ServletContextListeners</code> interface, including this class, as long the implementation is marked by the {@link
+ * ServiceProvider} annotation.
  *
  * @author Tibor Varga
  */

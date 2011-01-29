@@ -29,7 +29,7 @@ import org.fluidity.foundation.spi.LogFactory;
  *
  * @author Tibor Varga
  */
-public final class ProductionServices implements ContainerServices {
+final class ProductionServices implements ContainerServices {
 
     private final ReferenceChainImpl referenceChain = new ReferenceChainImpl();
     private final ContextFactory contextFactory = new ContextFactoryImpl();

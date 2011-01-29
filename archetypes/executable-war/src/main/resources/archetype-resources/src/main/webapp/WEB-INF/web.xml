@@ -49,20 +49,15 @@ THE SOFTWARE.
 
     <listener>
         <description>Help managed Fluid Tools' container life cycle</description>
-        <display-name>Fluid Tools Aggregating Listener</display-name>
-        <listener-class>org.fluidity.composition.web.WebApplicationLifecycleListener</listener-class>
+        <display-name>Fluid Tools Servlet Context Listener</display-name>
+        <listener-class>org.fluidity.composition.web.AggregatingServletContextListener</listener-class>
     </listener>
-
-    <servlet>
-        <servlet-name>bootstrap</servlet-name>
-        <servlet-class>org.fluidity.deployment.BootstrapServlet</servlet-class>
-        <load-on-startup>1</load-on-startup>
-    </servlet>
 
     <servlet>
         <servlet-name>my-servlet</servlet-name>
         <servlet-class>org.fluidity.deployment.DependencyResolverServlet</servlet-class>
-        <load-on-startup>2</load-on-startup>
+        <load-on-startup>100</load-on-startup>
+
         <init-param>
             <param-name>component-key</param-name>
             <param-value>${package}.MyServlet</param-value>

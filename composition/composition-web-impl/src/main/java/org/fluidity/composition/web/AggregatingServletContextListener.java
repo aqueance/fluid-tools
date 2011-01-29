@@ -35,11 +35,11 @@ import org.fluidity.composition.ContainerBoundary;
  *
  * @author Tibor Varga
  */
-public final class WebApplicationLifecycleListener implements ServletContextListener {
+public final class AggregatingServletContextListener implements ServletContextListener {
 
     private final ServletContextListener listeners[];
 
-    public WebApplicationLifecycleListener() {
+    public AggregatingServletContextListener() {
         final ComponentContainer container = new ContainerBoundary();
         final ComponentDiscovery discovery = container.getComponent(ComponentDiscovery.class);
 
