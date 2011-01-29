@@ -25,8 +25,11 @@ package org.fluidity.deployment;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import org.fluidity.composition.Component;
+import org.fluidity.composition.ComponentContainer;
+import org.fluidity.composition.spi.EmptyPackageBindings;
 
 /**
  * @author Tibor Varga
@@ -42,5 +45,27 @@ final class LaunchArgumentsImpl implements LaunchArguments {
 
     public String[] arguments() {
         return arguments.toArray(new String[arguments.size()]);
+    }
+
+    /**
+     * Binds the launch arguments implementation if the launch argument string array has been made available via a call to
+     * <code>ContainerBoundary.setBindingProperty(LaunchArguments.ARGUMENTS_KEY, ...)</code>.
+     *
+     * @author Tibor Varga
+     */
+    public static class Bindings extends EmptyPackageBindings {
+
+        private final String[] arguments;
+
+        public Bindings(final Map<Object, String[]> properties) {
+            arguments = properties.get(LaunchArguments.ARGUMENTS_KEY);
+        }
+
+        @Override
+        public void bindComponents(final ComponentContainer.Registry registry) {
+            if (arguments != null) {
+                registry.makeChildContainer(LaunchArguments.class, LaunchArgumentsImpl.class).getRegistry().bindInstance(String[].class, arguments);
+            }
+        }
     }
 }

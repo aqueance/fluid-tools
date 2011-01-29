@@ -22,7 +22,12 @@
 
 package org.fluidity.deployment;
 
+import java.util.Map;
+
 import org.fluidity.composition.Component;
+import org.fluidity.composition.ComponentContainer;
+import org.fluidity.composition.ContainerBoundary;
+import org.fluidity.composition.spi.EmptyPackageBindings;
 import org.fluidity.foundation.Exceptions;
 
 import org.eclipse.jetty.server.Server;
@@ -56,5 +61,35 @@ final class JettyDeploymentControl implements DeploymentControl {
                 return null;
             }
         });
+    }
+
+    /**
+     * @author Tibor Varga
+     */
+    static class Bindings extends EmptyPackageBindings {
+
+        private static final Object BINDINGS_KEY = new Object();
+
+        private final ComponentContainer.Bindings dependencies;
+
+        static void set(final ContainerBoundary container, final Server server, final boolean standalone) {
+            container.setBindingProperty(BINDINGS_KEY, new ComponentContainer.Bindings() {
+                public void bindComponents(final ComponentContainer.Registry registry) {
+                    registry.bindInstance(Server.class, server);
+                    registry.bindInstance(Boolean.TYPE, standalone);
+                }
+            });
+        }
+
+        public Bindings(final Map<Object, ComponentContainer.Bindings> properties) {
+            dependencies = properties.get(BINDINGS_KEY);
+        }
+
+        @Override
+        public void bindComponents(final ComponentContainer.Registry registry) {
+            if (dependencies != null) {
+                dependencies.bindComponents(registry.makeChildContainer(DeploymentControl.class, JettyDeploymentControl.class).getRegistry());
+            }
+        }
     }
 }

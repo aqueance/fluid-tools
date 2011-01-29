@@ -64,8 +64,7 @@ public final class JettyServer {
             container.setBindingProperty(LaunchArguments.ARGUMENTS_KEY, args);
         }
 
-        container.setBindingProperty(DeploymentControl.SERVER_KEY, server);
-        container.setBindingProperty(DeploymentControl.STANDALONE_KEY, false);
+        JettyDeploymentControl.Bindings.set(container, server, false);
 
         if (httpPort > 0) {
             handlers.addHandler(new DefaultHandler());
