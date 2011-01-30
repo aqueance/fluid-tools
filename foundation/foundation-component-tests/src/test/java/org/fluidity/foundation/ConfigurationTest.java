@@ -64,13 +64,13 @@ public class ConfigurationTest extends MockGroupAbstractTest {
         @Setting(key = "missing.key1")
         String missingValue1();
 
-        @Setting(key = "missing.key2", fallback = "default")
+        @Setting(key = "missing.key2", undefined = "default")
         String missingValue2();
 
         @Setting(key = "valid.key1")
         String validValue1();
 
-        @Setting(key = "valid.key2", fallback = "default")
+        @Setting(key = "valid.key2", undefined = "default")
         String validValue2();
     }
 
@@ -131,52 +131,52 @@ public class ConfigurationTest extends MockGroupAbstractTest {
 
     public static interface MultiTypeSettings {
 
-        @Setting(key = "boolean", fallback = "true")
+        @Setting(key = "boolean", undefined = "true")
         boolean booleanValue();
 
-        @Setting(key = "Boolean", fallback = "true")
+        @Setting(key = "Boolean", undefined = "true")
         Boolean BooleanValue();
 
-        @Setting(key = "int", fallback = "123")
+        @Setting(key = "int", undefined = "123")
         byte byteValue();
 
-        @Setting(key = "int", fallback = "-123")
+        @Setting(key = "int", undefined = "-123")
         Byte ByteValue();
 
-        @Setting(key = "int", fallback = "1234")
+        @Setting(key = "int", undefined = "1234")
         short shortValue();
 
-        @Setting(key = "int", fallback = "-1234")
+        @Setting(key = "int", undefined = "-1234")
         Short ShortValue();
 
-        @Setting(key = "int", fallback = "12345")
+        @Setting(key = "int", undefined = "12345")
         int intValue();
 
-        @Setting(key = "int", fallback = "-12345")
+        @Setting(key = "int", undefined = "-12345")
         Integer IntegerValue();
 
-        @Setting(key = "int", fallback = "123456")
+        @Setting(key = "int", undefined = "123456")
         long longValue();
 
-        @Setting(key = "int", fallback = "-123456")
+        @Setting(key = "int", undefined = "-123456")
         Long LongValue();
 
-        @Setting(key = "float", fallback = "123456.25")
+        @Setting(key = "float", undefined = "123456.25")
         float floatValue();
 
-        @Setting(key = "float", fallback = "-123456.25")
+        @Setting(key = "float", undefined = "-123456.25")
         Float FloatValue();
 
-        @Setting(key = "float", fallback = "1234567.25")
+        @Setting(key = "float", undefined = "1234567.25")
         double doubleValue();
 
-        @Setting(key = "float", fallback = "-1234567.25")
+        @Setting(key = "float", undefined = "-1234567.25")
         Double DoubleValue();
 
-        @Setting(key = "class", fallback = "java.lang.Object")
+        @Setting(key = "class", undefined = "java.lang.Object")
         Class classValue();
 
-        @Setting(key = "enum", fallback = "SAMPLE")
+        @Setting(key = "enum", undefined = "SAMPLE")
         EnumType enumValue();
     }
 

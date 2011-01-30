@@ -90,7 +90,7 @@ final class ConfigurationComponentFactory implements ComponentFactory<Configurat
                         final String property = setting.key();
                         final Object value = provider.property(property);
 
-                        properties.put(method, value == null ? convert(setting.fallback(), method.getReturnType()) : value);
+                        properties.put(method, value == null ? convert(setting.undefined(), method.getReturnType()) : value);
                     }
 
                     configuration.set((T) Proxy.newProxyInstance(loader, interfaces, new InvocationHandler() {

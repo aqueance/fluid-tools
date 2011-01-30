@@ -30,10 +30,10 @@ package org.fluidity.foundation.configuration;
  * <pre>
  * public interface MySettings {
  *
- *   &#64;Setting(key = "setting.property.1", fallback = "default setting 1")
+ *   &#64;Setting(key = "setting.property.1", undefined = "default setting 1")
  *   String property1();
  *
- *   &#64;Setting(key = "setting.property.2", fallback = "default setting 2")
+ *   &#64;Setting(key = "setting.property.2", undefined = "default setting 2")
  *   String property2();
  * }
  * </pre>

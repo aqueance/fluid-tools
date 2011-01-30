@@ -53,5 +53,5 @@ public @interface Setting {
      *
      * @return the default value for the property.
      */
-    String fallback() default "";
+    String undefined() default "";
 }
