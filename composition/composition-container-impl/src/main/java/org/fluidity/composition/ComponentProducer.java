@@ -32,6 +32,14 @@ import org.fluidity.composition.spi.ComponentMapping;
 interface ComponentProducer extends ComponentMapping {
 
     /**
+     * Tells if the component is a fallback or primary. When both a primary and fallback component is mapped to the same interface, the fallback is ignored and
+     * the primary is used.
+     *
+     * @return <code>true</code> if the component is a fallback component, <code>false</code> if it is primary.
+     */
+    boolean isFallback();
+
+    /**
      * Returns the class of the component instance.
      *
      * @return the class of the component instance.

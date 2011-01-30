@@ -40,10 +40,11 @@ abstract class FactoryProducer extends AbstractProducer {
     protected abstract ComponentFactory factory(final SimpleContainer container);
 
     public FactoryProducer(final Class<? extends ComponentFactory> factoryClass,
+                           final boolean fallback,
                            final ReferenceChain references,
                            final ComponentCache cache,
                            final LogFactory logs) {
-        super(references, cache, logs);
+        super(fallback, references, cache, logs);
         this.factoryClass = factoryClass;
 
         final Component annotation = factoryClass.getAnnotation(Component.class);
@@ -59,10 +60,10 @@ abstract class FactoryProducer extends AbstractProducer {
         this.componentInterface = annotation.api();
         this.componentClass = annotation.type();
 
-        assert componentInterface != null;
+        assert this.componentInterface != null;
         assert componentClass != null;
 
-        if (componentInterface == Object.class || componentClass == Object.class) {
+        if (this.componentInterface == Object.class || componentClass == Object.class) {
             throw new ComponentContainer.BindingException("Factory %s must have a @%s(api = ..., type = ...) annotation", factoryClass, Component.class);
         }
     }

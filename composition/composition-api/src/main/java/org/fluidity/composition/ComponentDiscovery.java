@@ -32,6 +32,7 @@ package org.fluidity.composition;
  * <p/>
  * Components depending on this may also need to depend on a {@link ComponentContainer}.
  *
+ * @deprecated this component's functionality will be replaced by @ComponentGroup annotated dependencies and ComponentContainer.getComponentGroup().
  * @author Tibor Varga
  */
 public interface ComponentDiscovery {

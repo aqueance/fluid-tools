@@ -36,10 +36,11 @@ final class VariantProducerInstance extends VariantProducer {
 
     public VariantProducerInstance(final SimpleContainer container,
                                    final ComponentVariantFactory factory,
+                                   final boolean fallback,
                                    final ReferenceChain references,
                                    final ComponentCache cache,
                                    final LogFactory logs) {
-        super(container, factory.getClass(), references, cache, logs);
+        super(container, factory.getClass(), fallback, references, cache, logs);
         this.factory = factory;
     }
 

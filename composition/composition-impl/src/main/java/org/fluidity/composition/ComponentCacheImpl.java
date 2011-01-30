@@ -34,20 +34,30 @@ import org.fluidity.foundation.spi.LogFactory;
 final class ComponentCacheImpl implements ComponentCache {
 
     private final Map<ComponentContext, Object> cache;
+    private final Listener listener;
     private final ContextChain contextChain;
     private final ReferenceChain referenceChain;
     private final Log log;
 
-    public ComponentCacheImpl(final ContextChain contextChain, final ReferenceChain referenceChain, final LogFactory logs, boolean cache) {
+    public ComponentCacheImpl(final Listener listener,
+                              final ContextChain contextChain,
+                              final ReferenceChain referenceChain,
+                              final LogFactory logs,
+                              boolean cache) {
         this.cache = cache ? new HashMap<ComponentContext, Object>() : null;
+        this.listener = listener;
         this.referenceChain = referenceChain;
         this.contextChain = contextChain;
         this.log = logs.createLog(getClass());
     }
 
-    public Object lookup(final Object source, final Class<?> componentInterface, final Class<?> componentClass, final Listener listener, final Command create) {
+    public Object lookup(final Object source, final Class<?> componentInterface, final Class<?> componentClass, final Command create) {
         if (cache == null) {
-            return createComponent(componentInterface, componentClass, create);
+            final Object component = createComponent(componentInterface, componentClass, create);
+
+            recordComponentCreation(source, component, componentInterface, contextChain.prevalentContext());
+
+            return component;
         } else {
             final ComponentContext key = contextChain.currentContext();
 
@@ -63,22 +73,7 @@ final class ComponentCacheImpl implements ComponentCache {
                     cache.put(key, component);
                     cache.put(consumedContext, component);
 
-                    if (component == null) {
-                        log.info("%s: not created component for %s%s",
-                                 source,
-                                 componentInterface,
-                                 consumedContext.types().isEmpty() ? "" : String.format(" for context %s", consumedContext));
-                    } else {
-                        log.info("%s: created %s@%s%s",
-                                 source,
-                                 component.getClass().getName(),
-                                 System.identityHashCode(component),
-                                 consumedContext.types().isEmpty() ? "" : String.format(" for context %s", consumedContext));
-                    }
-
-                    if (listener != null) {
-                        listener.created(componentInterface, component);
-                    }
+                    recordComponentCreation(source, component, componentInterface, consumedContext);
                 } else {
                     cache.put(key, cache.get(consumedContext));
                 }
@@ -96,5 +91,24 @@ final class ComponentCacheImpl implements ComponentCache {
         contextChain.contextConsumed(context);
 
         return component;
+    }
+
+    private void recordComponentCreation(final Object source, final Object component, final Class<?> componentInterface, final ComponentContext context) {
+        if (component == null) {
+            log.info("%s: not created component for %s%s",
+                     source,
+                     componentInterface,
+                     context.types().isEmpty() ? "" : String.format(" for context %s", context));
+        } else {
+            log.info("%s: created %s@%s%s",
+                     source,
+                     component.getClass().getName(),
+                     System.identityHashCode(component),
+                     context.types().isEmpty() ? "" : String.format(" for context %s", context));
+        }
+
+        if (listener != null) {
+            listener.created(componentInterface, component);
+        }
     }
 }

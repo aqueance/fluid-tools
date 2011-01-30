@@ -35,7 +35,7 @@ final class LinkingProducer extends AbstractProducer {
     private final SimpleContainer target;
 
     public LinkingProducer(final SimpleContainer container, final ComponentProducer delegate, final ReferenceChain references, final LogFactory logs) {
-        super(references, null, logs);
+        super(delegate.isFallback(), references, null, logs);
         this.delegate = delegate;
         this.target = container;
     }
@@ -50,6 +50,21 @@ final class LinkingProducer extends AbstractProducer {
 
     public Class<?> componentClass() {
         return delegate().componentClass();
+    }
+
+    @Override
+    public boolean isVariantMapping() {
+        return delegate().isVariantMapping();
+    }
+
+    @Override
+    public Class<?> factoryClass() {
+        return delegate().factoryClass();
+    }
+
+    @Override
+    public boolean isInstanceMapping() {
+        return delegate().isInstanceMapping();
     }
 
     public Object create(final SimpleContainer container, boolean circular) {

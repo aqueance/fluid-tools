@@ -36,6 +36,9 @@ import org.fluidity.foundation.logging.Log;
  */
 final class SimpleContainerImpl implements SimpleContainer {
 
+    // cache listener to capture instantiation of components
+    private final LocalListener listener = new LocalListener();
+
     private final ContainerServices services;
     private final Log log;
 
@@ -82,10 +85,25 @@ final class SimpleContainerImpl implements SimpleContainer {
                                                                   producer.componentInterface(),
                                                                   producer.factoryClass());
                 } else {
-                    ((VariantProducer) producer).setDelegate(entry);
+                    final VariantProducer variants = (VariantProducer) producer;
+                    final ComponentProducer delegate = variants.delegate();
+
+                    if (delegate == null || (delegate.isFallback() && !entry.isFallback())) {
+                        variants.setDelegate(entry);
+                    } else {
+                        throw new ComponentContainer.BindingException("Component %s already bound", key);
+                    }
                 }
             } else {
-                throw new ComponentContainer.BindingException("Component %s already bound", key);
+                if (entry.isFallback() == producer.isFallback()) {
+                    throw new ComponentContainer.BindingException("Component %s already bound", key);
+                }
+
+                if (entry.isFallback()) {
+                    return producer;
+                } else {
+                    contents.put(key, entry);
+                }
             }
         }
 
@@ -99,7 +117,16 @@ final class SimpleContainerImpl implements SimpleContainer {
             if (producer == null) {
                 contents.put(key, entry);
             } else if (producer.isVariantMapping()) {
-                throw new ComponentContainer.BindingException("Component %s already hijacked by %s", producer.componentInterface(), producer.factoryClass());
+                if (entry.isFallback() == producer.isFallback()) {
+                    throw new ComponentContainer.BindingException("Component %s already hijacked by %s",
+                                                                  producer.componentInterface(),
+                                                                  producer.factoryClass());
+                } else if (entry.isFallback()) {
+                    return producer;
+                } else {
+                    entry.setDelegate(((VariantProducer) producer).delegate());
+                    contents.put(key, entry);
+                }
             } else if (producer.isInstanceMapping()) {
                 throw new ComponentContainer.BindingException("Component instance %s cannot be hijacked by %s",
                                                               producer.componentInterface(),
@@ -127,60 +154,25 @@ final class SimpleContainerImpl implements SimpleContainer {
         return new EmbeddedContainer(this, context);
     }
 
-    /**
-     * Internal interface to generalize the binding of components, including ordinary ones, factories and variant factories.
-     */
-    private static interface ContentProducers {
-
-        /**
-         * Tells if we are processing a variant factory.
-         *
-         * @return <code>true</code> if we are processing a variant factory, <code>false</code> otherwise.
-         */
-        boolean isVariantFactory();
-
-        /**
-         * Tells if we are processing an ordinary factory.
-         *
-         * @return <code>true</code> if we are processing an ordinary factory, <code>false</code> otherwise.
-         */
-        boolean isFactory();
-
-        /**
-         * Creates a component producer for the component being processed.
-         *
-         * @return a component producer that will produce, and cache if necessary, a single instance of a component.
-         */
-        ComponentProducer component();
-
-        /**
-         * Creates a variant factory for the component being processed.
-         *
-         * @return a variant producer that will produce, and cache if necessary, a single instance of a variant factory.
-         */
-        VariantProducer variant();
-
-        /**
-         * Creates a component factory for the component being processed.
-         *
-         * @return a component producer that will produce, and cache if necessary, a single instance of a component factory.
-         */
-        FactoryProducer factory();
-    }
-
-    public ComponentProducer bindFactory(final ContentProducers factories) {
-        final ComponentProducer producer = factories.component();
-
+    public ComponentProducer bindFactory(final ComponentProducer component, final ContentProducers factories) {
         if (factories.isVariantFactory()) {
-            bindProducer(producer.componentClass(), producer);
+
+            // bind the variant factory to its class
+            bindProducer(component.componentClass(), component);
+
+            // bind the variant producer to the component interface
             final VariantProducer factory = factories.variant();
             return bindVariants(factory.componentInterface(), factory);
         } else if (factories.isFactory()) {
-            bindProducer(producer.componentClass(), producer);
+
+            // bind the factory to its class
+            bindProducer(component.componentClass(), component);
+
+            // bind the factory producer to the component interface
             final FactoryProducer factory = factories.factory();
             return bindProducer(factory.componentInterface(), factory);
         } else {
-            return bindProducer(producer.componentInterface(), producer);
+            return bindProducer(component.componentInterface(), component);
         }
     }
 
@@ -203,10 +195,20 @@ final class SimpleContainerImpl implements SimpleContainer {
 
         final Component annotation = implementation.getAnnotation(Component.class);
         final boolean isStateful = annotation != null && annotation.stateful();
+        final boolean isFallback = annotation != null && !annotation.primary();
 
-        log.info("%s: binding %s to %s (%s)", this, key, implementation, isStateful ? "stateful" : "stateless");
+        log.info("%s: binding %s to %s (%s, %s)", this, key, implementation, isStateful ? "stateful" : "stateless", isFallback ? "fallback" : "primary");
 
-        return bindFactory(new ContentProducers() {
+        final ConstructingProducer producer = new ConstructingProducer(key,
+                                                                       implementation,
+                                                                       isFallback,
+                                                                       services.newCache(listener, !isStateful),
+                                                                       referenceChain,
+                                                                       contextFactory,
+                                                                       injector,
+                                                                       services.logs());
+
+        return bindFactory(producer, new ContentProducers() {
             public boolean isVariantFactory() {
                 return ComponentVariantFactory.class.isAssignableFrom(implementation);
             }
@@ -215,31 +217,18 @@ final class SimpleContainerImpl implements SimpleContainer {
                 return ComponentFactory.class.isAssignableFrom(implementation);
             }
 
-            public ComponentProducer component() {
-                return new ConstructingProducer(key, implementation, services.newCache(!isStateful), referenceChain, contextFactory, injector, services.logs());
-            }
-
             public VariantProducer variant() {
-                return new VariantProducerClass(SimpleContainerImpl.this, implementation.asSubclass(ComponentVariantFactory.class),
-                                                referenceChain,
-                                                services.newCache(true),
-                                                services.logs());
+                final Class<? extends ComponentVariantFactory> factory = implementation.asSubclass(ComponentVariantFactory.class);
+                final ComponentCache cache = services.newCache(listener, true);
+                return new VariantProducerClass(SimpleContainerImpl.this, factory, isFallback, referenceChain, cache, services.logs());
             }
 
             public FactoryProducer factory() {
-                return new FactoryProducerClass(implementation.asSubclass(ComponentFactory.class), referenceChain, services.newCache(true), services.logs());
+                final Class<? extends ComponentFactory> factory = implementation.asSubclass(ComponentFactory.class);
+                final ComponentCache cache = services.newCache(listener, true);
+                return new FactoryProducerClass(factory, isFallback, referenceChain, cache, services.logs());
             }
         });
-    }
-
-    private String handleArrayClass(final Class<?> rootType) {
-        final StringBuilder builder = new StringBuilder();
-
-        Class<?> componentType = rootType;
-        for (; componentType.isArray(); componentType = componentType.getComponentType()) {
-            builder.append("[]");
-        }
-        return builder.insert(0, componentType).toString();
     }
 
     public ComponentProducer bindInstance(final Class<?> key, final Object instance) {
@@ -247,12 +236,16 @@ final class SimpleContainerImpl implements SimpleContainer {
             throw new ComponentContainer.BindingException("Component instance for %s is null", key);
         }
 
+        final Component annotation = instance.getClass().getAnnotation(Component.class);
+        final boolean isFallback = annotation != null && !annotation.primary();
+
         final String value = instance instanceof String || instance instanceof Number
                              ? ('\'' + String.valueOf(instance) + '\'')
-                             : ("instance of " + handleArrayClass(instance.getClass()));
-        log.info("%s: binding %s to '%s'", this, handleArrayClass(key), value);
+                             : ("instance of " + arrayType(instance.getClass()));
+        log.info("%s: binding %s to '%s' (%s)", this, arrayType(key), value, isFallback ? "fallback" : "primary");
 
-        return bindFactory(new ContentProducers() {
+        final InstanceProducer producer = new InstanceProducer(key, instance.getClass(), instance, isFallback, referenceChain, services.logs());
+        return bindFactory(producer, new ContentProducers() {
             public boolean isVariantFactory() {
                 return instance instanceof ComponentVariantFactory;
             }
@@ -261,25 +254,29 @@ final class SimpleContainerImpl implements SimpleContainer {
                 return instance instanceof ComponentFactory;
             }
 
-            public ComponentProducer component() {
-                return new InstanceProducer(key, instance.getClass(), instance, referenceChain, services.logs());
-            }
-
             @SuppressWarnings("ConstantConditions")
             public VariantProducer variant() {
-                return new VariantProducerInstance(SimpleContainerImpl.this, (ComponentVariantFactory) instance, referenceChain, services.newCache(true), services.logs());
+                return new VariantProducerInstance(SimpleContainerImpl.this,
+                                                   (ComponentVariantFactory) instance,
+                                                   isFallback,
+                                                   referenceChain,
+                                                   services.newCache(listener, true),
+                                                   services.logs());
             }
 
             @SuppressWarnings("ConstantConditions")
             public FactoryProducer factory() {
-                return new FactoryProducerInstance((ComponentFactory) instance, referenceChain, services.newCache(true), services.logs());
+                return new FactoryProducerInstance((ComponentFactory) instance, isFallback, referenceChain, services.newCache(listener, true), services.logs());
             }
         });
     }
 
     public SimpleContainer linkComponent(final Class<?> key, final Class<?> implementation) throws ComponentContainer.BindingException {
         final SimpleContainer child = newChildContainer();
-        bindProducer(key, new LinkingProducer(child, child.bindComponent(key, implementation), referenceChain, services.logs()));
+
+        final LinkingProducer producer = new LinkingProducer(child, child.bindComponent(key, implementation), referenceChain, services.logs());
+        bindProducer(producer.componentInterface(), producer);
+
         return child;
     }
 
@@ -287,19 +284,18 @@ final class SimpleContainerImpl implements SimpleContainer {
     public <T> List<T> allSingletons(final Class<T> componentInterface) {
         final List<T> instances = new ArrayList<T>();
 
-        final ComponentCache.Listener listener = new ComponentCache.Listener() {
-            public void created(final Class<?> ignored, final Object component) {
+        listener.capture(new ComponentCache.Listener() {
+            public void created(final Class<?> ignore, Object component) {
                 if (componentInterface.isAssignableFrom(component.getClass())) {
                     instances.add((T) component);
                 }
             }
-        };
-
-        // This smells like kludge: AbstractProducer may not be the best place for this conceptually
-        AbstractProducer.captureInstantiations(listener, new Runnable() {
+        }, new Runnable() {
             public void run() {
                 for (final Class<?> type : contents.keySet()) {
-                    get(type, null);
+                    if (componentInterface.isAssignableFrom(type)) {
+                        get(type, null);
+                    }
                 }
             }
         });
@@ -316,13 +312,7 @@ final class SimpleContainerImpl implements SimpleContainer {
         final ComponentProducer producer = contents.get(key);
 
         if (producer == null) {
-            final T found = find(key);
-
-            if (found != null || parent == null) {
-                return found;
-            } else {
-                return parent.get(key);
-            }
+            return parent == null ? null : parent.get(key);
         } else {
             return referenceChain.track(producer, key, new CreateCommand<T>(producer));
         }
@@ -332,17 +322,7 @@ final class SimpleContainerImpl implements SimpleContainer {
         final ComponentProducer producer = contents.get(key);
 
         if (producer == null) {
-            final T found = contextChain.track(context, new ContextChain.Command<T>() {
-                public T run(final ComponentContext ignore) {
-                    return find(key);
-                }
-            });
-
-            if (found != null || parent == null) {
-                return found;
-            } else {
-                return parent.get(key, context);
-            }
+            return parent == null ? null : parent.get(key, context);
         } else {
             return contextChain.track(context, new ContextChain.Command<T>() {
                 public T run(final ComponentContext context) {
@@ -356,32 +336,24 @@ final class SimpleContainerImpl implements SimpleContainer {
         return injector.injectFields(this, component.getClass(), contextChain.currentContext(), component);
     }
 
-    private <T> T find(final Class<? extends T> key) {
-        ComponentProducer found = null;
+    private String arrayType(final Class<?> rootType) {
+        final StringBuilder builder = new StringBuilder();
 
-        synchronized (contents) {
-            for (final ComponentProducer producer : contents.values()) {
-                final Class<?> componentClass = producer.componentClass();
-
-                if (key.isAssignableFrom(componentClass)) {
-                    if (found != null && found != producer) {
-                        throw new ComponentContainer.ResolutionException("Multiple components found matching %s", key);
-                    }
-
-                    found = producer;
-                }
-            }
-
-            if (found != null) {
-                contents.put(key, found);
-            }
+        Class<?> componentType = rootType;
+        for (; componentType.isArray(); componentType = componentType.getComponentType()) {
+            builder.append("[]");
         }
+        return builder.insert(0, componentType).toString();
+    }
 
-        if (found == null) {
-            return null;
-        } else {
-            return referenceChain.track(found, key, new CreateCommand<T>(found));
-        }
+    public String id() {
+        final String id = String.format("%x", System.identityHashCode(this));
+        return parent == null ? id : String.format("%s > %s", id, parent.id());
+    }
+
+    @Override
+    public String toString() {
+        return String.format("container %s", id());
     }
 
     private class CreateCommand<T> implements ReferenceChain.Command<T> {
@@ -414,13 +386,58 @@ final class SimpleContainerImpl implements SimpleContainer {
         }
     }
 
-    public String id() {
-        final String id = String.format("%x", System.identityHashCode(this));
-        return parent == null ? id : String.format("%s > %s", id, parent.id());
+    /**
+     * Internal interface to generalize the binding of components, including ordinary ones, factories and variant factories.
+     */
+    private static interface ContentProducers {
+
+        /**
+         * Tells if we are processing a variant factory.
+         *
+         * @return <code>true</code> if we are processing a variant factory, <code>false</code> otherwise.
+         */
+        boolean isVariantFactory();
+
+        /**
+         * Tells if we are processing an ordinary factory.
+         *
+         * @return <code>true</code> if we are processing an ordinary factory, <code>false</code> otherwise.
+         */
+        boolean isFactory();
+
+        /**
+         * Creates a variant factory for the component being processed.
+         *
+         * @return a variant producer that will produce, and cache if necessary, a single instance of a variant factory.
+         */
+        VariantProducer variant();
+
+        /**
+         * Creates a component factory for the component being processed.
+         *
+         * @return a component producer that will produce, and cache if necessary, a single instance of a component factory.
+         */
+        FactoryProducer factory();
     }
 
-    @Override
-    public String toString() {
-        return String.format("container %s", id());
+    private static class LocalListener implements ComponentCache.Listener {
+
+        private ThreadLocal<ComponentCache.Listener> delegate = new ThreadLocal<ComponentCache.Listener>();
+
+        public void created(final Class<?> type, final Object component) {
+            final ComponentCache.Listener delegate = this.delegate.get();
+            if (delegate != null) {
+                delegate.created(type, component);
+            }
+        }
+
+        public void capture(final ComponentCache.Listener delegate, final Runnable command) {
+            this.delegate.set(delegate);
+            try {
+                command.run();
+            } finally {
+                this.delegate.remove();
+            }
+        }
     }
 }

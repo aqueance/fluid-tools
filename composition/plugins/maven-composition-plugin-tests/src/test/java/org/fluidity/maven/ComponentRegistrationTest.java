@@ -22,13 +22,10 @@
 
 package org.fluidity.maven;
 
-import java.util.Iterator;
-
 import org.fluidity.composition.ContainerBoundary;
+import org.fluidity.foundation.ServiceProviders;
 
 import org.testng.annotations.Test;
-
-import sun.misc.Service;
 
 /**
  * @author Tibor Varga
@@ -41,11 +38,12 @@ public class ComponentRegistrationTest {
     public void testComponents() throws Exception {
         component(SimpleComponent.class, SimpleComponentImpl.class);
         component(SuperComponent.class, InheritedComponentImpl.class);
-        component(ComponentInterface1.class, MultipleInterfacesComponent.class);
         component(ComponentInterface2.class, MultipleInterfacesComponent.class);
-        component(DefaultComponent.class, PriorityComponentImpl.class);
-        component(DefaultComponentImpl.class, DefaultComponentImpl.class);
+        component(DefaultComponent.class, PrimaryComponentImpl.class);
+        component(FallbackComponent.class, FallbackComponentImpl.class);
 
+        assert container.getComponent(ComponentInterface1.class) == null;
+        assert container.getComponent(DefaultComponentImpl.class) == null;
         assert container.getComponent(ManualComponent.class) == null;
     }
 
@@ -70,9 +68,9 @@ public class ComponentRegistrationTest {
     }
 
     private void jdkProvider(final Class<?> providerInterface) {
-        final Iterator providers = Service.providers(providerInterface);
-        assert providers.hasNext() : providerInterface;
-        assert providerInterface.isAssignableFrom(providers.next().getClass()) : providerInterface;
+        final Object instance = ServiceProviders.findInstance(providerInterface, getClass().getClassLoader());
+        assert instance != null : providerInterface;
+        assert providerInterface.isAssignableFrom(instance.getClass()) : providerInterface;
     }
 
     private <T> void component(final Class<T> componentInterface, final Class<? extends T> componentClass) {

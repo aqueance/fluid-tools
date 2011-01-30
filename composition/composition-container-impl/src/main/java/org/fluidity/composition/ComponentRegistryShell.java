@@ -38,15 +38,11 @@ final class ComponentRegistryShell extends EmptyComponentContainer.EmptyRegistry
     }
 
     public <T> void bindDefault(final Class<? extends T> implementation) {
-        container.bindComponent(implementation, implementation);
+        container.bindComponent(componentInterface(implementation), implementation);
     }
 
     public <T> void bindComponent(final Class<T> key, final Class<? extends T> implementation) {
         container.bindComponent(key, implementation);
-    }
-
-    public void bindComponent(final Class<?> implementation) throws ComponentContainer.BindingException {
-        container.bindComponent(componentInterface(implementation), implementation);
     }
 
     public <T> void bindInstance(final Class<? super T> key, final T instance) {

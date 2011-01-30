@@ -78,7 +78,7 @@ public abstract class ContainerProviderAbstractTest extends MockGroupAbstractTes
         EasyMock.expect(services.contextChain()).andReturn(contextChain).anyTimes();
         EasyMock.expect(services.contextFactory()).andReturn(contextFactory).anyTimes();
         EasyMock.expect(services.dependencyInjector()).andReturn(dependencyInjector).anyTimes();
-        EasyMock.expect(services.newCache(EasyMock.anyBoolean())).andReturn(componentCache).anyTimes();
+        EasyMock.expect(services.newCache(EasyMock.<ComponentCache.Listener>notNull(), EasyMock.anyBoolean())).andReturn(componentCache).anyTimes();
     }
 
     @Test
@@ -101,13 +101,6 @@ public abstract class ContainerProviderAbstractTest extends MockGroupAbstractTes
                 return ((ContextChain.Command) EasyMock.getCurrentArguments()[1]).run(null);
             }
         }).anyTimes();
-
-        EasyMock.expect(referenceChain.track(EasyMock.<ComponentMapping>notNull(), EasyMock.same(Map.class), EasyMock.<ReferenceChain.Command>notNull()))
-                .andAnswer(new IAnswer<Object>() {
-                    public Object answer() throws Throwable {
-                        return map;
-                    }
-                });
 
         EasyMock.expect(referenceChain.track(EasyMock.<ComponentMapping>notNull(),
                                              EasyMock.same(StandalonePackageBindingsImpl.class),
@@ -147,13 +140,6 @@ public abstract class ContainerProviderAbstractTest extends MockGroupAbstractTes
                 return ((ContextChain.Command) EasyMock.getCurrentArguments()[1]).run(null);
             }
         }).anyTimes();
-
-        EasyMock.expect(referenceChain.track(EasyMock.<ComponentMapping>notNull(), EasyMock.same(Map.class), EasyMock.<ReferenceChain.Command>notNull()))
-                .andAnswer(new IAnswer<Object>() {
-                    public Object answer() throws Throwable {
-                        return map;
-                    }
-                });
 
         EasyMock.expect(referenceChain.track(EasyMock.<ComponentMapping>notNull(),
                                              EasyMock.same(ResponsiblePackageBindingsImpl.class),

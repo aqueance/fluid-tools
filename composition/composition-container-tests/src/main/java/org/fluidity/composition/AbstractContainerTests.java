@@ -61,10 +61,6 @@ public abstract class AbstractContainerTests extends MockGroupAbstractTest {
         assert component != null : "Test component not found in container";
         assert component instanceof Value : String.format("Test component is not of correct type: %s", component);
 
-        final Value value = container.getComponent(Value.class);
-        assert value != null : "Test component not found by its class";
-        assert value == component : "Test component by class is not the same object as the same by interface";
-
         // the key tells us how many times the class was instantiated
         assert container.getComponent(Key.class).key().equals(component.key()) : "Multiple component queries created multiple instances";
         assert Value.instanceCount == originalCount + extraCount : String.format("Expected only %d Key object, got %d",
@@ -89,6 +85,27 @@ public abstract class AbstractContainerTests extends MockGroupAbstractTest {
         }
 
         public DependentValue(final ComponentContext context) {
+            this.context = context;
+        }
+
+        public ComponentContext context() {
+            return context;
+        }
+    }
+
+    /**
+     * This is intentionally protected - makes sure the container is able to instantiate non-public classes
+     */
+    @Component(primary = false, automatic = false)
+    protected static class DefaultDependentValue implements DependentKey {
+
+        private final ComponentContext context;
+
+        public DefaultDependentValue() {
+            this(null);
+        }
+
+        public DefaultDependentValue(final ComponentContext context) {
             this.context = context;
         }
 
@@ -136,6 +153,7 @@ public abstract class AbstractContainerTests extends MockGroupAbstractTest {
     /**
      * Depends on the enclosing container.
      */
+    @Component(primary = false, automatic = false)
     protected static class ContainerDependent {
 
         private final ComponentContainer container;

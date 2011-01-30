@@ -33,10 +33,11 @@ import org.fluidity.foundation.spi.LogFactory;
 final class FactoryProducerClass extends FactoryProducer {
 
     public FactoryProducerClass(final Class<? extends ComponentFactory> factoryClass,
+                                final boolean fallback,
                                 final ReferenceChain references,
                                 final ComponentCache cache,
                                 final LogFactory logs) {
-        super(factoryClass, references, cache, logs);
+        super(factoryClass, fallback, references, cache, logs);
     }
 
     @Override

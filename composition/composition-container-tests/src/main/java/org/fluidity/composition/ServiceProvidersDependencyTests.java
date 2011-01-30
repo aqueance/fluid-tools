@@ -42,7 +42,7 @@ public final class ServiceProvidersDependencyTests extends AbstractContainerTest
 
     @Test
     public void dependencyResolved() throws Exception {
-        registry.bindDefault(Processor.class);
+        registry.bindComponent(Processor.class, Processor.class);
         assert container.getComponent(Processor.class) != null;
     }
 

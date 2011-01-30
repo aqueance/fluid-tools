@@ -37,8 +37,8 @@ public final class FieldInjectionTests extends AbstractContainerTests {
     public void testFieldInjection() throws Exception {
         registry.bindComponent(AbstractContainerTests.Key.class, AbstractContainerTests.Value.class);
         registry.bindComponent(AbstractContainerTests.DependentKey.class, DependentValue.class);
-        registry.bindDefault(FieldInjected.class);
-        registry.bindDefault(SuperFieldInjected.class);
+        registry.bindComponent(FieldInjected.class, FieldInjected.class);
+        registry.bindComponent(SuperFieldInjected.class, SuperFieldInjected.class);
 
         final FieldInjected injected = container.getComponent(FieldInjected.class);
         assert injected != null;
@@ -54,7 +54,7 @@ public final class FieldInjectionTests extends AbstractContainerTests {
         registry.bindComponent(AbstractContainerTests.Key.class, AbstractContainerTests.Value.class);
         registry.bindComponent(AbstractContainerTests.DependentKey.class, DependentValue.class);
 
-        final FieldInjected injected = new FieldInjected(container.getComponent(DependentValue.class));
+        final FieldInjected injected = new FieldInjected(container.getComponent(DependentKey.class));
 
         container.initialize(injected);
         injected.verify();
@@ -64,7 +64,7 @@ public final class FieldInjectionTests extends AbstractContainerTests {
     public void testSelfDependencyViaField() throws Exception {
         registry.bindComponent(SelfDependent.class, SelfDependentImpl.class);
 
-        final SelfDependentImpl injected = container.getComponent(SelfDependentImpl.class);
+        final SelfDependentImpl injected = (SelfDependentImpl) container.getComponent(SelfDependent.class);
         assert injected != null;
         injected.verify();
     }
@@ -81,11 +81,6 @@ public final class FieldInjectionTests extends AbstractContainerTests {
         @SuppressWarnings("UnusedDeclaration")
         private Key dependency1;
 
-        @Optional
-        @Component
-        @SuppressWarnings("UnusedDeclaration")
-        private Value dependency2;
-
         private final DependentKey dependency3;
 
         public FieldInjected(final DependentKey dependency3) {
@@ -94,7 +89,6 @@ public final class FieldInjectionTests extends AbstractContainerTests {
 
         public void verify() {
             assert dependency1 != null : "Field injection did not work on interface";
-            assert dependency2 != null : "Field injection did not work on implementation";
             assert dependency3 != null : "Construction injection did not work";
         }
     }

@@ -42,26 +42,17 @@ package org.fluidity.composition;
  * <p/>
  * The registry offers several ways to map an implementation to an interface in the host container. Which one you need depends on your requirements. These
  * methods are invoked from the {@link org.fluidity.composition.spi.PackageBindings#bindComponents(ComponentContainer.Registry)} method of your binding
- * implementation.
- * <ul>
- * <li>To simply register a component implementation for a component interface, use {@link ComponentContainer.Registry#bindComponent(Class,Class)}. This is
- * exactly what the Maven plugin uses for a {@link Component} annotated class with no {@link Component#automatic()} setting so if this method is all you need
- * then you should simply use the plugin instead of creating your own binding class.
- * </li>
- * <li>To register a default implementation of some component interface, use {@link ComponentContainer.Registry#bindDefault(Class)}. This is
- * exactly what the Maven plugin uses for a {@link Component} annotated class with {@link Component#primary()}<code>=false</code> so if this method is all you
- * need then you should simply use the plugin instead of creating your own binding class.
- * </li>
- * <li>To register an already instantiated component implementation for a component interface, use
- * {@link ComponentContainer.Registry#bindInstance(Class,Object)}. If the implementation is annotated with {@link Component} then its
- * {@link Component#automatic()} setting must be set to <code>false</code>.
- * </li>
- * <li>To register a component implementation without having some or all of its dependencies accessible in the same container, use
- * {@link ComponentContainer.Registry#makeChildContainer(Class,Class)} method and use the returned container's {@link OpenComponentContainer#getRegistry()}
- * method to gain access to the registry in which to bind the hidden dependencies. If the implementation is annotated with {@link Component} then its
- * {@link Component#automatic()} setting must be set to <code>false</code>.
- * </li>
- * </ul>
+ * implementation. <ul> <li>To simply register a component implementation for a component interface, use {@link
+ * ComponentContainer.Registry#bindComponent(Class, Class)}. This is exactly what the Maven plugin uses for a {@link Component} annotated class with no {@link
+ * Component#automatic()} setting so if this method is all you need then you should simply use the plugin instead of creating your own binding class. </li>
+ * <li>To register a default implementation of some component interface, use {@link ComponentContainer.Registry#bindDefault(Class)}. This is exactly what the
+ * Maven plugin uses for a {@link Component} annotated class with {@link Component#primary()}<code>=false</code> so if this method is all you need then you
+ * should simply use the plugin instead of creating your own binding class. </li> <li>To register an already instantiated component implementation for a
+ * component interface, use {@link ComponentContainer.Registry#bindInstance(Class, Object)}. If the implementation is annotated with {@link Component} then its
+ * {@link Component#automatic()} setting must be set to <code>false</code>. </li> <li>To register a component implementation without having some or all of its
+ * dependencies accessible in the same container, use {@link ComponentContainer.Registry#makeChildContainer(Class, Class)} method and use the returned
+ * container's {@link OpenComponentContainer#getRegistry()} method to gain access to the registry in which to bind the hidden dependencies. If the
+ * implementation is annotated with {@link Component} then its {@link Component#automatic()} setting must be set to <code>false</code>. </li> </ul>
  *
  * @author Tibor Varga
  */
@@ -147,26 +138,6 @@ public interface ComponentContainer {
     interface Registry {
 
         /**
-         * Binds a component class to its component interface. The component interface is taken either from the {@link Component#api()} annotation parameter or
-         * the single interface the class implements, unless the {@link Component#primary()} annotation parameter is <code>false</code>, in which case the
-         * component is bound as a default implementation that can be overridden by another binding against the same API interface.
-         * <p/>
-         * Two special cases must be handled by the receiver: when the implementation is either a {@link org.fluidity.composition.spi.ComponentFactory} or a
-         * {@link org.fluidity.composition.spi.ComponentVariantFactory}. In the latter case, two bindings must take place, one for the variant factory and one
-         * for the component it creates variants of, and they can take place in any order. Irrespective of the order, the variant factory must receive any
-         * component lookup for the target component.
-         * <p/>
-         * This is a convenience method whose functionality is also provided by other methods collectively, namely {@link #bindDefault(Class)} and {@link
-         * #bindComponent(Class, Class)}.
-         *
-         * @param implementation the component class.
-         *
-         * @throws ComponentContainer.BindingException
-         *          when the binding cannot be performed
-         */
-        void bindComponent(Class<?> implementation) throws BindingException;
-
-        /**
          * Binds a component class to its interface. Two special cases must be handled by the receiver: when <code>implementation</code> is either a {@link
          * org.fluidity.composition.spi.ComponentFactory} or a {@link org.fluidity.composition.spi.ComponentVariantFactory}. In the latter case, a total of two
          * bindings must take place, one for the variant factory and one for the component it creates variants of, and they can take place in any order.
@@ -187,6 +158,7 @@ public interface ComponentContainer {
          *
          * @throws ComponentContainer.BindingException
          *          when the binding cannot be performed
+         * @deprecated use @Component(primary = false) and bindComponent(Class, Class) instead
          */
         <T> void bindDefault(Class<? extends T> implementation) throws BindingException;
 

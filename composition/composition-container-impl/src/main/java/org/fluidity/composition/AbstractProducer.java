@@ -36,13 +36,13 @@ import org.fluidity.foundation.spi.LogFactory;
  */
 abstract class AbstractProducer implements ComponentProducer {
 
-    private static final ThreadLocal<ComponentCache.Listener> listeners = new ThreadLocal<ComponentCache.Listener>();
-
+    private final boolean fallback;
     protected final ReferenceChain references;
     protected final ComponentCache cache;
     protected final Log log;
 
-    protected AbstractProducer(final ReferenceChain references, final ComponentCache cache, final LogFactory logs) {
+    protected AbstractProducer(final boolean fallback, final ReferenceChain references, final ComponentCache cache, final LogFactory logs) {
+        this.fallback = fallback;
         this.references = references;
         this.cache = cache;
         this.log = logs.createLog(getClass());
@@ -57,6 +57,10 @@ abstract class AbstractProducer implements ComponentProducer {
      */
     protected ComponentCache.Command createCommand(final SimpleContainer container) {
         return null;
+    }
+
+    public boolean isFallback() {
+        return fallback;
     }
 
     /**
@@ -74,17 +78,13 @@ abstract class AbstractProducer implements ComponentProducer {
             return deferredCreate(container, componentClass, create, null);
         } else {
             try {
-                return cache.lookup(container, componentInterface(), componentClass, listener(), create);
+                return cache.lookup(container, componentInterface(), componentClass, create);
             } catch (final ComponentContainer.CircularReferencesException e) {
 
                 // handle circular reference that was noticed later in the reference chain that could not be handled at that point
                 return deferredCreate(container, componentClass, create, e);
             }
         }
-    }
-
-    protected final ComponentCache.Listener listener() {
-        return listeners.get();
     }
 
     private Object deferredCreate(final SimpleContainer container,
@@ -101,7 +101,7 @@ abstract class AbstractProducer implements ComponentProducer {
                 public Object invoke(final Object proxy, final Method method, final Object[] arguments) throws Throwable {
                     synchronized (this) {
                         if (delegate == null) {
-                            delegate = cache.lookup(container, componentInterface(), componentClass, null, create);
+                            delegate = cache.lookup(container, componentInterface(), componentClass, create);
                         }
                     }
 
@@ -129,15 +129,5 @@ abstract class AbstractProducer implements ComponentProducer {
     @Override
     public String toString() {
         return String.format(" %s (%s)", componentClass(), componentInterface());
-    }
-
-    public static void captureInstantiations(final ComponentCache.Listener listener, final Runnable command) {
-        listeners.set(listener);
-
-        try {
-            command.run();
-        } finally {
-            listeners.set(null);
-        }
     }
 }

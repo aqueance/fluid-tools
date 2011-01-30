@@ -50,10 +50,11 @@ abstract class VariantProducer extends AbstractProducer {
 
     public VariantProducer(final SimpleContainer container,
                            final Class<? extends ComponentVariantFactory> factoryClass,
+                           final boolean fallback,
                            final ReferenceChain references,
                            final ComponentCache cache,
                            final LogFactory logs) {
-        super(references, cache, logs);
+        super(fallback, references, cache, logs);
         this.parent = container.parentContainer();
         this.factoryClass = factoryClass;
 
@@ -69,8 +70,8 @@ abstract class VariantProducer extends AbstractProducer {
 
         this.componentInterface = annotation.api();
 
-        assert componentInterface != null;
-        if (componentInterface == Object.class) {
+        assert this.componentInterface != null;
+        if (this.componentInterface == Object.class) {
             throw error;
         }
     }
@@ -93,7 +94,7 @@ abstract class VariantProducer extends AbstractProducer {
 
     @Override
     public Object create(final SimpleContainer container, final boolean circular) {
-        return cache.lookup(container, componentInterface, componentClass(), listener(), new ComponentCache.Command() {
+        return cache.lookup(container, componentInterface, componentClass(), new ComponentCache.Command() {
             public Object run(final ComponentContext context) {
                 final ComponentVariantFactory factory = factory(container);
 
@@ -108,6 +109,10 @@ abstract class VariantProducer extends AbstractProducer {
                 }
             }
         });
+    }
+
+    public ComponentProducer delegate() {
+        return delegate;
     }
 
     public final void setDelegate(final ComponentProducer delegate) {

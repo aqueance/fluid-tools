@@ -67,53 +67,50 @@ public final class BasicResolutionTests extends AbstractContainerTests {
 
     @Test
     public void singletonComponentRegistration() throws Exception {
-        registry.bindComponent(Value.class); // Value depends on DependentKey
-        registry.bindComponent(DependentValue.class);
+        registry.bindComponent(Key.class, Value.class); // Value depends on DependentKey
+        registry.bindComponent(DependentKey.class, DependentValue.class);
 
         verifyComponent(Value.instanceCount, 1, container);
     }
 
     @Test
     public void findsDefaultImplementation() throws Exception {
-        registry.bindComponent(Value.class);
-
-        // register by class, not interface
-        registry.bindDefault(DependentValue.class);
+        registry.bindComponent(Key.class, Value.class);
+        registry.bindComponent(DependentKey.class, DefaultDependentValue.class);
 
         verifyComponent(Value.instanceCount, 1, container);
 
-        // registration by class was used
-        assert Value.dependent instanceof DependentValue;
+        assert Value.dependent instanceof DefaultDependentValue;
     }
 
     @Test
-    public void specificImplementationTakesPrecedenceOverDefault() throws Exception {
-        registry.bindComponent(Value.class);
+    public void primaryImplementationTakesPrecedenceOverFallback() throws Exception {
+        registry.bindComponent(Key.class, Value.class);
 
-        // this should not be found by interface
-        registry.bindComponent(DefaultDependentValue.class);
+        // this is the fallback
+        registry.bindComponent(DependentKey.class, DefaultDependentValue.class);
 
-        // this should be found by interface
-        registry.bindComponent(DependentValue.class);
+        // this is the primary
+        registry.bindComponent(DependentKey.class, DependentValue.class);
 
         verifyComponent(Value.instanceCount, 1, container);
 
         // registration by interface took precedence
-        assert Value.dependent instanceof DependentValue;
+        assert Value.dependent instanceof DependentValue : Value.dependent;
     }
 
     @Test
     public void instanceRegistration() throws Exception {
-        registry.bindComponent(Value.class);
+        registry.bindComponent(Key.class, Value.class);
         registry.bindInstance(DependentKey.class, new DependentValue());
 
         verifyComponent(Value.instanceCount, 1, container);
     }
 
     @Test
-    @SuppressWarnings({ "unchecked" })
+    @SuppressWarnings("unchecked")
     public void arrayRegistration() throws Exception {
-        registry.bindComponent(ArrayDependent.class);
+        registry.bindComponent(ArrayDependent.class, ArrayDependent.class);
         final Object[] array = new Object[0];
         registry.bindInstance((Class<Object[]>) array.getClass(), array);
 
@@ -122,7 +119,7 @@ public final class BasicResolutionTests extends AbstractContainerTests {
 
     @Test
     public void dependencyOnContainer() throws Exception {
-        registry.bindDefault(ContainerDependent.class);
+        registry.bindComponent(ContainerDependent.class, ContainerDependent.class);
 
         final ContainerDependent component = container.getComponent(ContainerDependent.class);
         assert component != null;
@@ -171,11 +168,11 @@ public final class BasicResolutionTests extends AbstractContainerTests {
 
     @Test
     public void allComponents() throws Exception {
-        registry.bindComponent(Service1.class);
-        registry.bindComponent(Service2.class);
-        registry.bindComponent(Service3.class);
-        registry.bindComponent(Service4.class);
-        registry.bindComponent(Intermediate.class);
+        registry.bindComponent(Service1.class, Service1.class);
+        registry.bindComponent(Service2.class, Service2.class);
+        registry.bindComponent(Service3.class, Service3.class);
+        registry.bindComponent(Service4.class, Service4.class);
+        registry.bindComponent(Intermediate.class, Intermediate.class);
 
         AbstractService.createList.clear();
         AbstractService.callList.clear();
@@ -185,15 +182,15 @@ public final class BasicResolutionTests extends AbstractContainerTests {
         }
 
         assert AbstractService.createList.size() == 4 : AbstractService.createList;
-        assert AbstractService.createList.equals(AbstractService.callList) : String.format("%n%s%n%s", AbstractService.createList, AbstractService.callList);
+        assert AbstractService.callList.equals(AbstractService.createList) : String.format("%n%s%n%s", AbstractService.createList, AbstractService.callList);
     }
 
     @Test
     public void checkSerialization() throws Exception {
         SerializableComponent.container = container;
 
-        registry.bindComponent(Value.class); // Value depends on DependentKey
-        registry.bindComponent(DependentValue.class);
+        registry.bindComponent(Key.class, Value.class); // Value depends on DependentKey
+        registry.bindComponent(DependentKey.class, DependentValue.class);
 
         final SerializableComponent component = new SerializableComponent();
 
@@ -212,15 +209,15 @@ public final class BasicResolutionTests extends AbstractContainerTests {
         class Local { }
 
         registry.bindInstance(BasicResolutionTests.class, this);
-        registry.bindComponent(Local.class);
+        registry.bindComponent(Local.class, Local.class);
 
         assert container.getComponent(Local.class) != null : "Local class was not instantiated";
     }
 
     @Test
     public void checkNonStaticInnerClass() throws Exception {
-        registry.bindComponent(OuterClass.class);
-        registry.bindComponent(OuterClass.InnerClass.class);
+        registry.bindComponent(OuterClass.class, OuterClass.class);
+        registry.bindComponent(OuterClass.InnerClass.class, OuterClass.InnerClass.class);
 
         assert container.getComponent(OuterClass.InnerClass.class) != null : "Non-static inner class was not instantiated";
     }
@@ -257,14 +254,6 @@ public final class BasicResolutionTests extends AbstractContainerTests {
         public void verify(final String context) {
             assert dependency != null: String.format("Dependency not set in %s", context);
         }
-    }
-
-    /**
-     * This is intentionally private - makes sure the container is able to instantiate non-public classes
-     */
-    @Component(primary = false)
-    private static class DefaultDependentValue extends DependentValue {
-
     }
 
     private static class ArrayDependent {

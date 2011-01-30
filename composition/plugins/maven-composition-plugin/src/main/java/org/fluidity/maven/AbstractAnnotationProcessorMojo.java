@@ -85,7 +85,6 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
 
     private static final String ATR_API = "api";
     private static final String ATR_AUTOMATIC = "automatic";
-    private static final String ATR_PRIMARY = "primary";
     private static final String ATR_JDK = "jdk";
     private static final String PACKAGE_BINDINGS = PackageBindings.class.getName();
     private static final String GENERATED_PACKAGE_BINDINGS = PACKAGE_BINDINGS.substring(PACKAGE_BINDINGS.lastIndexOf(".") + 1).concat("$");
@@ -314,7 +313,6 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
                     final Set<String> componentApis;
 
                     private String api = null;
-                    private boolean fallback = false;
                     private boolean automatic = true;
 
                     ComponentAnnotationVisitor(final Set<String> componentApis) {
@@ -323,9 +321,7 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
 
                     @Override
                     public void visit(final String name, final Object value) {
-                        if (ATR_PRIMARY.equals(name) && !((Boolean) value)) {
-                            fallback = true;
-                        } else if (ATR_API.equals(name)) {
+                        if (ATR_API.equals(name)) {
                             api = ((Type) value).getClassName();
                         } else if (ATR_AUTOMATIC.equals(name) && !((Boolean) value)) {
                             automatic = false;
@@ -335,7 +331,7 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
                     @Override
                     public void visitEnd() {
                         if (automatic) {
-                            componentApis.add(fallback ? className : api);
+                            componentApis.add(api);     // null values are handled later
                         }
                     }
                 }

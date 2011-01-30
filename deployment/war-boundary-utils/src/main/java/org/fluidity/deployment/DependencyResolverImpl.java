@@ -42,6 +42,7 @@ final class DependencyResolverImpl implements DependencyResolver {
     /*
      * Package visible to make accessible to test cases.
      */
+    @SuppressWarnings("unchecked")
     Object findComponent(final ComponentContainer container, final String componentClassName) throws ServletException {
         assert componentClassName != null : COMPONENT_KEY;
 
@@ -49,7 +50,7 @@ final class DependencyResolverImpl implements DependencyResolver {
             final ClassLoader classLoader = ClassLoaders.findClassLoader(DependencyResolver.class);
             assert classLoader != null : DependencyResolver.class;
 
-            final Class<?> componentClass = classLoader.loadClass(componentClassName);
+            final Class componentClass = classLoader.loadClass(componentClassName);
             assert componentClass != null : componentClassName;
 
             assert container != null : ComponentContainer.class;
@@ -58,7 +59,7 @@ final class DependencyResolverImpl implements DependencyResolver {
             if (component == null) {
                 component = container.getComponent(componentClass, new ComponentContainer.Bindings() {
                     public void bindComponents(ComponentContainer.Registry registry) {
-                        registry.bindDefault(componentClass);
+                        registry.bindComponent(componentClass, componentClass);
                     }
                 });
 

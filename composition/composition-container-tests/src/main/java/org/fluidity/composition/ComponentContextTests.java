@@ -45,14 +45,15 @@ public final class ComponentContextTests extends AbstractContainerTests {
     @DataProvider(name = "component-types")
     public Object[][] componentTypes() {
         return new Object[][] {
-                new Object[] { ContextAwareComponent1Impl.class, null},
-                new Object[] { ContextAwareComponent2Impl.class, null },
-                new Object[] { OrdinaryComponent1Impl.class, OrdinaryVariants1.class },
-                new Object[] { OrdinaryComponent2Impl.class, OrdinaryVariants2.class },
+                new Object[] { ContextAware.class, ContextAwareComponent1Impl.class, null },
+                new Object[] { ContextAware.class, ContextAwareComponent2Impl.class, null },
+                new Object[] { ContextAware.class, OrdinaryComponent1Impl.class, ContextAwareVariants1.class },
+                new Object[] { ContextAware.class, OrdinaryComponent2Impl.class, ContextAwareVariants2.class },
         };
     }
 
     private static class TestDependent {
+
         public ContextAware dependency;
     }
 
@@ -82,19 +83,21 @@ public final class ComponentContextTests extends AbstractContainerTests {
         }
     }
 
+    @SuppressWarnings("unchecked")
     @Test(dataProvider = "component-types")
-    public void explicitContext(final Class<? extends ContextAware> type, final Class<? extends ComponentVariantFactory> factory)
-            throws Exception {
-        registry.bindComponent(type);
-        registry.bindComponent(Test1.class);
-        registry.bindComponent(Test2.class);
-        registry.bindComponent(Test3.class);
+    public <T extends ContextAware, F extends ComponentVariantFactory> void explicitContext(final Class<T> api,
+                                                                                            final Class<? extends T> type,
+                                                                                            final Class<? extends F> factory) throws Exception {
+        registry.bindComponent(api, type);
+        registry.bindComponent(Test1.class, Test1.class);
+        registry.bindComponent(Test2.class, Test2.class);
+        registry.bindComponent(Test3.class, Test3.class);
 
         if (factory != null) {
-            registry.bindComponent(factory);
+            registry.bindComponent((Class<F>) factory, factory);
         }
 
-        final ContextAware variant0 = container.getComponent(type);
+        final ContextAware variant0 = container.getComponent(api);
         final ContextAware variant1 = container.getComponent(Test1.class).dependency;
         final ContextAware variant2 = container.getComponent(Test2.class).dependency;
         final ContextAware variant3 = container.getComponent(Test3.class).dependency;
@@ -116,11 +119,11 @@ public final class ComponentContextTests extends AbstractContainerTests {
 
     @Test
     public void implicitContext() throws Exception {
-        registry.bindComponent(BaseComponent.class);
-        registry.bindComponent(OverridingComponent.class);
-        registry.bindComponent(ContextAwareComponent1Impl.class);
-        registry.bindComponent(OrdinaryComponent2Impl.class);
-        registry.bindComponent(OrdinaryVariants2.class);
+        registry.bindComponent(BaseComponent.class, BaseComponent.class);
+        registry.bindComponent(OverridingComponent.class, OverridingComponent.class);
+        registry.bindComponent(ContextAwareComponent1.class, ContextAwareComponent1Impl.class);
+        registry.bindComponent(OrdinaryComponent2.class, OrdinaryComponent2Impl.class);
+        registry.bindComponent(OrdinaryVariants2.class, OrdinaryVariants2.class);
 
         final BaseComponent root = container.getComponent(BaseComponent.class);
 
@@ -135,16 +138,16 @@ public final class ComponentContextTests extends AbstractContainerTests {
 
     @Test
     public void contextInheritance() throws Exception {
-        registry.bindComponent(ContextAwareComponent1Impl.class);
-        registry.bindComponent(ContextAwareComponent2Impl.class);
-        registry.bindComponent(OrdinaryComponent1Impl.class);
-        registry.bindComponent(OrdinaryComponent2Impl.class);
-        registry.bindComponent(OrdinaryVariants1.class);
-        registry.bindComponent(OrdinaryVariants2.class);
-        registry.bindComponent(InnocentBystanderComponent.class);
-        registry.bindComponent(ContextSetterComponent1.class);
-        registry.bindComponent(ContextSetterComponent2.class);
-        registry.bindComponent(ContextFreeComponent.class);
+        registry.bindComponent(ContextAwareComponent1.class, ContextAwareComponent1Impl.class);
+        registry.bindComponent(ContextAwareComponent2.class, ContextAwareComponent2Impl.class);
+        registry.bindComponent(OrdinaryComponent1.class, OrdinaryComponent1Impl.class);
+        registry.bindComponent(OrdinaryComponent2.class, OrdinaryComponent2Impl.class);
+        registry.bindComponent(OrdinaryVariants1.class, OrdinaryVariants1.class);
+        registry.bindComponent(OrdinaryVariants2.class, OrdinaryVariants2.class);
+        registry.bindComponent(InnocentBystanderComponent.class, InnocentBystanderComponent.class);
+        registry.bindComponent(ContextSetterComponent1.class, ContextSetterComponent1.class);
+        registry.bindComponent(ContextSetterComponent2.class, ContextSetterComponent2.class);
+        registry.bindComponent(ContextFreeComponent.class, ContextFreeComponent.class);
 
         final ContextSetterComponent1 context1 = container.getComponent(ContextSetterComponent1.class);
         final ContextSetterComponent2 context2 = context1.getNext();
@@ -290,6 +293,14 @@ public final class ComponentContextTests extends AbstractContainerTests {
         }
     }
 
+    @Component(api = ContextAware.class)
+    @Context(Setting1.class)
+    private static class ContextAwareVariants1 extends OrdinaryVariants1 { }
+
+    @Component(api = ContextAware.class)
+    @Context(Setting2.class)
+    private static class ContextAwareVariants2 extends OrdinaryVariants2 { }
+
     @Component
     private static class InnocentBystanderComponent {
 
@@ -419,7 +430,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
 
     @Documented
     @Retention(RetentionPolicy.RUNTIME)
-    @Target({ ElementType.TYPE, ElementType.FIELD, ElementType.PARAMETER })
+    @Target( { ElementType.TYPE, ElementType.FIELD, ElementType.PARAMETER })
     public static @interface Setting1 {
 
         String value();
@@ -427,7 +438,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
 
     @Documented
     @Retention(RetentionPolicy.RUNTIME)
-    @Target({ ElementType.TYPE, ElementType.FIELD, ElementType.PARAMETER })
+    @Target( { ElementType.TYPE, ElementType.FIELD, ElementType.PARAMETER })
     public static @interface Setting2 {
 
         String value();
@@ -435,10 +446,9 @@ public final class ComponentContextTests extends AbstractContainerTests {
 
     @Documented
     @Retention(RetentionPolicy.RUNTIME)
-    @Target({ ElementType.TYPE, ElementType.FIELD, ElementType.PARAMETER })
+    @Target( { ElementType.TYPE, ElementType.FIELD, ElementType.PARAMETER })
     public static @interface Setting3 {
 
-        @SuppressWarnings("UnusedDeclaration")
-        String value();
+        @SuppressWarnings("UnusedDeclaration") String value();
     }
 }

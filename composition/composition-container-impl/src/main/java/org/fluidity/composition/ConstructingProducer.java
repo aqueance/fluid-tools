@@ -47,12 +47,13 @@ final class ConstructingProducer extends AbstractProducer {
 
     public ConstructingProducer(final Class<?> componentInterface,
                                 final Class<?> componentClass,
+                                final boolean fallback,
                                 final ComponentCache cache,
                                 final ReferenceChain references,
                                 final ContextFactory contexts,
                                 final DependencyInjector injector,
                                 final LogFactory logs) {
-        super(references, cache, logs);
+        super(fallback, references, cache, logs);
         this.injector = injector;
         this.contexts = contexts;
         this.componentInterface = componentInterface;

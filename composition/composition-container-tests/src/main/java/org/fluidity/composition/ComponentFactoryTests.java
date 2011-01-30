@@ -50,7 +50,7 @@ public final class ComponentFactoryTests extends AbstractContainerTests {
 
     @Test(expectedExceptions = ComponentContainer.BindingException.class)
     public void reportsBrokenFactory() throws Exception {
-        registry.bindComponent(BrokenFactory.class);
+        registry.bindComponent(BrokenFactory.class, BrokenFactory.class);
     }
 
     @Test(expectedExceptions = ComponentContainer.BindingException.class)
@@ -61,8 +61,8 @@ public final class ComponentFactoryTests extends AbstractContainerTests {
     @Test
     public void invokesStandaloneFactoryClassOnce() throws Exception {
         registry.bindComponent(Key.class, Value.class);
-        registry.bindComponent(Factory.class);
-        registry.bindComponent(FactoryDependency.class);
+        registry.bindComponent(Factory.class, Factory.class);
+        registry.bindComponent(FactoryDependency.class, FactoryDependency.class);
 
         final String check = "check";
 
@@ -85,7 +85,7 @@ public final class ComponentFactoryTests extends AbstractContainerTests {
         final String check = "check";
         final ComponentContainer.Registry childRegistry = child.getRegistry();
 
-        childRegistry.bindComponent(FactoryDependency.class);
+        childRegistry.bindComponent(FactoryDependency.class, FactoryDependency.class);
         childRegistry.bindInstance(Serializable.class, check);
 
         EasyMock.expect(factory.newComponent(EasyMock.<OpenComponentContainer>notNull(), EasyMock.<ComponentContext>notNull()))
@@ -99,8 +99,8 @@ public final class ComponentFactoryTests extends AbstractContainerTests {
     @Test
     public void circularFactoryInvocation() throws Exception {
         registry.bindComponent(Key.class, Value.class);
-        registry.bindComponent(Factory.class);
-        registry.bindComponent(FactoryDependency.class);
+        registry.bindComponent(Factory.class, Factory.class);
+        registry.bindComponent(FactoryDependency.class, FactoryDependency.class);
 
         final String check = "check";
 

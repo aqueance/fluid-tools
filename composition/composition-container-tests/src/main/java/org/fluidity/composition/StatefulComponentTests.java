@@ -35,7 +35,7 @@ public final class StatefulComponentTests extends AbstractContainerTests {
 
     @Test
     public void standaloneComponent() throws Exception {
-        registry.bindComponent(StatefulComponent.class);
+        registry.bindComponent(StatefulComponent.class, StatefulComponent.class);
 
         final StatefulComponent instance1 = container.getComponent(StatefulComponent.class);
         final StatefulComponent instance2 = container.getComponent(StatefulComponent.class);
@@ -47,9 +47,9 @@ public final class StatefulComponentTests extends AbstractContainerTests {
 
     @Test
     public void dependentComponent() throws Exception {
-        registry.bindComponent(StatefulComponent.class);
-        registry.bindComponent(StatelessComponent1.class);
-        registry.bindComponent(StatelessComponent2.class);
+        registry.bindComponent(StatefulComponent.class, StatefulComponent.class);
+        registry.bindComponent(StatelessComponent1.class, StatelessComponent1.class);
+        registry.bindComponent(StatelessComponent2.class, StatelessComponent2.class);
 
         final StatefulComponent instance = container.getComponent(StatefulComponent.class);
         final StatelessComponent1 stateless1 = container.getComponent(StatelessComponent1.class);

@@ -35,17 +35,17 @@ public final class CircularReferencesTests extends AbstractContainerTests {
 
     @Test(expectedExceptions = ComponentContainer.CircularReferencesException.class)
     public void circularTwoWayReferences() throws Exception {
-        registry.bindDefault(Circular2Dependent1Class.class);
-        registry.bindDefault(Circular2Dependent2Class.class);
+        registry.bindComponent(Circular2Dependent1Class.class, Circular2Dependent1Class.class);
+        registry.bindComponent(Circular2Dependent2Class.class, Circular2Dependent2Class.class);
 
         container.getComponent(Circular2Dependent1Class.class);
     }
 
     @Test(expectedExceptions = ComponentContainer.CircularReferencesException.class)
     public void circularThreeWayReferences() throws Exception {
-        registry.bindDefault(Circular3Dependent1Class.class);
-        registry.bindDefault(Circular3Dependent2Class.class);
-        registry.bindDefault(Circular3Dependent3Class.class);
+        registry.bindComponent(Circular3Dependent1Class.class, Circular3Dependent1Class.class);
+        registry.bindComponent(Circular3Dependent2Class.class, Circular3Dependent2Class.class);
+        registry.bindComponent(Circular3Dependent3Class.class, Circular3Dependent3Class.class);
 
         container.getComponent(Circular3Dependent1Class.class);
     }
@@ -57,32 +57,12 @@ public final class CircularReferencesTests extends AbstractContainerTests {
     }
 
     @Test
-    public void circularTwoWayInstantiationWithDefaultBinding() throws Exception {
-        registry.bindDefault(Circular2Dependent1Impl.class);
-        registry.bindDefault(Circular2Dependent2Impl.class);
-
-        ping(Circular2Dependent1Impl.class);
-        ping(Circular2Dependent2Impl.class);
-    }
-
-    @Test
     public void circularTwoWayInstantiation() throws Exception {
         registry.bindComponent(Circular2Dependent1.class, Circular2Dependent1Impl.class);
         registry.bindComponent(Circular2Dependent2.class, Circular2Dependent2Impl.class);
 
-        ping(Circular2Dependent1Impl.class);
-        ping(Circular2Dependent2Impl.class);
-    }
-
-    @Test
-    public void circularThreeWayInstantiationWithDefaultBinding() throws Exception {
-        registry.bindDefault(Circular3Dependent1Impl.class);
-        registry.bindDefault(Circular3Dependent2Impl.class);
-        registry.bindDefault(Circular3Dependent3Impl.class);
-
-        ping(Circular3Dependent1Impl.class);
-        ping(Circular3Dependent2Impl.class);
-        ping(Circular3Dependent3Impl.class);
+        ping(Circular2Dependent1.class);
+        ping(Circular2Dependent2.class);
     }
 
     @Test
@@ -91,21 +71,20 @@ public final class CircularReferencesTests extends AbstractContainerTests {
         registry.bindComponent(Circular3Dependent2.class, Circular3Dependent2Impl.class);
         registry.bindComponent(Circular3Dependent3.class, Circular3Dependent3Impl.class);
 
-        ping(Circular3Dependent1Impl.class);
-        ping(Circular3Dependent2Impl.class);
-        ping(Circular3Dependent2Impl.class);
+        ping(Circular3Dependent1.class);
+        ping(Circular3Dependent2.class);
+        ping(Circular3Dependent2.class);
     }
 
     @Test
     public void circularThreeWayIntermediateInstantiation() throws Exception {
-        registry.bindComponent(Circular3IntermediateDependent1Class.class);
-        registry.bindComponent(Circular3IntermediateDependent2Class.class);
-        registry.bindComponent(Circular3IntermediateDependent3Class.class);
+        registry.bindComponent(Circular3IntermediateDependent1Class.class, Circular3IntermediateDependent1Class.class);
+        registry.bindComponent(Circular3IntermediateDependent2Class.class, Circular3IntermediateDependent2Class.class);
+        registry.bindComponent(Circular3IntermediateDependent3.class, Circular3IntermediateDependent3Class.class);
 
         ping(Circular3IntermediateDependent1Class.class);
         ping(Circular3IntermediateDependent2Class.class);
         ping(Circular3IntermediateDependent3.class);
-        ping(Circular3IntermediateDependent3Class.class);
     }
 
     private static interface Pingable {

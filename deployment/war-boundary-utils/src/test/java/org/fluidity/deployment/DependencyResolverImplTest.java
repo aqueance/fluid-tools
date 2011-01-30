@@ -22,6 +22,7 @@
 
 package org.fluidity.deployment;
 
+import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.OpenComponentContainer;
 import org.fluidity.tests.MockGroupAbstractTest;
@@ -47,24 +48,24 @@ public class DependencyResolverImplTest extends MockGroupAbstractTest {
 
     @Test
     public void componentAcquisitionByClass() throws Exception {
-        final Component component = new Component();
+        final Dependency dependency = new Dependency();
 
-        EasyMock.expect(container.getComponent(Component.class)).andReturn(component);
+        EasyMock.expect(container.getComponent(Dependency.class)).andReturn(dependency);
 
         replay();
-        assert resolver.findComponent(container, Component.class.getName()) == component;
+        assert resolver.findComponent(container, Dependency.class.getName()) == dependency;
         verify();
     }
 
     @Test
     public void usesChildContainerWhenComponentNotFound() throws Exception {
-        final Component component = new Component();
+        final Dependency dependency = new Dependency();
 
-        EasyMock.expect(container.getComponent(Component.class)).andReturn(null);
+        EasyMock.expect(container.getComponent(Dependency.class)).andReturn(null);
         EasyMock.expect(
-                container.getComponent(EasyMock.same(Component.class), EasyMock.<ComponentContainer.Bindings>notNull()))
-                .andAnswer(new IAnswer<Component>() {
-                    public Component answer() throws Throwable {
+                container.getComponent(EasyMock.same(Dependency.class), EasyMock.<ComponentContainer.Bindings>notNull()))
+                .andAnswer(new IAnswer<Dependency>() {
+                    public Dependency answer() throws Throwable {
                         ComponentContainer.Bindings bindings =
                                 (ComponentContainer.Bindings) EasyMock.getCurrentArguments()[1];
 
@@ -72,19 +73,20 @@ public class DependencyResolverImplTest extends MockGroupAbstractTest {
                         bindings.bindComponents(registry);
 
                         // return to testee
-                        return component;
+                        return dependency;
                     }
                 });
 
         // this is what the testee should do when invoke above from the inner class
-        registry.bindDefault(Component.class);
+        registry.bindComponent(Dependency.class, Dependency.class);
 
         replay();
-        assert resolver.findComponent(container, Component.class.getName()) == component;
+        assert resolver.findComponent(container, Dependency.class.getName()) == dependency;
         verify();
     }
 
-    public static class Component {
+    @Component(primary = false, automatic = false)
+    public static class Dependency {
 
     }
 }

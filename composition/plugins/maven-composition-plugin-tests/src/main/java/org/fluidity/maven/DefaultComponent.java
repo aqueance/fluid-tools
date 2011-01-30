@@ -34,6 +34,6 @@ class DefaultComponentImpl implements DefaultComponent {
 }
 
 @Component
-class PriorityComponentImpl implements DefaultComponent {
+class PrimaryComponentImpl implements DefaultComponent {
 
 }

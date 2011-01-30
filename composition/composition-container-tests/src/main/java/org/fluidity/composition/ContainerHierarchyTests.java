@@ -101,7 +101,7 @@ public final class ContainerHierarchyTests extends AbstractContainerTests {
         final OpenComponentContainer childContainer = registry.makeChildContainer();
         final ComponentContainer.Registry childRegistry = childContainer.getRegistry();
 
-        childRegistry.bindDefault(ContainerDependent.class);
+        childRegistry.bindComponent(ContainerDependent.class, ContainerDependent.class);
 
         final ContainerDependent component = childContainer.getComponent(ContainerDependent.class);
         assert component != null;

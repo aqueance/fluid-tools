@@ -20,29 +20,15 @@
  * THE SOFTWARE.
  */
 
-package org.fluidity.composition;
+package org.fluidity.maven;
 
-import org.fluidity.composition.spi.ComponentVariantFactory;
-import org.fluidity.foundation.spi.LogFactory;
+import org.fluidity.composition.Component;
 
-/**
- * Component mapping for a {@link ComponentVariantFactory} class.
- *
- * @author Tibor Varga
- */
-final class VariantProducerClass extends VariantProducer {
+public interface FallbackComponent {
 
-    public VariantProducerClass(final SimpleContainer container,
-                                final Class<? extends ComponentVariantFactory> factoryClass,
-                                final boolean fallback,
-                                final ReferenceChain references,
-                                final ComponentCache cache,
-                                final LogFactory logs) {
-        super(container, factoryClass, fallback, references, cache, logs);
-    }
+}
 
-    @Override
-    protected ComponentVariantFactory factory(final SimpleContainer container) {
-        return container.get(factoryClass());
-    }
+@Component(primary = false)
+class FallbackComponentImpl implements FallbackComponent {
+
 }

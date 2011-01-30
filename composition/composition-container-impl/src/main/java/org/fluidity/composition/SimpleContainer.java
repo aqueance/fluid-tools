@@ -155,7 +155,8 @@ interface SimpleContainer extends DependencyResolver {
     <T> T initialize(T component) throws ComponentContainer.ResolutionException;
 
     /**
-     * Returns all singleton component instances in the container under the default empty context assignable to the given interface.
+     * Returns all singleton component instances, created in response to this method call, in the container under the default empty context assignable to the
+     * given interface.
      *
      * @param componentInterface filters the component instances returned.
      *

@@ -52,6 +52,7 @@ public interface OpenComponentContainer extends ComponentContainer {
      * @param componentInterface filters the component instances returned.
      *
      * @return in instantiation order all registered components implementing the given interface.
+     * @deprecated the output of this method cannot be guaranteed to be as advertised
      */
     <T> List<T> getAllComponents(Class<T> componentInterface);
 }

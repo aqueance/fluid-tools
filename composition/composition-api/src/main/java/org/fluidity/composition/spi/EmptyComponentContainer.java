@@ -55,6 +55,7 @@ public abstract class EmptyComponentContainer implements ComponentContainer {
          * @param implementation the component class.
          *
          * @return a class object, never <code>null</code>. When no suitable interface is found, the implementation class itself is returned.
+         * @deprecated functionality duplicated in the Maven plugin
          */
         protected final Class<?> componentInterface(final Class<?> implementation) {
             final Component component = implementation.getAnnotation(Component.class);
