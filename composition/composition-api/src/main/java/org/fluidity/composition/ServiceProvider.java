@@ -56,7 +56,7 @@ public @interface ServiceProvider {
     /**
      * Specifies that service provider classes should be instantiable by the JDK service discovery mechanism. Defaults to Fluid Tools service discovery only.
      *
-     * @return <code>true</ocde> if the JDK service discovery mechanism should be able to instantiate the implementing classes, <code>false</code> to indicate
+     * @return <code>true</code> if the JDK service discovery mechanism should be able to instantiate the implementing classes, <code>false</code> to indicate
      *         the Fluid Tools service discovery will be used.
      */
     boolean jdk() default false;
