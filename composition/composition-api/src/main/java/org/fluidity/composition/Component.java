@@ -65,11 +65,12 @@ public @interface Component {
     Class api() default Object.class;
 
     /**
-     * Tells whether this component should be bound as a fallback to use when no other component has been bound to its API interface.
+     * Tells whether this component should be bound as a primary or a as fallback. As a fallback it will be used when no other component has been bound to its
+     * API interface as a primary.
      *
-     * @return <code>true</code> if this component should be mapped as a fallback; ignored for annotated fields.
+     * @return <code>true</code> if this component should be mapped as a primary; ignored for annotated fields.
      */
-    boolean fallback() default false;
+    boolean primary() default true;
 
     /**
      * Used by {@link org.fluidity.composition.spi.ComponentFactory} components, this annotation specifies the component class the factory component creates

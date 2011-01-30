@@ -245,7 +245,7 @@ public class ConfigurationTest extends MockGroupAbstractTest {
 
     }
 
-    @Component(fallback = true)
+    @Component(primary = false)
     public static class StaticPropertyProvider implements PropertyProvider {
         private static PropertyProvider delegate;
 
@@ -258,7 +258,7 @@ public class ConfigurationTest extends MockGroupAbstractTest {
         }
     }
 
-    @Component(fallback = true)
+    @Component(primary = false)
     public static class DynamicPropertyProvider implements PropertyProvider {
 
         private static DynamicPropertyProvider instance;
@@ -290,7 +290,7 @@ public class ConfigurationTest extends MockGroupAbstractTest {
         }
     }
 
-    @Component(fallback = true)
+    @Component(primary = false)
     public static class EmptyPropertyProvider implements PropertyProvider {
 
         public Object property(final String key) {

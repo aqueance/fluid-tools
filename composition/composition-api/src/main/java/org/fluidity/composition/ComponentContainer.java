@@ -45,11 +45,11 @@ package org.fluidity.composition;
  * implementation.
  * <ul>
  * <li>To simply register a component implementation for a component interface, use {@link ComponentContainer.Registry#bindComponent(Class,Class)}. This is
- * exactly what the Maven plugin uses for a {@link Component} annotated class with no {@link Component#automatic()} or {@link Component#fallback()} setting so
- * if this method is all you need then you should simply use the plugin instead of creating your own binding class.
+ * exactly what the Maven plugin uses for a {@link Component} annotated class with no {@link Component#automatic()} setting so if this method is all you need
+ * then you should simply use the plugin instead of creating your own binding class.
  * </li>
  * <li>To register a default implementation of some component interface, use {@link ComponentContainer.Registry#bindDefault(Class)}. This is
- * exactly what the Maven plugin uses for a {@link Component} annotated class with {@link Component#fallback()}<code>=true</code> so if this method is all you
+ * exactly what the Maven plugin uses for a {@link Component} annotated class with {@link Component#primary()}<code>=false</code> so if this method is all you
  * need then you should simply use the plugin instead of creating your own binding class.
  * </li>
  * <li>To register an already instantiated component implementation for a component interface, use
@@ -148,7 +148,7 @@ public interface ComponentContainer {
 
         /**
          * Binds a component class to its component interface. The component interface is taken either from the {@link Component#api()} annotation parameter or
-         * the single interface the class implements, unless the {@link Component#fallback()} annotation parameter is <code>true</code>, in which case the
+         * the single interface the class implements, unless the {@link Component#primary()} annotation parameter is <code>false</code>, in which case the
          * component is bound as a default implementation that can be overridden by another binding against the same API interface.
          * <p/>
          * Two special cases must be handled by the receiver: when the implementation is either a {@link org.fluidity.composition.spi.ComponentFactory} or a

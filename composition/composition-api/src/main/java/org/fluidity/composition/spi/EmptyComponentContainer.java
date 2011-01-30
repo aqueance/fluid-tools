@@ -58,7 +58,7 @@ public abstract class EmptyComponentContainer implements ComponentContainer {
          */
         protected final Class<?> componentInterface(final Class<?> implementation) {
             final Component component = implementation.getAnnotation(Component.class);
-            final boolean fallback = component != null && component.fallback();
+            final boolean fallback = component != null && !component.primary();
 
             if (fallback) {
                 return implementation;

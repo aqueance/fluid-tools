@@ -191,7 +191,7 @@ public final class CircularReferencesTests extends AbstractContainerTests {
         }
     }
 
-    @Component(fallback = true)
+    @Component(primary = false)
     private static class Circular2Dependent1Class extends PingableImpl implements Pingable {
 
         public Circular2Dependent1Class(final Circular2Dependent2Class dependency) {
@@ -199,7 +199,7 @@ public final class CircularReferencesTests extends AbstractContainerTests {
         }
     }
 
-    @Component(fallback = true)
+    @Component(primary = false)
     private static class Circular2Dependent2Class extends PingableImpl implements Pingable {
 
         public Circular2Dependent2Class(final Circular2Dependent1Class dependency) {
@@ -207,7 +207,7 @@ public final class CircularReferencesTests extends AbstractContainerTests {
         }
     }
 
-    @Component(fallback = true)
+    @Component(primary = false)
     private static class Circular3Dependent1Class extends PingableImpl implements Pingable {
 
         public Circular3Dependent1Class(final Circular3Dependent2Class dependency) {
@@ -215,7 +215,7 @@ public final class CircularReferencesTests extends AbstractContainerTests {
         }
     }
 
-    @Component(fallback = true)
+    @Component(primary = false)
     private static class Circular3Dependent2Class extends PingableImpl implements Pingable {
 
         public Circular3Dependent2Class(final Circular3Dependent3Class dependency) {
@@ -223,7 +223,7 @@ public final class CircularReferencesTests extends AbstractContainerTests {
         }
     }
 
-    @Component(fallback = true)
+    @Component(primary = false)
     private static class Circular3Dependent3Class extends PingableImpl implements Pingable {
 
         public Circular3Dependent3Class(final Circular3Dependent1Class dependency) {
@@ -231,7 +231,7 @@ public final class CircularReferencesTests extends AbstractContainerTests {
         }
     }
 
-    @Component(fallback = true)
+    @Component(primary = false)
     private static class Circular3IntermediateDependent1Class extends PingableImpl implements Pingable {
 
         public Circular3IntermediateDependent1Class(final Circular3IntermediateDependent2Class dependency) {
@@ -239,7 +239,7 @@ public final class CircularReferencesTests extends AbstractContainerTests {
         }
     }
 
-    @Component(fallback = true)
+    @Component(primary = false)
     private static class Circular3IntermediateDependent2Class extends PingableImpl implements Pingable {
 
         public Circular3IntermediateDependent2Class(final Circular3IntermediateDependent3 dependency) {

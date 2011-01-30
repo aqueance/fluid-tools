@@ -85,7 +85,7 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
 
     private static final String ATR_API = "api";
     private static final String ATR_AUTOMATIC = "automatic";
-    private static final String ATR_FALLBACK = "fallback";
+    private static final String ATR_PRIMARY = "primary";
     private static final String ATR_JDK = "jdk";
     private static final String PACKAGE_BINDINGS = PackageBindings.class.getName();
     private static final String GENERATED_PACKAGE_BINDINGS = PACKAGE_BINDINGS.substring(PACKAGE_BINDINGS.lastIndexOf(".") + 1).concat("$");
@@ -300,7 +300,9 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
             final String componentPackage = className.substring(0, className.lastIndexOf(".") + 1);
             final String generatedBindings = componentPackage + GENERATED_PACKAGE_BINDINGS + projectName;
 
-            if (!className.equals(generatedBindings)) {
+            if (className.equals(generatedBindings)) {
+                new File(classesDirectory, fileName).delete();
+            } else {
                 final ClassReader classData = reader(className, repository, readers);
                 assert classData != null : className;
 
@@ -321,7 +323,7 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
 
                     @Override
                     public void visit(final String name, final Object value) {
-                        if (ATR_FALLBACK.equals(name) && ((Boolean) value)) {
+                        if (ATR_PRIMARY.equals(name) && !((Boolean) value)) {
                             fallback = true;
                         } else if (ATR_API.equals(name)) {
                             api = ((Type) value).getClassName();
@@ -377,7 +379,7 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
                     public void visitEnd() {
                         if (serviceProviderApis.isEmpty()) {
                             try {
-                                findServiceProviders(abstractClass, classData, serviceProviderApis, repository, readers);
+                                findServiceProviderApi(abstractClass, classData, serviceProviderApis, repository, readers);
                             } catch (final Exception e) {
                                 throw new RuntimeException(e);
                             }
@@ -452,13 +454,13 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
                         classData.accept(visitor, ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES | ClassReader.SKIP_CODE);
 
                         // components and service providers are always concrete classes that can be instantiated on their own
-                        final boolean instantiableClass = !visitor.abstractClass;
+                        final boolean instantiable = !visitor.abstractClass;
 
-                        if (instantiableClass) {
+                        if (instantiable) {
                             processAncestry(this, classData, repository, readers);
                         }
 
-                        return instantiableClass;
+                        return instantiable;
                     }
                 };
 
@@ -497,8 +499,6 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
                         providers.add(className);
                     }
                 }
-            } else {
-                new File(classesDirectory, fileName).delete();
             }
         }
 
@@ -584,7 +584,7 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
         }
     }
 
-    private void processAncestry(final Query annotationsQuery,
+    private void processAncestry(final Query query,
                                  final ClassReader descendant,
                                  final ClassLoader repository,
                                  final Map<String, ClassReader> readers) throws IOException, MojoExecutionException {
@@ -593,23 +593,23 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
         if (!superName.equals(OBJECT_CLASS_NAME)) {
             final ClassReader superClass = reader(superName, repository, readers);
             if (superClass != null) {
-                processClass(annotationsQuery, superClass);
-                processAncestry(annotationsQuery, superClass, repository, readers);
+                processClass(query, superClass);
+                processAncestry(query, superClass, repository, readers);
             }
         }
 
         for (final String api : descendant.getInterfaces()) {
             final ClassReader interfaceClass = reader(api, repository, readers);
-            processClass(annotationsQuery, interfaceClass);
-            processAncestry(annotationsQuery, interfaceClass, repository, readers);
+            processClass(query, interfaceClass);
+            processAncestry(query, interfaceClass, repository, readers);
         }
     }
 
-    private void findServiceProviders(final boolean abstractClass,
-                                      final ClassReader classData,
-                                      final Set<String> serviceProviderApis,
-                                      final ClassLoader repository,
-                                      final Map<String, ClassReader> readers) throws IOException, ClassNotFoundException {
+    private void findServiceProviderApi(final boolean abstractClass,
+                                        final ClassReader classData,
+                                        final Set<String> serviceProviderApis,
+                                        final ClassLoader repository,
+                                        final Map<String, ClassReader> readers) throws IOException, ClassNotFoundException {
         final String api = findSingleInterface(classData, repository, readers);
 
         if (api != null) {
@@ -663,6 +663,22 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
         }
     }
 
+    private void foundServiceProvider(final Map<String, Collection<String>> serviceProviderMap, final Collection<String> providerNames, final String className)
+            throws MojoExecutionException {
+        for (final String providerName : providerNames) {
+            final String key = providerName.replace('/', '.');
+            Collection<String> list = serviceProviderMap.get(key);
+
+            if (list == null) {
+                serviceProviderMap.put(key, list = new HashSet<String>());
+            } else if (list.contains(className)) {
+                throw new MojoExecutionException("Duplicate service provider class " + className);
+            }
+
+            list.add(className);
+        }
+    }
+
     protected String getProjectNameId() {
         final StringBuilder answer = new StringBuilder();
         final CharSequence name = project.getArtifactId();
@@ -680,21 +696,5 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
         }
 
         return answer.toString();
-    }
-
-    private void foundServiceProvider(final Map<String, Collection<String>> serviceProviderMap, final Collection<String> providerNames, final String className)
-            throws MojoExecutionException {
-        for (final String providerName : providerNames) {
-            final String key = providerName.replace('/', '.');
-            Collection<String> list = serviceProviderMap.get(key);
-
-            if (list == null) {
-                serviceProviderMap.put(key, list = new HashSet<String>());
-            } else if (list.contains(className)) {
-                throw new MojoExecutionException("Duplicate service provider class " + className);
-            }
-
-            list.add(className);
-        }
     }
 }

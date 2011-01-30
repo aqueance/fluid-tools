@@ -35,7 +35,7 @@ import org.fluidity.foundation.logging.Marker;
  *
  * @author Tibor Varga
  */
-@Component(fallback = true)
+@Component(primary = false)
 final class DefaultMainLoopImpl implements MainLoop {
 
     private final Object lock = new Object();

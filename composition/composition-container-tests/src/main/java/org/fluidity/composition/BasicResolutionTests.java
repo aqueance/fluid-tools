@@ -262,7 +262,7 @@ public final class BasicResolutionTests extends AbstractContainerTests {
     /**
      * This is intentionally private - makes sure the container is able to instantiate non-public classes
      */
-    @Component(fallback = true)
+    @Component(primary = false)
     private static class DefaultDependentValue extends DependentValue {
 
     }

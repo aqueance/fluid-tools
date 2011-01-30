@@ -28,7 +28,7 @@ public interface DefaultComponent {
 
 }
 
-@Component(fallback = true)
+@Component(primary = false)
 class DefaultComponentImpl implements DefaultComponent {
 
 }
