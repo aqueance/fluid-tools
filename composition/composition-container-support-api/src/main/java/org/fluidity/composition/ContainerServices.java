@@ -76,7 +76,9 @@ public interface ContainerServices {
     /**
      * Creates and returns a new component cache instance.
      *
+     * @param stateless specifies whether the component can actually be cached or not. Value <code>true</code> means the component can be cached.
+     *
      * @return a new component cache instance.
      */
-    ComponentCache newCache();
+    ComponentCache newCache(final boolean stateless);
 }

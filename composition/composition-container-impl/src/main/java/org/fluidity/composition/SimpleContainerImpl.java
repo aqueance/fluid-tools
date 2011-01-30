@@ -149,41 +149,35 @@ final class SimpleContainerImpl implements SimpleContainer {
         /**
          * Creates a component producer for the component being processed.
          *
-         * @param cache the cache to use by the producer if necessary.
-         *
          * @return a component producer that will produce, and cache if necessary, a single instance of a component.
          */
-        ComponentProducer component(ComponentCache cache);
+        ComponentProducer component();
 
         /**
          * Creates a variant factory for the component being processed.
          *
-         * @param cache the cache to use by the producer if necessary.
-         *
          * @return a variant producer that will produce, and cache if necessary, a single instance of a variant factory.
          */
-        VariantProducer variant(ComponentCache cache);
+        VariantProducer variant();
 
         /**
          * Creates a component factory for the component being processed.
          *
-         * @param cache the cache to use by the producer if necessary.
-         *
          * @return a component producer that will produce, and cache if necessary, a single instance of a component factory.
          */
-        FactoryProducer factory(ComponentCache cache);
+        FactoryProducer factory();
     }
 
     public ComponentProducer bindFactory(final ContentProducers factories) {
-        final ComponentProducer producer = factories.component(services.newCache());
+        final ComponentProducer producer = factories.component();
 
         if (factories.isVariantFactory()) {
             bindProducer(producer.componentClass(), producer);
-            final VariantProducer factory = factories.variant(services.newCache());
+            final VariantProducer factory = factories.variant();
             return bindVariants(factory.componentInterface(), factory);
         } else if (factories.isFactory()) {
             bindProducer(producer.componentClass(), producer);
-            final FactoryProducer factory = factories.factory(services.newCache());
+            final FactoryProducer factory = factories.factory();
             return bindProducer(factory.componentInterface(), factory);
         } else {
             return bindProducer(producer.componentInterface(), producer);
@@ -207,7 +201,10 @@ final class SimpleContainerImpl implements SimpleContainer {
                                                           isSyntheticClass ? "synthetic" : "anonymous");
         }
 
-        log.info("%s: binding %s to %s", this, key, implementation);
+        final Component annotation = implementation.getAnnotation(Component.class);
+        final boolean isStateful = annotation != null && annotation.stateful();
+
+        log.info("%s: binding %s to %s (%s)", this, key, implementation, isStateful ? "stateful" : "stateless");
 
         return bindFactory(new ContentProducers() {
             public boolean isVariantFactory() {
@@ -218,19 +215,19 @@ final class SimpleContainerImpl implements SimpleContainer {
                 return ComponentFactory.class.isAssignableFrom(implementation);
             }
 
-            public ComponentProducer component(final ComponentCache cache) {
-                return new ConstructingProducer(key, implementation, cache, referenceChain, contextFactory, injector, services.logs());
+            public ComponentProducer component() {
+                return new ConstructingProducer(key, implementation, services.newCache(!isStateful), referenceChain, contextFactory, injector, services.logs());
             }
 
-            public VariantProducer variant(final ComponentCache cache) {
+            public VariantProducer variant() {
                 return new VariantProducerClass(SimpleContainerImpl.this, implementation.asSubclass(ComponentVariantFactory.class),
                                                 referenceChain,
-                                                cache,
+                                                services.newCache(true),
                                                 services.logs());
             }
 
-            public FactoryProducer factory(final ComponentCache cache) {
-                return new FactoryProducerClass(implementation.asSubclass(ComponentFactory.class), referenceChain, cache, services.logs());
+            public FactoryProducer factory() {
+                return new FactoryProducerClass(implementation.asSubclass(ComponentFactory.class), referenceChain, services.newCache(true), services.logs());
             }
         });
     }
@@ -264,18 +261,18 @@ final class SimpleContainerImpl implements SimpleContainer {
                 return instance instanceof ComponentFactory;
             }
 
-            public ComponentProducer component(final ComponentCache cache) {
+            public ComponentProducer component() {
                 return new InstanceProducer(key, instance.getClass(), instance, referenceChain, services.logs());
             }
 
             @SuppressWarnings("ConstantConditions")
-            public VariantProducer variant(final ComponentCache cache) {
-                return new VariantProducerInstance(SimpleContainerImpl.this, (ComponentVariantFactory) instance, referenceChain, cache, services.logs());
+            public VariantProducer variant() {
+                return new VariantProducerInstance(SimpleContainerImpl.this, (ComponentVariantFactory) instance, referenceChain, services.newCache(true), services.logs());
             }
 
             @SuppressWarnings("ConstantConditions")
-            public FactoryProducer factory(final ComponentCache cache) {
-                return new FactoryProducerInstance((ComponentFactory) instance, referenceChain, cache, services.logs());
+            public FactoryProducer factory() {
+                return new FactoryProducerInstance((ComponentFactory) instance, referenceChain, services.newCache(true), services.logs());
             }
         });
     }

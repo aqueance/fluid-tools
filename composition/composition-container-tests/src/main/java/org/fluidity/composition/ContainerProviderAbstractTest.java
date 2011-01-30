@@ -78,7 +78,7 @@ public abstract class ContainerProviderAbstractTest extends MockGroupAbstractTes
         EasyMock.expect(services.contextChain()).andReturn(contextChain).anyTimes();
         EasyMock.expect(services.contextFactory()).andReturn(contextFactory).anyTimes();
         EasyMock.expect(services.dependencyInjector()).andReturn(dependencyInjector).anyTimes();
-        EasyMock.expect(services.newCache()).andReturn(componentCache).anyTimes();
+        EasyMock.expect(services.newCache(EasyMock.anyBoolean())).andReturn(componentCache).anyTimes();
     }
 
     @Test
@@ -89,6 +89,7 @@ public abstract class ContainerProviderAbstractTest extends MockGroupAbstractTes
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void standaloneBindings() throws Exception {
         final List assemblies = Collections.singletonList(StandalonePackageBindingsImpl.class);
 
@@ -130,6 +131,7 @@ public abstract class ContainerProviderAbstractTest extends MockGroupAbstractTes
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void connectedBindings() throws Exception {
         final List assemblies = new ArrayList(Arrays.asList(PackageBindingsImpl.class,
                                                             DependentPackageBindingsImpl.class,

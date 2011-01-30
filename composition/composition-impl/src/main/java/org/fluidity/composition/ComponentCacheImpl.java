@@ -33,55 +33,68 @@ import org.fluidity.foundation.spi.LogFactory;
  */
 final class ComponentCacheImpl implements ComponentCache {
 
-    private final Map<ComponentContext, Object> cache = new HashMap<ComponentContext, Object>();
+    private final Map<ComponentContext, Object> cache;
     private final ContextChain contextChain;
     private final ReferenceChain referenceChain;
     private final Log log;
 
-    public ComponentCacheImpl(final ContextChain contextChain, final ReferenceChain referenceChain, final LogFactory logs) {
+    public ComponentCacheImpl(final ContextChain contextChain, final ReferenceChain referenceChain, final LogFactory logs, boolean cache) {
+        this.cache = cache ? new HashMap<ComponentContext, Object>() : null;
         this.referenceChain = referenceChain;
         this.contextChain = contextChain;
         this.log = logs.createLog(getClass());
     }
 
     public Object lookup(final Object source, final Class<?> componentInterface, final Class<?> componentClass, final Listener listener, final Command create) {
-        final ComponentContext key = contextChain.currentContext();
+        if (cache == null) {
+            return createComponent(componentInterface, componentClass, create);
+        } else {
+            final ComponentContext key = contextChain.currentContext();
 
-        if (!cache.containsKey(key)) {
-            final ComponentContext context = contextChain.consumedContext(componentInterface, componentClass, contextChain.currentContext(), referenceChain);
+            if (!cache.containsKey(key)) {
 
-            // go ahead and create the component and then see if it was actually necessary
-            final Object component = create.run(context);
+                // go ahead and create the component and then see if it was actually necessary
+                final Object component = createComponent(componentInterface, componentClass, create);
 
-            // get the context consumed further in the chain and pass the one consumed here
-            final ComponentContext consumedContext = contextChain.consumedContext(context);
+                // get the context consumed further in the chain and pass the one consumed here
+                final ComponentContext consumedContext = contextChain.prevalentContext();
 
-            if (!cache.containsKey(consumedContext)) {
-                cache.put(key, component);
-                cache.put(consumedContext, component);
+                if (!cache.containsKey(consumedContext)) {
+                    cache.put(key, component);
+                    cache.put(consumedContext, component);
 
-                if (component == null) {
-                    log.info("%s: not created component for %s%s",
-                             source,
-                             componentInterface,
-                             consumedContext.types().isEmpty() ? "" : String.format(" for context %s", consumedContext));
+                    if (component == null) {
+                        log.info("%s: not created component for %s%s",
+                                 source,
+                                 componentInterface,
+                                 consumedContext.types().isEmpty() ? "" : String.format(" for context %s", consumedContext));
+                    } else {
+                        log.info("%s: created %s@%s%s",
+                                 source,
+                                 component.getClass().getName(),
+                                 System.identityHashCode(component),
+                                 consumedContext.types().isEmpty() ? "" : String.format(" for context %s", consumedContext));
+                    }
+
+                    if (listener != null) {
+                        listener.created(componentInterface, component);
+                    }
                 } else {
-                    log.info("%s: created %s@%s%s",
-                             source,
-                             component.getClass().getName(),
-                             System.identityHashCode(component),
-                             consumedContext.types().isEmpty() ? "" : String.format(" for context %s", consumedContext));
+                    cache.put(key, cache.get(consumedContext));
                 }
-
-                if (listener != null) {
-                    listener.created(componentInterface, component);
-                }
-            } else {
-                cache.put(key, cache.get(consumedContext));
             }
-        }
 
-        assert cache.containsKey(key) : String.format("Component %s not found in context %s", componentInterface, key);
-        return cache.get(key);
+            assert cache.containsKey(key) : String.format("Component %s not found in context %s", componentInterface, key);
+            return cache.get(key);
+        }
+    }
+
+    private Object createComponent(Class<?> componentInterface, Class<?> componentClass, Command create) {
+        final ComponentContext context = contextChain.consumedContext(componentInterface, componentClass, contextChain.currentContext(), referenceChain);
+        final Object component = create.run(context);
+
+        contextChain.contextConsumed(context);
+
+        return component;
     }
 }

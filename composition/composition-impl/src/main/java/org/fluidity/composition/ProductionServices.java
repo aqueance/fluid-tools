@@ -69,7 +69,7 @@ final class ProductionServices implements ContainerServices {
         return logs;
     }
 
-    public ComponentCache newCache() {
-        return new ComponentCacheImpl(contextChain, referenceChain, logs);
+    public ComponentCache newCache(final boolean stateless) {
+        return new ComponentCacheImpl(contextChain, referenceChain, logs, stateless);
     }
 }

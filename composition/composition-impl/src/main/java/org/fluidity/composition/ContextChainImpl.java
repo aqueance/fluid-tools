@@ -92,11 +92,14 @@ final class ContextChainImpl implements ContextChain {
         return factory.deriveContext(consumedContext.get(), factory.newContext(map));
     }
 
-    public ComponentContext consumedContext(final ComponentContext parent) {
+    public void contextConsumed(final ComponentContext parent) {
         final ComponentContext child = consumedContext.get();
         final ComponentContext context = child == null ? parent : factory.deriveContext(parent, child);
         consumedContext.set(context);
-        return context;
+    }
+
+    public ComponentContext prevalentContext() {
+        return consumedContext.get();
     }
 
     @SuppressWarnings("unchecked")

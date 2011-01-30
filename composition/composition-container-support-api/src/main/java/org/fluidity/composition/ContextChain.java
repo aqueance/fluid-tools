@@ -70,13 +70,18 @@ public interface ContextChain {
     ComponentContext consumedContext(Class<?> componentType, Class<?> componentClass, ComponentContext context, ReferenceChain resolutions);
 
     /**
-     * Returns the context consumed at this point and down the reference chain.
+     * Adjusts the context consumed at this point and down the reference chain.
      *
      * @param context the context consumed at the point of calling this method.
+     */
+    void contextConsumed(ComponentContext context);
+
+    /**
+     * Returns the context consumed at this point and down the reference chain.
      *
      * @return the context consumed at this point and down the reference chain.
      */
-    ComponentContext consumedContext(ComponentContext context);
+    ComponentContext prevalentContext();
 
     /**
      * A command to run while tracking a new context. The established context is restored to its prior value after the command completes.

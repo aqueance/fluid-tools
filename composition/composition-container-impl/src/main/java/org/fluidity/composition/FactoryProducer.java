@@ -52,6 +52,10 @@ abstract class FactoryProducer extends AbstractProducer {
             throw new ComponentContainer.BindingException("Factory %s must have a @%s annotation", factoryClass, Component.class);
         }
 
+        if (annotation.stateful()) {
+            throw new ComponentContainer.BindingException("Factory %s cannot be stateful (@%s(stateful = true)", factoryClass, Component.class);
+        }
+
         this.componentInterface = annotation.api();
         this.componentClass = annotation.type();
 
