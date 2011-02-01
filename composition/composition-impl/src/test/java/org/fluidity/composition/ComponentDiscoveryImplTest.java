@@ -136,7 +136,7 @@ public class ComponentDiscoveryImplTest extends MockGroupAbstractTest {
                 final Class<? extends Interface> instanceClass = instance.getClass();
 
                 EasyMock.expect(container.getComponent(instanceClass)).andReturn(null);
-                registry.bindDefault(instanceClass);
+                registry.bindComponent(instanceClass, (Class<Interface>) instanceClass);
             }
 
             EasyMock.expect(childContainer.getAllComponents(Interface.class)).andReturn(Arrays.asList(instances));

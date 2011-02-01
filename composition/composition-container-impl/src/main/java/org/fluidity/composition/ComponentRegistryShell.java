@@ -37,10 +37,6 @@ final class ComponentRegistryShell extends EmptyComponentContainer.EmptyRegistry
         this.container = container;
     }
 
-    public <T> void bindDefault(final Class<? extends T> implementation) {
-        throw new UnsupportedOperationException();
-    }
-
     public <T> void bindComponent(final Class<T> implementation, Class<? super T>... interfaces) throws ComponentContainer.BindingException {
         container.bindComponent(implementation, interfaces);
     }

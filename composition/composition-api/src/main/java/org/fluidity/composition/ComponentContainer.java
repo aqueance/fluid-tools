@@ -49,9 +49,6 @@ package org.fluidity.composition;
  * <li>To simply register a component implementation for its component interfaces, use {@link ComponentContainer.Registry#bindComponent(Class)}. This is exactly
  * what the Maven plugin uses for a {@link Component} annotated class with no {@link Component#automatic()} setting so if this method is all you need then you
  * should simply use the plugin instead of creating your own binding class.</li>
- * <li>To register a default implementation of some component interface, use {@link ComponentContainer.Registry#bindDefault(Class)}. This is exactly what the
- * Maven plugin uses for a {@link Component} annotated class with {@link Component#primary()}<code>=false</code> so if this method is all you need then you
- * should simply use the plugin instead of creating your own binding class.</li>
  * <li>To register an already instantiated component implementation for a component interface, use {@link ComponentContainer.Registry#bindInstance(Object,
  * Class[])}. If the implementation is annotated with {@link Component} then its {@link Component#automatic()} setting must be set to <code>false</code>.</li>
  * <li>To register a component implementation without having some or all of its dependencies accessible in the same container, use {@link
@@ -142,17 +139,6 @@ public interface ComponentContainer {
      * @author Tibor Varga
      */
     interface Registry {
-
-        /**
-         * Calls {@link #bindComponent(Class, Class)} passing <code>implementation</code> as both parameters.
-         *
-         * @param implementation the class of the component to bind.
-         *
-         * @throws ComponentContainer.BindingException
-         *          when the binding cannot be performed
-         * @deprecated use @Component(primary = false) and bindComponent(Class, Class) instead
-         */
-        <T> void bindDefault(Class<? extends T> implementation) throws BindingException;
 
         /**
          * Binds a component class to its component interfaces.

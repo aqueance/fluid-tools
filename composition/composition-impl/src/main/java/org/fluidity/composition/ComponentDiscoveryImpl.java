@@ -52,7 +52,7 @@ final class ComponentDiscoveryImpl implements ComponentDiscovery {
             T component = container.getComponent(theClass);
 
             if (component == null) {
-                registry.bindDefault(theClass);
+                registry.bindComponent(theClass, (Class<? super T>) theClass);
             } else {
                 instances.add(component);
             }
