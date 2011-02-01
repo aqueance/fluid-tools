@@ -25,6 +25,7 @@ package org.fluidity.composition;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.fluidity.composition.spi.ComponentMapping;
 import org.fluidity.foundation.logging.Log;
 import org.fluidity.foundation.spi.LogFactory;
 
@@ -51,9 +52,9 @@ final class ComponentCacheImpl implements ComponentCache {
         this.log = logs.createLog(getClass());
     }
 
-    public Object lookup(final Object source, final Class<?> componentInterface, final Class<?> componentClass, final Command create) {
+    public Object lookup(final Object source, final Class<?> componentInterface, final ComponentMapping mapping, final Command create) {
         if (cache == null) {
-            final Object component = createComponent(componentInterface, componentClass, create);
+            final Object component = createComponent(componentInterface, mapping, create);
 
             recordComponentCreation(source, component, componentInterface, contextChain.prevalentContext());
 
@@ -64,7 +65,7 @@ final class ComponentCacheImpl implements ComponentCache {
             if (!cache.containsKey(key)) {
 
                 // go ahead and create the component and then see if it was actually necessary
-                final Object component = createComponent(componentInterface, componentClass, create);
+                final Object component = createComponent(componentInterface, mapping, create);
 
                 // get the context consumed further in the chain and pass the one consumed here
                 final ComponentContext consumedContext = contextChain.prevalentContext();
@@ -86,8 +87,8 @@ final class ComponentCacheImpl implements ComponentCache {
         }
     }
 
-    private Object createComponent(final Class<?> componentInterface, final Class<?> componentClass, final Command create) {
-        final ComponentContext context = contextChain.consumedContext(componentInterface, componentClass, contextChain.currentContext(), referenceChain);
+    private Object createComponent(final Class<?> componentInterface, final ComponentMapping mapping, final Command create) {
+        final ComponentContext context = contextChain.consumedContext(componentInterface, mapping, contextChain.currentContext(), referenceChain);
         final Object component = create.run(context);
 
         contextChain.contextConsumed(context);

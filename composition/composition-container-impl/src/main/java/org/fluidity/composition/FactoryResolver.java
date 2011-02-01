@@ -22,6 +22,8 @@
 
 package org.fluidity.composition;
 
+import java.lang.annotation.Annotation;
+
 import org.fluidity.composition.spi.ComponentFactory;
 import org.fluidity.foundation.spi.LogFactory;
 
@@ -65,8 +67,21 @@ abstract class FactoryResolver extends AbstractResolver {
         }
     }
 
+    @Override
+    public boolean isDelegating() {
+        return true;
+    }
+
     public final Class<?> componentClass() {
-        return componentClass;
+        return componentClass;  // TODO: context dependent
+    }
+
+    public Annotation[] contextAnnotations() {
+        return componentClass.getAnnotations();
+    }
+
+    public <T extends Annotation> T contextSpecification(final Class<T> type) {
+        return factoryClass.getAnnotation(type);
     }
 
     @Override
@@ -80,5 +95,10 @@ abstract class FactoryResolver extends AbstractResolver {
 
     public final Class<? extends ComponentFactory> factoryClass() {
         return factoryClass;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("%s [%s]", super.toString(), factoryClass);
     }
 }

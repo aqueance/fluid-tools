@@ -22,6 +22,8 @@
 
 package org.fluidity.composition;
 
+import org.fluidity.composition.spi.ComponentMapping;
+
 /**
  * Caches components by context. Implementations must be thread safe.
  *
@@ -32,7 +34,6 @@ public interface ComponentCache {
     /**
      * Looks up and instantiates if necessary using the supplied command, the component whose class is also specified to find its annotations.
      *
-     *
      * @param source             something to identify who is creating instances through this cache.
      * @param componentInterface the interface the component implements.
      * @param componentClass     the class of the component to return.
@@ -40,7 +41,7 @@ public interface ComponentCache {
      *
      * @return the component instance.
      */
-    Object lookup(Object source, Class<?> componentInterface, Class<?> componentClass, Command create);
+    Object lookup(Object source, Class<?> componentInterface, ComponentMapping componentClass, Command create);
 
     /**
      * A command to create a component instance in some context.
@@ -58,7 +59,7 @@ public interface ComponentCache {
     }
 
     /**
-     * Listens to component instantiation. The {@link ComponentCache#lookup(Object, Class, Class, ComponentCache.Command)} method must
+     * Listens to component instantiation. The {@link ComponentCache#lookup(Object, Class, ComponentMapping, ComponentCache.Command)} method must
      * call an object implementing this interface when it has created a new instance of a component. The listener object must be passed to the cache
      * in its constructor.
      *

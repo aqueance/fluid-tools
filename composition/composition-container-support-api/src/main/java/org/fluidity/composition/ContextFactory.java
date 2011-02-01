@@ -44,22 +44,22 @@ public interface ContextFactory {
     /**
      * Extracts the context from the given list of annotations.
      *
-     * @param annotation the annotation to extract the context from; never <code>null</code>.
+     * @param annotations the annotations to extract the context from; never <code>null</code>.
      *
      * @return the extracted context or <code>null</code> if there is no meaningful context.
      */
-    ComponentContext extractContext(Annotation[] annotation);
+    ComponentContext extractContext(Annotation[] annotations);
 
     /**
-     * Calls {@link #deriveContext(ComponentContext, ComponentContext)} using the supplied context and the one
-     * extracted from the supplied class using {@link #extractContext(Annotation[])}.
+     * Calls {@link #deriveContext(ComponentContext, ComponentContext)} using the supplied context and the one extracted from the supplied class using {@link
+     * #extractContext(Annotation[])}.
      *
-     * @param context         the context to use as the parent of the derived context.
-     * @param contextProvider the class to extract the context to use as the child in the derived context.
+     * @param context    the context to use as the parent of the derived context.
+     * @param annotations the annotation to extract the context from; never <code>null</code>.
      *
      * @return the derived context, one which uses the child while defaults to the parent.
      */
-    ComponentContext deriveContext(ComponentContext context, Class<?> contextProvider);
+    ComponentContext deriveContext(ComponentContext context, Annotation[] annotations);
 
     /**
      * Creates a new context that uses the child and defaults to the parent.

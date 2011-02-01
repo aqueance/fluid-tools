@@ -22,6 +22,8 @@
 
 package org.fluidity.composition;
 
+import java.lang.annotation.Annotation;
+
 import org.fluidity.composition.spi.ComponentVariantFactory;
 import org.fluidity.foundation.spi.LogFactory;
 
@@ -36,7 +38,6 @@ abstract class VariantResolver extends AbstractResolver {
     private final SimpleContainer parent;
 
     private ComponentResolver delegate;     // the one creating instances
-    private Class<?> componentClass;        // caches what the delegate returns
 
     /**
      * Returns the {@link ComponentVariantFactory} instance this is a mapping for.
@@ -60,11 +61,15 @@ abstract class VariantResolver extends AbstractResolver {
     }
 
     @Override
-    public boolean isFallback() {
-        return super.isFallback() || (delegate != null && delegate.isFallback());
+    public boolean isDelegating() {
+        return true;
     }
 
     public final Class<?> componentClass() {
+        return findDelegate().componentClass();      // TODO: shouldn't the variant factory decide?
+    }
+
+    private ComponentResolver findDelegate() {
         if (delegate == null) {
             delegate = parent == null ? null : parent.resolver(api, true);
 
@@ -73,37 +78,41 @@ abstract class VariantResolver extends AbstractResolver {
             }
         }
 
-        return componentClass == null ? componentClass = delegate.componentClass() : componentClass;
+        return delegate;
+    }
+
+    public Annotation[] contextAnnotations() {
+        return factoryClass.getAnnotations();
+    }
+
+    public <T extends Annotation> T contextSpecification(final Class<T> type) {
+        return factoryClass.getAnnotation(type);
     }
 
     @Override
     public Object create(final SimpleContainer container, final Class<?> api, final boolean circular) {
-        return cache.lookup(container, api, componentClass(), new ComponentCache.Command() {
+        return cache.lookup(container, api, this, new ComponentCache.Command() {
             public Object run(final ComponentContext context) {
                 final ComponentVariantFactory factory = factory(container);
 
                 final SimpleContainer child = container.newChildContainer();
-                child.bindResolver(api, delegate);
+                child.bindResolver(api, findDelegate());
                 final OpenComponentContainer returned = factory.newComponent(new ComponentContainerShell(child, false), context);
 
                 if (returned == null) {
                     return null;
                 } else {
-                    return returned.getComponent(references.lastReference());
+                    return returned.getComponent(references.lastLink().reference());
                 }
             }
         });
     }
 
     @Override
-    public void resolverReplaced(final ComponentResolver previous, final ComponentResolver replacement) {
-
-        // TODO: this is way too complex
-        if ((delegate == null && replacement.componentApi() == api) || (previous != null && delegate == previous)) {
+    public void resolverReplaced(final Class<?> api, final ComponentResolver previous, final ComponentResolver replacement) {
+        if (api == this.api && delegate == previous) {
             if (replacement.isInstanceMapping()) {
-                throw new ComponentContainer.BindingException("Component %s cannot be hijacked by %s", api, replacement.factoryClass());
-            } else if (replacement.componentApi() != api) {
-                throw new ComponentContainer.BindingException("Component %s should be %s (%s)", replacement.componentApi(), factoryClass, api);
+                throw new ComponentContainer.BindingException("Component %s cannot be hijacked by %s", this.api, replacement.factoryClass());
             }
 
             delegate = replacement;
@@ -120,5 +129,10 @@ abstract class VariantResolver extends AbstractResolver {
 
     public final Class<? extends ComponentVariantFactory> factoryClass() {
         return factoryClass;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("%s [%s]", super.toString(), factoryClass);
     }
 }

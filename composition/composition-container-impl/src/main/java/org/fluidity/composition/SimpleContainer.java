@@ -173,8 +173,9 @@ interface SimpleContainer extends DependencyResolver {
     /**
      * Notifies each bound resolver that a previously bound resolver has been supplanted by another.
      *
+     * @param key         the key for which the resolver is being replaced.
      * @param previous    the old resolver.
      * @param replacement the new resolver.
      */
-    void replaceResolver(ComponentResolver previous, ComponentResolver replacement);
+    void replaceResolver(Class<?> key, ComponentResolver previous, ComponentResolver replacement);
 }

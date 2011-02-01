@@ -22,6 +22,8 @@
 
 package org.fluidity.composition.spi;
 
+import java.lang.annotation.Annotation;
+
 /**
  * Component mapping details used by container services.
  *
@@ -37,9 +39,19 @@ public interface ComponentMapping {
     boolean isVariantMapping();
 
     /**
-     * Returns the component class in case of a {@link ComponentVariantFactory} or a {@link sun.awt.ComponentFactory} mapping.
+     * Tells if this mapping delegates to another and lends its annotations thereto.
      *
-     * @return the component class in case of a {@link ComponentVariantFactory} or a {@link sun.awt.ComponentFactory} mapping.
+     * @return <code>true</code> if the annotations of this mapping should be taken in place of those of its reference, <code>false</code> otherwise.
      */
-    Class<?> factoryClass();
+    boolean isDelegating();
+
+    /**
+     * Returns the mapping annotation of the given type, if any.
+     *
+     * @param type the class of the annotation to return.
+     * @param <T>  the annotation type.
+     *
+     * @return the mapping annotation of the given type or <code>null</code> when none found.
+     */
+    <T extends Annotation> T contextSpecification(Class<T> type);
 }

@@ -50,10 +50,10 @@ final class ReferenceChainImpl implements ReferenceChain {
         }
     };
 
-    public Class<?> lastReference() {
+    public Link lastLink() {
         final List<Link> stack = reference.get();
         assert stack.size() > 0 : "Empty reference chain";
-        return stack.get(stack.size() - 1).reference();
+        return stack.get(stack.size() - 1);
     }
 
     public <T> T track(final ComponentMapping mapping, final Class<?> dependency, final Command<T> command) {

@@ -24,6 +24,7 @@ package org.fluidity.composition;
 
 import java.lang.annotation.Annotation;
 
+import org.fluidity.composition.spi.ComponentMapping;
 import org.fluidity.composition.spi.DependencyResolver;
 import org.fluidity.tests.MockGroupAbstractTest;
 
@@ -40,6 +41,8 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
     private final ContextChain contextChain = addControl(ContextChain.class);
     private final ReferenceChain referenceChain = addControl(ReferenceChain.class);
     private final ContextFactory contextFactory = addControl(ContextFactory.class);
+    private final ReferenceChain.Link link = addControl(ReferenceChain.Link.class);
+    private final ComponentMapping mapping = addControl(ComponentMapping.class);
 
     private final ComponentContext context = addControl(ComponentContext.class);
     private final ComponentContext context2= addControl(ComponentContext.class);
@@ -144,7 +147,9 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
         final SpecialDependent component = new SpecialDependent();
 
         EasyMock.expect(resolver.container(context)).andReturn(container);
-        EasyMock.expect(contextChain.consumedContext(SpecialDependent.class, SpecialDependent.class, context, referenceChain)).andReturn(context2);
+        EasyMock.expect(referenceChain.lastLink()).andReturn(link);
+        EasyMock.expect(link.mapping()).andReturn(mapping);
+        EasyMock.expect(contextChain.consumedContext(SpecialDependent.class, mapping, context, referenceChain)).andReturn(context2);
 
         replay();
         assert component == injector.injectFields(resolver, SpecialDependent.class, context, component);

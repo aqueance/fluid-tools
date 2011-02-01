@@ -29,9 +29,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.fluidity.composition.spi.ComponentFactory;
 import org.fluidity.composition.spi.ComponentMapping;
-import org.fluidity.composition.spi.ComponentVariantFactory;
 
 /**
  * @author Tibor Varga
@@ -75,10 +73,10 @@ final class ContextChainImpl implements ContextChain {
     }
 
     public ComponentContext consumedContext(final Class<?> componentType,
-                                            final Class<?> componentClass,
+                                            final ComponentMapping mapping,
                                             final ComponentContext context,
                                             final ReferenceChain referenceChain) {
-        final Class<? extends Annotation>[] types = contextTypes(componentType, componentClass, referenceChain);
+        final Class<? extends Annotation>[] types = contextTypes(componentType, mapping, referenceChain);
         final Map<Class<? extends Annotation>, Annotation[]> map = new HashMap<Class<? extends Annotation>, Annotation[]>();
 
         if (context != null && types != null) {
@@ -103,8 +101,8 @@ final class ContextChainImpl implements ContextChain {
     }
 
     @SuppressWarnings("unchecked")
-    private Class<? extends Annotation>[] contextTypes(final Class<?> componentType, final Class<?> componentClass, final ReferenceChain referenceChain) {
-        assert componentClass != null;
+    private Class<? extends Annotation>[] contextTypes(final Class<?> componentType, final ComponentMapping current, final ReferenceChain referenceChain) {
+        assert current != null;
         final Set<Class<? extends Annotation>> types = new HashSet<Class<? extends Annotation>>();
 
         // find the first factory for the given component type and take its @Context details to apply to the component at hand
@@ -112,9 +110,10 @@ final class ContextChainImpl implements ContextChain {
             public boolean visit(final ReferenceChain.Link item) {
                 final ComponentMapping mapping = item.mapping();
 
-                final Class<?> factoryClass = mapping.factoryClass();
-                if (factoryClass != null && factoryClass != componentClass && item.reference() == componentType) {
-                    final Context factoryContext = factoryClass.getAnnotation(Context.class);
+                if (mapping.isDelegating() && mapping != current && item.reference() == componentType) {
+
+                    // factory mapping must return the specification on behalf of the component it creates
+                    final Context factoryContext = mapping.contextSpecification(Context.class);
 
                     if (factoryContext != null) {
                         types.addAll(Arrays.asList(factoryContext.value()));
@@ -126,10 +125,8 @@ final class ContextChainImpl implements ContextChain {
             }
         });
 
-        final boolean isFactory = ComponentVariantFactory.class.isAssignableFrom(componentClass) || ComponentFactory.class.isAssignableFrom(componentClass);
-
-        // @Context on a factory does not apply to the factory itself
-        final Context context = isFactory ? null : componentClass.getAnnotation(Context.class);
+        // mapping that resolves a factory must return null here
+        final Context context = current.contextSpecification(Context.class);
         if (context != null) {
             types.addAll(Arrays.asList(context.value()));
         }

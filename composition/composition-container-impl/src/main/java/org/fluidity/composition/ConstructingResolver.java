@@ -22,6 +22,7 @@
 
 package org.fluidity.composition;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -43,16 +44,19 @@ final class ConstructingResolver extends AbstractResolver {
     private final Class<?> componentClass;
 
     private final Constructor<?> constructor;
+    private final boolean ignoreContext;
 
     public ConstructingResolver(final Class<?> api,
                                 final Class<?> componentClass,
                                 final boolean fallback,
+                                final boolean ignoreContext,
                                 final ComponentCache cache,
                                 final ReferenceChain references,
                                 final ContextFactory contexts,
                                 final DependencyInjector injector,
                                 final LogFactory logs) {
         super(api, fallback, references, cache, logs);
+        this.ignoreContext = ignoreContext;
         this.injector = injector;
         this.contexts = contexts;
         this.componentClass = componentClass;
@@ -61,6 +65,14 @@ final class ConstructingResolver extends AbstractResolver {
 
     public Class<?> componentClass() {
         return componentClass;
+    }
+
+    public Annotation[] contextAnnotations() {
+        return ignoreContext ? null : componentClass.getAnnotations();
+    }
+
+    public <T extends Annotation> T contextSpecification(final Class<T> type) {
+        return ignoreContext ? null : componentClass.getAnnotation(type);
     }
 
     private synchronized Constructor<?> constructor() {
@@ -72,9 +84,9 @@ final class ConstructingResolver extends AbstractResolver {
         return new ComponentCache.Command() {
             public Object run(final ComponentContext context) {
                 final Constructor constructor = constructor();
-                final ComponentContext componentContext = contexts.deriveContext(context, componentClass());
+                final ComponentContext componentContext = contexts.deriveContext(context, contextAnnotations());
 
-                return Exceptions.wrap(String.format("instantiating %s", componentClass()), new Exceptions.Command<Object>() {
+                return Exceptions.wrap(String.format("instantiating %s", componentClass), new Exceptions.Command<Object>() {
                     public Object run() throws Exception {
                         constructor.setAccessible(true);
                         return constructor.newInstance(injector.injectConstructor(container, api, componentContext, constructor));

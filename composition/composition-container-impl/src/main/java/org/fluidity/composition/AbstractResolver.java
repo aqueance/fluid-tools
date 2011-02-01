@@ -67,50 +67,45 @@ abstract class AbstractResolver implements ComponentResolver {
         return fallback;
     }
 
-    public Class<?> componentApi() {
-        return api;
-    }
-
     /**
      * Checks for circular references and, if possible, wraps the first component up the reference chain that is referenced by interface with a proxy that
      * defers the instantiation of that component. Uses the {@link #createCommand(SimpleContainer, Class)} method to perform actual component creation along
      * with the resolver's {@link ComponentCache} to cache instances.
      */
     public Object create(final SimpleContainer container, final Class<?> api, final boolean circular) {
-        final Class<?> componentClass = componentClass();
         final ComponentCache.Command create = createCommand(container, api);
 
         if (create == null) {
             return null;
         } else if (circular) {
-            return deferredCreate(container, api, componentClass, create, null);
+            return deferredCreate(container, api, create, null);
         } else {
             try {
-                return cache.lookup(container, api, componentClass, create);
+                return cache.lookup(container, api, this, create);
             } catch (final ComponentContainer.CircularReferencesException e) {
 
                 // handle circular reference that was noticed later in the reference chain that could not be handled at that point
-                return deferredCreate(container, api, componentClass, create, e);
+                return deferredCreate(container, api, create, e);
             }
         }
     }
 
     private Object deferredCreate(final SimpleContainer container,
                                   final Class<?> api,
-                                  final Class<?> componentClass,
                                   final ComponentCache.Command create,
                                   final ComponentContainer.CircularReferencesException error) {
-        final Class<?> reference = references.lastReference();
+        final Class<?> reference = references.lastLink().reference();
+        final Class<?> componentClass = componentClass();
 
         if (reference.isInterface()) {
             log.info("%s: deferred creation of %s", container, componentClass.getName());
-            return Proxy.newProxyInstance(componentClass.getClassLoader(), new Class<?>[] { reference }, new InvocationHandler() {
+            return Proxy.newProxyInstance(api.getClassLoader(), new Class<?>[] { reference }, new InvocationHandler() {
                 private Object delegate;
 
                 public Object invoke(final Object proxy, final Method method, final Object[] arguments) throws Throwable {
                     synchronized (this) {
                         if (delegate == null) {
-                            delegate = cache.lookup(container, api, componentClass, create);
+                            delegate = cache.lookup(container, api, AbstractResolver.this, create);
                         }
                     }
 
@@ -135,7 +130,11 @@ abstract class AbstractResolver implements ComponentResolver {
         return null;
     }
 
-    public void resolverReplaced(final ComponentResolver previous, final ComponentResolver replacement) {
+    public boolean isDelegating() {
+        return false;
+    }
+
+    public void resolverReplaced(final Class<?> api, final ComponentResolver previous, final ComponentResolver replacement) {
         // empty
     }
 

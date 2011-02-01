@@ -22,6 +22,8 @@
 
 package org.fluidity.composition;
 
+import java.lang.annotation.Annotation;
+
 import org.fluidity.foundation.spi.LogFactory;
 
 /**
@@ -32,15 +34,19 @@ import org.fluidity.foundation.spi.LogFactory;
 final class InstanceResolver extends AbstractResolver {
 
     private final Object instance;
+
+    private final boolean ignoreContext;
     private final Class<?> componentClass;
 
     public InstanceResolver(final Class<?> api,
                             final Class<?> componentClass,
                             final Object instance,
                             final boolean fallback,
+                            final boolean ignoreContext,
                             final ReferenceChain references,
                             final LogFactory logs) {
         super(api, fallback, references, null, logs);
+        this.ignoreContext = ignoreContext;
         this.componentClass = componentClass;
         this.instance = instance;
     }
@@ -49,7 +55,15 @@ final class InstanceResolver extends AbstractResolver {
         return componentClass;
     }
 
-    public Object create(final SimpleContainer container, Class<?> api, boolean circular) {
+    public Annotation[] contextAnnotations() {
+        return ignoreContext ? null : componentClass.getAnnotations();
+    }
+
+    public <T extends Annotation> T contextSpecification(final Class<T> type) {
+        return ignoreContext ? null : componentClass.getAnnotation(type);
+    }
+
+    public Object create(final SimpleContainer container, final Class<?> api, final boolean circular) {
         return instance;
     }
 

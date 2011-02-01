@@ -22,6 +22,8 @@
 
 package org.fluidity.composition;
 
+import java.lang.annotation.Annotation;
+
 import org.fluidity.composition.spi.ComponentMapping;
 
 /**
@@ -32,6 +34,13 @@ import org.fluidity.composition.spi.ComponentMapping;
 interface ComponentResolver extends ComponentMapping {
 
     /**
+     * Returns the class of the component instance.
+     *
+     * @return the class of the component instance.
+     */
+    Annotation[] contextAnnotations();
+
+    /**
      * Tells if the component is a fallback or primary. When both a primary and fallback component is mapped to the same interface, the fallback is ignored and
      * the primary is used.
      *
@@ -40,16 +49,18 @@ interface ComponentResolver extends ComponentMapping {
     boolean isFallback();
 
     /**
-     * Returns the class of the interface the component is bound to.
+     * Returns the component class in case of a {@link org.fluidity.composition.spi.ComponentVariantFactory} or a {@link sun.awt.ComponentFactory} mapping.
      *
-     * @return the class of the interface the component is bound to.
+     * @return the component class in case of a {@link org.fluidity.composition.spi.ComponentVariantFactory} or a {@link sun.awt.ComponentFactory} mapping.
+     * @deprecated and will be removed
      */
-    Class<?> componentApi();
+    Class<?> factoryClass();
 
     /**
      * Returns the class of the component instance.
      *
      * @return the class of the component instance.
+     * @deprecated and will be removed
      */
     Class<?> componentClass();
 
@@ -75,8 +86,9 @@ interface ComponentResolver extends ComponentMapping {
     /**
      * Notifies the receiver that a previously bound resolver has been replaced by another one.
      *
+     * @param api         the api for which the resolver is being replaced
      * @param previous    the old resolver.
      * @param replacement the new resolver.
      */
-    void resolverReplaced(ComponentResolver previous, ComponentResolver replacement);
+    void resolverReplaced(Class<?> api, ComponentResolver previous, ComponentResolver replacement);
 }

@@ -22,6 +22,8 @@
 
 package org.fluidity.composition;
 
+import java.lang.annotation.Annotation;
+
 import org.fluidity.foundation.spi.LogFactory;
 
 /**
@@ -48,6 +50,14 @@ final class LinkingResolver extends AbstractResolver {
         return delegate.componentClass();
     }
 
+    public Annotation[] contextAnnotations() {
+        return delegate.contextAnnotations();
+    }
+
+    public <T extends Annotation> T contextSpecification(final Class<T> type) {
+        return delegate.contextSpecification(type);
+    }
+
     @Override
     public boolean isVariantMapping() {
         return delegate.isVariantMapping();
@@ -69,7 +79,7 @@ final class LinkingResolver extends AbstractResolver {
     }
 
     @Override
-    public void resolverReplaced(final ComponentResolver previous, final ComponentResolver replacement) {
+    public void resolverReplaced(final Class<?> api, final ComponentResolver previous, final ComponentResolver replacement) {
         if (delegate == previous) {
             delegate = replacement;
         }

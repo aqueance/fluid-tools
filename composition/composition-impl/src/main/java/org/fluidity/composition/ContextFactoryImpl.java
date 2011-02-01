@@ -35,14 +35,14 @@ final class ContextFactoryImpl implements ContextFactory {
         return new ComponentContextImpl(map);
     }
 
-    public ComponentContext extractContext(final Annotation[] context) {
-        if (context == null) {
+    public ComponentContext extractContext(final Annotation[] annotations) {
+        if (annotations == null) {
             return null;
         }
 
         final Map<Class<? extends Annotation>, Annotation[]> map = new HashMap<Class<? extends Annotation>, Annotation[]>();
 
-        for (final Annotation value : context) {
+        for (final Annotation value : annotations) {
             final Class<? extends Annotation> type = value.getClass();
 
             if (!(value instanceof Component || value instanceof ServiceProvider || value instanceof Optional || value instanceof Context)) {
@@ -53,8 +53,8 @@ final class ContextFactoryImpl implements ContextFactory {
         return map.isEmpty() ? null : new ComponentContextImpl(map);
     }
 
-    public ComponentContext deriveContext(final ComponentContext context, final Class<?> contextProvider) {
-        final ComponentContext extracted = extractContext(contextProvider.getAnnotations());
+    public ComponentContext deriveContext(final ComponentContext context, final Annotation[] annotations) {
+        final ComponentContext extracted = extractContext(annotations);
         return extracted == null ? context : new ComponentContextImpl(context, extracted);
     }
 

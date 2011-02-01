@@ -32,11 +32,11 @@ import org.fluidity.composition.spi.ComponentMapping;
 public interface ReferenceChain {
 
     /**
-     * Returns the defined type of the last reference on the chain.
+     * Returns the last link on the chain.
      *
-     * @return the defined type of the last reference on the chain.
+     * @return the last link on the chain.
      */
-    Class<?> lastReference();
+    Link lastLink();
 
     /**
      * Adds a new reference to the chain and then removes it after the resolution completes.
@@ -50,7 +50,8 @@ public interface ReferenceChain {
     <T> T track(ComponentMapping mapping, Class<?> dependency, Command<T> command);
 
     /**
-     * The command to invoke in the context of a new dependency reference established by calling {@link ReferenceChain#track(ComponentMapping,Class, ReferenceChain.Command)}.
+     * The command to invoke in the context of a new dependency reference established by calling {@link ReferenceChain#track(ComponentMapping, Class,
+     * ReferenceChain.Command)}.
      *
      * @author Tibor Varga
      */
@@ -59,8 +60,7 @@ public interface ReferenceChain {
         /**
          * @param circular tells whether this particular producer has already been asked for a component in the current reference chain.
          *
-         * @return whatever the caller of {@link ReferenceChain#track(ComponentMapping,Class, ReferenceChain.Command)}
-         *         expects to get returned.
+         * @return whatever the caller of {@link ReferenceChain#track(ComponentMapping, Class, ReferenceChain.Command)} expects to get returned.
          */
         T run(boolean circular);
     }
@@ -80,8 +80,7 @@ public interface ReferenceChain {
     String print();
 
     /**
-     * The visitor to invoke while iterating through the reference chain using the {@link ReferenceChain#iterate(ReferenceChain.Visitor)}
-     * method.
+     * The visitor to invoke while iterating through the reference chain using the {@link ReferenceChain#iterate(ReferenceChain.Visitor)} method.
      *
      * @author Tibor Varga
      */

@@ -207,7 +207,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
 
             dependency.set(list.toArray((Object[]) Array.newInstance(providerType, list.size())));
         } else if (dependency.type() == ComponentContext.class) {
-            dependency.set(contextChain.consumedContext(componentApi, componentType, context, referenceChain));
+            dependency.set(contextChain.consumedContext(componentApi, referenceChain.lastLink().mapping(), context, referenceChain));
         } else {
             Object value = null;
 

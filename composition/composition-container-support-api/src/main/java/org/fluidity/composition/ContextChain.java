@@ -22,6 +22,8 @@
 
 package org.fluidity.composition;
 
+import org.fluidity.composition.spi.ComponentMapping;
+
 /**
  * Tracks context definitions and consumption along a reference chain.
  * <p/>
@@ -59,15 +61,16 @@ public interface ContextChain {
     /**
      * Returns the actual context supported by the given component type using the possibly larger context established at this point.
      *
+     *
      * @param componentType  the interface implemented by the component.
-     * @param componentClass the component type to check for supported context annotations.
+     * @param mapping the component type to check for supported context annotations.
      * @param context        the actual context established at this point.
      * @param resolutions    the dependency reference chain to search for the factory object that consumes the context on behalf of
-     *                       <code>componentClass</code>.
+     *                       <code>mapping</code>.
      *
      * @return the narrowed context that can be passed to an instance of the given component class.
      */
-    ComponentContext consumedContext(Class<?> componentType, Class<?> componentClass, ComponentContext context, ReferenceChain resolutions);
+    ComponentContext consumedContext(Class<?> componentType, ComponentMapping mapping, ComponentContext context, ReferenceChain resolutions);
 
     /**
      * Adjusts the context consumed at this point and down the reference chain.
