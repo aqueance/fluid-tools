@@ -57,12 +57,12 @@ interface SimpleContainer extends DependencyResolver {
     /**
      * Finds the component mapping for the given component interface.
      *
-     * @param componentInterface the component interface to find the mapping for.
-     * @param ascend             tells whether the parent container, if any, should be consulted in case no mapping is found in the receiver.
+     * @param api    the component interface to find the mapping for.
+     * @param ascend tells whether the parent container, if any, should be consulted in case no mapping is found in the receiver.
      *
      * @return the component mapping for the given component interface or <code>null</code> if none found.
      */
-    ComponentProducer producer(Class<?> componentInterface, boolean ascend);
+    ComponentProducer producer(Class<?> api, boolean ascend);
 
     /**
      * Binds a component mapping in the container
@@ -70,52 +70,48 @@ interface SimpleContainer extends DependencyResolver {
      * @param key   the component interface to bind.
      * @param entry the mapping to bind.
      *
-     * @return the mapping bound.
-     *
      * @throws ComponentContainer.BindingException
      *          when binding fails.
      */
-    ComponentProducer bindProducer(Class<?> key, ComponentProducer entry) throws ComponentContainer.BindingException;
+    void bindProducer(Class<?> key, ComponentProducer entry) throws ComponentContainer.BindingException;
 
     /**
      * Binds a component class to an interface.
      *
-     * @param key            the interface to bind to.
      * @param implementation the class to bind.
-     *
-     * @return the mapping bound.
+     * @param interfaces     the interfaces to bind to.
      *
      * @throws ComponentContainer.BindingException
      *          when binding fails.
      */
-    ComponentProducer bindComponent(Class<?> key, Class<?> implementation) throws ComponentContainer.BindingException;
+    void bindComponent(Class<?> implementation, Class<?>... interfaces) throws ComponentContainer.BindingException;
 
     /**
      * Binds a component instance to an interface.
      *
-     * @param key      the interface to bind to.
-     * @param instance the component instance to bind.
      *
-     * @return the mapping bound.
+     * @param instance   the component instance to bind.
      *
+     * @param interfaces the interfaces to bind to.
      * @throws ComponentContainer.BindingException
      *          when binding fails.
      */
-    ComponentProducer bindInstance(Class<?> key, Object instance) throws ComponentContainer.BindingException;
+    void bindInstance(Object instance, Class<?>... interfaces) throws ComponentContainer.BindingException;
 
     /**
      * Creates a child container of the receiver and links the given interface to a mapping added to the returned child, effectively directing the component
      * resolution in the parent container to the child.
      *
-     * @param key            the interface to bind in the receiving container.
+     *
      * @param implementation the implementation to bind to the interface in the returned child container.
      *
+     * @param interfaces     the interfaces to bind to.
      * @return the child container returned.
      *
      * @throws ComponentContainer.BindingException
      *          when binding fails.
      */
-    SimpleContainer linkComponent(Class<?> key, Class<?> implementation) throws ComponentContainer.BindingException;
+    SimpleContainer linkComponent(Class<?> implementation, Class<?>... interfaces) throws ComponentContainer.BindingException;
 
     /**
      * Returns the component instance bound to the given interface.
@@ -158,14 +154,14 @@ interface SimpleContainer extends DependencyResolver {
      * Returns all singleton component instances, created in response to this method call, in the container under the default empty context assignable to the
      * given interface.
      *
-     * @param componentInterface filters the component instances returned.
+     * @param api filters the component instances returned.
      *
      * @return all singleton component instances in the container under the default empty context assignable to the given interface.
      *
      * @throws ComponentContainer.ResolutionException
      *          when dependency resolution fails.
      */
-    <T> List<T> allSingletons(Class<T> componentInterface) throws ComponentContainer.ResolutionException;
+    <T> List<T> allSingletons(Class<T> api) throws ComponentContainer.ResolutionException;
 
     /**
      * Returns a textual identifier for the container.
@@ -173,4 +169,12 @@ interface SimpleContainer extends DependencyResolver {
      * @return a textual identifier for the container.
      */
     String id();
+
+    /**
+     * Notifies each bound producer that a previously bound producer has been supplanted by another.
+     *
+     * @param previous    the old producer.
+     * @param replacement the new producer.
+     */
+    void replaceProducer(ComponentProducer previous, ComponentProducer replacement);
 }

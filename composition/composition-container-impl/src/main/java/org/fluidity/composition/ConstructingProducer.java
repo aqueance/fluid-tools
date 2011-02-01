@@ -40,12 +40,11 @@ final class ConstructingProducer extends AbstractProducer {
     private final DependencyInjector injector;
     private final ContextFactory contexts;
 
-    private final Class<?> componentInterface;
     private final Class<?> componentClass;
 
     private final Constructor<?> constructor;
 
-    public ConstructingProducer(final Class<?> componentInterface,
+    public ConstructingProducer(final Class<?> api,
                                 final Class<?> componentClass,
                                 final boolean fallback,
                                 final ComponentCache cache,
@@ -53,16 +52,11 @@ final class ConstructingProducer extends AbstractProducer {
                                 final ContextFactory contexts,
                                 final DependencyInjector injector,
                                 final LogFactory logs) {
-        super(fallback, references, cache, logs);
+        super(api, fallback, references, cache, logs);
         this.injector = injector;
         this.contexts = contexts;
-        this.componentInterface = componentInterface;
         this.componentClass = componentClass;
         this.constructor = findComponentConstructor();
-    }
-
-    public Class<?> componentInterface() {
-        return componentInterface;
     }
 
     public Class<?> componentClass() {
@@ -74,7 +68,7 @@ final class ConstructingProducer extends AbstractProducer {
     }
 
     @Override
-    protected ComponentCache.Command createCommand(final SimpleContainer container) {
+    protected ComponentCache.Command createCommand(final SimpleContainer container, final Class<?> api) {
         return new ComponentCache.Command() {
             public Object run(final ComponentContext context) {
                 final Constructor constructor = constructor();
@@ -83,7 +77,7 @@ final class ConstructingProducer extends AbstractProducer {
                 return Exceptions.wrap(String.format("instantiating %s", componentClass()), new Exceptions.Command<Object>() {
                     public Object run() throws Exception {
                         constructor.setAccessible(true);
-                        return constructor.newInstance(injector.injectConstructor(container, componentInterface, componentContext, constructor));
+                        return constructor.newInstance(injector.injectConstructor(container, api, componentContext, constructor));
                     }
                 });
             }

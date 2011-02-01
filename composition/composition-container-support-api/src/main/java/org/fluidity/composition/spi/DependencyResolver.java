@@ -49,10 +49,11 @@ public interface DependencyResolver {
      * @param type    the component interface sought.
      * @param context the reference context for the resolution.
      *
-     * @return the resolved component instance or <code>null</code> is no unique resolution is possible.
+     * @return the new component instance or <code>null</code> is no instantiation is possible.
      *
      * @throws org.fluidity.composition.ComponentContainer.ResolutionException
      *          when the type cannot be resolved.
+     * @deprecated and will be removed
      */
     <T> T create(Class<T> type, ComponentContext context);
 

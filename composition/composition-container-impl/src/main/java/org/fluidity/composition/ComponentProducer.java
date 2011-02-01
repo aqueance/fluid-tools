@@ -40,6 +40,13 @@ interface ComponentProducer extends ComponentMapping {
     boolean isFallback();
 
     /**
+     * Returns the class of the interface the component is bound to.
+     *
+     * @return the class of the interface the component is bound to.
+     */
+    Class<?> componentApi();
+
+    /**
      * Returns the class of the component instance.
      *
      * @return the class of the component instance.
@@ -50,12 +57,13 @@ interface ComponentProducer extends ComponentMapping {
      * Creates the actual component.
      *
      * @param container the container to use to resolve dependencies.
+     * @param api       the API the component is requested for.
      * @param circular  a flag telling if this producer has been invoked the second time during one invocation chain, e.g., to signify circular reference in the
      *                  component dependency graph.
      *
      * @return the component instance, never <code>null</code>.
      */
-    Object create(SimpleContainer container, boolean circular);
+    Object create(SimpleContainer container, Class<?> api, boolean circular);
 
     /**
      * Tells whether this mapping has been created for an already instantiated component.
@@ -63,4 +71,12 @@ interface ComponentProducer extends ComponentMapping {
      * @return <code>true</code> if this mapping represents an already instantiated component, <code>false</code> otherwise.
      */
     boolean isInstanceMapping();
+
+    /**
+     * Notifies the receiver that a previously bound producer has been replaced by another one.
+     *
+     * @param previous    the old producer.
+     * @param replacement the new producer.
+     */
+    void producerReplaced(ComponentProducer previous, ComponentProducer replacement);
 }

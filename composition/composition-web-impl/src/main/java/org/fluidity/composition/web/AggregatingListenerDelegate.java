@@ -20,33 +20,36 @@
  * THE SOFTWARE.
  */
 
-package org.fluidity.maven;
+package org.fluidity.composition.web;
+
+import javax.servlet.ServletContextEvent;
+import javax.servlet.ServletContextListener;
 
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ServiceProvider;
 
-public class MultipleServiceProviders implements ServiceProvider1, ServiceProvider2 {
+/**
+ * Delegates servlet listener callbacks to all others annotated as @{@link ServiceProvider}.
+ */
+@Component(api = AggregatingListenerDelegate.class)
+public class AggregatingListenerDelegate implements ServletContextListener {
 
-}
+    private final ServletContextListener listeners[];
 
-@Component
-class MultipleServiceConsumer {
-
-    MultipleServiceConsumer(@ServiceProvider final ServiceProvider1[] providers1, @ServiceProvider final ServiceProvider2[] providers2) {
-        assert providers1.length == 1 : providers1.length;
-        assert providers2.length == 1 : providers2.length;
-
-//        TODO: turn this back on
-//        assert providers1[0] == providers2[0];
+    public AggregatingListenerDelegate(final @ServiceProvider ServletContextListener[] listeners) {
+        this.listeners = listeners;
     }
-}
 
-@ServiceProvider
-interface ServiceProvider1 {
+    public void contextInitialized(final ServletContextEvent event) {
+        for (final ServletContextListener listener : listeners) {
+            listener.contextInitialized(event);
+        }
+    }
 
-}
-
-@ServiceProvider
-interface ServiceProvider2 {
+    public void contextDestroyed(final ServletContextEvent event) {
+        for (final ServletContextListener listener : listeners) {
+            listener.contextDestroyed(event);
+        }
+    }
 
 }

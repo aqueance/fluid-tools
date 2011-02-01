@@ -77,7 +77,7 @@ public class DependencyResolverImplTest extends MockGroupAbstractTest {
                     }
                 });
 
-        // this is what the testee should do when invoke above from the inner class
+        // this is what the testee should do when invoking above from the inner class
         registry.bindComponent(Dependency.class, Dependency.class);
 
         replay();

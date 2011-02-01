@@ -26,8 +26,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import org.fluidity.composition.ComponentContainer;
-import org.fluidity.composition.ComponentDiscovery;
 import org.fluidity.foundation.NoLogFactory;
 import org.fluidity.foundation.logging.Log;
 import org.fluidity.tests.MockGroupAbstractTest;
@@ -44,8 +42,6 @@ import org.testng.annotations.Test;
 public final class DeploymentBootstrapImplTest extends MockGroupAbstractTest {
 
     private final Log log = new NoLogFactory().createLog(null);
-    private final ComponentContainer container = addControl(ComponentContainer.class);
-    private final ComponentDiscovery discovery = addControl(ComponentDiscovery.class);
     private final DeploymentControl deployments = addControl(DeploymentControl.class);
 
     private final DeployedComponent component1 = addStrictControl(DeployedComponent.class);
@@ -55,7 +51,7 @@ public final class DeploymentBootstrapImplTest extends MockGroupAbstractTest {
     private final DeploymentObserver observer1 = addStrictControl(DeploymentObserver.class);
     private final DeploymentObserver observer2 = addStrictControl(DeploymentObserver.class);
 
-    private final DeploymentBootstrap bootstrap = new DeploymentBootstrapImpl(log, container, discovery, deployments);
+    private DeploymentBootstrap bootstrap;
 
     @Test
     public void forceTestOrdering() throws Exception {
@@ -63,14 +59,13 @@ public final class DeploymentBootstrapImplTest extends MockGroupAbstractTest {
         testUnloading();
     }
 
+    private void deployments(final DeployedComponent[] components, final DeploymentObserver[] observers) {
+        bootstrap = new DeploymentBootstrapImpl(log, components, observers, deployments);
+    }
+
     @Test
     public void testAutoStoppingSome() throws Exception {
-        EasyMock.expect(discovery.findComponentInstances(container, DeployedComponent.class)).andReturn(new DeployedComponent[] {
-                component1, component2, component3,
-        });
-        EasyMock.expect(discovery.findComponentInstances(container, DeploymentObserver.class)).andReturn(new DeploymentObserver[] {
-                observer1, observer2,
-        });
+        deployments(new DeployedComponent[] { component1, component2, component3 }, new DeploymentObserver[] { observer1, observer2 });
 
         final List<DeployedComponent.Context> contexts = new ArrayList<DeployedComponent.Context>();
         final CaptureContext capture = new CaptureContext(contexts);
@@ -137,12 +132,7 @@ public final class DeploymentBootstrapImplTest extends MockGroupAbstractTest {
 
     @Test(dataProvider = "standalone")
     public void testAutoStoppingAll(final boolean standalone) throws Exception {
-        EasyMock.expect(discovery.findComponentInstances(container, DeployedComponent.class)).andReturn(new DeployedComponent[] {
-                component1, component2, component3,
-        });
-        EasyMock.expect(discovery.findComponentInstances(container, DeploymentObserver.class)).andReturn(new DeploymentObserver[] {
-                observer1, observer2,
-        });
+        deployments(new DeployedComponent[] { component1, component2, component3 }, new DeploymentObserver[] { observer1, observer2 });
 
         // one for each component (and that's 3)
         final List<DeployedComponent.Context> contexts = new ArrayList<DeployedComponent.Context>();
@@ -196,8 +186,7 @@ public final class DeploymentBootstrapImplTest extends MockGroupAbstractTest {
 
     @Test
     public void testNothingToDeploy() throws Exception {
-        EasyMock.expect(discovery.findComponentInstances(container, DeployedComponent.class)).andReturn(new DeployedComponent[0]);
-        EasyMock.expect(discovery.findComponentInstances(container, DeploymentObserver.class)).andReturn(new DeploymentObserver[0]);
+        deployments(new DeployedComponent[0], new DeploymentObserver[0]);
 
         // because no components were found to deploy, runtime.deploymentsComplete() is called
         deployments.completed();
@@ -212,12 +201,7 @@ public final class DeploymentBootstrapImplTest extends MockGroupAbstractTest {
     }
 
     public void testLoading() throws Exception {
-        EasyMock.expect(discovery.findComponentInstances(container, DeployedComponent.class)).andReturn(new DeployedComponent[] {
-                component1, component2, component3,
-        });
-        EasyMock.expect(discovery.findComponentInstances(container, DeploymentObserver.class)).andReturn(new DeploymentObserver[] {
-                observer1, observer2,
-        });
+        deployments(new DeployedComponent[] { component1, component2, component3 }, new DeploymentObserver[] { observer1, observer2 });
 
         EasyMock.expect(component1.name()).andReturn("Component 1");
         component1.start(EasyMock.<DeployedComponent.Context>notNull());

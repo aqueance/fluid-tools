@@ -60,9 +60,9 @@ final class ConfigurationComponentFactory implements ComponentFactory<Configurat
 
         final Properties properties = context.annotation(Properties.class, Configuration.class);
 
-        registry.bindInstance(Properties.class, properties);
-        registry.bindComponent(PropertyProvider.class, properties.provider());
-        registry.bindComponent(Configuration.class, ConfigurationImpl.class);
+        registry.bindInstance(properties);
+        registry.bindComponent(properties.provider(), PropertyProvider.class);
+        registry.bindComponent(ConfigurationImpl.class);
 
         return child.getComponent(Configuration.class);
     }

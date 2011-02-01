@@ -38,12 +38,12 @@ public interface ClassDiscovery {
     /**
      * Finds all classes in the class path that have been registered according the standard service discovery specification.
      *
-     * @param componentInterface is the interface all discovered classes should implement.
-     * @param classLoader        is the class loader to use to find components.
-     * @param strict             specifies whether the component may be loaded by only the given class loader (<code>true</code>) or any of its parent class
-     *                           loaders (<code>false</code>).
+     * @param api         is the interface all discovered classes should implement.
+     * @param classLoader is the class loader to use to find components.
+     * @param strict      specifies whether the component may be loaded by only the given class loader (<code>true</code>) or any of its parent class loaders
+     *                    (<code>false</code>).
      *
      * @return a list of <code>Class</code> objects for the discovered classes.
      */
-    <T> Class<T>[] findComponentClasses(Class<T> componentInterface, ClassLoader classLoader, boolean strict);
+    <T> Class<T>[] findComponentClasses(Class<T> api, ClassLoader classLoader, boolean strict);
 }

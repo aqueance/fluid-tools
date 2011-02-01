@@ -35,13 +35,13 @@ public final class OptionalDependencyTests extends AbstractContainerTests {
 
     @Test
     public void optionalDependencyNotResolved() throws Exception {
-        registry.bindComponent(OptionalDependentValue.class, OptionalDependentValue.class);
+        registry.bindComponent(OptionalDependentValue.class);
         assert container.getComponent(OptionalDependentValue.class) != null : "Component with optional and missing dependency not instantiated";
     }
 
     @Test(expectedExceptions = ComponentContainer.ResolutionException.class)
     public void missingMandatoryDependencyRaised() throws Exception {
-        registry.bindComponent(MandatoryDependentValue.class, MandatoryDependentValue.class);
+        registry.bindComponent(MandatoryDependentValue.class);
         container.getComponent(MandatoryDependentValue.class);      // must raise exception
     }
 

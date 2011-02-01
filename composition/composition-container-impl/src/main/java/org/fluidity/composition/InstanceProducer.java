@@ -32,30 +32,24 @@ import org.fluidity.foundation.spi.LogFactory;
 final class InstanceProducer extends AbstractProducer {
 
     private final Object instance;
-    private final Class<?> componentInterface;
     private final Class<?> componentClass;
 
-    public InstanceProducer(final Class<?> componentInterface,
+    public InstanceProducer(final Class<?> api,
                             final Class<?> componentClass,
                             final Object instance,
                             final boolean fallback,
                             final ReferenceChain references,
                             final LogFactory logs) {
-        super(fallback, references, null, logs);
-        this.componentInterface = componentInterface;
+        super(api, fallback, references, null, logs);
         this.componentClass = componentClass;
         this.instance = instance;
-    }
-
-    public Class<?> componentInterface() {
-        return componentInterface;
     }
 
     public Class<?> componentClass() {
         return componentClass;
     }
 
-    public Object create(final SimpleContainer container, boolean circular) {
+    public Object create(final SimpleContainer container, Class<?> api, boolean circular) {
         return instance;
     }
 

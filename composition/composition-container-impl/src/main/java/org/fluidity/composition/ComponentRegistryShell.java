@@ -38,22 +38,26 @@ final class ComponentRegistryShell extends EmptyComponentContainer.EmptyRegistry
     }
 
     public <T> void bindDefault(final Class<? extends T> implementation) {
-        container.bindComponent(componentInterface(implementation), implementation);
+        throw new UnsupportedOperationException();
     }
 
-    public <T> void bindComponent(final Class<T> key, final Class<? extends T> implementation) {
-        container.bindComponent(key, implementation);
+    public <T> void bindComponent(final Class<T> implementation, Class<? super T>... interfaces) throws ComponentContainer.BindingException {
+        container.bindComponent(implementation, interfaces);
     }
 
-    public <T> void bindInstance(final Class<? super T> key, final T instance) {
-        container.bindInstance(key, instance);
+    public <T> void bindFactory(final Class<T> factory, final Class<?>... interfaces) throws ComponentContainer.BindingException {
+        container.bindComponent(factory, interfaces);
+    }
+
+    public <T> void bindInstance(final T instance, final Class<? super T>... interfaces) throws ComponentContainer.BindingException {
+        container.bindInstance(instance, interfaces);
     }
 
     public OpenComponentContainer makeChildContainer() {
         return new ComponentContainerShell(container.newChildContainer(), true);
     }
 
-    public <T> OpenComponentContainer makeChildContainer(final Class<T> key, final Class<? extends T> implementation) {
-        return new ComponentContainerShell(container.linkComponent(key, implementation), false);
+    public <T> OpenComponentContainer makeChildContainer(final Class<T> implementation, final Class<? super T>... interfaces) {
+        return new ComponentContainerShell(container.linkComponent(implementation, interfaces), false);
     }
 }

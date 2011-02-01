@@ -28,8 +28,7 @@ import java.util.Collections;
 import java.util.List;
 
 import org.fluidity.composition.Component;
-import org.fluidity.composition.ComponentContainer;
-import org.fluidity.composition.ComponentDiscovery;
+import org.fluidity.composition.ServiceProvider;
 import org.fluidity.foundation.logging.Log;
 import org.fluidity.foundation.logging.Marker;
 
@@ -39,25 +38,23 @@ import org.fluidity.foundation.logging.Marker;
 @Component
 final class DeploymentBootstrapImpl implements DeploymentBootstrap {
 
-    private final ComponentContainer container;
-    private final ComponentDiscovery discovery;
     private final DeploymentControl deployments;
 
-    private final List<DeployedComponent> deployedComponents = Collections.synchronizedList(new ArrayList<DeployedComponent>());
-    private final List<DeployedComponent> activeComponents = Collections.synchronizedList(new ArrayList<DeployedComponent>());
+    private final List<DeployedComponent> components = new ArrayList<DeployedComponent>();
     private final List<DeploymentObserver> observers = new ArrayList<DeploymentObserver>();
+    private final List<DeployedComponent> active = new ArrayList<DeployedComponent>();
 
     private final Log log;
 
     public DeploymentBootstrapImpl(final @Marker(DeploymentBootstrapImpl.class) Log log,
-                                   final ComponentContainer container,
-                                   final ComponentDiscovery discovery,
+                                   final @ServiceProvider DeployedComponent[] components,
+                                   final @ServiceProvider DeploymentObserver[] observers,
                                    final DeploymentControl deployments) {
-        this.log = log
-        ;
-        this.container = container;
-        this.discovery = discovery;
+        this.log = log;
         this.deployments = deployments;
+
+        this.components.addAll(Arrays.asList(components));
+        this.observers.addAll(Arrays.asList(observers));
     }
 
     private void info(final String message, final Object... args) {
@@ -65,25 +62,19 @@ final class DeploymentBootstrapImpl implements DeploymentBootstrap {
     }
 
     public synchronized void load() throws Exception {
-        deployedComponents.clear();
-        observers.clear();
+        active.clear();
+        active.addAll(components);
 
-        deployedComponents.addAll(Arrays.asList(discovery.findComponentInstances(container, DeployedComponent.class)));
-        observers.addAll(Arrays.asList(discovery.findComponentInstances(container, DeploymentObserver.class)));
-
-        activeComponents.clear();
-        activeComponents.addAll(deployedComponents);
-
-        for (final DeployedComponent component : deployedComponents) {
+        for (final DeployedComponent component : components) {
             info("Starting %s", component.name());
             component.start(new DeployedComponent.Context() {
                 public void complete() {
                     final boolean empty;
 
-                    synchronized (activeComponents) {
+                    synchronized (active) {
 
                         // empty can only be true if the component has actually been removed
-                        empty = activeComponents.remove(component) && activeComponents.isEmpty();
+                        empty = active.remove(component) && active.isEmpty();
                     }
 
                     if (empty && !deployments.isStandalone()) {
@@ -110,10 +101,10 @@ final class DeploymentBootstrapImpl implements DeploymentBootstrap {
     }
 
     public synchronized void unload() {
-        Collections.reverse(deployedComponents);
-        Collections.reverse(activeComponents);
+        Collections.reverse(components);
+        Collections.reverse(active);
 
-        for (final DeployedComponent component : activeComponents) {
+        for (final DeployedComponent component : active) {
             try {
                 info("Stopping %s", component.name());
                 component.stop();

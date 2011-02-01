@@ -27,7 +27,8 @@ import org.testng.annotations.Test;
 /**
  * @author Tibor Varga
  */
-public class ConstructorDiscoveryTests extends AbstractContainerTests {
+public class
+        ConstructorDiscoveryTests extends AbstractContainerTests {
 
     public ConstructorDiscoveryTests(final ContainerFactory factory) {
         super(factory);
@@ -35,53 +36,53 @@ public class ConstructorDiscoveryTests extends AbstractContainerTests {
 
     @Test
     public void testSingleConstructor() throws Exception {
-        registry.bindComponent(SingleConstructor.class, SingleConstructor.class);
+        registry.bindComponent(SingleConstructor.class);
         assert container.getComponent(SingleConstructor.class) != null : "Single constructor not accepted";
     }
 
     @Test
     public void testTwoConstructors0() throws Exception {
-        registry.bindInstance(String.class, "string");
-        registry.bindComponent(TwoConstructors0.class, TwoConstructors0.class);
+        registry.bindInstance("string", String.class);
+        registry.bindComponent(TwoConstructors0.class);
         assert container.getComponent(TwoConstructors0.class) != null : "Non-default constructor not accepted";
     }
 
     @Test
     public void testSingleComponentConstructor() throws Exception {
-        registry.bindInstance(String.class, "string");
-        registry.bindComponent(SingleComponentConstructor.class, SingleComponentConstructor.class);
+        registry.bindInstance("string", String.class);
+        registry.bindComponent(SingleComponentConstructor.class);
         assert container.getComponent(SingleComponentConstructor.class) != null : "Single annotated constructor not accepted";
     }
 
     @Test
     public void testHiddenComponentConstructor() throws Exception {
-        registry.bindInstance(Integer.TYPE, 1);
-        registry.bindComponent(HiddenComponentConstructor.class, HiddenComponentConstructor.class);
+        registry.bindInstance(1, Integer.TYPE);
+        registry.bindComponent(HiddenComponentConstructor.class);
         assert container.getComponent(HiddenComponentConstructor.class) != null : "Private annotated constructor not accepted";
     }
 
     @Test(expectedExceptions = ComponentContainer.ResolutionException.class, expectedExceptionsMessageRegExp = ".*constructor.*")
     public void testTwoConstructor1() throws Exception {
-        registry.bindComponent(TwoConstructors1.class, TwoConstructors1.class);
+        registry.bindComponent(TwoConstructors1.class);
         assert container.getComponent(TwoConstructors1.class) == null : "Ambiguous constructor accepted";
     }
 
     @Test(expectedExceptions = ComponentContainer.ResolutionException.class, expectedExceptionsMessageRegExp = ".*constructor.*")
     public void testThreeConstructors() throws Exception {
-        registry.bindComponent(ThreeConstructors.class, ThreeConstructors.class);
+        registry.bindComponent(ThreeConstructors.class);
         assert container.getComponent(ThreeConstructors.class) == null : "Ambiguous constructor accepted";
     }
 
     @Test(expectedExceptions = ComponentContainer.ResolutionException.class, expectedExceptionsMessageRegExp = ".*constructor.*")
     public void testMultipleComponentConstructors() throws Exception {
-        registry.bindComponent(MultipleComponentConstructors.class, MultipleComponentConstructors.class);
+        registry.bindComponent(MultipleComponentConstructors.class);
         assert container.getComponent(MultipleComponentConstructors.class) == null : "Ambiguous constructor accepted";
     }
 
     @Test(expectedExceptions = ComponentContainer.ResolutionException.class, expectedExceptionsMessageRegExp = ".*constructor.*")
     public void testMixedComponentConstructors() throws Exception {
-        registry.bindInstance(Integer.TYPE, 1);
-        registry.bindComponent(MixedComponentConstructors.class, MixedComponentConstructors.class);
+        registry.bindInstance(1, Integer.TYPE);
+        registry.bindComponent(MixedComponentConstructors.class);
         assert container.getComponent(MixedComponentConstructors.class) == null : "Ambiguous constructor accepted";
     }
 

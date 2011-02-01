@@ -32,7 +32,12 @@ interface ComponentInterface2 {
 
 }
 
-@Component(api = ComponentInterface2.class)
+@Component(api = { ComponentInterface1.class, ComponentInterface2.class }, primary = false)
 public class MultipleInterfacesComponent implements ComponentInterface1, ComponentInterface2 {
+
+}
+
+@Component(api = { ComponentInterface2.class })
+class SingleInterfaceComponent implements ComponentInterface1, ComponentInterface2 {
 
 }

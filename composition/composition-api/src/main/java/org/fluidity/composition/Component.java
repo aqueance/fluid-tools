@@ -46,6 +46,15 @@ import java.lang.annotation.Target;
 public @interface Component {
 
     /**
+     * Returns the (interface) class to map the implementation class against. The property defaults to the first interface the class implements or the class
+     * itself if it implements no interface. In case of {@link org.fluidity.composition.spi.ComponentFactory} and {@link
+     * org.fluidity.composition.spi.ComponentVariantFactory} components, the value applies to the component the factory creates, not the factory itself.
+     *
+     * @return an array of class objects; ignored for annotated fields.
+     */
+    Class<?>[] api() default { };
+
+    /**
      * Tells whether this component should be automatically bound or not. If manually bound, the developer has to implement the binding in a suitable {@link
      * org.fluidity.composition.spi.PackageBindings} object. All other properties are ignored for manually bound components.
      *
@@ -54,15 +63,6 @@ public @interface Component {
      * @see org.fluidity.composition.spi.EmptyPackageBindings
      */
     boolean automatic() default true;
-
-    /**
-     * Returns the (interface) class to map the implementation class against. The property defaults to the first interface the class implements or the class
-     * itself if it implements no interface. In case of {@link org.fluidity.composition.spi.ComponentFactory} and {@link
-     * org.fluidity.composition.spi.ComponentVariantFactory} components, the value applies to the component the factory creates, not the factory itself.
-     *
-     * @return a Class object; ignored for annotated fields.
-     */
-    Class api() default Object.class;
 
     /**
      * Tells whether this component should be bound as a primary or a as fallback. As a fallback it will be used when no other component has been bound to its
@@ -86,6 +86,7 @@ public @interface Component {
      * @return the component class this factory component creates instances of; ignored for annotated fields.
      *
      * @see org.fluidity.composition.spi.ComponentFactory
+     * // TODO: remove this
      */
     Class<?> type() default Object.class;
 }

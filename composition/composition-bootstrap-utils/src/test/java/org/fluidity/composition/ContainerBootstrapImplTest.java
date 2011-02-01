@@ -87,14 +87,14 @@ public final class ContainerBootstrapImplTest extends MockGroupAbstractTest {
             instance.bindComponents(registry);
         }
 
-        registry.bindInstance(ClassDiscovery.class, discovery);
-        registry.bindInstance(EasyMock.<Class>anyObject(), EasyMock.anyObject());
+        registry.bindInstance(discovery);
+        registry.bindInstance(EasyMock.anyObject());
 
         final Object[] list = new Object[1];
 
         EasyMock.expectLastCall().andAnswer(new IAnswer<Void>() {
             public Void answer() throws Throwable {
-                list[0] = EasyMock.getCurrentArguments()[1];
+                list[0] = EasyMock.getCurrentArguments()[0];
                 return null;
             }
         });
@@ -206,7 +206,7 @@ public final class ContainerBootstrapImplTest extends MockGroupAbstractTest {
         bindings.bindComponents(registry);
         EasyMock.expectLastCall().times(watched);
 
-        registry.bindInstance(EasyMock.<Class>anyObject(), EasyMock.anyObject());
+        registry.bindInstance(EasyMock.anyObject());
 
         replay();
         assert container == bootstrap.populateContainer(services, provider, null, parent, null);
@@ -234,12 +234,12 @@ public final class ContainerBootstrapImplTest extends MockGroupAbstractTest {
                     }
                 });
 
-        registry.bindInstance(ClassDiscovery.class, discovery);
+        registry.bindInstance(discovery);
 
         ShutdownHookPackageBindingsImpl.bindings = bindings;
         bindings.bindComponents(registry);
 
-        registry.bindInstance(EasyMock.<Class>anyObject(), EasyMock.anyObject());
+        registry.bindInstance(EasyMock.anyObject());
 
         replay();
         assert bootstrap.populateContainer(services, provider, null, null, null) != null;
@@ -264,7 +264,7 @@ public final class ContainerBootstrapImplTest extends MockGroupAbstractTest {
 
         EasyMock.expect(container.getRegistry()).andReturn(registry);
 
-        registry.bindInstance(EasyMock.<Class>anyObject(), EasyMock.anyObject());
+        registry.bindInstance(EasyMock.anyObject());
 
         replay();
         assert container == bootstrap.populateContainer(services, provider, properties, parent, null);

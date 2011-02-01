@@ -22,8 +22,8 @@
 
 package org.fluidity.composition;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.fluidity.foundation.logging.Log;
 import org.fluidity.foundation.spi.LogFactory;
@@ -44,7 +44,7 @@ final class ComponentCacheImpl implements ComponentCache {
                               final ReferenceChain referenceChain,
                               final LogFactory logs,
                               boolean cache) {
-        this.cache = cache ? new HashMap<ComponentContext, Object>() : null;
+        this.cache = cache ? new ConcurrentHashMap<ComponentContext, Object>() : null;
         this.listener = listener;
         this.referenceChain = referenceChain;
         this.contextChain = contextChain;
@@ -69,13 +69,15 @@ final class ComponentCacheImpl implements ComponentCache {
                 // get the context consumed further in the chain and pass the one consumed here
                 final ComponentContext consumedContext = contextChain.prevalentContext();
 
-                if (!cache.containsKey(consumedContext)) {
-                    cache.put(key, component);
-                    cache.put(consumedContext, component);
+                synchronized (cache) {
+                    if (!cache.containsKey(consumedContext)) {
+                        cache.put(key, component);
+                        cache.put(consumedContext, component);
 
-                    recordComponentCreation(source, component, componentInterface, consumedContext);
-                } else {
-                    cache.put(key, cache.get(consumedContext));
+                        recordComponentCreation(source, component, componentInterface, consumedContext);
+                    } else {
+                        cache.put(key, cache.get(consumedContext));
+                    }
                 }
             }
 
@@ -84,7 +86,7 @@ final class ComponentCacheImpl implements ComponentCache {
         }
     }
 
-    private Object createComponent(Class<?> componentInterface, Class<?> componentClass, Command create) {
+    private Object createComponent(final Class<?> componentInterface, final Class<?> componentClass, final Command create) {
         final ComponentContext context = contextChain.consumedContext(componentInterface, componentClass, contextChain.currentContext(), referenceChain);
         final Object component = create.run(context);
 

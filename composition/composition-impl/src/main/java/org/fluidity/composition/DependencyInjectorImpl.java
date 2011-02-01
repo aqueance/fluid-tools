@@ -171,7 +171,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
                                   final Class<?> declaringType,
                                   final Dependency dependency) {
         final ServiceProvider serviceProvider = dependency.annotation(ServiceProvider.class);
-        final Class<?> dependencyType = findInterfaceType(dependency.annotation(Component.class), dependency.type());
+        final Class<?> dependencyType = findDependencyType(dependency.annotation(Component.class), dependency.type(), declaringType);
 
         if (serviceProvider != null) {
             if (!dependencyType.isArray()) {
@@ -231,7 +231,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
 
             if (value == null) {
                 if (dependency.annotation(Optional.class) == null) {
-                    throw new ComponentContainer.ResolutionException("Dependency %s of %s cannot be satisfied", dependencyType, declaringType);
+                    throw new ComponentContainer.ResolutionException("Dependency %s of %s cannot be satisfied", toString(dependencyType), declaringType);
                 }
 
                 dependency.set(value);
@@ -241,9 +241,29 @@ final class DependencyInjectorImpl implements DependencyInjector {
         }
     }
 
-    private Class<?> findInterfaceType(final Component component, final Class<?> defaultType) {
-        final Class<?> dependencyType = component == null ? Object.class : component.api();
-        return dependencyType == Object.class ? defaultType : dependencyType;
+    // TODO: duplicated in SimpleContainerImpl
+    private String toString(final Class<?> type) {
+        final StringBuilder builder = new StringBuilder();
+
+        Class<?> componentType = type;
+        for (; componentType.isArray(); componentType = componentType.getComponentType()) {
+            builder.append("[]");
+        }
+
+        return builder.insert(0, componentType).toString();
+    }
+
+    private Class<?> findDependencyType(final Component component, final Class<?> defaultType, Class<?> declaringType) {
+        final Class<?>[] types = component == null ? new Class<?>[] { defaultType } : component.api();
+
+        switch (types.length) {
+        case 0:
+            return defaultType;
+        case 1:
+            return types[0];
+        default:
+            throw new ComponentContainer.ResolutionException("Multiple types specified for dependency %s of %s", defaultType, declaringType);
+        }
     }
 
     /**

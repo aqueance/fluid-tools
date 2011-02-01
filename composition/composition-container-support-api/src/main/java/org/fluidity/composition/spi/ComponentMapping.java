@@ -30,13 +30,6 @@ package org.fluidity.composition.spi;
 public interface ComponentMapping {
 
     /**
-     * Returns the (interface) class the component has been bound to.
-     *
-     * @return the (interface) class the component has been bound to.
-     */
-    Class<?> componentInterface();
-
-    /**
      * Tells whether the mapping is that of a {@link ComponentVariantFactory}.
      *
      * @return <code>true</code> if the mapping is that of a {@link ComponentVariantFactory}, <code>false</code> otherwise.

@@ -113,7 +113,7 @@ final class ContextChainImpl implements ContextChain {
                 final ComponentMapping mapping = item.mapping();
 
                 final Class<?> factoryClass = mapping.factoryClass();
-                if (factoryClass != null && factoryClass != componentClass && mapping.componentInterface() == componentType) {
+                if (factoryClass != null && factoryClass != componentClass && item.reference() == componentType) {
                     final Context factoryContext = factoryClass.getAnnotation(Context.class);
 
                     if (factoryContext != null) {

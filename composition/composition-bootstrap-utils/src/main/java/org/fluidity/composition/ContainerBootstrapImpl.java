@@ -69,7 +69,7 @@ final class ContainerBootstrapImpl implements ContainerBootstrap {
         final ComponentContainer.Registry registry = container.getRegistry();
 
         if (parent == null) {
-            registry.bindInstance(ClassDiscovery.class, services.classDiscovery());
+            registry.bindInstance(services.classDiscovery());
         }
 
         /*
@@ -81,7 +81,7 @@ final class ContainerBootstrapImpl implements ContainerBootstrap {
         }
 
         final BindingsState state = new BindingsState(container, assemblies);
-        registry.bindInstance(BindingsState.class, state);
+        registry.bindInstance(state);
 
         final BindingsState parentState = parent != null ? parent.getComponent(BindingsState.class) : null;
         if (parentState != null) {

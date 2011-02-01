@@ -26,6 +26,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.fluidity.composition.Component;
 import org.fluidity.composition.Optional;
+import org.fluidity.deployment.DeploymentControl;
+import org.fluidity.deployment.RuntimeControl;
 import org.fluidity.foundation.logging.Log;
 import org.fluidity.foundation.logging.Marker;
 
@@ -35,7 +37,7 @@ import org.fluidity.foundation.logging.Marker;
  *
  * @author Tibor Varga
  */
-@Component(primary = false)
+@Component(api = { MainLoop.class, DeploymentControl.class, RuntimeControl.class }, primary = false)
 final class DefaultMainLoopImpl implements MainLoop {
 
     private final Object lock = new Object();

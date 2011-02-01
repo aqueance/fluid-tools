@@ -64,7 +64,7 @@ final class LaunchArgumentsImpl implements LaunchArguments {
         @Override
         public void bindComponents(final ComponentContainer.Registry registry) {
             if (arguments != null) {
-                registry.makeChildContainer(LaunchArguments.class, LaunchArgumentsImpl.class).getRegistry().bindInstance(String[].class, arguments);
+                registry.makeChildContainer(LaunchArgumentsImpl.class).getRegistry().bindInstance(arguments);
             }
         }
     }

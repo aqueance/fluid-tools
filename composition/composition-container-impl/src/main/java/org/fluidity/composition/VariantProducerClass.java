@@ -33,12 +33,13 @@ import org.fluidity.foundation.spi.LogFactory;
 final class VariantProducerClass extends VariantProducer {
 
     public VariantProducerClass(final SimpleContainer container,
+                                final Class<?> api,
                                 final Class<? extends ComponentVariantFactory> factoryClass,
                                 final boolean fallback,
                                 final ReferenceChain references,
                                 final ComponentCache cache,
                                 final LogFactory logs) {
-        super(container, factoryClass, fallback, references, cache, logs);
+        super(container, api, factoryClass, fallback, references, cache, logs);
     }
 
     @Override

@@ -38,11 +38,11 @@ public class ComponentRegistrationTest {
     public void testComponents() throws Exception {
         component(SimpleComponent.class, SimpleComponentImpl.class);
         component(SuperComponent.class, InheritedComponentImpl.class);
-        component(ComponentInterface2.class, MultipleInterfacesComponent.class);
+        component(ComponentInterface1.class, MultipleInterfacesComponent.class);
+        component(ComponentInterface2.class, SingleInterfaceComponent.class);
         component(DefaultComponent.class, PrimaryComponentImpl.class);
         component(FallbackComponent.class, FallbackComponentImpl.class);
 
-        assert container.getComponent(ComponentInterface1.class) == null;
         assert container.getComponent(DefaultComponentImpl.class) == null;
         assert container.getComponent(ManualComponent.class) == null;
     }

@@ -35,10 +35,10 @@ public final class FieldInjectionTests extends AbstractContainerTests {
 
     @Test
     public void testFieldInjection() throws Exception {
-        registry.bindComponent(AbstractContainerTests.Key.class, AbstractContainerTests.Value.class);
-        registry.bindComponent(AbstractContainerTests.DependentKey.class, DependentValue.class);
-        registry.bindComponent(FieldInjected.class, FieldInjected.class);
-        registry.bindComponent(SuperFieldInjected.class, SuperFieldInjected.class);
+        registry.bindComponent(AbstractContainerTests.Value.class);
+        registry.bindComponent(DependentValue.class);
+        registry.bindComponent(FieldInjected.class);
+        registry.bindComponent(SuperFieldInjected.class);
 
         final FieldInjected injected = container.getComponent(FieldInjected.class);
         assert injected != null;
@@ -51,8 +51,8 @@ public final class FieldInjectionTests extends AbstractContainerTests {
 
     @Test
     public void testFieldInjectionOfInstance() throws Exception {
-        registry.bindComponent(AbstractContainerTests.Key.class, AbstractContainerTests.Value.class);
-        registry.bindComponent(AbstractContainerTests.DependentKey.class, DependentValue.class);
+        registry.bindComponent(AbstractContainerTests.Value.class);
+        registry.bindComponent(DependentValue.class);
 
         final FieldInjected injected = new FieldInjected(container.getComponent(DependentKey.class));
 
@@ -62,7 +62,7 @@ public final class FieldInjectionTests extends AbstractContainerTests {
 
     @Test
     public void testSelfDependencyViaField() throws Exception {
-        registry.bindComponent(SelfDependent.class, SelfDependentImpl.class);
+        registry.bindComponent(SelfDependentImpl.class);
 
         final SelfDependentImpl injected = (SelfDependentImpl) container.getComponent(SelfDependent.class);
         assert injected != null;

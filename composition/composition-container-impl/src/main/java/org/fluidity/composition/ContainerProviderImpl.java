@@ -44,7 +44,7 @@ final class ContainerProviderImpl implements ContainerProvider {
         final SimpleContainer container = new SimpleContainerImpl(null, services);
 
         if (properties != null) {
-            container.bindInstance(Map.class, properties);
+            container.bindInstance(properties, Map.class);
         }
 
         /*

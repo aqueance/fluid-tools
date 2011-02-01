@@ -25,8 +25,6 @@ package org.fluidity.composition.web;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
-import org.fluidity.composition.ComponentContainer;
-import org.fluidity.composition.ComponentDiscovery;
 import org.fluidity.composition.ContainerBoundary;
 
 /**
@@ -37,24 +35,17 @@ import org.fluidity.composition.ContainerBoundary;
  */
 public final class AggregatingServletContextListener implements ServletContextListener {
 
-    private final ServletContextListener listeners[];
+    private final ServletContextListener delegate;
 
     public AggregatingServletContextListener() {
-        final ComponentContainer container = new ContainerBoundary();
-        final ComponentDiscovery discovery = container.getComponent(ComponentDiscovery.class);
-
-        this.listeners = discovery.findComponentInstances(container, ServletContextListener.class);
+        this.delegate = new ContainerBoundary().getComponent(AggregatingListenerDelegate.class);
     }
 
     public void contextInitialized(final ServletContextEvent event) {
-        for (final ServletContextListener listener : listeners) {
-            listener.contextInitialized(event);
-        }
+        delegate.contextInitialized(event);
     }
 
     public void contextDestroyed(final ServletContextEvent event) {
-        for (final ServletContextListener listener : listeners) {
-            listener.contextDestroyed(event);
-        }
+        delegate.contextDestroyed(event);
     }
 }

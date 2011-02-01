@@ -33,18 +33,18 @@ import org.fluidity.foundation.spi.LogFactory;
 abstract class FactoryProducer extends AbstractProducer {
 
     private final Class<? extends ComponentFactory> factoryClass;
-    private final Class<?> componentInterface;
 
     private Class<?> componentClass;
 
     protected abstract ComponentFactory factory(final SimpleContainer container);
 
-    public FactoryProducer(final Class<? extends ComponentFactory> factoryClass,
+    public FactoryProducer(final Class<?> api,
+                           final Class<? extends ComponentFactory> factoryClass,
                            final boolean fallback,
                            final ReferenceChain references,
                            final ComponentCache cache,
                            final LogFactory logs) {
-        super(fallback, references, cache, logs);
+        super(api, fallback, references, cache, logs);
         this.factoryClass = factoryClass;
 
         final Component annotation = factoryClass.getAnnotation(Component.class);
@@ -57,19 +57,12 @@ abstract class FactoryProducer extends AbstractProducer {
             throw new ComponentContainer.BindingException("Factory %s cannot be stateful (@%s(stateful = true)", factoryClass, Component.class);
         }
 
-        this.componentInterface = annotation.api();
         this.componentClass = annotation.type();
-
-        assert this.componentInterface != null;
         assert componentClass != null;
 
-        if (this.componentInterface == Object.class || componentClass == Object.class) {
+        if (componentClass == Object.class) {
             throw new ComponentContainer.BindingException("Factory %s must have a @%s(api = ..., type = ...) annotation", factoryClass, Component.class);
         }
-    }
-
-    public final Class<?> componentInterface() {
-        return componentInterface;
     }
 
     public final Class<?> componentClass() {
@@ -77,7 +70,7 @@ abstract class FactoryProducer extends AbstractProducer {
     }
 
     @Override
-    protected ComponentCache.Command createCommand(final SimpleContainer container) {
+    protected ComponentCache.Command createCommand(final SimpleContainer container, Class<?> api) {
         return new ComponentCache.Command() {
             public Object run(final ComponentContext context) {
                 return factory(container).newComponent(new ComponentContainerShell(container, true), context);

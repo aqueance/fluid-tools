@@ -34,6 +34,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -117,7 +118,7 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
         final File servicesDirectory = new File(new File(classesDirectory, "META-INF"), "services");
 
         final Map<String, Collection<String>> serviceProviderMap = new HashMap<String, Collection<String>>();
-        final Map<String, Map<String, String>> componentMap = new HashMap<String, Map<String, String>>();
+        final Map<String, Map<String, Set<String>>> componentMap = new HashMap<String, Map<String, Set<String>>>();
 
         final List<URL> urls = new ArrayList<URL>();
 
@@ -176,7 +177,7 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
             }
         }
 
-        for (final Map.Entry<String, Map<String, String>> bindingsEntry : componentMap.entrySet()) {
+        for (final Map.Entry<String, Map<String, Set<String>>> bindingsEntry : componentMap.entrySet()) {
             final String bindingsClassName = bindingsEntry.getKey();
             final Collection<String> bindings = serviceProviderMap.get(PACKAGE_BINDINGS);
             assert bindings != null && bindings.contains(bindingsClassName);
@@ -186,7 +187,7 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
-    private void generateBindingClass(final String className, final Map.Entry<String, Map<String, String>> bindings, final File classesDirectory)
+    private void generateBindingClass(final String className, final Map.Entry<String, Map<String, Set<String>>> bindings, final File classesDirectory)
             throws MojoExecutionException {
         log.info(String.format("Service provider %s binds:", className));
 
@@ -213,19 +214,18 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
                                                                null);
             method.visitCode();
 
-            for (final Map.Entry<String, String> entry : bindings.getValue().entrySet()) {
-                final String interfaceName = entry.getKey();
-                final String implementationName = entry.getValue();
+            for (final Map.Entry<String, Set<String>> entry : bindings.getValue().entrySet()) {
+                final String implementationName = entry.getKey();
+                final Set<String> interfaceNames = entry.getValue();
 
-                log.info(String.format("  %s to %s", interfaceName, implementationName));
+                log.info(String.format("  %s to %s", implementationName, interfaceNames));
 
                 method.visitVarInsn(ALOAD, 1);
-                method.visitLdcInsn(Type.getObjectType(interfaceName.replace('.', '/')));
                 method.visitLdcInsn(Type.getObjectType(implementationName.replace('.', '/')));
                 method.visitMethodInsn(INVOKEINTERFACE,
                                        REGISTRY_CLASS_NAME,
                                        "bindComponent",
-                                       String.format("(%s%s)V", Type.getDescriptor(Class.class), Type.getDescriptor(Class.class)));
+                                       String.format("(%s)V", Type.getDescriptor(Class.class)));
             }
 
             method.visitInsn(RETURN);
@@ -278,7 +278,7 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
     private void processClasses(final ClassLoader repository,
                                 final File classesDirectory,
                                 final Map<String, Collection<String>> serviceProviderMap,
-                                final Map<String, Map<String, String>> componentMap) throws IOException, ClassNotFoundException, MojoExecutionException {
+                                final Map<String, Map<String, Set<String>>> componentMap) throws IOException, ClassNotFoundException, MojoExecutionException {
         final DirectoryScanner scanner = new DirectoryScanner();
 
         scanner.setBasedir(classesDirectory);
@@ -307,12 +307,14 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
 
                 final Set<String> serviceProviderApis = new HashSet<String>();
                 final Set<String> componentApis = new HashSet<String>();
+                final boolean[] isComponent = new boolean[1];
+                final boolean[] isServiceProvider = new boolean[1];
 
                 final class ComponentAnnotationVisitor extends EmptyVisitor {
 
+                    final Set<String> localApis = new HashSet<String>();
                     final Set<String> componentApis;
 
-                    private String api = null;
                     private boolean automatic = true;
 
                     ComponentAnnotationVisitor(final Set<String> componentApis) {
@@ -321,17 +323,30 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
 
                     @Override
                     public void visit(final String name, final Object value) {
-                        if (ATR_API.equals(name)) {
-                            api = ((Type) value).getClassName();
-                        } else if (ATR_AUTOMATIC.equals(name) && !((Boolean) value)) {
+                        if (ATR_AUTOMATIC.equals(name) && !((Boolean) value)) {
                             automatic = false;
                         }
                     }
 
                     @Override
+                    public AnnotationVisitor visitArray(final String name) {
+                        assert ATR_API.equals(name) : name;
+                        return new EmptyVisitor() {
+
+                            @Override
+                            public void visit(final String ignore, final Object value) {
+                                assert ignore == null : ignore;
+                                localApis.add(((Type) value).getClassName());
+                            }
+                        };
+                    }
+
+                    @Override
                     public void visitEnd() {
                         if (automatic) {
-                            componentApis.add(api);     // null values are handled later
+                            componentApis.addAll(localApis);
+                        } else {
+                            isComponent[0] = false;
                         }
                     }
                 }
@@ -419,8 +434,10 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
                         final Type type = Type.getType(desc);
 
                         if (serviceProviderAnnotationType.equals(type)) {
+                            isServiceProvider[0] = true;
                             return new ServiceProviderAnnotationVisitor(classData, abstractClass, serviceProviders);
                         } else if (componentAnnotationType.equals(type)) {
+                            isComponent[0] = true;
                             return new ComponentAnnotationVisitor(components);
                         } else {
                             return null;
@@ -429,10 +446,6 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
 
                     @Override
                     public void visitEnd() {
-                        if (componentApis.size() > 1) {
-                            throw new IllegalStateException(String.format("Component class %s defines multiple component APIs", classData.getClassName()));
-                        }
-
                         serviceProviderApis.addAll(serviceProviders);
 
                         if (!abstractClass) {
@@ -465,21 +478,21 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
                         foundServiceProvider(serviceProviderMap, serviceProviderApis, className);
                     }
 
-                    if (serviceProviderApis.size() > 1 && componentApis.isEmpty()) {
+                    if (serviceProviderApis.size() > 1) {
                         componentApis.add(className);
                     }
 
-                    if (!componentApis.isEmpty()) {
-                        assert componentApis.size() == 1 : componentApis;
+                    if (isComponent[0]) {
+                        if (componentApis.isEmpty()) {
+                            final Set<String> interfaces = findComponentInterfaces(classData, repository, readers);
 
-                        String componentApi = componentApis.iterator().next();
-
-                        if (componentApi == null) {
-                            componentApi = findComponentInterface(classData, repository, readers).replace('/', '.');
+                            for (final String name : interfaces) {
+                                componentApis.add(name.replace('/', '.'));
+                            }
                         }
 
-                        if (componentApi != null) {
-                            foundComponent(generatedBindings, serviceProviderMap, componentMap, className, componentApi);
+                        if (!componentApis.isEmpty()) {
+                            foundComponent(generatedBindings, serviceProviderMap, componentMap, className, componentApis);
                         } else {
                             log.warn("No component interface could be identified for " + className);
                         }
@@ -617,10 +630,26 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
         }
     }
 
-    private String findComponentInterface(final ClassReader classData, final ClassLoader repository, final Map<String, ClassReader> readers)
+    private Set<String> findComponentInterfaces(final ClassReader classData, final ClassLoader repository, final Map<String, ClassReader> readers)
             throws ClassNotFoundException, IOException {
-        final String foundInterface = findSingleInterface(classData, repository, readers);
-        return foundInterface == null ? classData.getClassName() : foundInterface;
+        final Set<String> foundInterfaces = findDirectInterfaces(classData, repository, readers);
+        return foundInterfaces.isEmpty() ? Collections.singleton(classData.getClassName()) : foundInterfaces;
+    }
+
+    @SuppressWarnings("unchecked")
+    private Set<String> findDirectInterfaces(final ClassReader classData, final ClassLoader repository, final Map<String, ClassReader> readers)
+            throws ClassNotFoundException, IOException {
+        if (classData == null) {
+            return Collections.EMPTY_SET;
+        }
+
+        final String[] interfaces = classData.getInterfaces();
+
+        if (interfaces.length > 0) {
+            return new HashSet<String>(Arrays.asList(interfaces));
+        } else {
+            return findDirectInterfaces(reader(classData.getSuperName(), repository, readers), repository, readers);
+        }
     }
 
     private String findSingleInterface(final ClassReader classData, final ClassLoader repository, final Map<String, ClassReader> readers)
@@ -642,16 +671,16 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
 
     private void foundComponent(final String generatedBindings,
                                 final Map<String, Collection<String>> serviceProviderMap,
-                                final Map<String, Map<String, String>> componentMap,
+                                final Map<String, Map<String, Set<String>>> componentMap,
                                 final String componentClass,
-                                final String componentApi) throws MojoExecutionException {
-        Map<String, String> packageMap = componentMap.get(generatedBindings);
+                                final Set<String> componentApis) throws MojoExecutionException {
+        Map<String, Set<String>> packageMap = componentMap.get(generatedBindings);
 
         if (packageMap == null) {
-            componentMap.put(generatedBindings, packageMap = new HashMap<String, String>());
+            componentMap.put(generatedBindings, packageMap = new HashMap<String, Set<String>>());
         }
 
-        packageMap.put(componentApi, componentClass);
+        packageMap.put(componentClass, componentApis);
 
         final Collection<String> bindings = serviceProviderMap.get(PACKAGE_BINDINGS);
         if (bindings == null || !bindings.contains(generatedBindings)) {

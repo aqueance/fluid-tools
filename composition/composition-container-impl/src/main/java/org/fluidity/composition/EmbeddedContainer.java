@@ -40,8 +40,8 @@ final class EmbeddedContainer extends AbstractComponentContainer {
         this.contexts = container.services().contextChain();
     }
 
-    public <T> T getComponent(final Class<T> componentInterface) throws ResolutionException {
-        return container.get(componentInterface, context);
+    public <T> T getComponent(final Class<T> api) throws ResolutionException {
+        return container.get(api, context);
     }
 
     public OpenComponentContainer makeChildContainer() {

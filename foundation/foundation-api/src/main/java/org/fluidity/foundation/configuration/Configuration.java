@@ -40,7 +40,8 @@ package org.fluidity.foundation.configuration;
  * <p/>
  * A settings interface like the above must have all of its methods annotated by the {@link @Setting} annotation.
  * <p/>
- * Using the above and a suitable implementation of {@link org.fluidity.foundation.spi.PropertyProvider}, <code>MyPropertyProvider</code>, a component can now
+ * Using the above and a suitable implementation of {@link org.fluidity.foundation.spi.PropertyProvider}, <code>@Component(api = MyPropertyProvider.class)
+ * MyPropertyProvider</code>, a component can now
  * declare a dependency to a configuration, either static or dynamic, like so:
  * <pre>
  *  &#64;Component

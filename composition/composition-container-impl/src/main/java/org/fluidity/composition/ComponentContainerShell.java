@@ -42,8 +42,8 @@ final class ComponentContainerShell extends AbstractComponentContainer implement
         this.registry = new ComponentRegistryShell(this.container);
     }
 
-    public <T> T getComponent(final Class<T> componentInterface) {
-        return container.get(componentInterface);
+    public <T> T getComponent(final Class<T> api) {
+        return container.get(api);
     }
 
     public OpenComponentContainer makeChildContainer() {
@@ -62,7 +62,7 @@ final class ComponentContainerShell extends AbstractComponentContainer implement
         return registry;
     }
 
-    public <T> List<T> getAllComponents(final Class<T> componentInterface) {
-        return container.allSingletons(componentInterface);
+    public <T> List<T> getAllComponents(final Class<T> api) {
+        return container.allSingletons(api);
     }
 }

@@ -36,12 +36,15 @@ import org.fluidity.foundation.spi.LogFactory;
  */
 abstract class AbstractProducer implements ComponentProducer {
 
-    private final boolean fallback;
+    protected final Class<?> api;
     protected final ReferenceChain references;
     protected final ComponentCache cache;
     protected final Log log;
 
-    protected AbstractProducer(final boolean fallback, final ReferenceChain references, final ComponentCache cache, final LogFactory logs) {
+    private final boolean fallback;
+
+    protected AbstractProducer(final Class<?> api, final boolean fallback, final ReferenceChain references, final ComponentCache cache, final LogFactory logs) {
+        this.api = api;
         this.fallback = fallback;
         this.references = references;
         this.cache = cache;
@@ -52,10 +55,11 @@ abstract class AbstractProducer implements ComponentProducer {
      * Returns the command to use to create an instance. Called only when no circular references were detected.
      *
      * @param container the container containing this producer.
+     * @param api       the API the component is requested for.
      *
      * @return a command or <code>null</code> if no instance should be created.
      */
-    protected ComponentCache.Command createCommand(final SimpleContainer container) {
+    protected ComponentCache.Command createCommand(final SimpleContainer container, final Class<?> api) {
         return null;
     }
 
@@ -63,31 +67,36 @@ abstract class AbstractProducer implements ComponentProducer {
         return fallback;
     }
 
+    public Class<?> componentApi() {
+        return api;
+    }
+
     /**
      * Checks for circular references and, if possible, wraps the first component up the reference chain that is referenced by interface with a proxy that
-     * defers the instantiation of that component. Uses the {@link #createCommand(SimpleContainer)} method to perform actual component creation along with the
-     * producer's {@link ComponentCache} to cache instances.
+     * defers the instantiation of that component. Uses the {@link #createCommand(SimpleContainer, Class)} method to perform actual component creation along
+     * with the producer's {@link ComponentCache} to cache instances.
      */
-    public Object create(final SimpleContainer container, final boolean circular) {
+    public Object create(final SimpleContainer container, final Class<?> api, final boolean circular) {
         final Class<?> componentClass = componentClass();
-        final ComponentCache.Command create = createCommand(container);
+        final ComponentCache.Command create = createCommand(container, api);
 
         if (create == null) {
             return null;
         } else if (circular) {
-            return deferredCreate(container, componentClass, create, null);
+            return deferredCreate(container, api, componentClass, create, null);
         } else {
             try {
-                return cache.lookup(container, componentInterface(), componentClass, create);
+                return cache.lookup(container, api, componentClass, create);
             } catch (final ComponentContainer.CircularReferencesException e) {
 
                 // handle circular reference that was noticed later in the reference chain that could not be handled at that point
-                return deferredCreate(container, componentClass, create, e);
+                return deferredCreate(container, api, componentClass, create, e);
             }
         }
     }
 
     private Object deferredCreate(final SimpleContainer container,
+                                  final Class<?> api,
                                   final Class<?> componentClass,
                                   final ComponentCache.Command create,
                                   final ComponentContainer.CircularReferencesException error) {
@@ -101,7 +110,7 @@ abstract class AbstractProducer implements ComponentProducer {
                 public Object invoke(final Object proxy, final Method method, final Object[] arguments) throws Throwable {
                     synchronized (this) {
                         if (delegate == null) {
-                            delegate = cache.lookup(container, componentInterface(), componentClass, create);
+                            delegate = cache.lookup(container, api, componentClass, create);
                         }
                     }
 
@@ -126,8 +135,12 @@ abstract class AbstractProducer implements ComponentProducer {
         return null;
     }
 
+    public void producerReplaced(final ComponentProducer previous, final ComponentProducer replacement) {
+        // empty
+    }
+
     @Override
     public String toString() {
-        return String.format(" %s (%s)", componentClass(), componentInterface());
+        return String.format(" %s (%s)", getClass().getSimpleName(), componentClass());
     }
 }

@@ -278,10 +278,10 @@ public class ContainerBoundaryTest extends MockGroupAbstractTest {
         final BootComponent2 component2 = new BootComponent2();
 
         EasyMock.expect(container.getRegistry()).andReturn(registry);
-        registry.bindInstance(BootComponent1.class, component1);
+        registry.bindInstance(component1, BootComponent1.class);
 
         EasyMock.expect(container.getRegistry()).andReturn(registry);
-        registry.bindInstance(BootComponent2.class, component2);
+        registry.bindInstance(component2, BootComponent2.class);
 
         // container is initialized
         bootstrap.initializeContainer(container, services);

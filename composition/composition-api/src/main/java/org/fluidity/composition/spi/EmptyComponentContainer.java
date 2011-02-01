@@ -38,10 +38,10 @@ public abstract class EmptyComponentContainer implements ComponentContainer {
      * <p/>
      * {@inheritDoc}
      */
-    public <T> T getComponent(final Class<T> componentInterface, final Bindings bindings) throws ResolutionException {
+    public <T> T getComponent(final Class<T> api, final Bindings bindings) throws ResolutionException {
         final OpenComponentContainer child = makeChildContainer();
         bindings.bindComponents(child.getRegistry());
-        return child.getComponent(componentInterface);
+        return child.getComponent(api);
     }
 
     /**
@@ -49,43 +49,54 @@ public abstract class EmptyComponentContainer implements ComponentContainer {
      */
     public static abstract class EmptyRegistry implements Registry {
 
+        @SuppressWarnings("unchecked")
+        public final <T> void bindComponent(final Class<T> implementation) throws BindingException {
+            bindComponent(implementation, (Class<? super T>[]) componentInterfaces(implementation));
+        }
+
+        public final <T> void bindFactory(final Class<T> factory) throws BindingException {
+            bindFactory(factory, componentInterfaces(factory));
+        }
+
+        @SuppressWarnings("unchecked")
+        public final <T> void bindInstance(final T instance) throws BindingException {
+            bindInstance(instance, (Class<T>[]) componentInterfaces(instance.getClass()));
+        }
+
+        @SuppressWarnings("unchecked")
+        public <T> OpenComponentContainer makeChildContainer(final Class<T> implementation) throws BindingException {
+            return makeChildContainer(implementation, (Class<? super T>[]) componentInterfaces(implementation));
+        }
+
         /**
          * Finds the possible single API that the given component class should be bound against.
          *
          * @param implementation the component class.
          *
          * @return a class object, never <code>null</code>. When no suitable interface is found, the implementation class itself is returned.
-         * @deprecated functionality duplicated in the Maven plugin
          */
-        protected final Class<?> componentInterface(final Class<?> implementation) {
+        protected final Class<?>[] componentInterfaces(final Class<?> implementation) {
             final Component component = implementation.getAnnotation(Component.class);
-            final boolean fallback = component != null && !component.primary();
+            final Class<?>[] api = component == null ? null : component.api();
 
-            if (fallback) {
-                return implementation;
-            }
-
-            final Class<?> api = component == null ? Object.class : component.api();
-
-            assert api != null;
-            if (api != Object.class) {
+            if (api != null && api.length > 0) {
                 return api;
             }
 
-            final Class<?> single = findSingleInterface(implementation);
-            return single == null ? implementation : single;
+            final Class<?>[] direct = implementation.isArray() ? null : findComponentInterfaces(implementation);
+            return direct == null ? new Class<?>[] { implementation } : direct;
         }
 
-        private Class<?> findSingleInterface(final Class<?> implementation) {
+        private Class<?>[] findComponentInterfaces(final Class<?> implementation) {
             final Class[] interfaces = implementation.getInterfaces();
 
-            if (interfaces.length == 1) {
-                return interfaces[0];
-            } else if (interfaces.length == 0) {
+            if (interfaces.length > 0) {
+                return interfaces;
+            } else {
                 final Class<?> ancestor = implementation.getSuperclass();
 
                 if (ancestor != Object.class) {
-                    return findSingleInterface(ancestor);
+                    return findComponentInterfaces(ancestor);
                 }
             }
 

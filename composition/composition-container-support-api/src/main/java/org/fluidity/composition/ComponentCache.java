@@ -23,7 +23,7 @@
 package org.fluidity.composition;
 
 /**
- * Caches components by context.
+ * Caches components by context. Implementations must be thread safe.
  *
  * @author Tibor Varga
  */
@@ -61,6 +61,8 @@ public interface ComponentCache {
      * Listens to component instantiation. The {@link ComponentCache#lookup(Object, Class, Class, ComponentCache.Command)} method must
      * call an object implementing this interface when it has created a new instance of a component. The listener object must be passed to the cache
      * in its constructor.
+     *
+     * Implementations must be thread safe.
      */
     interface Listener {
 

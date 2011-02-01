@@ -58,8 +58,8 @@ public final class CircularReferencesTests extends AbstractContainerTests {
 
     @Test
     public void circularTwoWayInstantiation() throws Exception {
-        registry.bindComponent(Circular2Dependent1.class, Circular2Dependent1Impl.class);
-        registry.bindComponent(Circular2Dependent2.class, Circular2Dependent2Impl.class);
+        registry.bindComponent(Circular2Dependent1Impl.class, Circular2Dependent1.class);
+        registry.bindComponent(Circular2Dependent2Impl.class, Circular2Dependent2.class);
 
         ping(Circular2Dependent1.class);
         ping(Circular2Dependent2.class);
@@ -67,9 +67,9 @@ public final class CircularReferencesTests extends AbstractContainerTests {
 
     @Test
     public void circularThreeWayInstantiation() throws Exception {
-        registry.bindComponent(Circular3Dependent1.class, Circular3Dependent1Impl.class);
-        registry.bindComponent(Circular3Dependent2.class, Circular3Dependent2Impl.class);
-        registry.bindComponent(Circular3Dependent3.class, Circular3Dependent3Impl.class);
+        registry.bindComponent(Circular3Dependent1Impl.class, Circular3Dependent1.class);
+        registry.bindComponent(Circular3Dependent2Impl.class, Circular3Dependent2.class);
+        registry.bindComponent(Circular3Dependent3Impl.class, Circular3Dependent3.class);
 
         ping(Circular3Dependent1.class);
         ping(Circular3Dependent2.class);
@@ -80,7 +80,7 @@ public final class CircularReferencesTests extends AbstractContainerTests {
     public void circularThreeWayIntermediateInstantiation() throws Exception {
         registry.bindComponent(Circular3IntermediateDependent1Class.class, Circular3IntermediateDependent1Class.class);
         registry.bindComponent(Circular3IntermediateDependent2Class.class, Circular3IntermediateDependent2Class.class);
-        registry.bindComponent(Circular3IntermediateDependent3.class, Circular3IntermediateDependent3Class.class);
+        registry.bindComponent(Circular3IntermediateDependent3Class.class, Circular3IntermediateDependent3.class);
 
         ping(Circular3IntermediateDependent1Class.class);
         ping(Circular3IntermediateDependent2Class.class);

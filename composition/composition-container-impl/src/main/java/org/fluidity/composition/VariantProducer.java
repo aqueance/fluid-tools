@@ -33,7 +33,6 @@ import org.fluidity.foundation.spi.LogFactory;
 abstract class VariantProducer extends AbstractProducer {
 
     private final Class<? extends ComponentVariantFactory> factoryClass;
-    private final Class<?> componentInterface;
     private final SimpleContainer parent;
 
     private ComponentProducer delegate;     // the one creating instances
@@ -49,43 +48,28 @@ abstract class VariantProducer extends AbstractProducer {
     protected abstract ComponentVariantFactory factory(final SimpleContainer container);
 
     public VariantProducer(final SimpleContainer container,
+                           final Class<?> api,
                            final Class<? extends ComponentVariantFactory> factoryClass,
                            final boolean fallback,
                            final ReferenceChain references,
                            final ComponentCache cache,
                            final LogFactory logs) {
-        super(fallback, references, cache, logs);
+        super(api, fallback, references, cache, logs);
         this.parent = container.parentContainer();
         this.factoryClass = factoryClass;
-
-        final ComponentContainer.BindingException error = new ComponentContainer.BindingException(
-                "Variant factory %s must have a @Component(api = ...) annotation",
-                factoryClass);
-
-        final Component annotation = factoryClass.getAnnotation(Component.class);
-
-        if (annotation == null) {
-            throw error;
-        }
-
-        this.componentInterface = annotation.api();
-
-        assert this.componentInterface != null;
-        if (this.componentInterface == Object.class) {
-            throw error;
-        }
     }
 
-    public final Class<?> componentInterface() {
-        return componentInterface;
+    @Override
+    public boolean isFallback() {
+        return super.isFallback() || (delegate != null && delegate.isFallback());
     }
 
     public final Class<?> componentClass() {
         if (delegate == null) {
-            delegate = parent == null ? null : parent.producer(componentInterface(), true);
+            delegate = parent == null ? null : parent.producer(api, true);
 
             if (delegate == null) {
-                throw new ComponentContainer.BindingException("Variant factory %s requires separate binding for %s", factoryClass, componentInterface);
+                throw new ComponentContainer.BindingException("Variant factory %s requires separate binding for %s", factoryClass, api);
             }
         }
 
@@ -93,13 +77,13 @@ abstract class VariantProducer extends AbstractProducer {
     }
 
     @Override
-    public Object create(final SimpleContainer container, final boolean circular) {
-        return cache.lookup(container, componentInterface, componentClass(), new ComponentCache.Command() {
+    public Object create(final SimpleContainer container, final Class<?> api, final boolean circular) {
+        return cache.lookup(container, api, componentClass(), new ComponentCache.Command() {
             public Object run(final ComponentContext context) {
                 final ComponentVariantFactory factory = factory(container);
 
                 final SimpleContainer child = container.newChildContainer();
-                child.bindProducer(delegate.componentInterface(), delegate);
+                child.bindProducer(api, delegate);
                 final OpenComponentContainer returned = factory.newComponent(new ComponentContainerShell(child, false), context);
 
                 if (returned == null) {
@@ -111,13 +95,23 @@ abstract class VariantProducer extends AbstractProducer {
         });
     }
 
-    public ComponentProducer delegate() {
-        return delegate;
+    @Override
+    public void producerReplaced(final ComponentProducer previous, final ComponentProducer replacement) {
+
+        // TODO: this is way too complex
+        if ((delegate == null && replacement.componentApi() == api) || (previous != null && delegate == previous)) {
+            if (replacement.isInstanceMapping()) {
+                throw new ComponentContainer.BindingException("Component %s cannot be hijacked by %s", api, replacement.factoryClass());
+            } else if (replacement.componentApi() != api) {
+                throw new ComponentContainer.BindingException("Component %s should be %s (%s)", replacement.componentApi(), factoryClass, api);
+            }
+
+            delegate = replacement;
+        }
     }
 
-    public final void setDelegate(final ComponentProducer delegate) {
-        assert !delegate.isInstanceMapping();
-        this.delegate = delegate;
+    public ComponentProducer delegate() {
+        return delegate;
     }
 
     public boolean isVariantMapping() {

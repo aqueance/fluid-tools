@@ -135,7 +135,7 @@ public final class ContainerBoundary implements ComponentContainer {
      * @throws IllegalStateException if the container is made read only by getting any component out of it.
      */
     public <T> void bindBootComponent(final Class<? super T> key, final T instance) {
-        loadContainer(false).getRegistry().bindInstance(key, instance);
+        loadContainer(false).getRegistry().bindInstance(instance, key);
     }
 
     /**
@@ -143,8 +143,8 @@ public final class ContainerBoundary implements ComponentContainer {
      * <p/>
      * {@inheritDoc}
      */
-    public <T> T getComponent(final Class<T> componentInterface) {
-        return loadContainer(true).getComponent(componentInterface);
+    public <T> T getComponent(final Class<T> api) {
+        return loadContainer(true).getComponent(api);
     }
 
     /**
@@ -152,8 +152,8 @@ public final class ContainerBoundary implements ComponentContainer {
      * <p/>
      * {@inheritDoc}
      */
-    public <T> T getComponent(final Class<T> componentInterface, final Bindings bindings) {
-        return loadContainer(true).getComponent(componentInterface, bindings);
+    public <T> T getComponent(final Class<T> api, final Bindings bindings) {
+        return loadContainer(true).getComponent(api, bindings);
     }
 
     /**

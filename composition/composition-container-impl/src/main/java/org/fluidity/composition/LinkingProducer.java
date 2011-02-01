@@ -31,44 +31,43 @@ import org.fluidity.foundation.spi.LogFactory;
  */
 final class LinkingProducer extends AbstractProducer {
 
-    private final ComponentProducer delegate;
     private final SimpleContainer target;
+    private ComponentProducer delegate;
 
-    public LinkingProducer(final SimpleContainer container, final ComponentProducer delegate, final ReferenceChain references, final LogFactory logs) {
-        super(delegate.isFallback(), references, null, logs);
+    public LinkingProducer(final SimpleContainer container, final Class<?> api, final ComponentProducer delegate, final ReferenceChain references, final LogFactory logs) {
+        super(api, delegate.isFallback(), references, null, logs);
         this.delegate = delegate;
         this.target = container;
     }
 
-    protected ComponentProducer delegate() {
-        return target.producer(delegate.componentInterface(), false);
-    }
-
-    public Class<?> componentInterface() {
-        return delegate().componentInterface();
-    }
-
     public Class<?> componentClass() {
-        return delegate().componentClass();
+        return delegate.componentClass();
     }
 
     @Override
     public boolean isVariantMapping() {
-        return delegate().isVariantMapping();
+        return delegate.isVariantMapping();
     }
 
     @Override
     public Class<?> factoryClass() {
-        return delegate().factoryClass();
+        return delegate.factoryClass();
     }
 
     @Override
     public boolean isInstanceMapping() {
-        return delegate().isInstanceMapping();
+        return delegate.isInstanceMapping();
     }
 
-    public Object create(final SimpleContainer container, boolean circular) {
+    public Object create(final SimpleContainer container, final Class<?> api, boolean circular) {
         assert target.parentContainer() == container;
-        return delegate().create(target, circular);
+        return delegate.create(target, api, circular);
+    }
+
+    @Override
+    public void producerReplaced(final ComponentProducer previous, final ComponentProducer replacement) {
+        if (delegate == previous) {
+            delegate = replacement;
+        }
     }
 }

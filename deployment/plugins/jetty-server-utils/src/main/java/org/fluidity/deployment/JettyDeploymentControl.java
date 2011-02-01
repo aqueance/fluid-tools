@@ -33,9 +33,9 @@ import org.fluidity.foundation.Exceptions;
 import org.eclipse.jetty.server.Server;
 
 /**
-* @author Tibor Varga
-*/
-@Component(automatic = false)
+ * @author Tibor Varga
+ */
+@Component(api = { DeploymentControl.class, RuntimeControl.class }, automatic = false)
 final class JettyDeploymentControl implements DeploymentControl {
 
     private final Server server;
@@ -75,8 +75,8 @@ final class JettyDeploymentControl implements DeploymentControl {
         static void set(final ContainerBoundary container, final Server server, final boolean standalone) {
             container.setBindingProperty(BINDINGS_KEY, new ComponentContainer.Bindings() {
                 public void bindComponents(final ComponentContainer.Registry registry) {
-                    registry.bindInstance(Server.class, server);
-                    registry.bindInstance(Boolean.TYPE, standalone);
+                    registry.bindInstance(server, Server.class);
+                    registry.bindInstance(standalone, Boolean.TYPE);
                 }
             });
         }
@@ -88,7 +88,7 @@ final class JettyDeploymentControl implements DeploymentControl {
         @Override
         public void bindComponents(final ComponentContainer.Registry registry) {
             if (dependencies != null) {
-                dependencies.bindComponents(registry.makeChildContainer(DeploymentControl.class, JettyDeploymentControl.class).getRegistry());
+                dependencies.bindComponents(registry.makeChildContainer(JettyDeploymentControl.class, DeploymentControl.class).getRegistry());
             }
         }
     }

@@ -55,9 +55,9 @@ final class ClassDiscoveryImpl implements ClassDiscovery {
     }
 
     @SuppressWarnings({ "unchecked", "SuspiciousToArrayCall" })
-    public <T> Class<T>[] findComponentClasses(final Class<T> componentInterface, final ClassLoader cl, final boolean strict) {
-        final ClassLoader classLoader = cl == null ? ClassLoaders.findClassLoader(componentInterface) : cl;
-        log.info("Loading service provider files for %s using class loader %s", componentInterface, classLoader);
+    public <T> Class<T>[] findComponentClasses(final Class<T> api, final ClassLoader cl, final boolean strict) {
+        final ClassLoader classLoader = cl == null ? ClassLoaders.findClassLoader(api) : cl;
+        log.info("Loading service provider files for %s using class loader %s", api, classLoader);
 
         final Collection<Class<T>> componentList = Exceptions.wrap(new Exceptions.Command<Collection<Class<T>>>() {
             public Collection<Class<T>> run() throws Exception {
@@ -65,8 +65,7 @@ final class ClassDiscoveryImpl implements ClassDiscovery {
 
                 final Set<URL> loaded = new HashSet<URL>();
 
-                final Enumeration<URL> resources = classLoader.getResources(ClassLoaders.absoluteResourceName("META-INF/services/"
-                                                                                                              + componentInterface.getName()));
+                final Enumeration<URL> resources = classLoader.getResources(ClassLoaders.absoluteResourceName("META-INF/services/" + api.getName()));
 
                 for (final URL url : Collections.list(resources)) {
 
@@ -90,7 +89,7 @@ final class ClassDiscoveryImpl implements ClassDiscovery {
                                     final Class<?> rawClass = classLoader.loadClass(line.trim());
 
                                     if (!strict || rawClass.getClassLoader() == classLoader) {
-                                        if (componentInterface.isAssignableFrom(rawClass)) {
+                                        if (api.isAssignableFrom(rawClass)) {
                                             final Class<T> componentClass = (Class<T>) rawClass;
 
                                             if (Modifier.isAbstract(componentClass.getModifiers())) {
@@ -108,7 +107,7 @@ final class ClassDiscoveryImpl implements ClassDiscovery {
                                                 }
                                             }
                                         } else {
-                                            log.error("%s does not implement %s", rawClass, componentInterface);
+                                            log.error("%s does not implement %s", rawClass, api);
                                         }
                                     }
                                 } catch (final ClassNotFoundException e) {

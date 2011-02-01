@@ -58,7 +58,7 @@ public final class BasicResolutionTests extends AbstractContainerTests {
         }
 
         for (int i = 0; i < 100000 && !collected; ++i) {
-            container.makeChildContainer().getRegistry().bindInstance(Object.class, new FinalizationAware());
+            container.makeChildContainer().getRegistry().bindInstance(new FinalizationAware(), Object.class);
             Runtime.getRuntime().gc();
         }
 
@@ -67,16 +67,16 @@ public final class BasicResolutionTests extends AbstractContainerTests {
 
     @Test
     public void singletonComponentRegistration() throws Exception {
-        registry.bindComponent(Key.class, Value.class); // Value depends on DependentKey
-        registry.bindComponent(DependentKey.class, DependentValue.class);
+        registry.bindComponent(Value.class); // Value depends on DependentKey
+        registry.bindComponent(DependentValue.class);
 
         verifyComponent(Value.instanceCount, 1, container);
     }
 
     @Test
     public void findsDefaultImplementation() throws Exception {
-        registry.bindComponent(Key.class, Value.class);
-        registry.bindComponent(DependentKey.class, DefaultDependentValue.class);
+        registry.bindComponent(Value.class);
+        registry.bindComponent(DefaultDependentValue.class);
 
         verifyComponent(Value.instanceCount, 1, container);
 
@@ -85,13 +85,13 @@ public final class BasicResolutionTests extends AbstractContainerTests {
 
     @Test
     public void primaryImplementationTakesPrecedenceOverFallback() throws Exception {
-        registry.bindComponent(Key.class, Value.class);
+        registry.bindComponent(Value.class);
 
         // this is the fallback
-        registry.bindComponent(DependentKey.class, DefaultDependentValue.class);
+        registry.bindComponent(DefaultDependentValue.class);
 
         // this is the primary
-        registry.bindComponent(DependentKey.class, DependentValue.class);
+        registry.bindComponent(DependentValue.class);
 
         verifyComponent(Value.instanceCount, 1, container);
 
@@ -101,8 +101,8 @@ public final class BasicResolutionTests extends AbstractContainerTests {
 
     @Test
     public void instanceRegistration() throws Exception {
-        registry.bindComponent(Key.class, Value.class);
-        registry.bindInstance(DependentKey.class, new DependentValue());
+        registry.bindComponent(Value.class);
+        registry.bindInstance(new DependentValue());
 
         verifyComponent(Value.instanceCount, 1, container);
     }
@@ -110,16 +110,15 @@ public final class BasicResolutionTests extends AbstractContainerTests {
     @Test
     @SuppressWarnings("unchecked")
     public void arrayRegistration() throws Exception {
-        registry.bindComponent(ArrayDependent.class, ArrayDependent.class);
-        final Object[] array = new Object[0];
-        registry.bindInstance((Class<Object[]>) array.getClass(), array);
+        registry.bindComponent(ArrayDependent.class);
+        registry.bindInstance(new Object[0]);
 
         assert container.getComponent(ArrayDependent.class) != null;
     }
 
     @Test
     public void dependencyOnContainer() throws Exception {
-        registry.bindComponent(ContainerDependent.class, ContainerDependent.class);
+        registry.bindComponent(ContainerDependent.class);
 
         final ContainerDependent component = container.getComponent(ContainerDependent.class);
         assert component != null;
@@ -128,8 +127,8 @@ public final class BasicResolutionTests extends AbstractContainerTests {
 
         // verify that we have the same container in our hands
         assert container.getComponent(Key.class) == null;
-        registry.bindComponent(Key.class, Value.class);
-        registry.bindComponent(DependentKey.class, DependentValue.class);
+        registry.bindComponent(Value.class);
+        registry.bindComponent(DependentValue.class);
         assert container.getComponent(Key.class) != null;
     }
 
@@ -156,8 +155,8 @@ public final class BasicResolutionTests extends AbstractContainerTests {
         final Key value = container.getComponent(Key.class, new ComponentContainer.Bindings() {
 
             public void bindComponents(ComponentContainer.Registry registry) {
-                registry.bindComponent(Key.class, Value.class);
-                registry.bindComponent(DependentKey.class, DependentValue.class);
+                registry.bindComponent(Value.class);
+                registry.bindComponent(DependentValue.class);
             }
         });
 
@@ -168,11 +167,11 @@ public final class BasicResolutionTests extends AbstractContainerTests {
 
     @Test
     public void allComponents() throws Exception {
-        registry.bindComponent(Service1.class, Service1.class);
-        registry.bindComponent(Service2.class, Service2.class);
-        registry.bindComponent(Service3.class, Service3.class);
-        registry.bindComponent(Service4.class, Service4.class);
-        registry.bindComponent(Intermediate.class, Intermediate.class);
+        registry.bindComponent(Service1.class);
+        registry.bindComponent(Service2.class);
+        registry.bindComponent(Service3.class);
+        registry.bindComponent(Service4.class);
+        registry.bindComponent(Intermediate.class);
 
         AbstractService.createList.clear();
         AbstractService.callList.clear();
@@ -189,8 +188,8 @@ public final class BasicResolutionTests extends AbstractContainerTests {
     public void checkSerialization() throws Exception {
         SerializableComponent.container = container;
 
-        registry.bindComponent(Key.class, Value.class); // Value depends on DependentKey
-        registry.bindComponent(DependentKey.class, DependentValue.class);
+        registry.bindComponent(Value.class); // Value depends on DependentKey
+        registry.bindComponent(DependentValue.class);
 
         final SerializableComponent component = new SerializableComponent();
 
@@ -208,24 +207,24 @@ public final class BasicResolutionTests extends AbstractContainerTests {
     public void checkLocalClass() throws Exception {
         class Local { }
 
-        registry.bindInstance(BasicResolutionTests.class, this);
-        registry.bindComponent(Local.class, Local.class);
+        registry.bindInstance(this);
+        registry.bindComponent(Local.class);
 
         assert container.getComponent(Local.class) != null : "Local class was not instantiated";
     }
 
     @Test
     public void checkNonStaticInnerClass() throws Exception {
-        registry.bindComponent(OuterClass.class, OuterClass.class);
-        registry.bindComponent(OuterClass.InnerClass.class, OuterClass.InnerClass.class);
+        registry.bindComponent(OuterClass.class);
+        registry.bindComponent(OuterClass.InnerClass.class);
 
         assert container.getComponent(OuterClass.InnerClass.class) != null : "Non-static inner class was not instantiated";
     }
 
     @Test(expectedExceptions = ComponentContainer.BindingException.class, expectedExceptionsMessageRegExp = ".*anonymous.*")
     public void checkAnonymousClass() throws Exception {
-        registry.bindInstance(BasicResolutionTests.class, this);
-        registry.bindComponent(Serializable.class, new Serializable() { }.getClass());
+        registry.bindInstance(this);
+        registry.bindComponent(new Serializable() { }.getClass());
 
         assert container.getComponent(Serializable.class) == null : "Anonymous inner class should not be instantiated";
     }
