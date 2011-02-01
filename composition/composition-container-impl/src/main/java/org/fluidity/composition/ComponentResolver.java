@@ -29,7 +29,7 @@ import org.fluidity.composition.spi.ComponentMapping;
  *
  * @author Tibor Varga
  */
-interface ComponentProducer extends ComponentMapping {
+interface ComponentResolver extends ComponentMapping {
 
     /**
      * Tells if the component is a fallback or primary. When both a primary and fallback component is mapped to the same interface, the fallback is ignored and
@@ -58,7 +58,7 @@ interface ComponentProducer extends ComponentMapping {
      *
      * @param container the container to use to resolve dependencies.
      * @param api       the API the component is requested for.
-     * @param circular  a flag telling if this producer has been invoked the second time during one invocation chain, e.g., to signify circular reference in the
+     * @param circular  a flag telling if this resolver has been invoked the second time during one invocation chain, e.g., to signify circular reference in the
      *                  component dependency graph.
      *
      * @return the component instance, never <code>null</code>.
@@ -73,10 +73,10 @@ interface ComponentProducer extends ComponentMapping {
     boolean isInstanceMapping();
 
     /**
-     * Notifies the receiver that a previously bound producer has been replaced by another one.
+     * Notifies the receiver that a previously bound resolver has been replaced by another one.
      *
-     * @param previous    the old producer.
-     * @param replacement the new producer.
+     * @param previous    the old resolver.
+     * @param replacement the new resolver.
      */
-    void producerReplaced(ComponentProducer previous, ComponentProducer replacement);
+    void resolverReplaced(ComponentResolver previous, ComponentResolver replacement);
 }

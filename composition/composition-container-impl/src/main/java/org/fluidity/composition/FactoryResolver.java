@@ -26,11 +26,11 @@ import org.fluidity.composition.spi.ComponentFactory;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**
- * Component producer for a {@link ComponentFactory} component.
+ * Component resolver for a {@link ComponentFactory} component.
  *
  * @author Tibor Varga
  */
-abstract class FactoryProducer extends AbstractProducer {
+abstract class FactoryResolver extends AbstractResolver {
 
     private final Class<? extends ComponentFactory> factoryClass;
 
@@ -38,7 +38,7 @@ abstract class FactoryProducer extends AbstractProducer {
 
     protected abstract ComponentFactory factory(final SimpleContainer container);
 
-    public FactoryProducer(final Class<?> api,
+    public FactoryResolver(final Class<?> api,
                            final Class<? extends ComponentFactory> factoryClass,
                            final boolean fallback,
                            final ReferenceChain references,

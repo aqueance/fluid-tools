@@ -31,11 +31,11 @@ import org.fluidity.foundation.Exceptions;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**
- * Component producer that works by instantiating a class.
+ * Component resolver that works by instantiating a class.
  *
  * @author Tibor Varga
  */
-final class ConstructingProducer extends AbstractProducer {
+final class ConstructingResolver extends AbstractResolver {
 
     private final DependencyInjector injector;
     private final ContextFactory contexts;
@@ -44,7 +44,7 @@ final class ConstructingProducer extends AbstractProducer {
 
     private final Constructor<?> constructor;
 
-    public ConstructingProducer(final Class<?> api,
+    public ConstructingResolver(final Class<?> api,
                                 final Class<?> componentClass,
                                 final boolean fallback,
                                 final ComponentCache cache,

@@ -30,12 +30,12 @@ import org.fluidity.foundation.spi.LogFactory;
  *
  * @author Tibor Varga
  */
-abstract class VariantProducer extends AbstractProducer {
+abstract class VariantResolver extends AbstractResolver {
 
     private final Class<? extends ComponentVariantFactory> factoryClass;
     private final SimpleContainer parent;
 
-    private ComponentProducer delegate;     // the one creating instances
+    private ComponentResolver delegate;     // the one creating instances
     private Class<?> componentClass;        // caches what the delegate returns
 
     /**
@@ -47,7 +47,7 @@ abstract class VariantProducer extends AbstractProducer {
      */
     protected abstract ComponentVariantFactory factory(final SimpleContainer container);
 
-    public VariantProducer(final SimpleContainer container,
+    public VariantResolver(final SimpleContainer container,
                            final Class<?> api,
                            final Class<? extends ComponentVariantFactory> factoryClass,
                            final boolean fallback,
@@ -66,7 +66,7 @@ abstract class VariantProducer extends AbstractProducer {
 
     public final Class<?> componentClass() {
         if (delegate == null) {
-            delegate = parent == null ? null : parent.producer(api, true);
+            delegate = parent == null ? null : parent.resolver(api, true);
 
             if (delegate == null) {
                 throw new ComponentContainer.BindingException("Variant factory %s requires separate binding for %s", factoryClass, api);
@@ -83,7 +83,7 @@ abstract class VariantProducer extends AbstractProducer {
                 final ComponentVariantFactory factory = factory(container);
 
                 final SimpleContainer child = container.newChildContainer();
-                child.bindProducer(api, delegate);
+                child.bindResolver(api, delegate);
                 final OpenComponentContainer returned = factory.newComponent(new ComponentContainerShell(child, false), context);
 
                 if (returned == null) {
@@ -96,7 +96,7 @@ abstract class VariantProducer extends AbstractProducer {
     }
 
     @Override
-    public void producerReplaced(final ComponentProducer previous, final ComponentProducer replacement) {
+    public void resolverReplaced(final ComponentResolver previous, final ComponentResolver replacement) {
 
         // TODO: this is way too complex
         if ((delegate == null && replacement.componentApi() == api) || (previous != null && delegate == previous)) {
@@ -110,7 +110,7 @@ abstract class VariantProducer extends AbstractProducer {
         }
     }
 
-    public ComponentProducer delegate() {
+    public ComponentResolver delegate() {
         return delegate;
     }
 

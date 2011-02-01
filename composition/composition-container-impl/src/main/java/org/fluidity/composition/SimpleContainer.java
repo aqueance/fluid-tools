@@ -62,7 +62,7 @@ interface SimpleContainer extends DependencyResolver {
      *
      * @return the component mapping for the given component interface or <code>null</code> if none found.
      */
-    ComponentProducer producer(Class<?> api, boolean ascend);
+    ComponentResolver resolver(Class<?> api, boolean ascend);
 
     /**
      * Binds a component mapping in the container
@@ -73,7 +73,7 @@ interface SimpleContainer extends DependencyResolver {
      * @throws ComponentContainer.BindingException
      *          when binding fails.
      */
-    void bindProducer(Class<?> key, ComponentProducer entry) throws ComponentContainer.BindingException;
+    void bindResolver(Class<?> key, ComponentResolver entry) throws ComponentContainer.BindingException;
 
     /**
      * Binds a component class to an interface.
@@ -171,10 +171,10 @@ interface SimpleContainer extends DependencyResolver {
     String id();
 
     /**
-     * Notifies each bound producer that a previously bound producer has been supplanted by another.
+     * Notifies each bound resolver that a previously bound resolver has been supplanted by another.
      *
-     * @param previous    the old producer.
-     * @param replacement the new producer.
+     * @param previous    the old resolver.
+     * @param replacement the new resolver.
      */
-    void replaceProducer(ComponentProducer previous, ComponentProducer replacement);
+    void replaceResolver(ComponentResolver previous, ComponentResolver replacement);
 }

@@ -30,11 +30,11 @@ import org.fluidity.foundation.spi.LogFactory;
  *
  * @author Tibor Varga
  */
-final class FactoryProducerInstance extends FactoryProducer {
+final class FactoryResolverInstance extends FactoryResolver {
 
     private final ComponentFactory factory;
 
-    public FactoryProducerInstance(final Class<?> api,
+    public FactoryResolverInstance(final Class<?> api,
                                    final ComponentFactory factory,
                                    final boolean fallback,
                                    final ReferenceChain references,

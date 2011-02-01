@@ -25,16 +25,20 @@ package org.fluidity.composition;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**
- * Links a component binding in the parent container to a producer in the child. The component when looked up in the parent ends up handled by the child.
+ * Links a component binding in the parent container to a resolver in the child. The component when looked up in the parent ends up handled by the child.
  *
  * @author Tibor Varga
  */
-final class LinkingProducer extends AbstractProducer {
+final class LinkingResolver extends AbstractResolver {
 
     private final SimpleContainer target;
-    private ComponentProducer delegate;
+    private ComponentResolver delegate;
 
-    public LinkingProducer(final SimpleContainer container, final Class<?> api, final ComponentProducer delegate, final ReferenceChain references, final LogFactory logs) {
+    public LinkingResolver(final SimpleContainer container,
+                           final Class<?> api,
+                           final ComponentResolver delegate,
+                           final ReferenceChain references,
+                           final LogFactory logs) {
         super(api, delegate.isFallback(), references, null, logs);
         this.delegate = delegate;
         this.target = container;
@@ -65,7 +69,7 @@ final class LinkingProducer extends AbstractProducer {
     }
 
     @Override
-    public void producerReplaced(final ComponentProducer previous, final ComponentProducer replacement) {
+    public void resolverReplaced(final ComponentResolver previous, final ComponentResolver replacement) {
         if (delegate == previous) {
             delegate = replacement;
         }

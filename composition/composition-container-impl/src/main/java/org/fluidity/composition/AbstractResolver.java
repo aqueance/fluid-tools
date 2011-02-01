@@ -30,11 +30,11 @@ import org.fluidity.foundation.logging.Log;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**
- * Common functionality for component producers.
+ * Common functionality for component resolvers.
  *
  * @author Tibor Varga
  */
-abstract class AbstractProducer implements ComponentProducer {
+abstract class AbstractResolver implements ComponentResolver {
 
     protected final Class<?> api;
     protected final ReferenceChain references;
@@ -43,7 +43,7 @@ abstract class AbstractProducer implements ComponentProducer {
 
     private final boolean fallback;
 
-    protected AbstractProducer(final Class<?> api, final boolean fallback, final ReferenceChain references, final ComponentCache cache, final LogFactory logs) {
+    protected AbstractResolver(final Class<?> api, final boolean fallback, final ReferenceChain references, final ComponentCache cache, final LogFactory logs) {
         this.api = api;
         this.fallback = fallback;
         this.references = references;
@@ -54,7 +54,7 @@ abstract class AbstractProducer implements ComponentProducer {
     /**
      * Returns the command to use to create an instance. Called only when no circular references were detected.
      *
-     * @param container the container containing this producer.
+     * @param container the container containing this resolver.
      * @param api       the API the component is requested for.
      *
      * @return a command or <code>null</code> if no instance should be created.
@@ -74,7 +74,7 @@ abstract class AbstractProducer implements ComponentProducer {
     /**
      * Checks for circular references and, if possible, wraps the first component up the reference chain that is referenced by interface with a proxy that
      * defers the instantiation of that component. Uses the {@link #createCommand(SimpleContainer, Class)} method to perform actual component creation along
-     * with the producer's {@link ComponentCache} to cache instances.
+     * with the resolver's {@link ComponentCache} to cache instances.
      */
     public Object create(final SimpleContainer container, final Class<?> api, final boolean circular) {
         final Class<?> componentClass = componentClass();
@@ -135,7 +135,7 @@ abstract class AbstractProducer implements ComponentProducer {
         return null;
     }
 
-    public void producerReplaced(final ComponentProducer previous, final ComponentProducer replacement) {
+    public void resolverReplaced(final ComponentResolver previous, final ComponentResolver replacement) {
         // empty
     }
 

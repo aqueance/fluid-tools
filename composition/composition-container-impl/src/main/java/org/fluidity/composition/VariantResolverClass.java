@@ -30,9 +30,9 @@ import org.fluidity.foundation.spi.LogFactory;
  *
  * @author Tibor Varga
  */
-final class VariantProducerClass extends VariantProducer {
+final class VariantResolverClass extends VariantResolver {
 
-    public VariantProducerClass(final SimpleContainer container,
+    public VariantResolverClass(final SimpleContainer container,
                                 final Class<?> api,
                                 final Class<? extends ComponentVariantFactory> factoryClass,
                                 final boolean fallback,

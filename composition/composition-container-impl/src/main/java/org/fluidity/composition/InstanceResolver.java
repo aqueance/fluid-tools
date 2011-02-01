@@ -22,27 +22,38 @@
 
 package org.fluidity.composition;
 
-import org.fluidity.composition.spi.ComponentFactory;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**
- * Component mapping of a {@link ComponentFactory} class.
+ * Component mapping for a pre-instantiated component.
  *
  * @author Tibor Varga
  */
-final class FactoryProducerClass extends FactoryProducer {
+final class InstanceResolver extends AbstractResolver {
 
-    public FactoryProducerClass(final Class<?> api,
-                                final Class<? extends ComponentFactory> factoryClass,
-                                final boolean fallback,
-                                final ReferenceChain references,
-                                final ComponentCache cache,
-                                final LogFactory logs) {
-        super(api, factoryClass, fallback, references, cache, logs);
+    private final Object instance;
+    private final Class<?> componentClass;
+
+    public InstanceResolver(final Class<?> api,
+                            final Class<?> componentClass,
+                            final Object instance,
+                            final boolean fallback,
+                            final ReferenceChain references,
+                            final LogFactory logs) {
+        super(api, fallback, references, null, logs);
+        this.componentClass = componentClass;
+        this.instance = instance;
     }
 
-    @Override
-    protected ComponentFactory factory(final SimpleContainer container) {
-        return container.get(factoryClass());
+    public Class<?> componentClass() {
+        return componentClass;
+    }
+
+    public Object create(final SimpleContainer container, Class<?> api, boolean circular) {
+        return instance;
+    }
+
+    public boolean isInstanceMapping() {
+        return true;
     }
 }
