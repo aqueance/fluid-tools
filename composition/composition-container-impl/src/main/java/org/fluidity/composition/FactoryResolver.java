@@ -76,8 +76,8 @@ abstract class FactoryResolver extends AbstractResolver {
         return componentClass;  // TODO: context dependent
     }
 
-    public Annotation[] contextAnnotations() {
-        return componentClass.getAnnotations();
+    public Annotation[] providedContext() {
+        return null;
     }
 
     public <T extends Annotation> T contextSpecification(final Class<T> type) {

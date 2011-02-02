@@ -385,7 +385,7 @@ final class SimpleContainerImpl implements SimpleContainer {
                 }
             };
 
-            final ComponentContext extracted = contextFactory.extractContext(resolver.contextAnnotations());
+            final ComponentContext extracted = contextFactory.extractContext(resolver.providedContext());
             if (extracted == null) {
                 return command.run(contextChain.currentContext());
             } else {

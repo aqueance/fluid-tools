@@ -67,7 +67,7 @@ final class ConstructingResolver extends AbstractResolver {
         return componentClass;
     }
 
-    public Annotation[] contextAnnotations() {
+    public Annotation[] providedContext() {
         return ignoreContext ? null : componentClass.getAnnotations();
     }
 
@@ -84,7 +84,7 @@ final class ConstructingResolver extends AbstractResolver {
         return new ComponentCache.Command() {
             public Object run(final ComponentContext context) {
                 final Constructor constructor = constructor();
-                final ComponentContext componentContext = contexts.deriveContext(context, contextAnnotations());
+                final ComponentContext componentContext = contexts.deriveContext(context, providedContext());
 
                 return Exceptions.wrap(String.format("instantiating %s", componentClass), new Exceptions.Command<Object>() {
                     public Object run() throws Exception {

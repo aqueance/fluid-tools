@@ -50,8 +50,8 @@ final class LinkingResolver extends AbstractResolver {
         return delegate.componentClass();
     }
 
-    public Annotation[] contextAnnotations() {
-        return delegate.contextAnnotations();
+    public Annotation[] providedContext() {
+        return delegate.providedContext();
     }
 
     public <T extends Annotation> T contextSpecification(final Class<T> type) {

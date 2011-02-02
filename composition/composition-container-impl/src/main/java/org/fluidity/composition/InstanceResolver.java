@@ -55,7 +55,7 @@ final class InstanceResolver extends AbstractResolver {
         return componentClass;
     }
 
-    public Annotation[] contextAnnotations() {
+    public Annotation[] providedContext() {
         return ignoreContext ? null : componentClass.getAnnotations();
     }
 

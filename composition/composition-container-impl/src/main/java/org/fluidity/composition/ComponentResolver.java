@@ -34,11 +34,11 @@ import org.fluidity.composition.spi.ComponentMapping;
 interface ComponentResolver extends ComponentMapping {
 
     /**
-     * Returns the class of the component instance.
+     * Returns the list of annotations that may comprise the context of some other component. Factories do not provide context annotations.
      *
-     * @return the class of the component instance.
+     * @return the list of annotations that may comprise the context of some other component or <code>null</code> if none present.
      */
-    Annotation[] contextAnnotations();
+    Annotation[] providedContext();
 
     /**
      * Tells if the component is a fallback or primary. When both a primary and fallback component is mapped to the same interface, the fallback is ignored and

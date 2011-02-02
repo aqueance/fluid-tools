@@ -81,8 +81,8 @@ abstract class VariantResolver extends AbstractResolver {
         return delegate;
     }
 
-    public Annotation[] contextAnnotations() {
-        return factoryClass.getAnnotations();
+    public Annotation[] providedContext() {
+        return null;
     }
 
     public <T extends Annotation> T contextSpecification(final Class<T> type) {
