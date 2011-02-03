@@ -30,9 +30,8 @@ import org.fluidity.composition.OpenComponentContainer;
  * this interface for a given component if that component requires instantiation logic more complex than {@link
  * java.lang.reflect.Constructor#newInstance(Object...)} with dependency injected parameters.
  * <p/>
- * The interface of the component is specified in the {@link org.fluidity.composition.Component#api()} annotation of the the factory implementation class and
- * the class of the component is specified in the {@link org.fluidity.composition.Component#type()} annotation. Both these annotation parameters must be
- * present.
+ * The interface of the component is specified in the {@link org.fluidity.composition.Component#api()} annotation of the the factory implementation class, which
+ * must be present.
  * <p/>
  * If the component is context dependent, the factory class must specify on behalf of the components the valid context annotation classes using the {@link
  * org.fluidity.composition.Context} class annotation.

@@ -34,6 +34,14 @@ import org.fluidity.composition.spi.ComponentMapping;
 interface ComponentResolver extends ComponentMapping {
 
     /**
+     * Tells whether the mapping is that of a {@link org.fluidity.composition.spi.ComponentVariantFactory}.
+     *
+     * @return <code>true</code> if the mapping is that of a {@link org.fluidity.composition.spi.ComponentVariantFactory}, <code>false</code> otherwise.
+     * @deprecated and should be removed
+     */
+    boolean isVariantMapping();
+
+    /**
      * Returns the list of annotations that may comprise the context of some other component. Factories do not provide context annotations.
      *
      * @return the list of annotations that may comprise the context of some other component or <code>null</code> if none present.
@@ -55,14 +63,6 @@ interface ComponentResolver extends ComponentMapping {
      * @deprecated and will be removed
      */
     Class<?> factoryClass();
-
-    /**
-     * Returns the class of the component instance.
-     *
-     * @return the class of the component instance.
-     * @deprecated and will be removed
-     */
-    Class<?> componentClass();
 
     /**
      * Creates the actual component.

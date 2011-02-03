@@ -307,12 +307,12 @@ public interface ComponentContainer {
      */
     class CircularReferencesException extends ResolutionException {
 
-        public CircularReferencesException(final Class<?> componentClass) {
-            super("Circular dependency detected involving %s", componentClass);
+        public CircularReferencesException(final Class<?> api) {
+            super("Circular dependency detected when resolving %s", api);
         }
 
-        public CircularReferencesException(final Class<?> componentClass, final String resolutions) {
-            super("Circular dependency detected involving %s: %s", componentClass, resolutions);
+        public CircularReferencesException(final Class<?> api, final String resolutions) {
+            super("Circular dependency detected when resolving %s: %s", api, resolutions);
         }
     }
 }

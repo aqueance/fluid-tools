@@ -36,8 +36,6 @@ abstract class FactoryResolver extends AbstractResolver {
 
     private final Class<? extends ComponentFactory> factoryClass;
 
-    private Class<?> componentClass;
-
     protected abstract ComponentFactory factory(final SimpleContainer container);
 
     public FactoryResolver(final Class<?> api,
@@ -58,22 +56,11 @@ abstract class FactoryResolver extends AbstractResolver {
         if (annotation.stateful()) {
             throw new ComponentContainer.BindingException("Factory %s cannot be stateful (@%s(stateful = true)", factoryClass, Component.class);
         }
-
-        this.componentClass = annotation.type();
-        assert componentClass != null;
-
-        if (componentClass == Object.class) {
-            throw new ComponentContainer.BindingException("Factory %s must have a @%s(api = ..., type = ...) annotation", factoryClass, Component.class);
-        }
     }
 
     @Override
-    public boolean isDelegating() {
+    public boolean isFactoryMapping() {
         return true;
-    }
-
-    public final Class<?> componentClass() {
-        return componentClass;  // TODO: context dependent
     }
 
     public Annotation[] providedContext() {

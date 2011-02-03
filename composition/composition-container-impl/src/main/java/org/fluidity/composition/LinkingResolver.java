@@ -46,10 +46,6 @@ final class LinkingResolver extends AbstractResolver {
         this.target = container;
     }
 
-    public Class<?> componentClass() {
-        return delegate.componentClass();
-    }
-
     public Annotation[] providedContext() {
         return delegate.providedContext();
     }

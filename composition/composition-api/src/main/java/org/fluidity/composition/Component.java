@@ -78,15 +78,4 @@ public @interface Component {
      * @return <code>true</code> if a new instance should be created for every query or dependency reference; ignored for annotated fields.
      */
     boolean stateful() default false;
-
-    /**
-     * Used by {@link org.fluidity.composition.spi.ComponentFactory} components, this annotation specifies the component class the factory component creates
-     * instances of. If that class is not known in advance, return the class returned from {@link #api()}.
-     *
-     * @return the component class this factory component creates instances of; ignored for annotated fields.
-     *
-     * @see org.fluidity.composition.spi.ComponentFactory
-     * // TODO: remove this
-     */
-    Class<?> type() default Object.class;
 }

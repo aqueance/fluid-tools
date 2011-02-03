@@ -48,16 +48,6 @@ public final class ComponentFactoryTests extends AbstractContainerTests {
         Factory.delegate = this.factory;
     }
 
-    @Test(expectedExceptions = ComponentContainer.BindingException.class)
-    public void reportsBrokenFactory() throws Exception {
-        registry.bindComponent(BrokenFactory.class);
-    }
-
-    @Test(expectedExceptions = ComponentContainer.BindingException.class)
-    public void reportsBrokenFactoryInChildContainer() throws Exception {
-        registry.makeChildContainer(BrokenFactory.class, BrokenFactory.class);
-    }
-
     @Test
     public void invokesStandaloneFactoryClassOnce() throws Exception {
         registry.bindComponent(Value.class);
@@ -114,7 +104,7 @@ public final class ComponentFactoryTests extends AbstractContainerTests {
         verify();
     }
 
-    @Component(api = DependentKey.class, type = DependentValue.class)
+    @Component(api = DependentKey.class)
     private static class Factory implements ComponentFactory<DependentKey> {
 
         public static ComponentFactory<DependentKey> delegate;
@@ -129,21 +119,6 @@ public final class ComponentFactoryTests extends AbstractContainerTests {
 
             assert delegate != null;
             return delegate.newComponent(container, context);
-        }
-    }
-
-    // faulty: has no @Component(type = <component class>) annotation
-
-    @Component(api = DependentKey.class)
-    private static class BrokenFactory implements ComponentFactory<DependentKey> {
-
-        public BrokenFactory() {
-            assert false : "Should not have been instantiated";
-        }
-
-        public DependentKey newComponent(final OpenComponentContainer container, final ComponentContext context) {
-            assert false : "Should not have been invoked";
-            return null;
         }
     }
 

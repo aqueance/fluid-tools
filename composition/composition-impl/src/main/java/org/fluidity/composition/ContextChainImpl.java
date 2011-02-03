@@ -110,7 +110,7 @@ final class ContextChainImpl implements ContextChain {
             public boolean visit(final ReferenceChain.Link item) {
                 final ComponentMapping mapping = item.mapping();
 
-                if (mapping.isDelegating() && mapping != current && item.reference() == componentType) {
+                if (mapping.isFactoryMapping() && mapping != current && item.reference() == componentType) {
 
                     // factory mapping must return the specification on behalf of the component it creates
                     final Context factoryContext = mapping.contextSpecification(Context.class);

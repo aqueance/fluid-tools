@@ -382,7 +382,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
         }
     }
 
-    @Component(api = DependentKey.class, type = ContextDependentValue.class)
+    @Component(api = DependentKey.class)
     @Context({ Setting1.class, Setting2.class })
     private static class Factory implements ComponentFactory<DependentKey> {
 

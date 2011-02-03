@@ -35,32 +35,17 @@ final class InstanceResolver extends AbstractResolver {
 
     private final Object instance;
 
-    private final boolean ignoreContext;
-    private final Class<?> componentClass;
-
-    public InstanceResolver(final Class<?> api,
-                            final Class<?> componentClass,
-                            final Object instance,
-                            final boolean fallback,
-                            final boolean ignoreContext,
-                            final ReferenceChain references,
-                            final LogFactory logs) {
+    public InstanceResolver(final Class<?> api, final Object instance, final boolean fallback, final ReferenceChain references, final LogFactory logs) {
         super(api, fallback, references, null, logs);
-        this.ignoreContext = ignoreContext;
-        this.componentClass = componentClass;
         this.instance = instance;
     }
 
-    public Class<?> componentClass() {
-        return componentClass;
-    }
-
     public Annotation[] providedContext() {
-        return ignoreContext ? null : componentClass.getAnnotations();
+        return null;
     }
 
     public <T extends Annotation> T contextSpecification(final Class<T> type) {
-        return ignoreContext ? null : componentClass.getAnnotation(type);
+        return null;
     }
 
     public Object create(final SimpleContainer container, final Class<?> api, final boolean circular) {

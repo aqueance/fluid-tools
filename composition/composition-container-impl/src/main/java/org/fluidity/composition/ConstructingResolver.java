@@ -63,10 +63,6 @@ final class ConstructingResolver extends AbstractResolver {
         this.constructor = findComponentConstructor();
     }
 
-    public Class<?> componentClass() {
-        return componentClass;
-    }
-
     public Annotation[] providedContext() {
         return ignoreContext ? null : componentClass.getAnnotations();
     }

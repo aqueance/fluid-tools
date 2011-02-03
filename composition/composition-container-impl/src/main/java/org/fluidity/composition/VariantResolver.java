@@ -61,12 +61,8 @@ abstract class VariantResolver extends AbstractResolver {
     }
 
     @Override
-    public boolean isDelegating() {
+    public boolean isFactoryMapping() {
         return true;
-    }
-
-    public final Class<?> componentClass() {
-        return findDelegate().componentClass();      // TODO: shouldn't the variant factory decide?
     }
 
     private ComponentResolver findDelegate() {

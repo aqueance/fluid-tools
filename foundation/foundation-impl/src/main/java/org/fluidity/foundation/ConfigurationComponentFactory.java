@@ -50,7 +50,7 @@ import org.fluidity.foundation.spi.PropertyProvider;
  *
  * @author Tibor Varga
  */
-@Component(api = Configuration.class, type = ConfigurationComponentFactory.ConfigurationImpl.class)
+@Component(api = Configuration.class)
 @Context(Properties.class)
 final class ConfigurationComponentFactory implements ComponentFactory<Configuration> {
 

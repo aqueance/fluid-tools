@@ -212,7 +212,15 @@ final class SimpleContainerImpl implements SimpleContainer {
             }
 
             public ComponentResolver component(final Class<?> api, final ComponentCache cache, final boolean resolvesFactory) {
-                return new ConstructingResolver(api, implementation, isFallback, resolvesFactory, cache, referenceChain, contextFactory, injector, services.logs());
+                return new ConstructingResolver(api,
+                                                implementation,
+                                                isFallback,
+                                                resolvesFactory,
+                                                cache,
+                                                referenceChain,
+                                                contextFactory,
+                                                injector,
+                                                services.logs());
             }
 
             public VariantResolver variant(final Class<?> api, final ComponentCache cache) {
@@ -264,12 +272,18 @@ final class SimpleContainerImpl implements SimpleContainer {
             }
 
             public ComponentResolver component(final Class<?> api, final ComponentCache cache, final boolean resolvesFactory) {
-                return new InstanceResolver(api, instance.getClass(), instance, isFallback, resolvesFactory, referenceChain, services.logs());
+                return new InstanceResolver(api, instance, isFallback, referenceChain, services.logs());
             }
 
             @SuppressWarnings("ConstantConditions")
             public VariantResolver variant(final Class<?> api, final ComponentCache cache) {
-                return new VariantResolverInstance(SimpleContainerImpl.this, api, (ComponentVariantFactory) instance, isFallback, referenceChain, cache, services.logs());
+                return new VariantResolverInstance(SimpleContainerImpl.this,
+                                                   api,
+                                                   (ComponentVariantFactory) instance,
+                                                   isFallback,
+                                                   referenceChain,
+                                                   cache,
+                                                   services.logs());
             }
 
             @SuppressWarnings("ConstantConditions")
@@ -416,10 +430,10 @@ final class SimpleContainerImpl implements SimpleContainer {
         /**
          * Creates a component resolver for the component being processed.
          *
-         * @param api   the interface to which the component will be bound.
-         * @param cache the cache to use for the component.
+         * @param api             the interface to which the component will be bound.
+         * @param cache           the cache to use for the component.
+         * @param resolvesFactory tells if the component resolves a factory instance.
          *
-         * @param resolvesFactory
          * @return a component resolver that will resolve, and cache if necessary, a single instance of the component.
          */
         ComponentResolver component(Class<?> api, final ComponentCache cache, final boolean resolvesFactory);

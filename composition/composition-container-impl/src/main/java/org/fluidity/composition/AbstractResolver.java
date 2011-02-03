@@ -95,10 +95,9 @@ abstract class AbstractResolver implements ComponentResolver {
                                   final ComponentCache.Command create,
                                   final ComponentContainer.CircularReferencesException error) {
         final Class<?> reference = references.lastLink().reference();
-        final Class<?> componentClass = componentClass();
 
         if (reference.isInterface()) {
-            log.info("%s: deferred creation of %s", container, componentClass.getName());
+            log.info("%s: deferred creation of %s component", container, reference.getName());
             return Proxy.newProxyInstance(api.getClassLoader(), new Class<?>[] { reference }, new InvocationHandler() {
                 private Object delegate;
 
@@ -114,7 +113,7 @@ abstract class AbstractResolver implements ComponentResolver {
                 }
             });
         } else {
-            throw error == null ? new ComponentContainer.CircularReferencesException(componentClass, references.print()) : error;
+            throw error == null ? new ComponentContainer.CircularReferencesException(reference, references.print()) : error;
         }
     }
 
@@ -130,7 +129,7 @@ abstract class AbstractResolver implements ComponentResolver {
         return null;
     }
 
-    public boolean isDelegating() {
+    public boolean isFactoryMapping() {
         return false;
     }
 
@@ -140,6 +139,6 @@ abstract class AbstractResolver implements ComponentResolver {
 
     @Override
     public String toString() {
-        return String.format(" %s (%s)", getClass().getSimpleName(), componentClass());
+        return String.format(" %s (%s)", getClass().getSimpleName(), api);
     }
 }

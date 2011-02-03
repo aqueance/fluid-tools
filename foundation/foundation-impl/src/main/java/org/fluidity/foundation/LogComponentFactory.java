@@ -38,7 +38,7 @@ import org.fluidity.foundation.spi.LogFactory;
  *
  * @author Tibor Varga
  */
-@Component(api = Log.class, type = Log.class)
+@Component(api = Log.class)
 @Context(Marker.class)
 final class LogComponentFactory implements ComponentFactory<Log> {
 
