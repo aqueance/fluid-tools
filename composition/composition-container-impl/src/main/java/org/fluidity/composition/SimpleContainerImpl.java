@@ -78,7 +78,7 @@ final class SimpleContainerImpl implements SimpleContainer {
 
             if (resolver == null) {
                 replace(api, null, entry);
-            } else if (resolver instanceof VariantResolver && resolver.replaces(entry)) {
+            } else if (resolver.isVariantMapping() && resolver.replaces(entry)) {
                 replace(api, entry, resolver);
             } else if (entry.replaces(resolver)) {
                 replace(api, resolver, entry);
