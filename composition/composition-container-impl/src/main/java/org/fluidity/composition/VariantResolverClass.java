@@ -32,14 +32,14 @@ import org.fluidity.foundation.spi.LogFactory;
  */
 final class VariantResolverClass extends VariantResolver {
 
-    public VariantResolverClass(final SimpleContainer container,
+    public VariantResolverClass(final int priority,
+                                final SimpleContainer container,
                                 final Class<?> api,
                                 final Class<? extends ComponentVariantFactory> factoryClass,
-                                final boolean fallback,
                                 final ReferenceChain references,
                                 final ComponentCache cache,
                                 final LogFactory logs) {
-        super(container, api, factoryClass, fallback, references, cache, logs);
+        super(priority, container, api, factoryClass, references, cache, logs);
     }
 
     @Override

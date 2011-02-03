@@ -34,14 +34,14 @@ final class VariantResolverInstance extends VariantResolver {
 
     private final ComponentVariantFactory factory;
 
-    public VariantResolverInstance(final SimpleContainer container,
+    public VariantResolverInstance(final int priority,
+                                   final SimpleContainer container,
                                    final Class<?> api,
                                    final ComponentVariantFactory factory,
-                                   final boolean fallback,
                                    final ReferenceChain references,
                                    final ComponentCache cache,
                                    final LogFactory logs) {
-        super(container, api, factory.getClass(), fallback, references, cache, logs);
+        super(priority, container, api, factory.getClass(), references, cache, logs);
         this.factory = factory;
     }
 

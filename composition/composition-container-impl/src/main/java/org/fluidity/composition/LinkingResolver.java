@@ -41,7 +41,7 @@ final class LinkingResolver extends AbstractResolver {
                            final ComponentResolver delegate,
                            final ReferenceChain references,
                            final LogFactory logs) {
-        super(api, delegate.isFallback(), references, null, logs);
+        super(delegate.priority(), api, references, null, logs);
         this.delegate = delegate;
         this.target = container;
     }
@@ -55,13 +55,13 @@ final class LinkingResolver extends AbstractResolver {
     }
 
     @Override
-    public boolean isVariantMapping() {
-        return delegate.isVariantMapping();
+    public boolean isFactoryMapping() {
+        return delegate.isFactoryMapping();
     }
 
     @Override
-    public Class<?> factoryClass() {
-        return delegate.factoryClass();
+    public boolean isVariantMapping() {
+        return delegate.isVariantMapping();
     }
 
     @Override

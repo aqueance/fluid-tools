@@ -36,16 +36,15 @@ import org.fluidity.foundation.spi.LogFactory;
  */
 abstract class AbstractResolver implements ComponentResolver {
 
+    private final int priority;
     protected final Class<?> api;
     protected final ReferenceChain references;
     protected final ComponentCache cache;
     protected final Log log;
 
-    private final boolean fallback;
-
-    protected AbstractResolver(final Class<?> api, final boolean fallback, final ReferenceChain references, final ComponentCache cache, final LogFactory logs) {
+    protected AbstractResolver(final int priority, final Class<?> api, final ReferenceChain references, final ComponentCache cache, final LogFactory logs) {
+        this.priority = priority;
         this.api = api;
-        this.fallback = fallback;
         this.references = references;
         this.cache = cache;
         this.log = logs.createLog(getClass());
@@ -61,10 +60,6 @@ abstract class AbstractResolver implements ComponentResolver {
      */
     protected ComponentCache.Command createCommand(final SimpleContainer container, final Class<?> api) {
         return null;
-    }
-
-    public boolean isFallback() {
-        return fallback;
     }
 
     /**
@@ -117,24 +112,34 @@ abstract class AbstractResolver implements ComponentResolver {
         }
     }
 
-    public boolean isVariantMapping() {
-        return false;
+    public int priority() {
+        return priority;
     }
 
-    public boolean isInstanceMapping() {
-        return false;
+    public boolean replaces(final ComponentResolver resolver) {
+        final int check = resolver.priority();
+
+        if (check == priority) {
+            throw new ComponentContainer.BindingException("Component %s already bound", api);
+        } else {
+            return check < priority;
+        }
     }
 
-    public Class<?> factoryClass() {
-        return null;
+    public void resolverReplaced(final Class<?> api, final ComponentResolver previous, final ComponentResolver replacement) {
+        // empty
     }
 
     public boolean isFactoryMapping() {
         return false;
     }
 
-    public void resolverReplaced(final Class<?> api, final ComponentResolver previous, final ComponentResolver replacement) {
-        // empty
+    public boolean isVariantMapping() {
+        return false;
+    }
+
+    public boolean isInstanceMapping() {
+        return false;
     }
 
     @Override

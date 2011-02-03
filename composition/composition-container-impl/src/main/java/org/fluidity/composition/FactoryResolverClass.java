@@ -32,13 +32,13 @@ import org.fluidity.foundation.spi.LogFactory;
  */
 final class FactoryResolverClass extends FactoryResolver {
 
-    public FactoryResolverClass(final Class<?> api,
+    public FactoryResolverClass(final int priority,
+                                final Class<?> api,
                                 final Class<? extends ComponentFactory> factoryClass,
-                                final boolean fallback,
                                 final ReferenceChain references,
                                 final ComponentCache cache,
                                 final LogFactory logs) {
-        super(api, factoryClass, fallback, references, cache, logs);
+        super(priority, api, factoryClass, references, cache, logs);
     }
 
     @Override

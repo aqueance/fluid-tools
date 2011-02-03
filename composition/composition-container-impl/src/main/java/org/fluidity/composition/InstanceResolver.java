@@ -35,8 +35,8 @@ final class InstanceResolver extends AbstractResolver {
 
     private final Object instance;
 
-    public InstanceResolver(final Class<?> api, final Object instance, final boolean fallback, final ReferenceChain references, final LogFactory logs) {
-        super(api, fallback, references, null, logs);
+    public InstanceResolver(final int priority, final Class<?> api, final Object instance, final ReferenceChain references, final LogFactory logs) {
+        super(priority, api, references, null, logs);
         this.instance = instance;
     }
 

@@ -48,16 +48,45 @@ abstract class VariantResolver extends AbstractResolver {
      */
     protected abstract ComponentVariantFactory factory(final SimpleContainer container);
 
-    public VariantResolver(final SimpleContainer container,
+    public VariantResolver(final int priority,
+                           final SimpleContainer container,
                            final Class<?> api,
                            final Class<? extends ComponentVariantFactory> factoryClass,
-                           final boolean fallback,
                            final ReferenceChain references,
                            final ComponentCache cache,
                            final LogFactory logs) {
-        super(api, fallback, references, cache, logs);
+        super(priority, api, references, cache, logs);
         this.parent = container.parentContainer();
         this.factoryClass = factoryClass;
+    }
+
+    @Override
+    public boolean replaces(final ComponentResolver resolver) {
+        final int check = resolver.priority();
+
+        if (resolver.isVariantMapping()) {
+            final VariantResolver variants = (VariantResolver) resolver;
+
+            if (check == priority()) {
+                throw new ComponentContainer.BindingException("Component %s already hijacked by %s", api, variants.factoryClass);
+            } else {
+                final boolean replaces = super.replaces(variants);
+
+                if (replaces) {
+                    resolverReplaced(api, null, variants.delegate());
+                }
+
+                return replaces;
+            }
+        } else if (resolver.isInstanceMapping()) {
+            throw new ComponentContainer.BindingException("Component instance %s cannot be hijacked by %s", api, factoryClass);
+        } else {
+            if (delegate == null || resolver.replaces(delegate)) {
+                resolverReplaced(api, delegate, resolver);
+            }
+
+            return true;
+        }
     }
 
     @Override
@@ -108,7 +137,7 @@ abstract class VariantResolver extends AbstractResolver {
     public void resolverReplaced(final Class<?> api, final ComponentResolver previous, final ComponentResolver replacement) {
         if (api == this.api && delegate == previous) {
             if (replacement.isInstanceMapping()) {
-                throw new ComponentContainer.BindingException("Component %s cannot be hijacked by %s", this.api, replacement.factoryClass());
+                throw new ComponentContainer.BindingException("Component %s cannot be hijacked by %s", this.api, ((VariantResolver) replacement).factoryClass());
             }
 
             delegate = replacement;

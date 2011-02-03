@@ -38,13 +38,13 @@ abstract class FactoryResolver extends AbstractResolver {
 
     protected abstract ComponentFactory factory(final SimpleContainer container);
 
-    public FactoryResolver(final Class<?> api,
+    public FactoryResolver(final int priority,
+                           final Class<?> api,
                            final Class<? extends ComponentFactory> factoryClass,
-                           final boolean fallback,
                            final ReferenceChain references,
                            final ComponentCache cache,
                            final LogFactory logs) {
-        super(api, fallback, references, cache, logs);
+        super(priority, api, references, cache, logs);
         this.factoryClass = factoryClass;
 
         final Component annotation = factoryClass.getAnnotation(Component.class);
@@ -66,6 +66,7 @@ abstract class FactoryResolver extends AbstractResolver {
     public Annotation[] providedContext() {
         return null;
     }
+
 
     public <T extends Annotation> T contextSpecification(final Class<T> type) {
         return factoryClass.getAnnotation(type);

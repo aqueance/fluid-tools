@@ -78,56 +78,19 @@ final class SimpleContainerImpl implements SimpleContainer {
 
             if (resolver == null) {
                 replace(api, null, entry);
-            } else {
-
-                // TODO: variants handling is not OO
-                if (entry.isVariantMapping()) {
-                    final VariantResolver variants = (VariantResolver) entry;
-
-                    if (resolver.isVariantMapping()) {
-                        if (variants.isFallback() == resolver.isFallback()) {
-                            throw new ComponentContainer.BindingException("Component %s already hijacked by %s", api, resolver.factoryClass());
-                        } else if (!variants.isFallback()) {
-                            replace(api, resolver, entry);
-                            variants.resolverReplaced(api, null, ((VariantResolver) resolver).delegate());
-                        }
-                    } else if (resolver.isInstanceMapping()) {
-                        throw new ComponentContainer.BindingException("Component instance %s cannot be hijacked by %s", api, entry.factoryClass());
-                    } else {
-                        replace(api, resolver, entry);
-                        variants.resolverReplaced(api, null, resolver);
-                    }
-                } else {
-                    if (resolver.isVariantMapping()) {
-                        if (entry.isInstanceMapping()) {
-                            throw new ComponentContainer.BindingException("Component instance %s cannot be hijacked by %s", api, resolver.factoryClass());
-                        } else {
-                            final VariantResolver variants = (VariantResolver) resolver;
-                            final ComponentResolver delegate = variants.delegate();
-
-                            if (delegate == null || (delegate.isFallback() && !entry.isFallback())) {
-                                variants.resolverReplaced(api, delegate, entry);
-                            } else {
-                                throw new ComponentContainer.BindingException("Component %s already bound", api);
-                            }
-                        }
-                    } else {
-                        if (entry.isFallback() == resolver.isFallback()) {
-                            throw new ComponentContainer.BindingException("Component %s already bound", api);
-                        }
-
-                        if (!entry.isFallback()) {
-                            replace(api, resolver, entry);
-                        }
-                    }
-                }
+            } else if (resolver instanceof VariantResolver && resolver.replaces(entry)) {
+                replace(api, entry, resolver);
+            } else if (entry.replaces(resolver)) {
+                replace(api, resolver, entry);
             }
         }
     }
 
     public void replace(final Class<?> key, final ComponentResolver previous, final ComponentResolver replacement) {
-        contents.remove(key);
-        replaceResolver(key, previous, replacement);
+        if (contents.remove(key) == previous) {
+            replaceResolver(key, previous, replacement);
+        }
+
         contents.put(key, replacement);
     }
 
@@ -212,9 +175,9 @@ final class SimpleContainerImpl implements SimpleContainer {
             }
 
             public ComponentResolver component(final Class<?> api, final ComponentCache cache, final boolean resolvesFactory) {
-                return new ConstructingResolver(api,
+                return new ConstructingResolver(isFallback ? 0 : 1,
+                                                api,
                                                 implementation,
-                                                isFallback,
                                                 resolvesFactory,
                                                 cache,
                                                 referenceChain,
@@ -225,12 +188,12 @@ final class SimpleContainerImpl implements SimpleContainer {
 
             public VariantResolver variant(final Class<?> api, final ComponentCache cache) {
                 final Class<? extends ComponentVariantFactory> factory = implementation.asSubclass(ComponentVariantFactory.class);
-                return new VariantResolverClass(SimpleContainerImpl.this, api, factory, isFallback, referenceChain, cache, services.logs());
+                return new VariantResolverClass(isFallback ? 0 : 1, SimpleContainerImpl.this, api, factory, referenceChain, cache, services.logs());
             }
 
             public FactoryResolver factory(final Class<?> api, final ComponentCache cache) {
                 final Class<? extends ComponentFactory> factory = implementation.asSubclass(ComponentFactory.class);
-                return new FactoryResolverClass(api, factory, isFallback, referenceChain, cache, services.logs());
+                return new FactoryResolverClass(isFallback ? 0 : 1, api, factory, referenceChain, cache, services.logs());
             }
         });
     }
@@ -272,15 +235,15 @@ final class SimpleContainerImpl implements SimpleContainer {
             }
 
             public ComponentResolver component(final Class<?> api, final ComponentCache cache, final boolean resolvesFactory) {
-                return new InstanceResolver(api, instance, isFallback, referenceChain, services.logs());
+                return new InstanceResolver(isFallback ? 0 : 1, api, instance, referenceChain, services.logs());
             }
 
             @SuppressWarnings("ConstantConditions")
             public VariantResolver variant(final Class<?> api, final ComponentCache cache) {
-                return new VariantResolverInstance(SimpleContainerImpl.this,
+                return new VariantResolverInstance(isFallback ? 0 : 1,
+                                                   SimpleContainerImpl.this,
                                                    api,
                                                    (ComponentVariantFactory) instance,
-                                                   isFallback,
                                                    referenceChain,
                                                    cache,
                                                    services.logs());
@@ -288,7 +251,7 @@ final class SimpleContainerImpl implements SimpleContainer {
 
             @SuppressWarnings("ConstantConditions")
             public FactoryResolver factory(final Class<?> api, final ComponentCache cache) {
-                return new FactoryResolverInstance(api, (ComponentFactory) instance, isFallback, referenceChain, cache, services.logs());
+                return new FactoryResolverInstance(isFallback ? 0 : 1, api, (ComponentFactory) instance, referenceChain, cache, services.logs());
             }
         });
     }

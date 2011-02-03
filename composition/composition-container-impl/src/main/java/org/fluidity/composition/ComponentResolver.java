@@ -34,12 +34,32 @@ import org.fluidity.composition.spi.ComponentMapping;
 interface ComponentResolver extends ComponentMapping {
 
     /**
+     * Returns the relative priority of this mapping compared to another.
+     *
+     * @return the relative priority of this mapping compared to another.
+     */
+    int priority();
+
+    /**
      * Tells whether the mapping is that of a {@link org.fluidity.composition.spi.ComponentVariantFactory}.
      *
      * @return <code>true</code> if the mapping is that of a {@link org.fluidity.composition.spi.ComponentVariantFactory}, <code>false</code> otherwise.
-     * @deprecated and should be removed
      */
     boolean isVariantMapping();
+
+    /**
+     * Tells whether this mapping has been created for an already instantiated component.
+     *
+     * @return <code>true</code> if this mapping represents an already instantiated component, <code>false</code> otherwise.
+     */
+    boolean isInstanceMapping();
+
+    /**
+     * Tells if the receiver replaces the supplied <code>resolver</code>.
+     * @param resolver the resolver that the receiver may need to replace.
+     * @return <code>true</code> if the supplied <code>resolver</code> is replaced by the receiver.
+     */
+    boolean replaces(ComponentResolver resolver);
 
     /**
      * Returns the list of annotations that may comprise the context of some other component. Factories do not provide context annotations.
@@ -47,22 +67,6 @@ interface ComponentResolver extends ComponentMapping {
      * @return the list of annotations that may comprise the context of some other component or <code>null</code> if none present.
      */
     Annotation[] providedContext();
-
-    /**
-     * Tells if the component is a fallback or primary. When both a primary and fallback component is mapped to the same interface, the fallback is ignored and
-     * the primary is used.
-     *
-     * @return <code>true</code> if the component is a fallback component, <code>false</code> if it is primary.
-     */
-    boolean isFallback();
-
-    /**
-     * Returns the component class in case of a {@link org.fluidity.composition.spi.ComponentVariantFactory} or a {@link sun.awt.ComponentFactory} mapping.
-     *
-     * @return the component class in case of a {@link org.fluidity.composition.spi.ComponentVariantFactory} or a {@link sun.awt.ComponentFactory} mapping.
-     * @deprecated and will be removed
-     */
-    Class<?> factoryClass();
 
     /**
      * Creates the actual component.
@@ -75,13 +79,6 @@ interface ComponentResolver extends ComponentMapping {
      * @return the component instance, never <code>null</code>.
      */
     Object create(SimpleContainer container, Class<?> api, boolean circular);
-
-    /**
-     * Tells whether this mapping has been created for an already instantiated component.
-     *
-     * @return <code>true</code> if this mapping represents an already instantiated component, <code>false</code> otherwise.
-     */
-    boolean isInstanceMapping();
 
     /**
      * Notifies the receiver that a previously bound resolver has been replaced by another one.
