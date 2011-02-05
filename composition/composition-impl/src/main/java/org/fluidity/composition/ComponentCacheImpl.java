@@ -22,10 +22,10 @@
 
 package org.fluidity.composition;
 
+import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.fluidity.composition.spi.ComponentMapping;
 import org.fluidity.foundation.logging.Log;
 import org.fluidity.foundation.spi.LogFactory;
 
@@ -34,84 +34,71 @@ import org.fluidity.foundation.spi.LogFactory;
  */
 final class ComponentCacheImpl implements ComponentCache {
 
-    private final Map<ComponentContext, Object> cache;
+    private final Cache cache;
     private final Listener listener;
-    private final ContextChain contextChain;
-    private final ReferenceChain referenceChain;
     private final Log log;
 
-    public ComponentCacheImpl(final Listener listener,
-                              final ContextChain contextChain,
-                              final ReferenceChain referenceChain,
-                              final LogFactory logs,
-                              boolean cache) {
-        this.cache = cache ? new ConcurrentHashMap<ComponentContext, Object>() : null;
+    public ComponentCacheImpl(final Listener listener, final LogFactory logs, boolean cache) {
+        this.cache = cache ? new Cache() : null;
         this.listener = listener;
-        this.referenceChain = referenceChain;
-        this.contextChain = contextChain;
         this.log = logs.createLog(getClass());
     }
 
-    public Object lookup(final Object source, final Class<?> componentInterface, final ComponentMapping mapping, final Command create) {
-        if (cache == null) {
-            final Object component = createComponent(componentInterface, mapping, create);
+    public Object lookup(final Object source, final ComponentContext context, final Class<?> componentInterface, final Instantiation create) {
+        return lookup(cache == null ? new Cache() : cache, source, context, componentInterface, create);
+    }
 
-            recordComponentCreation(source, component, componentInterface, contextChain.prevalentContext());
+    @SuppressWarnings("SynchronizationOnLocalVariableOrMethodParameter")
+    private Object lookup(final Cache cache,
+                          final Object source,
+                          final ComponentContext context,
+                          final Class<?> api,
+                          final Instantiation instantiation) {
+        final Map<ComponentContext, ComponentContext> contexts = cache.contexts;
+        final Map<ComponentContext, Object> components = cache.components;
 
-            return component;
-        } else {
-            final ComponentContext key = contextChain.currentContext();
+        final ComponentContext incomingKey = context.key();
+        if (!components.containsKey(incomingKey)) {
 
-            if (!cache.containsKey(key)) {
+            // go ahead and create the component and then see if it was actually necessary; context may change as new instantiations take place
+            final Object component = instantiation.perform(context);
+            final ComponentContext outgoingKey = context.key();
 
-                // go ahead and create the component and then see if it was actually necessary
-                final Object component = createComponent(componentInterface, mapping, create);
+            synchronized (cache) {
+                if (!components.containsKey(outgoingKey)) {
+                    contexts.put(incomingKey, outgoingKey);
+                    components.put(outgoingKey, component);
 
-                // get the context consumed further in the chain and pass the one consumed here
-                final ComponentContext consumedContext = contextChain.prevalentContext();
-
-                synchronized (cache) {
-                    if (!cache.containsKey(consumedContext)) {
-                        cache.put(key, component);
-                        cache.put(consumedContext, component);
-
-                        recordComponentCreation(source, component, componentInterface, consumedContext);
+                    if (component == null) {
+                        log.info("%s: not created component for %s%s", source, api, context.types().isEmpty() ? "" : String.format(" for context %s", context));
                     } else {
-                        cache.put(key, cache.get(consumedContext));
+                        log.info("%s: created %s@%s%s",
+                                 source,
+                                 component.getClass().getName(),
+                                 System.identityHashCode(component),
+                                 context.types().isEmpty() ? "" : String.format(" for context %s", context));
                     }
+
+                    if (listener != null) {
+                        listener.created(api, component);
+                    }
+                } else if (!contexts.containsKey(incomingKey)) {
+                    contexts.put(incomingKey, outgoingKey);
                 }
             }
-
-            assert cache.containsKey(key) : String.format("Component %s not found in context %s", componentInterface, key);
-            return cache.get(key);
         }
+
+        assert contexts.containsKey(incomingKey);
+
+        context.collect(Collections.singleton(contexts.get(incomingKey)));
+
+        final ComponentContext key = contexts.get(incomingKey);
+        assert components.containsKey(key) : String.format("Component %s not found in context %s", api, context);
+        return components.get(key);
     }
 
-    private Object createComponent(final Class<?> componentInterface, final ComponentMapping mapping, final Command create) {
-        final ComponentContext context = contextChain.consumedContext(componentInterface, mapping, contextChain.currentContext(), referenceChain);
-        final Object component = create.run(context);
-
-        contextChain.contextConsumed(context);
-
-        return component;
-    }
-
-    private void recordComponentCreation(final Object source, final Object component, final Class<?> componentInterface, final ComponentContext context) {
-        if (component == null) {
-            log.info("%s: not created component for %s%s",
-                     source,
-                     componentInterface,
-                     context.types().isEmpty() ? "" : String.format(" for context %s", context));
-        } else {
-            log.info("%s: created %s@%s%s",
-                     source,
-                     component.getClass().getName(),
-                     System.identityHashCode(component),
-                     context.types().isEmpty() ? "" : String.format(" for context %s", context));
-        }
-
-        if (listener != null) {
-            listener.created(componentInterface, component);
-        }
+    private static class Cache {
+        public final Map<ComponentContext, Object> components = new ConcurrentHashMap<ComponentContext, Object>();
+        public final Map<ComponentContext, ComponentContext> contexts = new ConcurrentHashMap<ComponentContext, ComponentContext>();
     }
 }

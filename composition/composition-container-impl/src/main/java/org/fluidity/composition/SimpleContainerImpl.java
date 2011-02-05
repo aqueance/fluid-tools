@@ -22,6 +22,7 @@
 
 package org.fluidity.composition;
 
+import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -29,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.fluidity.composition.spi.ComponentFactory;
+import org.fluidity.composition.spi.ComponentMapping;
 import org.fluidity.composition.spi.ComponentVariantFactory;
 import org.fluidity.foundation.logging.Log;
 
@@ -38,6 +40,7 @@ import org.fluidity.foundation.logging.Log;
 final class SimpleContainerImpl implements SimpleContainer {
 
     // cache listener to capture instantiation of components
+    // TODO: implement dependency graph discovery and get rid of this listener functionality
     private final LocalListener listener = new LocalListener();
 
     private final ContainerServices services;
@@ -45,18 +48,14 @@ final class SimpleContainerImpl implements SimpleContainer {
 
     private final SimpleContainer parent;
     private final Map<Class<?>, ComponentResolver> contents = new HashMap<Class<?>, ComponentResolver>();
-    private final ReferenceChain referenceChain;
-    private final ContextChain contextChain;
-    private final ContextFactory contextFactory;
+    private final ReferenceChain references;
     private final DependencyInjector injector;
 
     public SimpleContainerImpl(final SimpleContainer parent, final ContainerServices services) {
         this.parent = parent;
         this.services = services;
         this.log = this.services.logs().createLog(getClass());
-        this.referenceChain = this.services.referenceChain();
-        this.contextChain = this.services.contextChain();
-        this.contextFactory = this.services.contextFactory();
+        this.references = this.services.referenceChain();
         this.injector = this.services.dependencyInjector();
     }
 
@@ -106,6 +105,10 @@ final class SimpleContainerImpl implements SimpleContainer {
 
     public ComponentContainer container(final ComponentContext context) {
         return new EmbeddedContainer(this, context);
+    }
+
+    public ComponentMapping mapping(final Class<?> type) {
+        return resolver(type, true);
     }
 
     public void bindFactory(final Class<?>[] interfaces, Class<?> implementation, final boolean stateful, final ContentResolvers factories) {
@@ -175,25 +178,17 @@ final class SimpleContainerImpl implements SimpleContainer {
             }
 
             public ComponentResolver component(final Class<?> api, final ComponentCache cache, final boolean resolvesFactory) {
-                return new ConstructingResolver(isFallback ? 0 : 1,
-                                                api,
-                                                implementation,
-                                                resolvesFactory,
-                                                cache,
-                                                referenceChain,
-                                                contextFactory,
-                                                injector,
-                                                services.logs());
+                return new ConstructingResolver(isFallback ? 0 : 1, api, implementation, resolvesFactory, cache, references, injector, services.logs());
             }
 
             public VariantResolver variant(final Class<?> api, final ComponentCache cache) {
                 final Class<? extends ComponentVariantFactory> factory = implementation.asSubclass(ComponentVariantFactory.class);
-                return new VariantResolverClass(isFallback ? 0 : 1, SimpleContainerImpl.this, api, factory, referenceChain, cache, services.logs());
+                return new VariantResolverClass(isFallback ? 0 : 1, SimpleContainerImpl.this, api, factory, references, cache, services.logs());
             }
 
             public FactoryResolver factory(final Class<?> api, final ComponentCache cache) {
                 final Class<? extends ComponentFactory> factory = implementation.asSubclass(ComponentFactory.class);
-                return new FactoryResolverClass(isFallback ? 0 : 1, api, factory, referenceChain, cache, services.logs());
+                return new FactoryResolverClass(isFallback ? 0 : 1, api, factory, references, cache, services.logs());
             }
         });
     }
@@ -235,7 +230,7 @@ final class SimpleContainerImpl implements SimpleContainer {
             }
 
             public ComponentResolver component(final Class<?> api, final ComponentCache cache, final boolean resolvesFactory) {
-                return new InstanceResolver(isFallback ? 0 : 1, api, instance, referenceChain, services.logs());
+                return new InstanceResolver(isFallback ? 0 : 1, api, instance, references, services.logs());
             }
 
             @SuppressWarnings("ConstantConditions")
@@ -243,15 +238,14 @@ final class SimpleContainerImpl implements SimpleContainer {
                 return new VariantResolverInstance(isFallback ? 0 : 1,
                                                    SimpleContainerImpl.this,
                                                    api,
-                                                   (ComponentVariantFactory) instance,
-                                                   referenceChain,
+                                                   (ComponentVariantFactory) instance, references,
                                                    cache,
                                                    services.logs());
             }
 
             @SuppressWarnings("ConstantConditions")
             public FactoryResolver factory(final Class<?> api, final ComponentCache cache) {
-                return new FactoryResolverInstance(isFallback ? 0 : 1, api, (ComponentFactory) instance, referenceChain, cache, services.logs());
+                return new FactoryResolverInstance(isFallback ? 0 : 1, api, (ComponentFactory) instance, references, cache, services.logs());
             }
         });
     }
@@ -262,7 +256,7 @@ final class SimpleContainerImpl implements SimpleContainer {
         child.bindComponent(implementation, interfaces);
 
         for (final Class<?> api : interfaces) {
-            bindResolver(api, new LinkingResolver(child, api, child.resolver(api, false), referenceChain, services.logs()));
+            bindResolver(api, new LinkingResolver(child, api, child.resolver(api, false), references, services.logs()));
         }
 
         return child;
@@ -297,13 +291,11 @@ final class SimpleContainerImpl implements SimpleContainer {
     }
 
     public <T> T get(final Class<? extends T> key) {
-        final ComponentResolver resolver = contents.get(key);
+        return get(key, null);
+    }
 
-        if (resolver == null) {
-            return parent == null ? null : parent.get(key);
-        } else {
-            return referenceChain.track(resolver, key, new CreateCommand<T>(resolver, key));
-        }
+    public <T> T initialize(final T component) {
+        return initialize(component, null);
     }
 
     public <T> T get(final Class<? extends T> key, final ComponentContext context) {
@@ -312,16 +304,19 @@ final class SimpleContainerImpl implements SimpleContainer {
         if (resolver == null) {
             return parent == null ? null : parent.get(key, context);
         } else {
-            return contextChain.track(context, new ContextChain.Command<T>() {
-                public T run(final ComponentContext context) {
-                    return referenceChain.track(resolver, key, new CreateCommand<T>(resolver, key));
-                }
-            });
+            return references.track(context, resolver, key, new CreateCommand<T>(resolver, key));
         }
     }
 
-    public <T> T initialize(final T component) {
-        return injector.injectFields(this, component.getClass(), contextChain.currentContext(), component);
+    public <T> T initialize(final T component, final ComponentContext context) {
+        final Class<?> componentClass = component.getClass();
+        final ComponentMapping mapping = new InstanceMapping(componentClass);
+
+        return references.track(context, mapping, componentClass, new ReferenceChain.Command<T>() {
+            public T run(final ComponentContext context, final boolean circular) {
+                return injector.injectFields(SimpleContainerImpl.this, mapping, componentClass, context, component);
+            }
+        });
     }
 
     public String id() {
@@ -354,20 +349,9 @@ final class SimpleContainerImpl implements SimpleContainer {
             this.api = api;
         }
 
-        public T run(final boolean circular) {
-            final ContextChain.Command<T> command = new ContextChain.Command<T>() {
-                @SuppressWarnings("unchecked")
-                public T run(final ComponentContext context) {
-                    return injector.injectFields(SimpleContainerImpl.this, api, context, (T) resolver.create(SimpleContainerImpl.this, api, circular));
-                }
-            };
-
-            final ComponentContext extracted = contextFactory.extractContext(resolver.providedContext());
-            if (extracted == null) {
-                return command.run(contextChain.currentContext());
-            } else {
-                return contextChain.track(extracted, command);
-            }
+        @SuppressWarnings("unchecked")
+        public T run(final ComponentContext context, final boolean circular) {
+            return injector.injectFields(SimpleContainerImpl.this, resolver, api, context, (T) resolver.getComponent(context, SimpleContainerImpl.this, api, circular));
         }
     }
 
@@ -440,6 +424,27 @@ final class SimpleContainerImpl implements SimpleContainer {
             } finally {
                 this.delegate.remove();
             }
+        }
+    }
+
+    private class InstanceMapping implements ComponentMapping {
+
+        private final Class<?> componentClass;
+
+        public InstanceMapping(Class<?> componentClass) {
+            this.componentClass = componentClass;
+        }
+
+        public boolean isFactoryMapping() {
+            return false;
+        }
+
+        public <T extends Annotation> T contextSpecification(final Class<T> type) {
+            return componentClass.getAnnotation(type);
+        }
+
+        public Annotation[] providedContext() {
+            return componentClass.getAnnotations();
         }
     }
 }

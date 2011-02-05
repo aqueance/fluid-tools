@@ -30,6 +30,7 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.fluidity.composition.spi.ComponentMapping;
 import org.fluidity.composition.spi.DependencyResolver;
 import org.fluidity.foundation.ClassLoaders;
 import org.fluidity.foundation.Exceptions;
@@ -42,33 +43,33 @@ import org.fluidity.foundation.Exceptions;
 final class DependencyInjectorImpl implements DependencyInjector {
 
     private final ClassDiscovery discovery;
-    private final ReferenceChain referenceChain;
-    private final ContextChain contextChain;
-    private final ContextFactory contextFactory;
 
-
-    public DependencyInjectorImpl(final ClassDiscovery discovery, final ReferenceChain referenceChain, final ContextChain contextChain, final ContextFactory contextFactory) {
+    public DependencyInjectorImpl(final ClassDiscovery discovery) {
         this.discovery = discovery;
-        this.referenceChain = referenceChain;
-        this.contextChain = contextChain;
-        this.contextFactory = contextFactory;
     }
 
-    public <T> T injectFields(final DependencyResolver resolver, final Class<?> componentApi, final ComponentContext context, final T instance) {
+    public <T> T injectFields(final DependencyResolver resolver,
+                              final ComponentMapping mapping,
+                              final Class<?> componentApi,
+                              final ComponentContext context,
+                              final T instance) {
         assert resolver != null;
 
         if (instance != null) {
             final Class<?> componentType = instance.getClass();
-            injectFields(resolver, context, instance, componentApi, componentType, componentType);
+            context.collect(injectFields(resolver, mapping, context, instance, componentType, componentType));
         }
 
         return instance;
     }
 
     public Object[] injectConstructor(final DependencyResolver resolver,
+                                      final ComponentMapping mapping,
                                       final Class<?> componentApi,
                                       final ComponentContext context,
                                       final Constructor<?> constructor) {
+        final List<ComponentContext> consumed = new ArrayList<ComponentContext>();
+
         final Class<?> componentType = constructor.getDeclaringClass();
         final Annotation[][] annotations = constructor.getParameterAnnotations();
         final Class[] types = constructor.getParameterTypes();
@@ -76,7 +77,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
 
         for (int i = 0, length = types.length; i < length; ++i) {
             final int index = i;
-            injectDependency(resolver, context, componentApi, componentType, componentType, new Dependency() {
+            consumed.add(injectDependency(resolver, mapping, context.copy(), componentType, componentType, new Dependency() {
                 public Object itself() {
                     return null;
                 }
@@ -103,18 +104,22 @@ final class DependencyInjectorImpl implements DependencyInjector {
                 public void set(final Object value) {
                     arguments[index] = value;
                 }
-            });
+            }));
         }
+
+        context.collect(consumed);
 
         return arguments;
     }
 
-    private <T> void injectFields(final DependencyResolver resolver,
-                                  final ComponentContext context,
-                                  final T instance,
-                                  final Class<?> componentApi,
-                                  final Class<?> componentType,
-                                  final Class<?> declaringType) {
+    private <T> List<ComponentContext> injectFields(final DependencyResolver resolver,
+                                                    final ComponentMapping mapping,
+                                                    final ComponentContext context,
+                                                    final T instance,
+                                                    final Class<?> componentType,
+                                                    final Class<?> declaringType) {
+        final List<ComponentContext> consumed = new ArrayList<ComponentContext>();
+
         for (final Field field : declaringType.getDeclaredFields()) {
             field.setAccessible(true);
 
@@ -129,7 +134,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
             }
 
             if (field.isAnnotationPresent(Component.class) || field.isAnnotationPresent(ServiceProvider.class)) {
-                injectDependency(resolver, context, componentApi, componentType, declaringType, new Dependency() {
+                consumed.add(injectDependency(resolver, mapping, context.copy(), componentType, declaringType, new Dependency() {
                     public Object itself() {
                         return instance;
                     }
@@ -154,24 +159,29 @@ final class DependencyInjectorImpl implements DependencyInjector {
                             }
                         });
                     }
-                });
+                }));
             }
         }
 
         final Class<?> ancestor = declaringType.getSuperclass();
         if (ancestor != null) {
-            injectFields(resolver, context, instance, componentApi, componentType, ancestor);
+            consumed.addAll(injectFields(resolver, mapping, context, instance, componentType, ancestor));
         }
+
+        return consumed;
     }
 
-    private void injectDependency(final DependencyResolver resolver,
-                                  final ComponentContext context,
-                                  final Class<?> componentApi,
-                                  final Class<?> componentType,
-                                  final Class<?> declaringType,
-                                  final Dependency dependency) {
+    private ComponentContext injectDependency(final DependencyResolver resolver,
+                                              final ComponentMapping mapping,
+                                              final ComponentContext context,
+                                              final Class<?> componentType,
+                                              final Class<?> declaringType,
+                                              final Dependency dependency) {
         final ServiceProvider serviceProvider = dependency.annotation(ServiceProvider.class);
         final Class<?> dependencyType = findDependencyType(dependency.annotation(Component.class), dependency.type(), declaringType);
+
+        assert mapping != null : declaringType;
+        final Annotation[] typeContext = neverNull(mapping.providedContext());
 
         if (serviceProvider != null) {
             if (!dependencyType.isArray()) {
@@ -207,7 +217,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
 
             dependency.set(list.toArray((Object[]) Array.newInstance(providerType, list.size())));
         } else if (dependency.type() == ComponentContext.class) {
-            dependency.set(contextChain.consumedContext(componentApi, referenceChain.lastLink().mapping(), context, referenceChain));
+            dependency.set(context.reduce(mapping.contextSpecification(Context.class)));
         } else {
             Object value = null;
 
@@ -220,25 +230,32 @@ final class DependencyInjectorImpl implements DependencyInjector {
             }
 
             if (value == null) {
-                final ComponentContext extracted = contextFactory.extractContext(dependency.annotations());
+                final ComponentMapping dependencyMapping = resolver.mapping(dependencyType);
+                if (dependencyMapping != null) {
+                    final Annotation[] dependencyContext = neverNull(dependency.annotations());
 
-                value = extracted == null ? resolver.resolve(dependencyType, context) : contextChain.track(extracted, new ContextChain.Command<Object>() {
-                    public Object run(final ComponentContext context) {
-                        return resolver.resolve(dependencyType, context);
-                    }
-                });
-            }
+                    final Annotation[] definitions = new Annotation[typeContext.length + dependencyContext.length];
+                    System.arraycopy(typeContext, 0, definitions, 0, typeContext.length);
+                    System.arraycopy(dependencyContext, 0, definitions, typeContext.length, dependencyContext.length);
 
-            if (value == null) {
-                if (dependency.annotation(Optional.class) == null) {
-                    throw new ComponentContainer.ResolutionException("Dependency %s of %s cannot be satisfied", toString(dependencyType), declaringType);
+                    context.expand(definitions);
+
+                    value = resolver.resolve(dependencyType, context.reduce(dependencyMapping.contextSpecification(Context.class)));
                 }
-
-                dependency.set(value);
-            } else {
-                dependency.set(value);
             }
+
+            if (value == null && dependency.annotation(Optional.class) == null) {
+                throw new ComponentContainer.ResolutionException("Dependency %s of %s cannot be satisfied", toString(dependencyType), declaringType);
+            }
+
+            dependency.set(value);
         }
+
+        return context;
+    }
+
+    private static Annotation[] neverNull(final Annotation[] array) {
+        return array == null ? new Annotation[0] : array;
     }
 
     // TODO: duplicated in SimpleContainerImpl

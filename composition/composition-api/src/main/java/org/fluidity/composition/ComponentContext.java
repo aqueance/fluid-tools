@@ -23,6 +23,7 @@
 package org.fluidity.composition;
 
 import java.lang.annotation.Annotation;
+import java.util.Collection;
 import java.util.Set;
 
 /**
@@ -79,4 +80,45 @@ public interface ComponentContext {
      * @return the set of annotation types the context contains instances of.
      */
     Set<Class<? extends Annotation>> types();
+
+    /**
+     * Adds the context definitions to the context.
+     *
+     * @param definition the annotations potentially defining new context.
+     *
+     * @return the receiver.
+     */
+    ComponentContext expand(Annotation[] definition);
+
+    /**
+     * Reduces the returned context annotations to those specified by the parameter.
+     *
+     * @param accepted the {@link Context} annotation listing the accepted annotations.
+     *
+     * @return the receiver.
+     */
+    ComponentContext reduce(Context accepted);
+
+    /**
+     * Adds the accepted context annotations from all supplied contexts to the accepted annotations of the receiver.
+     *
+     * @param contexts a list of context accepted during component instantiations downstream.
+     *
+     * @return the receiver.
+     */
+    ComponentContext collect(Collection<ComponentContext> contexts);
+
+    /**
+     * Returns a new copy of the receiver.
+     *
+     * @return a new copy of the receiver.
+     */
+    ComponentContext copy();
+
+    /**
+     * Returns a component context that can be used to cache component instances for this context.
+     *
+     * @return a component context that can be used to cache component instances for this context.
+     */
+    ComponentContext key();
 }

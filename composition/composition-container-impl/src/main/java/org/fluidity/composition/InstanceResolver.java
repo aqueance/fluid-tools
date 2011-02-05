@@ -48,7 +48,7 @@ final class InstanceResolver extends AbstractResolver {
         return null;
     }
 
-    public Object create(final SimpleContainer container, final Class<?> api, final boolean circular) {
+    public Object getComponent(final ComponentContext context, final SimpleContainer container, final Class<?> api, final boolean circular) {
         return instance;
     }
 

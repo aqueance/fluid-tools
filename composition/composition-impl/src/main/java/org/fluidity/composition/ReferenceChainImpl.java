@@ -34,6 +34,7 @@ import org.fluidity.composition.spi.ComponentMapping;
  */
 final class ReferenceChainImpl implements ReferenceChain {
 
+    // TODO: pass along in method invocations
     private static final ThreadLocal<List<Link>> reference = new ThreadLocal<List<Link>>() {
 
         @Override
@@ -42,6 +43,7 @@ final class ReferenceChainImpl implements ReferenceChain {
         }
     };
 
+    // TODO: get rid of
     private static final ThreadLocal<Set<ComponentMapping>> mappings = new ThreadLocal<Set<ComponentMapping>>() {
 
         @Override
@@ -56,7 +58,7 @@ final class ReferenceChainImpl implements ReferenceChain {
         return stack.get(stack.size() - 1);
     }
 
-    public <T> T track(final ComponentMapping mapping, final Class<?> dependency, final Command<T> command) {
+    public <T> T track(final ComponentContext context, final ComponentMapping mapping, final Class<?> dependency, final Command<T> command) {
         final List<Link> stack = reference.get();
         final Set<ComponentMapping> loop = mappings.get();
 
@@ -65,7 +67,7 @@ final class ReferenceChainImpl implements ReferenceChain {
         stack.add(new LinkImpl(mapping, dependency));
         loop.add(mapping);
         try {
-            return command.run(circular);
+            return command.run(context == null ? new ComponentContextImpl() : context.copy(), circular);
         } finally {
             stack.remove(stack.size() - 1);
 
@@ -75,13 +77,7 @@ final class ReferenceChainImpl implements ReferenceChain {
         }
     }
 
-    public void iterate(final Visitor visitor) {
-        for (final Link link : reference.get()) {
-            if (!visitor.visit(link)) break;
-        }
-    }
-
-    public String print() {
+    public String toString() {
         return reference.get().toString();
     }
 

@@ -151,6 +151,19 @@ interface SimpleContainer extends DependencyResolver {
     <T> T initialize(T component) throws ComponentContainer.ResolutionException;
 
     /**
+     * Injects the {@link Component} annotated fields of the given component instance.
+     *
+     * @param component the component instance.
+     * @param context the base context to resolve the component's dependencies in.
+     *
+     * @return the component instance.
+     *
+     * @throws ComponentContainer.ResolutionException
+     *          when dependency resolution fails.
+     */
+    <T> T initialize(final T component, final ComponentContext context) throws ComponentContainer.ResolutionException;
+
+    /**
      * Returns all singleton component instances, created in response to this method call, in the container under the default empty context assignable to the
      * given interface.
      *

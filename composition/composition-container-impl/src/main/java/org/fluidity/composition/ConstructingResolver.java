@@ -39,7 +39,6 @@ import org.fluidity.foundation.spi.LogFactory;
 final class ConstructingResolver extends AbstractResolver {
 
     private final DependencyInjector injector;
-    private final ContextFactory contexts;
 
     private final Class<?> componentClass;
 
@@ -52,13 +51,11 @@ final class ConstructingResolver extends AbstractResolver {
                                 final boolean ignoreContext,
                                 final ComponentCache cache,
                                 final ReferenceChain references,
-                                final ContextFactory contexts,
                                 final DependencyInjector injector,
                                 final LogFactory logs) {
         super(priority, api, references, cache, logs);
         this.ignoreContext = ignoreContext;
         this.injector = injector;
-        this.contexts = contexts;
         this.componentClass = componentClass;
         this.constructor = findComponentConstructor();
     }
@@ -76,16 +73,15 @@ final class ConstructingResolver extends AbstractResolver {
     }
 
     @Override
-    protected ComponentCache.Command createCommand(final SimpleContainer container, final Class<?> api) {
-        return new ComponentCache.Command() {
-            public Object run(final ComponentContext context) {
+    protected ComponentCache.Instantiation createCommand(final SimpleContainer container, final Class<?> api) {
+        return new ComponentCache.Instantiation() {
+            public Object perform(final ComponentContext context) {
                 final Constructor constructor = constructor();
-                final ComponentContext componentContext = contexts.deriveContext(context, providedContext());
 
                 return Exceptions.wrap(String.format("instantiating %s", componentClass), new Exceptions.Command<Object>() {
                     public Object run() throws Exception {
                         constructor.setAccessible(true);
-                        return constructor.newInstance(injector.injectConstructor(container, api, componentContext, constructor));
+                        return constructor.newInstance(injector.injectConstructor(container, ConstructingResolver.this, api, context, constructor));
                     }
                 });
             }

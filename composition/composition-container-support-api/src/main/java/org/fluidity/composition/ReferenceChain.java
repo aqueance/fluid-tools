@@ -41,59 +41,31 @@ public interface ReferenceChain {
     /**
      * Adds a new reference to the chain and then removes it after the resolution completes.
      *
+     * @param context    the original context for the instantiation chain.
      * @param mapping    the mapping, e.g., the component interface and class, of the reference.
      * @param dependency the defined type of the reference.
      * @param command    the command that performs the resolution.
      *
      * @return whatever the command returns.
      */
-    <T> T track(ComponentMapping mapping, Class<?> dependency, Command<T> command);
+    <T> T track(ComponentContext context, ComponentMapping mapping, Class<?> dependency, Command<T> command);
 
     /**
-     * The command to invoke in the context of a new dependency reference established by calling {@link ReferenceChain#track(ComponentMapping, Class,
-     * ReferenceChain.Command)}.
+     * The command to invoke in the context of a new dependency reference established by calling {@link ReferenceChain#track(ComponentContext, ComponentMapping,
+     * Class, ReferenceChain.Command)} .
      *
      * @author Tibor Varga
      */
     interface Command<T> {
 
         /**
+         * @param context  the context for the command.
          * @param circular tells whether this particular producer has already been asked for a component in the current reference chain.
          *
-         * @return whatever the caller of {@link ReferenceChain#track(ComponentMapping, Class, ReferenceChain.Command)} expects to get returned.
+         * @return whatever the caller of {@link ReferenceChain#track(ComponentContext, ComponentMapping, Class, ReferenceChain.Command)}  expects to get
+         *         returned.
          */
-        T run(boolean circular);
-    }
-
-    /**
-     * Visits each item on the reference chain.
-     *
-     * @param visitor the visitor to send each reference in turn.
-     */
-    void iterate(Visitor visitor);
-
-    /**
-     * Provides a log and user friendly string representation of the current chain.
-     *
-     * @return a log and user friendly String representation of the current chain.
-     */
-    String print();
-
-    /**
-     * The visitor to invoke while iterating through the reference chain using the {@link ReferenceChain#iterate(ReferenceChain.Visitor)} method.
-     *
-     * @author Tibor Varga
-     */
-    interface Visitor {
-
-        /**
-         * Visits one reference in the reference chain.
-         *
-         * @param link the current link in the reference chain.
-         *
-         * @return <code>true</code> if more iterations are needed, <code>false</code> if iteration should terminate.
-         */
-        boolean visit(Link link);
+        T run(ComponentContext context, boolean circular);
     }
 
     /**

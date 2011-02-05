@@ -115,22 +115,19 @@ abstract class VariantResolver extends AbstractResolver {
     }
 
     @Override
-    public Object create(final SimpleContainer container, final Class<?> api, final boolean circular) {
-        return cache.lookup(container, api, this, new ComponentCache.Command() {
-            public Object run(final ComponentContext context) {
+    protected ComponentCache.Instantiation createCommand(final SimpleContainer container, final Class<?> api) {
+        return new ComponentCache.Instantiation() {
+
+            public Object perform(final ComponentContext context) {
                 final ComponentVariantFactory factory = factory(container);
 
                 final SimpleContainer child = container.newChildContainer();
                 child.bindResolver(api, findDelegate());
-                final OpenComponentContainer returned = factory.newComponent(new ComponentContainerShell(child, false), context);
+                factory.newComponent(new ComponentContainerShell(child, false), context);
 
-                if (returned == null) {
-                    return null;
-                } else {
-                    return returned.getComponent(references.lastLink().reference());
-                }
+                return child.get(api, context);
             }
-        });
+        };
     }
 
     @Override

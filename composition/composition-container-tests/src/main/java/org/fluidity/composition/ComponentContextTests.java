@@ -161,10 +161,10 @@ public final class ComponentContextTests extends AbstractContainerTests {
         assert container.getComponent(InnocentBystanderComponent.class) != context2.getInnocent() : "Context unaware intermediate component still a singleton";
         assert contextFree.getInnocent() != context2.getInnocent() : "Context unaware intermediate component still a singleton";
 
-        assert context1dependency1.setting().equals("value1");
-        assert context1dependency2.setting().equals("value1");
-        assert context2dependency1.setting().equals("value2-context");
-        assert context2dependency2.setting().equals("value2-ordinary");
+        assert context1dependency1.setting().equals("value1") : context1dependency1.setting();
+        assert context1dependency2.setting().equals("value1") : context1dependency2.setting();
+        assert context2dependency1.setting().equals("value2-context") : context2dependency1.setting();
+        assert context2dependency2.setting().equals("value2-ordinary") : context2dependency2.setting();
 
         assert context2.getInnocent().getContextAware().setting().equals("value1") : "Context not passed through context unaware component";
         assert context2.getInnocent().getOrdinary().setting().equals("missing-value") : "Invalid context passed through context unaware component";
@@ -263,7 +263,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
     @Context(Setting1.class)
     private static class OrdinaryVariants1 implements ComponentVariantFactory {
 
-        public OpenComponentContainer newComponent(final OpenComponentContainer container, final ComponentContext context) {
+        public void newComponent(final OpenComponentContainer container, final ComponentContext context) {
             container.getRegistry().bindInstance(new ContextAware.Settings() {
                 public String setting() {
                     final Setting1 setting = context.annotation(Setting1.class, null);
@@ -271,8 +271,6 @@ public final class ComponentContextTests extends AbstractContainerTests {
                     return value == null ? "missing-value" : value;
                 }
             }, ContextAware.Settings.class);
-
-            return container;
         }
     }
 
@@ -280,7 +278,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
     @Context(Setting2.class)
     private static class OrdinaryVariants2 implements ComponentVariantFactory {
 
-        public OpenComponentContainer newComponent(final OpenComponentContainer container, final ComponentContext context) {
+        public void newComponent(final OpenComponentContainer container, final ComponentContext context) {
             container.getRegistry().bindInstance(new ContextAware.Settings() {
                 public String setting() {
                     final Setting2 setting = context.annotation(Setting2.class, null);
@@ -288,7 +286,6 @@ public final class ComponentContextTests extends AbstractContainerTests {
                     return value == null ? "missing-value" : value;
                 }
             }, ContextAware.Settings.class);
-            return container;
         }
     }
 

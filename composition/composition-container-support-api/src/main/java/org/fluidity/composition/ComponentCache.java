@@ -22,8 +22,6 @@
 
 package org.fluidity.composition;
 
-import org.fluidity.composition.spi.ComponentMapping;
-
 /**
  * Caches components by context. Implementations must be thread safe.
  *
@@ -34,19 +32,19 @@ public interface ComponentCache {
     /**
      * Looks up and instantiates if necessary using the supplied command, the component whose class is also specified to find its annotations.
      *
-     * @param source             something to identify who is creating instances through this cache.
-     * @param componentInterface the interface the component implements.
-     * @param componentClass     the class of the component to return.
-     * @param create             the command that performs instantiation of the component.
      *
+     * @param source             something to identify who is creating instances through this cache.
+     * @param context            the context for the component.
+     * @param componentInterface the interface the component implements.
+     * @param create             the command that performs instantiation of the component.
      * @return the component instance.
      */
-    Object lookup(Object source, Class<?> componentInterface, ComponentMapping componentClass, Command create);
+    Object lookup(Object source, ComponentContext context, Class<?> componentInterface, Instantiation create);
 
     /**
      * A command to create a component instance in some context.
      */
-    interface Command {
+    interface Instantiation {
 
         /**
          * Creates and returns a new instance of a component.
@@ -55,15 +53,16 @@ public interface ComponentCache {
          *
          * @return a new instance of a component.
          */
-        Object run(ComponentContext context);
+        Object perform(ComponentContext context);
     }
 
     /**
-     * Listens to component instantiation. The {@link ComponentCache#lookup(Object, Class, ComponentMapping, ComponentCache.Command)} method must
+     * Listens to component instantiation. The {@link ComponentCache#lookup(Object, ComponentContext, Class, org.fluidity.composition.ComponentCache.Instantiation)}  method must
      * call an object implementing this interface when it has created a new instance of a component. The listener object must be passed to the cache
      * in its constructor.
      *
      * Implementations must be thread safe.
+     * @deprecated and will be removed
      */
     interface Listener {
 

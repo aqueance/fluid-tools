@@ -47,11 +47,8 @@ public interface ComponentVariantFactory {
      * @param context   is the context for the instance to create. When this is null or empty, the default instance must be returned. The key set in the context
      *                  is taken from the list of annotation classes in the {@link org.fluidity.composition.Context} annotation of this factory.
      *
-     * @return a container to get the instance from; may be <code>null</code>, in which case no instance will be created, otherwise either the component bound
-     *         by the factory is returned or the default one if the factory binds no component.
-     *
      * @throws ComponentContainer.ResolutionException
      *          of a component cannot be created.
      */
-    OpenComponentContainer newComponent(OpenComponentContainer container, ComponentContext context) throws ComponentContainer.ResolutionException;
+    void newComponent(OpenComponentContainer container, ComponentContext context) throws ComponentContainer.ResolutionException;
 }

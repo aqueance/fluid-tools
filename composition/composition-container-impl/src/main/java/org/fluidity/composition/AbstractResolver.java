@@ -51,14 +51,14 @@ abstract class AbstractResolver implements ComponentResolver {
     }
 
     /**
-     * Returns the command to use to create an instance. Called only when no circular references were detected.
+     * Returns the command to use to get a component instance. Called only when no circular references were detected.
      *
      * @param container the container containing this resolver.
      * @param api       the API the component is requested for.
      *
      * @return a command or <code>null</code> if no instance should be created.
      */
-    protected ComponentCache.Command createCommand(final SimpleContainer container, final Class<?> api) {
+    protected ComponentCache.Instantiation createCommand(final SimpleContainer container, final Class<?> api) {
         return null;
     }
 
@@ -67,27 +67,28 @@ abstract class AbstractResolver implements ComponentResolver {
      * defers the instantiation of that component. Uses the {@link #createCommand(SimpleContainer, Class)} method to perform actual component creation along
      * with the resolver's {@link ComponentCache} to cache instances.
      */
-    public Object create(final SimpleContainer container, final Class<?> api, final boolean circular) {
-        final ComponentCache.Command create = createCommand(container, api);
+    public Object getComponent(final ComponentContext context, final SimpleContainer container, final Class<?> api, final boolean circular) {
+        final ComponentCache.Instantiation create = createCommand(container, api);
 
         if (create == null) {
             return null;
         } else if (circular) {
-            return deferredCreate(container, api, create, null);
+            return deferredCreate(context, container, api, create, null);
         } else {
             try {
-                return cache.lookup(container, api, this, create);
+                return cache.lookup(container, context, api, create);
             } catch (final ComponentContainer.CircularReferencesException e) {
 
                 // handle circular reference that was noticed later in the reference chain that could not be handled at that point
-                return deferredCreate(container, api, create, e);
+                return deferredCreate(context, container, api, create, e);
             }
         }
     }
 
-    private Object deferredCreate(final SimpleContainer container,
+    private Object deferredCreate(final ComponentContext context,
+                                  final SimpleContainer container,
                                   final Class<?> api,
-                                  final ComponentCache.Command create,
+                                  final ComponentCache.Instantiation create,
                                   final ComponentContainer.CircularReferencesException error) {
         final Class<?> reference = references.lastLink().reference();
 
@@ -99,7 +100,7 @@ abstract class AbstractResolver implements ComponentResolver {
                 public Object invoke(final Object proxy, final Method method, final Object[] arguments) throws Throwable {
                     synchronized (this) {
                         if (delegate == null) {
-                            delegate = cache.lookup(container, api, AbstractResolver.this, create);
+                            delegate = cache.lookup(container, context, api, create);
                         }
                     }
 
@@ -108,7 +109,7 @@ abstract class AbstractResolver implements ComponentResolver {
                 }
             });
         } else {
-            throw error == null ? new ComponentContainer.CircularReferencesException(reference, references.print()) : error;
+            throw error == null ? new ComponentContainer.CircularReferencesException(reference, references.toString()) : error;
         }
     }
 

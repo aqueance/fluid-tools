@@ -32,8 +32,6 @@ import org.fluidity.foundation.spi.LogFactory;
 final class ProductionServices implements ContainerServices {
 
     private final ReferenceChainImpl referenceChain = new ReferenceChainImpl();
-    private final ContextFactory contextFactory = new ContextFactoryImpl();
-    private final ContextChain contextChain = new ContextChainImpl(contextFactory);
 
     private final LogFactory logs;
     private final ClassDiscoveryImpl classDiscovery;
@@ -42,19 +40,11 @@ final class ProductionServices implements ContainerServices {
     public ProductionServices(final LogFactory logs) {
         this.logs = logs;
         this.classDiscovery = new ClassDiscoveryImpl(logs);
-        this.dependencyInjector = new DependencyInjectorImpl(classDiscovery, referenceChain, contextChain, contextFactory);
+        this.dependencyInjector = new DependencyInjectorImpl(classDiscovery);
     }
 
     public ClassDiscovery classDiscovery() {
         return classDiscovery;
-    }
-
-    public ContextFactory contextFactory() {
-        return contextFactory;
-    }
-
-    public ContextChain contextChain() {
-        return contextChain;
     }
 
     public ReferenceChain referenceChain() {
@@ -70,6 +60,6 @@ final class ProductionServices implements ContainerServices {
     }
 
     public ComponentCache newCache(final ComponentCache.Listener listener, final boolean stateless) {
-        return new ComponentCacheImpl(listener, contextChain, referenceChain, logs, stateless);
+        return new ComponentCacheImpl(listener, logs, stateless);
     }
 }

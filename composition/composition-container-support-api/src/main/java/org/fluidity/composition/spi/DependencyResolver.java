@@ -65,4 +65,13 @@ public interface DependencyResolver {
      * @return a new component container.
      */
     ComponentContainer container(ComponentContext context);
+
+    /**
+     * Returns the component mapping for the given component API.
+     *
+     * @param type the component API to return a mapping for.
+     *
+     * @return the component mapping for the given component API or <code>null</code> if not found.
+     */
+    ComponentMapping mapping(Class<?> type);
 }

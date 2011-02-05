@@ -39,20 +39,6 @@ public interface ContainerServices {
     ClassDiscovery classDiscovery();
 
     /**
-     * Returns the service that can create {@link ComponentContext} instances.
-     *
-     * @return the service that can create {@link ComponentContext} instances.
-     */
-    ContextFactory contextFactory();
-
-    /**
-     * Returns the component that can track a chain of context creations and consumptions by components.
-     *
-     * @return the component that can track a chain of context creations and consumptions by components.
-     */
-    ContextChain contextChain();
-
-    /**
      * Returns the component that can track references from one component to the other.
      *
      * @return the component that can track references from one component to the other.

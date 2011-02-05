@@ -22,8 +22,6 @@
 
 package org.fluidity.composition;
 
-import java.lang.annotation.Annotation;
-
 import org.fluidity.composition.spi.ComponentMapping;
 
 /**
@@ -62,15 +60,9 @@ interface ComponentResolver extends ComponentMapping {
     boolean replaces(ComponentResolver resolver);
 
     /**
-     * Returns the list of annotations that may comprise the context of some other component. Factories do not provide context annotations.
+     * Creates and/or returns a component.
      *
-     * @return the list of annotations that may comprise the context of some other component or <code>null</code> if none present.
-     */
-    Annotation[] providedContext();
-
-    /**
-     * Creates the actual component.
-     *
+     * @param context   the context for the component.
      * @param container the container to use to resolve dependencies.
      * @param api       the API the component is requested for.
      * @param circular  a flag telling if this resolver has been invoked the second time during one invocation chain, e.g., to signify circular reference in the
@@ -78,7 +70,7 @@ interface ComponentResolver extends ComponentMapping {
      *
      * @return the component instance, never <code>null</code>.
      */
-    Object create(SimpleContainer container, Class<?> api, boolean circular);
+    Object getComponent(ComponentContext context, SimpleContainer container, Class<?> api, boolean circular);
 
     /**
      * Notifies the receiver that a previously bound resolver has been replaced by another one.
