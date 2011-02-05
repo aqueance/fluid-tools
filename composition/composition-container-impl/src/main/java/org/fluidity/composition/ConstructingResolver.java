@@ -81,7 +81,7 @@ final class ConstructingResolver extends AbstractResolver {
                 return Exceptions.wrap(String.format("instantiating %s", componentClass), new Exceptions.Command<Object>() {
                     public Object run() throws Exception {
                         constructor.setAccessible(true);
-                        return constructor.newInstance(injector.injectConstructor(container, ConstructingResolver.this, api, context, constructor));
+                        return constructor.newInstance(injector.injectConstructor(container, ConstructingResolver.this, context, constructor));
                     }
                 });
             }

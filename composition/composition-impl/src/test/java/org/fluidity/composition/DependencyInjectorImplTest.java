@@ -168,7 +168,7 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
         setupCollection(context, copy1, copy2);
 
         replay();
-        assert component == injector.injectFields(resolver, dummyMapping, FieldInjected.class, context, component);
+        assert component == injector.injectFields(resolver, dummyMapping, context, component);
         verify();
 
         assert component.dependency == dependency : component.dependency;
@@ -186,7 +186,7 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
         setupFieldResolution(FieldInjected.class, "dependency", Dependency.class, null);
 
         replay();
-        assert component == injector.injectFields(resolver, dummyMapping, FieldInjected.class, context, component);
+        assert component == injector.injectFields(resolver, dummyMapping, context, component);
         verify();
     }
 
@@ -197,7 +197,7 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
         setupCollection(context, setupFieldResolution(OptionalFieldInjected.class, "dependency", Dependency.class, null));
 
         replay();
-        assert component == injector.injectFields(resolver, dummyMapping, OptionalFieldInjected.class, context, component);
+        assert component == injector.injectFields(resolver, dummyMapping, context, component);
         verify();
 
         assert component.dependency == null : component.dependency;
@@ -219,9 +219,7 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
 
         replay();
         Object[] arguments = injector.injectConstructor(resolver,
-                                                        dummyMapping,
-                                                        ConstructorInjected.class,
-                                                        context,
+                                                        dummyMapping, context,
                                                         ConstructorInjected.class.getDeclaredConstructor(Dependency.class, Object[].class));
         verify();
 
@@ -255,7 +253,7 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
         EasyMock.expect(context.collect(Arrays.asList(copy1, copy2))).andReturn(context);
 
         replay();
-        assert component == injector.injectFields(resolver, mapping, SpecialDependent.class, context, component);
+        assert component == injector.injectFields(resolver, mapping, context, component);
         verify();
 
         assert component.container == container : component.container;

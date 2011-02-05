@@ -314,7 +314,7 @@ final class SimpleContainerImpl implements SimpleContainer {
 
         return references.track(context, mapping, componentClass, new ReferenceChain.Command<T>() {
             public T run(final ContextDefinition context, final boolean circular) {
-                return injector.injectFields(SimpleContainerImpl.this, mapping, componentClass, context, component);
+                return injector.injectFields(SimpleContainerImpl.this, mapping, context, component);
             }
         });
     }
@@ -351,7 +351,7 @@ final class SimpleContainerImpl implements SimpleContainer {
 
         @SuppressWarnings("unchecked")
         public T run(final ContextDefinition context, final boolean circular) {
-            return injector.injectFields(SimpleContainerImpl.this, resolver, api, context, (T) resolver.getComponent(context, SimpleContainerImpl.this, api, circular));
+            return injector.injectFields(SimpleContainerImpl.this, resolver, context, (T) resolver.getComponent(context, SimpleContainerImpl.this, api, circular));
         }
     }
 

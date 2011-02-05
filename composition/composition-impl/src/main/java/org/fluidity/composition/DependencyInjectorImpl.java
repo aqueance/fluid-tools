@@ -48,11 +48,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
         this.discovery = discovery;
     }
 
-    public <T> T injectFields(final DependencyResolver resolver,
-                              final ComponentMapping mapping,
-                              final Class<?> componentApi,
-                              final ContextDefinition context,
-                              final T instance) {
+    public <T> T injectFields(final DependencyResolver resolver, final ComponentMapping mapping, final ContextDefinition context, final T instance) {
         assert resolver != null;
 
         if (instance != null) {
@@ -65,7 +61,6 @@ final class DependencyInjectorImpl implements DependencyInjector {
 
     public Object[] injectConstructor(final DependencyResolver resolver,
                                       final ComponentMapping mapping,
-                                      final Class<?> componentApi,
                                       final ContextDefinition context,
                                       final Constructor<?> constructor) {
         final List<ContextDefinition> consumed = new ArrayList<ContextDefinition>();
