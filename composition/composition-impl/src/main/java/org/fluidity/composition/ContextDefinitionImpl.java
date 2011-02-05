@@ -103,6 +103,10 @@ final class ContextDefinitionImpl implements ContextDefinition {
         return this;
     }
 
+    public Map<Class<? extends Annotation>, Annotation[]> defined() {
+        return Collections.unmodifiableMap(defined);
+    }
+
     public Map<Class<? extends Annotation>, Annotation[]> collected() {
         return Collections.unmodifiableMap(collected);
     }
@@ -134,5 +138,15 @@ final class ContextDefinitionImpl implements ContextDefinition {
     @SuppressWarnings("unchecked")
     private Class<? extends Annotation> noProxy(Class<? extends Annotation> key) {
         return Proxy.isProxyClass(key) ? (Class<? extends Annotation>) key.getInterfaces()[0] : key;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        return this == o || (o != null && getClass() == o.getClass() && defined.equals(((ContextDefinitionImpl) o).defined));
+    }
+
+    @Override
+    public int hashCode() {
+        return defined.hashCode();
     }
 }

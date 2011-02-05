@@ -45,10 +45,10 @@ public final class ComponentContextTests extends AbstractContainerTests {
     @DataProvider(name = "component-types")
     public Object[][] componentTypes() {
         return new Object[][] {
-                new Object[] { new Class<?>[] {ContextAware.class}, ContextAwareComponent1Impl.class, null },
-                new Object[] { new Class<?>[] {ContextAware.class}, ContextAwareComponent2Impl.class, null },
-                new Object[] { new Class<?>[] {ContextAware.class, OrdinaryComponent1.class}, OrdinaryComponent1Impl.class, OrdinaryVariants1.class },
-                new Object[] { new Class<?>[] {ContextAware.class, OrdinaryComponent2.class}, OrdinaryComponent2Impl.class, OrdinaryVariants2.class },
+                new Object[] { new Class<?>[] { ContextAware.class }, ContextAwareComponent1Impl.class, null },
+                new Object[] { new Class<?>[] { ContextAware.class }, ContextAwareComponent2Impl.class, null },
+                new Object[] { new Class<?>[] { ContextAware.class, OrdinaryComponent1.class }, OrdinaryComponent1Impl.class, OrdinaryVariants1.class },
+                new Object[] { new Class<?>[] { ContextAware.class, OrdinaryComponent2.class }, OrdinaryComponent2Impl.class, OrdinaryVariants2.class },
         };
     }
 

@@ -62,6 +62,13 @@ public interface ContextDefinition {
     ContextDefinition collect(Collection<ContextDefinition> contexts);
 
     /**
+     * Returns the context definition from upstream.
+     *
+     * @return the context definition from upstream.
+     */
+    Map<Class<? extends Annotation>, Annotation[]> defined();
+
+    /**
      * Returns the consumed context collected upstream.
      *
      * @return the consumed context collected upstream.

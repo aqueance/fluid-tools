@@ -38,10 +38,6 @@ final class ComponentContextImpl implements ComponentContext {
 
     private final Map<Class<? extends Annotation>, Annotation[]> annotations = new HashMap<Class<? extends Annotation>, Annotation[]>();
 
-    public ComponentContextImpl() {
-        // empty
-    }
-
     public ComponentContextImpl(final Map<Class<? extends Annotation>, Annotation[]> map) {
         for (final Map.Entry<Class<? extends Annotation>, Annotation[]> entry : map.entrySet()) {
             annotations.put(entry.getKey(), entry.getValue().clone());
@@ -80,15 +76,13 @@ final class ComponentContextImpl implements ComponentContext {
         return toString(annotations);
     }
 
-    private String toString(final Map<Class<? extends Annotation>, Annotation[]> map) {
+    private static String toString(final Map<Class<? extends Annotation>, Annotation[]> map) {
         final StringBuilder builder = new StringBuilder();
 
         for (final Map.Entry<Class<? extends Annotation>, Annotation[]> entry : map.entrySet()) {
             if (builder.length() > 0) {
                 builder.append(", ");
             }
-
-            builder.append('[');
 
             for (final Annotation annotation : entry.getValue()) {
                 final Class<? extends Annotation> annotationClass = annotation.getClass();
@@ -127,14 +121,13 @@ final class ComponentContextImpl implements ComponentContext {
                     builder.append('(').append(values).append(')');
                 }
             }
-
-            builder.append(']');
         }
 
+        builder.insert(0, '[').append(']');
         return builder.toString();
     }
 
-    private void appendValue(StringBuilder values, Object value) {
+    private static void appendValue(StringBuilder values, Object value) {
         if (value instanceof Class) {
             values.append(((Class) value).getSimpleName()).append(".class");
         } else {
