@@ -70,7 +70,7 @@ interface ComponentResolver extends ComponentMapping {
      *
      * @return the component instance, never <code>null</code>.
      */
-    Object getComponent(ComponentContext context, SimpleContainer container, Class<?> api, boolean circular);
+    Object getComponent(ContextDefinition context, SimpleContainer container, Class<?> api, boolean circular);
 
     /**
      * Notifies the receiver that a previously bound resolver has been replaced by another one.

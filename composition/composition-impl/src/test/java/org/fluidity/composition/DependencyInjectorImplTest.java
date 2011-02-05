@@ -43,11 +43,9 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
 
     private final DependencyResolver resolver = addControl(DependencyResolver.class);
     private final ClassDiscovery discovery = addControl(ClassDiscovery.class);
-    private final ReferenceChain referenceChain = addControl(ReferenceChain.class);
-    private final ReferenceChain.Link link = addControl(ReferenceChain.Link.class);
     private final ComponentMapping mapping = addControl(ComponentMapping.class);
 
-    private final ComponentContext context = addControl(ComponentContext.class);
+    private final ContextDefinition context = addControl(ContextDefinition.class);
     private final ComponentContainer container = addControl(ComponentContainer.class);
 
     private final DependencyInjector injector = new DependencyInjectorImpl(discovery);
@@ -69,9 +67,9 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
         return array == null ? new Annotation[0] : array;
     }
 
-    private ComponentContext setupFieldResolution(final Class<?> componentType, final String fieldName, final Class<?> dependencyType, final Object component)
+    private ContextDefinition setupFieldResolution(final Class<?> componentType, final String fieldName, final Class<?> dependencyType, final Object component)
             throws Exception {
-        final ComponentContext copy = addLocalControl(ComponentContext.class);
+        final ContextDefinition copy = addLocalControl(ContextDefinition.class);
 
         EasyMock.expect(context.copy()).andReturn(copy);
 
@@ -98,15 +96,15 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
         return copy;
     }
 
-    private ComponentContext[] setupConstructorResolution(final Class<?> componentType, final int index, final Object... components) throws Exception {
+    private ContextDefinition[] setupConstructorResolution(final Class<?> componentType, final int index, final Object... components) throws Exception {
         final Constructor constructor = componentType.getDeclaredConstructors()[index];
         assert constructor != null : String.format("%s.%d", componentType.getClass(), index);
 
-        final List<ComponentContext> copies = new ArrayList<ComponentContext>();
+        final List<ContextDefinition> copies = new ArrayList<ContextDefinition>();
 
         int i = 0;
         for (final Class<?> dependencyType : constructor.getParameterTypes()) {
-            final ComponentContext copy = addLocalControl(ComponentContext.class);
+            final ContextDefinition copy = addLocalControl(ContextDefinition.class);
 
             copies.add(copy);
 
@@ -140,10 +138,10 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
             }
         }
 
-        return copies.toArray(new ComponentContext[copies.size()]);
+        return copies.toArray(new ContextDefinition[copies.size()]);
     }
 
-    private void setupCollection(final ComponentContext context, final ComponentContext... copies) {
+    private void setupCollection(final ContextDefinition context, final ContextDefinition... copies) {
         EasyMock.expect(context.collect(Arrays.asList(copies))).andReturn(context);
     }
 
@@ -153,9 +151,9 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
         final FieldInjected component = new FieldInjected();
 
         final Dependency dependency = new DependencyImpl();
-        final ComponentContext copy1 = setupFieldResolution(FieldInjected.class, "dependency", Dependency.class, dependency);
+        final ContextDefinition copy1 = setupFieldResolution(FieldInjected.class, "dependency", Dependency.class, dependency);
 
-        final ComponentContext copy2 = addLocalControl(ComponentContext.class);
+        final ContextDefinition copy2 = addLocalControl(ContextDefinition.class);
 
         EasyMock.expect(context.copy()).andReturn(copy2);
         EasyMock.expect(discovery.findComponentClasses(EasyMock.same(Service.class), EasyMock.<ClassLoader>notNull(), EasyMock.eq(false)))
@@ -239,17 +237,20 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
     public void handlesSpecialDependencies() throws Exception {
         final SpecialDependent component = new SpecialDependent();
 
-        final ComponentContext copy1 = addLocalControl(ComponentContext.class);
+        final ContextDefinition copy1 = addLocalControl(ContextDefinition.class);
         EasyMock.expect(context.copy()).andReturn(copy1);
 
         EasyMock.expect(mapping.providedContext()).andReturn(null).anyTimes();
         EasyMock.expect(resolver.container(copy1)).andReturn(container);
 
-        final ComponentContext copy2 = addLocalControl(ComponentContext.class);
+        final ContextDefinition copy2 = addLocalControl(ContextDefinition.class);
         EasyMock.expect(context.copy()).andReturn(copy2);
 
         EasyMock.expect(mapping.contextSpecification(Context.class)).andReturn(null);
         EasyMock.expect(copy2.reduce(null)).andReturn(copy2);
+
+        final ComponentContext created = addLocalControl(ComponentContext.class);
+        EasyMock.expect(copy2.create()).andReturn(created);
 
         EasyMock.expect(context.collect(Arrays.asList(copy1, copy2))).andReturn(context);
 
@@ -258,7 +259,7 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
         verify();
 
         assert component.container == container : component.container;
-        assert component.context == copy2 : component.context;
+        assert component.context == created : component.context;
     }
 
     private final class FieldInjected {

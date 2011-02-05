@@ -51,7 +51,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
     public <T> T injectFields(final DependencyResolver resolver,
                               final ComponentMapping mapping,
                               final Class<?> componentApi,
-                              final ComponentContext context,
+                              final ContextDefinition context,
                               final T instance) {
         assert resolver != null;
 
@@ -66,9 +66,9 @@ final class DependencyInjectorImpl implements DependencyInjector {
     public Object[] injectConstructor(final DependencyResolver resolver,
                                       final ComponentMapping mapping,
                                       final Class<?> componentApi,
-                                      final ComponentContext context,
+                                      final ContextDefinition context,
                                       final Constructor<?> constructor) {
-        final List<ComponentContext> consumed = new ArrayList<ComponentContext>();
+        final List<ContextDefinition> consumed = new ArrayList<ContextDefinition>();
 
         final Class<?> componentType = constructor.getDeclaringClass();
         final Annotation[][] annotations = constructor.getParameterAnnotations();
@@ -112,13 +112,13 @@ final class DependencyInjectorImpl implements DependencyInjector {
         return arguments;
     }
 
-    private <T> List<ComponentContext> injectFields(final DependencyResolver resolver,
-                                                    final ComponentMapping mapping,
-                                                    final ComponentContext context,
-                                                    final T instance,
-                                                    final Class<?> componentType,
-                                                    final Class<?> declaringType) {
-        final List<ComponentContext> consumed = new ArrayList<ComponentContext>();
+    private <T> List<ContextDefinition> injectFields(final DependencyResolver resolver,
+                                                     final ComponentMapping mapping,
+                                                     final ContextDefinition context,
+                                                     final T instance,
+                                                     final Class<?> componentType,
+                                                     final Class<?> declaringType) {
+        final List<ContextDefinition> consumed = new ArrayList<ContextDefinition>();
 
         for (final Field field : declaringType.getDeclaredFields()) {
             field.setAccessible(true);
@@ -171,12 +171,12 @@ final class DependencyInjectorImpl implements DependencyInjector {
         return consumed;
     }
 
-    private ComponentContext injectDependency(final DependencyResolver resolver,
-                                              final ComponentMapping mapping,
-                                              final ComponentContext context,
-                                              final Class<?> componentType,
-                                              final Class<?> declaringType,
-                                              final Dependency dependency) {
+    private ContextDefinition injectDependency(final DependencyResolver resolver,
+                                               final ComponentMapping mapping,
+                                               final ContextDefinition context,
+                                               final Class<?> componentType,
+                                               final Class<?> declaringType,
+                                               final Dependency dependency) {
         final ServiceProvider serviceProvider = dependency.annotation(ServiceProvider.class);
         final Class<?> dependencyType = findDependencyType(dependency.annotation(Component.class), dependency.type(), declaringType);
 
@@ -217,7 +217,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
 
             dependency.set(list.toArray((Object[]) Array.newInstance(providerType, list.size())));
         } else if (dependency.type() == ComponentContext.class) {
-            dependency.set(context.reduce(mapping.contextSpecification(Context.class)));
+            dependency.set(context.reduce(mapping.contextSpecification(Context.class)).create());
         } else {
             Object value = null;
 

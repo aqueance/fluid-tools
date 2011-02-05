@@ -58,7 +58,7 @@ final class ReferenceChainImpl implements ReferenceChain {
         return stack.get(stack.size() - 1);
     }
 
-    public <T> T track(final ComponentContext context, final ComponentMapping mapping, final Class<?> dependency, final Command<T> command) {
+    public <T> T track(final ContextDefinition context, final ComponentMapping mapping, final Class<?> dependency, final Command<T> command) {
         final List<Link> stack = reference.get();
         final Set<ComponentMapping> loop = mappings.get();
 
@@ -67,7 +67,7 @@ final class ReferenceChainImpl implements ReferenceChain {
         stack.add(new LinkImpl(mapping, dependency));
         loop.add(mapping);
         try {
-            return command.run(context == null ? new ComponentContextImpl() : context.copy(), circular);
+            return command.run(context == null ? new ContextDefinitionImpl() : context.copy(), circular);
         } finally {
             stack.remove(stack.size() - 1);
 

@@ -128,6 +128,7 @@ interface SimpleContainer extends DependencyResolver {
     /**
      * Returns the component instance bound to the given interface in the given context.
      *
+     *
      * @param key     the interface to return the bound component to.
      * @param context the context to resolve the component instance in.
      *
@@ -136,7 +137,7 @@ interface SimpleContainer extends DependencyResolver {
      * @throws ComponentContainer.ResolutionException
      *          when dependency resolution fails.
      */
-    <T> T get(Class<? extends T> key, ComponentContext context) throws ComponentContainer.ResolutionException;
+    <T> T get(Class<? extends T> key, ContextDefinition context) throws ComponentContainer.ResolutionException;
 
     /**
      * Injects the {@link Component} annotated fields of the given component instance.
@@ -153,6 +154,7 @@ interface SimpleContainer extends DependencyResolver {
     /**
      * Injects the {@link Component} annotated fields of the given component instance.
      *
+     *
      * @param component the component instance.
      * @param context the base context to resolve the component's dependencies in.
      *
@@ -161,7 +163,7 @@ interface SimpleContainer extends DependencyResolver {
      * @throws ComponentContainer.ResolutionException
      *          when dependency resolution fails.
      */
-    <T> T initialize(final T component, final ComponentContext context) throws ComponentContainer.ResolutionException;
+    <T> T initialize(final T component, final ContextDefinition context) throws ComponentContainer.ResolutionException;
 
     /**
      * Returns all singleton component instances, created in response to this method call, in the container under the default empty context assignable to the

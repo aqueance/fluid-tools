@@ -75,7 +75,7 @@ final class ConstructingResolver extends AbstractResolver {
     @Override
     protected ComponentCache.Instantiation createCommand(final SimpleContainer container, final Class<?> api) {
         return new ComponentCache.Instantiation() {
-            public Object perform(final ComponentContext context) {
+            public Object perform(final ContextDefinition context) {
                 final Constructor constructor = constructor();
 
                 return Exceptions.wrap(String.format("instantiating %s", componentClass), new Exceptions.Command<Object>() {

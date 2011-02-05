@@ -26,12 +26,8 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -40,49 +36,21 @@ import java.util.Set;
  */
 final class ComponentContextImpl implements ComponentContext {
 
-    private static final Set<Class<?>> notContext = new HashSet<Class<?>>(Arrays.asList(Component.class, Optional.class, Context.class, ServiceProvider.class));
-
-    private final Map<Class<? extends Annotation>, Annotation[]> defined = new HashMap<Class<? extends Annotation>, Annotation[]>();
-    private final Map<Class<? extends Annotation>, Annotation[]> collected = new HashMap<Class<? extends Annotation>, Annotation[]>();
+    private final Map<Class<? extends Annotation>, Annotation[]> annotations = new HashMap<Class<? extends Annotation>, Annotation[]>();
 
     public ComponentContextImpl() {
         // empty
     }
 
     public ComponentContextImpl(final Map<Class<? extends Annotation>, Annotation[]> map) {
-        copy(map, this.defined);
-        this.defined.keySet().removeAll(notContext);
-    }
-
-    private void copy(final Map<Class<? extends Annotation>, Annotation[]> in, final Map<Class<? extends Annotation>, Annotation[]> out) {
-        for (final Map.Entry<Class<? extends Annotation>, Annotation[]> entry : in.entrySet()) {
-            final Class<? extends Annotation> key = entry.getKey();
-
-            final Class<? extends Annotation> type = noProxy(key);
-            out.put(type, entry.getValue().clone());
+        for (final Map.Entry<Class<? extends Annotation>, Annotation[]> entry : map.entrySet()) {
+            annotations.put(entry.getKey(), entry.getValue().clone());
         }
-    }
-
-    private ComponentContextImpl(final Map<Class<? extends Annotation>, Annotation[]> defined, final Map<Class<? extends Annotation>, Annotation[]> collected) {
-        copy(defined, this.defined);
-        copy(collected, this.collected);
-    }
-
-    @SuppressWarnings("unchecked")
-    private Class<? extends Annotation> noProxy(Class<? extends Annotation> key) {
-        return Proxy.isProxyClass(key) ? (Class<? extends Annotation>) key.getInterfaces()[0] : key;
-    }
-
-    private Annotation[] combine(final Annotation[] present, final Annotation... addition) {
-        final Collection<Annotation> list = new LinkedHashSet<Annotation>();
-        list.addAll(Arrays.asList(present));
-        list.addAll(Arrays.asList(addition));
-        return list.toArray(new Annotation[list.size()]);
     }
 
     @SuppressWarnings("unchecked")
     public <T extends Annotation> T[] annotations(final Class<T> type) {
-        return (T[]) collected.get(type);
+        return (T[]) annotations.get(type);
     }
 
     @SuppressWarnings("unchecked")
@@ -104,68 +72,12 @@ final class ComponentContextImpl implements ComponentContext {
     }
 
     public Set<Class<? extends Annotation>> types() {
-        return Collections.unmodifiableSet(collected.keySet());
-    }
-
-    public ComponentContext expand(final Annotation[] definition) {
-        if (definition != null) {
-            for (final Annotation value : definition) {
-                final Class<? extends Annotation> type = noProxy(value.getClass());
-
-                if (defined.containsKey(type)) {
-                    defined.put(type, combine(defined.get(type), value));
-                } else {
-                    defined.put(type, new Annotation[] { value });
-                }
-            }
-
-            this.defined.keySet().removeAll(notContext);
-        }
-
-        return this;
-    }
-
-    public ComponentContext reduce(final Context accepted) {
-        if (accepted != null) {
-            collected.putAll(defined);
-            collected.keySet().retainAll(Arrays.asList(accepted.value()));
-        } else {
-            collected.clear();
-        }
-
-        return this;
-    }
-
-    public ComponentContext collect(final Collection<ComponentContext> contexts) {
-        for (final ComponentContext context : contexts) {
-            if (context != null) {
-                for (final Class<? extends Annotation> type : context.types()) {
-                    if (collected.containsKey(type)) {
-                        collected.put(type, combine(collected.get(type), context.annotations(type)));
-                    } else {
-                        collected.put(type, context.annotations(type));
-                    }
-                }
-            }
-        }
-
-        collected.keySet().retainAll(defined.keySet());
-
-        return this;
-    }
-
-    public ComponentContext copy() {
-        return new ComponentContextImpl(this.defined, this.collected);
-    }
-
-    public ComponentContext key() {
-        return new ComponentContextImpl(collected);
+        return Collections.unmodifiableSet(annotations.keySet());
     }
 
     @Override
     public String toString() {
-        return toString(collected);
-//        return String.format("Defined: %s, collected: %s", toString(defined), toString(collected));
+        return toString(annotations);
     }
 
     private String toString(final Map<Class<? extends Annotation>, Annotation[]> map) {
@@ -232,11 +144,11 @@ final class ComponentContextImpl implements ComponentContext {
 
     @Override
     public boolean equals(final Object o) {
-        return this == o || (o != null && getClass() == o.getClass() && defined.equals(((ComponentContextImpl) o).defined));
+        return this == o || (o != null && getClass() == o.getClass() && annotations.equals(((ComponentContextImpl) o).annotations));
     }
 
     @Override
     public int hashCode() {
-        return defined.hashCode();
+        return annotations.hashCode();
     }
 }

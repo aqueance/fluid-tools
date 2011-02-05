@@ -118,12 +118,12 @@ abstract class VariantResolver extends AbstractResolver {
     protected ComponentCache.Instantiation createCommand(final SimpleContainer container, final Class<?> api) {
         return new ComponentCache.Instantiation() {
 
-            public Object perform(final ComponentContext context) {
+            public Object perform(final ContextDefinition context) {
                 final ComponentVariantFactory factory = factory(container);
 
                 final SimpleContainer child = container.newChildContainer();
                 child.bindResolver(api, findDelegate());
-                factory.newComponent(new ComponentContainerShell(child, false), context);
+                factory.newComponent(new ComponentContainerShell(child, false), context.create());
 
                 return child.get(api, context);
             }

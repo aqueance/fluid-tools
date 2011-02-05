@@ -67,7 +67,7 @@ abstract class AbstractResolver implements ComponentResolver {
      * defers the instantiation of that component. Uses the {@link #createCommand(SimpleContainer, Class)} method to perform actual component creation along
      * with the resolver's {@link ComponentCache} to cache instances.
      */
-    public Object getComponent(final ComponentContext context, final SimpleContainer container, final Class<?> api, final boolean circular) {
+    public Object getComponent(final ContextDefinition context, final SimpleContainer container, final Class<?> api, final boolean circular) {
         final ComponentCache.Instantiation create = createCommand(container, api);
 
         if (create == null) {
@@ -85,7 +85,7 @@ abstract class AbstractResolver implements ComponentResolver {
         }
     }
 
-    private Object deferredCreate(final ComponentContext context,
+    private Object deferredCreate(final ContextDefinition context,
                                   final SimpleContainer container,
                                   final Class<?> api,
                                   final ComponentCache.Instantiation create,

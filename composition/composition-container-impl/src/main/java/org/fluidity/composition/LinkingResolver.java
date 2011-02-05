@@ -69,7 +69,7 @@ final class LinkingResolver extends AbstractResolver {
         return delegate.isInstanceMapping();
     }
 
-    public Object getComponent(final ComponentContext context, final SimpleContainer container, final Class<?> api, boolean circular) {
+    public Object getComponent(final ContextDefinition context, final SimpleContainer container, final Class<?> api, boolean circular) {
         assert target.parentContainer() == container;
         return delegate.getComponent(context, target, api, circular);
     }

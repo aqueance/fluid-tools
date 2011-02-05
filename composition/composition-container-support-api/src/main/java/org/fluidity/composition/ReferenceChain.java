@@ -48,11 +48,11 @@ public interface ReferenceChain {
      *
      * @return whatever the command returns.
      */
-    <T> T track(ComponentContext context, ComponentMapping mapping, Class<?> dependency, Command<T> command);
+    <T> T track(ContextDefinition context, ComponentMapping mapping, Class<?> dependency, Command<T> command);
 
     /**
-     * The command to invoke in the context of a new dependency reference established by calling {@link ReferenceChain#track(ComponentContext, ComponentMapping,
-     * Class, ReferenceChain.Command)} .
+     * The command to invoke in the context of a new dependency reference established by calling {@link ReferenceChain#track(ContextDefinition,
+     * ComponentMapping, Class, ReferenceChain.Command)}.
      *
      * @author Tibor Varga
      */
@@ -62,10 +62,10 @@ public interface ReferenceChain {
          * @param context  the context for the command.
          * @param circular tells whether this particular producer has already been asked for a component in the current reference chain.
          *
-         * @return whatever the caller of {@link ReferenceChain#track(ComponentContext, ComponentMapping, Class, ReferenceChain.Command)}  expects to get
+         * @return whatever the caller of {@link ReferenceChain#track(ContextDefinition, ComponentMapping, Class, ReferenceChain.Command)}   expects to get
          *         returned.
          */
-        T run(ComponentContext context, boolean circular);
+        T run(ContextDefinition context, boolean circular);
     }
 
     /**

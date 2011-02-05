@@ -22,7 +22,6 @@
 
 package org.fluidity.composition;
 
-import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -44,55 +43,53 @@ final class ComponentCacheImpl implements ComponentCache {
         this.log = logs.createLog(getClass());
     }
 
-    public Object lookup(final Object source, final ComponentContext context, final Class<?> componentInterface, final Instantiation create) {
+    public Object lookup(final Object source, final ContextDefinition context, final Class<?> componentInterface, final Instantiation create) {
         return lookup(cache == null ? new Cache() : cache, source, context, componentInterface, create);
     }
 
     @SuppressWarnings("SynchronizationOnLocalVariableOrMethodParameter")
     private Object lookup(final Cache cache,
                           final Object source,
-                          final ComponentContext context,
+                          final ContextDefinition context,
                           final Class<?> api,
                           final Instantiation instantiation) {
         final Map<ComponentContext, ComponentContext> contexts = cache.contexts;
         final Map<ComponentContext, Object> components = cache.components;
 
-        final ComponentContext incomingKey = context.key();
-        if (!components.containsKey(incomingKey)) {
+        final ComponentContext incoming = context.create();
+        if (!components.containsKey(incoming)) {
 
             // go ahead and create the component and then see if it was actually necessary; context may change as new instantiations take place
             final Object component = instantiation.perform(context);
-            final ComponentContext outgoingKey = context.key();
+            final ComponentContext outgoing = context.create();
 
             synchronized (cache) {
-                if (!components.containsKey(outgoingKey)) {
-                    contexts.put(incomingKey, outgoingKey);
-                    components.put(outgoingKey, component);
+                if (!components.containsKey(outgoing)) {
+                    contexts.put(incoming, outgoing);
+                    components.put(outgoing, component);
 
                     if (component == null) {
-                        log.info("%s: not created component for %s%s", source, api, context.types().isEmpty() ? "" : String.format(" for context %s", context));
+                        log.info("%s: not created component for %s%s", source, api, outgoing.types().isEmpty() ? "" : String.format(" for context %s", outgoing));
                     } else {
                         log.info("%s: created %s@%s%s",
                                  source,
                                  component.getClass().getName(),
                                  System.identityHashCode(component),
-                                 context.types().isEmpty() ? "" : String.format(" for context %s", context));
+                                 outgoing.types().isEmpty() ? "" : String.format(" for context %s", outgoing));
                     }
 
                     if (listener != null) {
                         listener.created(api, component);
                     }
-                } else if (!contexts.containsKey(incomingKey)) {
-                    contexts.put(incomingKey, outgoingKey);
+                } else if (!contexts.containsKey(incoming)) {
+                    contexts.put(incoming, outgoing);
                 }
             }
         }
 
-        assert contexts.containsKey(incomingKey);
+        assert contexts.containsKey(incoming);
 
-        context.collect(Collections.singleton(contexts.get(incomingKey)));
-
-        final ComponentContext key = contexts.get(incomingKey);
+        final ComponentContext key = contexts.get(incoming);
         assert components.containsKey(key) : String.format("Component %s not found in context %s", api, context);
         return components.get(key);
     }

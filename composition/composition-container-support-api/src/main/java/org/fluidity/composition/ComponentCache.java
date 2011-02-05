@@ -32,14 +32,13 @@ public interface ComponentCache {
     /**
      * Looks up and instantiates if necessary using the supplied command, the component whose class is also specified to find its annotations.
      *
-     *
      * @param source             something to identify who is creating instances through this cache.
      * @param context            the context for the component.
      * @param componentInterface the interface the component implements.
      * @param create             the command that performs instantiation of the component.
      * @return the component instance.
      */
-    Object lookup(Object source, ComponentContext context, Class<?> componentInterface, Instantiation create);
+    Object lookup(Object source, ContextDefinition context, Class<?> componentInterface, Instantiation create);
 
     /**
      * A command to create a component instance in some context.
@@ -53,11 +52,11 @@ public interface ComponentCache {
          *
          * @return a new instance of a component.
          */
-        Object perform(ComponentContext context);
+        Object perform(ContextDefinition context);
     }
 
     /**
-     * Listens to component instantiation. The {@link ComponentCache#lookup(Object, ComponentContext, Class, org.fluidity.composition.ComponentCache.Instantiation)}  method must
+     * Listens to component instantiation. The {@link ComponentCache#lookup(Object, ContextDefinition, Class, ComponentCache.Instantiation)}   method must
      * call an object implementing this interface when it has created a new instance of a component. The listener object must be passed to the cache
      * in its constructor.
      *

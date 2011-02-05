@@ -30,9 +30,9 @@ package org.fluidity.composition;
  */
 final class EmbeddedContainer extends AbstractComponentContainer {
 
-    private final ComponentContext context;
+    private final ContextDefinition context;
 
-    public EmbeddedContainer(final SimpleContainer container, final ComponentContext context) {
+    public EmbeddedContainer(final SimpleContainer container, final ContextDefinition context) {
         super(container);
         assert context != null;
         this.context = context;

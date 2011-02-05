@@ -93,17 +93,17 @@ final class SimpleContainerImpl implements SimpleContainer {
         contents.put(key, replacement);
     }
 
-    public <T> T resolve(final Class<T> type, final ComponentContext context) {
+    public <T> T resolve(final Class<T> type, final ContextDefinition context) {
         return get(type, context);
     }
 
-    public <T> T create(final Class<T> type, final ComponentContext context) {
+    public <T> T create(final Class<T> type, final ContextDefinition context) {
         final SimpleContainer child = new SimpleContainerImpl(this, services);
         child.bindComponent(type, type);
         return child.get(type, context);
     }
 
-    public ComponentContainer container(final ComponentContext context) {
+    public ComponentContainer container(final ContextDefinition context) {
         return new EmbeddedContainer(this, context);
     }
 
@@ -298,7 +298,7 @@ final class SimpleContainerImpl implements SimpleContainer {
         return initialize(component, null);
     }
 
-    public <T> T get(final Class<? extends T> key, final ComponentContext context) {
+    public <T> T get(final Class<? extends T> key, final ContextDefinition context) {
         final ComponentResolver resolver = contents.get(key);
 
         if (resolver == null) {
@@ -308,12 +308,12 @@ final class SimpleContainerImpl implements SimpleContainer {
         }
     }
 
-    public <T> T initialize(final T component, final ComponentContext context) {
+    public <T> T initialize(final T component, final ContextDefinition context) {
         final Class<?> componentClass = component.getClass();
         final ComponentMapping mapping = new InstanceMapping(componentClass);
 
         return references.track(context, mapping, componentClass, new ReferenceChain.Command<T>() {
-            public T run(final ComponentContext context, final boolean circular) {
+            public T run(final ContextDefinition context, final boolean circular) {
                 return injector.injectFields(SimpleContainerImpl.this, mapping, componentClass, context, component);
             }
         });
@@ -350,7 +350,7 @@ final class SimpleContainerImpl implements SimpleContainer {
         }
 
         @SuppressWarnings("unchecked")
-        public T run(final ComponentContext context, final boolean circular) {
+        public T run(final ContextDefinition context, final boolean circular) {
             return injector.injectFields(SimpleContainerImpl.this, resolver, api, context, (T) resolver.getComponent(context, SimpleContainerImpl.this, api, circular));
         }
     }
