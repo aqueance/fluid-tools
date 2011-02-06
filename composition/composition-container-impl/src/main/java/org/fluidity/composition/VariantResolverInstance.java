@@ -45,7 +45,7 @@ final class VariantResolverInstance extends VariantResolver {
     }
 
     @Override
-    protected ComponentVariantFactory factory(final SimpleContainer container, final ReferenceChain.Reference references) {
+    protected ComponentVariantFactory factory(final SimpleContainer container) {
         return factory;
     }
 }

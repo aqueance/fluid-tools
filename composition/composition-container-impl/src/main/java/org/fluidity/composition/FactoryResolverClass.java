@@ -41,7 +41,7 @@ final class FactoryResolverClass extends FactoryResolver {
     }
 
     @Override
-    protected ComponentFactory factory(final SimpleContainer container, final ReferenceChain.Reference references) {
-        return container.get(factoryClass(), references, null);
+    protected ComponentFactory factory(final SimpleContainer container) {
+        return container.get(factoryClass(), null);
     }
 }

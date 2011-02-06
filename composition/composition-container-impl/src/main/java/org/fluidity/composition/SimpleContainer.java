@@ -115,7 +115,6 @@ interface SimpleContainer extends DependencyResolver {
      * Returns the component instance bound to the given interface in the given context.
      *
      * @param key        the interface to return the bound component to.
-     * @param references the object that keeps track of dependency reference chains.
      * @param context    the context to resolve the component instance in.
      *
      * @return the component instance bound to the given interface.
@@ -123,7 +122,7 @@ interface SimpleContainer extends DependencyResolver {
      * @throws ComponentContainer.ResolutionException
      *          when dependency resolution fails.
      */
-    <T> T get(Class<? extends T> key, ReferenceChain.Reference references, ContextDefinition context) throws ComponentContainer.ResolutionException;
+    <T> T get(Class<? extends T> key, ContextDefinition context) throws ComponentContainer.ResolutionException;
 
     /**
      * Injects the {@link Component} annotated fields of the given component instance.

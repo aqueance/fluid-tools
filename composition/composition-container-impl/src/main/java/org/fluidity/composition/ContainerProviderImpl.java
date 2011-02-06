@@ -35,7 +35,7 @@ import org.fluidity.composition.spi.PackageBindings;
 final class ContainerProviderImpl implements ContainerProvider {
 
     public OpenComponentContainer newContainer(final ContainerServices services) {
-        return new ComponentContainerShell(null, services, null, null, true);
+        return new ComponentContainerShell(null, services, null, true);
     }
 
     public List<PackageBindings> instantiateBindings(final ContainerServices services,

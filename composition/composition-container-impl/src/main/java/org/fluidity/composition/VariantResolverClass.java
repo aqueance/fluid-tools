@@ -42,7 +42,7 @@ final class VariantResolverClass extends VariantResolver {
     }
 
     @Override
-    protected ComponentVariantFactory factory(final SimpleContainer container, final ReferenceChain.Reference references) {
-        return container.get(factoryClass(), references, null);
+    protected ComponentVariantFactory factory(final SimpleContainer container) {
+        return container.get(factoryClass(), null);
     }
 }

@@ -91,18 +91,18 @@ final class SimpleContainerImpl implements SimpleContainer {
         contents.put(key, replacement);
     }
 
-    public <T> T resolve(final ReferenceChain.Reference references, final Class<T> type, final ContextDefinition context) {
-        return get(type, references, context);
+    public <T> T resolve(final Class<T> type, final ContextDefinition context) {
+        return get(type, context);
     }
 
-    public <T> T create(final ReferenceChain.Reference references, final Class<T> type, final ContextDefinition context) {
+    public <T> T create(final Class<T> type, final ContextDefinition context) {
         final SimpleContainer child = new SimpleContainerImpl(this, services);
         child.bindComponent(type, type);
-        return child.get(type, references, context);
+        return child.get(type, context);
     }
 
     public ComponentContainer container(final ContextDefinition context) {
-        return new ComponentContainerShell(this, services, null, context, false);
+        return new ComponentContainerShell(this, services, context, false);
     }
 
     public ComponentMapping mapping(final Class<?> type) {
@@ -273,7 +273,7 @@ final class SimpleContainerImpl implements SimpleContainer {
             public void run() {
                 for (final Class<?> type : contents.keySet()) {
                     if (api.isAssignableFrom(type)) {
-                        get(type, null, null);
+                        get(type, null);
                     }
                 }
             }
@@ -288,16 +288,15 @@ final class SimpleContainerImpl implements SimpleContainer {
     }
 
     @SuppressWarnings("unchecked")
-    public <T> T get(final Class<? extends T> key, final ReferenceChain.Reference references, final ContextDefinition context) {
+    public <T> T get(final Class<? extends T> key, final ContextDefinition context) {
         final ComponentResolver resolver = contents.get(key);
 
         if (resolver == null) {
-            return parent == null ? null : parent.get(key, references, context);
+            return parent == null ? null : parent.get(key, context);
         } else {
-            return services.referenceChain().follow(references, context, key, resolver, new ReferenceChain.Command<T>() {
+            return services.referenceChain().follow(context, key, resolver, new ReferenceChain.Command<T>() {
                 public T run(final ReferenceChain.Reference references, final ContextDefinition context) {
-                    return injector.injectFields(references,
-                                                 SimpleContainerImpl.this,
+                    return injector.injectFields(SimpleContainerImpl.this,
                                                  resolver,
                                                  context,
                                                  (T) resolver.getComponent(references, context, SimpleContainerImpl.this, key));
@@ -310,9 +309,9 @@ final class SimpleContainerImpl implements SimpleContainer {
         final Class<?> componentClass = component.getClass();
         final ComponentMapping mapping = new InstanceMapping(componentClass);
 
-        return services.referenceChain().follow(null, context, componentClass, mapping, new ReferenceChain.Command<T>() {
+        return services.referenceChain().follow(context, componentClass, mapping, new ReferenceChain.Command<T>() {
             public T run(final ReferenceChain.Reference references, final ContextDefinition context) {
-                return injector.injectFields(references, SimpleContainerImpl.this, mapping, context, component);
+                return injector.injectFields(SimpleContainerImpl.this, mapping, context, component);
             }
         });
     }

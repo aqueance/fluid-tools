@@ -99,12 +99,12 @@ abstract class AbstractResolver implements ComponentResolver {
                         if (delegate == null) {
                             final ReferenceChain referenceChain = container.services().referenceChain();
 
-                            delegate = referenceChain.follow(null, context, api, AbstractResolver.this, new ReferenceChain.Command<Object>() {
-                                public Object run(final ReferenceChain.Reference references, final ContextDefinition context) {
-                                    if (references.isCircular()) {
+                            delegate = referenceChain.follow(context, api, AbstractResolver.this, new ReferenceChain.Command<Object>() {
+                                public Object run(final ReferenceChain.Reference reference, final ContextDefinition context) {
+                                    if (reference.isCircular()) {
                                         throw error == null ? new ComponentContainer.CircularReferencesException(api, reference.toString()) : error;
                                     } else {
-                                        return cache.lookup(container, context, api, createCommand(references, container, api));
+                                        return cache.lookup(container, context, api, createCommand(reference, container, api));
                                     }
                                 }
                             });

@@ -32,12 +32,10 @@ import org.fluidity.composition.spi.EmptyComponentContainer;
 final class ComponentRegistryShell extends EmptyComponentContainer.EmptyRegistry {
 
     private final SimpleContainer container;
-    private final ReferenceChain.Reference reference;
     private final ContextDefinition context;
 
-    public ComponentRegistryShell(final SimpleContainer container, final ReferenceChain.Reference reference, ContextDefinition context) {
+    public ComponentRegistryShell(final SimpleContainer container, final ContextDefinition context) {
         this.container = container;
-        this.reference = reference;
         this.context = context;
     }
 
@@ -54,10 +52,10 @@ final class ComponentRegistryShell extends EmptyComponentContainer.EmptyRegistry
     }
 
     public OpenComponentContainer makeChildContainer() {
-        return new ComponentContainerShell(container.newChildContainer(), reference, context, true);
+        return new ComponentContainerShell(container.newChildContainer(), context, true);
     }
 
     public <T> OpenComponentContainer makeChildContainer(final Class<T> implementation, final Class<? super T>... interfaces) {
-        return new ComponentContainerShell(container.linkComponent(implementation, interfaces), reference, context, false);
+        return new ComponentContainerShell(container.linkComponent(implementation, interfaces), context, false);
     }
 }

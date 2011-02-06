@@ -24,7 +24,6 @@ package org.fluidity.composition.spi;
 
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ContextDefinition;
-import org.fluidity.composition.ReferenceChain;
 
 /**
  * Capable of resolving component references.
@@ -34,7 +33,6 @@ public interface DependencyResolver {
     /**
      * Returns the resolved component instance for the given component interface.
      *
-     * @param references the object that keeps track of dependency reference chains.
      * @param type       the component interface sought.
      * @param context    the reference context for the resolution.
      *
@@ -43,12 +41,11 @@ public interface DependencyResolver {
      * @throws org.fluidity.composition.ComponentContainer.ResolutionException
      *          when the type cannot be resolved.
      */
-    <T> T resolve(ReferenceChain.Reference references, Class<T> type, ContextDefinition context) throws ComponentContainer.ResolutionException;
+    <T> T resolve(Class<T> type, ContextDefinition context) throws ComponentContainer.ResolutionException;
 
     /**
      * Returns a new component instance for the given component interface.
      *
-     * @param references the object that keeps track of dependency reference chains.
      * @param type       the component interface sought.
      * @param context    the reference context for the resolution.
      *
@@ -58,7 +55,7 @@ public interface DependencyResolver {
      *          when the type cannot be resolved.
      * @deprecated and will be removed
      */
-    <T> T create(ReferenceChain.Reference references, Class<T> type, ContextDefinition context);
+    <T> T create(Class<T> type, ContextDefinition context);
 
     /**
      * Returns a new child container with its base context set to the given properties.

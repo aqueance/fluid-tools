@@ -39,12 +39,11 @@ abstract class FactoryResolver extends AbstractResolver {
     /**
      * Returns the {@link ComponentFactory} instance this is a mapping for.
      *
-     * @param container  the container in which to resolve dependencies of the factory.
-     * @param references the object that keeps track of dependency reference chains.
+     * @param container the container in which to resolve dependencies of the factory.
      *
      * @return the {@link ComponentFactory} instance this is a mapping for.
      */
-    protected abstract ComponentFactory factory(final SimpleContainer container, final ReferenceChain.Reference references);
+    protected abstract ComponentFactory factory(final SimpleContainer container);
 
     public FactoryResolver(final int priority,
                            final Class<?> api,
@@ -82,7 +81,7 @@ abstract class FactoryResolver extends AbstractResolver {
     protected ComponentCache.Instantiation createCommand(final ReferenceChain.Reference references, final SimpleContainer container, Class<?> api) {
         return new ComponentCache.Instantiation() {
             public Object perform(final ContextDefinition context) {
-                return factory(container, references).newComponent(new ComponentContainerShell(container, references, context, true), context.create());
+                return factory(container).newComponent(new ComponentContainerShell(container, context, true), context.create());
             }
         };
     }

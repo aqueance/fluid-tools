@@ -41,15 +41,9 @@ final class ReferenceChainImpl implements ReferenceChain {
      */
     private final ThreadLocal<Reference> prevalent = new InheritableThreadLocal<Reference>();
 
-    public <T> T follow(final Reference references,
-                        final ContextDefinition context,
-                        final Class<?> dependency,
-                        final ComponentMapping mapping,
-                        final Command<T> command) {
-        final Reference lastReference = prevalent.get();
-        final Reference validReference = references != null || lastReference == null
-                                         ? references == null ? new ReferenceImpl(dependency, mapping) : references
-                                         : lastReference.next(dependency, mapping);
+    public <T> T follow(final ContextDefinition context, final Class<?> dependency, final ComponentMapping mapping, final Command<T> command) {
+        final Reference reference = prevalent.get();
+        final Reference validReference = reference == null ? new ReferenceImpl(mapping) : reference.next(mapping);
 
         final Reference last = prevalent.get();
         prevalent.set(validReference);
@@ -61,35 +55,24 @@ final class ReferenceChainImpl implements ReferenceChain {
         }
     }
 
-    public <T> T descend(Reference references, ContextDefinition context, Class<?> dependency, ComponentMapping mapping, Command<T> command) {
-        return follow(references.next(dependency, mapping), context, dependency, mapping, command);
-    }
-
     private class ReferenceImpl implements Reference {
 
         private final Set<ComponentMapping> loop = new LinkedHashSet<ComponentMapping>();
-        private final Class<?> type;
         private final boolean circular;
 
-        public ReferenceImpl(final Class<?> type, final ComponentMapping mapping) {
-            this.type = type;
+        public ReferenceImpl(final ComponentMapping mapping) {
             this.loop.add(mapping);
             this.circular = false;
         }
 
-        public ReferenceImpl(final Class<?> type, final Set<ComponentMapping> loop, final ComponentMapping mapping) {
-            this.type = type;
+        public ReferenceImpl(final Set<ComponentMapping> loop, final ComponentMapping mapping) {
             this.loop.addAll(loop);
             this.circular = this.loop.contains(mapping);
             this.loop.add(mapping);
         }
 
-        public Class<?> type() {
-            return type;
-        }
-
-        public Reference next(final Class<?> type, final ComponentMapping mapping) {
-            return new ReferenceImpl(type, loop, mapping);
+        public Reference next(final ComponentMapping mapping) {
+            return new ReferenceImpl(loop, mapping);
         }
 
         public boolean isCircular() {

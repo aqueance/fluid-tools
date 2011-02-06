@@ -34,7 +34,6 @@ public interface ReferenceChain {
     /**
      * Follows a reference chain, picking up a prevalent one if exists and creating one if does not.
      *
-     * @param references the object to keep track of dependency reference chains.
      * @param context    the original context for the instantiation chain.
      * @param dependency the defined type of the reference.
      * @param mapping    the mapping, e.g., the component interface and class, of the reference.
@@ -42,24 +41,11 @@ public interface ReferenceChain {
      *
      * @return whatever the command returns.
      */
-    <T> T follow(Reference references, ContextDefinition context, Class<?> dependency, ComponentMapping mapping, Command<T> command);
+    <T> T follow(ContextDefinition context, Class<?> dependency, ComponentMapping mapping, Command<T> command);
 
     /**
-     * Descends into a new reference along an existing reference chain.
-     *
-     * @param references the object to keep track of dependency reference chains.
-     * @param context    the original context for the instantiation chain.
-     * @param dependency the defined type of the reference.
-     * @param mapping    the mapping, e.g., the component interface and class, of the reference.
-     * @param command    the command that performs the resolution.
-     *
-     * @return whatever the command returns.
-     */
-    <T> T descend(Reference references, ContextDefinition context, Class<?> dependency, ComponentMapping mapping, Command<T> command);
-
-    /**
-     * The command to invoke in the context of a new dependency reference established by calling {@link ReferenceChain#follow(Reference, ContextDefinition,
-     * Class, ComponentMapping, Command)} or {@link ReferenceChain#descend(Reference, ContextDefinition, Class, ComponentMapping, Command)}.
+     * The command to invoke in the context of a new dependency reference established by calling {@link ReferenceChain#follow(ContextDefinition, Class,
+     * ComponentMapping, Command).
      *
      * @author Tibor Varga
      */
@@ -69,8 +55,7 @@ public interface ReferenceChain {
          * @param references the object to keep track of dependency reference chains.
          * @param context    the current context in the instantiation chain.
          *
-         * @return whatever the caller of {@link ReferenceChain#follow(Reference, ContextDefinition, Class, ComponentMapping, Command)} or {@link
-         *         ReferenceChain#descend(Reference, ContextDefinition, Class, ComponentMapping, Command)} expects to be returned.
+         * @return whatever the caller of {@link ReferenceChain#follow(ContextDefinition, Class, ComponentMapping, Command)}  expects to be returned.
          */
         T run(Reference references, ContextDefinition context);
     }
@@ -78,9 +63,7 @@ public interface ReferenceChain {
     // TODO: document
     interface Reference {
 
-        Class<?> type();
-
-        Reference next(final Class<?> type, final ComponentMapping mapping);
+        Reference next(final ComponentMapping mapping);
 
         boolean isCircular();
     }

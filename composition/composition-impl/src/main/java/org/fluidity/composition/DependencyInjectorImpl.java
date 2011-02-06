@@ -43,30 +43,23 @@ import org.fluidity.foundation.Exceptions;
 final class DependencyInjectorImpl implements DependencyInjector {
 
     private final ClassDiscovery discovery;
-    private final ReferenceChain referenceChain;
 
-    public DependencyInjectorImpl(final ClassDiscovery discovery, final ReferenceChain referenceChain) {
+    public DependencyInjectorImpl(final ClassDiscovery discovery) {
         this.discovery = discovery;
-        this.referenceChain = referenceChain;
     }
 
-    public <T> T injectFields(final ReferenceChain.Reference references,
-                              final DependencyResolver resolver,
-                              final ComponentMapping mapping,
-                              final ContextDefinition context,
-                              final T instance) {
+    public <T> T injectFields(final DependencyResolver resolver, final ComponentMapping mapping, final ContextDefinition context, final T instance) {
         assert resolver != null;
 
         if (instance != null) {
             final Class<?> componentType = instance.getClass();
-            context.collect(injectFields(references, resolver, mapping, context, instance, componentType, componentType));
+            context.collect(injectFields(resolver, mapping, context, instance, componentType, componentType));
         }
 
         return instance;
     }
 
-    public Object[] injectConstructor(final ReferenceChain.Reference references,
-                                      final DependencyResolver resolver,
+    public Object[] injectConstructor(final DependencyResolver resolver,
                                       final ComponentMapping mapping,
                                       final ContextDefinition context,
                                       final Constructor<?> constructor) {
@@ -79,7 +72,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
 
         for (int i = 0, length = types.length; i < length; ++i) {
             final int index = i;
-            consumed.add(injectDependency(references, resolver, mapping, context.copy(), componentType, componentType, new Dependency() {
+            consumed.add(injectDependency(resolver, mapping, context.copy(), componentType, componentType, new Dependency() {
                 public Object itself() {
                     return null;
                 }
@@ -114,8 +107,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
         return arguments;
     }
 
-    private <T> List<ContextDefinition> injectFields(final ReferenceChain.Reference references,
-                                                     final DependencyResolver resolver,
+    private <T> List<ContextDefinition> injectFields(final DependencyResolver resolver,
                                                      final ComponentMapping mapping,
                                                      final ContextDefinition context,
                                                      final T instance,
@@ -137,7 +129,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
             }
 
             if (field.isAnnotationPresent(Component.class) || field.isAnnotationPresent(ServiceProvider.class)) {
-                consumed.add(injectDependency(references, resolver, mapping, context.copy(), componentType, declaringType, new Dependency() {
+                consumed.add(injectDependency(resolver, mapping, context.copy(), componentType, declaringType, new Dependency() {
                     public Object itself() {
                         return instance;
                     }
@@ -168,14 +160,13 @@ final class DependencyInjectorImpl implements DependencyInjector {
 
         final Class<?> ancestor = declaringType.getSuperclass();
         if (ancestor != null) {
-            consumed.addAll(injectFields(references, resolver, mapping, context, instance, componentType, ancestor));
+            consumed.addAll(injectFields(resolver, mapping, context, instance, componentType, ancestor));
         }
 
         return consumed;
     }
 
-    private ContextDefinition injectDependency(final ReferenceChain.Reference references,
-                                               final DependencyResolver resolver,
+    private ContextDefinition injectDependency(final DependencyResolver resolver,
                                                final ComponentMapping mapping,
                                                final ContextDefinition context,
                                                final Class<?> componentType,
@@ -214,16 +205,8 @@ final class DependencyInjectorImpl implements DependencyInjector {
             final Class<?>[] componentClasses = discovery.findComponentClasses(providerType, ClassLoaders.findClassLoader(declaringType), false);
 
             for (final Class<?> componentClass : componentClasses) {
-                final Object component = referenceChain.descend(references, context, itemType, null, new ReferenceChain.Command<Object>() {
-                    public Object run(final ReferenceChain.Reference references, final ContextDefinition context) {
-                        return resolver.resolve(references, componentClass, context);
-                    }
-                });
-                list.add(component == null ? referenceChain.descend(references, context, itemType, null, new ReferenceChain.Command<Object>() {
-                    public Object run(ReferenceChain.Reference references, ContextDefinition context) {
-                        return resolver.create(references, componentClass, context);
-                    }
-                }) : component);
+                final Object component = resolver.resolve(componentClass, context);
+                list.add(component == null ? resolver.create(componentClass, context) : component);
             }
 
             dependency.set(list.toArray((Object[]) Array.newInstance(providerType, list.size())));
@@ -251,11 +234,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
             if (value == null) {
                 final ComponentMapping dependencyMapping = resolver.mapping(dependencyType);
                 if (dependencyMapping != null) {
-                    value = referenceChain.descend(references, context, dependency.type(), dependencyMapping, new ReferenceChain.Command<Object>() {
-                        public Object run(ReferenceChain.Reference references, ContextDefinition context) {
-                            return resolver.resolve(references, dependencyType, context.reduce(dependencyMapping.contextSpecification(Context.class)));
-                        }
-                    });
+                    value = resolver.resolve(dependencyType, context.reduce(dependencyMapping.contextSpecification(Context.class)));
                 }
             }
 

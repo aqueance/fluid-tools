@@ -42,12 +42,11 @@ abstract class VariantResolver extends AbstractResolver {
     /**
      * Returns the {@link ComponentVariantFactory} instance this is a mapping for.
      *
-     * @param container  the container in which to resolve dependencies of the factory.
-     * @param references the object that keeps track of dependency reference chains.
+     * @param container the container in which to resolve dependencies of the factory.
      *
      * @return the {@link ComponentVariantFactory} instance this is a mapping for.
      */
-    protected abstract ComponentVariantFactory factory(final SimpleContainer container, final ReferenceChain.Reference references);
+    protected abstract ComponentVariantFactory factory(final SimpleContainer container);
 
     public VariantResolver(final int priority,
                            final SimpleContainer container,
@@ -119,13 +118,13 @@ abstract class VariantResolver extends AbstractResolver {
         return new ComponentCache.Instantiation() {
 
             public Object perform(final ContextDefinition context) {
-                final ComponentVariantFactory factory = factory(container, references);
+                final ComponentVariantFactory factory = factory(container);
 
                 final SimpleContainer child = container.newChildContainer();
                 child.bindResolver(api, findDelegate());
                 factory.newComponent(new ComponentContainerShell(child, false), context.create());
 
-                return child.get(api, references, context);
+                return child.get(api, context);
             }
         };
     }
@@ -155,6 +154,6 @@ abstract class VariantResolver extends AbstractResolver {
 
     @Override
     public String toString() {
-        return delegate == null ? String.format("%s (via %s)", api, factoryClass.getName()) : String.format("%s (via %s)", delegate.toString(), factoryClass.getName());
+        return String.format("%s (via %s)", delegate == null ? api : delegate.toString(), factoryClass.getName());
     }
 }

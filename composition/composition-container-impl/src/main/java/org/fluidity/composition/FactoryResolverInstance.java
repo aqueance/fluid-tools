@@ -40,7 +40,7 @@ final class FactoryResolverInstance extends FactoryResolver {
     }
 
     @Override
-    protected ComponentFactory factory(final SimpleContainer container, final ReferenceChain.Reference references) {
+    protected ComponentFactory factory(final SimpleContainer container) {
         return factory;
     }
 }
