@@ -102,7 +102,7 @@ abstract class AbstractResolver implements ComponentResolver {
                         if (delegate == null) {
                             final DependencyChain dependencyChain = container.services().dependencyChain();
 
-                            delegate = dependencyChain.follow(context, api, AbstractResolver.this, new DependencyChain.Command<Object>() {
+                            delegate = dependencyChain.follow(context, AbstractResolver.this, new DependencyChain.Command<Object>() {
                                 public Object run(final DependencyChain.Lineage newLineage, final ContextDefinition context) {
                                     if (newLineage.isCircular()) {
                                         throw error == null ? new ComponentContainer.CircularReferencesException(api, lineage.toString()) : error;

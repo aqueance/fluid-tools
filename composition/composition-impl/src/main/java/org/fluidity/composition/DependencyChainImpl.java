@@ -46,7 +46,7 @@ final class DependencyChainImpl implements DependencyChain {
         }
     };
 
-    public <T> T follow(final ContextDefinition context, final Class<?> dependency, final ComponentMapping mapping, final Command<T> command) {
+    public <T> T follow(final ContextDefinition context, final ComponentMapping mapping, final Command<T> command) {
         final Chain lastChain = prevalent.get();
         final Chain newChain = lastChain.descend(mapping);
 
