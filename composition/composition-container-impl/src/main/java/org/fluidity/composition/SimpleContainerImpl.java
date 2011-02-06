@@ -294,12 +294,12 @@ final class SimpleContainerImpl implements SimpleContainer {
         if (resolver == null) {
             return parent == null ? null : parent.get(key, context);
         } else {
-            return services.referenceChain().follow(context, key, resolver, new ReferenceChain.Command<T>() {
-                public T run(final ReferenceChain.Reference references, final ContextDefinition context) {
+            return services.dependencyChain().follow(context, key, resolver, new DependencyChain.Command<T>() {
+                public T run(final DependencyChain.Lineage lineage, final ContextDefinition context) {
                     return injector.injectFields(SimpleContainerImpl.this,
                                                  resolver,
                                                  context,
-                                                 (T) resolver.getComponent(references, context, SimpleContainerImpl.this, key));
+                                                 (T) resolver.getComponent(lineage, context, SimpleContainerImpl.this, key));
                 }
             });
         }
@@ -309,8 +309,8 @@ final class SimpleContainerImpl implements SimpleContainer {
         final Class<?> componentClass = component.getClass();
         final ComponentMapping mapping = new InstanceMapping(componentClass);
 
-        return services.referenceChain().follow(context, componentClass, mapping, new ReferenceChain.Command<T>() {
-            public T run(final ReferenceChain.Reference references, final ContextDefinition context) {
+        return services.dependencyChain().follow(context, componentClass, mapping, new DependencyChain.Command<T>() {
+            public T run(final DependencyChain.Lineage lineage, final ContextDefinition context) {
                 return injector.injectFields(SimpleContainerImpl.this, mapping, context, component);
             }
         });

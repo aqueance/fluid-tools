@@ -51,40 +51,43 @@ abstract class AbstractResolver implements ComponentResolver {
     /**
      * Returns the command to use to get a component instance. Called only when no circular references were detected.
      *
-     * @param references the object that keeps track of dependency reference chains.
-     * @param container  the container containing this resolver.
-     * @param api        the API the component is requested for.
+     * @param lineage   the object that keeps track of dependency reference chains.
+     * @param container the container containing this resolver.
+     * @param api       the API the component is requested for.
      *
      * @return a command or <code>null</code> if no instance should be created.
      */
-    protected ComponentCache.Instantiation createCommand(final ReferenceChain.Reference references, final SimpleContainer container, final Class<?> api) {
+    protected ComponentCache.Instantiation createCommand(final DependencyChain.Lineage lineage, final SimpleContainer container, final Class<?> api) {
         return null;
     }
 
     /**
      * Checks for circular references and, if possible, wraps the first component up the reference chain that is referenced by interface with a proxy that
-     * defers the instantiation of that component. Uses the {@link #createCommand(org.fluidity.composition.ReferenceChain.Reference, SimpleContainer, Class)}
-     * method to perform actual component creation along with the resolver's {@link ComponentCache} to cache instances.
+     * defers the instantiation of that component. Uses the {@link #createCommand(org.fluidity.composition.DependencyChain.Lineage, SimpleContainer, Class)} method to perform actual
+     * component creation along with the resolver's {@link ComponentCache} to cache instances.
      */
-    public Object getComponent(final ReferenceChain.Reference reference, final ContextDefinition context, final SimpleContainer container, final Class<?> api) {
-        final ComponentCache.Instantiation create = createCommand(reference, container, api);
+    public Object getComponent(final DependencyChain.Lineage lineage,
+                               final ContextDefinition context,
+                               final SimpleContainer container,
+                               final Class<?> api) {
+        final ComponentCache.Instantiation create = createCommand(lineage, container, api);
 
         if (create == null) {
             return null;
-        } else if (reference.isCircular()) {
-            return deferredCreate(reference, context.copy(), container, api, null);
+        } else if (lineage.isCircular()) {
+            return deferredCreate(lineage, context.copy(), container, api, null);
         } else {
             try {
                 return cache.lookup(container, context, api, create);
             } catch (final ComponentContainer.CircularReferencesException e) {
 
-                // handle circular reference that was noticed later in the reference chain that could not be handled at that point
-                return deferredCreate(reference, context.copy(), container, api, e);
+                // handle circular lineage that was noticed later in the reference chain that could not be handled at that point
+                return deferredCreate(lineage, context.copy(), container, api, e);
             }
         }
     }
 
-    private Object deferredCreate(final ReferenceChain.Reference reference,
+    private Object deferredCreate(final DependencyChain.Lineage lineage,
                                   final ContextDefinition context,
                                   final SimpleContainer container,
                                   final Class<?> api,
@@ -97,14 +100,14 @@ abstract class AbstractResolver implements ComponentResolver {
                 public Object invoke(final Object proxy, final Method method, final Object[] arguments) throws Throwable {
                     synchronized (this) {
                         if (delegate == null) {
-                            final ReferenceChain referenceChain = container.services().referenceChain();
+                            final DependencyChain dependencyChain = container.services().dependencyChain();
 
-                            delegate = referenceChain.follow(context, api, AbstractResolver.this, new ReferenceChain.Command<Object>() {
-                                public Object run(final ReferenceChain.Reference reference, final ContextDefinition context) {
-                                    if (reference.isCircular()) {
-                                        throw error == null ? new ComponentContainer.CircularReferencesException(api, reference.toString()) : error;
+                            delegate = dependencyChain.follow(context, api, AbstractResolver.this, new DependencyChain.Command<Object>() {
+                                public Object run(final DependencyChain.Lineage newLineage, final ContextDefinition context) {
+                                    if (newLineage.isCircular()) {
+                                        throw error == null ? new ComponentContainer.CircularReferencesException(api, lineage.toString()) : error;
                                     } else {
-                                        return cache.lookup(container, context, api, createCommand(reference, container, api));
+                                        return cache.lookup(container, context, api, createCommand(newLineage, container, api));
                                     }
                                 }
                             });
@@ -116,7 +119,7 @@ abstract class AbstractResolver implements ComponentResolver {
                 }
             });
         } else {
-            throw error == null ? new ComponentContainer.CircularReferencesException(api, reference.toString()) : error;
+            throw error == null ? new ComponentContainer.CircularReferencesException(api, lineage.toString()) : error;
         }
     }
 

@@ -48,7 +48,7 @@ final class InstanceResolver extends AbstractResolver {
         return null;
     }
 
-    public Object getComponent(final ReferenceChain.Reference reference, final ContextDefinition context, final SimpleContainer container, final Class<?> api) {
+    public Object getComponent(final DependencyChain.Lineage lineage, final ContextDefinition context, final SimpleContainer container, final Class<?> api) {
         return instance;
     }
 

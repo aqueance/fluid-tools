@@ -30,20 +30,25 @@ import org.fluidity.composition.spi.ComponentMapping;
 /**
  * @author Tibor Varga
  */
-final class ReferenceChainImpl implements ReferenceChain {
+final class DependencyChainImpl implements DependencyChain {
 
     /*
-     * When deferring component instantiation to break circular dependence, the deferred resolver must be able to use the reference chain prevalent at its
-     * invocation. Without a thread local variable to hold that prevalent chain, the deferred resolver could either use the chain prevalent at its creation
-     * or a new empty chain, both of which are wrong in one case or the other.
+     * When component instantiation is deferred in order to break circular dependence, the deferred resolver must be able to use the reference chain prevalent
+     * at its invocation. Without a thread local variable to hold that prevalent chain, the deferred resolver could either use the chain prevalent at its
+     * creation or a new empty chain, both of which are wrong in one case or the other.
      *
      * Thus, we need a thread local variable to hold the prevalent reference chain.
      */
-    private final ThreadLocal<Chain> prevalent = new InheritableThreadLocal<Chain>();
+    private final ThreadLocal<Chain> prevalent = new InheritableThreadLocal<Chain>() {
+        @Override
+        protected Chain initialValue() {
+            return new Chain();
+        }
+    };
 
     public <T> T follow(final ContextDefinition context, final Class<?> dependency, final ComponentMapping mapping, final Command<T> command) {
         final Chain lastChain = prevalent.get();
-        final Chain newChain = lastChain == null ? new Chain(mapping) : lastChain.add(mapping);
+        final Chain newChain = lastChain.descend(mapping);
 
         prevalent.set(newChain);
         try {
@@ -53,13 +58,12 @@ final class ReferenceChainImpl implements ReferenceChain {
         }
     }
 
-    private class Chain implements Reference {
+    private class Chain implements Lineage {
 
         private final Set<ComponentMapping> loop = new LinkedHashSet<ComponentMapping>();
         private final boolean circular;
 
-        public Chain(final ComponentMapping mapping) {
-            this.loop.add(mapping);
+        private Chain() {
             this.circular = false;
         }
 
@@ -69,7 +73,7 @@ final class ReferenceChainImpl implements ReferenceChain {
             this.loop.add(mapping);
         }
 
-        public Chain add(final ComponentMapping mapping) {
+        public Chain descend(final ComponentMapping mapping) {
             return new Chain(loop, mapping);
         }
 

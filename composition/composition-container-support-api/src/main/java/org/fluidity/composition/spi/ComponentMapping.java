@@ -54,4 +54,11 @@ public interface ComponentMapping {
      * @return the list of annotations that may comprise the context of some other component or <code>null</code> if none present.
      */
     Annotation[] providedContext();
+
+    /**
+     * Converts the dependency mapping to a (more or less) human readable form.
+     *
+     * @return the {@link String} representation of the dependency mapping.
+     */
+    String toString();
 }

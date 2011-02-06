@@ -39,11 +39,11 @@ public interface ContainerServices {
     ClassDiscovery classDiscovery();
 
     /**
-     * Returns the component that can track references from one component to the other.
+     * Returns the component that tracka references from one component to the other.
      *
-     * @return the component that can track references from one component to the other.
+     * @return the component that tracka references from one component to the other.
      */
-    ReferenceChain referenceChain();
+    DependencyChain dependencyChain();
 
     /**
      * Returns the component that can perform dependency injection to constructors or fields.

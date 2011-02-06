@@ -72,7 +72,7 @@ final class ConstructingResolver extends AbstractResolver {
     }
 
     @Override
-    protected ComponentCache.Instantiation createCommand(final ReferenceChain.Reference references, final SimpleContainer container, final Class<?> api) {
+    protected ComponentCache.Instantiation createCommand(final DependencyChain.Lineage lineage, final SimpleContainer container, final Class<?> api) {
         return new ComponentCache.Instantiation() {
             public Object perform(final ContextDefinition context) {
                 final Constructor constructor = constructor();

@@ -78,7 +78,7 @@ abstract class FactoryResolver extends AbstractResolver {
     }
 
     @Override
-    protected ComponentCache.Instantiation createCommand(final ReferenceChain.Reference references, final SimpleContainer container, Class<?> api) {
+    protected ComponentCache.Instantiation createCommand(final DependencyChain.Lineage lineage, final SimpleContainer container, Class<?> api) {
         return new ComponentCache.Instantiation() {
             public Object perform(final ContextDefinition context) {
                 return factory(container).newComponent(new ComponentContainerShell(container, context, true), context.create());
