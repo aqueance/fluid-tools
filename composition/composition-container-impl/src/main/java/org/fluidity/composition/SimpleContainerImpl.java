@@ -32,6 +32,7 @@ import java.util.Map;
 import org.fluidity.composition.spi.ComponentFactory;
 import org.fluidity.composition.spi.ComponentMapping;
 import org.fluidity.composition.spi.ComponentVariantFactory;
+import org.fluidity.foundation.Strings;
 import org.fluidity.foundation.logging.Log;
 
 /**
@@ -191,18 +192,6 @@ final class SimpleContainerImpl implements SimpleContainer {
         });
     }
 
-    // TODO: duplicate in DependencyInjectorImpl
-    private String toString(final Class<?> type) {
-        final StringBuilder builder = new StringBuilder();
-
-        Class<?> componentType = type;
-        for (; componentType.isArray(); componentType = componentType.getComponentType()) {
-            builder.append("[]");
-        }
-
-        return builder.insert(0, componentType).toString();
-    }
-
     public void bindInstance(final Object instance, final Class<?>... interfaces) {
         if (instance == null) {
             throw new ComponentContainer.BindingException("Component instance for %s is null", Arrays.toString(interfaces));
@@ -213,9 +202,9 @@ final class SimpleContainerImpl implements SimpleContainer {
 
         final String value = instance instanceof String || instance instanceof Number
                              ? ('\'' + String.valueOf(instance) + '\'')
-                             : ("instance of " + toString(instance.getClass()));
+                             : ("instance of " + Strings.arrayNotation(instance.getClass()));
         for (final Class<?> api : interfaces) {
-            log.info("%s: binding %s to '%s' (%s)", this, toString(api), value, isFallback ? "fallback" : "primary");
+            log.info("%s: binding %s to '%s' (%s)", this, Strings.arrayNotation(api), value, isFallback ? "fallback" : "primary");
         }
 
         bindFactory(interfaces, instance.getClass(), false, new ContentResolvers() {

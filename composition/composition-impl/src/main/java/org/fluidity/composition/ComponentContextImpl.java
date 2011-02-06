@@ -23,13 +23,12 @@
 package org.fluidity.composition;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+
+import org.fluidity.foundation.Strings;
 
 /**
  * @author Tibor Varga
@@ -85,54 +84,12 @@ final class ComponentContextImpl implements ComponentContext {
             }
 
             for (final Annotation annotation : entry.getValue()) {
-                final Class<? extends Annotation> annotationClass = annotation.getClass();
-
-                @SuppressWarnings("unchecked")
-                final Class<? extends Annotation> type = Proxy.isProxyClass(annotationClass)
-                                                         ? (Class<Annotation>) annotationClass.getInterfaces()[0]
-                                                         : annotationClass;
-
-                builder.append('@').append(type.getSimpleName());
-
-                final StringBuilder values = new StringBuilder();
-
-                final Method[] methods = type.getDeclaredMethods();
-                try {
-                    if (methods.length == 1 && methods[0].getName().equals("value")) {
-                        appendValue(values, methods[0].invoke(annotation));
-                    } else {
-                        for (final Method method : methods) {
-                            if (values.length() > 0) {
-                                values.append(", ");
-                            }
-
-                            values.append(method.getName()).append('=');
-
-                            appendValue(values, method.invoke(annotation));
-                        }
-                    }
-                } catch (final IllegalAccessException e) {
-                    assert false : e;
-                } catch (final InvocationTargetException e) {
-                    assert false : e;
-                }
-
-                if (values.length() > 0) {
-                    builder.append('(').append(values).append(')');
-                }
+                builder.append(Strings.simpleNotation(annotation));
             }
         }
 
         builder.insert(0, '[').append(']');
         return builder.toString();
-    }
-
-    private static void appendValue(StringBuilder values, Object value) {
-        if (value instanceof Class) {
-            values.append(((Class) value).getSimpleName()).append(".class");
-        } else {
-            values.append(value);
-        }
     }
 
     @Override

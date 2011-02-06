@@ -48,6 +48,16 @@
 Lowest level utility classes that depend on absolutely no other module.
     </description>
 
+    <dependencies>
+
+        <dependency>
+            <groupId>${fluidity.foundation.groupId}</groupId>
+            <artifactId>foundation-easymock</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+    </dependencies>
+
     <profiles>
         <profile>
             <id>sources</id>

@@ -69,8 +69,6 @@ public final class FieldInjectionTests extends AbstractContainerTests {
         injected.verify();
     }
 
-    // TODO: field injection by context based container
-
     /**
      * A class that has both constructor injected and field injected dependencies.
      */

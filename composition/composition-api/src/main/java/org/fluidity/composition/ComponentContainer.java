@@ -43,17 +43,15 @@ package org.fluidity.composition;
  * The registry offers several ways to map an implementation to an interface in the host container. Which one you need depends on your requirements. These
  * methods are invoked from the {@link org.fluidity.composition.spi.PackageBindings#bindComponents(ComponentContainer.Registry)} method of your binding
  * implementation.
- *
- * TODO: update this list
  * <ul>
  * <li>To simply register a component implementation for its component interfaces, use {@link ComponentContainer.Registry#bindComponent(Class)}. This is exactly
- * what the Maven plugin uses for a {@link Component} annotated class with no {@link Component#automatic()} setting so if this method is all you need then you
+ * what the Maven plugin uses for a @{@link Component} annotated class with no @{@link Component#automatic()} setting so if this method is all you need then you
  * should simply use the plugin instead of creating your own binding class.</li>
- * <li>To register an already instantiated component implementation for a component interface, use {@link ComponentContainer.Registry#bindInstance(Object,
- * Class[])}. If the implementation is annotated with {@link Component} then its {@link Component#automatic()} setting must be set to <code>false</code>.</li>
+ * <li>To register an already instantiated component implementation for a component interface, use {@link ComponentContainer.Registry#bindInstance(Object, Class[])}.
+ * If the implementation is annotated with @{@link Component} then its @{@link Component#automatic()} setting must be set to <code>false</code>.</li>
  * <li>To register a component implementation without having some or all of its dependencies accessible in the same container, use {@link
- * ComponentContainer.Registry#makeChildContainer(Class, Class)} method and use the returned container's {@link OpenComponentContainer#getRegistry()} method to
- * gain access to the registry in which to bind the hidden dependencies. If the implementation is annotated with {@link Component} then its {@link
+ * ComponentContainer.Registry#makeChildContainer(Class, Class[])} method and use the returned container's {@link OpenComponentContainer#getRegistry()} method to
+ * gain access to the registry in which to bind the hidden dependencies. If the implementation is annotated with @{@link Component} then its @{@link
  * Component#automatic()} setting must be set to <code>false</code>.</li>
  * </ul>
  *
@@ -142,9 +140,22 @@ public interface ComponentContainer {
 
         /**
          * Binds a component class to its component interfaces.
-         * <p/>
-         * TODO: component interface discovery documentation
-         * <p/>
+         *
+         * What interface the component is bound is determined first by it being or not being annotated by
+         * @{link Component}. If it is not, it will be bound to its own class.
+         *
+         * If the component is annotated with @{link Component} then what it is bound to is determined by the annotation having or not having the
+         * @{@link Component#api()} parameter. If the annotation has that parameter, the component will be bound to the class(es) specified as the value of the
+         * @{@link Component#api()} parameter.
+         *
+         * If the @{@link Component} annotation has no @{@link Component#api()} parameter, the following algorithm is employed to find the classes to bind the
+         * component to:
+         * <ol>
+         * <li>If the class implements no interfaces and its super class is {@link Object} then the component is bound to its own class.</li>
+         * <li>If the class implements no interfaces and its super class is not {@link Object} then this algorithm is run from the beginning through the
+         * super class.</li>
+         * <li>If the class directly implements one or more interfaces then the component will be bound to all of those interfaces.
+         * </ol>
          * Two special cases must be handled by the receiver: when <code>implementation</code> is either a {@link org.fluidity.composition.spi.ComponentFactory}
          * or a {@link org.fluidity.composition.spi.ComponentVariantFactory}. In the latter case, a total of two bindings must take place, one for the variant
          * factory and one for the component it creates variants of, and they can take place in any order. Irrespective of the order, the variant factory must

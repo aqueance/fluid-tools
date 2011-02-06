@@ -34,6 +34,7 @@ import org.fluidity.composition.spi.ComponentMapping;
 import org.fluidity.composition.spi.DependencyResolver;
 import org.fluidity.foundation.ClassLoaders;
 import org.fluidity.foundation.Exceptions;
+import org.fluidity.foundation.Strings;
 
 /**
  * Finds, resolves and sets, using the given container, all @{@link Component} annotated fields of an object that have not yet been set.
@@ -239,7 +240,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
             }
 
             if (value == null && dependency.annotation(Optional.class) == null) {
-                throw new ComponentContainer.ResolutionException("Dependency %s of %s cannot be satisfied", toString(dependencyType), declaringType);
+                throw new ComponentContainer.ResolutionException("Dependency %s of %s cannot be satisfied", Strings.arrayNotation(dependencyType), declaringType);
             }
 
             dependency.set(value);
@@ -250,18 +251,6 @@ final class DependencyInjectorImpl implements DependencyInjector {
 
     private static Annotation[] neverNull(final Annotation[] array) {
         return array == null ? new Annotation[0] : array;
-    }
-
-    // TODO: duplicated in SimpleContainerImpl
-    private String toString(final Class<?> type) {
-        final StringBuilder builder = new StringBuilder();
-
-        Class<?> componentType = type;
-        for (; componentType.isArray(); componentType = componentType.getComponentType()) {
-            builder.append("[]");
-        }
-
-        return builder.insert(0, componentType).toString();
     }
 
     private Class<?> findDependencyType(final Component component, final Class<?> defaultType, Class<?> declaringType) {
