@@ -63,8 +63,8 @@ public interface ReferenceChain {
     // TODO: document
     interface Reference {
 
-        Reference next(final ComponentMapping mapping);
-
         boolean isCircular();
+
+        String toString();
     }
 }

@@ -39,40 +39,38 @@ final class ReferenceChainImpl implements ReferenceChain {
      *
      * Thus, we need a thread local variable to hold the prevalent reference chain.
      */
-    private final ThreadLocal<Reference> prevalent = new InheritableThreadLocal<Reference>();
+    private final ThreadLocal<Chain> prevalent = new InheritableThreadLocal<Chain>();
 
     public <T> T follow(final ContextDefinition context, final Class<?> dependency, final ComponentMapping mapping, final Command<T> command) {
-        final Reference reference = prevalent.get();
-        final Reference validReference = reference == null ? new ReferenceImpl(mapping) : reference.next(mapping);
+        final Chain lastChain = prevalent.get();
+        final Chain newChain = lastChain == null ? new Chain(mapping) : lastChain.add(mapping);
 
-        final Reference last = prevalent.get();
-        prevalent.set(validReference);
-
+        prevalent.set(newChain);
         try {
-            return command.run(validReference, context == null ? new ContextDefinitionImpl() : context);
+            return command.run(newChain, context == null ? new ContextDefinitionImpl() : context);
         } finally {
-            prevalent.set(last);
+            prevalent.set(lastChain);
         }
     }
 
-    private class ReferenceImpl implements Reference {
+    private class Chain implements Reference {
 
         private final Set<ComponentMapping> loop = new LinkedHashSet<ComponentMapping>();
         private final boolean circular;
 
-        public ReferenceImpl(final ComponentMapping mapping) {
+        public Chain(final ComponentMapping mapping) {
             this.loop.add(mapping);
             this.circular = false;
         }
 
-        public ReferenceImpl(final Set<ComponentMapping> loop, final ComponentMapping mapping) {
+        public Chain(final Set<ComponentMapping> loop, final ComponentMapping mapping) {
             this.loop.addAll(loop);
             this.circular = this.loop.contains(mapping);
             this.loop.add(mapping);
         }
 
-        public Reference next(final ComponentMapping mapping) {
-            return new ReferenceImpl(loop, mapping);
+        public Chain add(final ComponentMapping mapping) {
+            return new Chain(loop, mapping);
         }
 
         public boolean isCircular() {
