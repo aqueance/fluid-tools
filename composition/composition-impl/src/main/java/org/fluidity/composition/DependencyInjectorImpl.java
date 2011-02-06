@@ -43,9 +43,11 @@ import org.fluidity.foundation.Exceptions;
 final class DependencyInjectorImpl implements DependencyInjector {
 
     private final ClassDiscovery discovery;
+    private final ReferenceChain referenceChain;
 
-    public DependencyInjectorImpl(final ClassDiscovery discovery) {
+    public DependencyInjectorImpl(final ClassDiscovery discovery, final ReferenceChain referenceChain) {
         this.discovery = discovery;
+        this.referenceChain = referenceChain;
     }
 
     public <T> T injectFields(final ReferenceChain.Reference references,
@@ -197,9 +199,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
                                                                  declaringType);
             }
 
-            final Class<?> providerType = serviceProvider.api() == null || serviceProvider.api().length != 1
-                                          ? itemType
-                                          : serviceProvider.api()[0];
+            final Class<?> providerType = serviceProvider.api() == null || serviceProvider.api().length != 1 ? itemType : serviceProvider.api()[0];
 
             if (!itemType.isAssignableFrom(providerType)) {
                 throw new ComponentContainer.ResolutionException(
@@ -214,12 +214,12 @@ final class DependencyInjectorImpl implements DependencyInjector {
             final Class<?>[] componentClasses = discovery.findComponentClasses(providerType, ClassLoaders.findClassLoader(declaringType), false);
 
             for (final Class<?> componentClass : componentClasses) {
-                final Object component = references.next(itemType, null, context, new ReferenceChain.Command<Object>() {
+                final Object component = referenceChain.descend(references, context, itemType, null, new ReferenceChain.Command<Object>() {
                     public Object run(final ReferenceChain.Reference references, final ContextDefinition context) {
                         return resolver.resolve(references, componentClass, context);
                     }
                 });
-                list.add(component == null ? references.next(itemType, null, context, new ReferenceChain.Command<Object>() {
+                list.add(component == null ? referenceChain.descend(references, context, itemType, null, new ReferenceChain.Command<Object>() {
                     public Object run(ReferenceChain.Reference references, ContextDefinition context) {
                         return resolver.create(references, componentClass, context);
                     }
@@ -251,7 +251,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
             if (value == null) {
                 final ComponentMapping dependencyMapping = resolver.mapping(dependencyType);
                 if (dependencyMapping != null) {
-                    value = references.next(dependency.type(), dependencyMapping, context, new ReferenceChain.Command<Object>() {
+                    value = referenceChain.descend(references, context, dependency.type(), dependencyMapping, new ReferenceChain.Command<Object>() {
                         public Object run(ReferenceChain.Reference references, ContextDefinition context) {
                             return resolver.resolve(references, dependencyType, context.reduce(dependencyMapping.contextSpecification(Context.class)));
                         }

@@ -32,32 +32,37 @@ import org.fluidity.composition.spi.ComponentMapping;
  */
 final class ReferenceChainImpl implements ReferenceChain {
 
-    private final ThreadLocal<Reference> local = new InheritableThreadLocal<Reference>();
+    /*
+     * When deferring component instantiation to break circular dependence, the deferred resolver must be able to use the reference chain prevalent at its
+     * invocation. Without a thread local variable to hold that prevalent chain, the deferred resolver could either use the chain prevalent at its creation
+     * or a new empty chain, both of which are wrong in one case or the other.
+     *
+     * Thus, we need a thread local variable to hold the prevalent reference chain.
+     */
+    private final ThreadLocal<Reference> prevalent = new InheritableThreadLocal<Reference>();
 
-    public <T> T track(final Reference references,
-                       final ContextDefinition context,
-                       final ComponentMapping mapping,
-                       final Class<?> dependency,
-                       final Command<T> command) {
-        final ContextDefinition validContext = context == null ? new ContextDefinitionImpl() : context;
+    public <T> T follow(final Reference references,
+                        final ContextDefinition context,
+                        final Class<?> dependency,
+                        final ComponentMapping mapping,
+                        final Command<T> command) {
+        final Reference lastReference = prevalent.get();
+        final Reference validReference = references != null || lastReference == null
+                                         ? references == null ? new ReferenceImpl(dependency, mapping) : references
+                                         : lastReference.next(dependency, mapping);
 
-        final Reference saved = local.get();
-        if (references != null || saved == null) {
-            return nest(references == null ? new ReferenceImpl(dependency, mapping) : references, validContext, command);
-        } else {
-            return saved.next(dependency, mapping, validContext, command);
+        final Reference last = prevalent.get();
+        prevalent.set(validReference);
+
+        try {
+            return command.run(validReference, context == null ? new ContextDefinitionImpl() : context);
+        } finally {
+            prevalent.set(last);
         }
     }
 
-    private <T> T nest(final Reference reference, final ContextDefinition context, final Command<T> command) {
-        final Reference saved = local.get();
-        local.set(reference);
-
-        try {
-            return command.run(reference, context == null ? new ContextDefinitionImpl() : context);
-        } finally {
-            local.set(saved);
-        }
+    public <T> T descend(Reference references, ContextDefinition context, Class<?> dependency, ComponentMapping mapping, Command<T> command) {
+        return follow(references.next(dependency, mapping), context, dependency, mapping, command);
     }
 
     private class ReferenceImpl implements Reference {
@@ -83,11 +88,8 @@ final class ReferenceChainImpl implements ReferenceChain {
             return type;
         }
 
-        /**
-         * @deprecated use #track()
-         */
-        public <T> T next(final Class<?> type, final ComponentMapping mapping, final ContextDefinition context, final Command<T> command) {
-            return nest(new ReferenceImpl(type, loop, mapping), context, command);
+        public Reference next(final Class<?> type, final ComponentMapping mapping) {
+            return new ReferenceImpl(type, loop, mapping);
         }
 
         public boolean isCircular() {

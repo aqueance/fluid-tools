@@ -44,13 +44,14 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
 
     private final DependencyResolver resolver = addControl(DependencyResolver.class);
     private final ClassDiscovery discovery = addControl(ClassDiscovery.class);
+    private final ReferenceChain referenceChain = addControl(ReferenceChain.class);
     private final ComponentMapping mapping = addControl(ComponentMapping.class);
 
     private final ContextDefinition context = addControl(ContextDefinition.class);
     private final ComponentContainer container = addControl(ComponentContainer.class);
 
     private final ReferenceChain.Reference references = addControl(ReferenceChain.Reference.class);
-    private final DependencyInjector injector = new DependencyInjectorImpl(discovery);
+    private final DependencyInjector injector = new DependencyInjectorImpl(discovery, referenceChain);
 
     private final ComponentMapping dummyMapping = new ComponentMapping() {
         public boolean isFactoryMapping() {
@@ -218,10 +219,14 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
 
     @SuppressWarnings("unchecked")
     private void nextReference(final Class<?> type, final ComponentMapping mapping, final ContextDefinition context, final ReferenceChain.Reference next) {
-        EasyMock.expect(references.next(EasyMock.same(type), EasyMock.same(mapping), EasyMock.same(context), EasyMock.<ReferenceChain.Command>notNull()))
+        EasyMock.expect(referenceChain.descend(EasyMock.same(references),
+                                               EasyMock.same(context),
+                                               EasyMock.same(type),
+                                               EasyMock.same(mapping),
+                                               EasyMock.<ReferenceChain.Command>notNull()))
                 .andAnswer(new IAnswer<Object>() {
                     public Object answer() throws Throwable {
-                        return ((ReferenceChain.Command) EasyMock.getCurrentArguments()[3]).run(next, context);
+                        return ((ReferenceChain.Command) EasyMock.getCurrentArguments()[4]).run(next, context);
                     }
                 });
     }

@@ -32,32 +32,45 @@ import org.fluidity.composition.spi.ComponentMapping;
 public interface ReferenceChain {
 
     /**
-     * Adds a new reference to the chain and then removes it after the resolution completes.
+     * Follows a reference chain, picking up a prevalent one if exists and creating one if does not.
      *
      * @param references the object to keep track of dependency reference chains.
      * @param context    the original context for the instantiation chain.
-     * @param mapping    the mapping, e.g., the component interface and class, of the reference.
      * @param dependency the defined type of the reference.
+     * @param mapping    the mapping, e.g., the component interface and class, of the reference.
      * @param command    the command that performs the resolution.
      *
      * @return whatever the command returns.
      */
-    <T> T track(Reference references, ContextDefinition context, ComponentMapping mapping, Class<?> dependency, Command<T> command);
+    <T> T follow(Reference references, ContextDefinition context, Class<?> dependency, ComponentMapping mapping, Command<T> command);
 
     /**
-     * The command to invoke in the context of a new dependency reference established by calling {@link ReferenceChain#track(ReferenceChain.Reference,
-     * ContextDefinition, ComponentMapping, Class, ReferenceChain.Command)}.
+     * Descends into a new reference along an existing reference chain.
+     *
+     * @param references the object to keep track of dependency reference chains.
+     * @param context    the original context for the instantiation chain.
+     * @param dependency the defined type of the reference.
+     * @param mapping    the mapping, e.g., the component interface and class, of the reference.
+     * @param command    the command that performs the resolution.
+     *
+     * @return whatever the command returns.
+     */
+    <T> T descend(Reference references, ContextDefinition context, Class<?> dependency, ComponentMapping mapping, Command<T> command);
+
+    /**
+     * The command to invoke in the context of a new dependency reference established by calling {@link ReferenceChain#follow(Reference, ContextDefinition,
+     * Class, ComponentMapping, Command)} or {@link ReferenceChain#descend(Reference, ContextDefinition, Class, ComponentMapping, Command)}.
      *
      * @author Tibor Varga
      */
     interface Command<T> {
 
         /**
-         *
          * @param references the object to keep track of dependency reference chains.
          * @param context    the current context in the instantiation chain.
-         * @return whatever the caller of {@link ReferenceChain#track(ReferenceChain.Reference, ContextDefinition, ComponentMapping, Class,
-         *         ReferenceChain.Command)} expects to get returned.
+         *
+         * @return whatever the caller of {@link ReferenceChain#follow(Reference, ContextDefinition, Class, ComponentMapping, Command)} or {@link
+         *         ReferenceChain#descend(Reference, ContextDefinition, Class, ComponentMapping, Command)} expects to be returned.
          */
         T run(Reference references, ContextDefinition context);
     }
@@ -67,7 +80,7 @@ public interface ReferenceChain {
 
         Class<?> type();
 
-        <T> T next(Class<?> type, final ComponentMapping mapping, ContextDefinition context, Command<T> command);
+        Reference next(final Class<?> type, final ComponentMapping mapping);
 
         boolean isCircular();
     }
