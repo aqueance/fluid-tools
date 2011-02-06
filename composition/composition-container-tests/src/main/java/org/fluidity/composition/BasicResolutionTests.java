@@ -166,6 +166,18 @@ public final class BasicResolutionTests extends AbstractContainerTests {
     }
 
     @Test
+    public void multipleInterfaces() throws Exception {
+        registry.bindComponent(MultipleInterfaces.class);
+
+        final Interface1 component1 = container.getComponent(Interface1.class);
+        final Interface2 component2 = container.getComponent(Interface2.class);
+        final Interface3 component3 = container.getComponent(Interface3.class);
+
+        assert component1 == component2;
+        assert component2 == component3;
+    }
+
+    @Test
     public void allComponents() throws Exception {
         registry.bindComponent(Service1.class);
         registry.bindComponent(Service2.class);
@@ -313,4 +325,12 @@ public final class BasicResolutionTests extends AbstractContainerTests {
 
         }
     }
+
+    private static interface Interface1 { }
+
+    private static interface Interface2 { }
+
+    private static interface Interface3 { }
+
+    private static class MultipleInterfaces implements Interface1, Interface2, Interface3 {}
 }
