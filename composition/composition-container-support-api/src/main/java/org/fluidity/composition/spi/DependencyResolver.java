@@ -31,10 +31,12 @@ import org.fluidity.composition.ContextDefinition;
 public interface DependencyResolver {
 
     /**
-     * Returns the resolved component instance for the given component interface.
+     * Returns the resolved component instance for the given component interface. The implementation must direct this method call to its external entry point to
+     * component resolution where it invokes {@link org.fluidity.composition.DependencyChain#follow(org.fluidity.composition.ContextDefinition,
+     * ComponentMapping, org.fluidity.composition.DependencyChain.Command)} before immersing in actual dependency resolution.
      *
-     * @param type       the component interface sought.
-     * @param context    the reference context for the resolution.
+     * @param type    the component interface sought.
+     * @param context the reference context for the resolution.
      *
      * @return the resolved component instance or <code>null</code> if no unique resolution is possible.
      *
@@ -44,10 +46,12 @@ public interface DependencyResolver {
     <T> T resolve(Class<T> type, ContextDefinition context) throws ComponentContainer.ResolutionException;
 
     /**
-     * Returns a new component instance for the given component interface.
+     * Returns a new component instance for the given component interface. The implementation must direct this method call to its external entry point to
+     * component resolution where it invokes {@link org.fluidity.composition.DependencyChain#follow(org.fluidity.composition.ContextDefinition,
+     * ComponentMapping, org.fluidity.composition.DependencyChain.Command)} before immersing in actual dependency resolution.
      *
-     * @param type       the component interface sought.
-     * @param context    the reference context for the resolution.
+     * @param type    the component interface sought.
+     * @param context the reference context for the resolution.
      *
      * @return the new component instance or <code>null</code> is no instantiation is possible.
      *
