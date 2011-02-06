@@ -102,7 +102,7 @@ final class SimpleContainerImpl implements SimpleContainer {
     }
 
     public ComponentContainer container(final ContextDefinition context) {
-        return new EmbeddedContainer(this, context);
+        return new ComponentContainerShell(this, services, null, context, false);
     }
 
     public ComponentMapping mapping(final Class<?> type) {
@@ -285,14 +285,6 @@ final class SimpleContainerImpl implements SimpleContainer {
     public ComponentResolver resolver(final Class<?> api, final boolean ascend) {
         final ComponentResolver resolver = contents.get(api);
         return resolver == null && parent != null && ascend ? parent.resolver(api, ascend) : resolver;
-    }
-
-    public <T> T get(final Class<? extends T> key) {
-        return get(key, null, null);
-    }
-
-    public <T> T initialize(final T component) {
-        return initialize(component, null);
     }
 
     @SuppressWarnings("unchecked")

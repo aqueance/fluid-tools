@@ -32,13 +32,6 @@ import java.util.List;
 public interface OpenComponentContainer extends ComponentContainer {
 
     /**
-     * Returns the parent container, if any.
-     *
-     * @return th parent container, if any.
-     */
-    OpenComponentContainer getParentContainer();
-
-    /**
      * Returns the interface through which component bindings can be added to this container. The returned interface cannot be used to get components out of the
      * container. Thus, a container is write-only when it is being populated and read-only after it has been populated.
      *

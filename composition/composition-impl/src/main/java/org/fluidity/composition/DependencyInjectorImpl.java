@@ -236,6 +236,14 @@ final class DependencyInjectorImpl implements DependencyInjector {
                 value = dependency.itself();
             }
 
+            final Annotation[] dependencyContext = neverNull(dependency.annotations());
+
+            final Annotation[] definitions = new Annotation[typeContext.length + dependencyContext.length];
+            System.arraycopy(typeContext, 0, definitions, 0, typeContext.length);
+            System.arraycopy(dependencyContext, 0, definitions, typeContext.length, dependencyContext.length);
+
+            context.expand(definitions);
+
             if (value == null && ComponentContainer.class.isAssignableFrom(dependencyType)) {
                 value = resolver.container(context);
             }
@@ -243,19 +251,9 @@ final class DependencyInjectorImpl implements DependencyInjector {
             if (value == null) {
                 final ComponentMapping dependencyMapping = resolver.mapping(dependencyType);
                 if (dependencyMapping != null) {
-                    final Annotation[] dependencyContext = neverNull(dependency.annotations());
-
-                    final Annotation[] definitions = new Annotation[typeContext.length + dependencyContext.length];
-                    System.arraycopy(typeContext, 0, definitions, 0, typeContext.length);
-                    System.arraycopy(dependencyContext, 0, definitions, typeContext.length, dependencyContext.length);
-
-                    context.expand(definitions);
-
                     value = references.next(dependency.type(), dependencyMapping, context, new ReferenceChain.Command<Object>() {
                         public Object run(ReferenceChain.Reference references, ContextDefinition context) {
-                            return resolver.resolve(references,
-                                             dependencyType,
-                                             context.reduce(dependencyMapping.contextSpecification(Context.class)));
+                            return resolver.resolve(references, dependencyType, context.reduce(dependencyMapping.contextSpecification(Context.class)));
                         }
                     });
                 }

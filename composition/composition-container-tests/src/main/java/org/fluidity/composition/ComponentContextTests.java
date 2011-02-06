@@ -173,6 +173,48 @@ public final class ComponentContextTests extends AbstractContainerTests {
         assert contextFree.getInnocent().getOrdinary().setting().equals("missing-value") : "Invalid context passed through context unaware component";
     }
 
+    @Test
+    public void embeddedContext() throws Exception {
+        registry.bindComponent(ContextProvider1.class);
+        registry.bindComponent(ContextConsumer1.class);
+
+        assert container.getComponent(ContextProvider1.class) != null : ContextProvider1.class;
+
+        final ComponentContext context = ContextConsumer1.context;
+        assert context != null;
+
+        final Setting1 setting1 = context.annotation(Setting1.class, null);
+        final Setting2 setting2 = context.annotation(Setting2.class, null);
+
+        assert setting1 != null;
+        assert setting2 != null;
+
+        // values come from ContextProvider1
+        assert "setting-1".equals(setting1.value()) : setting1.value();
+        assert "setting-2".equals(setting2.value()) : setting2.value();
+    }
+
+    @Test
+    public void fieldContext() throws Exception {
+        registry.bindComponent(ContextProvider2.class);
+        registry.bindComponent(ContextConsumer2.class);
+
+        assert container.getComponent(ContextProvider2.class) != null : ContextProvider2.class;
+
+        final ComponentContext context = ContextConsumer2.context;
+        assert context != null;
+
+        final Setting1 setting1 = context.annotation(Setting1.class, null);
+        final Setting3 setting3 = context.annotation(Setting3.class, null);
+
+        assert setting1 != null;
+        assert setting3 != null;
+
+        // values come from ContextProvider2
+        assert "setting-1".equals(setting1.value()) : setting1.value();
+        assert "setting-3".equals(setting3.value()) : setting3.value();
+    }
+
     private static interface ContextAware {
 
         String setting();
@@ -413,6 +455,44 @@ public final class ComponentContextTests extends AbstractContainerTests {
         @SuppressWarnings("UnusedDeclaration")
         private OverridingComponent(final OrdinaryComponent2 ordinary2) {
             this.ordinary2 = ordinary2;
+        }
+    }
+
+    @Setting1("setting-1")
+    private static class ContextProvider1 {
+
+        public ContextProvider1(final @Setting2("setting-2") ComponentContainer container) {
+            container.getComponent(ContextConsumer1.class);
+        }
+    }
+
+    @Setting1("setting-1")
+    private static class ContextProvider2 {
+
+        @Component
+        @Setting3("setting-3")
+        public ContextConsumer2 consumer;
+    }
+
+    @Context({Setting1.class, Setting2.class})
+    private static class ContextConsumer1 {
+
+        public static ComponentContext context;
+
+        private ContextConsumer1(final ComponentContext context) {
+            assert ContextConsumer1.context == null;
+            ContextConsumer1.context = context;
+        }
+    }
+
+    @Context({Setting1.class, Setting3.class})
+    private static class ContextConsumer2 {
+
+        public static ComponentContext context;
+
+        private ContextConsumer2(final ComponentContext context) {
+            assert ContextConsumer2.context == null;
+            ContextConsumer2.context = context;
         }
     }
 

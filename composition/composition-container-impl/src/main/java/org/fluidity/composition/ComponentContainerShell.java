@@ -69,10 +69,6 @@ final class ComponentContainerShell extends AbstractComponentContainer implement
         return container.initialize(component, context);
     }
 
-    public OpenComponentContainer getParentContainer() {
-        return new ComponentContainerShell(container, references, context, false);
-    }
-
     public Registry getRegistry() {
         return registry;
     }
