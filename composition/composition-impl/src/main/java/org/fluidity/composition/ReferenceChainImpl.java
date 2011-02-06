@@ -22,9 +22,7 @@
 
 package org.fluidity.composition;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 import org.fluidity.composition.spi.ComponentMapping;
@@ -34,74 +32,71 @@ import org.fluidity.composition.spi.ComponentMapping;
  */
 final class ReferenceChainImpl implements ReferenceChain {
 
-    // TODO: pass along in method invocations
-    private static final ThreadLocal<List<Link>> reference = new ThreadLocal<List<Link>>() {
+    private final ThreadLocal<Reference> local = new InheritableThreadLocal<Reference>();
 
-        @Override
-        protected List<Link> initialValue() {
-            return new ArrayList<Link>();
+    public <T> T track(final Reference references,
+                       final ContextDefinition context,
+                       final ComponentMapping mapping,
+                       final Class<?> dependency,
+                       final Command<T> command) {
+        final ContextDefinition validContext = context == null ? new ContextDefinitionImpl() : context;
+
+        final Reference saved = local.get();
+        if (references != null || saved == null) {
+            return nest(references == null ? new ReferenceImpl(dependency, mapping) : references, validContext, command);
+        } else {
+            return saved.next(dependency, mapping, validContext, command);
         }
-    };
-
-    // TODO: get rid of
-    private static final ThreadLocal<Set<ComponentMapping>> mappings = new ThreadLocal<Set<ComponentMapping>>() {
-
-        @Override
-        protected Set<ComponentMapping> initialValue() {
-            return new HashSet<ComponentMapping>();
-        }
-    };
-
-    public Link lastLink() {
-        final List<Link> stack = reference.get();
-        assert stack.size() > 0 : "Empty reference chain";
-        return stack.get(stack.size() - 1);
     }
 
-    public <T> T track(final ContextDefinition context, final ComponentMapping mapping, final Class<?> dependency, final Command<T> command) {
-        final List<Link> stack = reference.get();
-        final Set<ComponentMapping> loop = mappings.get();
+    private <T> T nest(final Reference reference, final ContextDefinition context, final Command<T> command) {
+        final Reference saved = local.get();
+        local.set(reference);
 
-        final boolean circular = loop.contains(mapping);
-
-        stack.add(new LinkImpl(mapping, dependency));
-        loop.add(mapping);
         try {
-            return command.run(context == null ? new ContextDefinitionImpl() : context.copy(), circular);
+            return command.run(reference, context == null ? new ContextDefinitionImpl() : context);
         } finally {
-            stack.remove(stack.size() - 1);
-
-            if (!circular) {
-                loop.remove(mapping);
-            }
+            local.set(saved);
         }
     }
 
-    public String toString() {
-        return reference.get().toString();
-    }
+    private class ReferenceImpl implements Reference {
 
-    private static final class LinkImpl implements Link {
+        private final Set<ComponentMapping> loop = new LinkedHashSet<ComponentMapping>();
+        private final Class<?> type;
+        private final boolean circular;
 
-        private final ComponentMapping mapping;
-        private final Class<?> reference;
-
-        public LinkImpl(final ComponentMapping mapping, final Class<?> reference) {
-            this.mapping = mapping;
-            this.reference = reference;
+        public ReferenceImpl(final Class<?> type, final ComponentMapping mapping) {
+            this.type = type;
+            this.loop.add(mapping);
+            this.circular = false;
         }
 
-        public ComponentMapping mapping() {
-            return mapping;
+        public ReferenceImpl(final Class<?> type, final Set<ComponentMapping> loop, final ComponentMapping mapping) {
+            this.type = type;
+            this.loop.addAll(loop);
+            this.circular = this.loop.contains(mapping);
+            this.loop.add(mapping);
         }
 
-        public Class<?> reference() {
-            return reference;
+        public Class<?> type() {
+            return type;
+        }
+
+        /**
+         * @deprecated use #track()
+         */
+        public <T> T next(final Class<?> type, final ComponentMapping mapping, final ContextDefinition context, final Command<T> command) {
+            return nest(new ReferenceImpl(type, loop, mapping), context, command);
+        }
+
+        public boolean isCircular() {
+            return circular;
         }
 
         @Override
         public String toString() {
-            return String.format("%s - %s", reference, mapping);
+            return loop.toString();
         }
     }
 }

@@ -42,20 +42,20 @@ abstract class VariantResolver extends AbstractResolver {
     /**
      * Returns the {@link ComponentVariantFactory} instance this is a mapping for.
      *
-     * @param container the container in which to resolve dependencies of the factory.
+     * @param container  the container in which to resolve dependencies of the factory.
+     * @param references the object that keeps track of dependency reference chains.
      *
      * @return the {@link ComponentVariantFactory} instance this is a mapping for.
      */
-    protected abstract ComponentVariantFactory factory(final SimpleContainer container);
+    protected abstract ComponentVariantFactory factory(final SimpleContainer container, final ReferenceChain.Reference references);
 
     public VariantResolver(final int priority,
                            final SimpleContainer container,
                            final Class<?> api,
                            final Class<? extends ComponentVariantFactory> factoryClass,
-                           final ReferenceChain references,
                            final ComponentCache cache,
                            final LogFactory logs) {
-        super(priority, api, references, cache, logs);
+        super(priority, api, cache, logs);
         this.parent = container.parentContainer();
         this.factoryClass = factoryClass;
     }
@@ -115,17 +115,17 @@ abstract class VariantResolver extends AbstractResolver {
     }
 
     @Override
-    protected ComponentCache.Instantiation createCommand(final SimpleContainer container, final Class<?> api) {
+    protected ComponentCache.Instantiation createCommand(final ReferenceChain.Reference references, final SimpleContainer container, final Class<?> api) {
         return new ComponentCache.Instantiation() {
 
             public Object perform(final ContextDefinition context) {
-                final ComponentVariantFactory factory = factory(container);
+                final ComponentVariantFactory factory = factory(container, references);
 
                 final SimpleContainer child = container.newChildContainer();
                 child.bindResolver(api, findDelegate());
                 factory.newComponent(new ComponentContainerShell(child, false), context.create());
 
-                return child.get(api, context);
+                return child.get(api, references, context);
             }
         };
     }
@@ -155,6 +155,6 @@ abstract class VariantResolver extends AbstractResolver {
 
     @Override
     public String toString() {
-        return String.format("%s [%s]", super.toString(), factoryClass);
+        return delegate == null ? String.format("%s (via %s)", api, factoryClass.getName()) : String.format("%s (via %s)", delegate.toString(), factoryClass.getName());
     }
 }

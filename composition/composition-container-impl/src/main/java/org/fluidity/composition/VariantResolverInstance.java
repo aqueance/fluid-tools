@@ -38,15 +38,14 @@ final class VariantResolverInstance extends VariantResolver {
                                    final SimpleContainer container,
                                    final Class<?> api,
                                    final ComponentVariantFactory factory,
-                                   final ReferenceChain references,
                                    final ComponentCache cache,
                                    final LogFactory logs) {
-        super(priority, container, api, factory.getClass(), references, cache, logs);
+        super(priority, container, api, factory.getClass(), cache, logs);
         this.factory = factory;
     }
 
     @Override
-    protected ComponentVariantFactory factory(final SimpleContainer container) {
+    protected ComponentVariantFactory factory(final SimpleContainer container, final ReferenceChain.Reference references) {
         return factory;
     }
 }

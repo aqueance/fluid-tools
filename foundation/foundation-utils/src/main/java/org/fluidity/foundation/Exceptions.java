@@ -22,6 +22,8 @@
 
 package org.fluidity.foundation;
 
+import java.lang.reflect.InvocationTargetException;
+
 /**
  * Provides exception related common functionality.
  *
@@ -32,17 +34,23 @@ public abstract class Exceptions {
     /**
      * Re-trows {@link RuntimeException}s and wraps other {@link Exception}s in a {@link RuntimeException}.
      *
-     * @param context the action part of the "Error %s" message in the wrapping exception.
+     * @param context the action part of the "Error %s" message in the wrapper exception.
      * @param command the command to run.
      *
      * @return whatever the command returns.
      */
     public static <T> T wrap(final String context, final Command<T> command) {
         try {
-            return command.run();
+            try {
+                return command.run();
+            } catch (final InvocationTargetException e) {
+                throw e.getCause();
+            }
         } catch (final RuntimeException e) {
             throw e;
-        } catch (final Exception e) {
+        } catch (final Error e) {
+            throw e;
+        } catch (final Throwable e) {
             throw context == null ? new Wrapper(e) : new Wrapper(e, "Error %s", context);
         }
     }
@@ -79,11 +87,11 @@ public abstract class Exceptions {
      */
     public static final class Wrapper extends RuntimeException {
 
-        Wrapper(final Exception cause) {
+        Wrapper(final Throwable cause) {
             super(cause);
         }
 
-        Wrapper(final Exception cause, final String format, final Object... args) {
+        Wrapper(final Throwable cause, final String format, final Object... args) {
             super(String.format(format, args), cause);
         }
 

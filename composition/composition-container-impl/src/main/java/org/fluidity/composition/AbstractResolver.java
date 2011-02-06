@@ -37,15 +37,13 @@ import org.fluidity.foundation.spi.LogFactory;
 abstract class AbstractResolver implements ComponentResolver {
 
     private final int priority;
-    protected final Class<?> api;
-    protected final ReferenceChain references;
-    protected final ComponentCache cache;
     protected final Log log;
+    protected final Class<?> api;
+    protected final ComponentCache cache;
 
-    protected AbstractResolver(final int priority, final Class<?> api, final ReferenceChain references, final ComponentCache cache, final LogFactory logs) {
+    protected AbstractResolver(final int priority, final Class<?> api, final ComponentCache cache, final LogFactory logs) {
         this.priority = priority;
         this.api = api;
-        this.references = references;
         this.cache = cache;
         this.log = logs.createLog(getClass());
     }
@@ -53,54 +51,63 @@ abstract class AbstractResolver implements ComponentResolver {
     /**
      * Returns the command to use to get a component instance. Called only when no circular references were detected.
      *
-     * @param container the container containing this resolver.
-     * @param api       the API the component is requested for.
+     * @param references the object that keeps track of dependency reference chains.
+     * @param container  the container containing this resolver.
+     * @param api        the API the component is requested for.
      *
      * @return a command or <code>null</code> if no instance should be created.
      */
-    protected ComponentCache.Instantiation createCommand(final SimpleContainer container, final Class<?> api) {
+    protected ComponentCache.Instantiation createCommand(final ReferenceChain.Reference references, final SimpleContainer container, final Class<?> api) {
         return null;
     }
 
     /**
      * Checks for circular references and, if possible, wraps the first component up the reference chain that is referenced by interface with a proxy that
-     * defers the instantiation of that component. Uses the {@link #createCommand(SimpleContainer, Class)} method to perform actual component creation along
-     * with the resolver's {@link ComponentCache} to cache instances.
+     * defers the instantiation of that component. Uses the {@link #createCommand(org.fluidity.composition.ReferenceChain.Reference, SimpleContainer, Class)}
+     * method to perform actual component creation along with the resolver's {@link ComponentCache} to cache instances.
      */
-    public Object getComponent(final ContextDefinition context, final SimpleContainer container, final Class<?> api, final boolean circular) {
-        final ComponentCache.Instantiation create = createCommand(container, api);
+    public Object getComponent(final ReferenceChain.Reference reference, final ContextDefinition context, final SimpleContainer container, final Class<?> api) {
+        final ComponentCache.Instantiation create = createCommand(reference, container, api);
 
         if (create == null) {
             return null;
-        } else if (circular) {
-            return deferredCreate(context, container, api, create, null);
+        } else if (reference.isCircular()) {
+            return deferredCreate(reference, context.copy(), container, api, null);
         } else {
             try {
                 return cache.lookup(container, context, api, create);
             } catch (final ComponentContainer.CircularReferencesException e) {
 
                 // handle circular reference that was noticed later in the reference chain that could not be handled at that point
-                return deferredCreate(context, container, api, create, e);
+                return deferredCreate(reference, context.copy(), container, api, e);
             }
         }
     }
 
-    private Object deferredCreate(final ContextDefinition context,
+    private Object deferredCreate(final ReferenceChain.Reference reference,
+                                  final ContextDefinition context,
                                   final SimpleContainer container,
                                   final Class<?> api,
-                                  final ComponentCache.Instantiation create,
                                   final ComponentContainer.CircularReferencesException error) {
-        final Class<?> reference = references.lastLink().reference();
-
-        if (reference.isInterface()) {
-            log.info("%s: deferred creation of %s component", container, reference.getName());
-            return Proxy.newProxyInstance(api.getClassLoader(), new Class<?>[] { reference }, new InvocationHandler() {
+        if (api.isInterface()) {
+            log.info("%s: deferred creation of %s component", container, api.getName());
+            return Proxy.newProxyInstance(api.getClassLoader(), new Class<?>[] { api }, new InvocationHandler() {
                 private Object delegate;
 
                 public Object invoke(final Object proxy, final Method method, final Object[] arguments) throws Throwable {
                     synchronized (this) {
                         if (delegate == null) {
-                            delegate = cache.lookup(container, context, api, create);
+                            final ReferenceChain referenceChain = container.services().referenceChain();
+
+                            delegate = referenceChain.track(null, context, AbstractResolver.this, api, new ReferenceChain.Command<Object>() {
+                                public Object run(final ReferenceChain.Reference references, final ContextDefinition context) {
+                                    if (references.isCircular()) {
+                                        throw error == null ? new ComponentContainer.CircularReferencesException(api, reference.toString()) : error;
+                                    } else {
+                                        return cache.lookup(container, context, api, createCommand(references, container, api));
+                                    }
+                                }
+                            });
                         }
                     }
 
@@ -109,7 +116,7 @@ abstract class AbstractResolver implements ComponentResolver {
                 }
             });
         } else {
-            throw error == null ? new ComponentContainer.CircularReferencesException(reference, references.toString()) : error;
+            throw error == null ? new ComponentContainer.CircularReferencesException(api, reference.toString()) : error;
         }
     }
 
@@ -141,10 +148,5 @@ abstract class AbstractResolver implements ComponentResolver {
 
     public boolean isInstanceMapping() {
         return false;
-    }
-
-    @Override
-    public String toString() {
-        return String.format(" %s (%s)", getClass().getSimpleName(), api);
     }
 }

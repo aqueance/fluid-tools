@@ -32,30 +32,45 @@ import java.util.List;
 final class ComponentContainerShell extends AbstractComponentContainer implements OpenComponentContainer {
 
     private final ComponentContainer.Registry registry;
+    private final ReferenceChain.Reference references;
+    private final ContextDefinition context;
 
     public ComponentContainerShell(final SimpleContainer container, boolean child) {
-        this(container, container.services(), child);
+        this(container, null, null, child);
     }
 
-    public ComponentContainerShell(final SimpleContainer container, final ContainerServices services, final boolean child) {
+    public ComponentContainerShell(final SimpleContainer container,
+                                   final ReferenceChain.Reference references,
+                                   final ContextDefinition context,
+                                   final boolean child) {
+        this(container, container.services(), references, context, child);
+    }
+
+    public ComponentContainerShell(final SimpleContainer container,
+                                   final ContainerServices services,
+                                   final ReferenceChain.Reference references,
+                                   final ContextDefinition context,
+                                   final boolean child) {
         super(child ? new SimpleContainerImpl(container, services) : container);
-        this.registry = new ComponentRegistryShell(this.container);
+        this.registry = new ComponentRegistryShell(this.container, references, context);
+        this.references = references;
+        this.context = context;
     }
 
     public <T> T getComponent(final Class<T> api) {
-        return container.get(api);
+        return container.get(api, references, context);
     }
 
     public OpenComponentContainer makeChildContainer() {
-        return new ComponentContainerShell(container, true);
+        return new ComponentContainerShell(container, references, context, true);
     }
 
     public <T> T initialize(final T component) {
-        return container.initialize(component);
+        return container.initialize(component, context);
     }
 
     public OpenComponentContainer getParentContainer() {
-        return new ComponentContainerShell(container, false);
+        return new ComponentContainerShell(container, references, context, false);
     }
 
     public Registry getRegistry() {

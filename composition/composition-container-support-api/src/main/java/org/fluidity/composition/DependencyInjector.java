@@ -37,7 +37,7 @@ public interface DependencyInjector {
     /**
      * Returns the argument array for the given constructor. The constructor must be satisfiable.
      *
-     *
+     * @param references   the object that keeps track of dependency references.
      * @param resolver     the resolver to satisfy dependencies.
      * @param mapping      the mapping that triggered the dependency resolution.
      * @param context      the instantiation context of the object being constructed.
@@ -45,11 +45,12 @@ public interface DependencyInjector {
      *
      * @return the argument array for the given constructor.
      */
-    Object[] injectConstructor(DependencyResolver resolver, ComponentMapping mapping, ContextDefinition context, Constructor<?> constructor);
+    Object[] injectConstructor(ReferenceChain.Reference references, DependencyResolver resolver, ComponentMapping mapping, ContextDefinition context, Constructor<?> constructor);
 
     /**
      * Sets all {@link Component} annotated fields of the receiver.
      *
+     * @param references   the object that keeps track of dependency references.
      * @param resolver     the resolver to satisfy dependencies.
      * @param mapping      the mapping that triggered the dependency resolution.
      * @param context      the instantiation context of the object being constructed.
@@ -57,5 +58,5 @@ public interface DependencyInjector {
      *
      * @return the received instance.
      */
-    <T> T injectFields(DependencyResolver resolver, ComponentMapping mapping, ContextDefinition context, T instance);
+    <T> T injectFields(ReferenceChain.Reference references, DependencyResolver resolver, ComponentMapping mapping, ContextDefinition context, T instance);
 }

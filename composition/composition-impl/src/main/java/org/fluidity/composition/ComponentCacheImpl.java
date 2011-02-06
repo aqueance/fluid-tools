@@ -79,15 +79,15 @@ final class ComponentCacheImpl implements ComponentCache {
                     cache.put(incoming, component);
                     cache.put(outgoing, component);
 
-                    final ComponentContext created = context.create();
+                    final ComponentContext consumed = context.create();
                     if (component == null) {
-                        log.info("%s: not created component for %s%s", source, api, created.types().isEmpty() ? "" : String.format(" for context %s", created));
+                        log.info("%s: not created component for %s%s", source, api, consumed.types().isEmpty() ? "" : String.format(" for context %s", consumed));
                     } else {
                         log.info("%s: created %s@%s%s",
                                  source,
                                  component.getClass().getName(),
                                  System.identityHashCode(component),
-                                 created.types().isEmpty() ? "" : String.format(" for context %s", created));
+                                 consumed.types().isEmpty() ? "" : String.format(" for context %s", consumed));
                     }
 
                     if (listener != null) {

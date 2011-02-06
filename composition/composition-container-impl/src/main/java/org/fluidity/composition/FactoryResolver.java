@@ -36,15 +36,22 @@ abstract class FactoryResolver extends AbstractResolver {
 
     private final Class<? extends ComponentFactory> factoryClass;
 
-    protected abstract ComponentFactory factory(final SimpleContainer container);
+    /**
+     * Returns the {@link ComponentFactory} instance this is a mapping for.
+     *
+     * @param container  the container in which to resolve dependencies of the factory.
+     * @param references the object that keeps track of dependency reference chains.
+     *
+     * @return the {@link ComponentFactory} instance this is a mapping for.
+     */
+    protected abstract ComponentFactory factory(final SimpleContainer container, final ReferenceChain.Reference references);
 
     public FactoryResolver(final int priority,
                            final Class<?> api,
                            final Class<? extends ComponentFactory> factoryClass,
-                           final ReferenceChain references,
                            final ComponentCache cache,
                            final LogFactory logs) {
-        super(priority, api, references, cache, logs);
+        super(priority, api, cache, logs);
         this.factoryClass = factoryClass;
 
         final Component annotation = factoryClass.getAnnotation(Component.class);
@@ -67,16 +74,15 @@ abstract class FactoryResolver extends AbstractResolver {
         return null;
     }
 
-
     public <T extends Annotation> T contextSpecification(final Class<T> type) {
         return factoryClass.getAnnotation(type);
     }
 
     @Override
-    protected ComponentCache.Instantiation createCommand(final SimpleContainer container, Class<?> api) {
+    protected ComponentCache.Instantiation createCommand(final ReferenceChain.Reference references, final SimpleContainer container, Class<?> api) {
         return new ComponentCache.Instantiation() {
             public Object perform(final ContextDefinition context) {
-                return factory(container).newComponent(new ComponentContainerShell(container, true), context.create());
+                return factory(container, references).newComponent(new ComponentContainerShell(container, references, context, true), context.create());
             }
         };
     }
@@ -87,6 +93,6 @@ abstract class FactoryResolver extends AbstractResolver {
 
     @Override
     public String toString() {
-        return String.format("%s [%s]", super.toString(), factoryClass);
+        return String.format("%s (via %s)", api.getName(), factoryClass.getName());
     }
 }

@@ -35,8 +35,8 @@ final class InstanceResolver extends AbstractResolver {
 
     private final Object instance;
 
-    public InstanceResolver(final int priority, final Class<?> api, final Object instance, final ReferenceChain references, final LogFactory logs) {
-        super(priority, api, references, null, logs);
+    public InstanceResolver(final int priority, final Class<?> api, final Object instance, final LogFactory logs) {
+        super(priority, api, null, logs);
         this.instance = instance;
     }
 
@@ -48,11 +48,16 @@ final class InstanceResolver extends AbstractResolver {
         return null;
     }
 
-    public Object getComponent(final ContextDefinition context, final SimpleContainer container, final Class<?> api, final boolean circular) {
+    public Object getComponent(final ReferenceChain.Reference reference, final ContextDefinition context, final SimpleContainer container, final Class<?> api) {
         return instance;
     }
 
     public boolean isInstanceMapping() {
         return true;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("%s (instance)", instance.getClass().getName());
     }
 }

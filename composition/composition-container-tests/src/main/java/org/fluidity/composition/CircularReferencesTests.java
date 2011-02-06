@@ -87,6 +87,17 @@ public final class CircularReferencesTests extends AbstractContainerTests {
         ping(Circular3IntermediateDependent3.class);
     }
 
+    @Test
+    public void circularThreeWayInstantiationWithCallsToDependencyInConstructor() throws Exception {
+        registry.bindComponent(CircularNasty1Impl.class, CircularNasty1.class);
+        registry.bindComponent(CircularNasty2Impl.class, CircularNasty2.class);
+        registry.bindComponent(CircularNasty3Impl.class, CircularNasty3.class);
+
+        assert container.getComponent(CircularNasty1.class) != null;
+        assert container.getComponent(CircularNasty2.class) != null;
+        assert container.getComponent(CircularNasty3.class) != null;
+    }
+
     private static interface Pingable {
 
         void ping();
@@ -234,6 +245,48 @@ public final class CircularReferencesTests extends AbstractContainerTests {
 
         public Circular3IntermediateDependent3Class(final Circular3IntermediateDependent1Class dependency) {
             super(dependency);
+        }
+    }
+
+    private static interface CircularNasty1 extends Pingable {}
+
+    private static interface CircularNasty2 extends Pingable {}
+
+    private static interface CircularNasty3 extends Pingable {}
+
+    // this will be instantiated once
+    private static class CircularNasty1Impl implements CircularNasty1 {
+
+        public CircularNasty1Impl(final CircularNasty2 dependency) {
+            // empty
+        }
+
+        public void ping() {
+            // empty
+        }
+    }
+
+    // this will be instantiated twice because it forces in its constructor the instantiation of its dependency
+    private static class CircularNasty2Impl implements CircularNasty2 {
+
+        public CircularNasty2Impl(final CircularNasty3 dependency) {
+            dependency.ping();
+        }
+
+        public void ping() {
+            // empty
+        }
+    }
+
+    // this will be instantiated thrice because both it and CircularNasty2Impl force in their constructor the instantiation of their dependency
+    private static class CircularNasty3Impl implements CircularNasty3 {
+
+        public CircularNasty3Impl(final CircularNasty1 dependency) {
+            dependency.ping();
+        }
+
+        public void ping() {
+            // empty
         }
     }
 }

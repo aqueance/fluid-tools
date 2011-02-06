@@ -32,15 +32,9 @@ import org.fluidity.composition.spi.ComponentMapping;
 public interface ReferenceChain {
 
     /**
-     * Returns the last link on the chain.
-     *
-     * @return the last link on the chain.
-     */
-    Link lastLink();
-
-    /**
      * Adds a new reference to the chain and then removes it after the resolution completes.
      *
+     * @param references the object to keep track of dependency reference chains.
      * @param context    the original context for the instantiation chain.
      * @param mapping    the mapping, e.g., the component interface and class, of the reference.
      * @param dependency the defined type of the reference.
@@ -48,45 +42,33 @@ public interface ReferenceChain {
      *
      * @return whatever the command returns.
      */
-    <T> T track(ContextDefinition context, ComponentMapping mapping, Class<?> dependency, Command<T> command);
+    <T> T track(Reference references, ContextDefinition context, ComponentMapping mapping, Class<?> dependency, Command<T> command);
 
     /**
-     * The command to invoke in the context of a new dependency reference established by calling {@link ReferenceChain#track(ContextDefinition,
-     * ComponentMapping, Class, ReferenceChain.Command)}.
+     * The command to invoke in the context of a new dependency reference established by calling {@link ReferenceChain#track(ReferenceChain.Reference,
+     * ContextDefinition, ComponentMapping, Class, ReferenceChain.Command)}.
      *
      * @author Tibor Varga
      */
     interface Command<T> {
 
         /**
-         * @param context  the context for the command.
-         * @param circular tells whether this particular producer has already been asked for a component in the current reference chain.
          *
-         * @return whatever the caller of {@link ReferenceChain#track(ContextDefinition, ComponentMapping, Class, ReferenceChain.Command)}   expects to get
-         *         returned.
+         * @param references the object to keep track of dependency reference chains.
+         * @param context    the current context in the instantiation chain.
+         * @return whatever the caller of {@link ReferenceChain#track(ReferenceChain.Reference, ContextDefinition, ComponentMapping, Class,
+         *         ReferenceChain.Command)} expects to get returned.
          */
-        T run(ContextDefinition context, boolean circular);
+        T run(Reference references, ContextDefinition context);
     }
 
-    /**
-     * Represents a link in a reference chain.
-     *
-     * @author Tibor Varga
-     */
-    interface Link {
+    // TODO: document
+    interface Reference {
 
-        /**
-         * Returns the component mapping at this link.
-         *
-         * @return the component mapping at this link.
-         */
-        ComponentMapping mapping();
+        Class<?> type();
 
-        /**
-         * Returns the class the next component is referred to as at the point in the reference chain represented by this link.
-         *
-         * @return the class the next component is referred to as at the point in the reference chain represented by this link
-         */
-        Class<?> reference();
+        <T> T next(Class<?> type, final ComponentMapping mapping, ContextDefinition context, Command<T> command);
+
+        boolean isCircular();
     }
 }

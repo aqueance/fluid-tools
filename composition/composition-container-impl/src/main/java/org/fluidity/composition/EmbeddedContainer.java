@@ -39,7 +39,7 @@ final class EmbeddedContainer extends AbstractComponentContainer {
     }
 
     public <T> T getComponent(final Class<T> api) throws ResolutionException {
-        return container.get(api, context);
+        return container.get(api, null, context);
     }
 
     public OpenComponentContainer makeChildContainer() {

@@ -34,18 +34,13 @@ final class FactoryResolverInstance extends FactoryResolver {
 
     private final ComponentFactory factory;
 
-    public FactoryResolverInstance(final int priority,
-                                   final Class<?> api,
-                                   final ComponentFactory factory,
-                                   final ReferenceChain references,
-                                   final ComponentCache cache,
-                                   final LogFactory logs) {
-        super(priority, api, factory.getClass(), references, cache, logs);
+    public FactoryResolverInstance(final int priority, final Class<?> api, final ComponentFactory factory, final ComponentCache cache, final LogFactory logs) {
+        super(priority, api, factory.getClass(), cache, logs);
         this.factory = factory;
     }
 
     @Override
-    protected ComponentFactory factory(final SimpleContainer container) {
+    protected ComponentFactory factory(final SimpleContainer container, final ReferenceChain.Reference references) {
         return factory;
     }
 }

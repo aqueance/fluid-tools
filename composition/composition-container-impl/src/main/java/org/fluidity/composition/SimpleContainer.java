@@ -89,10 +89,9 @@ interface SimpleContainer extends DependencyResolver {
     /**
      * Binds a component instance to an interface.
      *
-     *
      * @param instance   the component instance to bind.
-     *
      * @param interfaces the interfaces to bind to.
+     *
      * @throws ComponentContainer.BindingException
      *          when binding fails.
      */
@@ -102,10 +101,9 @@ interface SimpleContainer extends DependencyResolver {
      * Creates a child container of the receiver and links the given interface to a mapping added to the returned child, effectively directing the component
      * resolution in the parent container to the child.
      *
-     *
      * @param implementation the implementation to bind to the interface in the returned child container.
-     *
      * @param interfaces     the interfaces to bind to.
+     *
      * @return the child container returned.
      *
      * @throws ComponentContainer.BindingException
@@ -128,16 +126,16 @@ interface SimpleContainer extends DependencyResolver {
     /**
      * Returns the component instance bound to the given interface in the given context.
      *
-     *
-     * @param key     the interface to return the bound component to.
-     * @param context the context to resolve the component instance in.
+     * @param key        the interface to return the bound component to.
+     * @param references the object that keeps track of dependency reference chains.
+     * @param context    the context to resolve the component instance in.
      *
      * @return the component instance bound to the given interface.
      *
      * @throws ComponentContainer.ResolutionException
      *          when dependency resolution fails.
      */
-    <T> T get(Class<? extends T> key, ContextDefinition context) throws ComponentContainer.ResolutionException;
+    <T> T get(Class<? extends T> key, ReferenceChain.Reference references, ContextDefinition context) throws ComponentContainer.ResolutionException;
 
     /**
      * Injects the {@link Component} annotated fields of the given component instance.
@@ -154,9 +152,8 @@ interface SimpleContainer extends DependencyResolver {
     /**
      * Injects the {@link Component} annotated fields of the given component instance.
      *
-     *
      * @param component the component instance.
-     * @param context the base context to resolve the component's dependencies in.
+     * @param context   the base context to resolve the component's dependencies in.
      *
      * @return the component instance.
      *

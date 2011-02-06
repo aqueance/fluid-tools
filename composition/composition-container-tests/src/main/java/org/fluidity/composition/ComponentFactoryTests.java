@@ -97,7 +97,7 @@ public final class ComponentFactoryTests extends AbstractContainerTests {
         registry.bindInstance(check, Serializable.class);
 
         EasyMock.expect(factory.newComponent(EasyMock.<OpenComponentContainer>notNull(), EasyMock.<ComponentContext>notNull()))
-                .andAnswer(new CircularFactoryInvocation(container));
+                .andAnswer(new CircularFactoryInvocation());
 
         replay();
         verifyComponent(Value.instanceCount, 1, container);
@@ -133,24 +133,20 @@ public final class ComponentFactoryTests extends AbstractContainerTests {
         }
 
         public DependentKey answer() throws Throwable {
-            final OpenComponentContainer received = (OpenComponentContainer) EasyMock.getCurrentArguments()[0];
+            final OpenComponentContainer container = (OpenComponentContainer) EasyMock.getCurrentArguments()[0];
 
-            assert received != null : "Received no container";
-            assert received.getComponent(checkKey) == checkValue : "Container does not check up";
+            assert container != null : "Received no container";
+            assert container.getComponent(checkKey) == checkValue : "Container does not check up";
 
-            return received.getComponent(DependentKey.class);
+            return container.getComponent(DependentKey.class);
         }
     }
 
     private static class CircularFactoryInvocation implements IAnswer<DependentKey> {
 
-        private final OpenComponentContainer container;
-
-        public CircularFactoryInvocation(final OpenComponentContainer container) {
-            this.container = container;
-        }
-
         public DependentKey answer() throws Throwable {
+            final OpenComponentContainer container = (OpenComponentContainer) EasyMock.getCurrentArguments()[0];
+            assert container != null;
             return container.getComponent(DependentKey.class);
         }
     }

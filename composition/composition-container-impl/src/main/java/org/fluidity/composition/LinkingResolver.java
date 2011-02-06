@@ -36,12 +36,8 @@ final class LinkingResolver extends AbstractResolver {
     private final SimpleContainer target;
     private ComponentResolver delegate;
 
-    public LinkingResolver(final SimpleContainer container,
-                           final Class<?> api,
-                           final ComponentResolver delegate,
-                           final ReferenceChain references,
-                           final LogFactory logs) {
-        super(delegate.priority(), api, references, null, logs);
+    public LinkingResolver(final SimpleContainer container, final Class<?> api, final ComponentResolver delegate, final LogFactory logs) {
+        super(delegate.priority(), api, null, logs);
         this.delegate = delegate;
         this.target = container;
     }
@@ -69,9 +65,9 @@ final class LinkingResolver extends AbstractResolver {
         return delegate.isInstanceMapping();
     }
 
-    public Object getComponent(final ContextDefinition context, final SimpleContainer container, final Class<?> api, boolean circular) {
+    public Object getComponent(final ReferenceChain.Reference reference, final ContextDefinition context, final SimpleContainer container, final Class<?> api) {
         assert target.parentContainer() == container;
-        return delegate.getComponent(context, target, api, circular);
+        return delegate.getComponent(reference, context, target, api);
     }
 
     @Override
@@ -79,5 +75,10 @@ final class LinkingResolver extends AbstractResolver {
         if (delegate == previous) {
             delegate = replacement;
         }
+    }
+
+    @Override
+    public String toString() {
+        return String.format("%s (link)", delegate.toString());
     }
 }

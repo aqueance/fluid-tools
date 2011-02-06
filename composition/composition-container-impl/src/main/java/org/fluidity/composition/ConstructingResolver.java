@@ -50,10 +50,9 @@ final class ConstructingResolver extends AbstractResolver {
                                 final Class<?> componentClass,
                                 final boolean ignoreContext,
                                 final ComponentCache cache,
-                                final ReferenceChain references,
                                 final DependencyInjector injector,
                                 final LogFactory logs) {
-        super(priority, api, references, cache, logs);
+        super(priority, api, cache, logs);
         this.ignoreContext = ignoreContext;
         this.injector = injector;
         this.componentClass = componentClass;
@@ -73,7 +72,7 @@ final class ConstructingResolver extends AbstractResolver {
     }
 
     @Override
-    protected ComponentCache.Instantiation createCommand(final SimpleContainer container, final Class<?> api) {
+    protected ComponentCache.Instantiation createCommand(final ReferenceChain.Reference references, final SimpleContainer container, final Class<?> api) {
         return new ComponentCache.Instantiation() {
             public Object perform(final ContextDefinition context) {
                 final Constructor constructor = constructor();
@@ -81,7 +80,7 @@ final class ConstructingResolver extends AbstractResolver {
                 return Exceptions.wrap(String.format("instantiating %s", componentClass), new Exceptions.Command<Object>() {
                     public Object run() throws Exception {
                         constructor.setAccessible(true);
-                        return constructor.newInstance(injector.injectConstructor(container, ConstructingResolver.this, context, constructor));
+                        return constructor.newInstance(injector.injectConstructor(references, container, ConstructingResolver.this, context, constructor));
                     }
                 });
             }
@@ -160,6 +159,11 @@ final class ConstructingResolver extends AbstractResolver {
         default:
             throw new MultipleConstructorsException(componentClass);
         }
+    }
+
+    @Override
+    public String toString() {
+        return componentClass.getName();
     }
 
     private static class MultipleConstructorsException extends ComponentContainer.ResolutionException {
