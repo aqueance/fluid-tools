@@ -55,6 +55,10 @@ public final class ClassLoaders {
         return resourceName.startsWith("/") ? resourceName.substring(1) : resourceName;
     }
 
+    public static URL findResource(final Class sourceClass, final String resourceName) {
+        return findClassLoader(sourceClass).getResource(absoluteResourceName(resourceName));
+    }
+
     public static String classResourceName(final Class sourceClass) {
         return classResourceName(sourceClass.getName());
     }

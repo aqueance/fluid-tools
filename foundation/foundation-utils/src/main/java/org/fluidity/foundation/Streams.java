@@ -45,14 +45,18 @@ public final class Streams {
      * @param buffer the buffer to use.
      * @param close  closes the output stream if <code>true</code>.
      *
+     * @return the output stream.
+     *
      * @throws IOException thrown when reading or writing fails.
      */
-    public static void copy(final InputStream input, final OutputStream output, final byte[] buffer, final boolean close) throws IOException {
+    public static <T extends OutputStream> T copy(final InputStream input, final T output, final byte[] buffer, final boolean close) throws IOException {
         try {
             int len;
             while ((len = input.read(buffer)) != -1) {
                 output.write(buffer, 0, len);
             }
+
+            return output;
         } finally {
             try {
                 input.close();
