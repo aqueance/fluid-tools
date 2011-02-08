@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  */
 
-package org.fluidity.maven;
+package org.fluidity.composition.maven;
 
 import java.io.File;
 

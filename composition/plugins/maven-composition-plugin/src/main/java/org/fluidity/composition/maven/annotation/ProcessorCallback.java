@@ -20,28 +20,16 @@
  * THE SOFTWARE.
  */
 
-package org.fluidity.maven;
+package org.fluidity.composition.maven.annotation;
 
-import java.io.File;
-
-import org.apache.maven.plugin.MojoExecutionException;
+import org.objectweb.asm.AnnotationVisitor;
 
 /**
- * @goal process-test-annotations
- * @phase process-test-classes
- * @requiresDependencyResolution test
- * @threadSafe
+ * Called when an annotation has been fully processed, to extract data collected during the annotation processing.
  *
  * @author Tibor Varga
  */
-public class TestAnnotationProcessorMojo extends AbstractAnnotationProcessorMojo {
+public interface ProcessorCallback<T extends AnnotationVisitor> {
 
-    public void execute() throws MojoExecutionException {
-        processDirectory(new File(build().getTestOutputDirectory()));
-    }
-
-    @Override
-    protected String getProjectNameId() {
-        return String.format("%sTest", super.getProjectNameId());
-    }
+    void complete(T visitor);
 }
