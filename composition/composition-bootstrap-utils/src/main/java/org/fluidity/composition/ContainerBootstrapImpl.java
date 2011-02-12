@@ -54,10 +54,7 @@ final class ContainerBootstrapImpl implements ContainerBootstrap {
          * Find instances of classes implementing the PackageBindings interface.
          */
         final List<Class<PackageBindings>> classes = Arrays.asList(services.classDiscovery()
-                                                                           .findComponentClasses(PackageBindings.SERVICE_TYPE,
-                                                                                                 PackageBindings.class,
-                                                                                                 classLoader,
-                                                                                                 parent != null));
+                                                                           .findComponentClasses(PackageBindings.class, classLoader, parent != null));
 
         log.info("Found %s binding set(s) for %s", classes.size(), container);
 

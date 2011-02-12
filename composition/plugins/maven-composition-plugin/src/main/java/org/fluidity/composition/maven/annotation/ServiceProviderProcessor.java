@@ -29,6 +29,7 @@ import org.fluidity.composition.ServiceProvider;
 import org.fluidity.composition.maven.ClassReaders;
 import org.fluidity.composition.maven.ClassRepository;
 import org.fluidity.foundation.Exceptions;
+import org.fluidity.foundation.Methods;
 
 import org.apache.maven.plugin.MojoExecutionException;
 import org.objectweb.asm.AnnotationVisitor;
@@ -59,11 +60,11 @@ public final class ServiceProviderProcessor extends EmptyVisitor {
         this.classData = classData;
         this.callback = callback;
 
-        this.defaultType = Exceptions.wrap(new Exceptions.Command<String>() {
-            public String run() throws Exception {
-                return (String) ServiceProvider.class.getMethod("type").getDefaultValue();
+        this.defaultType = (String) Methods.get(ServiceProvider.class, new Methods.Invoker<ServiceProvider>() {
+            public void invoke(final ServiceProvider dummy) {
+                dummy.type();
             }
-        });
+        }).getDefaultValue();
 
         this.type = this.defaultType;
         assert type != null;

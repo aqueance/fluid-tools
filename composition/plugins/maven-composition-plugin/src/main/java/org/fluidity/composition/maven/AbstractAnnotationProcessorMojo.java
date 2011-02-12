@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -53,6 +54,7 @@ import org.fluidity.composition.spi.EmptyPackageBindings;
 import org.fluidity.composition.spi.PackageBindings;
 import org.fluidity.foundation.ClassLoaders;
 import org.fluidity.foundation.Exceptions;
+import org.fluidity.foundation.Methods;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.Build;
@@ -83,13 +85,37 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
 
     private static final String OBJECT_CLASS_NAME = Type.getInternalName(Object.class);
     private static final String EMPTY_BINDINGS_CLASS_NAME = Type.getInternalName(EmptyPackageBindings.class);
-    private static final String REGISTRY_CLASS_NAME = Type.getInternalName(ComponentContainer.Registry.class);
 
     private static final String PACKAGE_BINDINGS = PackageBindings.class.getName();
     private static final String GENERATED_PACKAGE_BINDINGS = PACKAGE_BINDINGS.substring(PACKAGE_BINDINGS.lastIndexOf(".") + 1).concat("$");
 
+    private final Method implementedMethod;
+    private final Method invokedMethod;
+
+    protected AbstractAnnotationProcessorMojo() {
+        implementedMethod = Methods.get(PackageBindings.class, new Methods.Invoker<PackageBindings>() {
+            public void invoke(final PackageBindings dummy) {
+                dummy.bindComponents(null);
+            }
+        });
+
+        final Class<?>[] implementedParameters = implementedMethod.getParameterTypes();
+        assert implementedParameters.length == 1 : implementedMethod;
+        assert implementedParameters[0] == ComponentContainer.Registry.class : implementedMethod;
+
+        invokedMethod = Methods.get(ComponentContainer.Registry.class, new Methods.Invoker<ComponentContainer.Registry>() {
+            public void invoke(final ComponentContainer.Registry dummy) {
+                dummy.bindComponent(null);
+            }
+        });
+
+        final Class<?>[] invokedParameter = invokedMethod.getParameterTypes();
+        assert invokedParameter.length == 1 : invokedMethod;
+        assert invokedParameter[0] == Class.class : invokedMethod;
+    }
+
     /**
-     * Reference of the maven project
+     * Reference to the maven project
      *
      * @parameter expression="${project}"
      * @required
@@ -232,11 +258,12 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
         generator.visit(V1_5, ACC_FINAL | ACC_PUBLIC, ClassReaders.internalName(className), null, EMPTY_BINDINGS_CLASS_NAME, null);
 
         {
-            final MethodVisitor method = generator.visitMethod(ACC_PUBLIC, ClassReaders.CONSTRUCTOR_METHOD_NAME, "()V", null, null);
+            final String constructorDesc = Type.getMethodDescriptor(Type.getType(Void.TYPE), new Type[0]);
+            final MethodVisitor method = generator.visitMethod(ACC_PUBLIC, ClassReaders.CONSTRUCTOR_METHOD_NAME, constructorDesc, null, null);
             method.visitCode();
 
             method.visitVarInsn(ALOAD, 0);
-            method.visitMethodInsn(INVOKESPECIAL, EMPTY_BINDINGS_CLASS_NAME, ClassReaders.CONSTRUCTOR_METHOD_NAME, "()V");
+            method.visitMethodInsn(INVOKESPECIAL, EMPTY_BINDINGS_CLASS_NAME, ClassReaders.CONSTRUCTOR_METHOD_NAME, constructorDesc);
             method.visitInsn(RETURN);
 
             method.visitMaxs(0, 0);
@@ -244,9 +271,10 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
         }
 
         {
-            final MethodVisitor method = generator.visitMethod(ACC_PUBLIC,
-                                                               "bindComponents",
-                                                               String.format("(%s)V", Type.getDescriptor(ComponentContainer.Registry.class)),
+            final String implementedDesc = Type.getMethodDescriptor(implementedMethod);
+            final String invokedDesc = Type.getMethodDescriptor(invokedMethod);
+
+            final MethodVisitor method = generator.visitMethod(ACC_PUBLIC, implementedMethod.getName(), implementedDesc,
                                                                null,
                                                                null);
             method.visitCode();
@@ -256,10 +284,10 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
 
                 method.visitVarInsn(ALOAD, 1);
                 method.visitLdcInsn(Type.getObjectType(ClassReaders.internalName(implementationName)));
-                method.visitMethodInsn(INVOKEINTERFACE, REGISTRY_CLASS_NAME, "bindComponent", String.format("(%s)V", Type.getDescriptor(Class.class)));
+                method.visitMethodInsn(INVOKEINTERFACE, Type.getInternalName(invokedMethod.getDeclaringClass()), invokedMethod.getName(), invokedDesc);
             }
 
-            method.visitInsn(RETURN);
+            method.visitInsn(Type.getReturnType(implementedDesc).getOpcode(IRETURN));
 
             method.visitMaxs(0, 0);
             method.visitEnd();

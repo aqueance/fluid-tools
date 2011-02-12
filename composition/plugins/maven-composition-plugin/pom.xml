@@ -37,7 +37,7 @@
     <name>Plugins: Composition</name>
 
     <properties>
-        <asm.version>3.3</asm.version>
+        <asm.version>3.3.1</asm.version>
     </properties>
 
     <description><![CDATA[

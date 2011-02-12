@@ -35,6 +35,7 @@ import java.util.Set;
 
 import org.fluidity.foundation.ClassLoaders;
 import org.fluidity.foundation.Exceptions;
+import org.fluidity.foundation.Methods;
 import org.fluidity.foundation.logging.Log;
 import org.fluidity.foundation.spi.LogFactory;
 
@@ -48,17 +49,24 @@ import org.fluidity.foundation.spi.LogFactory;
 final class ClassDiscoveryImpl implements ClassDiscovery {
 
     private final Log log;
+    private final String defaultType;
 
     public ClassDiscoveryImpl(final LogFactory logs) {
-        log = logs.createLog(getClass());
+        this.log = logs.createLog(getClass());
+        this.defaultType = (String) Methods.get(ServiceProvider.class, new Methods.Invoker<ServiceProvider>() {
+            public void invoke(final ServiceProvider dummy) {
+                dummy.type();
+            }
+        }).getDefaultValue();
     }
 
     public <T> Class<T>[] findComponentClasses(final Class<T> api, final ClassLoader classLoader, final boolean strict) {
-        return findComponentClasses("services", api, classLoader, strict);
+        final ServiceProvider annotation = api.getAnnotation(ServiceProvider.class);
+        return findComponentClasses(annotation == null ? defaultType : annotation.type(), api, classLoader, strict);
     }
 
     @SuppressWarnings({ "unchecked", "SuspiciousToArrayCall" })
-    public <T> Class<T>[] findComponentClasses(final String type, final Class<T> api, final ClassLoader cl, final boolean strict) {
+    private <T> Class<T>[] findComponentClasses(final String type, final Class<T> api, final ClassLoader cl, final boolean strict) {
         final ClassLoader classLoader = cl == null ? ClassLoaders.findClassLoader(api) : cl;
         log.info("Loading '%s' type service provider files for %s using class loader %s", type, api, classLoader);
 
