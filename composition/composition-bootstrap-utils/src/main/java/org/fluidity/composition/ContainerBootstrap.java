@@ -31,7 +31,7 @@ import org.fluidity.composition.spi.ContainerProvider;
  *
  * @author Tibor Varga
  */
-@ServiceProvider(jdk = true)
+@ServiceProvider
 interface ContainerBootstrap {
 
     /**

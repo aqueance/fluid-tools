@@ -152,4 +152,8 @@ abstract class AbstractResolver implements ComponentResolver {
     public boolean isInstanceMapping() {
         return false;
     }
+
+    public boolean isGroupMapping() {
+        return false;
+    }
 }

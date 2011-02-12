@@ -41,7 +41,7 @@ import java.lang.annotation.Target;
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ ElementType.TYPE, ElementType.PARAMETER, ElementType.FIELD })
+@Target( { ElementType.TYPE })
 @Inherited
 public @interface ServiceProvider {
 
@@ -54,10 +54,12 @@ public @interface ServiceProvider {
     Class[] api() default { };
 
     /**
-     * Specifies that service provider classes should be instantiable by the JDK service discovery mechanism. Defaults to Fluid Tools service discovery only.
+     * Returns the what type of service provider the annotated class is. JDK uses the default value, "services", which adds requirements to the class such as
+     * for the class to be public and to have a public zero-argument constructor.
+     * <p/>
+     * The default type is understood by {@link java.util.ServiceLoader} while other types may be used via {@link ClassDiscovery}.
      *
-     * @return <code>true</code> if the JDK service discovery mechanism should be able to instantiate the implementing classes, <code>false</code> to indicate
-     *         the Fluid Tools service discovery will be used.
+     * @return the service provider type.
      */
-    boolean jdk() default false;
+    String type() default "services";
 }

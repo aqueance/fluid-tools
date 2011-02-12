@@ -39,23 +39,31 @@ final class ComponentRegistryShell extends EmptyComponentContainer.EmptyRegistry
         this.context = context;
     }
 
-    public <T> void bindComponent(final Class<T> implementation, Class<? super T>... interfaces) throws ComponentContainer.BindingException {
-        container.bindComponent(implementation, interfaces);
+    @Override
+    protected void bindComponent(final Class<?> implementation, final Class<?>[] interfaces, final Class<?>[] groups)
+            throws ComponentContainer.BindingException {
+        container.bindComponent(implementation, interfaces, groups);
     }
 
-    public <T> void bindFactory(final Class<T> factory, final Class<?>... interfaces) throws ComponentContainer.BindingException {
-        container.bindComponent(factory, interfaces);
+    @Override
+    protected void bindInstance(final Object instance, final Class<?>[] interfaces, final Class<?>[] groups)
+            throws ComponentContainer.BindingException {
+        container.bindInstance(instance, interfaces, groups);
     }
 
-    public <T> void bindInstance(final T instance, final Class<? super T>... interfaces) throws ComponentContainer.BindingException {
-        container.bindInstance(instance, interfaces);
+    @Override
+    protected OpenComponentContainer makeChildContainer(final Class<?> implementation, final Class<?>[] interfaces, final Class<?>[] groups)
+            throws ComponentContainer.BindingException {
+        return new ComponentContainerShell(container.linkComponent(implementation, interfaces, groups), context, false);
+    }
+
+    @Override
+    protected void bindFactory(final Class<?> factory, final Class<?>[] interfaces, final Class<?>[] groups)
+            throws ComponentContainer.BindingException {
+        container.bindComponent(factory, interfaces, groups);
     }
 
     public OpenComponentContainer makeChildContainer() {
         return new ComponentContainerShell(container.newChildContainer(), context, true);
-    }
-
-    public <T> OpenComponentContainer makeChildContainer(final Class<T> implementation, final Class<? super T>... interfaces) {
-        return new ComponentContainerShell(container.linkComponent(implementation, interfaces), context, false);
     }
 }

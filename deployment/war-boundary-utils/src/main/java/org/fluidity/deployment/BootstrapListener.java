@@ -25,20 +25,20 @@ package org.fluidity.deployment;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
+import org.fluidity.composition.ComponentGroup;
 import org.fluidity.composition.ContainerBoundary;
-import org.fluidity.composition.ServiceProvider;
 import org.fluidity.foundation.Exceptions;
 
 /**
- * A servlet that bootstraps and controls all {@link DeployedComponent} and {@link DeploymentObserver} objects in the application. The class requires
- * either to be explicitly registered as a <code>ServletContextListeners</code> or a mechanism that finds this class and forwards listener method invocations to
- * it. Fluid Tools has such mechanism in the form of a <code>ServletContextListeners</code>, <code>AggregatingServletContextListener</code>, which uses service
- * provider discovery to find any implementation of the <code>ServletContextListeners</code> interface, including this class, as long the implementation is
- * marked by the {@link ServiceProvider} annotation.
+ * A servlet that bootstraps and controls all {@link DeployedComponent} and {@link DeploymentObserver} objects in the application. The class requires either to
+ * be explicitly registered as a <code>ServletContextListeners</code> or a mechanism that finds this class and forwards listener method invocations to it.
+ * Fluid Tools has such mechanism in the form of a <code>ServletContextListener</code>, <code>AggregatingServletContextListener</code>, which uses service
+ * provider discovery to find any implementation of the <code>ServletContextListener</code> interface marked with the {@link ComponentGroup} annotation, such
+ * as this class.
  *
  * @author Tibor Varga
  */
-@ServiceProvider
+@ComponentGroup
 public final class BootstrapListener implements ServletContextListener {
 
     private final DeploymentBootstrap bootstrap = new ContainerBoundary().getComponent(DeploymentBootstrap.class);

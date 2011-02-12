@@ -22,7 +22,7 @@
 
 package org.fluidity.deployment;
 
-import org.fluidity.composition.ServiceProvider;
+import org.fluidity.composition.ComponentGroup;
 
 /**
  * This is a component that is started/stopped as the application container starts/stops. There is no deterministic order in which deployed components are
@@ -45,7 +45,7 @@ import org.fluidity.composition.ServiceProvider;
  *
  * @author Tibor Varga
  */
-@ServiceProvider
+@ComponentGroup
 public interface DeployedComponent {
 
     /**

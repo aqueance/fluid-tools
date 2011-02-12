@@ -23,9 +23,9 @@
 package org.fluidity.maven;
 
 import org.fluidity.composition.Component;
-import org.fluidity.composition.ServiceProvider;
+import org.fluidity.composition.ComponentGroup;
 
-@ServiceProvider
+@ComponentGroup
 public interface SimpleServiceProvider {
 
 }
@@ -33,7 +33,7 @@ public interface SimpleServiceProvider {
 @Component
 class SimpleServiceConsumer {
 
-    SimpleServiceConsumer(@ServiceProvider final SimpleServiceProvider[] providers) {
+    SimpleServiceConsumer(final @ComponentGroup SimpleServiceProvider[] providers) {
         assert providers.length == 4 : providers.length;
     }
 }

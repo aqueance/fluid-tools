@@ -35,7 +35,7 @@ import org.fluidity.composition.ServiceProvider;
  *
  * @author Tibor Varga
  */
-@ServiceProvider(jdk = true)
+@ServiceProvider
 public interface ContainerProvider {
 
     /**

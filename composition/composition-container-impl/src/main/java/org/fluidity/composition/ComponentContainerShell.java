@@ -54,7 +54,7 @@ final class ComponentContainerShell extends AbstractComponentContainer implement
     }
 
     public <T> T getComponent(final Class<T> api) {
-        return container.get(api, context);
+        return container.component(api, context);
     }
 
     public OpenComponentContainer makeChildContainer() {
@@ -63,6 +63,10 @@ final class ComponentContainerShell extends AbstractComponentContainer implement
 
     public <T> T initialize(final T component) {
         return container.initialize(component, context);
+    }
+
+    public <T> T[] getComponentGroup(final Class<T> api) {
+        return container.group(api, context);
     }
 
     public Registry getRegistry() {

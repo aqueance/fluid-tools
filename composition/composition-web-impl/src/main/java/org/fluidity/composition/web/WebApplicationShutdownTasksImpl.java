@@ -29,7 +29,7 @@ import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
 import org.fluidity.composition.Component;
-import org.fluidity.composition.ServiceProvider;
+import org.fluidity.composition.ComponentGroup;
 import org.fluidity.composition.spi.ShutdownTasks;
 import org.fluidity.foundation.logging.Log;
 import org.fluidity.foundation.logging.Marker;
@@ -39,12 +39,12 @@ import org.fluidity.foundation.logging.Marker;
  * <code>ServletContextListeners</code> or a mechanism that finds this class and forwards listener method invocations to it. Fluid Tools has such mechanism in
  * the form of a <code>ServletContextListeners</code>, <code>AggregatingServletContextListener</code>, which uses service provider discovery to find any
  * implementation of the <code>ServletContextListeners</code> interface, including this class, as long the implementation is marked by the {@link
- * ServiceProvider} annotation.
+ * ComponentGroup} annotation.
  *
  * @author Tibor Varga
  */
 @Component(api = ShutdownTasks.class)
-@ServiceProvider(api = ServletContextListener.class)
+@ComponentGroup(api = ServletContextListener.class)
 final class WebApplicationShutdownTasksImpl implements ShutdownTasks, ServletContextListener {
 
     private static final Map<String, Runnable> tasks = new HashMap<String, Runnable>();

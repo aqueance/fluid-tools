@@ -30,7 +30,7 @@ import org.fluidity.foundation.spi.LogFactory;
 @ServiceProvider
 public final class Slf4jLogFactory implements LogFactory {
 
-    public Log createLog(final Class<?> source) {
-        return new Slf4jLogImpl(source);
+    public Log createLog(final Class<?> marker) {
+        return new Slf4jLogImpl(marker);
     }
 }

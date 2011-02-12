@@ -29,24 +29,22 @@ import java.util.Set;
 import org.testng.annotations.Test;
 
 /**
- * For these tests to work, the service provider configuration file must be present in src/main/resources/META-INF/services for our Filter interface and must
- * contain the fully qualified class name of the two implementations herein.
- *
  * @author Tibor Varga
  */
-public final class ServiceProvidersDependencyTests extends AbstractContainerTests {
+public final class ComponentGroupDependencyTests extends AbstractContainerTests {
 
-    public ServiceProvidersDependencyTests(final ContainerFactory factory) {
+    public ComponentGroupDependencyTests(final ContainerFactory factory) {
         super(factory);
     }
 
     @Test
     public void dependencyResolved() throws Exception {
         registry.bindComponent(Processor.class);
+        registry.bindGroup(Filter.class, Filter1.class, Filter2.class);
         assert container.getComponent(Processor.class) != null;
     }
 
-    @ServiceProvider
+    @ComponentGroup
     public static interface Filter {
 
     }
@@ -54,9 +52,9 @@ public final class ServiceProvidersDependencyTests extends AbstractContainerTest
     @Component
     public static class Processor {
 
-        public Processor(final @ServiceProvider Filter[] filters) {
-            assert filters != null;
-            assert filters.length == 2;
+        public Processor(final @ComponentGroup Filter[] filters) {
+            assert filters != null : "Component group dependency was not resolved";
+            assert filters.length == 2 : "Component group dependency did not find all implementations";
 
             final Set<Class<? extends Filter>> provided = new HashSet<Class<? extends Filter>>();
             for (final Filter filter : filters) {

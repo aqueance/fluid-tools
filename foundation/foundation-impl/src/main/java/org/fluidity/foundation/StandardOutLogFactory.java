@@ -30,11 +30,11 @@ import org.fluidity.foundation.spi.LogFactory;
 /**
  * @author Tibor Varga
  */
-@ServiceProvider(jdk = true)
+@ServiceProvider
 @Component(primary = false)
 final class StandardOutLogFactory implements LogFactory {
 
-    public Log createLog(final Class<?> source) {
-        return new StandardOutLog(source);
+    public Log createLog(final Class<?> marker) {
+        return new StandardOutLog(marker);
     }
 }

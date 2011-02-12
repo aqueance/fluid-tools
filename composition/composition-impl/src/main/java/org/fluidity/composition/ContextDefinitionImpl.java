@@ -38,7 +38,11 @@ import java.util.Set;
  */
 final class ContextDefinitionImpl implements ContextDefinition {
 
-    private static final Set<Class<?>> notContext = new HashSet<Class<?>>(Arrays.asList(Component.class, Optional.class, Context.class, ServiceProvider.class));
+    private static final Set<Class<?>> notContext = new HashSet<Class<?>>(Arrays.asList(Component.class,
+                                                                                        ComponentGroup.class,
+                                                                                        Optional.class,
+                                                                                        Context.class,
+                                                                                        ServiceProvider.class));
 
     private final Map<Class<? extends Annotation>, Annotation[]> defined = new HashMap<Class<? extends Annotation>, Annotation[]>();
     private final Map<Class<? extends Annotation>, Annotation[]> collected = new HashMap<Class<? extends Annotation>, Annotation[]>();

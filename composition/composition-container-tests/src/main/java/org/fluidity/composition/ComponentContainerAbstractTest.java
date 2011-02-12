@@ -56,7 +56,7 @@ public abstract class ComponentContainerAbstractTest extends MockGroupAbstractTe
                 new ConstructorDiscoveryTests(containers),
                 new BasicResolutionTests(containers),
                 new OptionalDependencyTests(containers),
-                new ServiceProvidersDependencyTests(containers),
+                new ComponentGroupDependencyTests(containers),
                 new FieldInjectionTests(containers),
                 new CircularReferencesTests(containers),
                 new ContainerHierarchyTests(containers),

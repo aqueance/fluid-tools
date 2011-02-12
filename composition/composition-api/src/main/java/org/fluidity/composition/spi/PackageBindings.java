@@ -23,6 +23,7 @@
 package org.fluidity.composition.spi;
 
 import org.fluidity.composition.ComponentContainer;
+import org.fluidity.composition.ServiceProvider;
 
 /**
  * An implementation of this interface is placed, either automatically by the org.fluidity.maven:maven-composition-plugin or manually by the component
@@ -34,11 +35,15 @@ import org.fluidity.composition.ComponentContainer;
  *
  * @author Tibor Varga
  */
+@ServiceProvider(api = PackageBindings.class, type = PackageBindings.SERVICE_TYPE)
 public interface PackageBindings extends ComponentContainer.Bindings {
+
+    String SERVICE_TYPE = "bindings";
 
     /**
      * Perform component specific initialization if necessary. This method is invoked once after the {@link org.fluidity.composition.ComponentContainer.Bindings#bindComponents(org.fluidity.composition.ComponentContainer.Registry)}
-     * method of all {@link PackageBindings} objects have been invoked and before any component is accessed in the provided container from outside the container.
+     * method of all {@link PackageBindings} objects have been invoked and before any component is accessed in the provided container from outside the
+     * container.
      *
      * @param container is the container that was populated by the {@link org.fluidity.composition.ComponentContainer.Bindings#bindComponents(org.fluidity.composition.ComponentContainer.Registry)}
      *                  method.

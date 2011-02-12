@@ -29,7 +29,6 @@ import java.lang.reflect.Modifier;
 import java.net.URL;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -54,10 +53,14 @@ final class ClassDiscoveryImpl implements ClassDiscovery {
         log = logs.createLog(getClass());
     }
 
+    public <T> Class<T>[] findComponentClasses(final Class<T> api, final ClassLoader classLoader, final boolean strict) {
+        return findComponentClasses("services", api, classLoader, strict);
+    }
+
     @SuppressWarnings({ "unchecked", "SuspiciousToArrayCall" })
-    public <T> Class<T>[] findComponentClasses(final Class<T> api, final ClassLoader cl, final boolean strict) {
+    public <T> Class<T>[] findComponentClasses(final String type, final Class<T> api, final ClassLoader cl, final boolean strict) {
         final ClassLoader classLoader = cl == null ? ClassLoaders.findClassLoader(api) : cl;
-        log.info("Loading service provider files for %s using class loader %s", api, classLoader);
+        log.info("Loading '%s' type service provider files for %s using class loader %s", type, api, classLoader);
 
         final Collection<Class<T>> componentList = Exceptions.wrap(new Exceptions.Command<Collection<Class<T>>>() {
             public Collection<Class<T>> run() throws Exception {
@@ -65,15 +68,13 @@ final class ClassDiscoveryImpl implements ClassDiscovery {
 
                 final Set<URL> loaded = new HashSet<URL>();
 
-                final Enumeration<URL> resources = classLoader.getResources(ClassLoaders.absoluteResourceName("META-INF/services/" + api.getName()));
-
-                for (final URL url : Collections.list(resources)) {
+                for (final URL url : Collections.list(classLoader.getResources(ClassLoaders.absoluteResourceName("META-INF/%s/%s", type, api.getName())))) {
 
                     /* Some dumb class loaders load JAR files more than once */
                     if (!loaded.contains(url)) {
                         loaded.add(url);
 
-                        log.info("Processing %s", url);
+                        log.info("Loading %s", url);
 
                         final Collection<Class<T>> localList = new LinkedHashSet<Class<T>>();
                         final BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream(), "UTF-8"));
@@ -101,7 +102,7 @@ final class ClassDiscoveryImpl implements ClassDiscovery {
                                                     if (localList.contains(componentClass)) {
                                                         log.error("Duplicate %s", componentClass);
                                                     } else {
-                                                        log.info("Found service provider %s", componentClass);
+                                                        log.info("Found %s", componentClass);
                                                         localList.add(componentClass);
                                                     }
                                                 }

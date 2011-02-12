@@ -73,13 +73,6 @@
             <scope>test</scope>
         </dependency>
 
-        <dependency>
-            <groupId>org.fluidity.export</groupId>
-            <artifactId>fluid-tools-slf4j-logging</artifactId>
-            <version>${fluidity.version}</version>
-            <scope>test</scope>
-        </dependency>
-
     </dependencies>
 
     <build>

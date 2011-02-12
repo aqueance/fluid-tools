@@ -24,7 +24,7 @@ package org.fluidity.maven;
 
 import org.fluidity.composition.ServiceProvider;
 
-@ServiceProvider(jdk = true)
+@ServiceProvider
 public interface JdkServiceProvider {
 
 }

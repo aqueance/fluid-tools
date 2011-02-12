@@ -22,7 +22,7 @@
 
 package org.fluidity.deployment;
 
-import org.fluidity.composition.ServiceProvider;
+import org.fluidity.composition.ComponentGroup;
 
 /**
  * Components implementing this interface get notified when all {@link DeployedComponent} objects have been started/stopped. Methods of this interface are invoked from the main thread
@@ -33,7 +33,7 @@ import org.fluidity.composition.ServiceProvider;
  *
  * @author Tibor Varga
  */
-@ServiceProvider
+@ComponentGroup
 public interface DeploymentObserver {
 
     /**

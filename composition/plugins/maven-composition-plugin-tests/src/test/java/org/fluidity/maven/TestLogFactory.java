@@ -37,7 +37,7 @@ public class TestLogFactory implements LogFactory {
 
     private final NoLogFactory delegate = new NoLogFactory();
 
-    public Log createLog(final Class<?> source) {
-        return delegate.createLog(source);
+    public Log createLog(final Class<?> marker) {
+        return delegate.createLog(marker);
     }
 }

@@ -53,6 +53,13 @@ interface ComponentResolver extends ComponentMapping {
     boolean isInstanceMapping();
 
     /**
+     * Tells whether this mapping has been created for a group interface.
+     *
+     * @return <code>true</code> if this mapping represents a group interface, <code>false</code> otherwise.
+     */
+    boolean isGroupMapping();
+
+    /**
      * Tells if the receiver replaces the supplied <code>resolver</code>.
      *
      * @param resolver the resolver that the receiver may need to replace.

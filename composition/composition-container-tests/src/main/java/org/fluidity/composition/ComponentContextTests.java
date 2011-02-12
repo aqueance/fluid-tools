@@ -45,10 +45,10 @@ public final class ComponentContextTests extends AbstractContainerTests {
     @DataProvider(name = "component-types")
     public Object[][] componentTypes() {
         return new Object[][] {
-                new Object[] { new Class<?>[] { ContextAware.class }, ContextAwareComponent1Impl.class, null },
-                new Object[] { new Class<?>[] { ContextAware.class }, ContextAwareComponent2Impl.class, null },
-                new Object[] { new Class<?>[] { ContextAware.class, OrdinaryComponent1.class }, OrdinaryComponent1Impl.class, OrdinaryVariants1.class },
-                new Object[] { new Class<?>[] { ContextAware.class, OrdinaryComponent2.class }, OrdinaryComponent2Impl.class, OrdinaryVariants2.class },
+                new Object[] { ContextAwareComponent1Impl.class, null },
+                new Object[] { ContextAwareComponent2Impl.class, null },
+                new Object[] { OrdinaryComponent1Impl.class, OrdinaryVariants1.class },
+                new Object[] { OrdinaryComponent2Impl.class, OrdinaryVariants2.class },
         };
     }
 
@@ -84,10 +84,9 @@ public final class ComponentContextTests extends AbstractContainerTests {
     }
 
     @Test(dataProvider = "component-types")
-    public <T extends ContextAware, F extends ComponentVariantFactory> void explicitContext(final Class<T>[] api,
-                                                                                            final Class<? extends T> type,
-                                                                                            final Class<? extends F> factory) throws Exception {
-        registry.bindComponent(type, api);
+    public <T extends ContextAware, F extends ComponentVariantFactory> void explicitContext(final Class<? extends T> type, final Class<? extends F> factory)
+            throws Exception {
+        registry.bindComponent(type);
         registry.bindComponent(Test1.class);
         registry.bindComponent(Test2.class);
         registry.bindComponent(Test3.class);
@@ -96,7 +95,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
             registry.bindComponent(factory);
         }
 
-        final ContextAware variant0 = container.getComponent(api[0]);
+        final ContextAware variant0 = container.getComponent(ContextAware.class);
         final ContextAware variant1 = container.getComponent(Test1.class).dependency;
         final ContextAware variant2 = container.getComponent(Test2.class).dependency;
         final ContextAware variant3 = container.getComponent(Test3.class).dependency;
@@ -120,8 +119,8 @@ public final class ComponentContextTests extends AbstractContainerTests {
     public void implicitContext() throws Exception {
         registry.bindComponent(BaseComponent.class);
         registry.bindComponent(OverridingComponent.class);
-        registry.bindComponent(ContextAwareComponent1Impl.class);
-        registry.bindComponent(OrdinaryComponent2Impl.class);
+        registry.bindComponent(ContextAwareComponent1Impl.class, ContextAwareComponent1.class);
+        registry.bindComponent(OrdinaryComponent2Impl.class, OrdinaryComponent2.class);
         registry.bindComponent(OrdinaryVariants2.class);
 
         final BaseComponent root = container.getComponent(BaseComponent.class);
@@ -137,10 +136,10 @@ public final class ComponentContextTests extends AbstractContainerTests {
 
     @Test
     public void contextInheritance() throws Exception {
-        registry.bindComponent(ContextAwareComponent1Impl.class);
-        registry.bindComponent(ContextAwareComponent2Impl.class);
-        registry.bindComponent(OrdinaryComponent1Impl.class);
-        registry.bindComponent(OrdinaryComponent2Impl.class);
+        registry.bindComponent(ContextAwareComponent1Impl.class, ContextAwareComponent1.class);
+        registry.bindComponent(ContextAwareComponent2Impl.class, ContextAwareComponent2.class);
+        registry.bindComponent(OrdinaryComponent1Impl.class, OrdinaryComponent1.class);
+        registry.bindComponent(OrdinaryComponent2Impl.class, OrdinaryComponent2.class);
         registry.bindFactory(OrdinaryVariants1.class, OrdinaryComponent1.class);
         registry.bindFactory(OrdinaryVariants2.class, OrdinaryComponent2.class);
         registry.bindComponent(InnocentBystanderComponent.class);
@@ -242,6 +241,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
     }
 
     @Context(Setting1.class)
+    @Component(api = { ContextAware.class, ContextAwareComponent1.class} )
     private static class ContextAwareComponent1Impl implements ContextAwareComponent1 {
 
         private final String setting;
@@ -258,11 +258,12 @@ public final class ComponentContextTests extends AbstractContainerTests {
     }
 
     @Context(Setting2.class)
+    @Component(api = { ContextAware.class, ContextAwareComponent2.class} )
     private static class ContextAwareComponent2Impl implements ContextAwareComponent2 {
 
         private final String setting;
 
-        public ContextAwareComponent2Impl(ComponentContext context) {
+        public ContextAwareComponent2Impl(final ComponentContext context) {
             final Setting2 setting = context.annotation(Setting2.class, null);
             final String value = setting == null ? null : setting.value();
             this.setting = value == null ? "missing-value" : value;
@@ -273,7 +274,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
         }
     }
 
-    @Component
+    @Component(api = { ContextAware.class, OrdinaryComponent1.class} )
     private static class OrdinaryComponent1Impl implements OrdinaryComponent1 {
 
         private final String setting;
@@ -287,7 +288,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
         }
     }
 
-    @Component
+    @Component(api = { ContextAware.class, OrdinaryComponent2.class} )
     private static class OrdinaryComponent2Impl implements OrdinaryComponent2 {
 
         private final String setting;
@@ -301,7 +302,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
         }
     }
 
-    @Component(api = { OrdinaryComponent1.class, ContextAware.class })
+    @Component(api = { ContextAware.class, OrdinaryComponent1.class} )
     @Context(Setting1.class)
     private static class OrdinaryVariants1 implements ComponentVariantFactory {
 
@@ -316,7 +317,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
         }
     }
 
-    @Component(api = { OrdinaryComponent2.class, ContextAware.class })
+    @Component(api = { ContextAware.class, OrdinaryComponent2.class} )
     @Context(Setting2.class)
     private static class OrdinaryVariants2 implements ComponentVariantFactory {
 

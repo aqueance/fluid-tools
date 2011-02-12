@@ -55,8 +55,12 @@ be PackageBindings$ followed by the module's name. The package of the
 PackageBindings class will be the same as that of the @Component. Each
 PackageBinding class that has been generated is added to a service provider
 descriptor file in the project artifact's classpath under
-META-INF/services/org.fluidity.composition.spi.PackageBindings. That file will be
-created if none exists in the project.
+META-INF/services/org.fluidity.composition.spi.PackageBindings. That file will
+be created if none exists in the project.
+
+The @org.fluidity.composition.ComponentGroup annotation marks components that
+are grouped under a common interface and as some sort of service providers they
+are used together.
 
 The @org.fluidity.composition.ServiceProvider annotation marks a component
 that itself needs to be found by scanning the class path for service providers

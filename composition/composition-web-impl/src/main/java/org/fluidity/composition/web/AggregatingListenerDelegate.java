@@ -26,17 +26,17 @@ import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
 import org.fluidity.composition.Component;
-import org.fluidity.composition.ServiceProvider;
+import org.fluidity.composition.ComponentGroup;
 
 /**
- * Delegates servlet listener callbacks to all others annotated as @{@link ServiceProvider}.
+ * Delegates servlet listener callbacks to all those annotated with @{@link ComponentGroup}.
  */
 @Component(api = AggregatingListenerDelegate.class)
 public class AggregatingListenerDelegate implements ServletContextListener {
 
     private final ServletContextListener listeners[];
 
-    public AggregatingListenerDelegate(final @ServiceProvider ServletContextListener[] listeners) {
+    public AggregatingListenerDelegate(final @ComponentGroup ServletContextListener[] listeners) {
         this.listeners = listeners;
     }
 

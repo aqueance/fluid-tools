@@ -174,6 +174,10 @@ public final class ContainerBoundary implements ComponentContainer {
         return loadContainer(true).initialize(component);
     }
 
+    public <T> T[] getComponentGroup(final Class<T> api) {
+        return loadContainer(true).getComponentGroup(api);
+    }
+
     /**
      * This is for the unit test cases to override our single dependency.
      *
@@ -217,7 +221,7 @@ public final class ContainerBoundary implements ComponentContainer {
             classLoaders.add(loader);
         }
 
-        // going in reverse order because container for a given class loader has to use as its parent container for the parent class loader
+        // going in reverse order because the container for a given class loader has to use as its parent the container for the parent class loader
         for (final ListIterator<ClassLoader> i = classLoaders.listIterator(classLoaders.size()); i.hasPrevious();) {
             final ClassLoader loader = i.previous();
 

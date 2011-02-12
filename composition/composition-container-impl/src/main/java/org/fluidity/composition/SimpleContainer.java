@@ -78,51 +78,67 @@ interface SimpleContainer extends DependencyResolver {
     /**
      * Binds a component class to an interface.
      *
-     * @param implementation the class to bind.
-     * @param interfaces     the interfaces to bind to.
+     * @param implementation      the class to bind.
+     * @param componentInterfaces the component interfaces to bind to.
+     * @param groupInterfaces     the group interfaces to bind to.
      *
      * @throws ComponentContainer.BindingException
      *          when binding fails.
      */
-    void bindComponent(Class<?> implementation, Class<?>... interfaces) throws ComponentContainer.BindingException;
+    void bindComponent(Class<?> implementation, Class<?>[] componentInterfaces, final Class<?>[] groupInterfaces) throws ComponentContainer.BindingException;
 
     /**
      * Binds a component instance to an interface.
      *
-     * @param instance   the component instance to bind.
-     * @param interfaces the interfaces to bind to.
+     * @param instance            the component instance to bind.
+     * @param componentInterfaces the component interfaces to bind to.
+     * @param groupInterfaces     the group interfaces to bind to.
      *
      * @throws ComponentContainer.BindingException
      *          when binding fails.
      */
-    void bindInstance(Object instance, Class<?>... interfaces) throws ComponentContainer.BindingException;
+    void bindInstance(Object instance, Class<?>[] componentInterfaces, final Class<?>[] groupInterfaces) throws ComponentContainer.BindingException;
 
     /**
      * Creates a child container of the receiver and links the given interface to a mapping added to the returned child, effectively directing the component
      * resolution in the parent container to the child.
      *
-     * @param implementation the implementation to bind to the interface in the returned child container.
-     * @param interfaces     the interfaces to bind to.
+     * @param implementation      the implementation to bind to the interface in the returned child container.
+     * @param componentInterfaces the component interfaces to bind to.
+     * @param groupInterfaces     the group interfaces to bind to.
      *
      * @return the child container returned.
      *
      * @throws ComponentContainer.BindingException
      *          when binding fails.
      */
-    SimpleContainer linkComponent(Class<?> implementation, Class<?>... interfaces) throws ComponentContainer.BindingException;
+    SimpleContainer linkComponent(Class<?> implementation, Class<?>[] componentInterfaces, final Class<?>[] groupInterfaces) throws ComponentContainer.BindingException;
 
     /**
      * Returns the component instance bound to the given interface in the given context.
      *
-     * @param key        the interface to return the bound component to.
-     * @param context    the context to resolve the component instance in.
+     * @param key     the interface to return the bound component to.
+     * @param context the context to resolve the component instance in.
      *
-     * @return the component instance bound to the given interface.
+     * @return the component instance bound to the given interface or <code>null</code> if none found.
      *
      * @throws ComponentContainer.ResolutionException
      *          when dependency resolution fails.
      */
-    <T> T get(Class<? extends T> key, ContextDefinition context) throws ComponentContainer.ResolutionException;
+    <T> T component(Class<? extends T> key, ContextDefinition context) throws ComponentContainer.ResolutionException;
+
+    /**
+     * Returns the component instances bound to the given group interface in the given context.
+     *
+     * @param key     the group interface to return the bound component to.
+     * @param context the context to resolve the component instance in.
+     *
+     * @return the component instances bound to the given interface or an empty array if none found.
+     *
+     * @throws ComponentContainer.ResolutionException
+     *          when dependency resolution fails.
+     */
+    <T> T[] group(Class<? extends T> key, ContextDefinition context) throws ComponentContainer.ResolutionException;
 
     /**
      * Injects the {@link Component} annotated fields of the given component instance.

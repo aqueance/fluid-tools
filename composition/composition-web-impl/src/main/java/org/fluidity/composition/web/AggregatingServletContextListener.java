@@ -28,8 +28,7 @@ import javax.servlet.ServletContextListener;
 import org.fluidity.composition.ContainerBoundary;
 
 /**
- * Finds all implementations of the {@link ServletContextListener} that have been marked with the
- * @{@link org.fluidity.composition.ServiceProvider} annotation and dispatches the listener events to all.
+ * Boundary object for {@link AggregatingListenerDelegate}.
  *
  * @author Tibor Varga
  */

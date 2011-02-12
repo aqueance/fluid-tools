@@ -42,13 +42,12 @@ import org.testng.annotations.Test;
 public class DependencyInjectorImplTest extends MockGroupAbstractTest {
 
     private final DependencyResolver resolver = addControl(DependencyResolver.class);
-    private final ClassDiscovery discovery = addControl(ClassDiscovery.class);
     private final ComponentMapping mapping = addControl(ComponentMapping.class);
 
     private final ContextDefinition context = addControl(ContextDefinition.class);
     private final ComponentContainer container = addControl(ComponentContainer.class);
 
-    private final DependencyInjector injector = new DependencyInjectorImpl(discovery);
+    private final DependencyInjector injector = new DependencyInjectorImpl();
 
     private final ComponentMapping dummyMapping = new ComponentMapping() {
         public boolean isFactoryMapping() {
@@ -88,13 +87,12 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
     }
 
     private ContextDefinition[] setupConstructorResolution(final Class<?> componentType,
-                                                           final int index,
+                                                           final Constructor<?> constructor,
                                                            final Context contextAnnotations,
                                                            final ComponentContext createdContext,
                                                            final Annotation[] containerAnnotations,
                                                            final Object... components) throws Exception {
-        final Constructor constructor = componentType.getDeclaredConstructors()[index];
-        assert constructor != null : String.format("%s.%d", componentType.getClass(), index);
+        assert constructor != null : String.format("%s(?)", componentType.getClass());
 
         final List<ContextDefinition> copies = new ArrayList<ContextDefinition>();
 
@@ -124,12 +122,10 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
         EasyMock.expect(context.copy()).andReturn(copy);
 
         if (dependencyType.isArray()) {
-            assert component.getClass().isArray() : component.getClass();
+            assert component == null || component.getClass().isArray() : component.getClass();
             final Object[] services = (Object[]) component;
 
-            for (final Object service : services) {
-                EasyMock.expect(resolver.resolve(service.getClass(), copy)).andReturn(service);
-            }
+            EasyMock.expect(resolver.resolveGroup(dependencyType.getComponentType(), copy)).andReturn(services);
         } else if (dependencyType == ComponentContext.class) {
             EasyMock.expect(mapping.contextSpecification(Context.class)).andReturn(contextAnnotations);
             EasyMock.expect(copy.reduce(contextAnnotations)).andReturn(copy);
@@ -156,7 +152,7 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
                 EasyMock.expect(resolver.mapping(dependencyType)).andReturn(mapping);
                 EasyMock.expect(mapping.contextSpecification(Context.class)).andReturn(acceptedContext);
                 EasyMock.expect(copy.reduce(acceptedContext)).andReturn(copy);
-                EasyMock.expect(resolver.resolve(dependencyType, copy)).andReturn(component);
+                EasyMock.expect(resolver.resolveComponent(dependencyType, copy)).andReturn(component);
             }
         }
         return copy;
@@ -175,22 +171,17 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
         final ContextDefinition copy1 = setupFieldResolution(FieldInjected.class, "dependency", dependency, null, null, null);
 
         final ContextDefinition copy2 = addLocalControl(ContextDefinition.class);
-
         EasyMock.expect(context.copy()).andReturn(copy2);
-        EasyMock.expect(discovery.findComponentClasses(EasyMock.same(Service.class), EasyMock.<ClassLoader>notNull(), EasyMock.eq(false)))
-                .andReturn(new Class[] { ServiceImpl1.class, ServiceImpl2.class });
 
         final ServiceImpl1 service1 = new ServiceImpl1();
         final ServiceImpl2 service2 = new ServiceImpl2();
 
-        EasyMock.expect(resolver.resolve(ServiceImpl1.class, copy2)).andReturn(service1);
-        EasyMock.expect(resolver.resolve(ServiceImpl2.class, copy2)).andReturn(null);
-        EasyMock.expect(resolver.create(ServiceImpl2.class, copy2)).andReturn(service2);
+        EasyMock.expect(resolver.resolveGroup(Service.class, copy2)).andReturn(new Service[] { service1, service2 });
 
         setupCollection(context, copy1, copy2);
 
         replay();
-        assert component == injector.injectFields(resolver, dummyMapping, context, component);
+        assert component == injector.injectFields(resolver, dummyMapping, context, component)[0];
         verify();
 
         assert component.dependency == dependency : component.dependency;
@@ -208,7 +199,7 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
         setupFieldResolution(FieldInjected.class, "dependency", null, null, null, null);
 
         replay();
-        assert component == injector.injectFields(resolver, dummyMapping, context, component);
+        assert component == injector.injectFields(resolver, dummyMapping, context, component)[0];
         verify();
     }
 
@@ -219,7 +210,7 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
         setupCollection(context, setupFieldResolution(OptionalFieldInjected.class, "dependency", null, null, null, null));
 
         replay();
-        assert component == injector.injectFields(resolver, dummyMapping, context, component);
+        assert component == injector.injectFields(resolver, dummyMapping, context, component)[0];
         verify();
 
         assert component.dependency == null : component.dependency;
@@ -234,16 +225,13 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
         final ServiceImpl1 service1 = new ServiceImpl1();
         final ServiceImpl2 service2 = new ServiceImpl2();
 
-        EasyMock.expect(discovery.findComponentClasses(EasyMock.same(Service.class), EasyMock.<ClassLoader>notNull(), EasyMock.eq(false)))
-                .andReturn(new Class[] { ServiceImpl1.class, ServiceImpl2.class });
+        final Service[] services = { service1, service2 };
 
-        setupCollection(context, setupConstructorResolution(ConstructorInjected.class, 0, null, null, null, dependency, new Object[] { service1, service2 }));
+        final Constructor<ConstructorInjected> constructor = ConstructorInjected.class.getDeclaredConstructor(Dependency.class, Service[].class);
+        setupCollection(context, setupConstructorResolution(ConstructorInjected.class, constructor, null, null, null, dependency, services));
 
         replay();
-        Object[] arguments = injector.injectConstructor(resolver,
-                                                        dummyMapping,
-                                                        context,
-                                                        ConstructorInjected.class.getDeclaredConstructor(Dependency.class, Object[].class));
+        Object[] arguments = injector.injectConstructor(resolver, dummyMapping, context, constructor);
         verify();
 
         assert arguments[0] == dependency : component.dependency;
@@ -265,11 +253,25 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
                         setupFieldResolution(component.getClass(), "context", container, null, created, null));
 
         replay();
-        assert component == injector.injectFields(resolver, mapping, context, component);
+        assert component == injector.injectFields(resolver, mapping, context, component)[0];
         verify();
 
         assert component.container == container : component.container;
         assert component.context == created : component.context;
+    }
+
+    @Test
+    public void neverInjectsNullForGroup() throws Exception {
+        final Constructor<MissingGroupConsumer> constructor = MissingGroupConsumer.class.getDeclaredConstructor(MissingService[].class);
+        setupCollection(context, setupConstructorResolution(MissingGroupConsumer.class, constructor, null, null, null, (Object) null));
+
+        replay();
+        Object[] arguments = injector.injectConstructor(resolver, dummyMapping, context, constructor);
+        verify();
+
+        assert arguments != null;
+        assert arguments.length == 1;
+        assert arguments[0] != null;
     }
 
     private final class FieldInjected {
@@ -277,7 +279,7 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
         @Component
         public Dependency dependency;
 
-        @ServiceProvider
+        @ComponentGroup
         public Service[] services;
     }
 
@@ -290,8 +292,17 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
 
     private static final class ConstructorInjected {
 
-        public ConstructorInjected(final Dependency dependency, @ServiceProvider(api = Service.class) final Object[] services) {
+        @SuppressWarnings("UnusedParameters")
+        public ConstructorInjected(final Dependency dependency, final @ComponentGroup Service[] services) {
             assert dependency != null;
+        }
+    }
+
+    private static final class MissingGroupConsumer {
+
+        @SuppressWarnings("UnusedParameters")
+        public MissingGroupConsumer(final @ComponentGroup MissingService[] services) {
+            assert services != null;
         }
     }
 
@@ -303,7 +314,7 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
 
     }
 
-    @ServiceProvider
+    @ComponentGroup
     public static interface Service {
 
     }
@@ -323,5 +334,10 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
 
         @Component
         public ComponentContext context;
+    }
+
+    @ComponentGroup
+    public static interface MissingService {
+
     }
 }

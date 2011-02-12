@@ -74,9 +74,9 @@ public class ComponentRegistrationTest {
     }
 
     private <T> void component(final Class<T> componentInterface, final Class<? extends T> componentClass) {
-        final T simpleComponent = container.getComponent(componentInterface);
-        assert simpleComponent != null : componentInterface;
-        assert componentClass.isAssignableFrom(simpleComponent.getClass()) : componentClass;
+        final T component = container.getComponent(componentInterface);
+        assert component != null : componentInterface;
+        assert componentClass.isAssignableFrom(component.getClass()) : componentClass;
     }
 
     private <T> void serviceConsumer(final Class<T> consumerClass) {

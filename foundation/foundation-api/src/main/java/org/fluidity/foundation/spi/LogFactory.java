@@ -43,11 +43,11 @@ import org.fluidity.foundation.logging.Log;
 public interface LogFactory {
 
     /**
-     * Creates a log whose output is annotated by the given source class.
+     * Creates a log whose output is annotated by the given marker class.
      *
-     * @param source the class to annotate log messages with.
+     * @param marker the class to annotate log messages with.
      *
      * @return a log sink.
      */
-    Log createLog(Class<?> source);
+    Log createLog(Class<?> marker);
 }

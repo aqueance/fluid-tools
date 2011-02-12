@@ -32,7 +32,6 @@ import java.util.List;
 
 import org.fluidity.composition.spi.ComponentMapping;
 import org.fluidity.composition.spi.DependencyResolver;
-import org.fluidity.foundation.ClassLoaders;
 import org.fluidity.foundation.Exceptions;
 import org.fluidity.foundation.Strings;
 
@@ -43,21 +42,17 @@ import org.fluidity.foundation.Strings;
  */
 final class DependencyInjectorImpl implements DependencyInjector {
 
-    private final ClassDiscovery discovery;
-
-    public DependencyInjectorImpl(final ClassDiscovery discovery) {
-        this.discovery = discovery;
-    }
-
-    public <T> T injectFields(final DependencyResolver resolver, final ComponentMapping mapping, final ContextDefinition context, final T instance) {
+    public <T> T[] injectFields(final DependencyResolver resolver, final ComponentMapping mapping, final ContextDefinition context, final T... instances) {
         assert resolver != null;
 
-        if (instance != null) {
-            final Class<?> componentType = instance.getClass();
-            context.collect(injectFields(resolver, mapping, context, instance, componentType, componentType));
+        if (instances != null) {
+            for (final T instance : instances) {
+                final Class<?> componentType = instance.getClass();
+                context.collect(injectFields(resolver, mapping, context, instance, componentType, componentType));
+            }
         }
 
-        return instance;
+        return instances;
     }
 
     public Object[] injectConstructor(final DependencyResolver resolver,
@@ -129,7 +124,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
                 continue;
             }
 
-            if (field.isAnnotationPresent(Component.class) || field.isAnnotationPresent(ServiceProvider.class)) {
+            if (field.isAnnotationPresent(Component.class) || field.isAnnotationPresent(ComponentGroup.class)) {
                 consumed.add(injectDependency(resolver, mapping, context.copy(), componentType, declaringType, new Dependency() {
                     public Object itself() {
                         return instance;
@@ -173,44 +168,36 @@ final class DependencyInjectorImpl implements DependencyInjector {
                                                final Class<?> componentType,
                                                final Class<?> declaringType,
                                                final Dependency dependency) {
-        final ServiceProvider serviceProvider = dependency.annotation(ServiceProvider.class);
+        final ComponentGroup componentGroup = dependency.annotation(ComponentGroup.class);
         final Class<?> dependencyType = findDependencyType(dependency.annotation(Component.class), dependency.type(), declaringType);
 
         assert mapping != null : declaringType;
         final Annotation[] typeContext = neverNull(mapping.providedContext());
 
-        if (serviceProvider != null) {
+        if (componentGroup != null) {
             if (!dependencyType.isArray()) {
-                throw new ComponentContainer.ResolutionException("Service provider dependency %s of %s must be an array", dependencyType, declaringType);
+                throw new ComponentContainer.ResolutionException("Group dependency %s of %s must be an array", dependencyType, declaringType);
             }
 
             final Class<?> itemType = dependencyType.getComponentType();
             if (itemType.isArray()) {
-                throw new ComponentContainer.ResolutionException("Service provider dependency %s of %s must be an array of non-arrays",
+                throw new ComponentContainer.ResolutionException("Group dependency %s of %s must be an array of non-arrays",
                                                                  dependencyType,
                                                                  declaringType);
             }
 
-            final Class<?> providerType = serviceProvider.api() == null || serviceProvider.api().length != 1 ? itemType : serviceProvider.api()[0];
+            final Class<?> groupType = componentGroup.api() == null || componentGroup.api().length != 1 ? itemType : componentGroup.api()[0];
 
-            if (!itemType.isAssignableFrom(providerType)) {
+            if (!itemType.isAssignableFrom(groupType)) {
                 throw new ComponentContainer.ResolutionException(
                         "The component type of dependency specified in the %s annotation is not assignable to the dependency type %s of %s",
                         dependencyType,
-                        ServiceProvider.class,
+                        ComponentGroup.class,
                         declaringType);
             }
 
-            final List<Object> list = new ArrayList<Object>();
-
-            final Class<?>[] componentClasses = discovery.findComponentClasses(providerType, ClassLoaders.findClassLoader(declaringType), false);
-
-            for (final Class<?> componentClass : componentClasses) {
-                final Object component = resolver.resolve(componentClass, context);
-                list.add(component == null ? resolver.create(componentClass, context) : component);
-            }
-
-            dependency.set(list.toArray((Object[]) Array.newInstance(providerType, list.size())));
+            final Object[] group = resolver.resolveGroup(groupType, context);
+            dependency.set(group == null ? Array.newInstance(groupType, 0) : group);
         } else if (dependency.type() == ComponentContext.class) {
             dependency.set(context.reduce(mapping.contextSpecification(Context.class)).create());
         } else {
@@ -235,7 +222,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
             if (value == null) {
                 final ComponentMapping dependencyMapping = resolver.mapping(dependencyType);
                 if (dependencyMapping != null) {
-                    value = resolver.resolve(dependencyType, context.reduce(dependencyMapping.contextSpecification(Context.class)));
+                    value = resolver.resolveComponent(dependencyType, context.reduce(dependencyMapping.contextSpecification(Context.class)));
                 }
             }
 

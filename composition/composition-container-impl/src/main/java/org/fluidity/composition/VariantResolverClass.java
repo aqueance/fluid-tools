@@ -43,6 +43,6 @@ final class VariantResolverClass extends VariantResolver {
 
     @Override
     protected ComponentVariantFactory factory(final SimpleContainer container) {
-        return container.get(factoryClass(), null);
+        return container.component(factoryClass(), null);
     }
 }

@@ -23,26 +23,25 @@
 package org.fluidity.maven;
 
 import org.fluidity.composition.Component;
-import org.fluidity.composition.ServiceProvider;
+import org.fluidity.composition.ComponentGroup;
 
-@ServiceProvider(api = { Service1.class, Service2.class })
-public interface MultipleServicesProvider extends Service1, Service2 {
+@ComponentGroup(api = { Service1.class, Service2.class })
+public interface MultipleServiceProvider extends Service1, Service2 {
 
 }
 
-class MultipleServicesProviderImpl implements MultipleServicesProvider {
+class MultipleServiceProviderImpl implements MultipleServiceProvider {
 
 }
 
 @Component
 class MultipleServicesConsumer {
 
-    MultipleServicesConsumer(@ServiceProvider final Service1[] providers1, @ServiceProvider final Service2[] providers2) {
+    MultipleServicesConsumer(final @ComponentGroup Service1[] providers1, final @ComponentGroup Service2[] providers2) {
         assert providers1.length == 1 : providers1.length;
         assert providers2.length == 1 : providers2.length;
 
-//        TODO: turn this back on
-//        assert providers1[0] == providers2[0];
+        assert providers1[0] == providers2[0];
     }
 }
 

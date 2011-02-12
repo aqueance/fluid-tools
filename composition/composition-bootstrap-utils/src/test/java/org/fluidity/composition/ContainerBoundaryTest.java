@@ -220,7 +220,7 @@ public class ContainerBoundaryTest extends MockGroupAbstractTest {
                                                         EasyMock.same(containers.get(cl.getParent())),
                                                         EasyMock.same(cl))).andReturn(container);
 
-            // container must also be initialized at some point
+            // the container must also be initialized at some point
             bootstrap.initializeContainer(container, services);
         }
 

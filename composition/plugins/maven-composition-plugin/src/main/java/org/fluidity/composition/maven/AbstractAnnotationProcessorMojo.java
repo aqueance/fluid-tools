@@ -44,6 +44,7 @@ import java.util.Set;
 
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
+import org.fluidity.composition.ComponentGroup;
 import org.fluidity.composition.ServiceProvider;
 import org.fluidity.composition.maven.annotation.ComponentProcessor;
 import org.fluidity.composition.maven.annotation.ProcessorCallback;
@@ -105,17 +106,16 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
     }
 
     @SuppressWarnings({ "RedundantCast", "ResultOfMethodCallIgnored" })
-    protected final void processDirectory(File classesDirectory) throws MojoExecutionException {
+    protected final void processDirectory(final File classesDirectory) throws MojoExecutionException {
         projectName = getProjectNameId();
 
         if (!classesDirectory.exists()) {
             return;
         }
 
-        final File servicesDirectory = new File(new File(classesDirectory, "META-INF"), "services");
-
-        final Map<String, Collection<String>> serviceProviderMap = new HashMap<String, Collection<String>>();
+        final Map<String, Map<String, Collection<String>>> serviceProviderMap = new HashMap<String, Map<String, Collection<String>>>();
         final Map<String, Map<String, Set<String>>> componentMap = new HashMap<String, Map<String, Set<String>>>();
+        final Map<String, Map<String, Set<String>>> componentGroupMap = new HashMap<String, Map<String, Set<String>>>();
 
         final List<URL> urls = new ArrayList<URL>();
 
@@ -132,62 +132,102 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
         final ClassLoader repository = new URLClassLoader(urls.toArray(new URL[urls.size()]));
 
         try {
-            processClasses(repository, classesDirectory, serviceProviderMap, componentMap);
+            processClasses(repository, classesDirectory, serviceProviderMap, componentMap, componentGroupMap);
         } catch (final IOException e) {
             throw new MojoExecutionException("Error processing service providers", e);
         } catch (final ClassNotFoundException e) {
             throw new MojoExecutionException("Error processing service providers", e);
         }
 
-        for (final Map.Entry<String, Collection<String>> entry : serviceProviderMap.entrySet()) {
-            final Collection<String> list = entry.getValue();
+        for (final Map.Entry<String, Map<String, Collection<String>>> entry : serviceProviderMap.entrySet()) {
+            final String type = entry.getKey();
+            final Map<String, Collection<String>> providerMap = entry.getValue();
+            final File servicesDirectory = new File(new File(classesDirectory, "META-INF"), type);
 
-            if (!list.isEmpty()) {
-                servicesDirectory.mkdirs();
+            for (final Map.Entry<String, Collection<String>> providerEntry : providerMap.entrySet()) {
+                final Collection<String> list = providerEntry.getValue();
 
-                if (!servicesDirectory.exists()) {
-                    throw new MojoExecutionException("Could not create " + classesDirectory);
+                if (!list.isEmpty()) {
+                    servicesDirectory.mkdirs();
+
+                    if (!servicesDirectory.exists()) {
+                        throw new MojoExecutionException("Could not create " + classesDirectory);
+                    }
                 }
             }
-        }
 
-        for (final Map.Entry<String, Collection<String>> entry : serviceProviderMap.entrySet()) {
-            if (!entry.getValue().isEmpty()) {
-                log.info(String.format("Service provider descriptor META-INF/services/%s contains:", entry.getKey()));
-                final File serviceProviderFile = new File(servicesDirectory, entry.getKey());
-                serviceProviderFile.delete();
-
-                try {
-                    final PrintWriter writer = new PrintWriter(new FileWriter(serviceProviderFile));
+            for (final Map.Entry<String, Collection<String>> providerEntry : providerMap.entrySet()) {
+                if (!providerEntry.getValue().isEmpty()) {
+                    log.info(String.format("Service provider descriptor META-INF/%s/%s contains:", type, providerEntry.getKey()));
+                    final File serviceProviderFile = new File(servicesDirectory, providerEntry.getKey());
+                    serviceProviderFile.delete();
 
                     try {
-                        for (final String className : entry.getValue()) {
-                            writer.println(className);
-                            log.info(String.format("  %s%s", className, componentMap.containsKey(className) ? " (generated)" : ""));
+                        final PrintWriter writer = new PrintWriter(new FileWriter(serviceProviderFile));
+
+                        try {
+                            for (final String className : providerEntry.getValue()) {
+                                writer.println(className);
+                                log.info(String.format("  %s%s", className, componentMap.containsKey(className) ? " (generated)" : ""));
+                            }
+                        } finally {
+                            writer.close();
                         }
-                    } finally {
-                        writer.close();
+                    } catch (final IOException e) {
+                        throw new MojoExecutionException("Error opening file" + serviceProviderFile, e);
                     }
-                } catch (final IOException e) {
-                    throw new MojoExecutionException("Error opening file" + serviceProviderFile, e);
                 }
             }
         }
 
-        for (final Map.Entry<String, Map<String, Set<String>>> bindingsEntry : componentMap.entrySet()) {
-            final String bindingsClassName = bindingsEntry.getKey();
-            final Collection<String> bindings = serviceProviderMap.get(PACKAGE_BINDINGS);
-            assert bindings != null && bindings.contains(bindingsClassName);
+        final Map<String, Collection<String>> bindingsMap = serviceProviderMap.get(PackageBindings.SERVICE_TYPE);
 
-            generateBindingClass(bindingsClassName, bindingsEntry, classesDirectory);
+        if (bindingsMap != null) {
+            for (final Map.Entry<String, Map<String, Set<String>>> entry : componentMap.entrySet()) {
+                final String bindingsClassName = entry.getKey();
+                final Collection<String> bindings = bindingsMap.get(PACKAGE_BINDINGS);
+                assert bindings != null && bindings.contains(bindingsClassName);
+
+                log.info(String.format("Binding %s adds:", bindingsClassName));
+                final Map<String, Set<String>> allBindings = entry.getValue();
+
+                printBindings("  ", "Component", allBindings);
+
+                final Map<String, Set<String>> groupBindings = componentGroupMap.remove(bindingsClassName);
+                if (groupBindings != null) {
+                    printBindings("  ", "Group", groupBindings);
+                    allBindings.putAll(groupBindings);
+                }
+
+                generateBindingClass(bindingsClassName, allBindings, classesDirectory);
+            }
+
+            for (final Map.Entry<String, Map<String, Set<String>>> entry : componentGroupMap.entrySet()) {
+                final String bindingsClassName = entry.getKey();
+
+                final Collection<String> bindings = bindingsMap.get(PACKAGE_BINDINGS);
+                assert bindings != null && bindings.contains(bindingsClassName);
+
+                final Map<String, Set<String>> groupBindings = entry.getValue();
+
+                log.info(String.format("Binding %s adds:", bindingsClassName));
+                printBindings("  ", "Group", groupBindings);
+
+                generateBindingClass(bindingsClassName, groupBindings, classesDirectory);
+            }
+        }
+    }
+
+    private void printBindings(final String indent, final String type, final Map<String, Set<String>> bindings) {
+        log.info(String.format("%s%s bindings:", indent, type));
+        for (final Map.Entry<String, Set<String>> all : bindings.entrySet()) {
+            log.info(String.format("%s%s%s to %s", indent, indent, all.getKey(), all.getValue()));
         }
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
-    private void generateBindingClass(final String className, final Map.Entry<String, Map<String, Set<String>>> bindings, final File classesDirectory)
+    private void generateBindingClass(final String className, final Map<String, Set<String>> bindings, final File classesDirectory)
             throws MojoExecutionException {
-        log.info(String.format("Service provider %s binds:", className));
-
         final ClassWriter generator = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
         generator.visit(V1_5, ACC_FINAL | ACC_PUBLIC, ClassReaders.internalName(className), null, EMPTY_BINDINGS_CLASS_NAME, null);
 
@@ -211,11 +251,8 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
                                                                null);
             method.visitCode();
 
-            for (final Map.Entry<String, Set<String>> entry : bindings.getValue().entrySet()) {
+            for (final Map.Entry<String, Set<String>> entry : bindings.entrySet()) {
                 final String implementationName = entry.getKey();
-                final Set<String> interfaceNames = entry.getValue();
-
-                log.info(String.format("  %s to %s", implementationName, interfaceNames));
 
                 method.visitVarInsn(ALOAD, 1);
                 method.visitLdcInsn(Type.getObjectType(ClassReaders.internalName(implementationName)));
@@ -276,8 +313,10 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
     @SuppressWarnings("ResultOfMethodCallIgnored")
     private void processClasses(final ClassLoader loader,
                                 final File classesDirectory,
-                                final Map<String, Collection<String>> serviceProviderMap,
-                                final Map<String, Map<String, Set<String>>> componentMap) throws IOException, ClassNotFoundException, MojoExecutionException {
+                                final Map<String, Map<String, Collection<String>>> serviceProviderMap,
+                                final Map<String, Map<String, Set<String>>> componentMap,
+                                final Map<String, Map<String, Set<String>>> componentGroupMap)
+            throws IOException, ClassNotFoundException, MojoExecutionException {
         final DirectoryScanner scanner = new DirectoryScanner();
 
         scanner.setBasedir(classesDirectory);
@@ -288,28 +327,31 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
 
         final ClassRepository repository = new ClassRepositoryImpl(loader);
 
-        final Set<String> jdkServiceProviders = new HashSet<String>();
+        final Set<String> publicApis = new HashSet<String>();
         final Map<String, Set<String>> serviceProviders = new HashMap<String, Set<String>>();
 
         for (final String fileName : scanner.getIncludedFiles()) {
             final String className = fileName.substring(0, fileName.length() - ClassLoaders.CLASS_SUFFIX.length()).replace(File.separatorChar, '.');
             final String componentPackage = className.substring(0, className.lastIndexOf(".") + 1);
-            final String generatedBindings = componentPackage + GENERATED_PACKAGE_BINDINGS + projectName;
+            final String bindingClassName = componentPackage + GENERATED_PACKAGE_BINDINGS + projectName;
 
             final boolean isComponent[] = new boolean[1];
+            final boolean isComponentGroup[] = new boolean[1];
 
-            if (className.equals(generatedBindings)) {
+            if (className.equals(bindingClassName)) {
                 new File(classesDirectory, fileName).delete();
             } else {
                 final ClassReader classData = repository.reader(className);
                 assert classData != null : className;
 
-                final Set<String> serviceProviderApis = new HashSet<String>();
+                final Map<String, Set<String>> serviceProviderApis = new HashMap<String, Set<String>>();
                 final Set<String> componentApis = new HashSet<String>();
+                final Set<String> componentGroupApis = new HashSet<String>();
 
                 final ClassVisitor annotations = new EmptyVisitor() {
                     private final Type serviceProviderType = Type.getType(ServiceProvider.class);
                     private final Type componentType = Type.getType(Component.class);
+                    private final Type componentGroupType = Type.getType(ComponentGroup.class);
 
                     @Override
                     public AnnotationVisitor visitAnnotation(final String desc, final boolean visible) {
@@ -317,23 +359,41 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
                         if (serviceProviderType.equals(type)) {
                             return new ServiceProviderProcessor(repository, classData, new ProcessorCallback<ServiceProviderProcessor>() {
                                 public void complete(final ServiceProviderProcessor processor) {
-                                    final Set<String> apiSet = processor.apiSet();
+                                    final String type = processor.type();
+                                    Set<String> list = serviceProviderApis.get(type);
 
-                                    if (processor.isJdk()) {
-                                        jdkServiceProviders.addAll(apiSet);
+                                    if (list == null) {
+                                        serviceProviderApis.put(type, list = new HashSet<String>());
                                     }
 
-                                    serviceProviderApis.addAll(apiSet);
+                                    list.addAll(processor.apiSet());
+
+                                    if (processor.isDefaultType()) {
+                                        publicApis.addAll(list);
+                                    }
                                 }
                             });
                         } else if (componentType.equals(type)) {
                             return new ComponentProcessor(new ProcessorCallback<ComponentProcessor>() {
                                 public void complete(final ComponentProcessor processor) {
-                                    isComponent[0] = processor.isAutomatic();
                                     if (processor.isAutomatic()) {
-                                        if (!ClassReaders.isAbstract(classData) && componentApis.isEmpty()) {
+                                        isComponent[0] = !ClassReaders.isAbstract(classData) && !ClassReaders.isInterface(classData);
+
+                                        if (isComponent[0] && componentApis.isEmpty()) {
                                             componentApis.addAll(processor.apiSet());
+                                        } else {
+                                            log.warn(String.format("Skipping %s as it is not a concrete class", className));
                                         }
+                                    }
+                                }
+                            });
+                        } else if (componentGroupType.equals(type)) {
+                            return new ComponentProcessor(new ProcessorCallback<ComponentProcessor>() {
+                                public void complete(final ComponentProcessor processor) {
+                                    isComponentGroup[0] = true;
+
+                                    if (isComponentGroup[0]) {
+                                        componentGroupApis.addAll(processor.apiSet());
                                     }
                                 }
                             });
@@ -342,7 +402,6 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
                         }
                     }
                 };
-
 
                 final ClassProcessor processor = new ClassProcessor() {
                     public boolean run(final ClassReader classData) throws IOException, MojoExecutionException {
@@ -364,44 +423,38 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
                 };
 
                 if (processClass(classData, processor)) {
-                    if (!serviceProviderApis.isEmpty()) {
-                        foundServiceProvider(serviceProviderMap, serviceProviderApis, className);
-                    }
-
-                    if (serviceProviderApis.size() > 1) {
-                        componentApis.add(className);
-                    }
+                    final Map<String, Collection<String>> providerMap = providerMap(PackageBindings.SERVICE_TYPE, serviceProviderMap);
 
                     if (isComponent[0]) {
-                        if (componentApis.isEmpty()) {
-                            componentApis.addAll(ClassReaders.findDirectInterfaces(classData, repository));
-                        }
-
-                        if (componentApis.isEmpty()) {
-                            componentApis.add(ClassReaders.externalName(classData));
-                        }
-
-                        if (!componentApis.isEmpty()) {
-                            foundComponent(generatedBindings, serviceProviderMap, componentMap, className, componentApis);
-                        } else {
-                            log.warn("No component interface could be identified for " + className);
-                        }
+                        handleComponent("component", classData, repository, componentApis, componentMap, providerMap, bindingClassName);
                     }
 
-                    for (final String api : serviceProviderApis) {
-                        Set<String> providers = serviceProviders.get(api);
+                    if (isComponentGroup[0]) {
+                        handleComponent("group", classData, repository, componentGroupApis, componentGroupMap, providerMap, bindingClassName);
+                    }
 
-                        if (providers == null) {
-                            serviceProviders.put(api, providers = new HashSet<String>());
+                    for (final Map.Entry<String, Set<String>> entry : serviceProviderApis.entrySet()) {
+
+                        final Set<String> list = entry.getValue();
+                        if (!list.isEmpty()) {
+                            addServiceProviders(className, list, providerMap(entry.getKey(), serviceProviderMap));
                         }
 
-                        providers.add(className);
+                        for (final String api : list) {
+                            Set<String> providers = serviceProviders.get(api);
+
+                            if (providers == null) {
+                                serviceProviders.put(api, providers = new HashSet<String>());
+                            }
+
+                            providers.add(className);
+                        }
                     }
                 }
             }
         }
 
-        for (final String className : jdkServiceProviders) {
+        for (final String className : publicApis) {
             final Set<String> providers = serviceProviders.get(className);
 
             if (providers != null) {
@@ -411,6 +464,40 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
             } else {
                 assert ClassReaders.isAbstract(repository.reader(ClassReaders.externalName(className))) : className;
             }
+        }
+    }
+
+    private Map<String, Collection<String>> providerMap(final String type, final Map<String, Map<String, Collection<String>>> serviceProviderMap) {
+        Map<String, Collection<String>> providerMap = serviceProviderMap.get(type);
+
+        if (providerMap == null) {
+            serviceProviderMap.put(type, providerMap = new HashMap<String, Collection<String>>());
+        }
+
+        return providerMap;
+    }
+
+    private void handleComponent(final String type,
+                                 final ClassReader classData,
+                                 final ClassRepository repository,
+                                 final Set<String> apiList,
+                                 final Map<String, Map<String, Set<String>>> componentMap,
+                                 final Map<String, Collection<String>> serviceProviderMap,
+                                 final String bindingName) throws IOException, MojoExecutionException {
+        if (apiList.isEmpty()) {
+            apiList.addAll(ClassReaders.findDirectInterfaces(classData, repository));
+        }
+
+        if (apiList.isEmpty()) {
+            apiList.add(ClassReaders.externalName(classData));
+        }
+
+        final String className = ClassReaders.externalName(classData);
+
+        if (!apiList.isEmpty()) {
+            addBinding(bindingName, className, apiList, serviceProviderMap, componentMap);
+        } else {
+            log.warn(String.format("No %s interface could be identified for %s", type, className));
         }
     }
 
@@ -463,26 +550,26 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
         }
     }
 
-    private void foundComponent(final String generatedBindings,
-                                final Map<String, Collection<String>> serviceProviderMap,
-                                final Map<String, Map<String, Set<String>>> componentMap,
-                                final String componentClass,
-                                final Set<String> componentApis) throws MojoExecutionException {
-        Map<String, Set<String>> packageMap = componentMap.get(generatedBindings);
+    private void addBinding(final String bindingName,
+                            final String componentClass,
+                            final Set<String> apiList,
+                            final Map<String, Collection<String>> serviceProviderMap,
+                            final Map<String, Map<String, Set<String>>> componentMap) throws MojoExecutionException {
+        Map<String, Set<String>> packageMap = componentMap.get(bindingName);
 
         if (packageMap == null) {
-            componentMap.put(generatedBindings, packageMap = new HashMap<String, Set<String>>());
+            componentMap.put(bindingName, packageMap = new HashMap<String, Set<String>>());
         }
 
-        packageMap.put(componentClass, componentApis);
+        packageMap.put(componentClass, apiList);
 
         final Collection<String> bindings = serviceProviderMap.get(PACKAGE_BINDINGS);
-        if (bindings == null || !bindings.contains(generatedBindings)) {
-            foundServiceProvider(serviceProviderMap, Collections.singleton(PACKAGE_BINDINGS), generatedBindings);
+        if (bindings == null || !bindings.contains(bindingName)) {
+            addServiceProviders(bindingName, Collections.singleton(PACKAGE_BINDINGS), serviceProviderMap);
         }
     }
 
-    private void foundServiceProvider(final Map<String, Collection<String>> serviceProviderMap, final Collection<String> providerNames, final String className)
+    private void addServiceProviders(final String className, final Collection<String> providerNames, final Map<String, Collection<String>> serviceProviderMap)
             throws MojoExecutionException {
         for (final String providerName : providerNames) {
             final String key = ClassReaders.externalName(providerName);

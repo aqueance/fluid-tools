@@ -23,14 +23,12 @@
 package org.fluidity.composition.spi;
 
 import org.fluidity.composition.ComponentContainer;
-import org.fluidity.composition.ServiceProvider;
 
 /**
  * Empty package bindings to simplify creation of actual implementations.
  *
  * @author Tibor Varga
  */
-@ServiceProvider
 public abstract class EmptyPackageBindings implements PackageBindings {
 
     /**

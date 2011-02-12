@@ -51,12 +51,13 @@ public final class ClassLoaders {
         return result == null ? ClassLoader.getSystemClassLoader() : result;
     }
 
-    public static String absoluteResourceName(final String resourceName) {
+    public static String absoluteResourceName(final String format, final Object... params) {
+        final String resourceName = String.format(format, params);
         return resourceName.startsWith("/") ? resourceName.substring(1) : resourceName;
     }
 
-    public static URL findResource(final Class sourceClass, final String resourceName) {
-        return findClassLoader(sourceClass).getResource(absoluteResourceName(resourceName));
+    public static URL findResource(final Class sourceClass, final String format, final Object... params) {
+        return findClassLoader(sourceClass).getResource(absoluteResourceName(format, params));
     }
 
     public static String classResourceName(final Class sourceClass) {

@@ -27,7 +27,7 @@ import org.fluidity.foundation.spi.LogFactory;
 /**
  * Creates a {@link ContainerServices} object.
  */
-@ServiceProvider(jdk = true)
+@ServiceProvider
 interface ContainerServicesFactory {
 
     /**

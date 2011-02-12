@@ -35,17 +35,17 @@ public final class CircularReferencesTests extends AbstractContainerTests {
 
     @Test(expectedExceptions = ComponentContainer.CircularReferencesException.class)
     public void circularTwoWayReferences() throws Exception {
-        registry.bindComponent(Circular2Dependent1Class.class, Circular2Dependent1Class.class);
-        registry.bindComponent(Circular2Dependent2Class.class, Circular2Dependent2Class.class);
+        registry.bindComponent(Circular2Dependent1Class.class);
+        registry.bindComponent(Circular2Dependent2Class.class);
 
         container.getComponent(Circular2Dependent1Class.class);
     }
 
     @Test(expectedExceptions = ComponentContainer.CircularReferencesException.class)
     public void circularThreeWayReferences() throws Exception {
-        registry.bindComponent(Circular3Dependent1Class.class, Circular3Dependent1Class.class);
-        registry.bindComponent(Circular3Dependent2Class.class, Circular3Dependent2Class.class);
-        registry.bindComponent(Circular3Dependent3Class.class, Circular3Dependent3Class.class);
+        registry.bindComponent(Circular3Dependent1Class.class);
+        registry.bindComponent(Circular3Dependent2Class.class);
+        registry.bindComponent(Circular3Dependent3Class.class);
 
         container.getComponent(Circular3Dependent1Class.class);
     }
@@ -58,8 +58,8 @@ public final class CircularReferencesTests extends AbstractContainerTests {
 
     @Test
     public void circularTwoWayInstantiation() throws Exception {
-        registry.bindComponent(Circular2Dependent1Impl.class, Circular2Dependent1.class);
-        registry.bindComponent(Circular2Dependent2Impl.class, Circular2Dependent2.class);
+        registry.bindComponent(Circular2Dependent1Impl.class);
+        registry.bindComponent(Circular2Dependent2Impl.class);
 
         ping(Circular2Dependent1.class);
         ping(Circular2Dependent2.class);
@@ -67,9 +67,9 @@ public final class CircularReferencesTests extends AbstractContainerTests {
 
     @Test
     public void circularThreeWayInstantiation() throws Exception {
-        registry.bindComponent(Circular3Dependent1Impl.class, Circular3Dependent1.class);
-        registry.bindComponent(Circular3Dependent2Impl.class, Circular3Dependent2.class);
-        registry.bindComponent(Circular3Dependent3Impl.class, Circular3Dependent3.class);
+        registry.bindComponent(Circular3Dependent1Impl.class);
+        registry.bindComponent(Circular3Dependent2Impl.class);
+        registry.bindComponent(Circular3Dependent3Impl.class);
 
         ping(Circular3Dependent1.class);
         ping(Circular3Dependent2.class);
@@ -78,9 +78,9 @@ public final class CircularReferencesTests extends AbstractContainerTests {
 
     @Test
     public void circularThreeWayIntermediateInstantiation() throws Exception {
-        registry.bindComponent(Circular3IntermediateDependent1Class.class, Circular3IntermediateDependent1Class.class);
-        registry.bindComponent(Circular3IntermediateDependent2Class.class, Circular3IntermediateDependent2Class.class);
-        registry.bindComponent(Circular3IntermediateDependent3Class.class, Circular3IntermediateDependent3.class);
+        registry.bindComponent(Circular3IntermediateDependent1Class.class);
+        registry.bindComponent(Circular3IntermediateDependent2Class.class);
+        registry.bindComponent(Circular3IntermediateDependent3Class.class);
 
         ping(Circular3IntermediateDependent1Class.class);
         ping(Circular3IntermediateDependent2Class.class);
@@ -89,9 +89,9 @@ public final class CircularReferencesTests extends AbstractContainerTests {
 
     @Test
     public void circularThreeWayInstantiationWithCallsToDependencyInConstructor() throws Exception {
-        registry.bindComponent(CircularNasty1Impl.class, CircularNasty1.class);
-        registry.bindComponent(CircularNasty2Impl.class, CircularNasty2.class);
-        registry.bindComponent(CircularNasty3Impl.class, CircularNasty3.class);
+        registry.bindComponent(CircularNasty1Impl.class);
+        registry.bindComponent(CircularNasty2Impl.class);
+        registry.bindComponent(CircularNasty3Impl.class);
 
         assert container.getComponent(CircularNasty1.class) != null;
         assert container.getComponent(CircularNasty2.class) != null;
@@ -181,7 +181,7 @@ public final class CircularReferencesTests extends AbstractContainerTests {
         }
     }
 
-    @Component(primary = false)
+    @Component(api = Circular2Dependent1Class.class)
     private static class Circular2Dependent1Class extends PingableImpl implements Pingable {
 
         public Circular2Dependent1Class(final Circular2Dependent2Class dependency) {
@@ -189,7 +189,7 @@ public final class CircularReferencesTests extends AbstractContainerTests {
         }
     }
 
-    @Component(primary = false)
+    @Component(api = Circular2Dependent2Class.class)
     private static class Circular2Dependent2Class extends PingableImpl implements Pingable {
 
         public Circular2Dependent2Class(final Circular2Dependent1Class dependency) {
@@ -197,7 +197,7 @@ public final class CircularReferencesTests extends AbstractContainerTests {
         }
     }
 
-    @Component(primary = false)
+    @Component(api = Circular3Dependent1Class.class)
     private static class Circular3Dependent1Class extends PingableImpl implements Pingable {
 
         public Circular3Dependent1Class(final Circular3Dependent2Class dependency) {
@@ -205,7 +205,7 @@ public final class CircularReferencesTests extends AbstractContainerTests {
         }
     }
 
-    @Component(primary = false)
+    @Component(api = Circular3Dependent2Class.class)
     private static class Circular3Dependent2Class extends PingableImpl implements Pingable {
 
         public Circular3Dependent2Class(final Circular3Dependent3Class dependency) {
@@ -213,7 +213,7 @@ public final class CircularReferencesTests extends AbstractContainerTests {
         }
     }
 
-    @Component(primary = false)
+    @Component(api = Circular3Dependent3Class.class)
     private static class Circular3Dependent3Class extends PingableImpl implements Pingable {
 
         public Circular3Dependent3Class(final Circular3Dependent1Class dependency) {
@@ -221,7 +221,7 @@ public final class CircularReferencesTests extends AbstractContainerTests {
         }
     }
 
-    @Component(primary = false)
+    @Component(api = Circular3IntermediateDependent1Class.class)
     private static class Circular3IntermediateDependent1Class extends PingableImpl implements Pingable {
 
         public Circular3IntermediateDependent1Class(final Circular3IntermediateDependent2Class dependency) {
@@ -229,7 +229,7 @@ public final class CircularReferencesTests extends AbstractContainerTests {
         }
     }
 
-    @Component(primary = false)
+    @Component(api = Circular3IntermediateDependent2Class.class)
     private static class Circular3IntermediateDependent2Class extends PingableImpl implements Pingable {
 
         public Circular3IntermediateDependent2Class(final Circular3IntermediateDependent3 dependency) {
@@ -255,6 +255,7 @@ public final class CircularReferencesTests extends AbstractContainerTests {
     private static interface CircularNasty3 extends Pingable {}
 
     // this will be instantiated once
+    @Component
     private static class CircularNasty1Impl implements CircularNasty1 {
 
         public CircularNasty1Impl(final CircularNasty2 dependency) {
@@ -267,6 +268,7 @@ public final class CircularReferencesTests extends AbstractContainerTests {
     }
 
     // this will be instantiated twice because it forces in its constructor the instantiation of its dependency
+    @Component
     private static class CircularNasty2Impl implements CircularNasty2 {
 
         public CircularNasty2Impl(final CircularNasty3 dependency) {
@@ -279,6 +281,7 @@ public final class CircularReferencesTests extends AbstractContainerTests {
     }
 
     // this will be instantiated thrice because both it and CircularNasty2Impl force in their constructor the instantiation of their dependency
+    @Component
     private static class CircularNasty3Impl implements CircularNasty3 {
 
         public CircularNasty3Impl(final CircularNasty1 dependency) {

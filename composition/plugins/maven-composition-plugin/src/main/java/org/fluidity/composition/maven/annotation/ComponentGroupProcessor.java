@@ -25,7 +25,6 @@ package org.fluidity.composition.maven.annotation;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.fluidity.composition.ServiceProvider;
 import org.fluidity.composition.maven.ClassReaders;
 import org.fluidity.composition.maven.ClassRepository;
 import org.fluidity.foundation.Exceptions;
@@ -37,51 +36,29 @@ import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.EmptyVisitor;
 
 /**
- * Processes a {@link org.fluidity.composition.ServiceProvider} annotation.
+ * Processes a {@link org.fluidity.composition.ComponentGroup} annotation.
  *
  * @author Tibor Varga
  */
-public final class ServiceProviderProcessor extends EmptyVisitor {
+public final class ComponentGroupProcessor extends EmptyVisitor {
 
     private static final String ATR_API = "api";
-    private static final String ATR_TYPE = "type";
 
-    private final ProcessorCallback<ServiceProviderProcessor> callback;
+    private final ProcessorCallback<ComponentGroupProcessor> callback;
     private final ClassRepository repository;
 
     private final ClassReader classData;
     private final Set<String> apiSet = new HashSet<String>();
-    private final String defaultType;
-    private String type;
 
-    public ServiceProviderProcessor(final ClassRepository repository, final ClassReader classData, final ProcessorCallback<ServiceProviderProcessor> callback) {
+    public ComponentGroupProcessor(final ClassRepository repository, final ClassReader classData, final ProcessorCallback<ComponentGroupProcessor> callback) {
         this.repository = repository;
         this.classData = classData;
         this.callback = callback;
-
-        this.defaultType = Exceptions.wrap(new Exceptions.Command<String>() {
-            public String run() throws Exception {
-                return (String) ServiceProvider.class.getMethod("type").getDefaultValue();
-            }
-        });
-
-        this.type = this.defaultType;
-        assert type != null;
-    }
-
-    @Override
-    public void visit(final String name, final Object value) {
-        assert ATR_TYPE.equals(name) : name;
-
-        if (ATR_TYPE.equals(name)) {
-            type = (String) value;
-        }
     }
 
     @Override
     public AnnotationVisitor visitArray(final String name) {
         assert ATR_API.equals(name) : name;
-
         return new EmptyVisitor() {
 
             @Override
@@ -94,10 +71,6 @@ public final class ServiceProviderProcessor extends EmptyVisitor {
 
     public Set<String> apiSet() {
         return apiSet;
-    }
-
-    public String type() {
-        return type;
     }
 
     @Override
@@ -121,17 +94,12 @@ public final class ServiceProviderProcessor extends EmptyVisitor {
                 }
 
                 if (apiSet.isEmpty()) {
-                    throw new MojoExecutionException(String.format("No service provider interface could be identified for %s", className));
+                    throw new MojoExecutionException(String.format("No component group interface could be identified for %s", className));
                 }
 
-                callback.complete(ServiceProviderProcessor.this);
+                callback.complete(ComponentGroupProcessor.this);
                 return null;
             }
         });
     }
-
-    public boolean isDefaultType() {
-        return type.equals(defaultType);
-    }
-
 }

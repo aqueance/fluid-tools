@@ -28,7 +28,7 @@ public interface UnwittingJdkServiceProvider {
 
 }
 
-@ServiceProvider(jdk = true)
+@ServiceProvider
 class UnwittingJdkServiceProviderImpl implements UnwittingJdkServiceProvider {
 
 }

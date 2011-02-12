@@ -72,7 +72,7 @@ public final class ContainerBootstrapImplTest extends MockGroupAbstractTest {
     @SuppressWarnings("unchecked")
     private Object populateContainer(final Class[] classes, final List<PackageBindings> instances) {
         EasyMock.expect(provider.newContainer(services)).andReturn(container);
-        EasyMock.expect(discovery.findComponentClasses(PackageBindings.class, null, false)).andReturn(classes);
+        EasyMock.expect(discovery.findComponentClasses(PackageBindings.SERVICE_TYPE, PackageBindings.class, null, false)).andReturn(classes);
 
         EasyMock.expect(provider.instantiateBindings(EasyMock.same(services), EasyMock.<Map>isNull(), EasyMock.<Collection<Class<PackageBindings>>>notNull()))
                 .andAnswer(new IAnswer<List<PackageBindings>>() {
@@ -192,7 +192,7 @@ public final class ContainerBootstrapImplTest extends MockGroupAbstractTest {
         // we're passing a parent to testee is expected to as for a child container
         EasyMock.expect(parent.makeChildContainer()).andReturn(container);
         EasyMock.expect(parent.getComponent(EasyMock.<Class<?>>anyObject())).andReturn(null);
-        EasyMock.expect(discovery.findComponentClasses(PackageBindings.class, null, true)).andReturn(assemblies);
+        EasyMock.expect(discovery.findComponentClasses(PackageBindings.SERVICE_TYPE, PackageBindings.class, null, true)).andReturn(assemblies);
 
         EasyMock.expect(provider.instantiateBindings(EasyMock.same(services), EasyMock.<Map>isNull(), EasyMock.<Collection<Class<PackageBindings>>>notNull()))
                 .andAnswer(new IAnswer<List<PackageBindings>>() {
@@ -225,7 +225,7 @@ public final class ContainerBootstrapImplTest extends MockGroupAbstractTest {
                 ShutdownHookPackageBindingsImpl.class,
         };
 
-        EasyMock.expect(discovery.findComponentClasses(PackageBindings.class, null, false)).andReturn(assemblies);
+        EasyMock.expect(discovery.findComponentClasses(PackageBindings.SERVICE_TYPE, PackageBindings.class, null, false)).andReturn(assemblies);
 
         EasyMock.expect(provider.instantiateBindings(EasyMock.same(services), EasyMock.<Map>isNull(), EasyMock.<Collection<Class<PackageBindings>>>notNull()))
                 .andAnswer(new IAnswer<List<PackageBindings>>() {
@@ -253,7 +253,7 @@ public final class ContainerBootstrapImplTest extends MockGroupAbstractTest {
         // we're passing a parent to testee is expected to as for a child container
         EasyMock.expect(parent.makeChildContainer()).andReturn(container);
         EasyMock.expect(parent.getComponent(EasyMock.<Class<?>>anyObject())).andReturn(null);
-        EasyMock.expect(discovery.findComponentClasses(PackageBindings.class, null, true)).andReturn(new Class[0]);
+        EasyMock.expect(discovery.findComponentClasses(PackageBindings.SERVICE_TYPE, PackageBindings.class, null, true)).andReturn(new Class[0]);
 
         final Properties properties = new Properties();
 
