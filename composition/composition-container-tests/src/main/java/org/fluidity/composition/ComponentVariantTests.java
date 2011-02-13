@@ -52,7 +52,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
     private ComponentVariantFactory variants = addControl(ComponentVariantFactory.class);
 
     @SuppressWarnings("unchecked")
-    private ComponentFactory<DependentKey> factory = (ComponentFactory<DependentKey>) addControl(ComponentFactory.class);
+    private ComponentFactory factory = addControl(ComponentFactory.class);
 
     public ComponentVariantTests(final ContainerFactory factory) {
         super(factory);
@@ -385,16 +385,16 @@ public final class ComponentVariantTests extends AbstractContainerTests {
 
     @Component(api = DependentKey.class)
     @Context({ Setting1.class, Setting2.class })
-    private static class Factory implements ComponentFactory<DependentKey> {
+    private static class Factory implements ComponentFactory {
 
-        public static ComponentFactory<DependentKey> delegate;
+        public static ComponentFactory delegate;
         public static Set<Factory> instances = new HashSet<Factory>();
 
         public Factory(final FactoryDependency dependent) {
             assert dependent != null;
         }
 
-        public DependentKey newComponent(final OpenComponentContainer container, final ComponentContext context) {
+        public Class<?> newComponent(final OpenComponentContainer container, final ComponentContext context) {
             instances.add(this);        // only instances in actual use count
             assert delegate != null;
             return delegate.newComponent(container, context);
@@ -456,7 +456,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
         }
     }
 
-    private static class FactoryContainerCheck implements IAnswer<DependentKey> {
+    private static class FactoryContainerCheck implements IAnswer<Class<? extends DependentKey>> {
 
         private final OpenComponentContainer container;
         private final Class<?> checkKey;
@@ -468,13 +468,17 @@ public final class ComponentVariantTests extends AbstractContainerTests {
             this.checkValue = checkValue;
         }
 
-        public DependentKey answer() throws Throwable {
+        public Class<? extends DependentKey> answer() throws Throwable {
             final Object[] arguments = EasyMock.getCurrentArguments();
             final OpenComponentContainer received = (OpenComponentContainer) arguments[0];
 
             assert received != null : "Received no container";
             assert received.getComponent(checkKey) == checkValue : String.format("Expected %s, got %s", container.toString(), received.toString());
-            return new ContextDependentValue((ComponentContext) arguments[1]);
+
+            final ComponentContainer.Registry registry = received.getRegistry();
+            registry.bindInstance((ComponentContext) arguments[1], ComponentContext.class);
+            registry.bindComponent(ContextDependentValue.class, DependentKey.class);
+            return DependentKey.class;
         }
     }
 

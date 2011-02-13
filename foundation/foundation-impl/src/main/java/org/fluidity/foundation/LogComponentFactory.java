@@ -40,7 +40,7 @@ import org.fluidity.foundation.spi.LogFactory;
  */
 @Component(api = Log.class)
 @Context(Marker.class)
-final class LogComponentFactory implements ComponentFactory<Log> {
+final class LogComponentFactory implements ComponentFactory {
 
     private final LogFactory factory;
 
@@ -48,8 +48,10 @@ final class LogComponentFactory implements ComponentFactory<Log> {
         this.factory = factory;
     }
 
-    public Log newComponent(final OpenComponentContainer container, final ComponentContext context) throws ComponentContainer.ResolutionException {
+    @SuppressWarnings("unchecked")
+    public Class<Log> newComponent(final OpenComponentContainer container, final ComponentContext context) throws ComponentContainer.ResolutionException {
         final Marker marker = context.annotation(Marker.class, Log.class);
-        return factory.createLog(marker.value());
+        container.getRegistry().bindInstance(factory.createLog(marker.value()), Log.class);
+        return Log.class;
     }
 }

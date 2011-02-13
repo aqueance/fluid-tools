@@ -482,17 +482,17 @@ public class EmptyRegistryTest extends MockGroupAbstractTest {
     @ComponentGroup(api = GroupInterface3.class)
     private static class MarkedGroupComponent implements Interface1, Interface2, InheritingInterface1, InheritingInterface2, GroupInterface3 { }
 
-    private static class UnmarkedFactory implements ComponentFactory<GroupComponent> {
+    private static class UnmarkedFactory implements ComponentFactory {
 
-        public GroupComponent newComponent(final OpenComponentContainer container, final ComponentContext context) {
+        public Class<GroupComponent> newComponent(final OpenComponentContainer container, final ComponentContext context) {
             throw new UnsupportedOperationException();
         }
     }
 
     @Component(api = Interface1.class)
-    private static class MarkedFactory implements ComponentFactory<GroupComponent> {
+    private static class MarkedFactory implements ComponentFactory {
 
-        public GroupComponent newComponent(final OpenComponentContainer container, final ComponentContext context) {
+        public Class<GroupComponent> newComponent(final OpenComponentContainer container, final ComponentContext context) {
             throw new UnsupportedOperationException();
         }
     }

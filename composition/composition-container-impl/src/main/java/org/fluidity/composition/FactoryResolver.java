@@ -71,7 +71,9 @@ abstract class FactoryResolver extends AbstractResolver {
     protected ComponentCache.Instantiation createCommand(final DependencyChain.Lineage lineage, final SimpleContainer container, Class<?> api) {
         return new ComponentCache.Instantiation() {
             public Object perform(final ContextDefinition context) {
-                return factory(container).newComponent(new ComponentContainerShell(container, context, true), context.create());
+                final SimpleContainer child = container.newChildContainer();
+                final Class<?> api = factory(container).newComponent(new ComponentContainerShell(child, context, false), context.create());
+                return api == null ? null : child.component(api, context);
             }
         };
     }

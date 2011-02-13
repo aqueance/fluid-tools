@@ -122,7 +122,7 @@ abstract class VariantResolver extends AbstractResolver {
 
                 final SimpleContainer child = container.newChildContainer();
                 child.bindResolver(api, findDelegate());
-                factory.newComponent(new ComponentContainerShell(child, false), context.create());
+                factory.newComponent(new ComponentContainerShell(child, context, false), context.create());
 
                 return child.component(api, context);
             }

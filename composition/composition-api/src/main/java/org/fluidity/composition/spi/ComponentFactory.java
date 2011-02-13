@@ -38,7 +38,7 @@ import org.fluidity.composition.OpenComponentContainer;
  *
  * @author Tibor Varga
  */
-public interface ComponentFactory<T> {
+public interface ComponentFactory {
 
     /**
      * Creates a new instance of the component that this is a factory for.
@@ -47,7 +47,7 @@ public interface ComponentFactory<T> {
      * @param context   is the context for the instance to create. When this is null or empty, the default instance must be created. The key set in the context
      *                  is taken from the list of annotation classes in the {@link org.fluidity.composition.Context} annotation of the component class.
      *
-     * @return the component created or <code>null</code> if no component could be created, not even a default, context independent instance.
+     * @return the component class to look up in the supplied container or <code>null</code> if no component could be created, not even a default, context independent instance.
      */
-    T newComponent(OpenComponentContainer container, ComponentContext context);
+    Class newComponent(OpenComponentContainer container, ComponentContext context);
 }

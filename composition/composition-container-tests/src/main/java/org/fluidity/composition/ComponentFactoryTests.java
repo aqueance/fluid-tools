@@ -38,7 +38,7 @@ import org.testng.annotations.Test;
 public final class ComponentFactoryTests extends AbstractContainerTests {
 
     @SuppressWarnings("unchecked")
-    private ComponentFactory<DependentKey> factory = addControl(ComponentFactory.class);
+    private ComponentFactory factory = addControl(ComponentFactory.class);
 
     public ComponentFactoryTests(final ContainerFactory factory) {
         super(factory);
@@ -106,15 +106,15 @@ public final class ComponentFactoryTests extends AbstractContainerTests {
     }
 
     @Component(api = DependentKey.class)
-    private static class Factory implements ComponentFactory<DependentKey> {
+    private static class Factory implements ComponentFactory {
 
-        public static ComponentFactory<DependentKey> delegate;
+        public static ComponentFactory delegate;
 
         public Factory(final FactoryDependency dependency) {
             assert dependency != null;
         }
 
-        public DependentKey newComponent(final OpenComponentContainer container, final ComponentContext context) {
+        public Class<?> newComponent(final OpenComponentContainer container, final ComponentContext context) {
             final ComponentContainer.Registry registry = container.getRegistry();
             registry.bindComponent(DependentValue.class);
 
@@ -123,7 +123,7 @@ public final class ComponentFactoryTests extends AbstractContainerTests {
         }
     }
 
-    private static class FactoryInvocation implements IAnswer<DependentKey> {
+    private static class FactoryInvocation implements IAnswer<Class<?>> {
 
         private final Class<?> checkKey;
         private final Object checkValue;
@@ -133,22 +133,22 @@ public final class ComponentFactoryTests extends AbstractContainerTests {
             this.checkValue = checkValue;
         }
 
-        public DependentKey answer() throws Throwable {
+        public Class<DependentKey> answer() throws Throwable {
             final OpenComponentContainer container = (OpenComponentContainer) EasyMock.getCurrentArguments()[0];
 
             assert container != null : "Received no container";
             assert container.getComponent(checkKey) == checkValue : "Container does not check up";
 
-            return container.getComponent(DependentKey.class);
+            return DependentKey.class;
         }
     }
 
-    private static class CircularFactoryInvocation implements IAnswer<DependentKey> {
+    private static class CircularFactoryInvocation implements IAnswer<Class<?>> {
 
-        public DependentKey answer() throws Throwable {
+        public Class<DependentKey> answer() throws Throwable {
             final OpenComponentContainer container = (OpenComponentContainer) EasyMock.getCurrentArguments()[0];
             assert container != null;
-            return container.getComponent(DependentKey.class);
+            return DependentKey.class;
         }
     }
 }

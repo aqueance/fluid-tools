@@ -32,13 +32,14 @@ public interface ComponentCache {
     /**
      * Looks up and instantiates if necessary using the supplied command, the component whose class is also specified to find its annotations.
      *
-     * @param source             something to identify who is creating instances through this cache.
-     * @param context            the context for the component.
-     * @param componentInterface the interface the component implements.
-     * @param create             the command that performs instantiation of the component.
+     * @param source  something to identify who is creating instances through this cache.
+     * @param context the context for the component.
+     * @param api     the interface the component implements.
+     * @param create  the command that performs instantiation of the component.
+     *
      * @return the component instance.
      */
-    Object lookup(Object source, ContextDefinition context, Class<?> componentInterface, Instantiation create);
+    Object lookup(Object source, ContextDefinition context, Class<?> api, Instantiation create);
 
     /**
      * A command to create a component instance in some context.
@@ -50,7 +51,7 @@ public interface ComponentCache {
          *
          * @param context the context in which to perform the instantiation.
          *
-         * @return a new instance of a component.
+         * @return a new instance of a component; never <code>null</code>.
          */
         Object perform(ContextDefinition context);
     }
@@ -59,8 +60,9 @@ public interface ComponentCache {
      * Listens to component instantiation. The {@link ComponentCache#lookup(Object, ContextDefinition, Class, ComponentCache.Instantiation)}   method must
      * call an object implementing this interface when it has created a new instance of a component. The listener object must be passed to the cache
      * in its constructor.
-     *
+     * <p/>
      * Implementations must be thread safe.
+     *
      * @deprecated and will be removed
      */
     interface Listener {

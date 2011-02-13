@@ -45,8 +45,8 @@ final class ComponentCacheImpl implements ComponentCache {
         this.log = logs.createLog(getClass());
     }
 
-    public Object lookup(final Object source, final ContextDefinition context, final Class<?> componentInterface, final Instantiation create) {
-        return lookup(cache == null ? new HashMap<Map<Class<? extends Annotation>, Annotation[]>, Object>() : cache, source, context, componentInterface, create);
+    public Object lookup(final Object source, final ContextDefinition context, final Class<?> api, final Instantiation create) {
+        return lookup(cache == null ? new HashMap<Map<Class<? extends Annotation>, Annotation[]>, Object>() : cache, source, context, api, create, log);
     }
 
     @SuppressWarnings("SynchronizationOnLocalVariableOrMethodParameter")
@@ -54,7 +54,8 @@ final class ComponentCacheImpl implements ComponentCache {
                           final Object source,
                           final ContextDefinition context,
                           final Class<?> api,
-                          final Instantiation instantiation) {
+                          final Instantiation instantiation,
+                          final Log log) {
 
         /* Caching strategy:
          *
@@ -72,6 +73,11 @@ final class ComponentCacheImpl implements ComponentCache {
 
             // go ahead and create the component and then see if it was actually necessary; context may change as new instantiations take place
             final Object component = instantiation.perform(context);
+
+            if (component == null) {
+                throw new ComponentContainer.ResolutionException("Could not create component for %s", api);
+            }
+
             final Map<Class<? extends Annotation>, Annotation[]> outgoing = context.collected();
 
             synchronized (cache) {
@@ -79,10 +85,9 @@ final class ComponentCacheImpl implements ComponentCache {
                     cache.put(incoming, component);
                     cache.put(outgoing, component);
 
-                    final ComponentContext consumed = context.create();
-                    if (component == null) {
-                        log.info("%s: not created component for %s%s", source, api, consumed.types().isEmpty() ? "" : String.format(" for context %s", consumed));
-                    } else {
+                    if (log.isInfoEnabled()) {
+                        final ComponentContext consumed = context.create();
+
                         log.info("%s: created %s@%s%s",
                                  source,
                                  component.getClass().getName(),
