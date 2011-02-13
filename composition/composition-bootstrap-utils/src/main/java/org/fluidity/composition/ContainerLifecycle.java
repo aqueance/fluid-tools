@@ -37,17 +37,17 @@ import org.fluidity.foundation.logging.Log;
  *
  * @author Tibor Varga
  */
-final class ComponentLifecycle {
+final class ContainerLifecycle {
 
     private final OpenComponentContainer container;
     private final List<PackageBindings> bindings;
 
-    private final Set<ComponentLifecycle> children = new HashSet<ComponentLifecycle>();
+    private final Set<ContainerLifecycle> children = new HashSet<ContainerLifecycle>();
 
     private final AtomicBoolean shouldInitialize = new AtomicBoolean(true);
     private final AtomicBoolean shouldShutdown = new AtomicBoolean(true);
 
-    public ComponentLifecycle(final OpenComponentContainer container, final List<PackageBindings> bindings) {
+    public ContainerLifecycle(final OpenComponentContainer container, final List<PackageBindings> bindings) {
         this.container = container;
         this.bindings = bindings;
     }
@@ -65,13 +65,13 @@ final class ComponentLifecycle {
             }
 
             // child containers are initialized next
-            for (final ComponentLifecycle child : children) {
+            for (final ContainerLifecycle child : children) {
                 child.initialize(log);
             }
         }
     }
 
-    public void addChild(final ComponentLifecycle child) {
+    public void addChild(final ContainerLifecycle child) {
         children.add(child);
     }
 
@@ -79,7 +79,7 @@ final class ComponentLifecycle {
         if (shouldShutdown.compareAndSet(true, false)) {
 
             // child containers are shut down first
-            for (final ComponentLifecycle child : children) {
+            for (final ContainerLifecycle child : children) {
                 child.shutdown(log);
             }
 

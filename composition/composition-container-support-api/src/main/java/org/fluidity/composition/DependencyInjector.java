@@ -35,7 +35,7 @@ import org.fluidity.composition.spi.DependencyResolver;
 public interface DependencyInjector {
 
     /**
-     * Returns the argument array for the given constructor. The constructor must be satisfiable.
+     * Resolves all parameters of the given constructor and invokes it to construct a new object with it.
      *
      * @param resolver    the resolver to satisfy dependencies.
      * @param mapping     the mapping that triggered the dependency resolution.
@@ -44,7 +44,7 @@ public interface DependencyInjector {
      *
      * @return the argument array for the given constructor.
      */
-    Object[] injectConstructor(DependencyResolver resolver, ComponentMapping mapping, ContextDefinition context, Constructor<?> constructor);
+    <T> T injectConstructor(DependencyResolver resolver, ComponentMapping mapping, ContextDefinition context, Constructor<T> constructor);
 
     /**
      * Sets all {@link Component} annotated fields of the receiver.

@@ -28,7 +28,6 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.fluidity.foundation.Exceptions;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**
@@ -75,14 +74,7 @@ final class ConstructingResolver extends AbstractResolver {
     protected ComponentCache.Instantiation createCommand(final DependencyChain.Lineage lineage, final SimpleContainer container, final Class<?> api) {
         return new ComponentCache.Instantiation() {
             public Object perform(final ContextDefinition context) {
-                final Constructor constructor = constructor();
-
-                return Exceptions.wrap(String.format("instantiating %s", componentClass), new Exceptions.Command<Object>() {
-                    public Object run() throws Exception {
-                        constructor.setAccessible(true);
-                        return constructor.newInstance(injector.injectConstructor(container, ConstructingResolver.this, context, constructor));
-                    }
-                });
+                return injector.injectConstructor(container, ConstructingResolver.this, context, constructor());
             }
         };
     }

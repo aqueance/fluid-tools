@@ -78,10 +78,10 @@ final class ContainerBootstrapImpl implements ContainerBootstrap {
             bindings.bindComponents(registry);
         }
 
-        final ComponentLifecycle state = new ComponentLifecycle(container, assemblies);
+        final ContainerLifecycle state = new ContainerLifecycle(container, assemblies);
         registry.bindInstance(state);
 
-        final ComponentLifecycle parentState = parent != null ? parent.getComponent(ComponentLifecycle.class) : null;
+        final ContainerLifecycle parentState = parent != null ? parent.getComponent(ContainerLifecycle.class) : null;
         if (parentState != null) {
             parentState.addChild(state);
         }
@@ -91,7 +91,7 @@ final class ContainerBootstrapImpl implements ContainerBootstrap {
 
     public void initializeContainer(final OpenComponentContainer container, final ContainerServices services) {
         final Log log = services.logs().createLog(getClass());
-        final ComponentLifecycle lifecycle = container.getComponent(ComponentLifecycle.class);
+        final ContainerLifecycle lifecycle = container.getComponent(ContainerLifecycle.class);
 
         if (lifecycle == null) {
             throw new IllegalStateException(String.format("Container %s has not been populated", container));

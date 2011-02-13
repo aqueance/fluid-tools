@@ -125,7 +125,7 @@ final class EmptyRegistry implements ComponentContainer.Registry {
      */
     private Class<?>[] interfaces(final boolean discover, final Class<?> implementation, final Class<?>... specified) {
         if ((specified != null && specified.length > 0) || !discover) {
-            if (specified != null) {
+            if (specified != null && !ComponentFactory.class.isAssignableFrom(implementation) && !ComponentVariantFactory.class.isAssignableFrom(implementation)) {
                 for (final Class<?> api : specified) {
                     if (!api.isAssignableFrom(implementation)) {
                         throw new ComponentContainer.BindingException("%s is not assignable to %s", implementation, api);

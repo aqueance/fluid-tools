@@ -55,10 +55,10 @@ final class DependencyInjectorImpl implements DependencyInjector {
         return instances;
     }
 
-    public Object[] injectConstructor(final DependencyResolver resolver,
-                                      final ComponentMapping mapping,
-                                      final ContextDefinition context,
-                                      final Constructor<?> constructor) {
+    public <T> T injectConstructor(final DependencyResolver resolver,
+                                   final ComponentMapping mapping,
+                                   final ContextDefinition context,
+                                   final Constructor<T> constructor) {
         final List<ContextDefinition> consumed = new ArrayList<ContextDefinition>();
 
         final Class<?> componentType = constructor.getDeclaringClass();
@@ -100,7 +100,12 @@ final class DependencyInjectorImpl implements DependencyInjector {
 
         context.collect(consumed);
 
-        return arguments;
+        return Exceptions.wrap(String.format("instantiating %s", constructor.getDeclaringClass()), new Exceptions.Command<T>() {
+            public T run() throws Exception {
+                constructor.setAccessible(true);
+                return constructor.newInstance(arguments);
+            }
+        });
     }
 
     private <T> List<ContextDefinition> injectFields(final DependencyResolver resolver,
@@ -181,9 +186,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
 
             final Class<?> itemType = dependencyType.getComponentType();
             if (itemType.isArray()) {
-                throw new ComponentContainer.ResolutionException("Group dependency %s of %s must be an array of non-arrays",
-                                                                 dependencyType,
-                                                                 declaringType);
+                throw new ComponentContainer.ResolutionException("Group dependency %s of %s must be an array of non-arrays", dependencyType, declaringType);
             }
 
             final Class<?> groupType = componentGroup.api() == null || componentGroup.api().length != 1 ? itemType : componentGroup.api()[0];
@@ -227,7 +230,9 @@ final class DependencyInjectorImpl implements DependencyInjector {
             }
 
             if (value == null && dependency.annotation(Optional.class) == null) {
-                throw new ComponentContainer.ResolutionException("Dependency %s of %s cannot be satisfied", Strings.arrayNotation(dependencyType), declaringType);
+                throw new ComponentContainer.ResolutionException("Dependency %s of %s cannot be satisfied",
+                                                                 Strings.arrayNotation(dependencyType),
+                                                                 declaringType);
             }
 
             dependency.set(value);

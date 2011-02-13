@@ -219,8 +219,6 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
     @Test
     @SuppressWarnings( { "unchecked" })
     public void injectsConstructor() throws Exception {
-        final FieldInjected component = new FieldInjected();
-
         final Dependency dependency = new DependencyImpl();
         final ServiceImpl1 service1 = new ServiceImpl1();
         final ServiceImpl2 service2 = new ServiceImpl2();
@@ -230,16 +228,11 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
         final Constructor<ConstructorInjected> constructor = ConstructorInjected.class.getDeclaredConstructor(Dependency.class, Service[].class);
         setupCollection(context, setupConstructorResolution(ConstructorInjected.class, constructor, null, null, null, dependency, services));
 
+        ConstructorInjected.expectedGroupSize = services.length;
+
         replay();
-        Object[] arguments = injector.injectConstructor(resolver, dummyMapping, context, constructor);
+        assert injector.injectConstructor(resolver, dummyMapping, context, constructor) != null;
         verify();
-
-        assert arguments[0] == dependency : component.dependency;
-
-        assert arguments[1] != null;
-        assert ((Object[]) arguments[1]).length == 2;
-        assert ((Object[]) arguments[1])[0] == service1;
-        assert ((Object[]) arguments[1])[1] == service2;
     }
 
     @Test
@@ -266,12 +259,8 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
         setupCollection(context, setupConstructorResolution(MissingGroupConsumer.class, constructor, null, null, null, (Object) null));
 
         replay();
-        Object[] arguments = injector.injectConstructor(resolver, dummyMapping, context, constructor);
+        assert injector.injectConstructor(resolver, dummyMapping, context, constructor) != null;
         verify();
-
-        assert arguments != null;
-        assert arguments.length == 1;
-        assert arguments[0] != null;
     }
 
     private final class FieldInjected {
@@ -292,9 +281,18 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
 
     private static final class ConstructorInjected {
 
+        public static int expectedGroupSize;
+
         @SuppressWarnings("UnusedParameters")
         public ConstructorInjected(final Dependency dependency, final @ComponentGroup Service[] services) {
             assert dependency != null;
+
+            assert services != null;
+            assert services.length == expectedGroupSize;
+
+            for (final Service service : services) {
+                assert service != null;
+            }
         }
     }
 
