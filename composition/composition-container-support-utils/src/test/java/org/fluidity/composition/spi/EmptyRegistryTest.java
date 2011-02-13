@@ -95,6 +95,36 @@ public class EmptyRegistryTest extends MockGroupAbstractTest {
         assert container == this.container;
     }
 
+    @Test(expectedExceptions = ComponentContainer.BindingException.class, expectedExceptionsMessageRegExp = ".*assign.*")
+    public void invalidComponent() throws Exception {
+
+        // group api refers to incompatible interface
+        replay();
+        registry.bindComponent(InvalidComponent.class);
+        verify();
+
+        final Object component = new InvalidComponent();
+
+        replay();
+        registry.bindInstance(component);
+        verify();
+    }
+
+    @Test(expectedExceptions = ComponentContainer.BindingException.class, expectedExceptionsMessageRegExp = ".*assign.*")
+    public void invalidGroupComponent() throws Exception {
+
+        // group api refers to incompatible interface
+        replay();
+        registry.bindComponent(InvalidGroupComponent.class);
+        verify();
+
+        final Object component = new InvalidGroupComponent();
+
+        replay();
+        registry.bindInstance(component);
+        verify();
+    }
+
     @Test
     public void standaloneComponentWithNoAnnotation() throws Exception {
 
@@ -409,11 +439,17 @@ public class EmptyRegistryTest extends MockGroupAbstractTest {
     @ComponentGroup
     private static interface GroupInterface2 {}
 
+    private static interface GroupInterface3 extends Interface2 {}
+
     private static interface InheritingInterface1 extends GroupInterface1 {}
 
     private static interface InheritingInterface2 extends GroupInterface2 {}
 
-    private static interface GroupInterface3 extends Interface2 {}
+    @Component(api = Interface1.class)
+    private static class InvalidComponent { }
+
+    @ComponentGroup(api = Interface1.class)
+    private static class InvalidGroupComponent { }
 
     private static class UnmarkedComponent implements Interface1, Interface2 { }
 
