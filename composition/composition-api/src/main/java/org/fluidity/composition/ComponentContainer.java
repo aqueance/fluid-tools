@@ -259,7 +259,7 @@ public interface ComponentContainer {
         <T> void bindInstance(T instance, Class<? super T>... interfaces) throws BindingException;
 
         /**
-         * Returns a new child container that will use the container for this registry as its parent. See {@link OpenComponentContainer#makeChildContainer()}.
+         * Returns a new child container that will use the container for this registry as its parent. See {@link ComponentContainer#makeChildContainer()}.
          *
          * @return an open container, never <code>null</code>.
          */
@@ -293,7 +293,9 @@ public interface ComponentContainer {
         <T> OpenComponentContainer makeChildContainer(Class<T> implementation, Class<? super T>... interfaces) throws BindingException;
     }
 
-    /** Exceptions related to the dependency injection container. */
+    /**
+     * Exceptions related to the dependency injection container.
+     */
     class ContainerException extends RuntimeException {
 
         public ContainerException(final String format, final Object... data) {
@@ -301,7 +303,9 @@ public interface ComponentContainer {
         }
     }
 
-    /** Exception related to component bindings. */
+    /**
+     * Exception related to component bindings.
+     */
     class BindingException extends ContainerException {
 
         public BindingException(final String format, final Object... data) {
@@ -309,7 +313,9 @@ public interface ComponentContainer {
         }
     }
 
-    /** Exception related to dependency resolution. */
+    /**
+     * Exception related to dependency resolution.
+     */
     class ResolutionException extends ContainerException {
 
         public ResolutionException(final String format, final Object... data) {
@@ -317,7 +323,9 @@ public interface ComponentContainer {
         }
     }
 
-    /** Exception signifying a circular dependency. */
+    /**
+     * Exception signifying a circular dependency.
+     */
     class CircularReferencesException extends ResolutionException {
 
         public CircularReferencesException(final Class<?> api) {

@@ -24,14 +24,16 @@ package org.fluidity.composition;
 
 import java.util.List;
 
+import org.fluidity.composition.spi.EmptyComponentContainer;
+
 /**
  * This is a shell around a {@link SimpleContainer} object.
  *
  * @author Tibor Varga
  */
-final class ComponentContainerShell extends AbstractComponentContainer implements OpenComponentContainer {
+final class ComponentContainerShell extends EmptyComponentContainer {
 
-    private final ComponentContainer.Registry registry;
+    private final SimpleContainer container;
     private final ContextDefinition context;
 
     public ComponentContainerShell(final SimpleContainer container, boolean child) {
@@ -48,8 +50,7 @@ final class ComponentContainerShell extends AbstractComponentContainer implement
                                    final ContainerServices services,
                                    final ContextDefinition context,
                                    final boolean child) {
-        super(child ? new SimpleContainerImpl(container, services) : container);
-        this.registry = new ComponentRegistryShell(this.container, context);
+        this.container = child ? new SimpleContainerImpl(container, services) : container;
         this.context = context;
     }
 
@@ -69,11 +70,36 @@ final class ComponentContainerShell extends AbstractComponentContainer implement
         return container.group(api, context);
     }
 
-    public Registry getRegistry() {
-        return registry;
+    public void bindComponent(final Class<?> implementation, final Class<?>[] interfaces, final Class<?>[] groups)
+            throws ComponentContainer.BindingException {
+        container.bindComponent(implementation, interfaces, groups);
+    }
+
+    public void bindInstance(final Object instance, final Class<?>[] interfaces, final Class<?>[] groups)
+            throws ComponentContainer.BindingException {
+        container.bindInstance(instance, interfaces, groups);
+    }
+
+    public OpenComponentContainer makeChildContainer(final Class<?> implementation, final Class<?>[] interfaces, final Class<?>[] groups)
+            throws ComponentContainer.BindingException {
+        return new ComponentContainerShell(container.linkComponent(implementation, interfaces, groups), context, false);
     }
 
     public <T> List<T> getAllComponents(final Class<T> api) {
         return container.allSingletons(api);
+    }
+
+    @Override
+    public int hashCode() {
+        return container.hashCode();
+    }
+
+    @Override
+    public boolean equals(final Object object) {
+        return object instanceof ComponentContainerShell ? container.equals(((ComponentContainerShell) object).container) : super.equals(object);
+    }
+
+    public String toString() {
+        return container.toString();
     }
 }

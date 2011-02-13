@@ -32,12 +32,14 @@ import org.fluidity.tests.MockGroupAbstractTest;
 import org.easymock.EasyMock;
 import org.testng.annotations.Test;
 
-/** @author Tibor Varga */
+/**
+ * @author Tibor Varga
+ */
 public class EmptyRegistryTest extends MockGroupAbstractTest {
 
-    private final TestRegistry mock = addControl(TestRegistry.class);
+    private final ComponentRegistry mock = addControl(ComponentRegistry.class);
     private final OpenComponentContainer container = addControl(OpenComponentContainer.class);
-    private final ComponentContainer.Registry registry = new TestRegistryImpl(mock);
+    private final ComponentContainer.Registry registry = new EmptyRegistry(mock);
 
     @Test
     public void childContainer() throws Exception {
@@ -456,48 +458,6 @@ public class EmptyRegistryTest extends MockGroupAbstractTest {
 
         public GroupComponent newComponent(final OpenComponentContainer container, final ComponentContext context) {
             throw new UnsupportedOperationException();
-        }
-    }
-
-    private static interface TestRegistry {
-
-        void bindComponent(final Class<?> implementation, final Class<?>[] interfaces, final Class<?>[] groups) throws ComponentContainer.BindingException;
-
-        void bindInstance(final Object instance, final Class<?>[] interfaces, final Class<?>[] groups) throws ComponentContainer.BindingException;
-
-        OpenComponentContainer makeChildContainer(final Class<?> implementation, final Class<?>[] interfaces, final Class<?>[] groups)
-                throws ComponentContainer.BindingException;
-
-        OpenComponentContainer makeChildContainer();
-    }
-
-    private static class TestRegistryImpl extends EmptyComponentContainer.EmptyRegistry implements TestRegistry {
-
-        private final TestRegistry delegate;
-
-        private TestRegistryImpl(final TestRegistry delegate) {
-            this.delegate = delegate;
-        }
-
-        @Override
-        public void bindComponent(final Class<?> implementation, final Class<?>[] interfaces, final Class<?>[] groups)
-                throws ComponentContainer.BindingException {
-            delegate.bindComponent(implementation, interfaces, groups);
-        }
-
-        @Override
-        public void bindInstance(final Object instance, final Class<?>[] interfaces, final Class<?>[] groups) throws ComponentContainer.BindingException {
-            delegate.bindInstance(instance, interfaces, groups);
-        }
-
-        @Override
-        public OpenComponentContainer makeChildContainer(final Class<?> implementation, final Class<?>[] interfaces, final Class<?>[] groups)
-                throws ComponentContainer.BindingException {
-            return delegate.makeChildContainer(implementation, interfaces, groups);
-        }
-
-        public OpenComponentContainer makeChildContainer() {
-            return delegate.makeChildContainer();
         }
     }
 }
