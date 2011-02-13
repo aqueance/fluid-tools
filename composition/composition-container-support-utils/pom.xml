@@ -24,17 +24,17 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <parent>
-        <groupId>org.fluidity</groupId>
-        <artifactId>fluidity-root</artifactId>
+        <groupId>org.fluidity.composition</groupId>
+        <artifactId>composition-root</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.fluidity.composition</groupId>
-    <artifactId>composition-root</artifactId>
+    <artifactId>composition-container-support-utils</artifactId>
     <version>1.0-SNAPSHOT</version>
-    <packaging>pom</packaging>
-    <name>Composition: Composition Tools Modules</name>
+    <packaging>jar</packaging>
+    <name>Composition: Container Support Utilities</name>
 
     <licenses>
         <license>
@@ -44,17 +44,44 @@
         </license>
     </licenses>
 
-    <modules>
-        <module>composition-api</module>
-        <module>composition-impl</module>
-        <module>composition-container-impl</module>
-        <module>composition-container-tests</module>
-        <module>composition-container-support-api</module>
-        <module>composition-container-support-utils</module>
-        <module>composition-bootstrap-utils</module>
-        <module>composition-command-line-impl</module>
-        <module>composition-web-impl</module>
-        <module>plugins</module>
-    </modules>
+    <dependencies>
+        <dependency>
+            <groupId>${fluidity.composition.groupId}</groupId>
+            <artifactId>composition-api</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>${fluidity.foundation.groupId}</groupId>
+            <artifactId>foundation-easymock</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <profiles>
+        <profile>
+            <id>sources</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-assembly-plugin</artifactId>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
+    <build>
+        <plugins>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
+            </plugin>
+
+        </plugins>
+    </build>
 
 </project>

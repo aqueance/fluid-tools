@@ -58,6 +58,7 @@ public class DependencyResolverImplTest extends MockGroupAbstractTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void usesChildContainerWhenComponentNotFound() throws Exception {
         final Dependency dependency = new Dependency();
 

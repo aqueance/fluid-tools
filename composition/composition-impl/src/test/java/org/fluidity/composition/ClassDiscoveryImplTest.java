@@ -45,7 +45,7 @@ import org.testng.annotations.Test;
 /**
  * @author Tibor Varga
  */
-@SuppressWarnings("ResultOfMethodCallIgnored")
+@SuppressWarnings({ "unchecked", "ResultOfMethodCallIgnored" })
 public class ClassDiscoveryImplTest extends MockGroupAbstractTest {
 
     private final LogFactory logs = new NoLogFactory();

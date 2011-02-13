@@ -36,6 +36,7 @@ import org.testng.annotations.Test;
 /**
  * @author Tibor Varga
  */
+@SuppressWarnings("unchecked")
 public final class BasicResolutionTests extends AbstractContainerTests {
 
     public BasicResolutionTests(final ContainerFactory factory) {

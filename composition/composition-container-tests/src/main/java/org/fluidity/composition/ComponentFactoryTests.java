@@ -34,6 +34,7 @@ import org.testng.annotations.Test;
 /**
  * @author Tibor Varga
  */
+@SuppressWarnings("unchecked")
 public final class ComponentFactoryTests extends AbstractContainerTests {
 
     @SuppressWarnings("unchecked")

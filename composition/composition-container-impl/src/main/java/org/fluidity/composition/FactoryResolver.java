@@ -52,16 +52,6 @@ abstract class FactoryResolver extends AbstractResolver {
                            final LogFactory logs) {
         super(priority, api, cache, logs);
         this.factoryClass = factoryClass;
-
-        final Component annotation = factoryClass.getAnnotation(Component.class);
-
-        if (annotation == null) {
-            throw new ComponentContainer.BindingException("Factory %s must have a @%s annotation", factoryClass, Component.class);
-        }
-
-        if (annotation.stateful()) {
-            throw new ComponentContainer.BindingException("Factory %s cannot be stateful (@%s(stateful = true)", factoryClass, Component.class);
-        }
     }
 
     @Override

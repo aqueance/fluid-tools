@@ -53,17 +53,12 @@ public abstract class EmptyComponentContainer implements ComponentContainer {
     /** Implements basic method relationships and useful functionality to container and registry implementations. */
     public static abstract class EmptyRegistry implements Registry {
 
-        protected abstract void bindComponent(final Class<?> implementation, Class<?>[] interfaces, Class<?>[] groups)
+        protected abstract void bindComponent(final Class<?> implementation, Class<?>[] interfaces, Class<?>[] groups) throws BindingException;
+
+        protected abstract void bindInstance(final Object instance, Class<?>[] interfaces, Class<?>[] groups) throws BindingException;
+
+        protected abstract OpenComponentContainer makeChildContainer(final Class<?> implementation, Class<?>[] interfaces, Class<?>[] groups)
                 throws BindingException;
-
-        protected abstract void bindInstance(final Object instance, Class<?>[] interfaces, Class<?>[] groups)
-                throws BindingException;
-
-        protected abstract void bindFactory(final Class<?> factory, final Class<?>[] interfaces, Class<?>[] groups) throws BindingException;
-
-        protected abstract OpenComponentContainer makeChildContainer(final Class<?> implementation,
-                                                                         Class<?>[] interfaces,
-                                                                         Class<?>[] groups) throws BindingException;
 
         public final <T> void bindComponent(final Class<T> implementation) throws BindingException {
             final Class<?>[] groups = groups(implementation);
@@ -86,8 +81,8 @@ public abstract class EmptyComponentContainer implements ComponentContainer {
             bindInstance(instance, interfaces, groups(instance.getClass()));
         }
 
-        public final <T> void bindFactory(final Class<T> factory, final Class<?>... interfaces) throws BindingException {
-            bindFactory(factory, interfaces, groups(factory));
+        public final void bindFactory(final Class<?> factory, final Class<?>... interfaces) throws BindingException {
+            bindComponent(factory, interfaces, groups(factory));
         }
 
         public <T> void bindGroup(final Class<T> api, final Class<? extends T>... implementations) throws ComponentContainer.BindingException {

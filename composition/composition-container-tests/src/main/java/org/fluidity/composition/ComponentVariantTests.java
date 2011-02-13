@@ -46,6 +46,7 @@ import org.testng.annotations.Test;
 /**
  * @author Tibor Varga
  */
+@SuppressWarnings("unchecked")
 public final class ComponentVariantTests extends AbstractContainerTests {
 
     private ComponentVariantFactory variants = addControl(ComponentVariantFactory.class);

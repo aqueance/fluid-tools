@@ -238,7 +238,7 @@ public interface ComponentContainer {
          * @throws ComponentContainer.BindingException
          *          when the binding cannot be performed
          */
-        <T> void bindFactory(Class<T> factory, Class<?>... interfaces) throws BindingException;
+        void bindFactory(Class<?> factory, Class<?>... interfaces) throws BindingException;
 
         /**
          * Binds a component instance to its interface. In most case you should use the other registration methods that accept a class rather then

@@ -72,6 +72,7 @@ final class JettyDeploymentControl implements DeploymentControl {
 
         private final ComponentContainer.Bindings dependencies;
 
+        @SuppressWarnings("unchecked")
         static void set(final ContainerBoundary container, final Server server, final boolean standalone) {
             container.setBindingProperty(BINDINGS_KEY, new ComponentContainer.Bindings() {
                 public void bindComponents(final ComponentContainer.Registry registry) {
@@ -86,6 +87,7 @@ final class JettyDeploymentControl implements DeploymentControl {
         }
 
         @Override
+        @SuppressWarnings("unchecked")
         public void bindComponents(final ComponentContainer.Registry registry) {
             if (dependencies != null) {
                 dependencies.bindComponents(registry.makeChildContainer(JettyDeploymentControl.class, DeploymentControl.class).getRegistry());

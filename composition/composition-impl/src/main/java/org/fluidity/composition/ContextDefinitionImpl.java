@@ -38,6 +38,7 @@ import java.util.Set;
  */
 final class ContextDefinitionImpl implements ContextDefinition {
 
+    @SuppressWarnings("unchecked")
     private static final Set<Class<?>> notContext = new HashSet<Class<?>>(Arrays.asList(Component.class,
                                                                                         ComponentGroup.class,
                                                                                         Optional.class,

@@ -378,6 +378,7 @@ final class SimpleContainerImpl implements SimpleContainer {
         final ComponentMapping mapping = new InstanceMapping(component.getClass());
 
         return services.dependencyChain().follow(context, mapping, new DependencyChain.Command<T>() {
+            @SuppressWarnings("unchecked")
             public T run(final DependencyChain.Lineage lineage, final ContextDefinition context) {
                 return injector.injectFields(SimpleContainerImpl.this, mapping, context, component)[0];
             }

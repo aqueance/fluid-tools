@@ -27,8 +27,8 @@ import org.testng.annotations.Test;
 /**
  * @author Tibor Varga
  */
-public class
-        ConstructorDiscoveryTests extends AbstractContainerTests {
+@SuppressWarnings("unchecked")
+public class ConstructorDiscoveryTests extends AbstractContainerTests {
 
     public ConstructorDiscoveryTests(final ContainerFactory factory) {
         super(factory);

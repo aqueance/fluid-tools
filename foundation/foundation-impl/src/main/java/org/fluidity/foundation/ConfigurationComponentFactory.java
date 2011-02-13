@@ -54,6 +54,7 @@ import org.fluidity.foundation.spi.PropertyProvider;
 @Context(Properties.class)
 final class ConfigurationComponentFactory implements ComponentFactory<Configuration> {
 
+    @SuppressWarnings("unchecked")
     public Configuration newComponent(final OpenComponentContainer container, final ComponentContext context) throws ComponentContainer.ResolutionException {
         final OpenComponentContainer child = container.makeChildContainer();
         final ComponentContainer.Registry registry = child.getRegistry();

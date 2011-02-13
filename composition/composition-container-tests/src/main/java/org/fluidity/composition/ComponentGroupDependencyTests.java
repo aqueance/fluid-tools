@@ -31,6 +31,7 @@ import org.testng.annotations.Test;
 /**
  * @author Tibor Varga
  */
+@SuppressWarnings("unchecked")
 public final class ComponentGroupDependencyTests extends AbstractContainerTests {
 
     public ComponentGroupDependencyTests(final ContainerFactory factory) {

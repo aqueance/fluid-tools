@@ -252,6 +252,7 @@ public class ContainerBoundaryTest extends MockGroupAbstractTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void bindsBootComponentBeforePopulationButRefusesAfter() throws Exception {
 
         // find the top level class loader

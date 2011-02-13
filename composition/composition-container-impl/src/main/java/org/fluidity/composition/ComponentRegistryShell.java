@@ -57,12 +57,6 @@ final class ComponentRegistryShell extends EmptyComponentContainer.EmptyRegistry
         return new ComponentContainerShell(container.linkComponent(implementation, interfaces, groups), context, false);
     }
 
-    @Override
-    protected void bindFactory(final Class<?> factory, final Class<?>[] interfaces, final Class<?>[] groups)
-            throws ComponentContainer.BindingException {
-        container.bindComponent(factory, interfaces, groups);
-    }
-
     public OpenComponentContainer makeChildContainer() {
         return new ComponentContainerShell(container.newChildContainer(), context, true);
     }

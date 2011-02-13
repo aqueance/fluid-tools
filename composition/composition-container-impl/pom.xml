@@ -62,6 +62,11 @@
         </dependency>
 
         <dependency>
+            <groupId>${fluidity.composition.groupId}</groupId>
+            <artifactId>composition-container-support-utils</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>${fluidity.foundation.groupId}</groupId>
             <artifactId>foundation-utils</artifactId>
         </dependency>

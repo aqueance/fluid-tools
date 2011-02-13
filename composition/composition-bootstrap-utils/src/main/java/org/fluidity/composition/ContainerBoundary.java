@@ -134,6 +134,7 @@ public final class ContainerBoundary implements ComponentContainer {
      *
      * @throws IllegalStateException if the container is made read only by getting any component out of it.
      */
+    @SuppressWarnings("unchecked")
     public <T> void bindBootComponent(final Class<? super T> key, final T instance) {
         loadContainer(false).getRegistry().bindInstance(instance, key);
     }
