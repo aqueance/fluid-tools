@@ -87,15 +87,43 @@ public final class CircularReferencesTests extends AbstractContainerTests {
         ping(Circular3IntermediateDependent3.class);
     }
 
+    @Test(expectedExceptions = ComponentContainer.CircularReferencesException.class)
+    public void circularConstructorCalls() throws Exception {
+        circularConstruction(true, true, true);
+    }
+
     @Test
-    public void circularThreeWayInstantiationWithCallsToDependencyInConstructor() throws Exception {
+    public void circularInstantiationAndConstructorCalls1() throws Exception {
+        circularConstruction(false, true, true);
+    }
+
+    @Test
+    public void circularInstantiationAndConstructorCalls2() throws Exception {
+        circularConstruction(true, false, true);
+    }
+
+    @Test
+    public void circularInstantiationAndConstructorCalls3() throws Exception {
+        circularConstruction(true, true, false);
+    }
+
+    private void circularConstruction(final boolean call1, final boolean call2, final boolean call3) {
+        CircularNasty1Impl.call = call1;
+        CircularNasty2Impl.call = call2;
+        CircularNasty3Impl.call = call3;
+
         registry.bindComponent(CircularNasty1Impl.class);
         registry.bindComponent(CircularNasty2Impl.class);
         registry.bindComponent(CircularNasty3Impl.class);
 
-        assert container.getComponent(CircularNasty1.class) != null;
-        assert container.getComponent(CircularNasty2.class) != null;
-        assert container.getComponent(CircularNasty3.class) != null;
+        ping(container.getComponent(CircularNasty1.class));
+        ping(container.getComponent(CircularNasty2.class));
+        ping(container.getComponent(CircularNasty3.class));
+    }
+
+    private void ping(final Pingable api) {
+        assert api != null;
+        api.ping();
     }
 
     private static interface Pingable {
@@ -257,9 +285,10 @@ public final class CircularReferencesTests extends AbstractContainerTests {
     // this will be instantiated once
     @Component
     private static class CircularNasty1Impl implements CircularNasty1 {
+        public static boolean call = false;
 
         public CircularNasty1Impl(final CircularNasty2 dependency) {
-            // empty
+            if (call) dependency.ping();
         }
 
         public void ping() {
@@ -270,9 +299,10 @@ public final class CircularReferencesTests extends AbstractContainerTests {
     // this will be instantiated twice because it forces in its constructor the instantiation of its dependency
     @Component
     private static class CircularNasty2Impl implements CircularNasty2 {
+        public static boolean call = false;
 
         public CircularNasty2Impl(final CircularNasty3 dependency) {
-            dependency.ping();
+            if (call) dependency.ping();
         }
 
         public void ping() {
@@ -283,9 +313,10 @@ public final class CircularReferencesTests extends AbstractContainerTests {
     // this will be instantiated thrice because both it and CircularNasty2Impl force in their constructor the instantiation of their dependency
     @Component
     private static class CircularNasty3Impl implements CircularNasty3 {
+        public static boolean call = false;
 
         public CircularNasty3Impl(final CircularNasty1 dependency) {
-            dependency.ping();
+            if (call) dependency.ping();
         }
 
         public void ping() {

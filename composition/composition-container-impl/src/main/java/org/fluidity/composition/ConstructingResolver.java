@@ -71,7 +71,7 @@ final class ConstructingResolver extends AbstractResolver {
     }
 
     @Override
-    protected ComponentCache.Instantiation createCommand(final DependencyChain.Lineage lineage, final SimpleContainer container, final Class<?> api) {
+    protected ComponentCache.Instantiation createCommand(final SimpleContainer container, final Class<?> api) {
         return new ComponentCache.Instantiation() {
             public Object perform(final ContextDefinition context) {
                 return injector.injectConstructor(container, ConstructingResolver.this, context, constructor());

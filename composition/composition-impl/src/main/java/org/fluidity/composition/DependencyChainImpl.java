@@ -69,8 +69,7 @@ final class DependencyChainImpl implements DependencyChain {
 
         public Chain(final Set<ComponentMapping> loop, final ComponentMapping mapping) {
             this.loop.addAll(loop);
-            this.circular = this.loop.contains(mapping);
-            this.loop.add(mapping);
+            this.circular = !this.loop.add(mapping);
         }
 
         public Chain descend(final ComponentMapping mapping) {

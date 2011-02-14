@@ -56,7 +56,6 @@ public abstract class ContainerProviderAbstractTest extends MockGroupAbstractTes
     private final DependencyChain dependencyChain = addControl(DependencyChain.class);
     private final DependencyInjector dependencyInjector = addControl(DependencyInjector.class);
     private final ComponentCache componentCache = addControl(ComponentCache.class);
-    private final DependencyChain.Lineage lineage = addControl(DependencyChain.Lineage.class);
 
     private final Map<String, String> map = new HashMap<String, String>();
 
