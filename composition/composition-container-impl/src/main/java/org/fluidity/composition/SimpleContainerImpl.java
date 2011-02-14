@@ -294,6 +294,7 @@ final class SimpleContainerImpl implements SimpleContainer {
     }
 
     @SuppressWarnings("unchecked")
+    // TODO: remove once its dependency ordering is duplicated
     public <T> List<T> allSingletons(final Class<T> api) {
         final List<T> instances = new ArrayList<T>();
 

@@ -22,8 +22,6 @@
 
 package org.fluidity.composition;
 
-import java.util.List;
-
 /**
  * This is a dependency injection container that components can be added to.
  *
@@ -38,15 +36,4 @@ public interface OpenComponentContainer extends ComponentContainer {
      * @return a {@link ComponentContainer.Registry} instance.
      */
     ComponentContainer.Registry getRegistry();
-
-    /**
-     * Returns in instantiation order all registered components implementing the given interface.
-     *
-     * @param api filters the component instances returned.
-     *
-     * @return in instantiation order all registered components implementing the given interface.
-     *
-     * @deprecated the output of this method cannot be guaranteed to be as advertised
-     */
-    <T> List<T> getAllComponents(Class<T> api);
 }

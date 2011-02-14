@@ -22,8 +22,6 @@
 
 package org.fluidity.composition;
 
-import java.util.List;
-
 import org.fluidity.composition.spi.DependencyResolver;
 
 /**
@@ -152,19 +150,6 @@ interface SimpleContainer extends DependencyResolver {
      *          when dependency resolution fails.
      */
     <T> T initialize(final T component, final ContextDefinition context) throws ComponentContainer.ResolutionException;
-
-    /**
-     * Returns all singleton component instances, created in response to this method call, in the container under the default empty context assignable to the
-     * given interface.
-     *
-     * @param api filters the component instances returned.
-     *
-     * @return all singleton component instances in the container under the default empty context assignable to the given interface.
-     *
-     * @throws ComponentContainer.ResolutionException
-     *          when dependency resolution fails.
-     */
-    <T> List<T> allSingletons(Class<T> api) throws ComponentContainer.ResolutionException;
 
     /**
      * Returns a textual identifier for the container.

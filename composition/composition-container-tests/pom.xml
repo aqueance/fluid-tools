@@ -71,12 +71,6 @@
             <artifactId>foundation-easymock</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>${fluidity.foundation.groupId}</groupId>
-            <artifactId>foundation-api</artifactId>
-            <classifier>tests</classifier>
-        </dependency>
-
     </dependencies>
 
     <profiles>

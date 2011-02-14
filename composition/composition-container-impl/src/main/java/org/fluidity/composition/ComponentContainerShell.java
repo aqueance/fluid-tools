@@ -22,8 +22,6 @@
 
 package org.fluidity.composition;
 
-import java.util.List;
-
 import org.fluidity.composition.spi.EmptyComponentContainer;
 
 /**
@@ -83,10 +81,6 @@ final class ComponentContainerShell extends EmptyComponentContainer {
     public OpenComponentContainer makeChildContainer(final Class<?> implementation, final Class<?>[] interfaces, final Class<?>[] groups)
             throws ComponentContainer.BindingException {
         return new ComponentContainerShell(container.linkComponent(implementation, interfaces, groups), context, false);
-    }
-
-    public <T> List<T> getAllComponents(final Class<T> api) {
-        return container.allSingletons(api);
     }
 
     @Override

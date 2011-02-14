@@ -152,13 +152,6 @@
 
             <dependency>
                 <groupId>${fluidity.foundation.groupId}</groupId>
-                <artifactId>foundation-api</artifactId>
-                <version>${fluidity.version}</version>
-                <classifier>tests</classifier>
-            </dependency>
-
-            <dependency>
-                <groupId>${fluidity.foundation.groupId}</groupId>
                 <artifactId>foundation-easymock</artifactId>
                 <version>${fluidity.version}</version>
             </dependency>

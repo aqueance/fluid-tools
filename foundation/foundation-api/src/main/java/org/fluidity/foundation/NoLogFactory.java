@@ -22,10 +22,6 @@
 
 package org.fluidity.foundation;
 
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
-
 import org.fluidity.foundation.logging.Log;
 import org.fluidity.foundation.spi.LogFactory;
 
@@ -39,12 +35,63 @@ public final class NoLogFactory implements LogFactory {
     /**
      * A log sink that gobbles up all log messages.
      */
-    public static final Log sink = (Log) Proxy.newProxyInstance(Log.class.getClassLoader(), new Class<?>[] { Log.class }, new InvocationHandler() {
-        public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
-            final Class<?> type = method.getReturnType();
-            return method.getDeclaringClass() == Object.class ? method.invoke(this, args) : type == Boolean.TYPE ? false : null;
+    public static final Log sink = new Log() {
+        public boolean isTraceEnabled() {
+            return false;
         }
-    });
+
+        public boolean isDebugEnabled() {
+            return false;
+        }
+
+        public boolean isInfoEnabled() {
+            return false;
+        }
+
+        public void trace(final String message, final Object... args) {
+            // empty
+        }
+
+        public void debug(final String message, final Object... args) {
+            // empty
+        }
+
+        public void info(final String message, final Object... args) {
+            // empty
+        }
+
+        public void warning(final String message, final Object... args) {
+            // empty
+        }
+
+        public void error(final String message, final Object... args) {
+            // empty
+        }
+
+        public void trace(final Throwable exception, final String message, final Object... args) {
+            // empty
+        }
+
+        public void debug(final Throwable exception, final String message, final Object... args) {
+            // empty
+        }
+
+        public void info(final Throwable exception, final String message, final Object... args) {
+            // empty
+        }
+
+        public void warning(final Throwable exception, final String message, final Object... args) {
+            // empty
+        }
+
+        public void error(final Throwable exception, final String message, final Object... args) {
+            // empty
+        }
+
+        public void timer(final String message, final long beginMillis) {
+            // empty
+        }
+    };
 
     public Log createLog(final Class<?> ignored) {
         return sink;

@@ -56,6 +56,7 @@ public abstract class ContainerProviderAbstractTest extends MockGroupAbstractTes
     private final DependencyChain dependencyChain = addControl(DependencyChain.class);
     private final DependencyInjector dependencyInjector = addControl(DependencyInjector.class);
     private final ComponentCache componentCache = addControl(ComponentCache.class);
+    private final DependencyChain.Lineage lineage = addControl(DependencyChain.Lineage.class);
 
     private final Map<String, String> map = new HashMap<String, String>();
 
@@ -90,20 +91,11 @@ public abstract class ContainerProviderAbstractTest extends MockGroupAbstractTes
         final List assemblies = Collections.singletonList(StandalonePackageBindingsImpl.class);
 
         final PackageBindings bindings = new StandalonePackageBindingsImpl();
-
         EasyMock.expect(dependencyChain.follow(EasyMock.<ContextDefinition>isNull(),
                                                EasyMock.<ComponentMapping>notNull(),
                                                EasyMock.<DependencyChain.Command>notNull())).andAnswer(new IAnswer<Object>() {
             public Object answer() throws Throwable {
-                return bindings;
-            }
-        });
-
-        EasyMock.expect(dependencyChain.follow(EasyMock.<ContextDefinition>isNull(),
-                                               EasyMock.<ComponentMapping>notNull(),
-                                               EasyMock.<DependencyChain.Command>notNull())).andAnswer(new IAnswer<Object>() {
-            public Object answer() throws Throwable {
-                return null;
+                return new PackageBindings[] { bindings };
             }
         }).anyTimes();
 
@@ -127,33 +119,9 @@ public abstract class ContainerProviderAbstractTest extends MockGroupAbstractTes
                                                EasyMock.<ComponentMapping>notNull(),
                                                EasyMock.<DependencyChain.Command>notNull())).andAnswer(new IAnswer<Object>() {
             public Object answer() throws Throwable {
-                return bindings1;
+                return new PackageBindings[] { bindings1, bindings2, bindings3 };
             }
         });
-
-        EasyMock.expect(dependencyChain.follow(EasyMock.<ContextDefinition>isNull(),
-                                               EasyMock.<ComponentMapping>notNull(),
-                                               EasyMock.<DependencyChain.Command>notNull())).andAnswer(new IAnswer<Object>() {
-            public Object answer() throws Throwable {
-                return bindings2;
-            }
-        });
-
-        EasyMock.expect(dependencyChain.follow(EasyMock.<ContextDefinition>isNull(),
-                                               EasyMock.<ComponentMapping>notNull(),
-                                               EasyMock.<DependencyChain.Command>notNull())).andAnswer(new IAnswer<Object>() {
-            public Object answer() throws Throwable {
-                return bindings3;
-            }
-        });
-
-        EasyMock.expect(dependencyChain.follow(EasyMock.<ContextDefinition>isNull(),
-                                               EasyMock.<ComponentMapping>notNull(),
-                                               EasyMock.<DependencyChain.Command>notNull())).andAnswer(new IAnswer<Object>() {
-            public Object answer() throws Throwable {
-                return null;
-            }
-        }).anyTimes();
 
         replay();
         provider.instantiateBindings(services, map, assemblies);

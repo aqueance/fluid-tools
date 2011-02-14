@@ -83,14 +83,14 @@ final class ContainerLifecycle {
                 child.shutdown(log);
             }
 
-            log.info("Shutting down %s", container);
-
             /*
              * Perform pre-shutdown tasks in reverse order.
              */
             for (final ListIterator i = bindings.listIterator(bindings.size()); i.hasPrevious();) {
                 ((PackageBindings) i.previous()).shutdownComponents(container);
             }
+
+            log.info("%s shut down", container);
         }
     }
 }

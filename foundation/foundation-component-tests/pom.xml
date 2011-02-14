@@ -75,13 +75,6 @@ Internal module that tests foundation components that require dependency resolut
             <scope>test</scope>
         </dependency>
 
-        <dependency>
-            <groupId>${fluidity.foundation.groupId}</groupId>
-            <artifactId>foundation-api</artifactId>
-            <classifier>tests</classifier>
-            <scope>test</scope>
-        </dependency>
-
     </dependencies>
 
     <profiles>

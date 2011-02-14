@@ -22,6 +22,7 @@
 
 package org.fluidity.composition;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -50,13 +51,14 @@ final class ContainerProviderImpl implements ContainerProvider {
         /*
          * Add each to the container
          */
+        final Class<?>[] group = { PackageBindings.class };
         for (final Class<?> binding : bindings) {
-            container.bindComponent(binding, new Class<?>[] { binding }, null);
+            container.bindComponent(binding, null, group);
         }
 
         /*
          * Get the instances in instantiation order
          */
-        return container.allSingletons(PackageBindings.class);
+        return Arrays.asList(container.group(PackageBindings.class, null));
     }
 }

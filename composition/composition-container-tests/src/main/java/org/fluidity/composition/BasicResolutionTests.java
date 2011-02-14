@@ -28,8 +28,6 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.testng.annotations.Test;
 
@@ -179,25 +177,6 @@ public final class BasicResolutionTests extends AbstractContainerTests {
     }
 
     @Test
-    public void allComponents() throws Exception {
-        registry.bindComponent(Service1.class);
-        registry.bindComponent(Service2.class);
-        registry.bindComponent(Service3.class);
-        registry.bindComponent(Service4.class);
-        registry.bindComponent(Intermediate.class);
-
-        AbstractService.createList.clear();
-        AbstractService.callList.clear();
-
-        for (final AbstractService service : container.getAllComponents(AbstractService.class)) {
-            service.call();
-        }
-
-        assert AbstractService.createList.size() == 4 : AbstractService.createList;
-        assert AbstractService.callList.equals(AbstractService.createList) : String.format("%n%s%n%s", AbstractService.createList, AbstractService.callList);
-    }
-
-    @Test
     public void checkSerialization() throws Exception {
         SerializableComponent.container = container;
 
@@ -274,50 +253,6 @@ public final class BasicResolutionTests extends AbstractContainerTests {
             assert array != null;
         }
     }
-
-    private static abstract class AbstractService {
-
-        public static final List<AbstractService> createList = new ArrayList<AbstractService>();
-        public static final List<AbstractService> callList = new ArrayList<AbstractService>();
-
-        protected AbstractService() {
-            createList.add(this);
-        }
-
-        public void call() {
-            callList.add(this);
-        }
-    }
-
-    @SuppressWarnings("UnusedDeclaration")
-    private static class Service1 extends AbstractService {
-
-        private Service1(final Service2 dependency2, final Service4 dependency4) {
-        }
-    }
-
-    @SuppressWarnings("UnusedDeclaration")
-    private static class Service2 extends AbstractService {
-
-        private Service2(final Intermediate dependency) {
-        }
-    }
-
-    @SuppressWarnings("UnusedDeclaration")
-    private static class Intermediate {
-
-        private Intermediate(final Service3 dependency) {
-        }
-    }
-
-    @SuppressWarnings("UnusedDeclaration")
-    private static class Service3 extends AbstractService {
-
-        private Service3(final Service4 dependency) {
-        }
-    }
-
-    private static class Service4 extends AbstractService {}
 
     public static class OuterClass {
 
