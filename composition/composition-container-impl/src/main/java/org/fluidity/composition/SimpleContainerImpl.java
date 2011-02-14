@@ -333,10 +333,7 @@ final class SimpleContainerImpl implements SimpleContainer {
         } else {
             return services.dependencyChain().follow(context, resolver, new DependencyChain.Command<T>() {
                 public T run(final DependencyChain.Lineage lineage, final ContextDefinition context) {
-                    return injector.injectFields(SimpleContainerImpl.this,
-                                                 resolver,
-                                                 context,
-                                                 (T) resolver.getComponent(lineage, context, SimpleContainerImpl.this, key))[0];
+                    return (T) resolver.getComponent(lineage, context, SimpleContainerImpl.this, key);
                 }
             });
         }
@@ -353,10 +350,7 @@ final class SimpleContainerImpl implements SimpleContainer {
         } else {
             final T[] nested = services.dependencyChain().follow(context, resolver, new DependencyChain.Command<T[]>() {
                 public T[] run(final DependencyChain.Lineage lineage, final ContextDefinition context) {
-                    return injector.injectFields(SimpleContainerImpl.this,
-                                                 resolver,
-                                                 context,
-                                                 (T[]) resolver.getComponent(lineage, context, SimpleContainerImpl.this, key));
+                    return (T[]) resolver.getComponent(lineage, context, SimpleContainerImpl.this, key);
                 }
             });
 
@@ -381,7 +375,7 @@ final class SimpleContainerImpl implements SimpleContainer {
         return services.dependencyChain().follow(context, mapping, new DependencyChain.Command<T>() {
             @SuppressWarnings("unchecked")
             public T run(final DependencyChain.Lineage lineage, final ContextDefinition context) {
-                return injector.injectFields(SimpleContainerImpl.this, mapping, context, component)[0];
+                return injector.injectFields(SimpleContainerImpl.this, mapping, context, component);
             }
         });
     }

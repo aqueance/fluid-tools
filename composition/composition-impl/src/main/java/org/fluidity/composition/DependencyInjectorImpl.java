@@ -42,17 +42,15 @@ import org.fluidity.foundation.Strings;
  */
 final class DependencyInjectorImpl implements DependencyInjector {
 
-    public <T> T[] injectFields(final DependencyResolver resolver, final ComponentMapping mapping, final ContextDefinition context, final T... instances) {
+    public <T> T injectFields(final DependencyResolver resolver, final ComponentMapping mapping, final ContextDefinition context, final T instance) {
         assert resolver != null;
 
-        if (instances != null) {
-            for (final T instance : instances) {
-                final Class<?> componentType = instance.getClass();
-                context.collect(injectFields(resolver, mapping, context, instance, componentType, componentType));
-            }
+        if (instance != null) {
+            final Class<?> componentType = instance.getClass();
+            context.collect(injectFields(resolver, mapping, context, instance, componentType, componentType));
         }
 
-        return instances;
+        return instance;
     }
 
     public <T> T injectConstructor(final DependencyResolver resolver,
@@ -103,7 +101,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
         return Exceptions.wrap(String.format("instantiating %s", constructor.getDeclaringClass()), new Exceptions.Command<T>() {
             public T run() throws Exception {
                 constructor.setAccessible(true);
-                return constructor.newInstance(arguments);
+                return injectFields(resolver, mapping, context, constructor.newInstance(arguments));
             }
         });
     }

@@ -181,7 +181,7 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
         setupCollection(context, copy1, copy2);
 
         replay();
-        assert component == injector.injectFields(resolver, dummyMapping, context, component)[0];
+        assert component == injector.injectFields(resolver, dummyMapping, context, component);
         verify();
 
         assert component.dependency == dependency : component.dependency;
@@ -199,7 +199,7 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
         setupFieldResolution(FieldInjected.class, "dependency", null, null, null, null);
 
         replay();
-        assert component == injector.injectFields(resolver, dummyMapping, context, component)[0];
+        assert component == injector.injectFields(resolver, dummyMapping, context, component);
         verify();
     }
 
@@ -210,7 +210,7 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
         setupCollection(context, setupFieldResolution(OptionalFieldInjected.class, "dependency", null, null, null, null));
 
         replay();
-        assert component == injector.injectFields(resolver, dummyMapping, context, component)[0];
+        assert component == injector.injectFields(resolver, dummyMapping, context, component);
         verify();
 
         assert component.dependency == null : component.dependency;
@@ -227,6 +227,7 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
 
         final Constructor<ConstructorInjected> constructor = ConstructorInjected.class.getDeclaredConstructor(Dependency.class, Service[].class);
         setupCollection(context, setupConstructorResolution(ConstructorInjected.class, constructor, null, null, null, dependency, services));
+        setupCollection(context);   // contexts for an empty field list
 
         ConstructorInjected.expectedGroupSize = services.length;
 
@@ -246,7 +247,7 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
                         setupFieldResolution(component.getClass(), "context", container, null, created, null));
 
         replay();
-        assert component == injector.injectFields(resolver, mapping, context, component)[0];
+        assert component == injector.injectFields(resolver, mapping, context, component);
         verify();
 
         assert component.container == container : component.container;
@@ -257,6 +258,7 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
     public void neverInjectsNullForGroup() throws Exception {
         final Constructor<MissingGroupConsumer> constructor = MissingGroupConsumer.class.getDeclaredConstructor(MissingService[].class);
         setupCollection(context, setupConstructorResolution(MissingGroupConsumer.class, constructor, null, null, null, (Object) null));
+        setupCollection(context);   // contexts for an empty field list
 
         replay();
         assert injector.injectConstructor(resolver, dummyMapping, context, constructor) != null;

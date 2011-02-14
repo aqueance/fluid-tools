@@ -49,12 +49,12 @@ public interface DependencyInjector {
     /**
      * Sets all {@link Component} annotated fields of the receiver.
      *
-     * @param resolver  the resolver to satisfy dependencies.
-     * @param mapping   the mapping that triggered the dependency resolution.
-     * @param context   the instantiation context of the object being constructed.
-     * @param instances the objects to set the fields of.
+     * @param resolver the resolver to satisfy dependencies.
+     * @param mapping  the mapping that triggered the dependency resolution.
+     * @param context  the instantiation context of the object being constructed.
+     * @param instance the object to set the fields of.
      *
      * @return the received instances.
      */
-    <T> T[] injectFields(DependencyResolver resolver, ComponentMapping mapping, ContextDefinition context, T... instances);
+    <T> T injectFields(DependencyResolver resolver, ComponentMapping mapping, ContextDefinition context, T instance);
 }
