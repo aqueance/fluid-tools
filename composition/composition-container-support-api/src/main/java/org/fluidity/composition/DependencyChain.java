@@ -34,17 +34,17 @@ public interface DependencyChain {
     /**
      * Follows a reference chain, picking up a prevalent one if exists, else creating one.
      *
+     * @param api the component interface being referred to.
      * @param context the original context for the instantiation chain.
      * @param mapping the mapping, e.g., the component interface and class, of the reference.
      * @param command the command that performs the resolution.
      *
      * @return whatever the command returns.
      */
-    <T> T follow(ContextDefinition context, ComponentMapping mapping, Command<T> command);
+    <T> T follow(final Class<?> api, ContextDefinition context, ComponentMapping mapping, Command<T> command);
 
     /**
-     * The command to invoke in the context of a new dependency reference established by calling {@link DependencyChain#follow(ContextDefinition,
-     * ComponentMapping, Command)}.
+     * The command to invoke in the context of a new dependency reference established by calling {@link #follow(Class, ContextDefinition, ComponentMapping, Command)}.
      *
      * @author Tibor Varga
      */
@@ -54,7 +54,7 @@ public interface DependencyChain {
          * @param lineage the object to keep track of dependency reference chains.
          * @param context the current context in the instantiation chain.
          *
-         * @return whatever the caller of {@link DependencyChain#follow(ContextDefinition, ComponentMapping, Command)} expects to be returned.
+         * @return whatever the caller of {@link #follow(Class, ContextDefinition, ComponentMapping, Command)} expects to be returned.
          */
         T run(Lineage lineage, ContextDefinition context);
     }

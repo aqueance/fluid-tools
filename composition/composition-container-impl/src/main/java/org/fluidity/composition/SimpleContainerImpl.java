@@ -322,7 +322,6 @@ final class SimpleContainerImpl implements SimpleContainer {
         return resolver == null && parent != null && ascend ? parent.resolver(api, ascend) : resolver;
     }
 
-    @SuppressWarnings("unchecked")
     public <T> T component(final Class<? extends T> key, final ContextDefinition context) {
         final ComponentResolver resolver = contents.get(key);
 
@@ -331,7 +330,8 @@ final class SimpleContainerImpl implements SimpleContainer {
         } else if (resolver.isGroupMapping()) {
             return null;
         } else {
-            return services.dependencyChain().follow(context, resolver, new DependencyChain.Command<T>() {
+            return services.dependencyChain().follow(key, context, resolver, new DependencyChain.Command<T>() {
+                @SuppressWarnings("unchecked")
                 public T run(final DependencyChain.Lineage lineage, final ContextDefinition context) {
                     return (T) resolver.getComponent(lineage, context, SimpleContainerImpl.this, key);
                 }
@@ -348,7 +348,7 @@ final class SimpleContainerImpl implements SimpleContainer {
         } else if (!resolver.isGroupMapping()) {
             return null;
         } else {
-            final T[] nested = services.dependencyChain().follow(context, resolver, new DependencyChain.Command<T[]>() {
+            final T[] nested = services.dependencyChain().follow(key, context, resolver, new DependencyChain.Command<T[]>() {
                 public T[] run(final DependencyChain.Lineage lineage, final ContextDefinition context) {
                     return (T[]) resolver.getComponent(lineage, context, SimpleContainerImpl.this, key);
                 }
@@ -370,10 +370,11 @@ final class SimpleContainerImpl implements SimpleContainer {
     }
 
     public <T> T initialize(final T component, final ContextDefinition context) {
-        final ComponentMapping mapping = new InstanceMapping(component.getClass());
+        @SuppressWarnings("unchecked")
+        final Class<T> componentClass = (Class<T>) component.getClass();
+        final ComponentMapping mapping = new InstanceMapping(componentClass);
 
-        return services.dependencyChain().follow(context, mapping, new DependencyChain.Command<T>() {
-            @SuppressWarnings("unchecked")
+        return services.dependencyChain().follow(componentClass, context, mapping, new DependencyChain.Command<T>() {
             public T run(final DependencyChain.Lineage lineage, final ContextDefinition context) {
                 return injector.injectFields(SimpleContainerImpl.this, mapping, context, component);
             }

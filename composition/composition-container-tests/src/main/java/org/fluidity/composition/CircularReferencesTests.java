@@ -50,12 +50,6 @@ public final class CircularReferencesTests extends AbstractContainerTests {
         container.getComponent(Circular3Dependent1Class.class);
     }
 
-    private void ping(final Class<? extends Pingable> componentClass) {
-        final Pingable component = container.getComponent(componentClass);
-        assert component != null : "Circular resolution failed";
-        component.ping();
-    }
-
     @Test
     public void circularTwoWayInstantiation() throws Exception {
         registry.bindComponent(Circular2Dependent1Impl.class);
@@ -116,14 +110,15 @@ public final class CircularReferencesTests extends AbstractContainerTests {
         registry.bindComponent(CircularNasty2Impl.class);
         registry.bindComponent(CircularNasty3Impl.class);
 
-        ping(container.getComponent(CircularNasty1.class));
-        ping(container.getComponent(CircularNasty2.class));
-        ping(container.getComponent(CircularNasty3.class));
+        ping(CircularNasty1.class);
+        ping(CircularNasty2.class);
+        ping(CircularNasty3.class);
     }
 
-    private void ping(final Pingable api) {
-        assert api != null;
-        api.ping();
+    private void ping(final Class<? extends Pingable> componentClass) {
+        final Pingable component = container.getComponent(componentClass);
+        assert component != null : "Circular resolution failed";
+        component.ping();
     }
 
     private static interface Pingable {

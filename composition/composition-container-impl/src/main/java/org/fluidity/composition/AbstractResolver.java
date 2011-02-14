@@ -22,10 +22,6 @@
 
 package org.fluidity.composition;
 
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
-
 import org.fluidity.foundation.logging.Log;
 import org.fluidity.foundation.spi.LogFactory;
 
@@ -67,57 +63,7 @@ abstract class AbstractResolver implements ComponentResolver {
      */
     public Object getComponent(final DependencyChain.Lineage lineage, final ContextDefinition context, final SimpleContainer container, final Class<?> api) {
         final ComponentCache.Instantiation create = createCommand(container, api);
-
-        if (create == null) {
-            return null;
-        } else if (lineage.isCircular()) {
-            return deferredCreate(lineage, context.copy(), container, api, create, null);
-        } else {
-            try {
-                return cache.lookup(container, context, api, create);
-            } catch (final ComponentContainer.CircularReferencesException e) {
-
-                // handle circular lineage that was noticed later in the reference chain that could not be handled at that point
-                return deferredCreate(lineage, context.copy(), container, api, create, e);
-            }
-        }
-    }
-
-    private Object deferredCreate(final DependencyChain.Lineage lineage,
-                                  final ContextDefinition context,
-                                  final SimpleContainer container,
-                                  final Class<?> api,
-                                  final ComponentCache.Instantiation command,
-                                  final ComponentContainer.CircularReferencesException error) {
-        if (api.isInterface()) {
-            log.info("%s: deferred creation of %s component", container, api.getName());
-            return Proxy.newProxyInstance(api.getClassLoader(), new Class<?>[] { api }, new InvocationHandler() {
-                private Object delegate;
-
-                public Object invoke(final Object proxy, final Method method, final Object[] arguments) throws Throwable {
-                    synchronized (this) {
-                        if (delegate == null) {
-                            final DependencyChain dependencyChain = container.services().dependencyChain();
-
-                            delegate = dependencyChain.follow(context, AbstractResolver.this, new DependencyChain.Command<Object>() {
-                                public Object run(final DependencyChain.Lineage newLineage, final ContextDefinition context) {
-                                    if (newLineage.isCircular()) {
-                                        throw error == null ? new ComponentContainer.CircularReferencesException(api, lineage.toString()) : error;
-                                    } else {
-                                        return cache.lookup(container, context, api, command);
-                                    }
-                                }
-                            });
-                        }
-                    }
-
-                    method.setAccessible(true);
-                    return method.invoke(delegate, arguments);
-                }
-            });
-        } else {
-            throw error == null ? new ComponentContainer.CircularReferencesException(api, lineage.toString()) : error;
-        }
+        return create == null ? null : cache.lookup(container, context, api, create);
     }
 
     public int priority() {
