@@ -59,6 +59,6 @@ final class ContainerProviderImpl implements ContainerProvider {
         /*
          * Get the instances in instantiation order
          */
-        return Arrays.asList(container.group(PackageBindings.class, null));
+        return Arrays.asList((PackageBindings[]) container.group(PackageBindings.class, null));
     }
 }

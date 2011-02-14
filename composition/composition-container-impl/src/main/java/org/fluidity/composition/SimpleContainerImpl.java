@@ -94,11 +94,11 @@ final class SimpleContainerImpl implements SimpleContainer {
         contents.put(key, replacement);
     }
 
-    public <T> T resolveComponent(final Class<T> type, final ContextDefinition context) {
+    public Object resolveComponent(final Class<?> type, final ContextDefinition context) {
         return component(type, context);
     }
 
-    public <T> T[] resolveGroup(final Class<T> type, final ContextDefinition context) throws ComponentContainer.ResolutionException {
+    public Object[] resolveGroup(final Class<?> type, final ContextDefinition context) throws ComponentContainer.ResolutionException {
         return group(type, context);
     }
 
@@ -322,7 +322,7 @@ final class SimpleContainerImpl implements SimpleContainer {
         return resolver == null && parent != null && ascend ? parent.resolver(api, ascend) : resolver;
     }
 
-    public <T> T component(final Class<? extends T> key, final ContextDefinition context) {
+    public Object component(final Class<?> key, final ContextDefinition context) {
         final ComponentResolver resolver = contents.get(key);
 
         if (resolver == null) {
@@ -330,17 +330,15 @@ final class SimpleContainerImpl implements SimpleContainer {
         } else if (resolver.isGroupMapping()) {
             return null;
         } else {
-            return services.dependencyChain().follow(key, context, resolver, new DependencyChain.Command<T>() {
-                @SuppressWarnings("unchecked")
-                public T run(final DependencyChain.Lineage lineage, final ContextDefinition context) {
-                    return (T) resolver.getComponent(lineage, context, SimpleContainerImpl.this, key);
+            return services.dependencyChain().follow(key, context, resolver, new DependencyChain.Command() {
+                public Object run(final DependencyChain.Lineage lineage, final ContextDefinition context) {
+                    return resolver.getComponent(lineage, context, SimpleContainerImpl.this, key);
                 }
             });
         }
     }
 
-    @SuppressWarnings("unchecked")
-    public <T> T[] group(final Class<? extends T> key, final ContextDefinition context) throws ComponentContainer.ResolutionException {
+    public Object[] group(final Class<?> key, final ContextDefinition context) throws ComponentContainer.ResolutionException {
         final ComponentResolver resolver = contents.get(key);
 
         if (resolver == null) {
@@ -348,34 +346,33 @@ final class SimpleContainerImpl implements SimpleContainer {
         } else if (!resolver.isGroupMapping()) {
             return null;
         } else {
-            final T[] nested = services.dependencyChain().follow(key, context, resolver, new DependencyChain.Command<T[]>() {
-                public T[] run(final DependencyChain.Lineage lineage, final ContextDefinition context) {
-                    return (T[]) resolver.getComponent(lineage, context, SimpleContainerImpl.this, key);
+            final Object[] nested = (Object[]) services.dependencyChain().follow(Array.newInstance(key, 0).getClass(), context, resolver, new DependencyChain.Command() {
+                public Object run(final DependencyChain.Lineage lineage, final ContextDefinition context) {
+                    return resolver.getComponent(lineage, context, SimpleContainerImpl.this, key);
                 }
             });
 
-            final T[] enclosing = parent == null ? null : parent.group(key, context);
+            final Object[] enclosing = parent == null ? null : parent.group(key, context);
 
             if (enclosing != null && enclosing.length > 0) {
-                final List<T> list = new ArrayList<T>(enclosing.length + nested.length);
+                final List<Object> list = new ArrayList<Object>(enclosing.length + nested.length);
 
                 list.addAll(Arrays.asList(enclosing));
                 list.addAll(Arrays.asList(nested));
 
-                return list.toArray((T[]) Array.newInstance(key, list.size()));
+                return list.toArray((Object[]) Array.newInstance(key, list.size()));
             } else {
                 return nested;
             }
         }
     }
 
-    public <T> T initialize(final T component, final ContextDefinition context) {
-        @SuppressWarnings("unchecked")
-        final Class<T> componentClass = (Class<T>) component.getClass();
+    public Object initialize(final Object component, final ContextDefinition context) {
+        final Class<?> componentClass = component.getClass();
         final ComponentMapping mapping = new InstanceMapping(componentClass);
 
-        return services.dependencyChain().follow(componentClass, context, mapping, new DependencyChain.Command<T>() {
-            public T run(final DependencyChain.Lineage lineage, final ContextDefinition context) {
+        return services.dependencyChain().follow(componentClass, context, mapping, new DependencyChain.Command() {
+            public Object run(final DependencyChain.Lineage lineage, final ContextDefinition context) {
                 return injector.injectFields(SimpleContainerImpl.this, mapping, context, component);
             }
         });

@@ -90,7 +90,7 @@ public abstract class ContainerProviderAbstractTest extends MockGroupAbstractTes
         final List assemblies = Collections.singletonList(StandalonePackageBindingsImpl.class);
 
         final PackageBindings bindings = new StandalonePackageBindingsImpl();
-        EasyMock.expect(dependencyChain.follow(EasyMock.same(PackageBindings.class),
+        EasyMock.expect(dependencyChain.follow(EasyMock.same(PackageBindings[].class),
                                                EasyMock.<ContextDefinition>isNull(),
                                                EasyMock.<ComponentMapping>notNull(),
                                                EasyMock.<DependencyChain.Command>notNull())).andAnswer(new IAnswer<Object>() {
@@ -115,7 +115,7 @@ public abstract class ContainerProviderAbstractTest extends MockGroupAbstractTes
         final PackageBindingsImpl bindings2 = new PackageBindingsImpl(bindings1);
         final DependentPackageBindingsImpl bindings3 = new DependentPackageBindingsImpl(bindings2);
 
-        EasyMock.expect(dependencyChain.follow(EasyMock.same(PackageBindings.class),
+        EasyMock.expect(dependencyChain.follow(EasyMock.same(PackageBindings[].class),
                                                EasyMock.<ContextDefinition>isNull(),
                                                EasyMock.<ComponentMapping>notNull(),
                                                EasyMock.<DependencyChain.Command>notNull())).andAnswer(new IAnswer<Object>() {

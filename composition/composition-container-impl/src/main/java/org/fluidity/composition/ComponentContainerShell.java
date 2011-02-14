@@ -34,10 +34,6 @@ final class ComponentContainerShell extends EmptyComponentContainer {
     private final SimpleContainer container;
     private final ContextDefinition context;
 
-    public ComponentContainerShell(final SimpleContainer container, boolean child) {
-        this(container, null, null, child);
-    }
-
     public ComponentContainerShell(final SimpleContainer container,
                                    final ContextDefinition context,
                                    final boolean child) {
@@ -52,20 +48,23 @@ final class ComponentContainerShell extends EmptyComponentContainer {
         this.context = context;
     }
 
+    @SuppressWarnings("unchecked")
     public <T> T getComponent(final Class<T> api) {
-        return container.component(api, context);
+        return (T) container.component(api, context);
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T> T initialize(final T component) {
+        return (T) container.initialize(component, context);
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T> T[] getComponentGroup(final Class<T> api) {
+        return (T[]) container.group(api, context);
     }
 
     public OpenComponentContainer makeChildContainer() {
         return new ComponentContainerShell(container, context, true);
-    }
-
-    public <T> T initialize(final T component) {
-        return container.initialize(component, context);
-    }
-
-    public <T> T[] getComponentGroup(final Class<T> api) {
-        return container.group(api, context);
     }
 
     public void bindComponent(final Class<?> implementation, final Class<?>[] interfaces, final Class<?>[] groups)

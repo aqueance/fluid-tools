@@ -51,7 +51,7 @@ final class DependencyChainImpl implements DependencyChain {
         }
     };
 
-    public <T> T follow(final Class<?> api, final ContextDefinition context, final ComponentMapping mapping, final Command<T> command) {
+    public Object follow(final Class<?> api, final ContextDefinition context, final ComponentMapping mapping, final Command command) {
         final Chain lastChain = prevalent.get();
         final Chain newChain = lastChain.descend(mapping);
         final ContextDefinition newContext = context == null ? new ContextDefinitionImpl() : context;
@@ -79,14 +79,14 @@ final class DependencyChainImpl implements DependencyChain {
     }
 
     @SuppressWarnings("unchecked")
-    private <T> T deferredCreate(final Class<?> api,
+    private Object deferredCreate(final Class<?> api,
                                  final Lineage lineage,
                                  final ContextDefinition context,
                                  final ComponentMapping mapping,
-                                 final Command<T> command,
+                                 final Command command,
                                  final ComponentContainer.CircularReferencesException error) {
         if (api.isInterface()) {
-            return (T) Proxy.newProxyInstance(api.getClassLoader(), new Class<?>[] { api }, new InvocationHandler() {
+            return Proxy.newProxyInstance(api.getClassLoader(), new Class<?>[] { api }, new InvocationHandler() {
                 private volatile Object delegate;
 
                 public Object invoke(final Object proxy, final Method method, final Object[] arguments) throws Throwable {
@@ -97,7 +97,7 @@ final class DependencyChainImpl implements DependencyChain {
                             cache = delegate;
 
                             if (cache == null) {
-                                delegate = cache = follow(api, context, mapping, new DeferredCommand<T>(api, command, error));
+                                delegate = cache = follow(api, context, mapping, new DeferredCommand(api, command, error));
                             }
                         }
                     }
@@ -110,19 +110,19 @@ final class DependencyChainImpl implements DependencyChain {
         }
     }
 
-    private static class DeferredCommand<T> implements Command<T> {
+    private static class DeferredCommand implements Command {
 
         private final Class<?> api;
-        private final Command<T> command;
+        private final Command command;
         private final ComponentContainer.CircularReferencesException error;
 
-        public DeferredCommand(final Class<?> api, final Command<T> command, final ComponentContainer.CircularReferencesException error) {
+        public DeferredCommand(final Class<?> api, final Command command, final ComponentContainer.CircularReferencesException error) {
             this.api = api;
             this.error = error;
             this.command = command;
         }
 
-        public T run(final Lineage lineage, final ContextDefinition context) {
+        public Object run(final Lineage lineage, final ContextDefinition context) {
             if (lineage.isCircular()) {
                 throw error == null ? new ComponentContainer.CircularReferencesException(api, lineage.toString()) : error;
             } else {

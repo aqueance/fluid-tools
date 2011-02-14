@@ -123,7 +123,7 @@ interface SimpleContainer extends DependencyResolver {
      * @throws ComponentContainer.ResolutionException
      *          when dependency resolution fails.
      */
-    <T> T component(Class<? extends T> key, ContextDefinition context) throws ComponentContainer.ResolutionException;
+    Object component(Class<?> key, ContextDefinition context) throws ComponentContainer.ResolutionException;
 
     /**
      * Returns the component instances bound to the given group interface in the given context.
@@ -136,7 +136,7 @@ interface SimpleContainer extends DependencyResolver {
      * @throws ComponentContainer.ResolutionException
      *          when dependency resolution fails.
      */
-    <T> T[] group(Class<? extends T> key, ContextDefinition context) throws ComponentContainer.ResolutionException;
+    Object[] group(Class<?> key, ContextDefinition context) throws ComponentContainer.ResolutionException;
 
     /**
      * Injects the {@link Component} annotated fields of the given component instance.
@@ -149,7 +149,7 @@ interface SimpleContainer extends DependencyResolver {
      * @throws ComponentContainer.ResolutionException
      *          when dependency resolution fails.
      */
-    <T> T initialize(final T component, final ContextDefinition context) throws ComponentContainer.ResolutionException;
+    Object initialize(final Object component, final ContextDefinition context) throws ComponentContainer.ResolutionException;
 
     /**
      * Returns a textual identifier for the container.

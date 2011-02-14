@@ -41,14 +41,14 @@ public interface DependencyChain {
      *
      * @return whatever the command returns.
      */
-    <T> T follow(final Class<?> api, ContextDefinition context, ComponentMapping mapping, Command<T> command);
+    Object follow(final Class<?> api, ContextDefinition context, ComponentMapping mapping, Command command);
 
     /**
      * The command to invoke in the context of a new dependency reference established by calling {@link #follow(Class, ContextDefinition, ComponentMapping, Command)}.
      *
      * @author Tibor Varga
      */
-    interface Command<T> {
+    interface Command {
 
         /**
          * @param lineage the object to keep track of dependency reference chains.
@@ -56,7 +56,7 @@ public interface DependencyChain {
          *
          * @return whatever the caller of {@link #follow(Class, ContextDefinition, ComponentMapping, Command)} expects to be returned.
          */
-        T run(Lineage lineage, ContextDefinition context);
+        Object run(Lineage lineage, ContextDefinition context);
     }
 
     /**

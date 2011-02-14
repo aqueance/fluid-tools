@@ -42,6 +42,6 @@ final class FactoryResolverClass extends FactoryResolver {
 
     @Override
     protected ComponentFactory factory(final SimpleContainer container) {
-        return container.component(factoryClass(), null);
+        return (ComponentFactory) container.component(factoryClass(), null);
     }
 }

@@ -43,7 +43,7 @@ public interface DependencyResolver {
      * @throws org.fluidity.composition.ComponentContainer.ResolutionException
      *          when the type cannot be resolved.
      */
-    <T> T resolveComponent(Class<T> type, ContextDefinition context) throws ComponentContainer.ResolutionException;
+    Object resolveComponent(Class<?> type, ContextDefinition context) throws ComponentContainer.ResolutionException;
 
     /**
      * Returns all component instances bound to the given group interface. The implementation must direct this method call to its external entry point to
@@ -58,7 +58,7 @@ public interface DependencyResolver {
      * @throws org.fluidity.composition.ComponentContainer.ResolutionException
      *          when the type cannot be resolved.
      */
-    <T> T[] resolveGroup(Class<T> type, ContextDefinition context) throws ComponentContainer.ResolutionException;
+    Object[] resolveGroup(Class<?> type, ContextDefinition context) throws ComponentContainer.ResolutionException;
 
     /**
      * Returns a new child container with its base context set to the given properties.
