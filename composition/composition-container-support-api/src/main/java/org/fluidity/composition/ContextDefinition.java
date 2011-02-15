@@ -27,7 +27,7 @@ import java.util.Collection;
 import java.util.Map;
 
 /**
- * Maintains context state during dependency resolution. Context definition is expanded as we descend a dependency chain and each component along the chain may
+ * Maintains context state during dependency resolution. Context definition is expanded as we descend a dependency path and each component along the chain may
  * consume a subset of the complete context definition. That subset is the propagated upstream and used as a cache key for intermediate components.
  *
  * @author Tibor Varga

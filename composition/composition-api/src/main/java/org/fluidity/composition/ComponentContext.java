@@ -38,7 +38,7 @@ import java.util.Set;
 public interface ComponentContext {
 
     /**
-     * Returns all annotations in the context of the specified type. Annotations may be defined at multiple points along a reference chain hence multiple
+     * Returns all annotations in the context of the specified type. Annotations may be defined at multiple points along a reference path hence multiple
      * annotations may be present for any given type. This method returns all of them in the order of decreasing distance from the reference being queried.
      *
      * @param type the annotation type to return instances of.

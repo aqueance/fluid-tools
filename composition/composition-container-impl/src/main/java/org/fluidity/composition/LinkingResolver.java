@@ -65,9 +65,9 @@ final class LinkingResolver extends AbstractResolver {
         return delegate.isInstanceMapping();
     }
 
-    public Object getComponent(final DependencyChain.Lineage lineage, final ContextDefinition context, final SimpleContainer container, final Class<?> api) {
+    public Object getComponent(final ContextDefinition context, final SimpleContainer container, final Class<?> api) {
         assert target.parentContainer() == container;
-        return delegate.getComponent(lineage, context, target, api);
+        return delegate.getComponent(context, target, api);
     }
 
     @Override

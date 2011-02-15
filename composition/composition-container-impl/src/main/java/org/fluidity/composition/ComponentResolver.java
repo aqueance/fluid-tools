@@ -71,14 +71,13 @@ interface ComponentResolver extends ComponentMapping {
     /**
      * Creates and/or returns a component.
      *
-     * @param lineage   the object that keeps track of dependency reference chains.
      * @param context   the context for the component.
      * @param container the container to use to resolve dependencies.
      * @param api       the API the component is requested for.
      *
      * @return the component instance, never <code>null</code>.
      */
-    Object getComponent(DependencyChain.Lineage lineage, ContextDefinition context, SimpleContainer container, Class<?> api);
+    Object getComponent(ContextDefinition context, SimpleContainer container, Class<?> api);
 
     /**
      * Notifies the receiver that a previously bound resolver has been replaced by another one.

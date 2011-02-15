@@ -52,12 +52,14 @@ final class SimpleContainerImpl implements SimpleContainer {
     private final SimpleContainer parent;
     private final Map<Class<?>, ComponentResolver> contents = new HashMap<Class<?>, ComponentResolver>();
     private final DependencyInjector injector;
+    private final DependencyPath path;
 
     public SimpleContainerImpl(final SimpleContainer parent, final ContainerServices services) {
         this.parent = parent;
         this.services = services;
         this.log = this.services.logs().createLog(getClass());
         this.injector = this.services.dependencyInjector();
+        this.path = this.services.dependencyPath();
     }
 
     public ContainerServices services() {
@@ -330,9 +332,9 @@ final class SimpleContainerImpl implements SimpleContainer {
         } else if (resolver.isGroupMapping()) {
             return null;
         } else {
-            return services.dependencyChain().follow(key, context, resolver, new DependencyChain.Command() {
-                public Object run(final DependencyChain.Lineage lineage, final ContextDefinition context) {
-                    return resolver.getComponent(lineage, context, SimpleContainerImpl.this, key);
+            return path.follow(key, context, resolver, new DependencyPath.Command() {
+                public Object run(final ContextDefinition context) {
+                    return resolver.getComponent(context, SimpleContainerImpl.this, key);
                 }
             });
         }
@@ -346,9 +348,9 @@ final class SimpleContainerImpl implements SimpleContainer {
         } else if (!resolver.isGroupMapping()) {
             return null;
         } else {
-            final Object[] nested = (Object[]) services.dependencyChain().follow(Array.newInstance(key, 0).getClass(), context, resolver, new DependencyChain.Command() {
-                public Object run(final DependencyChain.Lineage lineage, final ContextDefinition context) {
-                    return resolver.getComponent(lineage, context, SimpleContainerImpl.this, key);
+            final Object[] nested = (Object[]) path.follow(Array.newInstance(key, 0).getClass(), context, resolver, new DependencyPath.Command() {
+                public Object run(final ContextDefinition context) {
+                    return resolver.getComponent(context, SimpleContainerImpl.this, key);
                 }
             });
 
@@ -371,8 +373,8 @@ final class SimpleContainerImpl implements SimpleContainer {
         final Class<?> componentClass = component.getClass();
         final ComponentMapping mapping = new InstanceMapping(componentClass);
 
-        return services.dependencyChain().follow(componentClass, context, mapping, new DependencyChain.Command() {
-            public Object run(final DependencyChain.Lineage lineage, final ContextDefinition context) {
+        return path.follow(componentClass, context, mapping, new DependencyPath.Command() {
+            public Object run(final ContextDefinition context) {
                 return injector.injectFields(SimpleContainerImpl.this, mapping, context, component);
             }
         });

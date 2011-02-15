@@ -32,8 +32,8 @@ public interface DependencyResolver {
 
     /**
      * Returns the resolved component instance for the given component interface. The implementation must direct this method call to its external entry point
-     * to component resolution where it invokes {@link org.fluidity.composition.DependencyChain#follow(Class, ContextDefinition, ComponentMapping,
-     * org.fluidity.composition.DependencyChain.Command)} before immersing in actual dependency resolution.
+     * to component resolution where it invokes {@link org.fluidity.composition.DependencyPath#follow(Class, ContextDefinition, ComponentMapping,
+     * org.fluidity.composition.DependencyPath.Command)} before immersing in actual dependency resolution.
      *
      * @param type    the component interface sought.
      * @param context the reference context for the resolution.
@@ -47,8 +47,8 @@ public interface DependencyResolver {
 
     /**
      * Returns all component instances bound to the given group interface. The implementation must direct this method call to its external entry point to
-     * component resolution where it invokes {@link org.fluidity.composition.DependencyChain#follow(Class, ContextDefinition, ComponentMapping,
-     * org.fluidity.composition.DependencyChain.Command)} before immersing in actual dependency resolution.
+     * component resolution where it invokes {@link org.fluidity.composition.DependencyPath#follow(Class, ContextDefinition, ComponentMapping,
+     * org.fluidity.composition.DependencyPath.Command)} before immersing in actual dependency resolution.
      *
      * @param type    the group interface sought.
      * @param context the reference context for the resolution.

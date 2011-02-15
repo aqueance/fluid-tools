@@ -25,17 +25,18 @@ package org.fluidity.composition;
 import org.fluidity.composition.spi.ComponentMapping;
 
 /**
- * Provides means to keep track of a dependency reference chain.
+ * Provides means to keep track of a dependency reference path.
  *
  * @author Tibor Varga
  */
-public interface DependencyChain {
+public interface DependencyPath {
 
     /**
-     * Follows a reference chain, picking up a prevalent one if exists, else creating one.
+     * Follows a reference path, picking up a prevalent one if exists, else creating one. Circular references are handled when possible using proxies to delay
+     * instantiation until first method call.
      *
-     * @param api the component interface being referred to.
-     * @param context the original context for the instantiation chain.
+     * @param api     the component interface being referred to.
+     * @param context the original context for the instantiation path.
      * @param mapping the mapping, e.g., the component interface and class, of the reference.
      * @param command the command that performs the resolution.
      *
@@ -44,39 +45,18 @@ public interface DependencyChain {
     Object follow(final Class<?> api, ContextDefinition context, ComponentMapping mapping, Command command);
 
     /**
-     * The command to invoke in the context of a new dependency reference established by calling {@link #follow(Class, ContextDefinition, ComponentMapping, Command)}.
+     * The command to invoke in the context of a new dependency reference established by calling {@link #follow(Class, ContextDefinition, ComponentMapping,
+     * Command)}.
      *
      * @author Tibor Varga
      */
     interface Command {
 
         /**
-         * @param lineage the object to keep track of dependency reference chains.
-         * @param context the current context in the instantiation chain.
+         * @param context the current context in the instantiation path.
          *
          * @return whatever the caller of {@link #follow(Class, ContextDefinition, ComponentMapping, Command)} expects to be returned.
          */
-        Object run(Lineage lineage, ContextDefinition context);
-    }
-
-    /**
-     * Represents the chain of references to the particular dependency where the object appears.
-     */
-    interface Lineage {
-
-        /**
-         * Tells if the chain of reference up to and including the dependency resolver receiving this object that it is being invoked the second time during one
-         * dependency resolution cycle; i.e., there is circular reference in the dependency chain.
-         *
-         * @return <code>true</code> if the dependency resolver adds circular dependency to the dependency chain, <code>false</code> otherwise.
-         */
-        boolean isCircular();
-
-        /**
-         * Converts the dependency chain to a (more or less) human readable form. The chain includes the dependency resolver receiving this object.
-         *
-         * @return the {@link String} representation of the dependency chain.
-         */
-        String toString();
+        Object run(ContextDefinition context);
     }
 }

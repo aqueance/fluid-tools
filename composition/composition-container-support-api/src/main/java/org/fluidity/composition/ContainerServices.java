@@ -43,7 +43,7 @@ public interface ContainerServices {
      *
      * @return the component that tracka references from one component to the other.
      */
-    DependencyChain dependencyChain();
+    DependencyPath dependencyPath();
 
     /**
      * Returns the component that can perform dependency injection to constructors or fields.

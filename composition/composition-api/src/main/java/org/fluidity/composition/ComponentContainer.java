@@ -30,8 +30,8 @@ package org.fluidity.composition;
  * Components are instantiated by the container on demand and their dependencies are resolved by means of constructor or field based dependency injection. No
  * setter injection or other means of injections are supported.
  * <p/>
- * Components may be context aware, meaning that separate instances are created for different contexts. Entire dependency chains of dependencies may be
- * instantiated multiple times for different contexts.
+ * Components may be context aware, meaning that separate instances are created for different contexts. Entire chains of dependencies may be instantiated
+ * multiple times for different contexts.
  * <p/>
  * Most of your components should never interact directly with this interface. Exceptions to this are objects created by third party tools, or components with
  * dynamic dependencies, e.g. that depend on some run-time criteria.
@@ -328,8 +328,8 @@ public interface ComponentContainer {
      */
     class CircularReferencesException extends ResolutionException {
 
-        public CircularReferencesException(final Class<?> api, final String resolutions) {
-            super("Circular dependency detected when resolving %s: %s", api, resolutions);
+        public CircularReferencesException(final Class<?> api, final String path) {
+            super("Circular dependency detected when resolving %s: %s", api, path);
         }
     }
 }

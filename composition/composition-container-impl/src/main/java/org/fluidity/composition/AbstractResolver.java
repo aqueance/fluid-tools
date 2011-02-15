@@ -56,12 +56,7 @@ abstract class AbstractResolver implements ComponentResolver {
         return null;
     }
 
-    /**
-     * Checks for circular references and, if possible, wraps the first component up the reference chain that is referenced by interface with a proxy that
-     * defers the instantiation of that component. Uses the {@link #createCommand(SimpleContainer, Class)} method to perform actual component creation along
-     * with the resolver's {@link ComponentCache} to cache instances.
-     */
-    public Object getComponent(final DependencyChain.Lineage lineage, final ContextDefinition context, final SimpleContainer container, final Class<?> api) {
+    public Object getComponent(final ContextDefinition context, final SimpleContainer container, final Class<?> api) {
         final ComponentCache.Instantiation create = createCommand(container, api);
         return create == null ? null : cache.lookup(container, context, api, create);
     }

@@ -35,57 +35,53 @@ import org.fluidity.composition.spi.ComponentMapping;
 /**
  * @author Tibor Varga
  */
-final class DependencyChainImpl implements DependencyChain {
+final class DependencyPathImpl implements DependencyPath {
 
     /*
-     * When component instantiation is deferred in order to break circular dependence, the deferred resolver must be able to use the reference chain prevalent
-     * at its invocation. Without a thread local variable to hold that prevalent chain, the deferred resolver could either use the chain prevalent at its
-     * creation or a new empty chain, both of which are wrong in one case or the other.
+     * When component instantiation is deferred in order to break circular dependence, the deferred resolver must be able to use the reference path prevalent
+     * at its invocation. Without a thread local variable to hold that prevalent path, the deferred resolver could either use the path prevalent at its
+     * creation or a new empty path, both of which are wrong in one case or the other.
      *
-     * Thus, we need a thread local variable to hold the prevalent reference chain.
+     * Thus, we need a thread local variable to hold the prevalent reference path.
      */
-    private final ThreadLocal<Chain> prevalent = new InheritableThreadLocal<Chain>() {
+    private final ThreadLocal<Path> path = new InheritableThreadLocal<Path>() {
         @Override
-        protected Chain initialValue() {
-            return new Chain();
+        protected Path initialValue() {
+            return new Path();
         }
     };
 
     public Object follow(final Class<?> api, final ContextDefinition context, final ComponentMapping mapping, final Command command) {
-        final Chain lastChain = prevalent.get();
-        final Chain newChain = lastChain.descend(mapping);
+        final Path lastPath = path.get();
+        final Path newPath = lastPath.descend(mapping);
         final ContextDefinition newContext = context == null ? new ContextDefinitionImpl() : context;
 
-        prevalent.set(newChain);
+        path.set(newPath);
         try {
-            final boolean deferred = command instanceof DeferredCommand;
-
-            if (newChain.isCircular() && !deferred) {
-                return deferredCreate(api, newChain, newContext, mapping, command, null);
+            if (newPath.isCircular()) {
+                return deferredCreate(api, newContext, newPath, mapping, command, null);
             } else {
                 try {
-                    return command.run(newChain, newContext);
+                    return command.run(newContext);
                 } catch (final ComponentContainer.CircularReferencesException error) {
-                    if (deferred) {
-                        throw error;
-                    } else {
-                        return deferredCreate(api, newChain, newContext, mapping, command, error);
-                    }
+                    return deferredCreate(api, newContext, newPath, mapping, command, error);
                 }
             }
         } finally {
-            prevalent.set(lastChain);
+            path.set(lastPath);
         }
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
     private Object deferredCreate(final Class<?> api,
-                                 final Lineage lineage,
-                                 final ContextDefinition context,
-                                 final ComponentMapping mapping,
-                                 final Command command,
-                                 final ComponentContainer.CircularReferencesException error) {
-        if (api.isInterface()) {
+                                  final ContextDefinition context,
+                                  final Path path,
+                                  final ComponentMapping mapping,
+                                  final Command command,
+                                  final ComponentContainer.CircularReferencesException error) {
+        if (command instanceof DeferredCommand) {
+            throw circularity(api, path, ((DeferredCommand) command).error());
+        } else if (api.isInterface()) {
             return Proxy.newProxyInstance(api.getClassLoader(), new Class<?>[] { api }, new InvocationHandler() {
                 private volatile Object delegate;
 
@@ -97,7 +93,7 @@ final class DependencyChainImpl implements DependencyChain {
                             cache = delegate;
 
                             if (cache == null) {
-                                delegate = cache = follow(api, context, mapping, new DeferredCommand(api, command, error));
+                                delegate = cache = follow(api, context, mapping, new DeferredCommand(command, error));
                             }
                         }
                     }
@@ -106,52 +102,65 @@ final class DependencyChainImpl implements DependencyChain {
                 }
             });
         } else {
-            throw error == null ? new ComponentContainer.CircularReferencesException(api, lineage.toString()) : error;
+            throw circularity(api, path, error);
         }
+    }
+
+    public static ComponentContainer.CircularReferencesException circularity(final Class<?> api,
+                                                                             final Path path,
+                                                                             final ComponentContainer.CircularReferencesException error) {
+        return error == null ? new ComponentContainer.CircularReferencesException(api, path.toString()) : error;
     }
 
     private static class DeferredCommand implements Command {
 
-        private final Class<?> api;
         private final Command command;
         private final ComponentContainer.CircularReferencesException error;
 
-        public DeferredCommand(final Class<?> api, final Command command, final ComponentContainer.CircularReferencesException error) {
-            this.api = api;
+        public DeferredCommand(final Command command, final ComponentContainer.CircularReferencesException error) {
             this.error = error;
             this.command = command;
         }
 
-        public Object run(final Lineage lineage, final ContextDefinition context) {
-            if (lineage.isCircular()) {
-                throw error == null ? new ComponentContainer.CircularReferencesException(api, lineage.toString()) : error;
-            } else {
-                return command.run(lineage, context);
-            }
+        public Object run(final ContextDefinition context) {
+            return command.run(context);
+        }
+
+        public ComponentContainer.CircularReferencesException error() {
+            return error;
         }
     }
 
-    private class Chain implements Lineage {
+    /**
+     * Represents the path of references to the particular dependency where the object appears.
+     */
+    private class Path {
 
         private final Set<ComponentMapping> loop = new LinkedHashSet<ComponentMapping>();
         private final ComponentMapping mapping;
         private final boolean circular;
 
-        private Chain() {
+        private Path() {
             this.circular = false;
             this.mapping = null;
         }
 
-        public Chain(final Set<ComponentMapping> loop, final ComponentMapping mapping) {
+        public Path(final Set<ComponentMapping> loop, final ComponentMapping mapping) {
             this.loop.addAll(loop);
             this.circular = !this.loop.add(mapping);
             this.mapping = mapping;
         }
 
-        public Chain descend(final ComponentMapping mapping) {
-            return new Chain(loop, mapping);
+        public Path descend(final ComponentMapping mapping) {
+            return new Path(loop, mapping);
         }
 
+        /**
+         * Tells if the path of reference up to and including the dependency resolver receiving this object that it is being invoked the second time during one
+         * dependency resolution cycle; i.e., there is circular reference in the dependency path.
+         *
+         * @return <code>true</code> if the dependency resolver adds circular dependency to the dependency path, <code>false</code> otherwise.
+         */
         public boolean isCircular() {
             return circular;
         }

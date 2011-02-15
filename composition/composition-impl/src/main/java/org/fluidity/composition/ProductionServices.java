@@ -31,15 +31,15 @@ import org.fluidity.foundation.spi.LogFactory;
  */
 final class ProductionServices implements ContainerServices {
 
-    private final DependencyChain dependencyChain = new DependencyChainImpl();
-
     private final LogFactory logs;
-    private final ClassDiscoveryImpl classDiscovery;
+    private final ClassDiscovery classDiscovery;
+    private final DependencyPath dependencyPath;
     private final DependencyInjector dependencyInjector;
 
     public ProductionServices(final LogFactory logs) {
         this.logs = logs;
         this.classDiscovery = new ClassDiscoveryImpl(logs);
+        this.dependencyPath = new DependencyPathImpl();
         this.dependencyInjector = new DependencyInjectorImpl();
     }
 
@@ -47,8 +47,8 @@ final class ProductionServices implements ContainerServices {
         return classDiscovery;
     }
 
-    public DependencyChain dependencyChain() {
-        return dependencyChain;
+    public DependencyPath dependencyPath() {
+        return dependencyPath;
     }
 
     public DependencyInjector dependencyInjector() {

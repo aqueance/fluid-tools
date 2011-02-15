@@ -71,7 +71,7 @@ final class GroupResolver implements ComponentResolver {
     }
 
     @SuppressWarnings("unchecked")
-    public Object getComponent(final DependencyChain.Lineage lineage, final ContextDefinition context, final SimpleContainer container, final Class<?> api) {
+    public Object getComponent(final ContextDefinition context, final SimpleContainer container, final Class<?> api) {
         final List instances = new ArrayList();
 
         for (final Class<?> member : members) {
