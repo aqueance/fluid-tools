@@ -55,7 +55,7 @@ import org.fluidity.foundation.spi.PropertyProvider;
 final class ConfigurationComponentFactory implements ComponentFactory {
 
     @SuppressWarnings("unchecked")
-    public Class<Configuration> newComponent(final OpenComponentContainer container, final ComponentContext context) throws ComponentContainer.ResolutionException {
+    public void newComponent(final OpenComponentContainer container, final ComponentContext context) throws ComponentContainer.ResolutionException {
         final ComponentContainer.Registry registry = container.getRegistry();
 
         final Properties properties = context.annotation(Properties.class, Configuration.class);
@@ -63,8 +63,6 @@ final class ConfigurationComponentFactory implements ComponentFactory {
         registry.bindInstance(properties);
         registry.bindComponent(properties.provider(), PropertyProvider.class);
         registry.bindComponent(ConfigurationImpl.class);
-
-        return Configuration.class;
     }
 
     static class ConfigurationImpl<T> implements Configuration<T> {

@@ -30,8 +30,8 @@ import org.fluidity.composition.OpenComponentContainer;
  * this interface for a given component if that component requires instantiation logic more complex than {@link
  * java.lang.reflect.Constructor#newInstance(Object...)} with dependency injected parameters.
  * <p/>
- * The interface of the component is specified in the {@link org.fluidity.composition.Component#api()} annotation of the the factory implementation class, which
- * must be present.
+ * The interface of the component is specified in the {@link org.fluidity.composition.Component#api()} annotation of the the factory implementation class,
+ * which must be present.
  * <p/>
  * If the component is context dependent, the factory class must specify on behalf of the components the valid context annotation classes using the {@link
  * org.fluidity.composition.Context} class annotation.
@@ -41,13 +41,12 @@ import org.fluidity.composition.OpenComponentContainer;
 public interface ComponentFactory {
 
     /**
-     * Creates a new instance of the component that this is a factory for.
+     * Adds an appropriate binding to the given container to successfully get from it an instance of the API this is a factory for.
      *
      * @param container is the container to resolve dependencies of the component from.
-     * @param context   is the context for the instance to create. When this is null or empty, the default instance must be created. The key set in the context
-     *                  is taken from the list of annotation classes in the {@link org.fluidity.composition.Context} annotation of the component class.
-     *
-     * @return the component class to look up in the supplied container or <code>null</code> if no component could be created, not even a default, context independent instance.
+     * @param context   is the context for the instance to create. When this is null or empty, the default instance must be created by the binding. The key set
+     *                  in the context is taken from the list of annotation classes in the {@link org.fluidity.composition.Context} annotation of the component
+     *                  class.
      */
-    Class newComponent(OpenComponentContainer container, ComponentContext context);
+    void newComponent(OpenComponentContainer container, ComponentContext context);
 }

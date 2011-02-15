@@ -49,9 +49,8 @@ final class LogComponentFactory implements ComponentFactory {
     }
 
     @SuppressWarnings("unchecked")
-    public Class<Log> newComponent(final OpenComponentContainer container, final ComponentContext context) throws ComponentContainer.ResolutionException {
+    public void newComponent(final OpenComponentContainer container, final ComponentContext context) throws ComponentContainer.ResolutionException {
         final Marker marker = context.annotation(Marker.class, Log.class);
         container.getRegistry().bindInstance(factory.createLog(marker.value()), Log.class);
-        return Log.class;
     }
 }

@@ -484,7 +484,7 @@ public class EmptyRegistryTest extends MockGroupAbstractTest {
 
     private static class UnmarkedFactory implements ComponentFactory {
 
-        public Class<GroupComponent> newComponent(final OpenComponentContainer container, final ComponentContext context) {
+        public void newComponent(final OpenComponentContainer container, final ComponentContext context) {
             throw new UnsupportedOperationException();
         }
     }
@@ -492,7 +492,7 @@ public class EmptyRegistryTest extends MockGroupAbstractTest {
     @Component(api = Interface1.class)
     private static class MarkedFactory implements ComponentFactory {
 
-        public Class<GroupComponent> newComponent(final OpenComponentContainer container, final ComponentContext context) {
+        public void newComponent(final OpenComponentContainer container, final ComponentContext context) {
             throw new UnsupportedOperationException();
         }
     }
