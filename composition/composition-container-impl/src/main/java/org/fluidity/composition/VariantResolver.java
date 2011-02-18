@@ -24,6 +24,8 @@ package org.fluidity.composition;
 
 import java.lang.annotation.Annotation;
 
+import org.fluidity.composition.network.ContextDefinition;
+import org.fluidity.composition.network.Graph;
 import org.fluidity.composition.spi.ComponentVariantFactory;
 import org.fluidity.foundation.spi.LogFactory;
 
@@ -41,6 +43,8 @@ abstract class VariantResolver extends AbstractResolver {
 
     /**
      * Returns the {@link ComponentVariantFactory} instance this is a mapping for.
+     *
+     *
      *
      * @param container the container in which to resolve dependencies of the factory.
      *
@@ -116,7 +120,6 @@ abstract class VariantResolver extends AbstractResolver {
     @Override
     protected ComponentCache.Instantiation createCommand(final SimpleContainer container, final Class<?> api) {
         return new ComponentCache.Instantiation() {
-
             public Object perform(final ContextDefinition context) {
                 final SimpleContainer child = container.newChildContainer();
                 child.bindResolver(api, findDelegate());
@@ -147,6 +150,13 @@ abstract class VariantResolver extends AbstractResolver {
 
     public final Class<? extends ComponentVariantFactory> factoryClass() {
         return factoryClass;
+    }
+
+    public Graph.Node resolve(final Graph.Traversal traversal, final SimpleContainer container, final ContextDefinition context, final boolean explore) {
+        final SimpleContainer child = container.newChildContainer();
+        child.bindResolver(api, findDelegate());
+        factory(container).newComponent(new ComponentContainerShell(child, context, false), context.create());
+        return child.resolveComponentNode(api, context, traversal);
     }
 
     @Override

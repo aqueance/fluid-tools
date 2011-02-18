@@ -22,6 +22,8 @@
 
 package org.fluidity.composition;
 
+import org.fluidity.composition.network.ContextDefinition;
+import org.fluidity.composition.network.Graph;
 import org.fluidity.composition.spi.ComponentMapping;
 
 /**
@@ -30,6 +32,8 @@ import org.fluidity.composition.spi.ComponentMapping;
  * @author Tibor Varga
  */
 interface ComponentResolver extends ComponentMapping {
+
+    Graph.Node resolve(Graph.Traversal traversal, final SimpleContainer container, final ContextDefinition context, final boolean explore);
 
     /**
      * Returns the relative priority of this mapping compared to another.

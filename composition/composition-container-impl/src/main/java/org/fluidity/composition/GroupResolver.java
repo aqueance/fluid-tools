@@ -29,6 +29,9 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.fluidity.composition.network.ContextDefinition;
+import org.fluidity.composition.network.Graph;
+
 /**
  * Component mapping for a component group.
  *
@@ -48,6 +51,18 @@ final class GroupResolver implements ComponentResolver {
 
     public Annotation[] providedContext() {
         return null;
+    }
+
+    public Graph.Node resolve(final Graph.Traversal traversal, final SimpleContainer container, final ContextDefinition context, final boolean explore) {
+        // TODO: this is not right, groups is not really an edge
+        throw new UnsupportedOperationException();
+    }
+
+    // TODO: this is not right, groups is not really an edge
+    public void resolve(final Graph.Traversal traversal, final SimpleContainer container, final ContextDefinition context, final boolean explore, final List<Graph.Node> list) {
+        for (final Class<?> member : members) {
+            list.add(container.resolver(member, false).resolve(traversal, container, context, explore));
+        }
     }
 
     public int priority() {

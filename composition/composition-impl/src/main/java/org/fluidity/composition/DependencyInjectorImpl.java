@@ -23,13 +23,16 @@
 package org.fluidity.composition;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map;
 
+import org.fluidity.composition.network.ContextDefinition;
+import org.fluidity.composition.network.Graph;
 import org.fluidity.composition.spi.ComponentMapping;
 import org.fluidity.composition.spi.DependencyResolver;
 import org.fluidity.foundation.Exceptions;
@@ -42,34 +45,40 @@ import org.fluidity.foundation.Strings;
  */
 final class DependencyInjectorImpl implements DependencyInjector {
 
-    public <T> T injectFields(final DependencyResolver resolver, final ComponentMapping mapping, final ContextDefinition context, final T instance) {
-        assert resolver != null;
+    public <T> T injectFields(final Graph.Traversal traversal,
+                              final DependencyResolver container,
+                              final ComponentMapping mapping,
+                              final ContextDefinition context,
+                              final T instance) {
+        assert container != null;
 
         if (instance != null) {
-            final Class<?> componentType = instance.getClass();
-            context.collect(injectFields(resolver, mapping, context, instance, componentType, componentType));
+            final Class<?> componentClass = instance.getClass();
+            final Map<Field, Graph.Node> fieldNodes = new IdentityHashMap<Field, Graph.Node>();
+
+            context.collect(resolveFields(traversal, container, mapping, context, componentClass, fieldNodes));
+
+            injectFields(container, fieldNodes, instance);
         }
 
         return instance;
     }
 
-    public <T> T injectConstructor(final DependencyResolver resolver,
-                                   final ComponentMapping mapping,
-                                   final ContextDefinition context,
-                                   final Constructor<T> constructor) {
+    public Graph.Node resolve(final Graph.Traversal traversal,
+                              final DependencyResolver container,
+                              final ComponentMapping mapping,
+                              final ContextDefinition context,
+                              final Constructor<?> constructor) {
         final List<ContextDefinition> consumed = new ArrayList<ContextDefinition>();
 
-        final Class<?> componentType = constructor.getDeclaringClass();
+        final Class<?> componentClass = constructor.getDeclaringClass();
         final Annotation[][] annotations = constructor.getParameterAnnotations();
         final Class[] types = constructor.getParameterTypes();
-        final Object[] arguments = new Object[types.length];
+        final Graph.Node[] arguments = new Graph.Node[types.length];
 
         for (int i = 0, length = types.length; i < length; ++i) {
             final int index = i;
-            consumed.add(injectDependency(resolver, mapping, context.copy(), componentType, componentType, new Dependency() {
-                public Object itself() {
-                    return null;
-                }
+            consumed.add(injectDependency(traversal, container, mapping, context.copy(), componentClass, new Dependency() {
 
                 public Class<?> type() {
                     return types[index];
@@ -90,48 +99,72 @@ final class DependencyInjectorImpl implements DependencyInjector {
                     return annotations[index];
                 }
 
-                public void set(final Object value) {
-                    arguments[index] = value;
+                public void set(final Graph.Node node) {
+                    arguments[index] = node;
                 }
             }));
         }
 
+        final Map<Field, Graph.Node> fields = new IdentityHashMap<Field, Graph.Node>();
+        consumed.addAll(resolveFields(traversal, container, mapping, context, componentClass, fields));
+
         context.collect(consumed);
 
-        return Exceptions.wrap(String.format("instantiating %s", constructor.getDeclaringClass()), new Exceptions.Command<T>() {
-            public T run() throws Exception {
-                constructor.setAccessible(true);
-                return injectFields(resolver, mapping, context, constructor.newInstance(arguments));
+        return new Graph.Node() {
+            public Class<?> type() {
+                return componentClass;
+            }
+
+            public Object instance() {
+                return injectFields(container, fields, Exceptions.wrap(String.format("instantiating %s", componentClass), new Exceptions.Command<Object>() {
+                    public Object run() throws Exception {
+                        constructor.setAccessible(true);
+                        return constructor.newInstance(create(arguments));
+                    }
+                }));
+            }
+        };
+    }
+
+    private Object injectFields(final Graph.Container container, final Map<Field, Graph.Node> fieldNodes, final Object instance) {
+        return Exceptions.wrap(String.format("setting %s fields", instance.getClass()), new Exceptions.Command<Object>() {
+            public Object run() throws Exception {
+                for (final Map.Entry<Field, Graph.Node> entry : fieldNodes.entrySet()) {
+                    entry.getKey().set(instance, create(entry.getValue())[0]);
+                }
+
+                return instance;
             }
         });
     }
 
-    private <T> List<ContextDefinition> injectFields(final DependencyResolver resolver,
-                                                     final ComponentMapping mapping,
-                                                     final ContextDefinition context,
-                                                     final T instance,
-                                                     final Class<?> componentType,
-                                                     final Class<?> declaringType) {
+    public Object[] create(final Graph.Node... nodes) {
+        final Object[] values = new Object[nodes.length];
+
+        for (int i = 0, limit = nodes.length; i < limit; i++) {
+            values[i] = nodes[i].instance();
+        }
+
+        return values;
+    }
+
+    private List<ContextDefinition> resolveFields(final Graph.Traversal traversal,
+                                                  final DependencyResolver container,
+                                                  final ComponentMapping mapping,
+                                                  final ContextDefinition context,
+                                                  final Class<?> declaringType,
+                                                  final Map<Field, Graph.Node> nodes) {
         final List<ContextDefinition> consumed = new ArrayList<ContextDefinition>();
 
         for (final Field field : declaringType.getDeclaredFields()) {
             field.setAccessible(true);
 
-            final Exceptions.Command<?> fieldValue = new Exceptions.Command<Object>() {
-                public Object run() throws Exception {
-                    return field.get(instance);
-                }
-            };
-
-            if ((field.getModifiers() & Modifier.FINAL) != 0 || Exceptions.wrap(String.format("getting %s", field), fieldValue) != null) {
+            if ((field.getModifiers() & Modifier.FINAL) != 0) {
                 continue;
             }
 
             if (field.isAnnotationPresent(Component.class) || field.isAnnotationPresent(ComponentGroup.class)) {
-                consumed.add(injectDependency(resolver, mapping, context.copy(), componentType, declaringType, new Dependency() {
-                    public Object itself() {
-                        return instance;
-                    }
+                consumed.add(injectDependency(traversal, container, mapping, context.copy(), declaringType, new Dependency() {
 
                     public Class<?> type() {
                         return field.getType();
@@ -145,13 +178,8 @@ final class DependencyInjectorImpl implements DependencyInjector {
                         return field.getAnnotations();
                     }
 
-                    public void set(final Object value) {
-                        Exceptions.wrap(String.format("setting %s", field), new Exceptions.Command<Void>() {
-                            public Void run() throws Exception {
-                                field.set(instance, value);
-                                return null;
-                            }
-                        });
+                    public void set(final Graph.Node node) {
+                        nodes.put(field, node);
                     }
                 }));
             }
@@ -159,16 +187,16 @@ final class DependencyInjectorImpl implements DependencyInjector {
 
         final Class<?> ancestor = declaringType.getSuperclass();
         if (ancestor != null) {
-            consumed.addAll(injectFields(resolver, mapping, context, instance, componentType, ancestor));
+            consumed.addAll(resolveFields(traversal, container, mapping, context, ancestor, nodes));
         }
 
         return consumed;
     }
 
-    private ContextDefinition injectDependency(final DependencyResolver resolver,
+    private ContextDefinition injectDependency(final Graph.Traversal traversal,
+                                               final DependencyResolver container,
                                                final ComponentMapping mapping,
                                                final ContextDefinition context,
-                                               final Class<?> componentType,
                                                final Class<?> declaringType,
                                                final Dependency dependency) {
         final ComponentGroup componentGroup = dependency.annotation(ComponentGroup.class);
@@ -197,17 +225,10 @@ final class DependencyInjectorImpl implements DependencyInjector {
                         declaringType);
             }
 
-            final Object[] group = resolver.resolveGroup(groupType, context);
-            dependency.set(group == null ? Array.newInstance(groupType, 0) : group);
+            dependency.set(container.resolveGroupNode(dependencyType, context, traversal));
         } else if (dependency.type() == ComponentContext.class) {
-            dependency.set(context.reduce(mapping.contextSpecification(Context.class)).create());
+            dependency.set(new Graph.Node.Constant(context.reduce(mapping.contextSpecification(Context.class)).create()));
         } else {
-            Object value = null;
-
-            if (dependencyType.isAssignableFrom(componentType)) {
-                value = dependency.itself();
-            }
-
             final Annotation[] dependencyContext = neverNull(dependency.annotations());
 
             final Annotation[] definitions = new Annotation[typeContext.length + dependencyContext.length];
@@ -216,24 +237,39 @@ final class DependencyInjectorImpl implements DependencyInjector {
 
             context.expand(definitions);
 
-            if (value == null && ComponentContainer.class.isAssignableFrom(dependencyType)) {
-                value = resolver.container(context);
+            Graph.Node node = null;
+
+            if (ComponentContainer.class.isAssignableFrom(dependencyType)) {
+                node = new Graph.Node.Constant(container.container(context));
             }
 
-            if (value == null) {
-                final ComponentMapping dependencyMapping = resolver.mapping(dependencyType);
+            if (node == null) {
+                final ComponentMapping dependencyMapping = container.mapping(dependencyType);
+
                 if (dependencyMapping != null) {
-                    value = resolver.resolveComponent(dependencyType, context.reduce(dependencyMapping.contextSpecification(Context.class)));
+                    node = container.resolveComponentNode(dependencyType, context.reduce(dependencyMapping.contextSpecification(Context.class)), traversal);
                 }
             }
 
-            if (value == null && dependency.annotation(Optional.class) == null) {
-                throw new ComponentContainer.ResolutionException("Dependency %s of %s cannot be satisfied",
-                                                                 Strings.arrayNotation(dependencyType),
-                                                                 declaringType);
+            if (node == null) {
+                node = new Graph.Node() {
+                    public Class<?> type() {
+                        return dependencyType;
+                    }
+
+                    public Object instance() {
+                        if (dependency.annotation(Optional.class) == null) {
+                            throw new ComponentContainer.ResolutionException("Dependency %s of %s cannot be satisfied",
+                                                                             Strings.arrayNotation(dependencyType),
+                                                                             declaringType);
+                        } else {
+                            return null;
+                        }
+                    }
+                };
             }
 
-            dependency.set(value);
+            dependency.set(node);
         }
 
         return context;
@@ -262,13 +298,6 @@ final class DependencyInjectorImpl implements DependencyInjector {
     private static interface Dependency {
 
         /**
-         * Returns the referring object itself.
-         *
-         * @return the referring object itself or <code>null</code> if there is none.
-         */
-        Object itself();
-
-        /**
          * Returns the type by which the dependency is referred to.
          *
          * @return the type by which the dependency is referred to.
@@ -294,8 +323,8 @@ final class DependencyInjectorImpl implements DependencyInjector {
         /**
          * Sets the resolved value of the reference.
          *
-         * @param value the resolved value of the reference.
+         * @param node the future value of the field.
          */
-        void set(Object value);
+        void set(Graph.Node node);
     }
 }

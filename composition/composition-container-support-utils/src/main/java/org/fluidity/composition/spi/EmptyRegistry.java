@@ -143,7 +143,7 @@ final class EmptyRegistry implements ComponentContainer.Registry {
     private List<Class<?>> groupInterfaces(final Class<?> current) {
         final List<Class<?>> list = new ArrayList<Class<?>>();
         final ComponentGroup direct = current.getAnnotation(ComponentGroup.class);
-        assert ComponentGroup.class.getAnnotation(Inherited.class) != null;
+        assert ComponentGroup.class.isAnnotationPresent(Inherited.class);
 
         if (direct != null) {
             list.addAll(Arrays.asList(interfaces(true, current, direct.api())));

@@ -33,6 +33,8 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.fluidity.composition.network.ContextDefinition;
+
 /**
  * @author Tibor Varga
  */
@@ -134,7 +136,7 @@ final class ContextDefinitionImpl implements ContextDefinition {
     }
 
     private Annotation[] combine(final Annotation[] present, final Annotation... addition) {
-        final Collection<Annotation> list = new LinkedHashSet<Annotation>();
+        final Collection<Annotation> list = new LinkedHashSet<Annotation>(present.length + addition.length);
         list.addAll(Arrays.asList(present));
         list.addAll(Arrays.asList(addition));
         return list.toArray(new Annotation[list.size()]);

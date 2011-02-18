@@ -22,6 +22,8 @@
 
 package org.fluidity.composition;
 
+import org.fluidity.composition.network.ContextDefinition;
+
 /**
  * Caches components by context. Implementations must be thread safe.
  *
@@ -35,7 +37,8 @@ public interface ComponentCache {
      * @param source  something to identify who is creating instances through this cache.
      * @param context the context for the component.
      * @param api     the interface the component implements.
-     * @param create  the command that performs instantiation of the component.
+     * @param create  the command that performs instantiation of the component; if <code>null</code>, only a lookup is made otherwise instantiation is attempted
+     *                if the no cached instance is found.
      *
      * @return the component instance.
      */
@@ -54,25 +57,5 @@ public interface ComponentCache {
          * @return a new instance of a component; never <code>null</code>.
          */
         Object perform(ContextDefinition context);
-    }
-
-    /**
-     * Listens to component instantiation. The {@link ComponentCache#lookup(Object, ContextDefinition, Class, ComponentCache.Instantiation)}   method must
-     * call an object implementing this interface when it has created a new instance of a component. The listener object must be passed to the cache
-     * in its constructor.
-     * <p/>
-     * Implementations must be thread safe.
-     *
-     * @deprecated and will be removed
-     */
-    interface Listener {
-
-        /**
-         * Called when a component is instantiated.
-         *
-         * @param componentInterface the interface reference that triggered the instantiation.
-         * @param component          the component that has just been instantiated.
-         */
-        void created(Class<?> componentInterface, Object component);
     }
 }

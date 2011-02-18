@@ -24,6 +24,8 @@ package org.fluidity.composition;
 
 import java.lang.annotation.Annotation;
 
+import org.fluidity.composition.network.ContextDefinition;
+import org.fluidity.composition.network.Graph;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**
@@ -53,6 +55,10 @@ final class LinkingResolver extends AbstractResolver {
     @Override
     public boolean isFactoryMapping() {
         return delegate.isFactoryMapping();
+    }
+
+    public Graph.Node resolve(final Graph.Traversal traversal, final SimpleContainer container, final ContextDefinition context, final boolean explore) {
+        return delegate.resolve(traversal, container, context, explore);
     }
 
     @Override

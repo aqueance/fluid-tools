@@ -62,11 +62,9 @@ public interface ContainerServices {
     /**
      * Creates and returns a new component cache instance.
      *
-     *
-     * @param listener the listener to invoke whenever a component instance is created.
      * @param stateless specifies whether the component can actually be cached or not. Value <code>true</code> means the component can be cached.
      *
      * @return a new component cache instance.
      */
-    ComponentCache newCache(final ComponentCache.Listener listener, final boolean stateless);
+    ComponentCache newCache(final boolean stateless);
 }

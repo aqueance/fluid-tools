@@ -43,6 +43,9 @@ public interface ComponentVariantFactory {
      * Binds the component that this is a factory for in the provided container. The original bindings for the component will be applied to the container
      * returned by the factory.
      *
+     *
+     *
+     *
      * @param container is the container to resolve dependencies of the component from.
      * @param context   is the context for the instance to create. When this is null or empty, the default instance must be returned. The key set in the context
      *                  is taken from the list of annotation classes in the {@link org.fluidity.composition.Context} annotation of this factory.

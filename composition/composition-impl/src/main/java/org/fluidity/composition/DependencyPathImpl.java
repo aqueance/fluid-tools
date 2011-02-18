@@ -30,6 +30,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.fluidity.composition.network.ContextDefinition;
 import org.fluidity.composition.spi.ComponentMapping;
 
 /**

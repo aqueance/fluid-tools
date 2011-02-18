@@ -22,6 +22,9 @@
 
 package org.fluidity.composition;
 
+import java.util.List;
+
+import org.fluidity.composition.network.ContextDefinition;
 import org.fluidity.composition.spi.DependencyResolver;
 
 /**
@@ -110,7 +113,8 @@ interface SimpleContainer extends DependencyResolver {
      * @throws ComponentContainer.BindingException
      *          when binding fails.
      */
-    SimpleContainer linkComponent(Class<?> implementation, Class<?>[] componentInterfaces, final Class<?>[] groupInterfaces) throws ComponentContainer.BindingException;
+    SimpleContainer linkComponent(Class<?> implementation, Class<?>[] componentInterfaces, final Class<?>[] groupInterfaces)
+            throws ComponentContainer.BindingException;
 
     /**
      * Returns the component instance bound to the given interface in the given context.
@@ -122,6 +126,7 @@ interface SimpleContainer extends DependencyResolver {
      *
      * @throws ComponentContainer.ResolutionException
      *          when dependency resolution fails.
+     * @deprecated
      */
     Object component(Class<?> key, ContextDefinition context) throws ComponentContainer.ResolutionException;
 
@@ -135,6 +140,7 @@ interface SimpleContainer extends DependencyResolver {
      *
      * @throws ComponentContainer.ResolutionException
      *          when dependency resolution fails.
+     * @deprecated
      */
     Object[] group(Class<?> key, ContextDefinition context) throws ComponentContainer.ResolutionException;
 
@@ -166,4 +172,6 @@ interface SimpleContainer extends DependencyResolver {
      * @param replacement the new resolver.
      */
     void replaceResolver(Class<?> key, ComponentResolver previous, ComponentResolver replacement);
+
+    List<Node> resolveGroup(Traversal traversal, Class<?> api, ContextDefinition context, final boolean explore);
 }

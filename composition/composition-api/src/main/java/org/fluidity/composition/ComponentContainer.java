@@ -22,6 +22,8 @@
 
 package org.fluidity.composition;
 
+import java.lang.reflect.Method;
+
 /**
  * This is a dependency injection container.
  * <p/>
@@ -330,6 +332,13 @@ public interface ComponentContainer {
 
         public CircularReferencesException(final Class<?> api, final String path) {
             super("Circular dependency detected when resolving %s: %s", api, path);
+        }
+    }
+
+    public class CircularInvocationException extends ContainerException {
+
+        public CircularInvocationException(final Object object, final Method method) {
+            super("Circular method invocation detected when calling %s on %s@%x", method, object.getClass().getName(), System.identityHashCode(object));
         }
     }
 }

@@ -28,6 +28,8 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.fluidity.composition.network.ContextDefinition;
+import org.fluidity.composition.network.Graph;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**
@@ -72,11 +74,14 @@ final class ConstructingResolver extends AbstractResolver {
 
     @Override
     protected ComponentCache.Instantiation createCommand(final SimpleContainer container, final Class<?> api) {
+        throw new UnsupportedOperationException();
+/*
         return new ComponentCache.Instantiation() {
             public Object perform(final ContextDefinition context) {
-                return injector.injectConstructor(container, ConstructingResolver.this, context, constructor());
+                return injector.injectConstructor(traversal, container, ConstructingResolver.this, context, constructor());
             }
         };
+*/
     }
 
     private Constructor<?> findComponentConstructor() {
@@ -100,7 +105,7 @@ final class ConstructingResolver extends AbstractResolver {
                     validConstructors.add(constructor);
                 }
 
-                if (constructor.getAnnotation(Component.class) != null) {
+                if (constructor.isAnnotationPresent(Component.class)) {
                     if (designated != null) {
                         throw new ComponentContainer.ResolutionException("Multiple @Component constructors found for %s", componentClass);
                     } else {
@@ -150,6 +155,30 @@ final class ConstructingResolver extends AbstractResolver {
             // fall through
         default:
             throw new MultipleConstructorsException(componentClass);
+        }
+    }
+
+    public Graph.Node resolve(final Graph.Traversal traversal, final SimpleContainer container, final ContextDefinition context, final boolean explore) {
+        final Object instance = explore ? null : cache.lookup(container, context, api, null);
+
+        if (instance != null) {
+            return new Graph.Node.Constant(instance);
+        } else {
+            final Graph.Node node = injector.resolve(traversal, container, this, context, constructor());
+
+            return new Graph.Node() {
+                public Class<?> type() {
+                    return node.type();
+                }
+
+                public Object instance() {
+                    return cache.lookup(container, context, api, new ComponentCache.Instantiation() {
+                        public Object perform(final ContextDefinition context) {
+                            return node.instance();
+                        }
+                    });
+                }
+            };
         }
     }
 

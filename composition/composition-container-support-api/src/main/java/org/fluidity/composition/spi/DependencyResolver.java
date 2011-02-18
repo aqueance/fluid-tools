@@ -23,16 +23,35 @@
 package org.fluidity.composition.spi;
 
 import org.fluidity.composition.ComponentContainer;
-import org.fluidity.composition.ContextDefinition;
+import org.fluidity.composition.network.ContextDefinition;
+import org.fluidity.composition.network.Graph;
 
 /**
  * Capable of resolving component references.
  */
-public interface DependencyResolver {
+public interface DependencyResolver extends Graph.Container {
+
+    /**
+     * Returns the component mapping for the given component API.
+     *
+     * @param type the component API to return a mapping for.
+     *
+     * @return the component mapping for the given component API or <code>null</code> if not found.
+     */
+    ComponentMapping mapping(Class<?> type);
+
+    /**
+     * Returns a new child container with its base context set to the given properties.
+     *
+     * @param context the context for the new container to use as base context.
+     *
+     * @return a new component container.
+     */
+    ComponentContainer container(ContextDefinition context);
 
     /**
      * Returns the resolved component instance for the given component interface. The implementation must direct this method call to its external entry point
-     * to component resolution where it invokes {@link org.fluidity.composition.DependencyPath#follow(Class, ContextDefinition, ComponentMapping,
+     * to component resolution where it invokes {@link org.fluidity.composition.DependencyPath#follow(Class, org.fluidity.composition.network.ContextDefinition, ComponentMapping,
      * org.fluidity.composition.DependencyPath.Command)} before immersing in actual dependency resolution.
      *
      * @param type    the component interface sought.
@@ -59,22 +78,4 @@ public interface DependencyResolver {
      *          when the type cannot be resolved.
      */
     Object[] resolveGroup(Class<?> type, ContextDefinition context) throws ComponentContainer.ResolutionException;
-
-    /**
-     * Returns a new child container with its base context set to the given properties.
-     *
-     * @param context the context for the new container to use as base context.
-     *
-     * @return a new component container.
-     */
-    ComponentContainer container(ContextDefinition context);
-
-    /**
-     * Returns the component mapping for the given component API.
-     *
-     * @param type the component API to return a mapping for.
-     *
-     * @return the component mapping for the given component API or <code>null</code> if not found.
-     */
-    ComponentMapping mapping(Class<?> type);
 }

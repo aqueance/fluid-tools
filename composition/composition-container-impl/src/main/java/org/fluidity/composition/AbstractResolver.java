@@ -22,6 +22,7 @@
 
 package org.fluidity.composition;
 
+import org.fluidity.composition.network.ContextDefinition;
 import org.fluidity.foundation.logging.Log;
 import org.fluidity.foundation.spi.LogFactory;
 
@@ -57,8 +58,7 @@ abstract class AbstractResolver implements ComponentResolver {
     }
 
     public Object getComponent(final ContextDefinition context, final SimpleContainer container, final Class<?> api) {
-        final ComponentCache.Instantiation create = createCommand(container, api);
-        return create == null ? null : cache.lookup(container, context, api, create);
+        return cache.lookup(container, context, api, createCommand(container, api));
     }
 
     public int priority() {

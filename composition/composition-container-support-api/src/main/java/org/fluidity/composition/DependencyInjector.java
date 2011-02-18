@@ -24,6 +24,8 @@ package org.fluidity.composition;
 
 import java.lang.reflect.Constructor;
 
+import org.fluidity.composition.network.ContextDefinition;
+import org.fluidity.composition.network.Graph;
 import org.fluidity.composition.spi.ComponentMapping;
 import org.fluidity.composition.spi.DependencyResolver;
 
@@ -35,26 +37,19 @@ import org.fluidity.composition.spi.DependencyResolver;
 public interface DependencyInjector {
 
     /**
-     * Resolves all parameters of the given constructor and invokes it to construct a new object with it.
-     *
-     * @param resolver    the resolver to satisfy dependencies.
-     * @param mapping     the mapping that triggered the dependency resolution.
-     * @param context     the instantiation context of the object being constructed.
-     * @param constructor the constructor to find the arguments for.
-     *
-     * @return the argument array for the given constructor.
-     */
-    <T> T injectConstructor(DependencyResolver resolver, ComponentMapping mapping, ContextDefinition context, Constructor<T> constructor);
-
-    /**
      * Sets all {@link Component} annotated fields of the receiver.
      *
-     * @param resolver the resolver to satisfy dependencies.
-     * @param mapping  the mapping that triggered the dependency resolution.
+     *
+     *
+     *
+     * @param traversal
+     * @param container
+     * @param mapping
      * @param context  the instantiation context of the object being constructed.
      * @param instance the object to set the fields of.
-     *
      * @return the received instances.
      */
-    <T> T injectFields(DependencyResolver resolver, ComponentMapping mapping, ContextDefinition context, T instance);
+    <T> T injectFields(final Graph.Traversal traversal, DependencyResolver container, ComponentMapping mapping, ContextDefinition context, T instance);
+
+    Graph.Node resolve(Graph.Traversal traversal, DependencyResolver container, ComponentMapping mapping, ContextDefinition context, Constructor<?> constructor);
 }

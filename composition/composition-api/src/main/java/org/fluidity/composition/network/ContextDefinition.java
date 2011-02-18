@@ -20,11 +20,14 @@
  * THE SOFTWARE.
  */
 
-package org.fluidity.composition;
+package org.fluidity.composition.network;
 
 import java.lang.annotation.Annotation;
 import java.util.Collection;
 import java.util.Map;
+
+import org.fluidity.composition.ComponentContext;
+import org.fluidity.composition.Context;
 
 /**
  * Maintains context state during dependency resolution. Context definition is expanded as we descend a dependency path and each component along the chain may
@@ -46,7 +49,7 @@ public interface ContextDefinition {
     /**
      * Reduces the returned context annotations to those specified by the parameter.
      *
-     * @param accepted the {@link Context} annotation listing the accepted annotations.
+     * @param accepted the {@link org.fluidity.composition.Context} annotation listing the accepted annotations.
      *
      * @return the receiver.
      */

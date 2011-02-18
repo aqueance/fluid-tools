@@ -27,6 +27,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.fluidity.composition.network.ContextDefinition;
 import org.fluidity.foundation.logging.Log;
 import org.fluidity.foundation.spi.LogFactory;
 
@@ -36,12 +37,10 @@ import org.fluidity.foundation.spi.LogFactory;
 final class ComponentCacheImpl implements ComponentCache {
 
     private final Map<Map<Class<? extends Annotation>, Annotation[]>, Object> cache;
-    private final Listener listener;
     private final Log log;
 
-    public ComponentCacheImpl(final Listener listener, final LogFactory logs, boolean cache) {
+    public ComponentCacheImpl(final LogFactory logs, boolean cache) {
         this.cache = cache ? new ConcurrentHashMap<Map<Class<? extends Annotation>, Annotation[]>, Object>() : null;
-        this.listener = listener;
         this.log = logs.createLog(getClass());
     }
 
@@ -69,7 +68,10 @@ final class ComponentCacheImpl implements ComponentCache {
          */
 
         final Map<Class<? extends Annotation>, Annotation[]> incoming = context.defined();
-        if (!cache.containsKey(incoming)) {
+
+        if (instantiation == null) {
+            return cache.get(incoming);
+        } else if (!cache.containsKey(incoming)) {
 
             // go ahead and create the component and then see if it was actually necessary; context may change as new instantiations take place
             final Object component = instantiation.perform(context);
@@ -93,10 +95,6 @@ final class ComponentCacheImpl implements ComponentCache {
                                  component.getClass().getName(),
                                  System.identityHashCode(component),
                                  consumed.types().isEmpty() ? "" : String.format(" for context %s", consumed));
-                    }
-
-                    if (listener != null) {
-                        listener.created(api, component);
                     }
                 } else if (!cache.containsKey(incoming)) {
                     cache.put(incoming, cache.get(outgoing));

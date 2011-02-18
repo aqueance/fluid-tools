@@ -24,6 +24,8 @@ package org.fluidity.composition;
 
 import java.lang.annotation.Annotation;
 
+import org.fluidity.composition.network.ContextDefinition;
+import org.fluidity.composition.network.Graph;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**
@@ -54,6 +56,10 @@ final class InstanceResolver extends AbstractResolver {
 
     public boolean isInstanceMapping() {
         return true;
+    }
+
+    public Graph.Node resolve(final Graph.Traversal traversal, final SimpleContainer container, final ContextDefinition context, final boolean explore) {
+        return new Graph.Node.Constant(instance);
     }
 
     @Override
