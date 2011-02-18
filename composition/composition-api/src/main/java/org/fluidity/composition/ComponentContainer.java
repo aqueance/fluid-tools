@@ -24,6 +24,8 @@ package org.fluidity.composition;
 
 import java.lang.reflect.Method;
 
+import org.fluidity.composition.network.Graph;
+
 /**
  * This is a dependency injection container.
  * <p/>
@@ -61,6 +63,13 @@ import java.lang.reflect.Method;
  * @author Tibor Varga
  */
 public interface ComponentContainer {
+
+    /**
+     * Returns an explorable dependency graph.
+     *
+     * @return an explorable dependency graph.
+     */
+    Graph getGraph();
 
     /**
      * Returns a component by interface or (super)class. This method is provided for boundary objects (objects created outside the container by third party
@@ -125,7 +134,9 @@ public interface ComponentContainer {
      */
     <T> T[] getComponentGroup(Class<T> api);
 
-    /** Component bindings. */
+    /**
+     * Component bindings.
+     */
     interface Bindings {
 
         /**

@@ -29,7 +29,11 @@ import org.fluidity.composition.network.Graph;
 /**
  * Capable of resolving component references.
  */
-public interface DependencyResolver extends Graph.Container {
+public interface DependencyResolver extends Graph {
+
+    Node resolveComponent(Class<?> api, ContextDefinition context, Traversal traversal);
+
+    Node resolveGroup(Class<?> api, ContextDefinition context, Traversal traversal);
 
     /**
      * Returns the component mapping for the given component API.
@@ -48,34 +52,4 @@ public interface DependencyResolver extends Graph.Container {
      * @return a new component container.
      */
     ComponentContainer container(ContextDefinition context);
-
-    /**
-     * Returns the resolved component instance for the given component interface. The implementation must direct this method call to its external entry point
-     * to component resolution where it invokes {@link org.fluidity.composition.DependencyPath#follow(Class, org.fluidity.composition.network.ContextDefinition, ComponentMapping,
-     * org.fluidity.composition.DependencyPath.Command)} before immersing in actual dependency resolution.
-     *
-     * @param type    the component interface sought.
-     * @param context the reference context for the resolution.
-     *
-     * @return the resolved component instance or <code>null</code> if no unique resolution is possible.
-     *
-     * @throws org.fluidity.composition.ComponentContainer.ResolutionException
-     *          when the type cannot be resolved.
-     */
-    Object resolveComponent(Class<?> type, ContextDefinition context) throws ComponentContainer.ResolutionException;
-
-    /**
-     * Returns all component instances bound to the given group interface. The implementation must direct this method call to its external entry point to
-     * component resolution where it invokes {@link org.fluidity.composition.DependencyPath#follow(Class, ContextDefinition, ComponentMapping,
-     * org.fluidity.composition.DependencyPath.Command)} before immersing in actual dependency resolution.
-     *
-     * @param type    the group interface sought.
-     * @param context the reference context for the resolution.
-     *
-     * @return the resolved component instances or an empty array if no component was found.
-     *
-     * @throws org.fluidity.composition.ComponentContainer.ResolutionException
-     *          when the type cannot be resolved.
-     */
-    Object[] resolveGroup(Class<?> type, ContextDefinition context) throws ComponentContainer.ResolutionException;
 }

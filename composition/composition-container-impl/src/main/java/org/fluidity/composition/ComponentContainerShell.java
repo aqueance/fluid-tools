@@ -23,6 +23,7 @@
 package org.fluidity.composition;
 
 import org.fluidity.composition.network.ContextDefinition;
+import org.fluidity.composition.network.Graph;
 import org.fluidity.composition.spi.EmptyComponentContainer;
 
 /**
@@ -35,23 +36,24 @@ final class ComponentContainerShell extends EmptyComponentContainer {
     private final SimpleContainer container;
     private final ContextDefinition context;
 
-    public ComponentContainerShell(final SimpleContainer container,
-                                   final ContextDefinition context,
-                                   final boolean child) {
-        this(container, container.services(), context, child);
+    public ComponentContainerShell(final ContainerServices services) {
+        this.container = new SimpleContainerImpl(services);
+        this.context = null;
     }
 
-    public ComponentContainerShell(final SimpleContainer container,
-                                   final ContainerServices services,
-                                   final ContextDefinition context,
-                                   final boolean child) {
-        this.container = child ? new SimpleContainerImpl(container, services) : container;
+    public ComponentContainerShell(final SimpleContainer container, final ContextDefinition context, final boolean child) {
+        assert container != null;
+        this.container = child ? container.newChildContainer() : container;
         this.context = context;
+    }
+
+    public Graph getGraph() {
+        return container;
     }
 
     @SuppressWarnings("unchecked")
     public <T> T getComponent(final Class<T> api) {
-        return (T) container.component(api, context);
+        return (T) container.resolveComponent(api, context, container.services().graphTraversal()).instance();
     }
 
     @SuppressWarnings("unchecked")
@@ -61,7 +63,7 @@ final class ComponentContainerShell extends EmptyComponentContainer {
 
     @SuppressWarnings("unchecked")
     public <T> T[] getComponentGroup(final Class<T> api) {
-        return (T[]) container.group(api, context);
+        return (T[]) container.resolveGroup(api, context, container.services().graphTraversal()).instance();
     }
 
     public OpenComponentContainer makeChildContainer() {

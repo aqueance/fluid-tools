@@ -50,10 +50,6 @@ final class InstanceResolver extends AbstractResolver {
         return null;
     }
 
-    public Object getComponent(final ContextDefinition context, final SimpleContainer container, final Class<?> api) {
-        return instance;
-    }
-
     public boolean isInstanceMapping() {
         return true;
     }

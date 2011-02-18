@@ -41,22 +41,29 @@ import org.fluidity.foundation.spi.LogFactory;
 /**
  * @author Tibor Varga
  */
-final class SimpleContainerImpl implements SimpleContainer {
+final class SimpleContainerImpl implements ParentContainer {
 
     private final ContainerServices services;
     private final Log log;
 
-    private final SimpleContainer parent;
-    private final Map<Class<?>, ComponentResolver> contents = new HashMap<Class<?>, ComponentResolver>();
-    private final DependencyInjector injector;
-    private final DependencyPath path;
+    private final ParentContainer parent;
 
-    public SimpleContainerImpl(final SimpleContainer parent, final ContainerServices services) {
+    private final Map<Class<?>, ComponentResolver> components = new HashMap<Class<?>, ComponentResolver>();
+    private final Map<Class<?>, GroupResolver> groups = new HashMap<Class<?>, GroupResolver>();
+
+    private final DependencyInjector injector;
+    private final LogFactory logs;
+
+    public SimpleContainerImpl(final ContainerServices services) {
+        this(null, services);
+    }
+
+    private SimpleContainerImpl(final ParentContainer parent, final ContainerServices services) {
         this.parent = parent;
         this.services = services;
         this.log = this.services.logs().createLog(getClass());
         this.injector = this.services.dependencyInjector();
-        this.path = this.services.dependencyPath();
+        this.logs = this.services.logs();
     }
 
     public ContainerServices services() {
@@ -72,8 +79,8 @@ final class SimpleContainerImpl implements SimpleContainer {
     }
 
     public void bindResolver(final Class<?> api, final ComponentResolver entry) {
-        synchronized (contents) {
-            final ComponentResolver resolver = contents.get(api);
+        synchronized (components) {
+            final ComponentResolver resolver = components.get(api);
 
             if (resolver == null) {
                 replace(api, null, entry);
@@ -85,12 +92,26 @@ final class SimpleContainerImpl implements SimpleContainer {
         }
     }
 
+    public GroupResolver bindGroup(final Class<?> api) {
+        GroupResolver resolver;
+
+        synchronized (groups) {
+            resolver = groups.get(api);
+
+            if (resolver == null) {
+                groups.put(api, resolver = new GroupResolver());
+            }
+        }
+
+        return resolver;
+    }
+
     public void replace(final Class<?> key, final ComponentResolver previous, final ComponentResolver replacement) {
-        if (contents.remove(key) == previous) {
+        if (components.remove(key) == previous) {
             replaceResolver(key, previous, replacement);
         }
 
-        contents.put(key, replacement);
+        components.put(key, replacement);
     }
 
     public void bindResolvers(Class<?> implementation,
@@ -98,6 +119,7 @@ final class SimpleContainerImpl implements SimpleContainer {
                               final Class<?>[] groupInterfaces,
                               final boolean stateful,
                               final ContentResolvers resolvers) {
+        // TODO: factories and group interfaces?
         if (resolvers.isVariantFactory()) {
 
             // bind the variant factory to its class
@@ -133,19 +155,7 @@ final class SimpleContainerImpl implements SimpleContainer {
                 bindResolver(implementation, resolvers.component(implementation, cache, false));
 
                 for (final Class<?> api : groupInterfaces) {
-                    final ComponentResolver resolver = resolver(api, false);
-
-                    final GroupResolver group;
-
-                    if (resolver == null) {
-                        bindResolver(api, group = new GroupResolver());
-                    } else if (!resolver.isGroupMapping()) {
-                        throw new ComponentContainer.BindingException("Component %s is already bound", api);
-                    } else {
-                        group = (GroupResolver) resolver;
-                    }
-
-                    group.add(implementation);
+                    bindGroup(api).add(implementation);
                 }
             }
         }
@@ -204,17 +214,17 @@ final class SimpleContainerImpl implements SimpleContainer {
             }
 
             public ComponentResolver component(final Class<?> api, final ComponentCache cache, final boolean resolvesFactory) {
-                return new ConstructingResolver(isFallback ? 0 : 1, api, implementation, resolvesFactory, cache, injector, services.logs());
+                return new ConstructingResolver(isFallback ? 0 : 1, api, implementation, resolvesFactory, cache, injector, logs);
             }
 
             public VariantResolver variant(final Class<?> api, final ComponentCache cache) {
                 final Class<? extends ComponentVariantFactory> factory = implementation.asSubclass(ComponentVariantFactory.class);
-                return new VariantResolverClass(isFallback ? 0 : 1, SimpleContainerImpl.this, api, factory, cache, services.logs());
+                return new VariantResolverClass(isFallback ? 0 : 1, SimpleContainerImpl.this, api, factory, cache, logs);
             }
 
             public FactoryResolver factory(final Class<?> api, final ComponentCache cache) {
                 final Class<? extends ComponentFactory> factory = implementation.asSubclass(ComponentFactory.class);
-                return new FactoryResolverClass(isFallback ? 0 : 1, api, factory, cache, services.logs());
+                return new FactoryResolverClass(isFallback ? 0 : 1, api, factory, cache, logs);
             }
         });
     }
@@ -254,7 +264,7 @@ final class SimpleContainerImpl implements SimpleContainer {
             }
 
             public ComponentResolver component(final Class<?> api, final ComponentCache cache, final boolean resolvesFactory) {
-                return new InstanceResolver(isFallback ? 0 : 1, api, instance, services.logs());
+                return new InstanceResolver(isFallback ? 0 : 1, api, instance, logs);
             }
 
             @SuppressWarnings("ConstantConditions")
@@ -263,20 +273,19 @@ final class SimpleContainerImpl implements SimpleContainer {
                                                    SimpleContainerImpl.this,
                                                    api,
                                                    (ComponentVariantFactory) instance,
-                                                   cache,
-                                                   services.logs());
+                                                   cache, logs);
             }
 
             @SuppressWarnings("ConstantConditions")
             public FactoryResolver factory(final Class<?> api, final ComponentCache cache) {
-                return new FactoryResolverInstance(isFallback ? 0 : 1, api, (ComponentFactory) instance, cache, services.logs());
+                return new FactoryResolverInstance(isFallback ? 0 : 1, api, (ComponentFactory) instance, cache, logs);
             }
         });
     }
 
     public SimpleContainer linkComponent(final Class<?> implementation, final Class<?>[] componentInterfaces, final Class<?>[] groupInterfaces)
             throws ComponentContainer.BindingException {
-        final LogFactory logs = services.logs();
+        final LogFactory logs = this.logs;
         final SimpleContainer child = newChildContainer();
 
         child.bindComponent(implementation, componentInterfaces, groupInterfaces);
@@ -291,67 +300,8 @@ final class SimpleContainerImpl implements SimpleContainer {
     }
 
     public ComponentResolver resolver(final Class<?> api, final boolean ascend) {
-        final ComponentResolver resolver = contents.get(api);
+        final ComponentResolver resolver = components.get(api);
         return resolver == null && parent != null && ascend ? parent.resolver(api, ascend) : resolver;
-    }
-
-    public Object component(final Class<?> key, final ContextDefinition context) {
-        final ComponentResolver resolver = contents.get(key);
-
-        if (resolver == null) {
-            return parent == null ? null : parent.component(key, context);
-        } else if (resolver.isGroupMapping()) {
-            return null;
-        } else {
-            return path.follow(key, context, resolver, new DependencyPath.Command() {
-                public Object run(final ContextDefinition context) {
-                    return resolver.getComponent(context, SimpleContainerImpl.this, key);
-                }
-            });
-        }
-    }
-
-    public Object[] group(final Class<?> key, final ContextDefinition context) throws ComponentContainer.ResolutionException {
-        final ComponentResolver resolver = contents.get(key);
-
-        if (resolver == null) {
-            return parent == null ? null : parent.group(key, context);
-        } else if (!resolver.isGroupMapping()) {
-            return null;
-        } else {
-            final Object[] nested = (Object[]) path.follow(Array.newInstance(key, 0).getClass(), context, resolver, new DependencyPath.Command() {
-                public Object run(final ContextDefinition context) {
-                    return resolver.getComponent(context, SimpleContainerImpl.this, key);
-                }
-            });
-
-            final Object[] enclosing = parent == null ? null : parent.group(key, context);
-
-            if (enclosing != null && enclosing.length > 0) {
-                final List<Object> list = new ArrayList<Object>(enclosing.length + nested.length);
-
-                list.addAll(Arrays.asList(enclosing));
-                list.addAll(Arrays.asList(nested));
-
-                return list.toArray((Object[]) Array.newInstance(key, list.size()));
-            } else {
-                return nested;
-            }
-        }
-    }
-
-    public Object initialize(final Object component, final ContextDefinition context) {
-        throw new UnsupportedOperationException();
-/*
-        final Class<?> componentClass = component.getClass();
-        final ComponentMapping mapping = new InstanceMapping(component);
-
-        return path.follow(componentClass, context, mapping, new DependencyPath.Command() {
-            public Object run(final ContextDefinition context) {
-                return injector.injectFields(traversal, SimpleContainerImpl.this, mapping, context, component);
-            }
-        });
-*/
     }
 
     public String id() {
@@ -360,7 +310,7 @@ final class SimpleContainerImpl implements SimpleContainer {
     }
 
     public void replaceResolver(final Class<?> key, final ComponentResolver previous, final ComponentResolver replacement) {
-        for (final ComponentResolver resolver : contents.values()) {
+        for (final ComponentResolver resolver : components.values()) {
             resolver.resolverReplaced(key, previous, replacement);
         }
 
@@ -374,37 +324,33 @@ final class SimpleContainerImpl implements SimpleContainer {
         return String.format("container %s", id());
     }
 
-    public Node traverse(final Class<?> api, final Traversal traversal) {
-        return resolveComponentNode(api, null, traversal);
+    public Object initialize(final Object component, final ContextDefinition context) {
+        return injector.fields(services.graphTraversal(), this, new InstanceMapping(component), context, component);
     }
 
-    public Node resolveComponentNode(final Class<?> api, final ContextDefinition context, final Traversal traversal) {
-        final ComponentResolver edge = contents.get(api);
+    public Node resolveComponent(final Class<?> api, final ContextDefinition context, final Traversal traversal) {
+            final ComponentResolver resolver = components.get(api);
 
-        if (edge == null) {
-            return parent == null ? null : parent.resolveComponentNode(api, context, traversal);
-        } else if (edge.isGroupMapping()) {
-            return null;
-        } else {
-            return traversal.follow(this, context, false, new Reference() {
-                public Class<?> api() {
-                    return api;
-                }
+            if (resolver == null) {
+                return parent == null ? null : parent.resolveComponent(api, context, traversal);
+            } else {
+                return traversal.follow(this, context, false, new Reference() {
+                    public Class<?> api() {
+                        return api;
+                    }
 
-                public Node resolve(final Traversal traversal, final ContextDefinition context, final boolean explore) {
-                    return edge.resolve(traversal, SimpleContainerImpl.this, context, explore);
-                }
-            });
-        }
+                    public Node resolve(final Traversal traversal, final ContextDefinition context, final boolean explore) {
+                        return resolver.resolve(traversal, SimpleContainerImpl.this, context, explore);
+                    }
+                });
+            }
     }
 
-    public Node resolveGroupNode(final Class<?> api, final ContextDefinition context, final Traversal traversal) {
-        final ComponentResolver edge = contents.get(api.getComponentType());
+    public Node resolveGroup(final Class<?> api, final ContextDefinition context, final Traversal traversal) {
+        final GroupResolver group = groups.get(api);
 
-        if (edge == null) {
-            return parent == null ? null : parent.resolveGroupNode(api, context, traversal);
-        } else if (edge.isGroupMapping()) {
-            return null;
+        if (group == null) {
+            return parent == null ? null : parent.resolveComponent(api, context, traversal);
         } else {
             return traversal.follow(this, context, true, new Reference() {
                 public Class<?> api() {
@@ -416,17 +362,14 @@ final class SimpleContainerImpl implements SimpleContainer {
                 }
             });
         }
-
     }
 
     public List<Node> resolveGroup(final Traversal traversal, final Class<?> api, final ContextDefinition context, final boolean explore) {
-        final ComponentResolver edge = contents.get(api.getComponentType());
+        final GroupResolver group = groups.get(api.getComponentType());
         final List<Node> enclosing = parent == null ? null : parent.resolveGroup(traversal, api, context, explore);
 
-        if (edge == null) {
+        if (group == null) {
             return enclosing;
-        } else if (!edge.isGroupMapping()) {
-            return null;
         } else {
             final List<Node> list = new ArrayList<Node>();
 
@@ -434,7 +377,7 @@ final class SimpleContainerImpl implements SimpleContainer {
                 list.addAll(enclosing);
             }
 
-            ((GroupResolver) edge).resolve(traversal, this, context, explore, list);
+            group.resolve(traversal, this, context, explore, list);
 
             return list;
         }
@@ -469,15 +412,15 @@ final class SimpleContainerImpl implements SimpleContainer {
     }
 
     public ComponentContainer container(final ContextDefinition context) {
-        return new ComponentContainerShell(this, services, context, false);
+        return new ComponentContainerShell(this, context, false);
     }
 
-    public Object resolveComponent(final Class<?> type, final ContextDefinition context) throws ComponentContainer.ResolutionException {
-        throw new UnsupportedOperationException();
+    public Node resolveComponent(final Class<?> api, final ContextDefinition context, final Traversal.Strategy strategy, final Traversal.Observer observer) {
+        return resolveComponent(api, context, services.graphTraversal(strategy, observer));
     }
 
-    public Object[] resolveGroup(final Class<?> type, final ContextDefinition context) throws ComponentContainer.ResolutionException {
-        throw new UnsupportedOperationException();
+    public Node resolveGroup(final Class<?> api, final ContextDefinition context, final Traversal.Strategy strategy, final Traversal.Observer observer) {
+        return resolveGroup(api, context, services.graphTraversal(strategy, observer));
     }
 
     /**
@@ -534,27 +477,9 @@ final class SimpleContainerImpl implements SimpleContainer {
     private class InstanceMapping implements ComponentMapping {
 
         private final Class<?> componentClass;
-        private final Object instance;
 
         public InstanceMapping(final Object component) {
-            this.instance = component;
             this.componentClass = component.getClass();
-        }
-
-        public Node resolve(final Traversal traversal, final Container container, final ContextDefinition context) {
-            return new Node() {
-                public Class<?> type() {
-                    return componentClass;
-                }
-
-                public Object instance() {
-                    return instance;
-                }
-            };
-        }
-
-        public boolean isFactoryMapping() {
-            return false;
         }
 
         public <T extends Annotation> T contextSpecification(final Class<T> type) {

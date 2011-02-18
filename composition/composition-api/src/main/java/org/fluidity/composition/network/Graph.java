@@ -29,7 +29,9 @@ import java.util.List;
  */
 public interface Graph {
 
-    Node traverse(Class<?> api, Traversal traversal);
+    Node resolveComponent(Class<?> api, ContextDefinition context, Traversal.Strategy strategy, Traversal.Observer observer);
+
+    Node resolveGroup(Class<?> api, ContextDefinition context, Traversal.Strategy strategy, Traversal.Observer observer);
 
     interface Node {
 
@@ -42,6 +44,7 @@ public interface Graph {
             private final Object instance;
 
             public Constant(final Object instance) {
+                assert instance != null;
                 this.instance = instance;
             }
 
@@ -64,17 +67,17 @@ public interface Graph {
 
     interface Traversal {
 
-        Node follow(final Container container, ContextDefinition context, final boolean explore, Reference reference);
+        Node follow(final Graph graph, ContextDefinition context, final boolean explore, Reference reference);
 
         interface Strategy {
 
             Strategy DEFAULT = new Strategy() {
-                public Node resolve(final boolean circular, final Container container, final Traversal traversal, final Trail trail) {
+                public Node resolve(final boolean circular, final Graph graph, final Traversal traversal, final Trail trail) {
                     return trail.advance();
                 }
             };
 
-            Node resolve(boolean circular, Container container, Traversal traversal, Trail trail);
+            Node resolve(boolean circular, Graph graph, Traversal traversal, Trail trail);
         }
 
         interface Observer {
@@ -95,15 +98,5 @@ public interface Graph {
         Class<?> api();
 
         Node resolve(Traversal traversal, ContextDefinition context, final boolean explore);
-    }
-
-    /**
-     * TODO: documentation
-     */
-    interface Container extends Graph {
-
-        Node resolveComponentNode(Class<?> api, ContextDefinition context, Traversal traversal);
-
-        Node resolveGroupNode(Class<?> api, ContextDefinition context, Traversal traversal);
     }
 }

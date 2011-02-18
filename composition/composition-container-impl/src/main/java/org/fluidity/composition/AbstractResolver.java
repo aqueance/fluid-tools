@@ -22,7 +22,6 @@
 
 package org.fluidity.composition;
 
-import org.fluidity.composition.network.ContextDefinition;
 import org.fluidity.foundation.logging.Log;
 import org.fluidity.foundation.spi.LogFactory;
 
@@ -45,22 +44,6 @@ abstract class AbstractResolver implements ComponentResolver {
         this.log = logs.createLog(getClass());
     }
 
-    /**
-     * Returns the command to use to get a component instance. Called only when no circular references were detected.
-     *
-     * @param container the container containing this resolver.
-     * @param api       the API the component is requested for.
-     *
-     * @return a command or <code>null</code> if no instance should be created.
-     */
-    protected ComponentCache.Instantiation createCommand(final SimpleContainer container, final Class<?> api) {
-        return null;
-    }
-
-    public Object getComponent(final ContextDefinition context, final SimpleContainer container, final Class<?> api) {
-        return cache.lookup(container, context, api, createCommand(container, api));
-    }
-
     public int priority() {
         return priority;
     }
@@ -79,19 +62,11 @@ abstract class AbstractResolver implements ComponentResolver {
         // empty
     }
 
-    public boolean isFactoryMapping() {
-        return false;
-    }
-
     public boolean isVariantMapping() {
         return false;
     }
 
     public boolean isInstanceMapping() {
-        return false;
-    }
-
-    public boolean isGroupMapping() {
         return false;
     }
 }

@@ -22,6 +22,7 @@
 
 package org.fluidity.composition;
 
+import org.fluidity.composition.network.Graph;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**
@@ -33,26 +34,31 @@ final class ProductionServices implements ContainerServices {
 
     private final LogFactory logs;
     private final ClassDiscovery classDiscovery;
-    private final DependencyPath dependencyPath;
     private final DependencyInjector dependencyInjector;
+    private final DependencyPathTraversal traversal;
 
     public ProductionServices(final LogFactory logs) {
         this.logs = logs;
         this.classDiscovery = new ClassDiscoveryImpl(logs);
-        this.dependencyPath = new DependencyPathImpl();
         this.dependencyInjector = new DependencyInjectorImpl();
+        traversal = new DependencyPathTraversal(Graph.Traversal.Strategy.DEFAULT, Graph.Traversal.Observer.DEFAULT);
     }
 
     public ClassDiscovery classDiscovery() {
         return classDiscovery;
     }
 
-    public DependencyPath dependencyPath() {
-        return dependencyPath;
-    }
-
     public DependencyInjector dependencyInjector() {
         return dependencyInjector;
+    }
+
+    public Graph.Traversal graphTraversal() {
+        return traversal;
+    }
+
+    public Graph.Traversal graphTraversal(final Graph.Traversal.Strategy strategy, final Graph.Traversal.Observer observer) {
+        return new DependencyPathTraversal(strategy == null ? Graph.Traversal.Strategy.DEFAULT : strategy,
+                                           observer == null ? Graph.Traversal.Observer.DEFAULT : observer);
     }
 
     public LogFactory logs() {

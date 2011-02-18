@@ -72,18 +72,6 @@ final class ConstructingResolver extends AbstractResolver {
         return constructor;
     }
 
-    @Override
-    protected ComponentCache.Instantiation createCommand(final SimpleContainer container, final Class<?> api) {
-        throw new UnsupportedOperationException();
-/*
-        return new ComponentCache.Instantiation() {
-            public Object perform(final ContextDefinition context) {
-                return injector.injectConstructor(traversal, container, ConstructingResolver.this, context, constructor());
-            }
-        };
-*/
-    }
-
     private Constructor<?> findComponentConstructor() {
 
         /*
@@ -164,7 +152,7 @@ final class ConstructingResolver extends AbstractResolver {
         if (instance != null) {
             return new Graph.Node.Constant(instance);
         } else {
-            final Graph.Node node = injector.resolve(traversal, container, this, context, constructor());
+            final Graph.Node node = injector.constructor(traversal, container, this, context, constructor());
 
             return new Graph.Node() {
                 public Class<?> type() {

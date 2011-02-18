@@ -45,11 +45,11 @@ import org.fluidity.foundation.Strings;
  */
 final class DependencyInjectorImpl implements DependencyInjector {
 
-    public <T> T injectFields(final Graph.Traversal traversal,
-                              final DependencyResolver container,
-                              final ComponentMapping mapping,
-                              final ContextDefinition context,
-                              final T instance) {
+    public <T> T fields(final Graph.Traversal traversal,
+                        final DependencyResolver container,
+                        final ComponentMapping mapping,
+                        final ContextDefinition context,
+                        final T instance) {
         assert container != null;
 
         if (instance != null) {
@@ -58,17 +58,17 @@ final class DependencyInjectorImpl implements DependencyInjector {
 
             context.collect(resolveFields(traversal, container, mapping, context, componentClass, fieldNodes));
 
-            injectFields(container, fieldNodes, instance);
+            injectFields(fieldNodes, instance);
         }
 
         return instance;
     }
 
-    public Graph.Node resolve(final Graph.Traversal traversal,
-                              final DependencyResolver container,
-                              final ComponentMapping mapping,
-                              final ContextDefinition context,
-                              final Constructor<?> constructor) {
+    public Graph.Node constructor(final Graph.Traversal traversal,
+                                  final DependencyResolver container,
+                                  final ComponentMapping mapping,
+                                  final ContextDefinition context,
+                                  final Constructor<?> constructor) {
         final List<ContextDefinition> consumed = new ArrayList<ContextDefinition>();
 
         final Class<?> componentClass = constructor.getDeclaringClass();
@@ -116,7 +116,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
             }
 
             public Object instance() {
-                return injectFields(container, fields, Exceptions.wrap(String.format("instantiating %s", componentClass), new Exceptions.Command<Object>() {
+                return injectFields(fields, Exceptions.wrap(String.format("instantiating %s", componentClass), new Exceptions.Command<Object>() {
                     public Object run() throws Exception {
                         constructor.setAccessible(true);
                         return constructor.newInstance(create(arguments));
@@ -126,7 +126,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
         };
     }
 
-    private Object injectFields(final Graph.Container container, final Map<Field, Graph.Node> fieldNodes, final Object instance) {
+    private Object injectFields(final Map<Field, Graph.Node> fieldNodes, final Object instance) {
         return Exceptions.wrap(String.format("setting %s fields", instance.getClass()), new Exceptions.Command<Object>() {
             public Object run() throws Exception {
                 for (final Map.Entry<Field, Graph.Node> entry : fieldNodes.entrySet()) {
@@ -225,7 +225,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
                         declaringType);
             }
 
-            dependency.set(container.resolveGroupNode(dependencyType, context, traversal));
+            dependency.set(container.resolveComponent(dependencyType, context, traversal));
         } else if (dependency.type() == ComponentContext.class) {
             dependency.set(new Graph.Node.Constant(context.reduce(mapping.contextSpecification(Context.class)).create()));
         } else {
@@ -247,7 +247,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
                 final ComponentMapping dependencyMapping = container.mapping(dependencyType);
 
                 if (dependencyMapping != null) {
-                    node = container.resolveComponentNode(dependencyType, context.reduce(dependencyMapping.contextSpecification(Context.class)), traversal);
+                    node = container.resolveComponent(dependencyType, context.reduce(dependencyMapping.contextSpecification(Context.class)), traversal);
                 }
             }
 

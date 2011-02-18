@@ -22,6 +22,7 @@
 
 package org.fluidity.composition;
 
+import org.fluidity.composition.network.Graph;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**
@@ -39,18 +40,28 @@ public interface ContainerServices {
     ClassDiscovery classDiscovery();
 
     /**
-     * Returns the component that tracka references from one component to the other.
-     *
-     * @return the component that tracka references from one component to the other.
-     */
-    DependencyPath dependencyPath();
-
-    /**
      * Returns the component that can perform dependency injection to constructors or fields.
      *
      * @return the component that can perform dependency injection to constructors or fields.
      */
     DependencyInjector dependencyInjector();
+
+    /**
+     * Returns the default graph traversal.
+     *
+     * @return the default graph traversal.
+     */
+    Graph.Traversal graphTraversal();
+
+    /**
+     * Returns the default graph traversal with the given strategy and observer.
+     *
+     * @param strategy the traversal strategy to use.
+     * @param observer the traversal observer to use.
+     *
+     * @return the default graph traversal with the given strategy and observer.
+     */
+    Graph.Traversal graphTraversal(Graph.Traversal.Strategy strategy, Graph.Traversal.Observer observer);
 
     /**
      * Returns the logger factory to use by the container.

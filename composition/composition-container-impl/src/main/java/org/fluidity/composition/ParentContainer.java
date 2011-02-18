@@ -22,31 +22,14 @@
 
 package org.fluidity.composition;
 
-import org.fluidity.composition.network.Graph;
-import org.fluidity.composition.spi.ComponentVariantFactory;
-import org.fluidity.foundation.spi.LogFactory;
+import java.util.List;
+
+import org.fluidity.composition.network.ContextDefinition;
 
 /**
- * Component mapping for a {@link ComponentVariantFactory} instance.
- *
- * @author Tibor Varga
- */
-final class VariantResolverInstance extends VariantResolver {
+* TODO: documentation
+*/
+interface ParentContainer extends SimpleContainer {
 
-    private final ComponentVariantFactory factory;
-
-    public VariantResolverInstance(final int priority,
-                                   final SimpleContainer container,
-                                   final Class<?> api,
-                                   final ComponentVariantFactory factory,
-                                   final ComponentCache cache,
-                                   final LogFactory logs) {
-        super(priority, container, api, factory.getClass(), cache, logs);
-        this.factory = factory;
-    }
-
-    @Override
-    protected ComponentVariantFactory factory(final SimpleContainer container, final Graph.Traversal traversal) {
-        return factory;
-    }
+    List<Node> resolveGroup(Traversal traversal, Class<?> api, ContextDefinition context, final boolean explore);
 }

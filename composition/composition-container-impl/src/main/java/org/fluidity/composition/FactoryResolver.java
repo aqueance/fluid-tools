@@ -40,14 +40,13 @@ abstract class FactoryResolver extends AbstractResolver {
 
     /**
      * Returns the {@link ComponentFactory} instance this is a mapping for.
-     *
-     *
-     *
+
      * @param container the container in which to resolve dependencies of the factory.
+     * @param traversal
      *
      * @return the {@link ComponentFactory} instance this is a mapping for.
      */
-    protected abstract ComponentFactory factory(final SimpleContainer container);
+    protected abstract ComponentFactory factory(final SimpleContainer container, final Graph.Traversal traversal);
 
     public FactoryResolver(final int priority,
                            final Class<?> api,
@@ -58,11 +57,6 @@ abstract class FactoryResolver extends AbstractResolver {
         this.factoryClass = factoryClass;
     }
 
-    @Override
-    public boolean isFactoryMapping() {
-        return true;
-    }
-
     public Annotation[] providedContext() {
         return null;
     }
@@ -71,25 +65,14 @@ abstract class FactoryResolver extends AbstractResolver {
         return factoryClass.getAnnotation(type);
     }
 
-    @Override
-    protected ComponentCache.Instantiation createCommand(final SimpleContainer container, final Class<?> api) {
-        return new ComponentCache.Instantiation() {
-            public Object perform(final ContextDefinition context) {
-                final SimpleContainer child = container.newChildContainer();
-                factory(container).newComponent(new ComponentContainerShell(child, context, false), context.create());
-                return child.component(api, context);
-            }
-        };
-    }
-
     public final Class<? extends ComponentFactory> factoryClass() {
         return factoryClass;
     }
 
     public Graph.Node resolve(final Graph.Traversal traversal, final SimpleContainer container, final ContextDefinition context, final boolean explore) {
         final SimpleContainer child = container.newChildContainer();
-        factory(container).newComponent(new ComponentContainerShell(child, context, false), context.create());
-        return child.resolveComponentNode(api, context, traversal);
+        factory(container, traversal).newComponent(new ComponentContainerShell(child, context, false), context.create());
+        return child.resolveComponent(api, context, traversal);
     }
 
     @Override

@@ -30,17 +30,20 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.fluidity.composition.network.ContextDefinition;
+import org.fluidity.composition.network.Graph;
 import org.fluidity.composition.spi.ComponentMapping;
 import org.fluidity.composition.spi.DependencyResolver;
 import org.fluidity.tests.MockGroupAbstractTest;
 
 import org.easymock.EasyMock;
+import org.testng.annotations.Test;
 
 /**
  * @author Tibor Varga
  */
 public class DependencyInjectorImplTest extends MockGroupAbstractTest {
 
+    private final Graph.Traversal traversal = addControl(Graph.Traversal.class);
     private final DependencyResolver resolver = addControl(DependencyResolver.class);
     private final ComponentMapping mapping = addControl(ComponentMapping.class);
 
@@ -50,9 +53,6 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
     private final DependencyInjector injector = new DependencyInjectorImpl();
 
     private final ComponentMapping dummyMapping = new ComponentMapping() {
-        public boolean isFactoryMapping() {
-            return false;
-        }
 
         public <T extends Annotation> T contextSpecification(Class<T> type) {
             return null;
@@ -125,7 +125,7 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
             assert component == null || component.getClass().isArray() : component.getClass();
             final Object[] services = (Object[]) component;
 
-            EasyMock.expect(resolver.resolveGroup(dependencyType.getComponentType(), copy)).andReturn(services);
+            EasyMock.expect(resolver.resolveComponent(dependencyType.getComponentType(), copy, traversal)).andReturn(new Graph.Node.Constant(services));
         } else if (dependencyType == ComponentContext.class) {
             EasyMock.expect(mapping.contextSpecification(Context.class)).andReturn(contextAnnotations);
             EasyMock.expect(copy.reduce(contextAnnotations)).andReturn(copy);
@@ -152,7 +152,7 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
                 EasyMock.expect(resolver.mapping(dependencyType)).andReturn(mapping);
                 EasyMock.expect(mapping.contextSpecification(Context.class)).andReturn(acceptedContext);
                 EasyMock.expect(copy.reduce(acceptedContext)).andReturn(copy);
-                EasyMock.expect(resolver.resolveComponent(dependencyType, copy)).andReturn(component);
+                EasyMock.expect(resolver.resolveComponent(dependencyType, copy, traversal)).andReturn(new Graph.Node.Constant(component));
             }
         }
         return copy;
@@ -162,7 +162,6 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
         EasyMock.expect(context.collect(Arrays.asList(copies))).andReturn(context);
     }
 
-/*
     @Test
     @SuppressWarnings("unchecked")
     public void injectsFields() throws Exception {
@@ -177,12 +176,12 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
         final ServiceImpl1 service1 = new ServiceImpl1();
         final ServiceImpl2 service2 = new ServiceImpl2();
 
-        EasyMock.expect(resolver.resolveGroup(Service.class, copy2)).andReturn(new Service[] { service1, service2 });
+        EasyMock.expect(resolver.resolveComponent(Service.class, copy2, traversal)).andReturn(new Graph.Node.Constant(new Service[] { service1, service2 }));
 
         setupCollection(context, copy1, copy2);
 
         replay();
-        assert component == injector.injectFields(traversal, resolver, dummyMapping, context, component);
+        assert component == injector.fields(traversal, resolver, dummyMapping, context, component);
         verify();
 
         assert component.dependency == dependency : component.dependency;
@@ -200,7 +199,7 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
         setupFieldResolution(FieldInjected.class, "dependency", null, null, null, null);
 
         replay();
-        assert component == injector.injectFields(traversal, resolver, dummyMapping, context, component);
+        assert component == injector.fields(traversal, resolver, dummyMapping, context, component);
         verify();
     }
 
@@ -211,7 +210,7 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
         setupCollection(context, setupFieldResolution(OptionalFieldInjected.class, "dependency", null, null, null, null));
 
         replay();
-        assert component == injector.injectFields(traversal, resolver, dummyMapping, context, component);
+        assert component == injector.fields(traversal, resolver, dummyMapping, context, component);
         verify();
 
         assert component.dependency == null : component.dependency;
@@ -233,7 +232,7 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
         ConstructorInjected.expectedGroupSize = services.length;
 
         replay();
-        assert injector.injectConstructor(traversal, resolver, dummyMapping, context, constructor) != null;
+        assert injector.constructor(traversal, resolver, dummyMapping, context, constructor) != null;
         verify();
     }
 
@@ -248,7 +247,7 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
                         setupFieldResolution(component.getClass(), "context", container, null, created, null));
 
         replay();
-        assert component == injector.injectFields(traversal, resolver, mapping, context, component);
+        assert component == injector.fields(traversal, resolver, mapping, context, component);
         verify();
 
         assert component.container == container : component.container;
@@ -262,10 +261,9 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
         setupCollection(context);   // contexts for an empty field list
 
         replay();
-        assert injector.injectConstructor(traversal, resolver, dummyMapping, context, constructor) != null;
+        assert injector.constructor(traversal, resolver, dummyMapping, context, constructor) != null;
         verify();
     }
-*/
 
     private final class FieldInjected {
 

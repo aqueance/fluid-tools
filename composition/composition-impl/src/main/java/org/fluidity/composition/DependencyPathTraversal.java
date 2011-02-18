@@ -49,7 +49,7 @@ final class DependencyPathTraversal implements Graph.Traversal {
         this.observer = observer;
     }
 
-    public Graph.Node follow(final Graph.Container container, final ContextDefinition context, final boolean explore, final Graph.Reference reference) {
+    public Graph.Node follow(final Graph graph, final ContextDefinition context, final boolean explore, final Graph.Reference reference) {
         final Class<?> api = reference.api();
 
         final ContextDefinition newContext = context == null ? new ContextDefinitionImpl() : context;
@@ -72,18 +72,18 @@ final class DependencyPathTraversal implements Graph.Traversal {
 
                 public Graph.Node advance() {
                     if (circular) {
-                        return deferredCreate(container, reference, newContext, newPath, null);
+                        return deferredCreate(graph, reference, newContext, newPath, null);
                     } else {
                         try {
                             return reference.resolve(DependencyPathTraversal.this, newContext, explore);
                         } catch (final ComponentContainer.CircularReferencesException error) {
-                            return deferredCreate(container, reference, newContext, newPath, error);
+                            return deferredCreate(graph, reference, newContext, newPath, error);
                         }
                     }
                 }
             };
 
-            final Graph.Node replacement = strategy.resolve(circular, container, this, trail);
+            final Graph.Node replacement = strategy.resolve(circular, graph, this, trail);
             final Graph.Node node = replacement == null ? trail.advance() : replacement;
 
             return new Graph.Node() {
@@ -119,7 +119,7 @@ final class DependencyPathTraversal implements Graph.Traversal {
     }
 
     @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
-    public Graph.Node deferredCreate(final Graph.Container container,
+    public Graph.Node deferredCreate(final Graph graph,
                                      final Graph.Reference reference,
                                      final ContextDefinition context,
                                      final Loop path,
@@ -141,7 +141,7 @@ final class DependencyPathTraversal implements Graph.Traversal {
                             cache = delegate;
 
                             if (cache == null) {
-                                delegate = cache = follow(container, context, false, new DeferredReference(reference, error)).instance();
+                                delegate = cache = follow(graph, context, false, new DeferredReference(reference, error)).instance();
                             }
                         }
                     }

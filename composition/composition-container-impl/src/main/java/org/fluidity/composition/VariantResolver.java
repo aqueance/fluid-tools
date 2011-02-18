@@ -43,14 +43,13 @@ abstract class VariantResolver extends AbstractResolver {
 
     /**
      * Returns the {@link ComponentVariantFactory} instance this is a mapping for.
-     *
-     *
-     *
+
      * @param container the container in which to resolve dependencies of the factory.
+     * @param traversal
      *
      * @return the {@link ComponentVariantFactory} instance this is a mapping for.
      */
-    protected abstract ComponentVariantFactory factory(final SimpleContainer container);
+    protected abstract ComponentVariantFactory factory(final SimpleContainer container, final Graph.Traversal traversal);
 
     public VariantResolver(final int priority,
                            final SimpleContainer container,
@@ -92,11 +91,6 @@ abstract class VariantResolver extends AbstractResolver {
         }
     }
 
-    @Override
-    public boolean isFactoryMapping() {
-        return true;
-    }
-
     private ComponentResolver findDelegate() {
         if (delegate == null) {
             delegate = parent == null ? null : parent.resolver(api, true);
@@ -115,18 +109,6 @@ abstract class VariantResolver extends AbstractResolver {
 
     public <T extends Annotation> T contextSpecification(final Class<T> type) {
         return factoryClass.getAnnotation(type);
-    }
-
-    @Override
-    protected ComponentCache.Instantiation createCommand(final SimpleContainer container, final Class<?> api) {
-        return new ComponentCache.Instantiation() {
-            public Object perform(final ContextDefinition context) {
-                final SimpleContainer child = container.newChildContainer();
-                child.bindResolver(api, findDelegate());
-                factory(container).newComponent(new ComponentContainerShell(child, context, false), context.create());
-                return child.component(api, context);
-            }
-        };
     }
 
     @Override
@@ -155,8 +137,8 @@ abstract class VariantResolver extends AbstractResolver {
     public Graph.Node resolve(final Graph.Traversal traversal, final SimpleContainer container, final ContextDefinition context, final boolean explore) {
         final SimpleContainer child = container.newChildContainer();
         child.bindResolver(api, findDelegate());
-        factory(container).newComponent(new ComponentContainerShell(child, context, false), context.create());
-        return child.resolveComponentNode(api, context, traversal);
+        factory(container, traversal).newComponent(new ComponentContainerShell(child, context, false), context.create());
+        return child.resolveComponent(api, context, traversal);
     }
 
     @Override

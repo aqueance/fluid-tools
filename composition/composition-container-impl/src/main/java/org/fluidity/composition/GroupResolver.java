@@ -22,9 +22,6 @@
 
 package org.fluidity.composition;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Array;
-import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -37,70 +34,17 @@ import org.fluidity.composition.network.Graph;
  *
  * @author Tibor Varga
  */
-final class GroupResolver implements ComponentResolver {
+final class GroupResolver {
 
     private final Set<Class<?>> members = new LinkedHashSet<Class<?>>();
 
-    public boolean isFactoryMapping() {
-        return false;
-    }
-
-    public <T extends Annotation> T contextSpecification(final Class<T> type) {
-        return null;
-    }
-
-    public Annotation[] providedContext() {
-        return null;
-    }
-
-    public Graph.Node resolve(final Graph.Traversal traversal, final SimpleContainer container, final ContextDefinition context, final boolean explore) {
-        // TODO: this is not right, groups is not really an edge
-        throw new UnsupportedOperationException();
-    }
-
-    // TODO: this is not right, groups is not really an edge
     public void resolve(final Graph.Traversal traversal, final SimpleContainer container, final ContextDefinition context, final boolean explore, final List<Graph.Node> list) {
         for (final Class<?> member : members) {
             list.add(container.resolver(member, false).resolve(traversal, container, context, explore));
         }
     }
 
-    public int priority() {
-        return 0;
-    }
-
-    public boolean isVariantMapping() {
-        return false;
-    }
-
-    public boolean isInstanceMapping() {
-        return false;
-    }
-
-    public boolean isGroupMapping() {
-        return true;
-    }
-
-    public boolean replaces(final ComponentResolver resolver) {
-        throw new UnsupportedOperationException();
-    }
-
-    @SuppressWarnings("unchecked")
-    public Object getComponent(final ContextDefinition context, final SimpleContainer container, final Class<?> api) {
-        final List instances = new ArrayList();
-
-        for (final Class<?> member : members) {
-            instances.add(container.component(member, context));
-        }
-
-        return instances.toArray((Object[]) Array.newInstance(api, instances.size()));
-    }
-
     public void add(final Class<?> implementation) {
         members.add(implementation);
-    }
-
-    public void resolverReplaced(final Class<?> api, final ComponentResolver previous, final ComponentResolver replacement) {
-        // empty
     }
 }

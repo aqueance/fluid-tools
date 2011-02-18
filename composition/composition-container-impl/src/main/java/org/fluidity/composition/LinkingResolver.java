@@ -52,12 +52,8 @@ final class LinkingResolver extends AbstractResolver {
         return delegate.contextSpecification(type);
     }
 
-    @Override
-    public boolean isFactoryMapping() {
-        return delegate.isFactoryMapping();
-    }
-
     public Graph.Node resolve(final Graph.Traversal traversal, final SimpleContainer container, final ContextDefinition context, final boolean explore) {
+        assert target.parentContainer() == container;
         return delegate.resolve(traversal, container, context, explore);
     }
 
@@ -69,11 +65,6 @@ final class LinkingResolver extends AbstractResolver {
     @Override
     public boolean isInstanceMapping() {
         return delegate.isInstanceMapping();
-    }
-
-    public Object getComponent(final ContextDefinition context, final SimpleContainer container, final Class<?> api) {
-        assert target.parentContainer() == container;
-        return delegate.getComponent(context, target, api);
     }
 
     @Override

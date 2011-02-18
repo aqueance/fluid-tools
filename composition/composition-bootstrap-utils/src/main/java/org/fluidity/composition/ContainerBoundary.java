@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
 
+import org.fluidity.composition.network.Graph;
 import org.fluidity.composition.spi.ContainerProvider;
 import org.fluidity.foundation.spi.LogFactory;
 
@@ -137,6 +138,10 @@ public final class ContainerBoundary implements ComponentContainer {
     @SuppressWarnings("unchecked")
     public <T> void bindBootComponent(final Class<? super T> key, final T instance) {
         loadContainer(false).getRegistry().bindInstance(instance, key);
+    }
+
+    public Graph getGraph() {
+        return loadContainer(true).getGraph();
     }
 
     /**

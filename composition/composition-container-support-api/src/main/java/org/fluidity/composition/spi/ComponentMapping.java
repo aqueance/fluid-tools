@@ -32,13 +32,6 @@ import java.lang.annotation.Annotation;
 public interface ComponentMapping {
 
     /**
-     * Tells if this mapping is that of a {@link ComponentFactory} or {@link ComponentVariantFactory}.
-     *
-     * @return <code>true</code> if the annotations of this mapping should be taken in place of those of its reference, <code>false</code> otherwise.
-     */
-    boolean isFactoryMapping();
-
-    /**
      * Returns the mapping annotation of the given type, if any.
      *
      * @param type the class of the annotation to return.

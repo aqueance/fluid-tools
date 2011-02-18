@@ -30,7 +30,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.fluidity.composition.network.ContextDefinition;
-import org.fluidity.composition.spi.ComponentMapping;
+import org.fluidity.composition.network.Graph;
 import org.fluidity.composition.spi.ContainerProvider;
 import org.fluidity.composition.spi.EmptyPackageBindings;
 import org.fluidity.composition.spi.PackageBindings;
@@ -39,7 +39,6 @@ import org.fluidity.foundation.spi.LogFactory;
 import org.fluidity.tests.MockGroupAbstractTest;
 
 import org.easymock.EasyMock;
-import org.easymock.IAnswer;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -54,7 +53,7 @@ public abstract class ContainerProviderAbstractTest extends MockGroupAbstractTes
 
     private final ContainerServices services = addControl(ContainerServices.class);
     private final ClassDiscovery classDiscovery = addControl(ClassDiscovery.class);
-    private final DependencyPath dependencyPath = addControl(DependencyPath.class);
+    private final Graph.Traversal traversal = addControl(Graph.Traversal.class);
     private final DependencyInjector dependencyInjector = addControl(DependencyInjector.class);
     private final ComponentCache componentCache = addControl(ComponentCache.class);
 
@@ -73,7 +72,6 @@ public abstract class ContainerProviderAbstractTest extends MockGroupAbstractTes
     public void dependencies() {
         EasyMock.expect(services.logs()).andReturn(logs).anyTimes();
         EasyMock.expect(services.classDiscovery()).andReturn(classDiscovery).anyTimes();
-        EasyMock.expect(services.dependencyPath()).andReturn(dependencyPath).anyTimes();
         EasyMock.expect(services.dependencyInjector()).andReturn(dependencyInjector).anyTimes();
         EasyMock.expect(services.newCache(EasyMock.anyBoolean())).andReturn(componentCache).anyTimes();
     }
@@ -90,15 +88,13 @@ public abstract class ContainerProviderAbstractTest extends MockGroupAbstractTes
     public void standaloneBindings() throws Exception {
         final List assemblies = Collections.singletonList(StandalonePackageBindingsImpl.class);
 
+        EasyMock.expect(services.graphTraversal()).andReturn(traversal);
         final PackageBindings bindings = new StandalonePackageBindingsImpl();
-        EasyMock.expect(dependencyPath.follow(EasyMock.same(PackageBindings[].class),
-                                               EasyMock.<ContextDefinition>isNull(),
-                                               EasyMock.<ComponentMapping>notNull(),
-                                               EasyMock.<DependencyPath.Command>notNull())).andAnswer(new IAnswer<Object>() {
-            public Object answer() throws Throwable {
-                return new PackageBindings[] { bindings };
-            }
-        }).anyTimes();
+
+        EasyMock.expect(traversal.follow(EasyMock.<Graph>notNull(),
+                                         EasyMock.<ContextDefinition>isNull(),
+                                         EasyMock.eq(true),
+                                         EasyMock.<Graph.Reference>notNull())).andReturn(new Graph.Node.Constant(new PackageBindings[] { bindings }));
 
         replay();
         provider.instantiateBindings(services, map, assemblies);
@@ -112,18 +108,16 @@ public abstract class ContainerProviderAbstractTest extends MockGroupAbstractTes
                                                             DependentPackageBindingsImpl.class,
                                                             ResponsiblePackageBindingsImpl.class));
 
+        EasyMock.expect(services.graphTraversal()).andReturn(traversal);
         final ResponsiblePackageBindingsImpl bindings1 = new ResponsiblePackageBindingsImpl();
         final PackageBindingsImpl bindings2 = new PackageBindingsImpl(bindings1);
         final DependentPackageBindingsImpl bindings3 = new DependentPackageBindingsImpl(bindings2);
 
-        EasyMock.expect(dependencyPath.follow(EasyMock.same(PackageBindings[].class),
-                                               EasyMock.<ContextDefinition>isNull(),
-                                               EasyMock.<ComponentMapping>notNull(),
-                                               EasyMock.<DependencyPath.Command>notNull())).andAnswer(new IAnswer<Object>() {
-            public Object answer() throws Throwable {
-                return new PackageBindings[] { bindings1, bindings2, bindings3 };
-            }
-        });
+        EasyMock.expect(traversal.follow(EasyMock.<Graph>notNull(),
+                                         EasyMock.<ContextDefinition>isNull(),
+                                         EasyMock.eq(true),
+                                         EasyMock.<Graph.Reference>notNull()))
+                .andReturn(new Graph.Node.Constant(new PackageBindings[] { bindings1, bindings2, bindings3 }));
 
         replay();
         provider.instantiateBindings(services, map, assemblies);

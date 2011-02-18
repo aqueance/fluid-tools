@@ -36,13 +36,13 @@ import org.fluidity.composition.spi.PackageBindings;
 final class ContainerProviderImpl implements ContainerProvider {
 
     public OpenComponentContainer newContainer(final ContainerServices services) {
-        return new ComponentContainerShell(null, services, null, true);
+        return new ComponentContainerShell(services);
     }
 
     public List<PackageBindings> instantiateBindings(final ContainerServices services,
                                                      final Map properties,
                                                      final Collection<Class<PackageBindings>> bindings) {
-        final SimpleContainer container = new SimpleContainerImpl(null, services);
+        final SimpleContainer container = new SimpleContainerImpl(services);
 
         if (properties != null) {
             container.bindInstance(properties, new Class<?>[] { Map.class }, null);
@@ -59,6 +59,7 @@ final class ContainerProviderImpl implements ContainerProvider {
         /*
          * Get the instances in instantiation order
          */
-        return Arrays.asList((PackageBindings[]) container.group(PackageBindings.class, null));
+        // TODO: observe instantiation order
+        return Arrays.asList((PackageBindings[]) container.resolveGroup(PackageBindings.class, null, services.graphTraversal()).instance());
     }
 }

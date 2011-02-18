@@ -22,8 +22,6 @@
 
 package org.fluidity.composition;
 
-import java.util.List;
-
 import org.fluidity.composition.network.ContextDefinition;
 import org.fluidity.composition.spi.DependencyResolver;
 
@@ -117,34 +115,6 @@ interface SimpleContainer extends DependencyResolver {
             throws ComponentContainer.BindingException;
 
     /**
-     * Returns the component instance bound to the given interface in the given context.
-     *
-     * @param key     the interface to return the bound component to.
-     * @param context the context to resolve the component instance in.
-     *
-     * @return the component instance bound to the given interface or <code>null</code> if none found.
-     *
-     * @throws ComponentContainer.ResolutionException
-     *          when dependency resolution fails.
-     * @deprecated
-     */
-    Object component(Class<?> key, ContextDefinition context) throws ComponentContainer.ResolutionException;
-
-    /**
-     * Returns the component instances bound to the given group interface in the given context.
-     *
-     * @param key     the group interface to return the bound component to.
-     * @param context the context to resolve the component instance in.
-     *
-     * @return the component instances bound to the given interface or an empty array if none found.
-     *
-     * @throws ComponentContainer.ResolutionException
-     *          when dependency resolution fails.
-     * @deprecated
-     */
-    Object[] group(Class<?> key, ContextDefinition context) throws ComponentContainer.ResolutionException;
-
-    /**
      * Injects the {@link Component} annotated fields of the given component instance.
      *
      * @param component the component instance.
@@ -172,6 +142,4 @@ interface SimpleContainer extends DependencyResolver {
      * @param replacement the new resolver.
      */
     void replaceResolver(Class<?> key, ComponentResolver previous, ComponentResolver replacement);
-
-    List<Node> resolveGroup(Traversal traversal, Class<?> api, ContextDefinition context, final boolean explore);
 }

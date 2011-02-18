@@ -22,6 +22,7 @@
 
 package org.fluidity.composition;
 
+import org.fluidity.composition.network.Graph;
 import org.fluidity.composition.spi.ComponentVariantFactory;
 import org.fluidity.foundation.spi.LogFactory;
 
@@ -42,7 +43,7 @@ final class VariantResolverClass extends VariantResolver {
     }
 
     @Override
-    protected ComponentVariantFactory factory(final SimpleContainer container) {
-        return (ComponentVariantFactory) container.component(factoryClass(), null);
+    protected ComponentVariantFactory factory(final SimpleContainer container, final Graph.Traversal traversal) {
+        return (ComponentVariantFactory) container.resolveComponent(factoryClass(), null, traversal);
     }
 }

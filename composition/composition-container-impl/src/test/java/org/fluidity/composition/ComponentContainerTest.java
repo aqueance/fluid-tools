@@ -29,6 +29,6 @@ public class ComponentContainerTest extends ComponentContainerAbstractTest {
 
     @Override
     protected OpenComponentContainer newContainer(final ContainerServices services) {
-        return new ComponentContainerShell(null, services, null, true);
+        return new ComponentContainerShell(services);
     }
 }
