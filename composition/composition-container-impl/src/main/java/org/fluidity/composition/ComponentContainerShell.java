@@ -22,6 +22,10 @@
 
 package org.fluidity.composition;
 
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.fluidity.composition.network.ContextDefinition;
 import org.fluidity.composition.network.Graph;
 import org.fluidity.composition.spi.EmptyComponentContainer;
@@ -53,17 +57,27 @@ final class ComponentContainerShell extends EmptyComponentContainer {
 
     @SuppressWarnings("unchecked")
     public <T> T getComponent(final Class<T> api) {
-        return (T) container.resolveComponent(api, context, container.services().graphTraversal()).instance();
+        return (T) container.resolveComponent(api, context, container.services().graphTraversal()).instance(null);
     }
 
     @SuppressWarnings("unchecked")
     public <T> T initialize(final T component) {
-        return (T) container.initialize(component, context);
+        return (T) container.initialize(component, context, null);
     }
 
     @SuppressWarnings("unchecked")
     public <T> T[] getComponentGroup(final Class<T> api) {
-        return (T[]) container.resolveGroup(api, context, container.services().graphTraversal()).instance();
+        final List<T> list = new ArrayList<T>();
+
+        container.resolveGroup(api, context, container.services().graphTraversal()).instance(new Graph.Traversal.Observer() {
+            public void resolved(final Graph.Path path, final Object instance) {
+                if (api.isAssignableFrom(instance.getClass())) {
+                    list.add((T) instance);
+                }
+            }
+        });
+
+        return list.toArray((T[]) Array.newInstance(api, list.size()));
     }
 
     public OpenComponentContainer makeChildContainer() {

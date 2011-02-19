@@ -56,12 +56,11 @@ public interface ContainerServices {
     /**
      * Returns the default graph traversal with the given strategy and observer.
      *
-     * @param strategy the traversal strategy to use.
-     * @param observer the traversal observer to use.
      *
+     * @param strategy the traversal strategy to use.
      * @return the default graph traversal with the given strategy and observer.
      */
-    Graph.Traversal graphTraversal(Graph.Traversal.Strategy strategy, Graph.Traversal.Observer observer);
+    Graph.Traversal graphTraversal(Graph.Traversal.Strategy strategy);
 
     /**
      * Returns the logger factory to use by the container.

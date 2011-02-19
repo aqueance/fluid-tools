@@ -41,7 +41,7 @@ final class ProductionServices implements ContainerServices {
         this.logs = logs;
         this.classDiscovery = new ClassDiscoveryImpl(logs);
         this.dependencyInjector = new DependencyInjectorImpl();
-        traversal = new DependencyPathTraversal(Graph.Traversal.Strategy.DEFAULT, Graph.Traversal.Observer.DEFAULT);
+        this.traversal = new DependencyPathTraversal(Graph.Traversal.Strategy.DEFAULT);
     }
 
     public ClassDiscovery classDiscovery() {
@@ -56,9 +56,8 @@ final class ProductionServices implements ContainerServices {
         return traversal;
     }
 
-    public Graph.Traversal graphTraversal(final Graph.Traversal.Strategy strategy, final Graph.Traversal.Observer observer) {
-        return new DependencyPathTraversal(strategy == null ? Graph.Traversal.Strategy.DEFAULT : strategy,
-                                           observer == null ? Graph.Traversal.Observer.DEFAULT : observer);
+    public Graph.Traversal graphTraversal(final Graph.Traversal.Strategy strategy) {
+        return new DependencyPathTraversal(strategy == null ? Graph.Traversal.Strategy.DEFAULT : strategy);
     }
 
     public LogFactory logs() {

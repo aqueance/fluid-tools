@@ -22,12 +22,9 @@
 
 package org.fluidity.composition;
 
-import java.lang.annotation.Annotation;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
-import org.fluidity.composition.network.ContextDefinition;
 import org.fluidity.foundation.logging.Log;
 import org.fluidity.foundation.spi.LogFactory;
 
@@ -36,73 +33,45 @@ import org.fluidity.foundation.spi.LogFactory;
  */
 final class ComponentCacheImpl implements ComponentCache {
 
-    private final Map<Map<Class<? extends Annotation>, Annotation[]>, Object> cache;
+    private final Map<ComponentContext, Object> cache;
     private final Log log;
 
-    public ComponentCacheImpl(final LogFactory logs, boolean cache) {
-        this.cache = cache ? new ConcurrentHashMap<Map<Class<? extends Annotation>, Annotation[]>, Object>() : null;
+    public ComponentCacheImpl(final LogFactory logs, boolean singleton) {
+        this.cache = singleton ? new HashMap<ComponentContext, Object>() : null;
         this.log = logs.createLog(getClass());
     }
 
-    public Object lookup(final Object source, final ContextDefinition context, final Class<?> api, final Instantiation create) {
-        return lookup(cache == null ? new HashMap<Map<Class<? extends Annotation>, Annotation[]>, Object>() : cache, source, context, api, create, log);
+    public Object lookup(final Object source, final ComponentContext context, final Class<?> api, final Instantiation create) {
+        return lookup(cache == null ? new HashMap<ComponentContext, Object>() : cache, source, context, api, create, log);
     }
 
-    @SuppressWarnings("SynchronizationOnLocalVariableOrMethodParameter")
-    private Object lookup(final Map<Map<Class<? extends Annotation>, Annotation[]>, Object> cache,
-                          final Object source,
-                          final ContextDefinition context,
-                          final Class<?> api,
-                          final Instantiation instantiation,
-                          final Log log) {
-
-        /* Caching strategy:
-         *
-         * Incoming context definition is checked first. Return cache hit, if any.
-         *
-         * New component is created and consumed context is checked.
-         *
-         * Cache hit: ignore new component, map existing one to context definition.
-         *
-         * Cache miss: map new component to both consumed context and context definition.
-         */
-
-        final Map<Class<? extends Annotation>, Annotation[]> incoming = context.defined();
-
-        if (instantiation == null) {
-            return cache.get(incoming);
-        } else if (!cache.containsKey(incoming)) {
+    private synchronized Object lookup(final Map<ComponentContext, Object> cache,
+                                       final Object source,
+                                       final ComponentContext context,
+                                       final Class<?> api,
+                                       final Instantiation instantiation,
+                                       final Log log) {
+        if (!cache.containsKey(context)) {
 
             // go ahead and create the component and then see if it was actually necessary; context may change as new instantiations take place
-            final Object component = instantiation.perform(context);
+            final Object component = instantiation.perform();
 
             if (component == null) {
                 throw new ComponentContainer.ResolutionException("Could not create component for %s", api);
             }
 
-            final Map<Class<? extends Annotation>, Annotation[]> outgoing = context.collected();
+            cache.put(context, component);
 
-            synchronized (cache) {
-                if (!cache.containsKey(outgoing)) {
-                    cache.put(incoming, component);
-                    cache.put(outgoing, component);
-
-                    if (log.isInfoEnabled()) {
-                        final ComponentContext consumed = context.create();
-
-                        log.info("%s: created %s@%s%s",
-                                 source,
-                                 component.getClass().getName(),
-                                 System.identityHashCode(component),
-                                 consumed.types().isEmpty() ? "" : String.format(" for context %s", consumed));
-                    }
-                } else if (!cache.containsKey(incoming)) {
-                    cache.put(incoming, cache.get(outgoing));
-                }
+            if (log.isInfoEnabled()) {
+                log.info("%s: created %s@%s%s",
+                         source,
+                         component.getClass().getName(),
+                         System.identityHashCode(component),
+                         context.types().isEmpty() ? "" : String.format(" for context %s", context));
             }
         }
 
-        assert cache.containsKey(incoming) : String.format("Component %s not found in context %s", api, incoming);
-        return cache.get(incoming);
+        assert cache.containsKey(context) : String.format("Component %s not found in context %s", api, context);
+        return cache.get(context);
     }
 }

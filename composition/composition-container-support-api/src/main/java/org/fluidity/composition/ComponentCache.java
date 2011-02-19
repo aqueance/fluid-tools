@@ -22,8 +22,6 @@
 
 package org.fluidity.composition;
 
-import org.fluidity.composition.network.ContextDefinition;
-
 /**
  * Caches components by context. Implementations must be thread safe.
  *
@@ -34,6 +32,7 @@ public interface ComponentCache {
     /**
      * Looks up and instantiates if necessary using the supplied command, the component whose class is also specified to find its annotations.
      *
+     *
      * @param source  something to identify who is creating instances through this cache.
      * @param context the context for the component.
      * @param api     the interface the component implements.
@@ -42,7 +41,7 @@ public interface ComponentCache {
      *
      * @return the component instance.
      */
-    Object lookup(Object source, ContextDefinition context, Class<?> api, Instantiation create);
+    Object lookup(Object source, ComponentContext context, Class<?> api, Instantiation create);
 
     /**
      * A command to create a component instance in some context.
@@ -52,10 +51,8 @@ public interface ComponentCache {
         /**
          * Creates and returns a new instance of a component.
          *
-         * @param context the context in which to perform the instantiation.
-         *
          * @return a new instance of a component; never <code>null</code>.
          */
-        Object perform(ContextDefinition context);
+        Object perform();
     }
 }

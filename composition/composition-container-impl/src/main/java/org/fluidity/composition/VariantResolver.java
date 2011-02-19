@@ -134,7 +134,7 @@ abstract class VariantResolver extends AbstractResolver {
         return factoryClass;
     }
 
-    public Graph.Node resolve(final Graph.Traversal traversal, final SimpleContainer container, final ContextDefinition context, final boolean explore) {
+    public Graph.Node resolve(final Graph.Traversal traversal, final SimpleContainer container, final ContextDefinition context) {
         final SimpleContainer child = container.newChildContainer();
         child.bindResolver(api, findDelegate());
         factory(container, traversal).newComponent(new ComponentContainerShell(child, context, false), context.create());

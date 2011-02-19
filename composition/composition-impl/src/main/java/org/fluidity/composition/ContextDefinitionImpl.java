@@ -49,15 +49,17 @@ final class ContextDefinitionImpl implements ContextDefinition {
 
     private final Map<Class<? extends Annotation>, Annotation[]> defined = new HashMap<Class<? extends Annotation>, Annotation[]>();
     private final Map<Class<? extends Annotation>, Annotation[]> collected = new HashMap<Class<? extends Annotation>, Annotation[]>();
+    private int hashCode;
 
     public ContextDefinitionImpl() {
-        // empty
+        hashCode = AnnotationMaps.hashCode(defined);
     }
 
     private ContextDefinitionImpl(final Map<Class<? extends Annotation>, Annotation[]> defined,
                                   final Map<Class<? extends Annotation>, Annotation[]> collected) {
         copy(defined, this.defined);
         copy(collected, this.collected);
+        hashCode = AnnotationMaps.hashCode(this.defined);
     }
 
     public ContextDefinition expand(final Annotation[] definition) {
@@ -73,6 +75,7 @@ final class ContextDefinitionImpl implements ContextDefinition {
             }
 
             this.defined.keySet().removeAll(notContext);
+            hashCode = AnnotationMaps.hashCode(this.defined);
         }
 
         return this;
@@ -149,11 +152,11 @@ final class ContextDefinitionImpl implements ContextDefinition {
 
     @Override
     public boolean equals(final Object o) {
-        return this == o || (o != null && getClass() == o.getClass() && defined.equals(((ContextDefinitionImpl) o).defined));
+        return this == o || (o != null && getClass() == o.getClass() && AnnotationMaps.equal(defined, ((ContextDefinitionImpl) o).defined));
     }
 
     @Override
     public int hashCode() {
-        return defined.hashCode();
+        return hashCode;
     }
 }

@@ -146,28 +146,36 @@ final class ConstructingResolver extends AbstractResolver {
         }
     }
 
-    public Graph.Node resolve(final Graph.Traversal traversal, final SimpleContainer container, final ContextDefinition context, final boolean explore) {
-        final Object instance = explore ? null : cache.lookup(container, context, api, null);
+    public Graph.Node resolve(final Graph.Traversal traversal, final SimpleContainer container, final ContextDefinition context) {
+        final Graph.Node node = injector.constructor(traversal, container, this, context, constructor());
 
-        if (instance != null) {
-            return new Graph.Node.Constant(instance);
-        } else {
-            final Graph.Node node = injector.constructor(traversal, container, this, context, constructor());
+        return new Graph.Node() {
+            public Class<?> type() {
+                return node.type();
+            }
 
-            return new Graph.Node() {
-                public Class<?> type() {
-                    return node.type();
-                }
+            public Object instance(final Graph.Traversal.Observer observer) {
 
-                public Object instance() {
-                    return cache.lookup(container, context, api, new ComponentCache.Instantiation() {
-                        public Object perform(final ContextDefinition context) {
-                            return node.instance();
+                return cache.lookup(container, node.context(), api, new ComponentCache.Instantiation() {
+                    public Object perform() {
+                        return node.instance(observer);
+                    }
+
+                    // TODO:
+/*
+                    public void replay() {
+                        if (observer != null) {
+                            node.replay(observer);
                         }
-                    });
-                }
-            };
-        }
+                    }
+*/
+                });
+            }
+
+            public ComponentContext context() {
+                return node.context();
+            }
+        };
     }
 
     @Override

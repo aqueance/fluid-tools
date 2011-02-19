@@ -22,29 +22,45 @@
 
 package org.fluidity.composition;
 
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
-
-import org.fluidity.composition.network.ContextDefinition;
-import org.fluidity.composition.network.Graph;
+import java.lang.annotation.Annotation;
+import java.util.Arrays;
+import java.util.Map;
 
 /**
- * Component mapping for a component group.
- *
- * @author Tibor Varga
+ * Convenience methods on maps of arrays of annotations.
  */
-final class GroupResolver {
+public class AnnotationMaps {
 
-    private final Set<Class<?>> members = new LinkedHashSet<Class<?>>();
-
-    public void resolve(final Graph.Traversal traversal, final SimpleContainer container, final ContextDefinition context, final List<Graph.Node> list) {
-        for (final Class<?> member : members) {
-            list.add(container.resolver(member, false).resolve(traversal, container, context));
+    public static boolean equal(Map<Class<? extends Annotation>, Annotation[]> map1, Map<Class<? extends Annotation>, Annotation[]> map2) {
+        if (map1 == map2) {
+            return true;
         }
+
+        if (!map1.keySet().equals(map1.keySet())) {
+            return false;
+        }
+
+        for (final Map.Entry<Class<? extends Annotation>, Annotation[]> entry : map1.entrySet()) {
+            final Annotation[] list1 = entry.getValue();
+            final Annotation[] list2 = map2.get(entry.getKey());
+
+            if (list1 != list2 && !Arrays.equals(list1, list2)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
-    public void add(final Class<?> implementation) {
-        members.add(implementation);
+    public static int hashCode(final Map<Class<? extends Annotation>, Annotation[]> map) {
+        int result = map.keySet().hashCode();
+
+        for (Annotation[] annotations : map.values()) {
+            for (Annotation annotation : annotations) {
+                result += annotation.hashCode();
+            }
+        }
+
+        return result;
     }
 }

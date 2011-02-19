@@ -39,6 +39,7 @@ import org.fluidity.foundation.spi.LogFactory;
 import org.fluidity.tests.MockGroupAbstractTest;
 
 import org.easymock.EasyMock;
+import org.easymock.IAnswer;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -54,6 +55,7 @@ public abstract class ContainerProviderAbstractTest extends MockGroupAbstractTes
     private final ContainerServices services = addControl(ContainerServices.class);
     private final ClassDiscovery classDiscovery = addControl(ClassDiscovery.class);
     private final Graph.Traversal traversal = addControl(Graph.Traversal.class);
+    private final Graph.Node node = addControl(Graph.Node.class);
     private final DependencyInjector dependencyInjector = addControl(DependencyInjector.class);
     private final ComponentCache componentCache = addControl(ComponentCache.class);
 
@@ -91,14 +93,18 @@ public abstract class ContainerProviderAbstractTest extends MockGroupAbstractTes
         EasyMock.expect(services.graphTraversal()).andReturn(traversal);
         final PackageBindings bindings = new StandalonePackageBindingsImpl();
 
+        final PackageBindings[] instance = { bindings };
         EasyMock.expect(traversal.follow(EasyMock.<Graph>notNull(),
-                                         EasyMock.<ContextDefinition>isNull(),
-                                         EasyMock.eq(true),
-                                         EasyMock.<Graph.Reference>notNull())).andReturn(new Graph.Node.Constant(new PackageBindings[] { bindings }));
+                                         EasyMock.<ContextDefinition>isNull(), EasyMock.<Graph.Reference>notNull()))
+                .andReturn(node);
+
+        EasyMock.expect(node.instance(EasyMock.<Graph.Traversal.Observer>notNull())).andAnswer(new BindingsResponse(instance));
 
         replay();
-        provider.instantiateBindings(services, map, assemblies);
+        final List<PackageBindings> list = provider.instantiateBindings(services, map, assemblies);
         verify();
+
+        assert list.equals(Arrays.asList(instance)) : list;
     }
 
     @Test
@@ -113,15 +119,18 @@ public abstract class ContainerProviderAbstractTest extends MockGroupAbstractTes
         final PackageBindingsImpl bindings2 = new PackageBindingsImpl(bindings1);
         final DependentPackageBindingsImpl bindings3 = new DependentPackageBindingsImpl(bindings2);
 
+        final PackageBindings[] bindings = { bindings1, bindings2, bindings3 };
         EasyMock.expect(traversal.follow(EasyMock.<Graph>notNull(),
-                                         EasyMock.<ContextDefinition>isNull(),
-                                         EasyMock.eq(true),
-                                         EasyMock.<Graph.Reference>notNull()))
-                .andReturn(new Graph.Node.Constant(new PackageBindings[] { bindings1, bindings2, bindings3 }));
+                                         EasyMock.<ContextDefinition>isNull(), EasyMock.<Graph.Reference>notNull()))
+                .andReturn(node);
+
+        EasyMock.expect(node.instance(EasyMock.<Graph.Traversal.Observer>notNull())).andAnswer(new BindingsResponse(bindings));
 
         replay();
-        provider.instantiateBindings(services, map, assemblies);
+        final List<PackageBindings> list = provider.instantiateBindings(services, map, assemblies);
         verify();
+
+        assert list.equals(Arrays.asList(bindings)) : list;
     }
 
     public static class ResponsiblePackageBindingsImpl extends EmptyPackageBindings {
@@ -145,6 +154,25 @@ public abstract class ContainerProviderAbstractTest extends MockGroupAbstractTes
         @SuppressWarnings("UnusedDeclaration")
         public DependentPackageBindingsImpl(final PackageBindingsImpl dependent) {
             // empty
+        }
+    }
+
+    private static class BindingsResponse implements IAnswer<Object> {
+
+        private final PackageBindings[] bindings;
+
+        public BindingsResponse(final PackageBindings[] bindings) {
+            this.bindings = bindings;
+        }
+
+        public Object answer() throws Throwable {
+            final Graph.Traversal.Observer observer = (Graph.Traversal.Observer) EasyMock.getCurrentArguments()[0];
+
+            for (final PackageBindings binding : bindings) {
+                observer.resolved(null, binding);
+            }
+
+            return bindings;
         }
     }
 }

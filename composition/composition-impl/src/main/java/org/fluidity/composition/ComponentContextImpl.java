@@ -36,11 +36,14 @@ import org.fluidity.foundation.Strings;
 final class ComponentContextImpl implements ComponentContext {
 
     private final Map<Class<? extends Annotation>, Annotation[]> annotations = new HashMap<Class<? extends Annotation>, Annotation[]>();
+    private final int hashCode;
 
     public ComponentContextImpl(final Map<Class<? extends Annotation>, Annotation[]> map) {
         for (final Map.Entry<Class<? extends Annotation>, Annotation[]> entry : map.entrySet()) {
             annotations.put(entry.getKey(), entry.getValue().clone());
         }
+
+        hashCode = AnnotationMaps.hashCode(annotations);
     }
 
     @SuppressWarnings("unchecked")
@@ -94,11 +97,11 @@ final class ComponentContextImpl implements ComponentContext {
 
     @Override
     public boolean equals(final Object o) {
-        return this == o || (o != null && getClass() == o.getClass() && annotations.equals(((ComponentContextImpl) o).annotations));
+        return this == o || (o != null && getClass() == o.getClass() && AnnotationMaps.equal(annotations, ((ComponentContextImpl) o).annotations));
     }
 
     @Override
     public int hashCode() {
-        return annotations.hashCode();
+        return hashCode;
     }
 }

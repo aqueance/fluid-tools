@@ -31,5 +31,5 @@ import org.fluidity.composition.network.ContextDefinition;
 */
 interface ParentContainer extends SimpleContainer {
 
-    List<Node> resolveGroup(Traversal traversal, Class<?> api, ContextDefinition context, final boolean explore);
+    List<Node> resolveGroup(Traversal traversal, Class<?> api, ContextDefinition context);
 }

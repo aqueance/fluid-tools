@@ -33,7 +33,7 @@ import org.fluidity.composition.spi.ComponentMapping;
  */
 interface ComponentResolver extends ComponentMapping {
 
-    Graph.Node resolve(Graph.Traversal traversal, final SimpleContainer container, final ContextDefinition context, final boolean explore);
+    Graph.Node resolve(Graph.Traversal traversal, final SimpleContainer container, final ContextDefinition context);
 
     /**
      * Returns the relative priority of this mapping compared to another.

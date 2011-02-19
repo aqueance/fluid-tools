@@ -24,6 +24,8 @@ package org.fluidity.composition.network;
 
 import java.util.List;
 
+import org.fluidity.composition.ComponentContext;
+
 /**
  * TODO: documentation
  */
@@ -37,23 +39,31 @@ public interface Graph {
 
         Class<?> type();
 
-        Object instance();
+        Object instance(Traversal.Observer observer);
+
+        ComponentContext context();
 
         class Constant implements Node {
 
             private final Object instance;
+            private final ComponentContext context;
 
-            public Constant(final Object instance) {
+            public Constant(final Object instance, final ComponentContext context) {
                 assert instance != null;
                 this.instance = instance;
+                this.context = context;
             }
 
             public final Class<?> type() {
                 return instance.getClass();
             }
 
-            public final Object instance() {
+            public final Object instance(Traversal.Observer observer) {
                 return instance;
+            }
+
+            public ComponentContext context() {
+                return context;
             }
         }
     }
@@ -67,7 +77,7 @@ public interface Graph {
 
     interface Traversal {
 
-        Node follow(final Graph graph, ContextDefinition context, final boolean explore, Reference reference);
+        Node follow(final Graph graph, ContextDefinition context, Reference reference);
 
         interface Strategy {
 
@@ -82,8 +92,6 @@ public interface Graph {
 
         interface Observer {
 
-            Observer DEFAULT = null;
-
             void resolved(Path path, Object instance);
         }
 
@@ -97,6 +105,6 @@ public interface Graph {
 
         Class<?> api();
 
-        Node resolve(Traversal traversal, ContextDefinition context, final boolean explore);
+        Node resolve(Traversal traversal, ContextDefinition context);
     }
 }

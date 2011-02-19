@@ -125,7 +125,7 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
             assert component == null || component.getClass().isArray() : component.getClass();
             final Object[] services = (Object[]) component;
 
-            EasyMock.expect(resolver.resolveComponent(dependencyType.getComponentType(), copy, traversal)).andReturn(new Graph.Node.Constant(services));
+            EasyMock.expect(resolver.resolveComponent(dependencyType.getComponentType(), copy, traversal)).andReturn(new Graph.Node.Constant(services, null));
         } else if (dependencyType == ComponentContext.class) {
             EasyMock.expect(mapping.contextSpecification(Context.class)).andReturn(contextAnnotations);
             EasyMock.expect(copy.reduce(contextAnnotations)).andReturn(copy);
@@ -152,7 +152,7 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
                 EasyMock.expect(resolver.mapping(dependencyType)).andReturn(mapping);
                 EasyMock.expect(mapping.contextSpecification(Context.class)).andReturn(acceptedContext);
                 EasyMock.expect(copy.reduce(acceptedContext)).andReturn(copy);
-                EasyMock.expect(resolver.resolveComponent(dependencyType, copy, traversal)).andReturn(new Graph.Node.Constant(component));
+                EasyMock.expect(resolver.resolveComponent(dependencyType, copy, traversal)).andReturn(new Graph.Node.Constant(component, null));
             }
         }
         return copy;
@@ -176,12 +176,13 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
         final ServiceImpl1 service1 = new ServiceImpl1();
         final ServiceImpl2 service2 = new ServiceImpl2();
 
-        EasyMock.expect(resolver.resolveComponent(Service.class, copy2, traversal)).andReturn(new Graph.Node.Constant(new Service[] { service1, service2 }));
+        EasyMock.expect(resolver.resolveComponent(Service.class, copy2, traversal)).andReturn(new Graph.Node.Constant(new Service[] { service1, service2 },
+                                                                                                                      null));
 
         setupCollection(context, copy1, copy2);
 
         replay();
-        assert component == injector.fields(traversal, resolver, dummyMapping, context, component);
+        assert component == injector.fields(traversal, resolver, dummyMapping, context, component, null);
         verify();
 
         assert component.dependency == dependency : component.dependency;
@@ -199,7 +200,7 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
         setupFieldResolution(FieldInjected.class, "dependency", null, null, null, null);
 
         replay();
-        assert component == injector.fields(traversal, resolver, dummyMapping, context, component);
+        assert component == injector.fields(traversal, resolver, dummyMapping, context, component, null);
         verify();
     }
 
@@ -210,7 +211,7 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
         setupCollection(context, setupFieldResolution(OptionalFieldInjected.class, "dependency", null, null, null, null));
 
         replay();
-        assert component == injector.fields(traversal, resolver, dummyMapping, context, component);
+        assert component == injector.fields(traversal, resolver, dummyMapping, context, component, null);
         verify();
 
         assert component.dependency == null : component.dependency;
@@ -247,7 +248,7 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
                         setupFieldResolution(component.getClass(), "context", container, null, created, null));
 
         replay();
-        assert component == injector.fields(traversal, resolver, mapping, context, component);
+        assert component == injector.fields(traversal, resolver, mapping, context, component, null);
         verify();
 
         assert component.container == container : component.container;

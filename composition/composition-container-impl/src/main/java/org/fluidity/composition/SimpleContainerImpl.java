@@ -324,8 +324,8 @@ final class SimpleContainerImpl implements ParentContainer {
         return String.format("container %s", id());
     }
 
-    public Object initialize(final Object component, final ContextDefinition context) {
-        return injector.fields(services.graphTraversal(), this, new InstanceMapping(component), context, component);
+    public Object initialize(final Object component, final ContextDefinition context, final Traversal.Observer observer) {
+        return injector.fields(services.graphTraversal(), this, new InstanceMapping(component), context, component, observer);
     }
 
     public Node resolveComponent(final Class<?> api, final ContextDefinition context, final Traversal traversal) {
@@ -334,13 +334,13 @@ final class SimpleContainerImpl implements ParentContainer {
             if (resolver == null) {
                 return parent == null ? null : parent.resolveComponent(api, context, traversal);
             } else {
-                return traversal.follow(this, context, false, new Reference() {
+                return traversal.follow(this, context, new Reference() {
                     public Class<?> api() {
                         return api;
                     }
 
-                    public Node resolve(final Traversal traversal, final ContextDefinition context, final boolean explore) {
-                        return resolver.resolve(traversal, SimpleContainerImpl.this, context, explore);
+                    public Node resolve(final Traversal traversal, final ContextDefinition context) {
+                        return resolver.resolve(traversal, SimpleContainerImpl.this, context);
                     }
                 });
             }
@@ -350,23 +350,23 @@ final class SimpleContainerImpl implements ParentContainer {
         final GroupResolver group = groups.get(api);
 
         if (group == null) {
-            return parent == null ? null : parent.resolveComponent(api, context, traversal);
+            return parent == null ? null : parent.resolveGroup(api, context, traversal);
         } else {
-            return traversal.follow(this, context, true, new Reference() {
+            return traversal.follow(this, context, new Reference() {
                 public Class<?> api() {
                     return api;
                 }
 
-                public Node resolve(final Traversal traversal, final ContextDefinition context, final boolean explore) {
-                    return groupNode(api, resolveGroup(traversal, api, context, explore));
+                public Node resolve(final Traversal traversal, final ContextDefinition context) {
+                    return groupNode(api, resolveGroup(traversal, api, context));
                 }
             });
         }
     }
 
-    public List<Node> resolveGroup(final Traversal traversal, final Class<?> api, final ContextDefinition context, final boolean explore) {
+    public List<Node> resolveGroup(final Traversal traversal, final Class<?> api, final ContextDefinition context) {
         final GroupResolver group = groups.get(api.getComponentType());
-        final List<Node> enclosing = parent == null ? null : parent.resolveGroup(traversal, api, context, explore);
+        final List<Node> enclosing = parent == null ? null : parent.resolveGroup(traversal, api, context);
 
         if (group == null) {
             return enclosing;
@@ -377,7 +377,7 @@ final class SimpleContainerImpl implements ParentContainer {
                 list.addAll(enclosing);
             }
 
-            group.resolve(traversal, this, context, explore, list);
+            group.resolve(traversal, this, context, list);
 
             return list;
         }
@@ -394,14 +394,18 @@ final class SimpleContainerImpl implements ParentContainer {
                     return api;
                 }
 
-                public Object instance() {
+                public Object instance(final Traversal.Observer observer) {
                     int i = 0;
 
                     for (Node node : list) {
-                        array[i++] = node.instance();
+                        array[i++] = node.instance(observer);
                     }
 
                     return array;
+                }
+
+                public ComponentContext context() {
+                    return null;
                 }
             };
         }
@@ -416,11 +420,11 @@ final class SimpleContainerImpl implements ParentContainer {
     }
 
     public Node resolveComponent(final Class<?> api, final ContextDefinition context, final Traversal.Strategy strategy, final Traversal.Observer observer) {
-        return resolveComponent(api, context, services.graphTraversal(strategy, observer));
+        return resolveComponent(api, context, services.graphTraversal(strategy));
     }
 
     public Node resolveGroup(final Class<?> api, final ContextDefinition context, final Traversal.Strategy strategy, final Traversal.Observer observer) {
-        return resolveGroup(api, context, services.graphTraversal(strategy, observer));
+        return resolveGroup(api, context, services.graphTraversal(strategy));
     }
 
     /**

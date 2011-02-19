@@ -117,15 +117,17 @@ interface SimpleContainer extends DependencyResolver {
     /**
      * Injects the {@link Component} annotated fields of the given component instance.
      *
+     *
      * @param component the component instance.
      * @param context   the base context to resolve the component's dependencies in.
      *
+     * @param observer
      * @return the component instance.
      *
      * @throws ComponentContainer.ResolutionException
      *          when dependency resolution fails.
      */
-    Object initialize(final Object component, final ContextDefinition context) throws ComponentContainer.ResolutionException;
+    Object initialize(final Object component, final ContextDefinition context, final Traversal.Observer observer) throws ComponentContainer.ResolutionException;
 
     /**
      * Returns a textual identifier for the container.

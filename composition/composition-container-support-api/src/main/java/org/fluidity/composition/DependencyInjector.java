@@ -56,12 +56,18 @@ public interface DependencyInjector {
     /**
      * Sets all {@link Component} annotated fields of the receiver.
      *
+     *
      * @param traversal
      * @param container
      * @param mapping     the mapping that triggered the dependency resolution.
      * @param context  the instantiation context of the object being constructed.
-     * @param instance the object to set the fields of.
-     * @return the received instances.
-     */
-    <T> T fields(Graph.Traversal traversal, DependencyResolver container, ComponentMapping mapping, ContextDefinition context, T instance);
+     * @param instance the object to set the fields of.     @return the received instances.
+     * @param observer
+     * */
+    <T> T fields(Graph.Traversal traversal,
+                 DependencyResolver container,
+                 ComponentMapping mapping,
+                 ContextDefinition context,
+                 T instance,
+                 final Graph.Traversal.Observer observer);
 }
