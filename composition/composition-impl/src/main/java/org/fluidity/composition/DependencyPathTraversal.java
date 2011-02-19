@@ -31,21 +31,21 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicReference;
 
 import org.fluidity.composition.network.ContextDefinition;
 import org.fluidity.composition.network.Graph;
 
 /**
  * TODO: documentation
+ *
+ * This object keeps state, do not use it concurrently or if its API method terminates abnormally (i.e., throws an exception).
  */
 final class DependencyPathTraversal implements Graph.Traversal {
 
-    private final AtomicReference<DependencyPath<ResolutionElement>> explorePath
-            = new AtomicReference<DependencyPath<ResolutionElement>>(new DependencyPath<ResolutionElement>(false));
-    private final AtomicReference<DependencyPath<InstantiationElement>> createPath
-            = new AtomicReference<DependencyPath<InstantiationElement>>(new DependencyPath<InstantiationElement>(true));
     private final Strategy strategy;
+
+    private DependencyPath<ResolutionElement> explorePath = new DependencyPath<ResolutionElement>(false);
+    private DependencyPath<InstantiationElement> createPath = new DependencyPath<InstantiationElement>(true);
 
     public DependencyPathTraversal(final Strategy strategy) {
         this.strategy = strategy;
@@ -56,10 +56,10 @@ final class DependencyPathTraversal implements Graph.Traversal {
 
         final ContextDefinition newContext = context == null ? new ContextDefinitionImpl() : context;
 
-        final DependencyPath<ResolutionElement> lastPath = explorePath.get();
+        final DependencyPath<ResolutionElement> lastPath = explorePath;
         final DependencyPath<ResolutionElement> newPath = lastPath.descend(new ResolutionElement(api, newContext));
 
-        explorePath.set(newPath);
+        explorePath = newPath;
         try {
             final boolean circular = newPath.isCircular();
 
@@ -96,10 +96,10 @@ final class DependencyPathTraversal implements Graph.Traversal {
                 }
 
                 public Object instance(final Observer observer) {
-                    final DependencyPath<InstantiationElement> lastPath = createPath.get();
+                    final DependencyPath<InstantiationElement> lastPath = createPath;
                     final DependencyPath<InstantiationElement> newPath = lastPath.descend(new InstantiationElement(api, node.context()));
 
-                    createPath.set(newPath);
+                    createPath = newPath;
                     try {
                         Object instance = node.instance(observer);
 
@@ -129,7 +129,7 @@ final class DependencyPathTraversal implements Graph.Traversal {
 
                         return instance;
                     } finally {
-                        createPath.set(lastPath);
+                        createPath = lastPath;
                     }
                 }
 
@@ -138,7 +138,7 @@ final class DependencyPathTraversal implements Graph.Traversal {
                 }
             };
         } finally {
-            explorePath.set(lastPath);
+            explorePath = lastPath;
         }
     }
 
@@ -265,8 +265,7 @@ final class DependencyPathTraversal implements Graph.Traversal {
 
         /**
          * Tells if the path of reference up to and including the dependency resolver receiving this object that it is being invoked the second time during
-         * one
-         * dependency resolution cycle; i.e., there is circular reference in the dependency path.
+         * one dependency resolution cycle; i.e., there is circular reference in the dependency path.
          *
          * @return <code>true</code> if the dependency resolver adds circular dependency to the dependency path, <code>false</code> otherwise.
          */
@@ -281,7 +280,7 @@ final class DependencyPathTraversal implements Graph.Traversal {
         public List<Class<?>> path() {
             final List<Class<?>> list = new ArrayList<Class<?>>(path.size() + (circular ? 1 : 0));
             for (final T element : path.keySet()) {
-                if (circular && last == element) {
+                if (collapse && circular && last == element) {
                     break;
                 } else {
                     list.add(element.api());
