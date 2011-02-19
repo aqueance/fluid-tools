@@ -43,9 +43,9 @@ abstract class VariantResolver extends AbstractResolver {
 
     /**
      * Returns the {@link ComponentVariantFactory} instance this is a mapping for.
-
+     *
      * @param container the container in which to resolve dependencies of the factory.
-     * @param traversal
+     * @param traversal the current graph traversal.
      *
      * @return the {@link ComponentVariantFactory} instance this is a mapping for.
      */
@@ -138,7 +138,7 @@ abstract class VariantResolver extends AbstractResolver {
         final SimpleContainer child = container.newChildContainer();
         child.bindResolver(api, findDelegate());
         factory(container, traversal).newComponent(new ComponentContainerShell(child, context, false), context.create());
-        return child.resolveComponent(api, context, traversal);
+        return cachingNode(child.resolveComponent(api, context, traversal), child);
     }
 
     @Override

@@ -147,35 +147,15 @@ final class ConstructingResolver extends AbstractResolver {
     }
 
     public Graph.Node resolve(final Graph.Traversal traversal, final SimpleContainer container, final ContextDefinition context) {
-        final Graph.Node node = injector.constructor(traversal, container, this, context, constructor());
-
-        return new Graph.Node() {
-            public Class<?> type() {
-                return node.type();
+        return traversal.follow(container, context, new Graph.Reference() {
+            public Class<?> api() {
+                return api;
             }
 
-            public Object instance(final Graph.Traversal.Observer observer) {
-                return cache.lookup(container, node.context(), api, new ComponentCache.Instantiation() {
-                    public Object perform() {
-                        return node.instance(observer);
-                    }
-
-                    public void replay() {
-                        if (observer != null) {
-                            node.replay(observer);
-                        }
-                    }
-                });
+            public Graph.Node resolve(final Graph.Traversal traversal, final ContextDefinition context) {
+                return cachingNode(injector.constructor(traversal, container, ConstructingResolver.this, context, constructor()), container);
             }
-
-            public Object replay(final Graph.Traversal.Observer observer) {
-                return node.replay(observer);
-            }
-
-            public ComponentContext context() {
-                return node.context();
-            }
-        };
+        });
     }
 
     @Override

@@ -60,7 +60,7 @@ public final class ComponentFactoryTests extends AbstractContainerTests {
         registry.bindInstance(check, Serializable.class);
 
         factory.newComponent(EasyMock.<OpenComponentContainer>notNull(), EasyMock.<ComponentContext>notNull());
-        EasyMock.expectLastCall().andAnswer(new FactoryInvocation(Serializable.class, check));
+        EasyMock.expectLastCall().andAnswer(new FactoryInvocation(Serializable.class, check)).anyTimes();
 
         replay();
         verifyComponent(Value.instanceCount, 1, container);
@@ -80,7 +80,7 @@ public final class ComponentFactoryTests extends AbstractContainerTests {
         childRegistry.bindInstance(check, Serializable.class);
 
         factory.newComponent(EasyMock.<OpenComponentContainer>notNull(), EasyMock.<ComponentContext>notNull());
-        EasyMock.expectLastCall().andAnswer(new FactoryInvocation(Serializable.class, check));
+        EasyMock.expectLastCall().andAnswer(new FactoryInvocation(Serializable.class, check)).anyTimes();
 
         replay();
         verifyComponent(Value.instanceCount, 1, container);
@@ -98,7 +98,7 @@ public final class ComponentFactoryTests extends AbstractContainerTests {
         registry.bindInstance(check, Serializable.class);
 
         factory.newComponent(EasyMock.<OpenComponentContainer>notNull(), EasyMock.<ComponentContext>notNull());
-        EasyMock.expectLastCall().andAnswer(new CircularFactoryInvocation());
+        EasyMock.expectLastCall().andAnswer(new CircularFactoryInvocation()).anyTimes();
 
         replay();
         verifyComponent(Value.instanceCount, 1, container);

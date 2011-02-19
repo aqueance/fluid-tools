@@ -40,15 +40,7 @@ final class GroupResolver {
 
     public void resolve(final Graph.Traversal traversal, final SimpleContainer container, final ContextDefinition context, final List<Graph.Node> list) {
         for (final Class<?> member : members) {
-            list.add(traversal.follow(container, context, new Graph.Reference() {
-                public Class<?> api() {
-                    return member;
-                }
-
-                public Graph.Node resolve(final Graph.Traversal traversal, final ContextDefinition context) {
-                    return container.resolver(member, false).resolve(traversal, container, context);
-                }
-            }));
+            list.add(container.resolver(member, false).resolve(traversal, container, context));
         }
     }
 

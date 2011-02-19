@@ -42,7 +42,7 @@ abstract class FactoryResolver extends AbstractResolver {
      * Returns the {@link ComponentFactory} instance this is a mapping for.
 
      * @param container the container in which to resolve dependencies of the factory.
-     * @param traversal
+     * @param traversal the current graph traversal.
      *
      * @return the {@link ComponentFactory} instance this is a mapping for.
      */
@@ -72,7 +72,7 @@ abstract class FactoryResolver extends AbstractResolver {
     public Graph.Node resolve(final Graph.Traversal traversal, final SimpleContainer container, final ContextDefinition context) {
         final SimpleContainer child = container.newChildContainer();
         factory(container, traversal).newComponent(new ComponentContainerShell(child, context, false), context.create());
-        return child.resolveComponent(api, context, traversal);
+        return cachingNode(child.resolveComponent(api, context, traversal), child);
     }
 
     @Override

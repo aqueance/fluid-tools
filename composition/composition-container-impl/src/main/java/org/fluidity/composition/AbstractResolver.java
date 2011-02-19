@@ -22,6 +22,7 @@
 
 package org.fluidity.composition;
 
+import org.fluidity.composition.network.Graph;
 import org.fluidity.foundation.logging.Log;
 import org.fluidity.foundation.spi.LogFactory;
 
@@ -68,5 +69,46 @@ abstract class AbstractResolver implements ComponentResolver {
 
     public boolean isInstanceMapping() {
         return false;
+    }
+
+    protected final CachingNode cachingNode(final Graph.Node node, final SimpleContainer container) {
+        return new CachingNode(node, container);
+    }
+
+    private class CachingNode implements Graph.Node {
+
+        private final Graph.Node node;
+        private final SimpleContainer container;
+
+        public CachingNode(final Graph.Node node, final SimpleContainer container) {
+            this.node = node;
+            this.container = container;
+        }
+
+        public Class<?> type() {
+            return node.type();
+        }
+
+        public Object instance(final Graph.Traversal.Observer observer) {
+            return cache.lookup(container, node.context(), api, new ComponentCache.Instantiation() {
+                public Object perform() {
+                    return node.instance(observer);
+                }
+
+                public void replay() {
+                    if (observer != null) {
+                        node.replay(observer);
+                    }
+                }
+            });
+        }
+
+        public Object replay(final Graph.Traversal.Observer observer) {
+            return node.replay(observer);
+        }
+
+        public ComponentContext context() {
+            return node.context();
+        }
     }
 }

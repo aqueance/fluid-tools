@@ -335,15 +335,7 @@ final class SimpleContainerImpl implements ParentContainer {
             if (resolver == null) {
                 return parent == null ? new Node.Constant(api, null, null) : parent.resolveComponent(api, context, traversal);
             } else {
-                return traversal.follow(this, context, new Reference() {
-                    public Class<?> api() {
-                        return api;
-                    }
-
-                    public Node resolve(final Traversal traversal, final ContextDefinition context) {
-                        return resolver.resolve(traversal, SimpleContainerImpl.this, context);
-                    }
-                });
+                return resolver.resolve(traversal, SimpleContainerImpl.this, context);
             }
     }
 
@@ -368,9 +360,9 @@ final class SimpleContainerImpl implements ParentContainer {
     }
 
     public List<Node> resolveGroup(final Class<?> api, final Traversal traversal, final ContextDefinition context) {
-        final GroupResolver group = groups.get(api);
         @SuppressWarnings("unchecked")
         final List<Node> enclosing = parent == null ? (List<Node>) Collections.EMPTY_LIST : parent.resolveGroup(api, traversal, context);
+        final GroupResolver group = groups.get(api);
 
         if (group == null) {
             return enclosing;

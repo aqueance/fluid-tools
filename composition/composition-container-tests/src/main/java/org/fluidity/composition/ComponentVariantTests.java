@@ -77,7 +77,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
         registry.bindInstance(check, Serializable.class);
 
         variants.newComponent(EasyMock.<OpenComponentContainer>notNull(), EasyMock.<ComponentContext>notNull());
-        EasyMock.expectLastCall().andAnswer(new VariantContainerCheck(container, Serializable.class, check));
+        EasyMock.expectLastCall().andAnswer(new VariantContainerCheck(container, Serializable.class, check)).anyTimes();
 
         replay();
         verifyComponent(Value.instanceCount, 1, container);
@@ -98,7 +98,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
         childRegistry.bindInstance(check, Serializable.class);
 
         variants.newComponent(EasyMock.<OpenComponentContainer>notNull(), EasyMock.<ComponentContext>notNull());
-        EasyMock.expectLastCall().andAnswer(new VariantContainerCheck(child, Serializable.class, check));
+        EasyMock.expectLastCall().andAnswer(new VariantContainerCheck(child, Serializable.class, check)).anyTimes();
 
         replay();
         verifyComponent(Value.instanceCount, 1, container);
@@ -214,13 +214,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
         registry.bindInstance(check, Serializable.class);
 
         factory.newComponent(EasyMock.<OpenComponentContainer>notNull(), EasyMock.<ComponentContext>notNull());
-        EasyMock.expectLastCall().andAnswer(new FactoryContainerCheck(container, Serializable.class, check));
-
-        factory.newComponent(EasyMock.<OpenComponentContainer>notNull(), EasyMock.<ComponentContext>notNull());
-        EasyMock.expectLastCall().andAnswer(new FactoryContainerCheck(container, Serializable.class, check));
-
-        factory.newComponent(EasyMock.<OpenComponentContainer>notNull(), EasyMock.<ComponentContext>notNull());
-        EasyMock.expectLastCall().andAnswer(new FactoryContainerCheck(container, Serializable.class, check));
+        EasyMock.expectLastCall().andAnswer(new FactoryContainerCheck(container, Serializable.class, check)).anyTimes();
 
         replay();
 
@@ -253,13 +247,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
         registry.bindInstance(check, Serializable.class);
 
         variants.newComponent(EasyMock.<OpenComponentContainer>notNull(), EasyMock.<ComponentContext>notNull());
-        EasyMock.expectLastCall().andAnswer(new VariantContainerCheck(container, Serializable.class, check));
-
-        variants.newComponent(EasyMock.<OpenComponentContainer>notNull(), EasyMock.<ComponentContext>notNull());
-        EasyMock.expectLastCall().andAnswer(new VariantContainerCheck(container, Serializable.class, check));
-
-        variants.newComponent(EasyMock.<OpenComponentContainer>notNull(), EasyMock.<ComponentContext>notNull());
-        EasyMock.expectLastCall().andAnswer(new VariantContainerCheck(container, Serializable.class, check));
+        EasyMock.expectLastCall().andAnswer(new VariantContainerCheck(container, Serializable.class, check)).anyTimes();
 
         replay();
 
@@ -288,13 +276,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
         childRegistry.bindInstance(check, Serializable.class);
 
         variants.newComponent(EasyMock.<OpenComponentContainer>notNull(), EasyMock.<ComponentContext>notNull());
-        EasyMock.expectLastCall().andAnswer(new VariantContainerCheck(child, Serializable.class, check));
-
-        variants.newComponent(EasyMock.<OpenComponentContainer>notNull(), EasyMock.<ComponentContext>notNull());
-        EasyMock.expectLastCall().andAnswer(new VariantContainerCheck(child, Serializable.class, check));
-
-        variants.newComponent(EasyMock.<OpenComponentContainer>notNull(), EasyMock.<ComponentContext>notNull());
-        EasyMock.expectLastCall().andAnswer(new VariantContainerCheck(child, Serializable.class, check));
+        EasyMock.expectLastCall().andAnswer(new VariantContainerCheck(child, Serializable.class, check)).anyTimes();
 
         replay();
 
@@ -327,13 +309,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
         childRegistry.bindInstance(check, Serializable.class);
 
         variants.newComponent(EasyMock.<OpenComponentContainer>notNull(), EasyMock.<ComponentContext>notNull());
-        EasyMock.expectLastCall().andAnswer(new VariantContainerCheck(child, Serializable.class, check));
-
-        variants.newComponent(EasyMock.<OpenComponentContainer>notNull(), EasyMock.<ComponentContext>notNull());
-        EasyMock.expectLastCall().andAnswer(new VariantContainerCheck(child, Serializable.class, check));
-
-        variants.newComponent(EasyMock.<OpenComponentContainer>notNull(), EasyMock.<ComponentContext>notNull());
-        EasyMock.expectLastCall().andAnswer(new VariantContainerCheck(child, Serializable.class, check));
+        EasyMock.expectLastCall().andAnswer(new VariantContainerCheck(child, Serializable.class, check)).anyTimes();
 
         replay();
 
