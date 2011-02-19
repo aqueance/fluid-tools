@@ -75,7 +75,7 @@ final class DependencyPathTraversal implements Graph.Traversal {
 
                 public Graph.Node advance() {
                     if (circular) {
-                        return new DeferredNode(api, currentPath.toString(), currentPath.last.context, null);
+                        return new DeferredNode(api, currentPath.toString(), currentPath.last, null);
                     } else {
                         try {
                             final Graph.Node node = reference.resolve(DependencyPathTraversal.this, context);
@@ -85,7 +85,7 @@ final class DependencyPathTraversal implements Graph.Traversal {
 
                             return node;
                         } catch (final ComponentContainer.CircularReferencesException error) {
-                            return new DeferredNode(api, currentPath.toString(), currentPath.last.context, error);
+                            return new DeferredNode(api, currentPath.toString(), currentPath.last, error);
                         }
                     }
                 }
@@ -104,18 +104,19 @@ final class DependencyPathTraversal implements Graph.Traversal {
 
         private final Class<?> api;
         private final Class<?> type;
-        private final ComponentContext context;
+        private final Element last;
 
-        private Object instance;
-
-        public DeferredNode(final Class<?> api, final String path, final ComponentContext context, final ComponentContainer.CircularReferencesException error) {
+        public DeferredNode(final Class<?> api,
+                            final String path,
+                            final Element last,
+                            final ComponentContainer.CircularReferencesException error) {
             if (!api.isInterface()) {
                 throw circularity(api, path, error);
             }
 
             this.api = api;
             this.type = Proxy.getProxyClass(api.getClassLoader(), api);
-            this.context = context;
+            this.last = last;
         }
 
         public Class<?> type() {
@@ -124,7 +125,7 @@ final class DependencyPathTraversal implements Graph.Traversal {
 
         public Object instance(final Observer observer) {
             final Class<?>[] interfaces = { api };
-            return instance = Proxy.newProxyInstance(api.getClassLoader(), interfaces, new InvocationHandler() {
+            return Proxy.newProxyInstance(api.getClassLoader(), interfaces, new InvocationHandler() {
                 private volatile Object delegate;
                 private Set<Method> path = new HashSet<Method>();
 
@@ -161,23 +162,18 @@ final class DependencyPathTraversal implements Graph.Traversal {
             });
         }
 
-        public Object replay(final Observer observer) {
-            assert instance != null;
-            return instance;
-        }
-
         public ComponentContext context() {
-            return context;
+            return last.context;
         }
     }
 
-    Object instantiate(final Class<?> api, final Graph.Node node, final Observer observer, final Instance reference) {
+    Object instantiate(final Class<?> api, final Graph.Node node, final Observer observer) {
         final DependencyPath<InstantiationElement> savedPath = instantiationPath;
         final DependencyPath<InstantiationElement> currentPath = savedPath.descend(new InstantiationElement(api, node.context()));
 
         instantiationPath = currentPath;
         try {
-            Object instance = reference.get();
+            Object instance = node.instance(observer);
 
             // set node after instantiation
             currentPath.last.node = node;
@@ -188,70 +184,23 @@ final class DependencyPathTraversal implements Graph.Traversal {
                     // chain has been cut short
                     instance = currentPath.last.instance();
                 } else {
-                    if (currentPath.isCircular() && !currentPath.isEdge()) {
+                    if (currentPath.isCircular()/* TODO: don't replace the last component with the new one */) {
 
                         // cut short the instantiation chain
                         currentPath.last.setInstance(instance);
                     }
 
                     if (observer != null) {
-                        observer.resolved(currentPath, instance);
+                        observer.resolved(currentPath, node.type());
                     }
                 }
             } else if (observer != null) {
-                observer.resolved(currentPath, instance);
+                observer.resolved(currentPath, node.type());
             }
 
             return instance;
         } finally {
             instantiationPath = savedPath;
-        }
-    }
-
-    @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
-    public Graph.Node deferredResolution(final Graph graph,
-                                         final Graph.Reference reference,
-                                         final ContextDefinition context,
-                                         final DependencyPath<ResolutionElement> path,
-                                         final ComponentContainer.CircularReferencesException error) {
-        final Class<?> api = reference.api();
-
-        if (reference instanceof DeferredReference) {
-            throw circularity(api, path.toString(), ((DeferredReference) reference).error());
-        } else if (api.isInterface()) {
-            final Class<?>[] interfaces = { api };
-            final Object instance = Proxy.newProxyInstance(api.getClassLoader(), interfaces, new InvocationHandler() {
-                private volatile Object delegate;
-                private Set<Method> path = new HashSet<Method>();
-
-                public Object invoke(final Object proxy, final Method method, final Object[] arguments) throws Throwable {
-                    Object cache = delegate;
-
-                    if (delegate == null) {
-                        synchronized (this) {
-                            cache = delegate;
-
-                            if (cache == null) {
-                                delegate = cache = follow(graph, context, new DeferredReference(reference, error)).instance(null);
-                            }
-                        }
-                    }
-
-                    if (!path.add(method)) {
-                        throw new ComponentContainer.CircularInvocationException(delegate, method);
-                    } else {
-                        try {
-                            return method.invoke(cache, arguments);
-                        } finally {
-                            path.remove(method);
-                        }
-                    }
-                }
-            });
-
-            return new ProxyNode(path, instance);
-        } else {
-            throw circularity(api, path.toString(), error);
         }
     }
 
@@ -276,78 +225,11 @@ final class DependencyPathTraversal implements Graph.Traversal {
         }
 
         public Object instance(final Observer observer) {
-            return instantiate(api, node, observer, new Instance() {
-                public Object get() {
-                    return node.instance(observer);
-                }
-            });
-        }
-
-        public Object replay(final Observer observer) {
-            return instantiate(api, node, observer, new Instance() {
-                public Object get() {
-                    return node.replay(observer);
-                }
-            });
+            return instantiate(api, node, observer);
         }
 
         public ComponentContext context() {
             return node.context();
-        }
-    }
-
-    private static class ProxyNode implements Graph.Node {
-
-        private final DependencyPath<ResolutionElement> path;
-        private final Object instance;
-
-        public ProxyNode(final DependencyPath<ResolutionElement> path, final Object instance) {
-            this.path = path;
-            this.instance = instance;
-        }
-
-        public Class<?> type() {
-            return instance.getClass();
-        }
-
-        public Object instance(final Observer observer) {
-            return instance;
-        }
-
-        public Object replay(final Observer observer) {
-            return instance;
-        }
-
-        public ComponentContext context() {
-            return path.last.context;
-        }
-    }
-
-    private static interface Instance {
-
-        Object get();
-    }
-
-    private static class DeferredReference implements Graph.Reference {
-
-        private final Graph.Reference reference;
-        private final ComponentContainer.CircularReferencesException error;
-
-        public DeferredReference(final Graph.Reference reference, final ComponentContainer.CircularReferencesException error) {
-            this.error = error;
-            this.reference = reference;
-        }
-
-        public Class<?> api() {
-            return reference.api();
-        }
-
-        public Graph.Node resolve(final Graph.Traversal traversal, final ContextDefinition context) {
-            return reference.resolve(traversal, context);
-        }
-
-        public ComponentContainer.CircularReferencesException error() {
-            return error;
         }
     }
 
@@ -361,16 +243,14 @@ final class DependencyPathTraversal implements Graph.Traversal {
         private final Map<T, T> path = new LinkedHashMap<T, T>();
         private final boolean collapse;
         private final boolean circular;
-        private final boolean edge;
 
         private DependencyPath(final boolean collapse) {
             this.collapse = collapse;
             this.circular = false;
-            this.edge = false;
             this.last = null;
         }
 
-        public DependencyPath(final Map<T, T> path, final T last, final boolean collapse, final boolean circular) {
+        public DependencyPath(final Map<T, T> path, final T last, final boolean collapse) {
             this.collapse = collapse;
             this.path.putAll(path);
             this.circular = path.containsKey(last);
@@ -381,19 +261,14 @@ final class DependencyPathTraversal implements Graph.Traversal {
 
             this.last = this.path.get(last);
             assert this.last != null : this.path.keySet();
-            this.edge = !circular;
         }
 
         public DependencyPath<T> descend(final T element) {
-            return new DependencyPath<T>(path, element, collapse, circular);
+            return new DependencyPath<T>(path, element, collapse);
         }
 
         public boolean isCircular() {
             return circular;
-        }
-
-        public boolean isEdge() {
-            return edge;
         }
 
         public Class<?> head() {
@@ -425,6 +300,7 @@ final class DependencyPathTraversal implements Graph.Traversal {
 
     private static abstract class Element {
 
+        public ComponentContext context;
         private final Class<?> api;
 
         private Element(final Class<?> api) {
@@ -435,7 +311,7 @@ final class DependencyPathTraversal implements Graph.Traversal {
             return api;
         }
 
-        protected abstract Object context();
+        protected abstract Object supplement();
 
         @Override
         public boolean equals(final Object o) {
@@ -446,14 +322,14 @@ final class DependencyPathTraversal implements Graph.Traversal {
             }
 
             final Element element = (Element) o;
-            final Object myContext = context();
-            final Object otherContext = element.context();
+            final Object myContext = supplement();
+            final Object otherContext = element.supplement();
             return api.equals(element.api()) && (myContext == null ? otherContext == null : myContext.equals(otherContext));
         }
 
         @Override
         public int hashCode() {
-            return context() == null ? api.hashCode() : (31 * api.hashCode() + context().hashCode());
+            return supplement() == null ? api.hashCode() : (31 * api.hashCode() + supplement().hashCode());
         }
     }
 
@@ -464,15 +340,13 @@ final class DependencyPathTraversal implements Graph.Traversal {
 
         public final ContextDefinition definition;
 
-        public ComponentContext context;
-
         ResolutionElement(final Class<?> api, final ContextDefinition definition) {
             super(api);
             this.definition = definition.copy();
         }
 
         @Override
-        protected Object context() {
+        protected Object supplement() {
             return definition;
         }
     }
@@ -482,7 +356,6 @@ final class DependencyPathTraversal implements Graph.Traversal {
      */
     private static class InstantiationElement extends Element {
 
-        public final ComponentContext context;
         public Graph.Node node;
 
         private boolean cached;
@@ -494,7 +367,7 @@ final class DependencyPathTraversal implements Graph.Traversal {
         }
 
         @Override
-        protected Object context() {
+        protected Object supplement() {
             return context;
         }
 

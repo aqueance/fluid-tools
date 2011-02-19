@@ -270,11 +270,7 @@ final class SimpleContainerImpl implements ParentContainer {
 
             @SuppressWarnings("ConstantConditions")
             public VariantResolver variant(final Class<?> api, final ComponentCache cache) {
-                return new VariantResolverInstance(isFallback ? 0 : 1,
-                                                   SimpleContainerImpl.this,
-                                                   api,
-                                                   (ComponentVariantFactory) instance,
-                                                   cache, logs);
+                return new VariantResolverInstance(isFallback ? 0 : 1, SimpleContainerImpl.this, api, (ComponentVariantFactory) instance, cache, logs);
             }
 
             @SuppressWarnings("ConstantConditions")
@@ -330,13 +326,13 @@ final class SimpleContainerImpl implements ParentContainer {
     }
 
     public Node resolveComponent(final Class<?> api, final ContextDefinition context, final Traversal traversal) {
-            final ComponentResolver resolver = components.get(api);
+        final ComponentResolver resolver = components.get(api);
 
-            if (resolver == null) {
-                return parent == null ? new Node.Constant(api, null, null) : parent.resolveComponent(api, context, traversal);
-            } else {
-                return resolver.resolve(traversal, SimpleContainerImpl.this, context);
-            }
+        if (resolver == null) {
+            return parent == null ? new Node.Constant(api, null, null) : parent.resolveComponent(api, context, traversal);
+        } else {
+            return resolver.resolve(traversal, SimpleContainerImpl.this, context);
+        }
     }
 
     public Node resolveGroup(final Class<?> api, final ContextDefinition context, final Traversal traversal) {
@@ -378,7 +374,7 @@ final class SimpleContainerImpl implements ParentContainer {
 
     private static class GroupCollector implements Traversal.Observer {
 
-        private final List<Object> list = new ArrayList<Object>();
+        private final List<Class<?>> list = new ArrayList<Class<?>>();
         private final Class<?> api;
         private final Traversal.Observer delegate;
 
@@ -387,18 +383,18 @@ final class SimpleContainerImpl implements ParentContainer {
             this.delegate = delegate;
         }
 
-        public void resolved(final Path path, final Object instance) {
-            if (api.isAssignableFrom(instance.getClass())) {
-                list.add(instance);
+        public void resolved(final Path path, final Class<?> type) {
+            if (api.isAssignableFrom(type)) {
+                list.add(type);
             }
 
             if (delegate != null) {
-                delegate.resolved(path, instance);
+                delegate.resolved(path, type);
             }
         }
 
-        public Object[] group() {
-            return list.toArray((Object[]) Array.newInstance(api, list.size()));
+        public Class<?>[] group() {
+            return list.toArray(new Class<?>[list.size()]);
         }
     }
 
@@ -414,21 +410,19 @@ final class SimpleContainerImpl implements ParentContainer {
                 public Object instance(final Traversal.Observer observer) {
                     final GroupCollector collector = new GroupCollector(api, observer);
 
-                    for (final Node node : list) {
-                        node.instance(collector);
+                    final Object[] instances = (Object[]) Array.newInstance(api, list.size());
+                    {
+                        int i = 0;
+                        for (final Node node : list) {
+                            instances[i++] = node.instance(collector);
+                        }
                     }
 
-                    return collector.group();
-                }
+                    final Class<?>[] types = collector.group();
 
-                public Object replay(final Traversal.Observer observer) {
-                    final GroupCollector collector = new GroupCollector(api, observer);
+                    // TODO: sort instances according to type sequence
 
-                    for (final Node node : list) {
-                        node.replay(collector);
-                    }
-
-                    return collector.group();
+                    return instances;
                 }
 
                 public ComponentContext context() {

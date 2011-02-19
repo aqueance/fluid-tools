@@ -94,17 +94,7 @@ abstract class AbstractResolver implements ComponentResolver {
                 public Object perform() {
                     return node.instance(observer);
                 }
-
-                public void replay() {
-                    if (observer != null) {
-                        node.replay(observer);
-                    }
-                }
             });
-        }
-
-        public Object replay(final Graph.Traversal.Observer observer) {
-            return node.replay(observer);
         }
 
         public ComponentContext context() {

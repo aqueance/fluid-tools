@@ -102,17 +102,17 @@ public final class CircularReferencesTests extends AbstractContainerTests {
     }
 
     private void circularConstruction(final boolean call1, final boolean call2, final boolean call3) {
-        CircularNasty1Impl.call = call1;
-        CircularNasty2Impl.call = call2;
-        CircularNasty3Impl.call = call3;
+        CircularConstructor1Impl.call = call1;
+        CircularConstructor2Impl.call = call2;
+        CircularConstructor3Impl.call = call3;
 
-        registry.bindComponent(CircularNasty1Impl.class);
-        registry.bindComponent(CircularNasty2Impl.class);
-        registry.bindComponent(CircularNasty3Impl.class);
+        registry.bindComponent(CircularConstructor1Impl.class);
+        registry.bindComponent(CircularConstructor2Impl.class);
+        registry.bindComponent(CircularConstructor3Impl.class);
 
-        ping(CircularNasty1.class);
-        ping(CircularNasty2.class);
-        ping(CircularNasty3.class);
+        ping(CircularConstructor1.class);
+        ping(CircularConstructor2.class);
+        ping(CircularConstructor3.class);
     }
 
     private void ping(final Class<? extends Pingable> componentClass) {
@@ -271,18 +271,18 @@ public final class CircularReferencesTests extends AbstractContainerTests {
         }
     }
 
-    private static interface CircularNasty1 extends Pingable {}
+    private static interface CircularConstructor1 extends Pingable {}
 
-    private static interface CircularNasty2 extends Pingable {}
+    private static interface CircularConstructor2 extends Pingable {}
 
-    private static interface CircularNasty3 extends Pingable {}
+    private static interface CircularConstructor3 extends Pingable {}
 
     // this will be instantiated once
     @Component
-    private static class CircularNasty1Impl implements CircularNasty1 {
+    private static class CircularConstructor1Impl implements CircularConstructor1 {
         public static boolean call = false;
 
-        public CircularNasty1Impl(final CircularNasty2 dependency) {
+        public CircularConstructor1Impl(final CircularConstructor2 dependency) {
             if (call) dependency.ping();
         }
 
@@ -293,10 +293,10 @@ public final class CircularReferencesTests extends AbstractContainerTests {
 
     // this will be instantiated twice because it forces in its constructor the instantiation of its dependency
     @Component
-    private static class CircularNasty2Impl implements CircularNasty2 {
+    private static class CircularConstructor2Impl implements CircularConstructor2 {
         public static boolean call = false;
 
-        public CircularNasty2Impl(final CircularNasty3 dependency) {
+        public CircularConstructor2Impl(final CircularConstructor3 dependency) {
             if (call) dependency.ping();
         }
 
@@ -305,12 +305,12 @@ public final class CircularReferencesTests extends AbstractContainerTests {
         }
     }
 
-    // this will be instantiated thrice because both it and CircularNasty2Impl force in their constructor the instantiation of their dependency
+    // this will be instantiated thrice because both it and CircularConstructor2Impl force in their constructor the instantiation of their dependency
     @Component
-    private static class CircularNasty3Impl implements CircularNasty3 {
+    private static class CircularConstructor3Impl implements CircularConstructor3 {
         public static boolean call = false;
 
-        public CircularNasty3Impl(final CircularNasty1 dependency) {
+        public CircularConstructor3Impl(final CircularConstructor1 dependency) {
             if (call) dependency.ping();
         }
 

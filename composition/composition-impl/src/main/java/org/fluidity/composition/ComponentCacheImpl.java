@@ -51,9 +51,7 @@ final class ComponentCacheImpl implements ComponentCache {
                                        final Class<?> api,
                                        final Instantiation instantiation,
                                        final Log log) {
-        if (cache.containsKey(context)) {
-            instantiation.replay();
-        } else {
+        if (!cache.containsKey(context)) {
 
             // go ahead and create the component and then see if it was actually necessary; context may change as new instantiations take place
             final Object component = instantiation.perform();

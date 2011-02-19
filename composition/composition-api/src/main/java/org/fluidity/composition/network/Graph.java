@@ -41,8 +41,6 @@ public interface Graph {
 
         Object instance(Traversal.Observer observer);
 
-        Object replay(Traversal.Observer observer);
-
         ComponentContext context();
 
         class Constant implements Node {
@@ -62,10 +60,6 @@ public interface Graph {
             }
 
             public final Object instance(Traversal.Observer observer) {
-                return instance;
-            }
-
-            public Object replay(final Traversal.Observer observer) {
                 return instance;
             }
 
@@ -99,7 +93,7 @@ public interface Graph {
 
         interface Observer {
 
-            void resolved(Path path, Object instance);
+            void resolved(Path path, Class<?> type);
         }
 
         interface Trail extends Path {

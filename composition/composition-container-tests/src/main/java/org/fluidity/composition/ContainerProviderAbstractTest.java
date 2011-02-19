@@ -39,7 +39,6 @@ import org.fluidity.foundation.spi.LogFactory;
 import org.fluidity.tests.MockGroupAbstractTest;
 
 import org.easymock.EasyMock;
-import org.easymock.IAnswer;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -156,25 +155,6 @@ public abstract class ContainerProviderAbstractTest extends MockGroupAbstractTes
         @SuppressWarnings("UnusedDeclaration")
         public DependentPackageBindingsImpl(final PackageBindingsImpl dependent) {
             // empty
-        }
-    }
-
-    private static class BindingsResponse implements IAnswer<Object> {
-
-        private final PackageBindings[] bindings;
-
-        public BindingsResponse(final PackageBindings[] bindings) {
-            this.bindings = bindings;
-        }
-
-        public Object answer() throws Throwable {
-            final Graph.Traversal.Observer observer = (Graph.Traversal.Observer) EasyMock.getCurrentArguments()[0];
-
-            for (final PackageBindings binding : bindings) {
-                observer.resolved(null, binding);
-            }
-
-            return bindings;
         }
     }
 }

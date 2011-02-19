@@ -127,15 +127,6 @@ final class DependencyInjectorImpl implements DependencyInjector {
                 }));
             }
 
-            public Object replay(final Graph.Traversal.Observer observer) {
-                for (final Graph.Node argument : arguments) {
-                    argument.replay(observer);
-                }
-
-                assert instance != null;
-                return instance;
-            }
-
             public ComponentContext context() {
                 return componentContext;
             }
@@ -287,10 +278,6 @@ final class DependencyInjectorImpl implements DependencyInjector {
 
                 public Object instance(final Graph.Traversal.Observer observer) {
                     return checkNull(answer == null ? null : answer.instance(observer));
-                }
-
-                public Object replay(final Graph.Traversal.Observer observer) {
-                    return checkNull(answer == null ? null : answer.replay(observer));
                 }
 
                 public ComponentContext context() {
