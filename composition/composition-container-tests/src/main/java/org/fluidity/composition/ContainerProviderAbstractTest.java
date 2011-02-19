@@ -58,6 +58,7 @@ public abstract class ContainerProviderAbstractTest extends MockGroupAbstractTes
     private final Graph.Node node = addControl(Graph.Node.class);
     private final DependencyInjector dependencyInjector = addControl(DependencyInjector.class);
     private final ComponentCache componentCache = addControl(ComponentCache.class);
+    private final ContextDefinition context = addControl(ContextDefinition.class);
 
     private final Map<String, String> map = new HashMap<String, String>();
 
@@ -76,6 +77,7 @@ public abstract class ContainerProviderAbstractTest extends MockGroupAbstractTes
         EasyMock.expect(services.classDiscovery()).andReturn(classDiscovery).anyTimes();
         EasyMock.expect(services.dependencyInjector()).andReturn(dependencyInjector).anyTimes();
         EasyMock.expect(services.newCache(EasyMock.anyBoolean())).andReturn(componentCache).anyTimes();
+        EasyMock.expect(services.emptyContext()).andReturn(context).anyTimes();
     }
 
     @Test
@@ -98,7 +100,7 @@ public abstract class ContainerProviderAbstractTest extends MockGroupAbstractTes
                                          EasyMock.<ContextDefinition>isNull(), EasyMock.<Graph.Reference>notNull()))
                 .andReturn(node);
 
-        EasyMock.expect(node.instance(EasyMock.<Graph.Traversal.Observer>notNull())).andAnswer(new BindingsResponse(instance));
+        EasyMock.expect(node.instance(EasyMock.<Graph.Traversal.Observer>isNull())).andReturn(instance);
 
         replay();
         final List<PackageBindings> list = provider.instantiateBindings(services, map, assemblies);
@@ -124,7 +126,7 @@ public abstract class ContainerProviderAbstractTest extends MockGroupAbstractTes
                                          EasyMock.<ContextDefinition>isNull(), EasyMock.<Graph.Reference>notNull()))
                 .andReturn(node);
 
-        EasyMock.expect(node.instance(EasyMock.<Graph.Traversal.Observer>notNull())).andAnswer(new BindingsResponse(bindings));
+        EasyMock.expect(node.instance(EasyMock.<Graph.Traversal.Observer>isNull())).andReturn(bindings);
 
         replay();
         final List<PackageBindings> list = provider.instantiateBindings(services, map, assemblies);

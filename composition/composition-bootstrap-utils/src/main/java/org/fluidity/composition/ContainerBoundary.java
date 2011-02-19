@@ -140,10 +140,6 @@ public final class ContainerBoundary implements ComponentContainer {
         loadContainer(false).getRegistry().bindInstance(instance, key);
     }
 
-    public Graph getGraph() {
-        return loadContainer(true).getGraph();
-    }
-
     /**
      * Delegates to the enclosed container.
      * <p/>
@@ -311,5 +307,13 @@ public final class ContainerBoundary implements ComponentContainer {
 
             return containers.isEmpty() ? null : containers.get(0);
         }
+    }
+
+    public <T> T resolveComponent(final Class<T> api, final Graph.Traversal.Strategy strategy, final Graph.Traversal.Observer observer) {
+        return loadContainer(true).resolveComponent(api, strategy, observer);
+    }
+
+    public <T> T[] resolveGroup(final Class<T> api, final Graph.Traversal.Strategy strategy, final Graph.Traversal.Observer observer) {
+        return loadContainer(true).resolveGroup(api, strategy, observer);
     }
 }

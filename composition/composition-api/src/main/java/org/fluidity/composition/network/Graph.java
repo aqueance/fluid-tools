@@ -31,9 +31,9 @@ import org.fluidity.composition.ComponentContext;
  */
 public interface Graph {
 
-    Node resolveComponent(Class<?> api, ContextDefinition context, Traversal.Strategy strategy, Traversal.Observer observer);
+    Object resolveComponent(Class<?> api, ContextDefinition context, Traversal.Strategy strategy, Traversal.Observer observer);
 
-    Node resolveGroup(Class<?> api, ContextDefinition context, Traversal.Strategy strategy, Traversal.Observer observer);
+    Object[] resolveGroup(Class<?> api, ContextDefinition context, Traversal.Strategy strategy, Traversal.Observer observer);
 
     interface Node {
 
@@ -41,24 +41,31 @@ public interface Graph {
 
         Object instance(Traversal.Observer observer);
 
+        Object replay(Traversal.Observer observer);
+
         ComponentContext context();
 
         class Constant implements Node {
 
+            private final Class<?> type;
             private final Object instance;
             private final ComponentContext context;
 
-            public Constant(final Object instance, final ComponentContext context) {
-                assert instance != null;
+            public Constant(final Class<?> type, final Object instance, final ComponentContext context) {
+                this.type = type;
                 this.instance = instance;
                 this.context = context;
             }
 
             public final Class<?> type() {
-                return instance.getClass();
+                return type;
             }
 
             public final Object instance(Traversal.Observer observer) {
+                return instance;
+            }
+
+            public Object replay(final Traversal.Observer observer) {
                 return instance;
             }
 

@@ -55,7 +55,7 @@ final class InstanceResolver extends AbstractResolver {
     }
 
     public Graph.Node resolve(final Graph.Traversal traversal, final SimpleContainer container, final ContextDefinition context) {
-        return new Graph.Node.Constant(instance, null);
+        return new Graph.Node.Constant(instance.getClass(), instance, null);
     }
 
     @Override

@@ -55,7 +55,7 @@ public final class ComponentGroupDependencyTests extends AbstractContainerTests 
 
         public Processor(final @ComponentGroup Filter[] filters) {
             assert filters != null : "Component group dependency was not resolved";
-            assert filters.length == 2 : "Component group dependency did not find all implementations";
+            assert filters.length == 2 : String.format("Component group dependency did not find all implementations: %s", Arrays.toString(filters));
 
             final Set<Class<? extends Filter>> provided = new HashSet<Class<? extends Filter>>();
             for (final Filter filter : filters) {

@@ -22,6 +22,7 @@
 
 package org.fluidity.composition;
 
+import org.fluidity.composition.network.ContextDefinition;
 import org.fluidity.composition.network.Graph;
 import org.fluidity.foundation.spi.LogFactory;
 
@@ -31,6 +32,13 @@ import org.fluidity.foundation.spi.LogFactory;
  * @author Tibor Varga
  */
 public interface ContainerServices {
+
+    /**
+     * Creates an empty context definition.
+     *
+     * @return an empty context definition.
+     */
+    ContextDefinition emptyContext();
 
     /**
      * Returns the service to find classes implementing some interface.
@@ -56,8 +64,8 @@ public interface ContainerServices {
     /**
      * Returns the default graph traversal with the given strategy and observer.
      *
-     *
      * @param strategy the traversal strategy to use.
+     *
      * @return the default graph traversal with the given strategy and observer.
      */
     Graph.Traversal graphTraversal(Graph.Traversal.Strategy strategy);

@@ -54,7 +54,7 @@ final class LinkingResolver extends AbstractResolver {
 
     public Graph.Node resolve(final Graph.Traversal traversal, final SimpleContainer container, final ContextDefinition context) {
         assert target.parentContainer() == container;
-        return delegate.resolve(traversal, container, context);
+        return delegate.resolve(traversal, target, context);
     }
 
     @Override

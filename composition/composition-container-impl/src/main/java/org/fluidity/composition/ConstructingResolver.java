@@ -155,21 +155,21 @@ final class ConstructingResolver extends AbstractResolver {
             }
 
             public Object instance(final Graph.Traversal.Observer observer) {
-
                 return cache.lookup(container, node.context(), api, new ComponentCache.Instantiation() {
                     public Object perform() {
                         return node.instance(observer);
                     }
 
-                    // TODO:
-/*
                     public void replay() {
                         if (observer != null) {
                             node.replay(observer);
                         }
                     }
-*/
                 });
+            }
+
+            public Object replay(final Graph.Traversal.Observer observer) {
+                return node.replay(observer);
             }
 
             public ComponentContext context() {

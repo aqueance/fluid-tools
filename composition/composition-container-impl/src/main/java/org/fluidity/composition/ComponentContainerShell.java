@@ -22,10 +22,6 @@
 
 package org.fluidity.composition;
 
-import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.List;
-
 import org.fluidity.composition.network.ContextDefinition;
 import org.fluidity.composition.network.Graph;
 import org.fluidity.composition.spi.EmptyComponentContainer;
@@ -42,42 +38,33 @@ final class ComponentContainerShell extends EmptyComponentContainer {
 
     public ComponentContainerShell(final ContainerServices services) {
         this.container = new SimpleContainerImpl(services);
-        this.context = null;
+        this.context = services.emptyContext();
     }
 
     public ComponentContainerShell(final SimpleContainer container, final ContextDefinition context, final boolean child) {
         assert container != null;
+        assert context != null;
         this.container = child ? container.newChildContainer() : container;
         this.context = context;
     }
 
-    public Graph getGraph() {
-        return container;
+    @SuppressWarnings("unchecked")
+    public <T> T getComponent(final Class<T> api) {
+        final Graph.Node node = container.resolveComponent(api, context, container.services().graphTraversal());
+        assert node != null : api;
+        return node == null ? null : (T) node.instance(null);
     }
 
     @SuppressWarnings("unchecked")
-    public <T> T getComponent(final Class<T> api) {
-        return (T) container.resolveComponent(api, context, container.services().graphTraversal()).instance(null);
+    public <T> T[] getComponentGroup(final Class<T> api) {
+        final Graph.Node node = container.resolveGroup(api, context, container.services().graphTraversal());
+        assert node != null : api;
+        return node == null ? null : (T[]) node.instance(null);
     }
 
     @SuppressWarnings("unchecked")
     public <T> T initialize(final T component) {
         return (T) container.initialize(component, context, null);
-    }
-
-    @SuppressWarnings("unchecked")
-    public <T> T[] getComponentGroup(final Class<T> api) {
-        final List<T> list = new ArrayList<T>();
-
-        container.resolveGroup(api, context, container.services().graphTraversal()).instance(new Graph.Traversal.Observer() {
-            public void resolved(final Graph.Path path, final Object instance) {
-                if (api.isAssignableFrom(instance.getClass())) {
-                    list.add((T) instance);
-                }
-            }
-        });
-
-        return list.toArray((T[]) Array.newInstance(api, list.size()));
     }
 
     public OpenComponentContainer makeChildContainer() {
@@ -97,6 +84,20 @@ final class ComponentContainerShell extends EmptyComponentContainer {
     public OpenComponentContainer makeChildContainer(final Class<?> implementation, final Class<?>[] interfaces, final Class<?>[] groups)
             throws ComponentContainer.BindingException {
         return new ComponentContainerShell(container.linkComponent(implementation, interfaces, groups), context, false);
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T> T resolveComponent(final Class<T> api, final Graph.Traversal.Strategy strategy, final Graph.Traversal.Observer observer) {
+        final Graph.Node node = container.resolveComponent(api, context, container.services().graphTraversal(strategy));
+        assert node != null : api;
+        return node == null ? null : (T) node.instance(observer);
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T> T[] resolveGroup(final Class<T> api, final Graph.Traversal.Strategy strategy, final Graph.Traversal.Observer observer) {
+        final Graph.Node node = container.resolveGroup(api, context, container.services().graphTraversal(strategy));
+        assert node != null : api;
+        return node == null ? null : (T[]) node.instance(observer);
     }
 
     @Override

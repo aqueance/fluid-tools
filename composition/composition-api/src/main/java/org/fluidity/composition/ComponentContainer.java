@@ -64,12 +64,9 @@ import org.fluidity.composition.network.Graph;
  */
 public interface ComponentContainer {
 
-    /**
-     * Returns an explorable dependency graph.
-     *
-     * @return an explorable dependency graph.
-     */
-    Graph getGraph();
+    <T> T resolveComponent(Class<T> api, Graph.Traversal.Strategy strategy, Graph.Traversal.Observer observer);
+
+    <T> T[] resolveGroup(Class<T> api, Graph.Traversal.Strategy strategy, Graph.Traversal.Observer observer);
 
     /**
      * Returns a component by interface or (super)class. This method is provided for boundary objects (objects created outside the container by third party

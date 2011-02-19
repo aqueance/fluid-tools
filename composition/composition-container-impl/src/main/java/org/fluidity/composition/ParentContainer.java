@@ -27,9 +27,18 @@ import java.util.List;
 import org.fluidity.composition.network.ContextDefinition;
 
 /**
-* TODO: documentation
-*/
+ * Interface to separate internal container methods from the higher level container interface.
+ */
 interface ParentContainer extends SimpleContainer {
 
-    List<Node> resolveGroup(Traversal traversal, Class<?> api, ContextDefinition context);
+    /**
+     * Resolves the group API to a list of implementations.
+     *
+     * @param api       the group API.
+     * @param traversal the current graph traversal.
+     * @param context   the current context.
+     *
+     * @return the list of component nodes for the group API.
+     */
+    List<Node> resolveGroup(Class<?> api, Traversal traversal, ContextDefinition context);
 }

@@ -26,6 +26,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -332,7 +333,7 @@ final class SimpleContainerImpl implements ParentContainer {
             final ComponentResolver resolver = components.get(api);
 
             if (resolver == null) {
-                return parent == null ? null : parent.resolveComponent(api, context, traversal);
+                return parent == null ? new Node.Constant(api, null, null) : parent.resolveComponent(api, context, traversal);
             } else {
                 return traversal.follow(this, context, new Reference() {
                     public Class<?> api() {
@@ -350,32 +351,32 @@ final class SimpleContainerImpl implements ParentContainer {
         final GroupResolver group = groups.get(api);
 
         if (group == null) {
-            return parent == null ? null : parent.resolveGroup(api, context, traversal);
+            return parent == null ? new Node.Constant(api, null, null) : parent.resolveGroup(api, context, traversal);
         } else {
+            final Class<?> arrayApi = Array.newInstance(api, 0).getClass();
+
             return traversal.follow(this, context, new Reference() {
                 public Class<?> api() {
-                    return api;
+                    return arrayApi;
                 }
 
                 public Node resolve(final Traversal traversal, final ContextDefinition context) {
-                    return groupNode(api, resolveGroup(traversal, api, context));
+                    return groupNode(api, resolveGroup(api, traversal, context));
                 }
             });
         }
     }
 
-    public List<Node> resolveGroup(final Traversal traversal, final Class<?> api, final ContextDefinition context) {
-        final GroupResolver group = groups.get(api.getComponentType());
-        final List<Node> enclosing = parent == null ? null : parent.resolveGroup(traversal, api, context);
+    public List<Node> resolveGroup(final Class<?> api, final Traversal traversal, final ContextDefinition context) {
+        final GroupResolver group = groups.get(api);
+        @SuppressWarnings("unchecked")
+        final List<Node> enclosing = parent == null ? (List<Node>) Collections.EMPTY_LIST : parent.resolveGroup(api, traversal, context);
 
         if (group == null) {
             return enclosing;
         } else {
             final List<Node> list = new ArrayList<Node>();
-
-            if (enclosing != null) {
-                list.addAll(enclosing);
-            }
+            list.addAll(enclosing);
 
             group.resolve(traversal, this, context, list);
 
@@ -383,25 +384,59 @@ final class SimpleContainerImpl implements ParentContainer {
         }
     }
 
+    private static class GroupCollector implements Traversal.Observer {
+
+        private final List<Object> list = new ArrayList<Object>();
+        private final Class<?> api;
+        private final Traversal.Observer delegate;
+
+        public GroupCollector(final Class<?> api, final Traversal.Observer delegate) {
+            this.api = api;
+            this.delegate = delegate;
+        }
+
+        public void resolved(final Path path, final Object instance) {
+            if (api.isAssignableFrom(instance.getClass())) {
+                list.add(instance);
+            }
+
+            if (delegate != null) {
+                delegate.resolved(path, instance);
+            }
+        }
+
+        public Object[] group() {
+            return list.toArray((Object[]) Array.newInstance(api, list.size()));
+        }
+    }
+
     private Node groupNode(final Class<?> api, final List<Node> list) {
         if (list == null) {
             return null;
         } else {
-            final Object[] array = (Object[]) Array.newInstance(api.getComponentType(), list.size());
-
             return new Node() {
                 public Class<?> type() {
                     return api;
                 }
 
                 public Object instance(final Traversal.Observer observer) {
-                    int i = 0;
+                    final GroupCollector collector = new GroupCollector(api, observer);
 
-                    for (Node node : list) {
-                        array[i++] = node.instance(observer);
+                    for (final Node node : list) {
+                        node.instance(collector);
                     }
 
-                    return array;
+                    return collector.group();
+                }
+
+                public Object replay(final Traversal.Observer observer) {
+                    final GroupCollector collector = new GroupCollector(api, observer);
+
+                    for (final Node node : list) {
+                        node.replay(collector);
+                    }
+
+                    return collector.group();
                 }
 
                 public ComponentContext context() {
@@ -419,12 +454,12 @@ final class SimpleContainerImpl implements ParentContainer {
         return new ComponentContainerShell(this, context, false);
     }
 
-    public Node resolveComponent(final Class<?> api, final ContextDefinition context, final Traversal.Strategy strategy, final Traversal.Observer observer) {
-        return resolveComponent(api, context, services.graphTraversal(strategy));
+    public Object resolveComponent(final Class<?> api, final ContextDefinition context, final Traversal.Strategy strategy, final Traversal.Observer observer) {
+        return resolveComponent(api, context, services.graphTraversal(strategy)).instance(observer);
     }
 
-    public Node resolveGroup(final Class<?> api, final ContextDefinition context, final Traversal.Strategy strategy, final Traversal.Observer observer) {
-        return resolveGroup(api, context, services.graphTraversal(strategy));
+    public Object[] resolveGroup(final Class<?> api, final ContextDefinition context, final Traversal.Strategy strategy, final Traversal.Observer observer) {
+        return (Object[]) resolveGroup(api, context, services.graphTraversal(strategy)).instance(observer);
     }
 
     /**

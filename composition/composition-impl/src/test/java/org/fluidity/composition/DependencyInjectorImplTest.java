@@ -125,7 +125,8 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
             assert component == null || component.getClass().isArray() : component.getClass();
             final Object[] services = (Object[]) component;
 
-            EasyMock.expect(resolver.resolveComponent(dependencyType.getComponentType(), copy, traversal)).andReturn(new Graph.Node.Constant(services, null));
+            EasyMock.expect(resolver.resolveGroup(dependencyType.getComponentType(), copy, traversal))
+                    .andReturn(new Graph.Node.Constant(dependencyType, services, null));
         } else if (dependencyType == ComponentContext.class) {
             EasyMock.expect(mapping.contextSpecification(Context.class)).andReturn(contextAnnotations);
             EasyMock.expect(copy.reduce(contextAnnotations)).andReturn(copy);
@@ -152,7 +153,7 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
                 EasyMock.expect(resolver.mapping(dependencyType)).andReturn(mapping);
                 EasyMock.expect(mapping.contextSpecification(Context.class)).andReturn(acceptedContext);
                 EasyMock.expect(copy.reduce(acceptedContext)).andReturn(copy);
-                EasyMock.expect(resolver.resolveComponent(dependencyType, copy, traversal)).andReturn(new Graph.Node.Constant(component, null));
+                EasyMock.expect(resolver.resolveComponent(dependencyType, copy, traversal)).andReturn(new Graph.Node.Constant(dependencyType, component, null));
             }
         }
         return copy;
@@ -176,8 +177,8 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
         final ServiceImpl1 service1 = new ServiceImpl1();
         final ServiceImpl2 service2 = new ServiceImpl2();
 
-        EasyMock.expect(resolver.resolveComponent(Service.class, copy2, traversal)).andReturn(new Graph.Node.Constant(new Service[] { service1, service2 },
-                                                                                                                      null));
+        EasyMock.expect(resolver.resolveGroup(Service.class, copy2, traversal))
+                .andReturn(new Graph.Node.Constant(Service[].class, new Service[] { service1, service2 }, null));
 
         setupCollection(context, copy1, copy2);
 
@@ -197,7 +198,9 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
     public void complainsAboutMissingFields() throws Exception {
         final FieldInjected component = new FieldInjected();
 
-        setupFieldResolution(FieldInjected.class, "dependency", null, null, null, null);
+        setupCollection(context,
+                        setupFieldResolution(FieldInjected.class, "dependency", null, null, null, null),
+                        setupFieldResolution(FieldInjected.class, "services", null, null, null, null));
 
         replay();
         assert component == injector.fields(traversal, resolver, dummyMapping, context, component, null);
@@ -228,7 +231,7 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
 
         final Constructor<ConstructorInjected> constructor = ConstructorInjected.class.getDeclaredConstructor(Dependency.class, Service[].class);
         setupCollection(context, setupConstructorResolution(ConstructorInjected.class, constructor, null, null, null, dependency, services));
-        setupCollection(context);   // contexts for an empty field list
+        EasyMock.expect(context.create()).andReturn(addLocalControl(ComponentContext.class));
 
         ConstructorInjected.expectedGroupSize = services.length;
 
@@ -259,7 +262,7 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
     public void neverInjectsNullForGroup() throws Exception {
         final Constructor<MissingGroupConsumer> constructor = MissingGroupConsumer.class.getDeclaredConstructor(MissingService[].class);
         setupCollection(context, setupConstructorResolution(MissingGroupConsumer.class, constructor, null, null, null, (Object) null));
-        setupCollection(context);   // contexts for an empty field list
+        EasyMock.expect(context.create()).andReturn(addLocalControl(ComponentContext.class));
 
         replay();
         assert injector.constructor(traversal, resolver, dummyMapping, context, constructor) != null;

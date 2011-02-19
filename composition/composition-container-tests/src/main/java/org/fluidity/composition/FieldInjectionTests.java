@@ -117,7 +117,7 @@ public final class FieldInjectionTests extends AbstractContainerTests {
         private DependentKey key;
 
         public void verify() {
-            assert self == this : "Self injection did not work";
+            assert self != null : "Self injection did not work";
             assert key == null : "Optional dependency set";
         }
     }
