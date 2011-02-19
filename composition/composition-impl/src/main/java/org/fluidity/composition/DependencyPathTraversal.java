@@ -62,7 +62,7 @@ final class DependencyPathTraversal implements Graph.Traversal {
 
         resolutionPath = currentPath;
         try {
-            final boolean circular = currentPath.isCircular();
+            final boolean circular = currentPath.circular;
 
             final Trail trail = new Trail() {
                 public Class<?> head() {
@@ -184,7 +184,7 @@ final class DependencyPathTraversal implements Graph.Traversal {
                     // chain has been cut short
                     instance = currentPath.last.instance();
                 } else {
-                    if (currentPath.isCircular()/* TODO: don't replace the last component with the new one */) {
+                    if (currentPath.circular && !currentPath.edge) {
 
                         // cut short the instantiation chain
                         currentPath.last.setInstance(instance);
@@ -239,36 +239,39 @@ final class DependencyPathTraversal implements Graph.Traversal {
     private static class DependencyPath<T extends Element> implements Graph.Path {
 
         public final T last;
+        public final boolean circular;
+        public final boolean edge;
 
-        private final Map<T, T> path = new LinkedHashMap<T, T>();
+        private final List<T> list = new ArrayList<T>();
+        private final Map<T, T> map = new LinkedHashMap<T, T>();
         private final boolean collapse;
-        private final boolean circular;
 
         private DependencyPath(final boolean collapse) {
             this.collapse = collapse;
             this.circular = false;
+            this.edge = false;
             this.last = null;
         }
 
-        public DependencyPath(final Map<T, T> path, final T last, final boolean collapse) {
+        public DependencyPath(final List<T> list, final Map<T, T> map, final T last, final boolean collapse) {
             this.collapse = collapse;
-            this.path.putAll(path);
-            this.circular = path.containsKey(last);
+            this.list.addAll(list);
+            this.map.putAll(map);
+            this.circular = map.containsKey(last);
 
             if (!this.circular) {
-                this.path.put(last, last);
+                this.map.put(last, last);
             }
 
-            this.last = this.path.get(last);
-            assert this.last != null : this.path.keySet();
+            this.last = this.map.get(last);
+            assert this.last != null : this.map.keySet();
+
+            this.edge = !this.list.isEmpty() && this.list.lastIndexOf(this.last) == this.list.size() - 1;
+            this.list.add(last);
         }
 
         public DependencyPath<T> descend(final T element) {
-            return new DependencyPath<T>(path, element, collapse);
-        }
-
-        public boolean isCircular() {
-            return circular;
+            return new DependencyPath<T>(list, map, element, collapse);
         }
 
         public Class<?> head() {
@@ -276,20 +279,21 @@ final class DependencyPathTraversal implements Graph.Traversal {
         }
 
         public List<Class<?>> path() {
-            final List<Class<?>> list = new ArrayList<Class<?>>(path.size() + (circular ? 1 : 0));
-            for (final T element : path.keySet()) {
+            final List<Class<?>> path = new ArrayList<Class<?>>();
+
+            for (final T element : list) {
                 if (collapse && circular && last == element) {
                     break;
                 } else {
-                    list.add(element.api());
+                    path.add(element.api());
                 }
             }
 
             if (circular) {
-                list.add(last.api());
+                path.add(last.api());
             }
 
-            return list;
+            return path;
         }
 
         @Override
@@ -300,8 +304,8 @@ final class DependencyPathTraversal implements Graph.Traversal {
 
     private static abstract class Element {
 
+        public final Class<?> api;
         public ComponentContext context;
-        private final Class<?> api;
 
         private Element(final Class<?> api) {
             this.api = api;
@@ -322,9 +326,9 @@ final class DependencyPathTraversal implements Graph.Traversal {
             }
 
             final Element element = (Element) o;
-            final Object myContext = supplement();
-            final Object otherContext = element.supplement();
-            return api.equals(element.api()) && (myContext == null ? otherContext == null : myContext.equals(otherContext));
+            final Object mine = supplement();
+            final Object theirs = element.supplement();
+            return api.equals(element.api) && (mine == null ? theirs == null : mine.equals(theirs));
         }
 
         @Override
