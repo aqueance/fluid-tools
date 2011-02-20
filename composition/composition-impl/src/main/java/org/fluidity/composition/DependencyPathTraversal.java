@@ -34,6 +34,7 @@ import java.util.Set;
 
 import org.fluidity.composition.network.ContextDefinition;
 import org.fluidity.composition.network.Graph;
+import org.fluidity.foundation.Exceptions;
 
 /**
  * Detects and handles circular reference when possible.
@@ -100,74 +101,7 @@ final class DependencyPathTraversal implements Graph.Traversal {
         }
     }
 
-    private class DeferredNode implements Graph.Node {
-
-        private final Class<?> api;
-        private final Class<?> type;
-        private final Element last;
-
-        public DeferredNode(final Class<?> api,
-                            final String path,
-                            final Element last,
-                            final ComponentContainer.CircularReferencesException error) {
-            if (!api.isInterface()) {
-                throw circularity(api, path, error);
-            }
-
-            this.api = api;
-            this.type = Proxy.getProxyClass(api.getClassLoader(), api);
-            this.last = last;
-        }
-
-        public Class<?> type() {
-            return type;
-        }
-
-        public Object instance(final Observer observer) {
-            final Class<?>[] interfaces = { api };
-            return Proxy.newProxyInstance(api.getClassLoader(), interfaces, new InvocationHandler() {
-                private volatile Object delegate;
-                private Set<Method> path = new HashSet<Method>();
-
-                public Object invoke(final Object proxy, final Method method, final Object[] arguments) throws Throwable {
-                    Object cache = delegate;
-
-                    if (delegate == null) {
-                        synchronized (this) {
-                            cache = delegate;
-
-                            if (cache == null) {
-                                assert instantiationPath.last != null;
-                                final Graph.Node node = instantiationPath.last.node;
-
-                                if (node == null) {
-                                    throw circularity(api, path.toString(), null);
-                                }
-
-                                delegate = cache = node.instance(observer);
-                            }
-                        }
-                    }
-
-                    if (!path.add(method)) {
-                        throw new ComponentContainer.CircularInvocationException(delegate, method);
-                    } else {
-                        try {
-                            return method.invoke(cache, arguments);
-                        } finally {
-                            path.remove(method);
-                        }
-                    }
-                }
-            });
-        }
-
-        public ComponentContext context() {
-            return last.context;
-        }
-    }
-
-    Object instantiate(final Class<?> api, final Graph.Node node, final Observer observer) {
+    private Object instantiate(final Class<?> api, final Graph.Node node, final Observer observer) {
         final DependencyPath<InstantiationElement> savedPath = instantiationPath;
         final DependencyPath<InstantiationElement> currentPath = savedPath.descend(new InstantiationElement(api, node.context()));
 
@@ -175,8 +109,12 @@ final class DependencyPathTraversal implements Graph.Traversal {
         try {
             Object instance = node.instance(observer);
 
-            // set node after instantiation
-            currentPath.last.node = node;
+            final boolean deferred = node instanceof DeferredNode;
+            if (deferred) {
+                ((DeferredNode) node).nodeElement = currentPath.last;
+            } else {
+                currentPath.last.node = node;
+            }
 
             if (instance != null) {
                 if (currentPath.last.hasInstance()) {
@@ -201,6 +139,79 @@ final class DependencyPathTraversal implements Graph.Traversal {
             return instance;
         } finally {
             instantiationPath = savedPath;
+        }
+    }
+
+    private class DeferredNode implements Graph.Node {
+
+        public InstantiationElement nodeElement;
+
+        private final Class<?> api;
+        private final Class<?> type;
+        private final String path;
+        private final Element contextElement;
+
+        public DeferredNode(final Class<?> api, final String path, final Element contextElement, final ComponentContainer.CircularReferencesException error) {
+            if (!api.isInterface()) {
+                throw circularity(api, path, error);
+            }
+
+            this.api = api;
+            this.path = path;
+            this.type = Proxy.getProxyClass(api.getClassLoader(), api);
+            this.contextElement = contextElement;
+        }
+
+        public Class<?> type() {
+            return type;
+        }
+
+        public Object instance(final Observer observer) {
+            final Class<?>[] interfaces = { api };
+            return Proxy.newProxyInstance(api.getClassLoader(), interfaces, new InvocationHandler() {
+                private volatile Object delegate;
+                private Set<Method> methods = new HashSet<Method>();
+
+                public Object invoke(final Object proxy, final Method method, final Object[] arguments) throws Throwable {
+                    Object cache = delegate;
+
+                    if (delegate == null) {
+                        synchronized (this) {
+                            cache = delegate;
+
+                            if (cache == null) {
+                                if (instantiationPath.last != null) {
+                                    throw circularity(api, path, null);
+                                }
+
+                                assert nodeElement != null : api;
+                                assert nodeElement.node != null : api;
+                                assert nodeElement.node != DeferredNode.this : api;
+                                delegate = cache = nodeElement.node.instance(observer);
+                            }
+                        }
+                    }
+
+                    if (!methods.add(method)) {
+                        throw new ComponentContainer.CircularInvocationException(delegate, method);
+                    } else {
+                        try {
+                            final Object local = cache;
+                            return Exceptions.wrap(new Exceptions.Command<Object>() {
+                                public Object run() throws Exception {
+                                    return method.invoke(local, arguments);
+                                }
+                            });
+                        } finally {
+                            methods.remove(method);
+                        }
+                    }
+                }
+            });
+        }
+
+        public ComponentContext context() {
+            return contextElement.context;
         }
     }
 

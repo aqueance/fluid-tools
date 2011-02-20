@@ -50,8 +50,8 @@ public final class CircularReferencesTests extends AbstractContainerTests {
         container.getComponent(Circular3Dependent1Class.class);
     }
 
-    @Test
-    public void circularTwoWayInstantiation() throws Exception {
+    @Test(expectedExceptions = ComponentContainer.CircularInvocationException.class)
+    public void circularTwoWayCalls() throws Exception {
         registry.bindComponent(Circular2Dependent1Impl.class);
         registry.bindComponent(Circular2Dependent2Impl.class);
 
@@ -59,8 +59,8 @@ public final class CircularReferencesTests extends AbstractContainerTests {
         ping(Circular2Dependent2.class);
     }
 
-    @Test
-    public void circularThreeWayInstantiation() throws Exception {
+    @Test(expectedExceptions = ComponentContainer.CircularInvocationException.class)
+    public void circularThreeWayCalls() throws Exception {
         registry.bindComponent(Circular3Dependent1Impl.class);
         registry.bindComponent(Circular3Dependent2Impl.class);
         registry.bindComponent(Circular3Dependent3Impl.class);

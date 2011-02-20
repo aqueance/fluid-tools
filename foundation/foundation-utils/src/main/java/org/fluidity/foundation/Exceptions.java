@@ -23,6 +23,7 @@
 package org.fluidity.foundation;
 
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.UndeclaredThrowableException;
 
 /**
  * Provides exception related common functionality.
@@ -42,7 +43,11 @@ public abstract class Exceptions {
     public static <T> T wrap(final String context, final Command<T> command) {
         try {
             try {
-                return command.run();
+                try {
+                    return command.run();
+                } catch (final UndeclaredThrowableException e) {
+                    throw e.getCause();
+                }
             } catch (final InvocationTargetException e) {
                 throw e.getCause();
             }
