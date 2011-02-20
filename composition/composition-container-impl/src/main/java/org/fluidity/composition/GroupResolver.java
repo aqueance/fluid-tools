@@ -39,6 +39,9 @@ final class GroupResolver {
     private final Set<Class<?>> members = new LinkedHashSet<Class<?>>();
 
     public void resolve(final Graph.Traversal traversal, final SimpleContainer container, final ContextDefinition context, final List<Graph.Node> list) {
+
+        // TODO: list should be sorted by resolution order
+
         for (final Class<?> member : members) {
             list.add(container.resolver(member, false).resolve(traversal, container, context));
         }

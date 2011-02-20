@@ -112,8 +112,6 @@ final class DependencyInjectorImpl implements DependencyInjector {
         final ComponentContext componentContext = context.collect(consumed).create();
 
         return new Graph.Node() {
-            private Object instance;
-
             public Class<?> type() {
                 return componentClass;
             }
@@ -122,7 +120,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
                 return injectFields(fields, observer, Exceptions.wrap(String.format("instantiating %s", componentClass), new Exceptions.Command<Object>() {
                     public Object run() throws Exception {
                         constructor.setAccessible(true);
-                        return instance = constructor.newInstance(create(observer, arguments));
+                        return constructor.newInstance(create(observer, arguments));
                     }
                 }));
             }
@@ -259,31 +257,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
                 }
             }
 
-            final Graph.Node answer = node;
-
-            dependency.set(new Graph.Node() {
-                public Class<?> type() {
-                    return answer == null ? dependencyType : answer.type();
-                }
-
-                private Object checkNull(final Object instance) {
-                    if (instance == null && dependency.annotation(Optional.class) == null) {
-                        throw new ComponentContainer.ResolutionException("Dependency %s of %s cannot be satisfied",
-                                                                         Strings.arrayNotation(dependencyType),
-                                                                         declaringType);
-                    } else {
-                        return instance;
-                    }
-                }
-
-                public Object instance(final Graph.Traversal.Observer observer) {
-                    return checkNull(answer == null ? null : answer.instance(observer));
-                }
-
-                public ComponentContext context() {
-                    return answer == null ? null : answer.context();
-                }
-            });
+            dependency.set(new DependencyNode(dependency.annotation(Optional.class) == null, node, declaringType, dependencyType));
         }
 
         return context;
@@ -340,5 +314,40 @@ final class DependencyInjectorImpl implements DependencyInjector {
          * @param node the future value of the field.
          */
         void set(Graph.Node node);
+    }
+
+    private static class DependencyNode implements Graph.Node {
+
+        private final boolean mandatory;
+        private final Graph.Node node;
+        private final Class<?> declaringType;
+        private final Class<?> dependencyType;
+
+        public DependencyNode(final boolean mandatory, final Graph.Node node, final Class<?> declaringType, final Class<?> dependencyType) {
+            this.mandatory = mandatory;
+            this.node = node == null ? new Graph.Node.Constant(dependencyType, null, null) : node;
+            this.declaringType = declaringType;
+            this.dependencyType = dependencyType;
+        }
+
+        public Class<?> type() {
+            return node.type();
+        }
+
+        private Object checkNull(final Object instance) {
+            if (instance == null && mandatory) {
+                throw new ComponentContainer.ResolutionException("Dependency %s of %s cannot be satisfied", Strings.arrayNotation(dependencyType), declaringType);
+            } else {
+                return instance;
+            }
+        }
+
+        public Object instance(final Graph.Traversal.Observer observer) {
+            return checkNull(node.instance(observer));
+        }
+
+        public ComponentContext context() {
+            return node.context();
+        }
     }
 }

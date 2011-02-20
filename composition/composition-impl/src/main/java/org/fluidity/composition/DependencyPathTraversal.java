@@ -82,7 +82,7 @@ final class DependencyPathTraversal implements Graph.Traversal {
                             final Graph.Node node = reference.resolve(DependencyPathTraversal.this, context);
 
                             // context now contains actual consumed context annotations
-                            currentPath.last.context = context.create();
+                            currentPath.last.context = node.context();
 
                             return node;
                         } catch (final ComponentContainer.CircularReferencesException error) {

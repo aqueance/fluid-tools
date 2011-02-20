@@ -337,11 +337,12 @@ final class SimpleContainerImpl implements ParentContainer {
 
     public Node resolveGroup(final Class<?> api, final ContextDefinition context, final Traversal traversal) {
         final GroupResolver group = groups.get(api);
+        final Object empty = Array.newInstance(api, 0);
 
         if (group == null) {
-            return parent == null ? new Node.Constant(api, null, null) : parent.resolveGroup(api, context, traversal);
+            return parent == null ? new Node.Constant(api, empty, null) : parent.resolveGroup(api, context, traversal);
         } else {
-            final Class<?> arrayApi = Array.newInstance(api, 0).getClass();
+            final Class<?> arrayApi = empty.getClass();
 
             return traversal.follow(this, context, new Reference() {
                 public Class<?> api() {
@@ -349,7 +350,7 @@ final class SimpleContainerImpl implements ParentContainer {
                 }
 
                 public Node resolve(final Traversal traversal, final ContextDefinition context) {
-                    return groupNode(api, resolveGroup(api, traversal, context));
+                    return groupNode(api, resolveGroup(api, traversal, context), context);
                 }
             });
         }
@@ -372,64 +373,29 @@ final class SimpleContainerImpl implements ParentContainer {
         }
     }
 
-    private static class GroupCollector implements Traversal.Observer {
+    private Node groupNode(final Class<?> api, final List<Node> list, final ContextDefinition context) {
+        assert list != null : api;
+        final ComponentContext componentContext = context.create();
 
-        private final List<Class<?>> list = new ArrayList<Class<?>>();
-        private final Class<?> api;
-        private final Traversal.Observer delegate;
-
-        public GroupCollector(final Class<?> api, final Traversal.Observer delegate) {
-            this.api = api;
-            this.delegate = delegate;
-        }
-
-        public void resolved(final Path path, final Class<?> type) {
-            if (api.isAssignableFrom(type)) {
-                list.add(type);
+        return new Node() {
+            public Class<?> type() {
+                return api;
             }
 
-            if (delegate != null) {
-                delegate.resolved(path, type);
+            public Object instance(final Traversal.Observer observer) {
+                final Object[] instances = (Object[]) Array.newInstance(api, list.size());
+                int i = 0;
+                for (final Node node : list) {
+                    instances[i++] = node.instance(observer);
+                }
+
+                return instances;
             }
-        }
 
-        public Class<?>[] group() {
-            return list.toArray(new Class<?>[list.size()]);
-        }
-    }
-
-    private Node groupNode(final Class<?> api, final List<Node> list) {
-        if (list == null) {
-            return null;
-        } else {
-            return new Node() {
-                public Class<?> type() {
-                    return api;
-                }
-
-                public Object instance(final Traversal.Observer observer) {
-                    final GroupCollector collector = new GroupCollector(api, observer);
-
-                    final Object[] instances = (Object[]) Array.newInstance(api, list.size());
-                    {
-                        int i = 0;
-                        for (final Node node : list) {
-                            instances[i++] = node.instance(collector);
-                        }
-                    }
-
-                    final Class<?>[] types = collector.group();
-
-                    // TODO: sort instances according to type sequence
-
-                    return instances;
-                }
-
-                public ComponentContext context() {
-                    return null;
-                }
-            };
-        }
+            public ComponentContext context() {
+                return componentContext;
+            }
+        };
     }
 
     public ComponentMapping mapping(final Class<?> type) {
