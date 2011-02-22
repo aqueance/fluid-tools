@@ -93,7 +93,7 @@ public interface Graph {
 
         interface Observer {
 
-            void resolved(Path path, Class<?> type, ComponentContext context);
+            void resolved(Path path, Class<?> type);
         }
 
         interface Trail {

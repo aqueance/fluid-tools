@@ -82,7 +82,7 @@ public final class CircularReferencesTests extends AbstractContainerTests {
     }
 
     @Test(expectedExceptions = ComponentContainer.CircularReferencesException.class)
-    public void circularConstructorCalls() throws Exception {
+    public void circularReferences() throws Exception {
         circularConstruction(true, true, true);
     }
 
@@ -99,6 +99,26 @@ public final class CircularReferencesTests extends AbstractContainerTests {
     @Test
     public void circularInstantiationAndConstructorCalls3() throws Exception {
         circularConstruction(true, true, false);
+    }
+
+    @Test
+    public void circularInstantiationAndConstructorCalls4() throws Exception {
+        circularConstruction(true, false, false);
+    }
+
+    @Test
+    public void circularInstantiationAndConstructorCalls5() throws Exception {
+        circularConstruction(false, true, false);
+    }
+
+    @Test
+    public void circularInstantiationAndConstructorCalls6() throws Exception {
+        circularConstruction(false, false, true);
+    }
+
+    @Test
+    public void circularInstantiationWithNoConstructorCalls() throws Exception {
+        circularConstruction(false, false, false);
     }
 
     private void circularConstruction(final boolean call1, final boolean call2, final boolean call3) {

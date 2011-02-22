@@ -98,11 +98,11 @@ final class DependencyPathTraversal implements Graph.Traversal {
                     }
 
                     if (observer != null) {
-                        observer.resolved(currentPath, resolved.type(), resolved.context());
+                        observer.resolved(currentPath, resolved.type());
                     }
                 }
             } else if (observer != null) {
-                observer.resolved(currentPath, resolved.type(), resolved.context());
+                observer.resolved(currentPath, resolved.type());
             }
 
             return instance;
