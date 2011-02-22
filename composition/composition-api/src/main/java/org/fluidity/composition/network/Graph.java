@@ -93,10 +93,14 @@ public interface Graph {
 
         interface Observer {
 
-            void resolved(Path path, Class<?> type);
+            void resolved(Path path, Class<?> type, ComponentContext context);
         }
 
-        interface Trail extends Path {
+        interface Trail {
+
+            Class<?> head();
+
+            List<Class<?>> path();
 
             Node advance();
         }

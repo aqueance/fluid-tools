@@ -77,6 +77,7 @@ public abstract class ContainerProviderAbstractTest extends MockGroupAbstractTes
         EasyMock.expect(services.dependencyInjector()).andReturn(dependencyInjector).anyTimes();
         EasyMock.expect(services.newCache(EasyMock.anyBoolean())).andReturn(componentCache).anyTimes();
         EasyMock.expect(services.emptyContext()).andReturn(context).anyTimes();
+        EasyMock.expect(services.graphTraversal()).andReturn(traversal).anyTimes();
     }
 
     @Test
@@ -91,13 +92,10 @@ public abstract class ContainerProviderAbstractTest extends MockGroupAbstractTes
     public void standaloneBindings() throws Exception {
         final List assemblies = Collections.singletonList(StandalonePackageBindingsImpl.class);
 
-        EasyMock.expect(services.graphTraversal()).andReturn(traversal);
         final PackageBindings bindings = new StandalonePackageBindingsImpl();
 
         final PackageBindings[] instance = { bindings };
-        EasyMock.expect(traversal.follow(EasyMock.<Graph>notNull(),
-                                         EasyMock.<ContextDefinition>isNull(), EasyMock.<Graph.Reference>notNull()))
-                .andReturn(node);
+        EasyMock.expect(traversal.follow(EasyMock.<Graph>notNull(), EasyMock.same(context), EasyMock.<Graph.Reference>notNull())).andReturn(node);
 
         EasyMock.expect(node.instance(EasyMock.<Graph.Traversal.Observer>isNull())).andReturn(instance);
 
@@ -115,15 +113,12 @@ public abstract class ContainerProviderAbstractTest extends MockGroupAbstractTes
                                                             DependentPackageBindingsImpl.class,
                                                             ResponsiblePackageBindingsImpl.class));
 
-        EasyMock.expect(services.graphTraversal()).andReturn(traversal);
         final ResponsiblePackageBindingsImpl bindings1 = new ResponsiblePackageBindingsImpl();
         final PackageBindingsImpl bindings2 = new PackageBindingsImpl(bindings1);
         final DependentPackageBindingsImpl bindings3 = new DependentPackageBindingsImpl(bindings2);
 
         final PackageBindings[] bindings = { bindings1, bindings2, bindings3 };
-        EasyMock.expect(traversal.follow(EasyMock.<Graph>notNull(),
-                                         EasyMock.<ContextDefinition>isNull(), EasyMock.<Graph.Reference>notNull()))
-                .andReturn(node);
+        EasyMock.expect(traversal.follow(EasyMock.<Graph>notNull(), EasyMock.same(context), EasyMock.<Graph.Reference>notNull())).andReturn(node);
 
         EasyMock.expect(node.instance(EasyMock.<Graph.Traversal.Observer>isNull())).andReturn(bindings);
 

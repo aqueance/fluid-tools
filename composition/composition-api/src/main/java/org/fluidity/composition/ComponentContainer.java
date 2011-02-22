@@ -23,6 +23,9 @@
 package org.fluidity.composition;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 import org.fluidity.composition.network.Graph;
 
@@ -345,8 +348,20 @@ public interface ComponentContainer {
 
     public class CircularInvocationException extends ContainerException {
 
-        public CircularInvocationException(final Object object, final Method method) {
-            super("Circular method invocation detected when calling %s on %s@%x", method, object.getClass().getName(), System.identityHashCode(object));
+        private static List<String> methodNames(final Set<Method> methods) {
+            final List<String> list = new ArrayList<String>();
+
+            for (final Method method : methods) {
+                final String name = method.toString();
+                final String owner = method.getDeclaringClass().getName();
+                list.add(name.substring(name.indexOf(owner) + owner.length() + 1));
+            }
+
+            return list;
+        }
+
+        public CircularInvocationException(final Object object, final Set<Method> methods) {
+            super("Circular method invocation detected on %s@%x involving method(s) %s", object.getClass().getName(), System.identityHashCode(object), methodNames(methods));
         }
     }
 }

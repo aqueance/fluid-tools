@@ -70,7 +70,7 @@ public final class CircularReferencesTests extends AbstractContainerTests {
         ping(Circular3Dependent2.class);
     }
 
-    @Test
+    @Test(expectedExceptions = ComponentContainer.CircularInvocationException.class)
     public void circularThreeWayIntermediateInstantiation() throws Exception {
         registry.bindComponent(Circular3IntermediateDependent1Class.class);
         registry.bindComponent(Circular3IntermediateDependent2Class.class);
@@ -128,8 +128,6 @@ public final class CircularReferencesTests extends AbstractContainerTests {
 
     private static class PingableImpl implements Pingable {
 
-        private boolean visited;
-
         private final Pingable delegate;
 
         protected PingableImpl(final Pingable delegate) {
@@ -138,14 +136,7 @@ public final class CircularReferencesTests extends AbstractContainerTests {
         }
 
         public final void ping() {
-            if (!visited) {
-                visited = true;
-                try {
-                    delegate.ping();
-                } finally {
-                    visited = false;
-                }
-            }
+            delegate.ping();
         }
     }
 
@@ -280,6 +271,7 @@ public final class CircularReferencesTests extends AbstractContainerTests {
     // this will be instantiated once
     @Component
     private static class CircularConstructor1Impl implements CircularConstructor1 {
+
         public static boolean call = false;
 
         public CircularConstructor1Impl(final CircularConstructor2 dependency) {
@@ -294,6 +286,7 @@ public final class CircularReferencesTests extends AbstractContainerTests {
     // this will be instantiated twice because it forces in its constructor the instantiation of its dependency
     @Component
     private static class CircularConstructor2Impl implements CircularConstructor2 {
+
         public static boolean call = false;
 
         public CircularConstructor2Impl(final CircularConstructor3 dependency) {
@@ -308,6 +301,7 @@ public final class CircularReferencesTests extends AbstractContainerTests {
     // this will be instantiated thrice because both it and CircularConstructor2Impl force in their constructor the instantiation of their dependency
     @Component
     private static class CircularConstructor3Impl implements CircularConstructor3 {
+
         public static boolean call = false;
 
         public CircularConstructor3Impl(final CircularConstructor1 dependency) {
