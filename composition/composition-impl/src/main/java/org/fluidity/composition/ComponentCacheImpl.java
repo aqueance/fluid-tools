@@ -42,6 +42,7 @@ final class ComponentCacheImpl implements ComponentCache {
     }
 
     public Object lookup(final Object source, final ComponentContext context, final Class<?> api, final Instantiation create) {
+        assert context != null : api;
         return lookup(cache == null ? new HashMap<ComponentContext, Object>() : cache, source, context, api, create, log);
     }
 
