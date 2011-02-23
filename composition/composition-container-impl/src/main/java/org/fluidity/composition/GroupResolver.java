@@ -45,10 +45,11 @@ final class GroupResolver {
         Set<Class<?>> cache = sorted;
 
         if (cache == null) {
+            final Map<Class<?>, Graph.Node> map = new HashMap<Class<?>, Graph.Node>();
+
             synchronized (this) {
                 cache = sorted;
 
-                final Map<Class<?>, Graph.Node> map = new HashMap<Class<?>, Graph.Node>();
                 if (cache == null) {
                     final Set<Class<?>> local = cache = new LinkedHashSet<Class<?>>();
 
@@ -70,15 +71,15 @@ final class GroupResolver {
                     sorted = cache;
                     members = null;
                 }
+            }
 
-                if (!map.isEmpty()) {
-                    for (final Class<?> type : cache) {
-                        assert map.containsKey(type) : type;
-                        list.add(map.get(type));
-                    }
-
-                    return;
+            if (!map.isEmpty()) {
+                for (final Class<?> type : cache) {
+                    assert map.containsKey(type) : type;
+                    list.add(map.get(type));
                 }
+
+                return;
             }
         }
 

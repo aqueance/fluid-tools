@@ -72,9 +72,19 @@ final class DependencyPathTraversal implements Graph.Traversal {
             final boolean circular = currentPath.circular;
 
             if (circular) {
-                return new ProxyNode(api, currentPath, null);
+                final Graph.Node node = strategy.resolve(circular, graph, this, new TerminationTrail(currentPath));
+
+                if (node == null) {
+                    return new ProxyNode(api, currentPath, null);
+                } else {
+                    if (observer != null) {
+                        observer.resolved(currentPath, node.type());
+                    }
+
+                    return node;
+                }
             } else {
-                final Trail trail = new ResolutionTrail(currentPath, reference, context);
+                final Trail trail = new ResolutionTrail(this, currentPath, reference, context);
                 final Graph.Node node = strategy.resolve(circular, graph, this, trail);
                 final Graph.Node resolved = node == null ? trail.advance() : node;
 
@@ -370,13 +380,36 @@ final class DependencyPathTraversal implements Graph.Traversal {
         }
     }
 
-    private class ResolutionTrail implements Trail {
+    private static class TerminationTrail implements Trail {
 
+        private final DependencyPath currentPath;
+
+        public TerminationTrail(final DependencyPath currentPath) {
+            this.currentPath = currentPath;
+        }
+
+        public Class<?> head() {
+            return currentPath.head();
+        }
+
+        public List<Class<?>> path() {
+            return currentPath.path();
+        }
+
+        public Graph.Node advance() {
+            return null;
+        }
+    }
+
+    private static class ResolutionTrail implements Trail {
+
+        private final Graph.Traversal traversal;
         private final DependencyPath currentPath;
         private final Graph.Reference reference;
         private final ContextDefinition context;
 
-        public ResolutionTrail(final DependencyPath currentPath, final Graph.Reference reference, final ContextDefinition context) {
+        public ResolutionTrail(final Graph.Traversal traversal, final DependencyPath currentPath, final Graph.Reference reference, final ContextDefinition context) {
+            this.traversal = traversal;
             this.currentPath = currentPath;
             this.reference = reference;
             this.context = context;
@@ -391,7 +424,7 @@ final class DependencyPathTraversal implements Graph.Traversal {
         }
 
         public Graph.Node advance() {
-            return reference.resolve(DependencyPathTraversal.this, context);
+            return reference.resolve(traversal, context);
         }
     }
 }
