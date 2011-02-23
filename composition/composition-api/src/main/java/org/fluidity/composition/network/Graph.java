@@ -31,9 +31,9 @@ import org.fluidity.composition.ComponentContext;
  */
 public interface Graph {
 
-    Object resolveComponent(Class<?> api, ContextDefinition context, Traversal.Strategy strategy, Traversal.Observer observer);
+    Node resolveComponent(Class<?> api, ContextDefinition context, Traversal traversal);
 
-    Object[] resolveGroup(Class<?> api, ContextDefinition context, Traversal.Strategy strategy, Traversal.Observer observer);
+    Node resolveGroup(Class<?> api, ContextDefinition context, Traversal traversal);
 
     interface Node {
 
@@ -78,12 +78,12 @@ public interface Graph {
         interface Strategy {
 
             Strategy DEFAULT = new Strategy() {
-                public Node resolve(final boolean circular, final Graph graph, final Traversal traversal, final Trail trail) {
+                public Node resolve(final Graph graph, final ContextDefinition context, final Traversal traversal, final boolean circular, final Trail trail) {
                     return circular ? null : trail.advance();
                 }
             };
 
-            Node resolve(boolean circular, Graph graph, Traversal traversal, Trail trail);
+            Node resolve(Graph graph, ContextDefinition context, Traversal traversal, boolean circular, Trail trail);
         }
 
         interface Observer {

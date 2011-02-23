@@ -31,10 +31,6 @@ import org.fluidity.composition.network.Graph;
  */
 public interface DependencyResolver extends Graph {
 
-    Node resolveComponent(Class<?> api, ContextDefinition context, Traversal traversal);
-
-    Node resolveGroup(Class<?> api, ContextDefinition context, Traversal traversal);
-
     /**
      * Returns the component mapping for the given component API.
      *

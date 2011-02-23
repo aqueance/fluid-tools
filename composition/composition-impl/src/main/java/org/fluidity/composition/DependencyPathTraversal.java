@@ -72,7 +72,7 @@ final class DependencyPathTraversal implements Graph.Traversal {
             final boolean circular = currentPath.circular;
 
             if (circular) {
-                final Graph.Node node = strategy.resolve(circular, graph, this, new TerminationTrail(currentPath));
+                final Graph.Node node = strategy.resolve(graph, context, this, circular, new TerminationTrail(currentPath));
 
                 if (node == null) {
                     return new ProxyNode(api, currentPath, null);
@@ -85,7 +85,7 @@ final class DependencyPathTraversal implements Graph.Traversal {
                 }
             } else {
                 final Trail trail = new ResolutionTrail(this, currentPath, reference, context);
-                final Graph.Node node = strategy.resolve(circular, graph, this, trail);
+                final Graph.Node node = strategy.resolve(graph, context, this, circular, trail);
                 final Graph.Node resolved = node == null ? trail.advance() : node;
 
                 if (observer != null) {

@@ -406,14 +406,6 @@ final class SimpleContainerImpl implements ParentContainer {
         return new ComponentContainerShell(this, context, false);
     }
 
-    public Object resolveComponent(final Class<?> api, final ContextDefinition context, final Traversal.Strategy strategy, final Traversal.Observer observer) {
-        return resolveComponent(api, context, services.graphTraversal(strategy, observer)).instance();
-    }
-
-    public Object[] resolveGroup(final Class<?> api, final ContextDefinition context, final Traversal.Strategy strategy, final Traversal.Observer observer) {
-        return (Object[]) resolveGroup(api, context, services.graphTraversal(strategy, observer)).instance();
-    }
-
     /**
      * Internal interface to generalize the binding of components, including ordinary ones, factories and variant factories.
      */

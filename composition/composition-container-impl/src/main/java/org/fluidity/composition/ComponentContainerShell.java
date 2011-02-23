@@ -101,9 +101,9 @@ final class ComponentContainerShell extends EmptyComponentContainer {
 
     private Graph.Traversal.Strategy composite(final Graph.Traversal.Strategy strategy) {
         return this.strategy == null ? strategy : new Graph.Traversal.Strategy() {
-            public Graph.Node resolve(final boolean circular, final Graph graph, final Graph.Traversal traversal, final Graph.Traversal.Trail trail) {
-                final Graph.Node resolved = strategy.resolve(circular, graph, traversal, trail);
-                return resolved == null ? ComponentContainerShell.this.strategy.resolve(circular, graph, traversal, trail) : resolved;
+            public Graph.Node resolve(final Graph graph, final ContextDefinition context, final Graph.Traversal traversal, final boolean circular, final Graph.Traversal.Trail trail) {
+                final Graph.Node resolved = strategy.resolve(graph, context, traversal, circular, trail);
+                return resolved == null ? ComponentContainerShell.this.strategy.resolve(graph, context, traversal, circular, trail) : resolved;
             }
         };
     }
