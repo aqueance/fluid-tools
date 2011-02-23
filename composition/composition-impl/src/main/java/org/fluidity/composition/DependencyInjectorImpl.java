@@ -59,7 +59,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
 
             context.collect(resolveFields(traversal, container, mapping, context, componentClass, fieldNodes));
 
-            injectFields(fieldNodes, observer, instance);
+            injectFields(fieldNodes, instance);
         }
 
         return instance;
@@ -116,11 +116,11 @@ final class DependencyInjectorImpl implements DependencyInjector {
                 return componentClass;
             }
 
-            public Object instance(final Graph.Traversal.Observer observer) {
-                return injectFields(fields, observer, Exceptions.wrap(String.format("instantiating %s", componentClass), new Exceptions.Command<Object>() {
+            public Object instance() {
+                return injectFields(fields, Exceptions.wrap(String.format("instantiating %s", componentClass), new Exceptions.Command<Object>() {
                     public Object run() throws Exception {
                         constructor.setAccessible(true);
-                        return constructor.newInstance(create(observer, arguments));
+                        return constructor.newInstance(create(arguments));
                     }
                 }));
             }
@@ -131,11 +131,11 @@ final class DependencyInjectorImpl implements DependencyInjector {
         };
     }
 
-    private Object injectFields(final Map<Field, Graph.Node> fieldNodes, final Graph.Traversal.Observer observer, final Object instance) {
+    private Object injectFields(final Map<Field, Graph.Node> fieldNodes, final Object instance) {
         return Exceptions.wrap(String.format("setting %s fields", instance.getClass()), new Exceptions.Command<Object>() {
             public Object run() throws Exception {
                 for (final Map.Entry<Field, Graph.Node> entry : fieldNodes.entrySet()) {
-                    entry.getKey().set(instance, create(observer, entry.getValue())[0]);
+                    entry.getKey().set(instance, create(entry.getValue())[0]);
                 }
 
                 return instance;
@@ -143,11 +143,11 @@ final class DependencyInjectorImpl implements DependencyInjector {
         });
     }
 
-    public Object[] create(final Graph.Traversal.Observer observer, final Graph.Node... nodes) {
+    public Object[] create(final Graph.Node... nodes) {
         final Object[] values = new Object[nodes.length];
 
         for (int i = 0, limit = nodes.length; i < limit; i++) {
-            values[i] = nodes[i].instance(observer);
+            values[i] = nodes[i].instance();
         }
 
         return values;
@@ -334,16 +334,14 @@ final class DependencyInjectorImpl implements DependencyInjector {
             return node.type();
         }
 
-        private Object checkNull(final Object instance) {
+        public Object instance() {
+            final Object instance = node.instance();
+
             if (instance == null && mandatory) {
                 throw new ComponentContainer.ResolutionException("Dependency %s of %s cannot be satisfied", Strings.arrayNotation(dependencyType), declaringType);
             } else {
                 return instance;
             }
-        }
-
-        public Object instance(final Graph.Traversal.Observer observer) {
-            return checkNull(node.instance(observer));
         }
 
         public ComponentContext context() {

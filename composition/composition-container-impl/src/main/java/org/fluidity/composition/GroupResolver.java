@@ -22,8 +22,10 @@
 
 package org.fluidity.composition;
 
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.fluidity.composition.network.ContextDefinition;
@@ -36,13 +38,51 @@ import org.fluidity.composition.network.Graph;
  */
 final class GroupResolver {
 
-    private final Set<Class<?>> members = new LinkedHashSet<Class<?>>();
+    private Set<Class<?>> members = new LinkedHashSet<Class<?>>();
+    private volatile Set<Class<?>> sorted;
 
     public void resolve(final Graph.Traversal traversal, final SimpleContainer container, final ContextDefinition context, final List<Graph.Node> list) {
+        Set<Class<?>> cache = sorted;
 
-        // TODO: list should be sorted by resolution order
+        if (cache == null) {
+            synchronized (this) {
+                cache = sorted;
 
-        for (final Class<?> member : members) {
+                final Map<Class<?>, Graph.Node> map = new HashMap<Class<?>, Graph.Node>();
+                if (cache == null) {
+                    final Set<Class<?>> local = cache = new LinkedHashSet<Class<?>>();
+
+                    final Graph.Traversal observed = traversal.observed(new Graph.Traversal.Observer() {
+                        public void resolved(final Graph.Path path, final Class<?> type) {
+                            if (members.contains(type)) {
+                                local.add(type);
+                            }
+                        }
+                    });
+
+                    for (final Class<?> member : members) {
+                        final Graph.Node node = container.resolver(member, false).resolve(observed, container, context);
+                        map.put(node.type(), node);
+                    }
+
+                    assert !map.isEmpty();
+                    assert cache.equals(members);
+                    sorted = cache;
+                    members = null;
+                }
+
+                if (!map.isEmpty()) {
+                    for (final Class<?> type : cache) {
+                        assert map.containsKey(type) : type;
+                        list.add(map.get(type));
+                    }
+
+                    return;
+                }
+            }
+        }
+
+        for (final Class<?> member : cache) {
             list.add(container.resolver(member, false).resolve(traversal, container, context));
         }
     }

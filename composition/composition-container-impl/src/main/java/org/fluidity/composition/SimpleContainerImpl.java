@@ -382,11 +382,11 @@ final class SimpleContainerImpl implements ParentContainer {
                 return api;
             }
 
-            public Object instance(final Traversal.Observer observer) {
+            public Object instance() {
                 final Object[] instances = (Object[]) Array.newInstance(api, list.size());
                 int i = 0;
                 for (final Node node : list) {
-                    instances[i++] = node.instance(observer);
+                    instances[i++] = node.instance();
                 }
 
                 return instances;
@@ -407,11 +407,11 @@ final class SimpleContainerImpl implements ParentContainer {
     }
 
     public Object resolveComponent(final Class<?> api, final ContextDefinition context, final Traversal.Strategy strategy, final Traversal.Observer observer) {
-        return resolveComponent(api, context, services.graphTraversal(strategy)).instance(observer);
+        return resolveComponent(api, context, services.graphTraversal(strategy, observer)).instance();
     }
 
     public Object[] resolveGroup(final Class<?> api, final ContextDefinition context, final Traversal.Strategy strategy, final Traversal.Observer observer) {
-        return (Object[]) resolveGroup(api, context, services.graphTraversal(strategy)).instance(observer);
+        return (Object[]) resolveGroup(api, context, services.graphTraversal(strategy, observer)).instance();
     }
 
     /**

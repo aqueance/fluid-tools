@@ -89,10 +89,10 @@ abstract class AbstractResolver implements ComponentResolver {
             return node.type();
         }
 
-        public Object instance(final Graph.Traversal.Observer observer) {
+        public Object instance() {
             return cache.lookup(container, node.context(), api, new ComponentCache.Instantiation() {
                 public Object perform() {
-                    return node.instance(observer);
+                    return node.instance();
                 }
             });
         }

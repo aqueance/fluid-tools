@@ -39,7 +39,7 @@ public interface Graph {
 
         Class<?> type();
 
-        Object instance(Traversal.Observer observer);
+        Object instance();
 
         ComponentContext context();
 
@@ -59,7 +59,7 @@ public interface Graph {
                 return type;
             }
 
-            public final Object instance(Traversal.Observer observer) {
+            public final Object instance() {
                 return instance;
             }
 
@@ -80,11 +80,13 @@ public interface Graph {
 
         Node follow(final Graph graph, ContextDefinition context, Reference reference);
 
+        Traversal observed(Observer observer);
+
         interface Strategy {
 
             Strategy DEFAULT = new Strategy() {
                 public Node resolve(final boolean circular, final Graph graph, final Traversal traversal, final Trail trail) {
-                    return trail.advance();
+                    return circular ? null : trail.advance();
                 }
             };
 

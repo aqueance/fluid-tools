@@ -56,11 +56,11 @@ final class ProductionServices implements ContainerServices {
     }
 
     public Graph.Traversal graphTraversal() {
-        return new DependencyPathTraversal(Graph.Traversal.Strategy.DEFAULT);
+        return graphTraversal(null, null);
     }
 
-    public Graph.Traversal graphTraversal(final Graph.Traversal.Strategy strategy) {
-        return new DependencyPathTraversal(strategy == null ? Graph.Traversal.Strategy.DEFAULT : strategy);
+    public Graph.Traversal graphTraversal(final Graph.Traversal.Strategy strategy, final Graph.Traversal.Observer observer) {
+        return new DependencyPathTraversal(strategy == null ? Graph.Traversal.Strategy.DEFAULT : strategy, observer);
     }
 
     public LogFactory logs() {

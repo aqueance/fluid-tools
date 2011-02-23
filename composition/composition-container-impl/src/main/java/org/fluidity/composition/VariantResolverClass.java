@@ -44,6 +44,6 @@ final class VariantResolverClass extends VariantResolver {
 
     @Override
     protected ComponentVariantFactory factory(final SimpleContainer container, final Graph.Traversal traversal) {
-        return (ComponentVariantFactory) container.resolveComponent(factoryClass(), container.services().emptyContext(), traversal).instance(null);
+        return (ComponentVariantFactory) container.resolveComponent(factoryClass(), container.services().emptyContext(), traversal).instance();
     }
 }

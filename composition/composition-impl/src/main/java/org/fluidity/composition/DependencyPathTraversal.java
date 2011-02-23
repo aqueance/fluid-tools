@@ -45,11 +45,18 @@ import org.fluidity.foundation.Exceptions;
 final class DependencyPathTraversal implements Graph.Traversal {
 
     private final Strategy strategy;
+    private final Observer observer;
 
-    private DependencyPath resolutionPath = new DependencyPath();
+    private DependencyPath resolutionPath;
 
-    public DependencyPathTraversal(final Strategy strategy) {
+    public DependencyPathTraversal(final Strategy strategy, final Observer observer) {
+        this(new DependencyPath(), strategy, observer);
+    }
+
+    public DependencyPathTraversal(final DependencyPath path, final Strategy strategy, final Observer observer) {
+        this.resolutionPath = path;
         this.strategy = strategy;
+        this.observer = observer;
     }
 
     public Graph.Node follow(final Graph graph, final ContextDefinition context, final Graph.Reference reference) {
@@ -69,21 +76,36 @@ final class DependencyPathTraversal implements Graph.Traversal {
             } else {
                 final Trail trail = new ResolutionTrail(currentPath, reference, context);
                 final Graph.Node node = strategy.resolve(circular, graph, this, trail);
-                return new ResolvedNode(api, currentPath.head, node == null ? trail.advance() : node);
+                final Graph.Node resolved = node == null ? trail.advance() : node;
+
+                if (observer != null) {
+                    observer.resolved(currentPath, resolved.type());
+                }
+
+                return new ResolvedNode(api, currentPath.head, resolved);
             }
         } finally {
             resolutionPath = savedPath;
         }
     }
 
-    Object instantiate(final Class<?> api, final Graph.Node node, final Element element, final Observer observer) {
+    public Graph.Traversal observed(final Observer observer) {
+        return new DependencyPathTraversal(resolutionPath, strategy, this.observer == null ? observer : new Observer() {
+            public void resolved(final Graph.Path path, final Class<?> type) {
+                DependencyPathTraversal.this.observer.resolved(path, type);
+                observer.resolved(path, type);
+            }
+        });
+    }
+
+    Object instantiate(final Class<?> api, final Graph.Node node, final Element element) {
         final DependencyPath savedPath = resolutionPath;
         final DependencyPath currentPath = savedPath.descend(element.redefine(node));
 
         resolutionPath = currentPath;
         try {
-            final Graph.Node resolved = currentPath.head.node = resolve(api, savedPath, node, observer);
-            Object instance = resolved.instance(observer);
+            final Graph.Node resolved = currentPath.head.node = resolve(api, savedPath, node);
+            Object instance = resolved.instance();
 
             if (instance != null) {
                 if (currentPath.head.cache != null) {
@@ -96,13 +118,7 @@ final class DependencyPathTraversal implements Graph.Traversal {
                         // cut short the instantiation chain
                         currentPath.head.cache = new Cache(instance);
                     }
-
-                    if (observer != null) {
-                        observer.resolved(currentPath, resolved.type());
-                    }
                 }
-            } else if (observer != null) {
-                observer.resolved(currentPath, resolved.type());
             }
 
             return instance;
@@ -111,9 +127,9 @@ final class DependencyPathTraversal implements Graph.Traversal {
         }
     }
 
-    private Graph.Node resolve(final Class<?> api, final DependencyPath path, final Graph.Node node, final Observer observer) throws CircularReferencesException {
+    private Graph.Node resolve(final Class<?> api, final DependencyPath path, final Graph.Node node) throws CircularReferencesException {
         try {
-            return new Graph.Node.Constant(node.type(), node.instance(observer), node.context());
+            return new Graph.Node.Constant(node.type(), node.instance(), node.context());
         } catch (final CircularReferencesException error) {
             if (error.node == node) {
                 throw error;
@@ -141,7 +157,7 @@ final class DependencyPathTraversal implements Graph.Traversal {
             return Proxy.class;
         }
 
-        public Object instance(final Observer observer) {
+        public Object instance() {
             if (api.isInterface()) {
                 return Exceptions.wrap(new Exceptions.Command<Object>() {
                     public Object run() throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
@@ -177,7 +193,7 @@ final class DependencyPathTraversal implements Graph.Traversal {
                                                 throw circularity(ProxyNode.this);
                                             } else {
                                                 assert repeat.node != ProxyNode.this : api;
-                                                delegate = cache = repeat.node.instance(observer);
+                                                delegate = cache = repeat.node.instance();
                                             }
                                         }
                                     }
@@ -219,8 +235,8 @@ final class DependencyPathTraversal implements Graph.Traversal {
             return node.type();
         }
 
-        public Object instance(final Observer observer) {
-            return instantiate(api, node, element, observer);
+        public Object instance() {
+            return instantiate(api, node, element);
         }
 
         public ComponentContext context() {

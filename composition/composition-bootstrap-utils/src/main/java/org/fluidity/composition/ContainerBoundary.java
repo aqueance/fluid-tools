@@ -309,11 +309,7 @@ public final class ContainerBoundary implements ComponentContainer {
         }
     }
 
-    public <T> T resolveComponent(final Class<T> api, final Graph.Traversal.Strategy strategy, final Graph.Traversal.Observer observer) {
-        return loadContainer(true).resolveComponent(api, strategy, observer);
-    }
-
-    public <T> T[] resolveGroup(final Class<T> api, final Graph.Traversal.Strategy strategy, final Graph.Traversal.Observer observer) {
-        return loadContainer(true).resolveGroup(api, strategy, observer);
+    public ComponentContainer observed(final Graph.Traversal.Strategy strategy, final Graph.Traversal.Observer observer) {
+        return loadContainer(true).observed(strategy, observer);
     }
 }

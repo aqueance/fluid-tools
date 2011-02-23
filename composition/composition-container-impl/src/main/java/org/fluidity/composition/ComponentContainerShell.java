@@ -35,31 +35,45 @@ final class ComponentContainerShell extends EmptyComponentContainer {
 
     private final SimpleContainer container;
     private final ContextDefinition context;
+    private final Graph.Traversal.Strategy strategy;
+    private final Graph.Traversal.Observer observer;
 
     public ComponentContainerShell(final ContainerServices services) {
         this.container = new SimpleContainerImpl(services);
         this.context = services.emptyContext();
+        this.strategy = null;
+        this.observer = null;
     }
 
     public ComponentContainerShell(final SimpleContainer container, final ContextDefinition context, final boolean child) {
+        this(container, context, child, null, null);
+    }
+
+    public ComponentContainerShell(final SimpleContainer container,
+                                   final ContextDefinition context,
+                                   final boolean child,
+                                   final Graph.Traversal.Strategy strategy,
+                                   final Graph.Traversal.Observer observer) {
         assert container != null;
         assert context != null;
         this.container = child ? container.newChildContainer() : container;
         this.context = context;
+        this.strategy = strategy;
+        this.observer = observer;
     }
 
     @SuppressWarnings("unchecked")
     public <T> T getComponent(final Class<T> api) {
-        final Graph.Node node = container.resolveComponent(api, context, container.services().graphTraversal());
+        final Graph.Node node = container.resolveComponent(api, context, container.services().graphTraversal(strategy, observer));
         assert node != null : api;
-        return node == null ? null : (T) node.instance(null);
+        return (T) node.instance();
     }
 
     @SuppressWarnings("unchecked")
     public <T> T[] getComponentGroup(final Class<T> api) {
-        final Graph.Node node = container.resolveGroup(api, context, container.services().graphTraversal());
+        final Graph.Node node = container.resolveGroup(api, context, container.services().graphTraversal(strategy, observer));
         assert node != null : api;
-        return node == null ? null : (T[]) node.instance(null);
+        return (T[]) node.instance();
     }
 
     @SuppressWarnings("unchecked")
@@ -68,7 +82,7 @@ final class ComponentContainerShell extends EmptyComponentContainer {
     }
 
     public OpenComponentContainer makeChildContainer() {
-        return new ComponentContainerShell(container, context, true);
+        return new ComponentContainerShell(container, context, true, strategy, observer);
     }
 
     public void bindComponent(final Class<?> implementation, final Class<?>[] interfaces, final Class<?>[] groups)
@@ -83,21 +97,29 @@ final class ComponentContainerShell extends EmptyComponentContainer {
 
     public OpenComponentContainer makeChildContainer(final Class<?> implementation, final Class<?>[] interfaces, final Class<?>[] groups)
             throws ComponentContainer.BindingException {
-        return new ComponentContainerShell(container.linkComponent(implementation, interfaces, groups), context, false);
+        return new ComponentContainerShell(container.linkComponent(implementation, interfaces, groups), context, false, strategy, observer);
     }
 
-    @SuppressWarnings("unchecked")
-    public <T> T resolveComponent(final Class<T> api, final Graph.Traversal.Strategy strategy, final Graph.Traversal.Observer observer) {
-        final Graph.Node node = container.resolveComponent(api, context, container.services().graphTraversal(strategy));
-        assert node != null : api;
-        return node == null ? null : (T) node.instance(observer);
+    private Graph.Traversal.Strategy composite(final Graph.Traversal.Strategy strategy) {
+        return this.strategy == null ? strategy : new Graph.Traversal.Strategy() {
+            public Graph.Node resolve(final boolean circular, final Graph graph, final Graph.Traversal traversal, final Graph.Traversal.Trail trail) {
+                final Graph.Node resolved = strategy.resolve(circular, graph, traversal, trail);
+                return resolved == null ? ComponentContainerShell.this.strategy.resolve(circular, graph, traversal, trail) : resolved;
+            }
+        };
     }
 
-    @SuppressWarnings("unchecked")
-    public <T> T[] resolveGroup(final Class<T> api, final Graph.Traversal.Strategy strategy, final Graph.Traversal.Observer observer) {
-        final Graph.Node node = container.resolveGroup(api, context, container.services().graphTraversal(strategy));
-        assert node != null : api;
-        return node == null ? null : (T[]) node.instance(observer);
+    private Graph.Traversal.Observer composite(final Graph.Traversal.Observer observer) {
+        return this.observer == null ? observer : new Graph.Traversal.Observer() {
+            public void resolved(final Graph.Path path, final Class<?> type) {
+                ComponentContainerShell.this.observer.resolved(path, type);
+                observer.resolved(path, type);
+            }
+        };
+    }
+
+    public ComponentContainer observed(final Graph.Traversal.Strategy strategy, final Graph.Traversal.Observer observer) {
+        return new ComponentContainerShell(container, context, false, composite(strategy), composite(observer));
     }
 
     @Override

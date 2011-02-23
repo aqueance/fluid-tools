@@ -65,10 +65,11 @@ public interface ContainerServices {
      * Returns the default graph traversal with the given strategy and observer.
      *
      * @param strategy the traversal strategy to use.
+     * @param observer the object to notify when a component class gets resolved.
      *
      * @return the default graph traversal with the given strategy and observer.
      */
-    Graph.Traversal graphTraversal(Graph.Traversal.Strategy strategy);
+    Graph.Traversal graphTraversal(Graph.Traversal.Strategy strategy, Graph.Traversal.Observer observer);
 
     /**
      * Returns the logger factory to use by the container.
@@ -84,5 +85,5 @@ public interface ContainerServices {
      *
      * @return a new component cache instance.
      */
-    ComponentCache newCache(final boolean stateless);
+    ComponentCache newCache(boolean stateless);
 }
