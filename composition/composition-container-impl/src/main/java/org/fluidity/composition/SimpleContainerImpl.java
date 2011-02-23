@@ -329,7 +329,7 @@ final class SimpleContainerImpl implements ParentContainer {
         final ComponentResolver resolver = components.get(api);
 
         if (resolver == null) {
-            return parent == null ? new Node.Constant(api, null, context.create()) : parent.resolveComponent(api, context, traversal);
+            return parent == null ? null : parent.resolveComponent(api, context, traversal);
         } else {
             return resolver.resolve(traversal, SimpleContainerImpl.this, context);
         }

@@ -325,7 +325,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
 
         public DependencyNode(final boolean mandatory, final Graph.Node node, final Class<?> declaringType, final Class<?> dependencyType) {
             this.mandatory = mandatory;
-            this.node = node == null ? new Graph.Node.Constant(dependencyType, null, null) : node;
+            this.node = node;
             this.declaringType = declaringType;
             this.dependencyType = dependencyType;
         }
@@ -335,7 +335,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
         }
 
         public Object instance() {
-            final Object instance = node.instance();
+            final Object instance = node == null ? null : node.instance();
 
             if (instance == null && mandatory) {
                 throw new ComponentContainer.ResolutionException("Dependency %s of %s cannot be satisfied", Strings.arrayNotation(dependencyType), declaringType);

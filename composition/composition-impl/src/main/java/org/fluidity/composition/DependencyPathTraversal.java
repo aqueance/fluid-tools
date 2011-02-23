@@ -139,7 +139,8 @@ final class DependencyPathTraversal implements Graph.Traversal {
 
     private Graph.Node resolve(final Class<?> api, final DependencyPath path, final Graph.Node node) throws CircularReferencesException {
         try {
-            return new Graph.Node.Constant(node.type(), node.instance(), node.context());
+            final Object instance = node.instance();
+            return instance == null ? null : new Graph.Node.Constant(node.type(), instance, node.context());
         } catch (final CircularReferencesException error) {
             if (error.node == node) {
                 throw error;

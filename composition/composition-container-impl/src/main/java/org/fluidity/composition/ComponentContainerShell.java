@@ -65,8 +65,7 @@ final class ComponentContainerShell extends EmptyComponentContainer {
     @SuppressWarnings("unchecked")
     public <T> T getComponent(final Class<T> api) {
         final Graph.Node node = container.resolveComponent(api, context, container.services().graphTraversal(strategy, observer));
-        assert node != null : api;
-        return (T) node.instance();
+        return node == null ? null : (T) node.instance();
     }
 
     @SuppressWarnings("unchecked")
