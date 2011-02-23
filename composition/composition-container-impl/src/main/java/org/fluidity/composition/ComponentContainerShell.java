@@ -110,7 +110,7 @@ final class ComponentContainerShell extends EmptyComponentContainer {
 
     private Graph.Traversal.Observer composite(final Graph.Traversal.Observer observer) {
         return this.observer == null ? observer : new Graph.Traversal.Observer() {
-            public void resolved(final Graph.Path path, final Class<?> type) {
+            public void resolved(final Graph.Traversal.Path path, final Class<?> type) {
                 ComponentContainerShell.this.observer.resolved(path, type);
                 observer.resolved(path, type);
             }

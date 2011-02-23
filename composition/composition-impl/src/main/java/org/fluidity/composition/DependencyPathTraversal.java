@@ -101,7 +101,7 @@ final class DependencyPathTraversal implements Graph.Traversal {
 
     public Graph.Traversal observed(final Observer observer) {
         return new DependencyPathTraversal(resolutionPath, strategy, this.observer == null ? observer : new Observer() {
-            public void resolved(final Graph.Path path, final Class<?> type) {
+            public void resolved(final Path path, final Class<?> type) {
                 DependencyPathTraversal.this.observer.resolved(path, type);
                 observer.resolved(path, type);
             }
@@ -258,7 +258,7 @@ final class DependencyPathTraversal implements Graph.Traversal {
     /**
      * Maintains a potentially circular dependency path.
      */
-    private static class DependencyPath implements Graph.Path {
+    private static class DependencyPath implements Path {
 
         public final Element head;
         public final boolean circular;

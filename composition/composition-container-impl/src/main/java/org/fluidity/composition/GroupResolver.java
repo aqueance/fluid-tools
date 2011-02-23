@@ -54,7 +54,7 @@ final class GroupResolver {
                     final Set<Class<?>> local = cache = new LinkedHashSet<Class<?>>();
 
                     final Graph.Traversal observed = traversal.observed(new Graph.Traversal.Observer() {
-                        public void resolved(final Graph.Path path, final Class<?> type) {
+                        public void resolved(final Graph.Traversal.Path path, final Class<?> type) {
                             if (members.contains(type)) {
                                 local.add(type);
                             }

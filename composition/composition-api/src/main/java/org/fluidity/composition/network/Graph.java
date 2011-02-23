@@ -69,13 +69,6 @@ public interface Graph {
         }
     }
 
-    public interface Path {
-
-        Class<?> head();
-
-        List<Class<?>> path();
-    }
-
     interface Traversal {
 
         Node follow(final Graph graph, ContextDefinition context, Reference reference);
@@ -98,11 +91,14 @@ public interface Graph {
             void resolved(Path path, Class<?> type);
         }
 
-        interface Trail {
+        interface Path {
 
             Class<?> head();
 
             List<Class<?>> path();
+        }
+
+        interface Trail extends Path {
 
             Node advance();
         }
