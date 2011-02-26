@@ -22,15 +22,27 @@
 
 package org.fluidity.composition;
 
-import org.fluidity.foundation.spi.LogFactory;
-
 /**
+ * This container is able to traverse static dependencies without instantiating components. The existence of an instance of this class assumes a {@link
+ * org.fluidity.composition.spi.ComponentResolutionObserver} instance has been configured for it to use.
+ *
  * @author Tibor Varga
  */
-final class ProductionServicesFactory implements ContainerServicesFactory {
+public interface ObservedComponentContainer extends ComponentContainer {
 
-    public ContainerServices containerServices(final LogFactory logs, final DependencyGraph.Traversal.Strategy strategy) {
-        assert logs != null : LogFactory.class;
-        return new ProductionServices(logs, strategy);
-    }
+    /**
+     * Resolves the component bound to the given interface and all dependent components without instantiating them. Dynamic dependencies, e.g., those resolved
+     * from component constructors will not be picked up by this method.
+     *
+     * @param api the component interface.
+     */
+    void resolveComponent(Class<?> api);
+
+    /**
+     * Resolves the component group bound to the given interface and all dependent components without instantiating them. Dynamic dependencies, e.g., those
+     * resolved from component constructors will not be picked up by this method.
+     *
+     * @param api the group interface.
+     */
+    void resolveGroup(Class<?> api);
 }

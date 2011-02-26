@@ -67,6 +67,7 @@ import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
@@ -363,9 +364,6 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
             final String componentPackage = className.substring(0, className.lastIndexOf(".") + 1);
             final String bindingClassName = componentPackage + GENERATED_PACKAGE_BINDINGS + projectName;
 
-            final boolean isComponent[] = new boolean[1];
-            final boolean isComponentGroup[] = new boolean[1];
-
             if (className.equals(bindingClassName)) {
                 new File(classesDirectory, fileName).delete();
             } else {
@@ -376,10 +374,27 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
                 final Set<String> componentApis = new HashSet<String>();
                 final Set<String> componentGroupApis = new HashSet<String>();
 
+                class ClassFlags {
+                    public boolean component;
+                    public boolean group;
+                    public boolean dependent;
+                }
+
+                final ClassFlags flags = new ClassFlags();
+
                 final ClassVisitor annotations = new EmptyVisitor() {
                     private final Type serviceProviderType = Type.getType(ServiceProvider.class);
                     private final Type componentType = Type.getType(Component.class);
                     private final Type componentGroupType = Type.getType(ComponentGroup.class);
+
+                    @Override
+                    public FieldVisitor visitField(final int access, final String name, final String desc, final String signature, final Object value) {
+                        if ((access & Opcodes.ACC_SYNTHETIC) != 0) {
+                            flags.dependent = name.startsWith("this$");
+                        }
+
+                        return super.visitField(access, name, desc, signature, value);
+                    }
 
                     @Override
                     public AnnotationVisitor visitAnnotation(final String desc, final boolean visible) {
@@ -405,9 +420,9 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
                             return new ComponentProcessor(new ProcessorCallback<ComponentProcessor>() {
                                 public void complete(final ComponentProcessor processor) {
                                     if (processor.isAutomatic()) {
-                                        isComponent[0] = !ClassReaders.isAbstract(classData) && !ClassReaders.isInterface(classData);
+                                        flags.component = !ClassReaders.isAbstract(classData) && !ClassReaders.isInterface(classData);
 
-                                        if (isComponent[0] && componentApis.isEmpty()) {
+                                        if (flags.component && componentApis.isEmpty()) {
                                             componentApis.addAll(processor.apiSet());
                                         } else {
                                             log.warn(String.format("Skipping %s as it is not a concrete class", className));
@@ -418,9 +433,9 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
                         } else if (componentGroupType.equals(type)) {
                             return new ComponentProcessor(new ProcessorCallback<ComponentProcessor>() {
                                 public void complete(final ComponentProcessor processor) {
-                                    isComponentGroup[0] = true;
+                                    flags.group = true;
 
-                                    if (isComponentGroup[0]) {
+                                    if (flags.group) {
                                         componentGroupApis.addAll(processor.apiSet());
                                     }
                                 }
@@ -453,29 +468,30 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
                 if (processClass(classData, processor)) {
                     final Map<String, Collection<String>> providerMap = providerMap(PackageBindings.SERVICE_TYPE, serviceProviderMap);
 
-                    if (isComponent[0]) {
+                    if (flags.component) {
                         handleComponent("component", classData, repository, componentApis, componentMap, providerMap, bindingClassName);
                     }
 
-                    if (isComponentGroup[0]) {
+                    if (flags.group) {
                         handleComponent("group", classData, repository, componentGroupApis, componentGroupMap, providerMap, bindingClassName);
                     }
 
-                    for (final Map.Entry<String, Set<String>> entry : serviceProviderApis.entrySet()) {
-
-                        final Set<String> list = entry.getValue();
-                        if (!list.isEmpty()) {
-                            addServiceProviders(className, list, providerMap(entry.getKey(), serviceProviderMap));
-                        }
-
-                        for (final String api : list) {
-                            Set<String> providers = serviceProviders.get(api);
-
-                            if (providers == null) {
-                                serviceProviders.put(api, providers = new HashSet<String>());
+                    if (!flags.dependent) {
+                        for (final Map.Entry<String, Set<String>> entry : serviceProviderApis.entrySet()) {
+                            final Set<String> providerNames = entry.getValue();
+                            if (!providerNames.isEmpty()) {
+                                addServiceProviders(className, providerNames, providerMap(entry.getKey(), serviceProviderMap));
                             }
 
-                            providers.add(className);
+                            for (final String api : providerNames) {
+                                Set<String> providers = serviceProviders.get(api);
+
+                                if (providers == null) {
+                                    serviceProviders.put(api, providers = new HashSet<String>());
+                                }
+
+                                providers.add(className);
+                            }
                         }
                     }
                 }

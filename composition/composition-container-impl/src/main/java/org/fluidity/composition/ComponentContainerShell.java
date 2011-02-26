@@ -22,8 +22,8 @@
 
 package org.fluidity.composition;
 
-import org.fluidity.composition.network.ContextDefinition;
-import org.fluidity.composition.network.DependencyGraph;
+import org.fluidity.composition.spi.ComponentResolutionObserver;
+import org.fluidity.composition.spi.DependencyPath;
 import org.fluidity.composition.spi.EmptyComponentContainer;
 
 /**
@@ -35,44 +35,47 @@ final class ComponentContainerShell extends EmptyComponentContainer {
 
     private final SimpleContainer container;
     private final ContextDefinition context;
-    private final DependencyGraph.Traversal.Strategy strategy;
-    private final DependencyGraph.Traversal.Observer observer;
+    private final ComponentResolutionObserver observer;
 
     public ComponentContainerShell(final ContainerServices services) {
         this.container = new SimpleContainerImpl(services);
         this.context = services.emptyContext();
-        this.strategy = null;
         this.observer = null;
     }
 
     public ComponentContainerShell(final SimpleContainer container, final ContextDefinition context, final boolean child) {
-        this(container, context, child, null, null);
+        this(container, context, child, null);
     }
 
     public ComponentContainerShell(final SimpleContainer container,
                                    final ContextDefinition context,
                                    final boolean child,
-                                   final DependencyGraph.Traversal.Strategy strategy,
-                                   final DependencyGraph.Traversal.Observer observer) {
+                                   final ComponentResolutionObserver observer) {
         assert container != null;
         assert context != null;
         this.container = child ? container.newChildContainer() : container;
         this.context = context;
-        this.strategy = strategy;
         this.observer = observer;
     }
 
     @SuppressWarnings("unchecked")
     public <T> T getComponent(final Class<T> api) {
-        final DependencyGraph.Node node = container.resolveComponent(api, context, container.services().graphTraversal(strategy, observer));
+        final DependencyGraph.Node node = container.resolveComponent(api, context, container.services().graphTraversal(observer));
         return node == null ? null : (T) node.instance();
     }
 
     @SuppressWarnings("unchecked")
     public <T> T[] getComponentGroup(final Class<T> api) {
-        final DependencyGraph.Node node = container.resolveGroup(api, context, container.services().graphTraversal(strategy, observer));
-        assert node != null : api;
-        return (T[]) node.instance();
+        final DependencyGraph.Node node = container.resolveGroup(api, context, container.services().graphTraversal(observer));
+        return node == null ? null : (T[]) node.instance();
+    }
+
+    public void resolveComponent(final Class<?> api) {
+        container.resolveComponent(api, context, container.services().graphTraversal(observer));
+    }
+
+    public void resolveGroup(final Class<?> api) {
+        container.resolveGroup(api, context, container.services().graphTraversal(observer));
     }
 
     @SuppressWarnings("unchecked")
@@ -81,7 +84,7 @@ final class ComponentContainerShell extends EmptyComponentContainer {
     }
 
     public OpenComponentContainer makeChildContainer() {
-        return new ComponentContainerShell(container, context, true, strategy, observer);
+        return new ComponentContainerShell(container, context, true, observer);
     }
 
     public void bindComponent(final Class<?> implementation, final Class<?>[] interfaces, final Class<?>[] groups) throws ComponentContainer.BindingException {
@@ -94,33 +97,20 @@ final class ComponentContainerShell extends EmptyComponentContainer {
 
     public OpenComponentContainer makeChildContainer(final Class<?> implementation, final Class<?>[] interfaces, final Class<?>[] groups)
             throws ComponentContainer.BindingException {
-        return new ComponentContainerShell(container.linkComponent(implementation, interfaces, groups), context, false, strategy, observer);
+        return new ComponentContainerShell(container.linkComponent(implementation, interfaces, groups), context, false, observer);
     }
 
-    private DependencyGraph.Traversal.Strategy composite(final DependencyGraph.Traversal.Strategy strategy) {
-        return this.strategy == null ? strategy : new DependencyGraph.Traversal.Strategy() {
-            public DependencyGraph.Node advance(final DependencyGraph graph,
-                                      final ContextDefinition context,
-                                      final DependencyGraph.Traversal traversal,
-                                      final boolean repeating,
-                                      final DependencyGraph.Traversal.Trail trail) {
-                final DependencyGraph.Node resolved = strategy.advance(graph, context, traversal, repeating, trail);
-                return resolved == null ? ComponentContainerShell.this.strategy.advance(graph, context, traversal, repeating, trail) : resolved;
-            }
-        };
-    }
-
-    private DependencyGraph.Traversal.Observer composite(final DependencyGraph.Traversal.Observer observer) {
-        return this.observer == null ? observer : new DependencyGraph.Traversal.Observer() {
-            public void resolved(final DependencyGraph.Traversal.Path path, final Class<?> type) {
+    private ComponentResolutionObserver composite(final ComponentResolutionObserver observer) {
+        return this.observer == null ? observer : new ComponentResolutionObserver() {
+            public void resolved(final DependencyPath path, final Class<?> type) {
                 ComponentContainerShell.this.observer.resolved(path, type);
                 observer.resolved(path, type);
             }
         };
     }
 
-    public ComponentContainer observed(final DependencyGraph.Traversal.Strategy strategy, final DependencyGraph.Traversal.Observer observer) {
-        return strategy == null && observer == null ? this : new ComponentContainerShell(container, context, false, composite(strategy), composite(observer));
+    public ObservedComponentContainer observed(final ComponentResolutionObserver observer) {
+        return observer == null ? this : new ComponentContainerShell(container, context, false, composite(observer));
     }
 
     @Override

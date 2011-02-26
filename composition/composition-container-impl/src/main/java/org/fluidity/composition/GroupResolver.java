@@ -28,8 +28,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.fluidity.composition.network.ContextDefinition;
-import org.fluidity.composition.network.DependencyGraph;
+import org.fluidity.composition.spi.ComponentResolutionObserver;
+import org.fluidity.composition.spi.DependencyPath;
 
 /**
  * Component mapping for a component group.
@@ -53,8 +53,8 @@ final class GroupResolver {
                 if (cache == null) {
                     final Set<Class<?>> local = cache = new LinkedHashSet<Class<?>>();
 
-                    final DependencyGraph.Traversal observed = traversal.observed(new DependencyGraph.Traversal.Observer() {
-                        public void resolved(final DependencyGraph.Traversal.Path path, final Class<?> type) {
+                    final DependencyGraph.Traversal observed = traversal.observed(new ComponentResolutionObserver() {
+                        public void resolved(final DependencyPath path, final Class<?> type) {
                             if (members.contains(type)) {
                                 local.add(type);
                             }

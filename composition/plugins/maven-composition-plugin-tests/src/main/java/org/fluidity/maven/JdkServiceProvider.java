@@ -33,3 +33,15 @@ class JdkServiceProviderImpl implements JdkServiceProvider {
 
 }
 
+class DefaultProvider {
+
+    private final JdkServiceProvider provider1 = new NonStaticProvider();
+
+    private final JdkServiceProvider provider2 = new JdkServiceProvider() {
+        // anonymous inner class: should be ignored
+    };
+
+    public class NonStaticProvider implements JdkServiceProvider {
+        // non-static inner class: should also be ignored
+    }
+}

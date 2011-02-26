@@ -24,8 +24,6 @@ package org.fluidity.composition;
 
 import java.lang.reflect.Constructor;
 
-import org.fluidity.composition.network.ContextDefinition;
-import org.fluidity.composition.network.DependencyGraph;
 import org.fluidity.composition.spi.ComponentMapping;
 import org.fluidity.composition.spi.DependencyResolver;
 

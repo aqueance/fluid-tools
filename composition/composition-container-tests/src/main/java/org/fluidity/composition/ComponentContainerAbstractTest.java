@@ -48,7 +48,7 @@ public abstract class ComponentContainerAbstractTest extends MockGroupAbstractTe
     public Object[] tests() {
         final ContainerFactory containers = new ContainerFactory() {
             public OpenComponentContainer createContainer() {
-                return newContainer(new ProductionServices(new NoLogFactory()));
+                return newContainer(new ProductionServices(new NoLogFactory(), null));
             }
         };
 

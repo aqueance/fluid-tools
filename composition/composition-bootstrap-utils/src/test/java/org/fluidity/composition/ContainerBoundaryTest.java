@@ -53,6 +53,7 @@ public class ContainerBoundaryTest extends MockGroupAbstractTest {
     private final ContainerServicesFactory servicesFactory = addControl(ContainerServicesFactory.class);
     private final ContainerServices services = addControl(ContainerServices.class);
 
+    private final DependencyGraph.Traversal.Strategy strategy = addControl(DependencyGraph.Traversal.Strategy.class);
     private final LogFactory logs = new NoLogFactory();
 
     private void setupDependencies(final ClassLoader classLoader, final boolean assign) {
@@ -62,7 +63,9 @@ public class ContainerBoundaryTest extends MockGroupAbstractTest {
         if (assign) {
             EasyMock.expect(providers.<ContainerServicesFactory>findInstance(ContainerServicesFactory.class, classLoader)).andReturn(servicesFactory);
             EasyMock.expect(providers.<LogFactory>findInstance(LogFactory.class, classLoader)).andReturn(logs);
-            EasyMock.expect(servicesFactory.containerServices(logs)).andReturn(services);
+            EasyMock.expect(providers.<DependencyGraph.Traversal.Strategy>findInstance(DependencyGraph.Traversal.Strategy.class, classLoader)).andReturn(
+                    strategy);
+            EasyMock.expect(servicesFactory.containerServices(logs, strategy)).andReturn(services);
         }
     }
 

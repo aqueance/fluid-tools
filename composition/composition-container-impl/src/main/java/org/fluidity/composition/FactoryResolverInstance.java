@@ -22,7 +22,6 @@
 
 package org.fluidity.composition;
 
-import org.fluidity.composition.network.DependencyGraph;
 import org.fluidity.composition.spi.ComponentFactory;
 import org.fluidity.foundation.spi.LogFactory;
 

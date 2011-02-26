@@ -22,8 +22,7 @@
 
 package org.fluidity.composition;
 
-import org.fluidity.composition.network.ContextDefinition;
-import org.fluidity.composition.network.DependencyGraph;
+import org.fluidity.composition.spi.ComponentResolutionObserver;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**
@@ -36,11 +35,22 @@ final class ProductionServices implements ContainerServices {
     private final LogFactory logs;
     private final ClassDiscovery classDiscovery;
     private final DependencyInjector dependencyInjector;
+    private final DependencyGraph.Traversal.Strategy strategy;
 
-    public ProductionServices(final LogFactory logs) {
+    public ProductionServices(final LogFactory logs, final DependencyGraph.Traversal.Strategy strategy) {
         this.logs = logs;
         this.classDiscovery = new ClassDiscoveryImpl(logs);
         this.dependencyInjector = new DependencyInjectorImpl();
+
+        this.strategy = strategy != null ? strategy : new DependencyGraph.Traversal.Strategy() {
+            public DependencyGraph.Node advance(final DependencyGraph graph,
+                                                final ContextDefinition context,
+                                                final DependencyGraph.Traversal traversal,
+                                                final boolean repeating,
+                                                final DependencyGraph.Traversal.Trail trail) {
+                return trail.advance();
+            }
+        };
     }
 
     public ContextDefinition emptyContext() {
@@ -56,11 +66,11 @@ final class ProductionServices implements ContainerServices {
     }
 
     public DependencyGraph.Traversal graphTraversal() {
-        return graphTraversal(null, null);
+        return graphTraversal(null);
     }
 
-    public DependencyGraph.Traversal graphTraversal(final DependencyGraph.Traversal.Strategy strategy, final DependencyGraph.Traversal.Observer observer) {
-        return new DependencyPathTraversal(strategy == null ? DependencyGraph.Traversal.Strategy.DEFAULT : strategy, observer);
+    public DependencyGraph.Traversal graphTraversal(final ComponentResolutionObserver observer) {
+        return new DependencyPathTraversal(strategy, observer);
     }
 
     public LogFactory logs() {

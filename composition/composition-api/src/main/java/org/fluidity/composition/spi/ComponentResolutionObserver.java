@@ -20,17 +20,20 @@
  * THE SOFTWARE.
  */
 
-package org.fluidity.composition;
-
-import org.fluidity.foundation.spi.LogFactory;
+package org.fluidity.composition.spi;
 
 /**
+ * Observes graph node resolutions.
+ *
  * @author Tibor Varga
  */
-final class ProductionServicesFactory implements ContainerServicesFactory {
+public interface ComponentResolutionObserver {
 
-    public ContainerServices containerServices(final LogFactory logs, final DependencyGraph.Traversal.Strategy strategy) {
-        assert logs != null : LogFactory.class;
-        return new ProductionServices(logs, strategy);
-    }
+    /**
+     * Invoked for each resolved graph node. The path and type are not final, they may change as circular references are handled.
+     *
+     * @param path the dependency path at which the given type has been resolved.
+     * @param type the type that has been resolved at the given dependency path.
+     */
+    void resolved(DependencyPath path, Class<?> type);
 }

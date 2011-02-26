@@ -28,6 +28,11 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.fluidity.composition.spi.ComponentResolutionObserver;
+import org.fluidity.composition.spi.DependencyPath;
 
 import org.testng.annotations.Test;
 
@@ -210,6 +215,29 @@ public final class BasicResolutionTests extends AbstractContainerTests {
         registry.bindComponent(OuterClass.InnerClass.class);
 
         assert container.getComponent(OuterClass.InnerClass.class) != null : "Non-static inner class was not instantiated";
+    }
+
+    @Test
+    public void testObservation() throws Exception {
+        registry.bindComponent(MultipleInterfaces.class);
+
+        final Map<Class<?>, Class<?>> resolved = new HashMap<Class<?>, Class<?>>();
+
+        final ObservedComponentContainer observed = container.observed(new ComponentResolutionObserver() {
+            public void resolved(final DependencyPath path, final Class<?> type) {
+                assert path != null;
+                resolved.put(path.head(), type);
+            }
+        });
+
+        observed.resolveComponent(Interface1.class);
+        observed.resolveComponent(Interface2.class);
+        observed.resolveComponent(Interface3.class);
+
+        assert resolved.size() == 3;
+        assert resolved.get(Interface1.class) == MultipleInterfaces.class;
+        assert resolved.get(Interface2.class) == MultipleInterfaces.class;
+        assert resolved.get(Interface3.class) == MultipleInterfaces.class;
     }
 
     @Test(expectedExceptions = ComponentContainer.BindingException.class, expectedExceptionsMessageRegExp = ".*anonymous.*")

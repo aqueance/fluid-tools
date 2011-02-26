@@ -20,17 +20,28 @@
  * THE SOFTWARE.
  */
 
-package org.fluidity.composition;
+package org.fluidity.composition.spi;
 
-import org.fluidity.foundation.spi.LogFactory;
+import java.util.List;
 
 /**
+ * A dependency path.
+ *
  * @author Tibor Varga
  */
-final class ProductionServicesFactory implements ContainerServicesFactory {
+public interface DependencyPath {
 
-    public ContainerServices containerServices(final LogFactory logs, final DependencyGraph.Traversal.Strategy strategy) {
-        assert logs != null : LogFactory.class;
-        return new ProductionServices(logs, strategy);
-    }
+    /**
+     * The component interface that is to be resolved at the head of the path.
+     *
+     * @return the component interface that is to be resolved at the head of the path.
+     */
+    Class<?> head();
+
+    /**
+     * The list component APIs that comprise the dependency path.
+     *
+     * @return the list component APIs that comprise the dependency path.
+     */
+    List<Class<?>> path();
 }

@@ -22,6 +22,7 @@
 
 package org.fluidity.composition.spi;
 
+import org.fluidity.composition.ObservedComponentContainer;
 import org.fluidity.composition.OpenComponentContainer;
 
 /**
@@ -29,7 +30,7 @@ import org.fluidity.composition.OpenComponentContainer;
  *
  * @author Tibor Varga
  */
-public abstract class EmptyComponentContainer implements OpenComponentContainer, ComponentRegistry {
+public abstract class EmptyComponentContainer implements OpenComponentContainer, ObservedComponentContainer, ComponentRegistry {
 
     private final Registry registry = new EmptyRegistry(this);
 

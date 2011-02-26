@@ -33,9 +33,10 @@ interface ContainerServicesFactory {
     /**
      * Creates a {@link ContainerServices} object.
      *
-     * @param logs the logger factory to use.
+     * @param logs     the logger factory to use.
+     * @param strategy the dependency graph traversal strategy, if any.
      *
      * @return a {@link ContainerServices} object.
      */
-    ContainerServices containerServices(LogFactory logs);
+    ContainerServices containerServices(LogFactory logs, DependencyGraph.Traversal.Strategy strategy);
 }

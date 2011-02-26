@@ -23,8 +23,8 @@
 package org.fluidity.composition.spi;
 
 import org.fluidity.composition.ComponentContainer;
-import org.fluidity.composition.network.ContextDefinition;
-import org.fluidity.composition.network.DependencyGraph;
+import org.fluidity.composition.ContextDefinition;
+import org.fluidity.composition.DependencyGraph;
 
 /**
  * Capable of resolving component references.

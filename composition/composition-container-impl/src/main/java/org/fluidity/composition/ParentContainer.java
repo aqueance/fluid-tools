@@ -24,8 +24,6 @@ package org.fluidity.composition;
 
 import java.util.List;
 
-import org.fluidity.composition.network.ContextDefinition;
-
 /**
  * Interface to separate internal container methods from the higher level container interface.
  */

@@ -33,8 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.fluidity.composition.network.ContextDefinition;
-import org.fluidity.composition.network.DependencyGraph;
+import org.fluidity.composition.spi.ComponentResolutionObserver;
 import org.fluidity.foundation.Exceptions;
 import org.fluidity.foundation.Strings;
 
@@ -46,15 +45,17 @@ import org.fluidity.foundation.Strings;
 final class DependencyPathTraversal implements DependencyGraph.Traversal {
 
     private final Strategy strategy;
-    private final Observer observer;
+    private final ComponentResolutionObserver observer;
 
     private DependencyPath resolutionPath;
 
-    public DependencyPathTraversal(final Strategy strategy, final Observer observer) {
+    public DependencyPathTraversal(final Strategy strategy, final ComponentResolutionObserver observer) {
         this(new DependencyPath(), strategy, observer);
     }
 
-    public DependencyPathTraversal(final DependencyPath path, final Strategy strategy, final Observer observer) {
+    public DependencyPathTraversal(final DependencyPath path, final Strategy strategy, final ComponentResolutionObserver observer) {
+        assert path != null;
+        assert strategy != null;
         this.resolutionPath = path;
         this.strategy = strategy;
         this.observer = observer;
@@ -100,9 +101,9 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
         }
     }
 
-    public DependencyGraph.Traversal observed(final Observer observer) {
-        return new DependencyPathTraversal(resolutionPath, strategy, this.observer == null ? observer : new Observer() {
-            public void resolved(final Path path, final Class<?> type) {
+    public DependencyGraph.Traversal observed(final ComponentResolutionObserver observer) {
+        return new DependencyPathTraversal(resolutionPath, strategy, this.observer == null ? observer : new ComponentResolutionObserver() {
+            public void resolved(final org.fluidity.composition.spi.DependencyPath path, final Class<?> type) {
                 DependencyPathTraversal.this.observer.resolved(path, type);
                 observer.resolved(path, type);
             }
@@ -259,7 +260,7 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
     /**
      * Maintains a potentially circular dependency path.
      */
-    private static class DependencyPath implements Path {
+    private static class DependencyPath implements org.fluidity.composition.spi.DependencyPath {
 
         public final Element head;
         public final boolean repeating;

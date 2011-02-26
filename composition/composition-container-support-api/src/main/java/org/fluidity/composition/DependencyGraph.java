@@ -20,11 +20,10 @@
  * THE SOFTWARE.
  */
 
-package org.fluidity.composition.network;
+package org.fluidity.composition;
 
-import java.util.List;
-
-import org.fluidity.composition.ComponentContext;
+import org.fluidity.composition.spi.ComponentResolutionObserver;
+import org.fluidity.composition.spi.DependencyPath;
 
 /**
  * A dependency graph of components and component groups. The graph is backed by static and dynamic dependencies between components. The graph can be traversed
@@ -167,18 +166,13 @@ public interface DependencyGraph {
          *
          * @return the new traversal.
          */
-        Traversal observed(Observer observer);
+        Traversal observed(ComponentResolutionObserver observer);
 
         /**
          * A path traversal strategy. The strategy is consulted before advancing on a dependency path.
          */
+        @ServiceProvider
         interface Strategy {
-
-            Strategy DEFAULT = new Strategy() {
-                public Node advance(final DependencyGraph graph, final ContextDefinition context, final Traversal traversal, final boolean repeating, final Trail trail) {
-                    return repeating ? null : trail.advance();
-                }
-            };
 
             /**
              * Advances on a dependency path. The strategy may return an unrelated Node or may invoke the given trail object to advance on the dependency path.
@@ -195,43 +189,9 @@ public interface DependencyGraph {
         }
 
         /**
-         * Observes graph node resolutions.
-         */
-        interface Observer {
-
-            /**
-             * Invoked for each resolved graph node. The path and type are not final, they may change as circular references are handled.
-             *
-             * @param path the dependency path at which the given type has been resolved.
-             * @param type the type that has been resolved at the given dependency path.
-             */
-            void resolved(Path path, Class<?> type);
-        }
-
-        /**
-         * A dependency path.
-         */
-        interface Path {
-
-            /**
-             * The component interface that is to be resolved at the head of the path.
-             *
-             * @return the component interface that is to be resolved at the head of the path.
-             */
-            Class<?> head();
-
-            /**
-             * The list component APIs that comprise the dependency path.
-             *
-             * @return the list component APIs that comprise the dependency path.
-             */
-            List<Class<?>> path();
-        }
-
-        /**
          * A dependency path that can be advanced on.
          */
-        interface Trail extends Path {
+        interface Trail extends DependencyPath {
 
             /**
              * Advances on the dependency path.

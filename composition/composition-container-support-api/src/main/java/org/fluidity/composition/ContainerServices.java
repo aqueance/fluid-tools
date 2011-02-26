@@ -22,8 +22,7 @@
 
 package org.fluidity.composition;
 
-import org.fluidity.composition.network.ContextDefinition;
-import org.fluidity.composition.network.DependencyGraph;
+import org.fluidity.composition.spi.ComponentResolutionObserver;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**
@@ -64,12 +63,12 @@ public interface ContainerServices {
     /**
      * Returns the default graph traversal with the given strategy and observer.
      *
-     * @param strategy the traversal strategy to use.
+     *
      * @param observer the object to notify when a component class gets resolved.
      *
      * @return the default graph traversal with the given strategy and observer.
      */
-    DependencyGraph.Traversal graphTraversal(DependencyGraph.Traversal.Strategy strategy, DependencyGraph.Traversal.Observer observer);
+    DependencyGraph.Traversal graphTraversal(ComponentResolutionObserver observer);
 
     /**
      * Returns the logger factory to use by the container.

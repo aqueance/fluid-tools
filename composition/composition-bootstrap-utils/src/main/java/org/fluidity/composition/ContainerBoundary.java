@@ -31,7 +31,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
 
-import org.fluidity.composition.network.DependencyGraph;
+import org.fluidity.composition.spi.ComponentResolutionObserver;
 import org.fluidity.composition.spi.ContainerProvider;
 import org.fluidity.foundation.spi.LogFactory;
 
@@ -245,7 +245,8 @@ public final class ContainerBoundary implements ComponentContainer {
                         final ContainerServicesFactory factory = services.findInstance(ContainerServicesFactory.class, loader);
                         assert factory != null : ContainerServicesFactory.class;
 
-                        containerServices = factory.containerServices(services.findInstance(LogFactory.class, loader));
+                        containerServices = factory.containerServices(services.findInstance(LogFactory.class, loader),
+                                                                      services.findInstance(DependencyGraph.Traversal.Strategy.class, loader));
                         assert containerServices != null : ContainerServicesFactory.class;
                     }
 
@@ -255,6 +256,7 @@ public final class ContainerBoundary implements ComponentContainer {
                                                                                                   map == null ? new HashMap() : map,
                                                                                                   populatedContainers.get(loader.getParent()),
                                                                                                   loader);
+
                     populatedContainers.put(loader, container);
                 } else {
                     populatedContainers.put(loader, null);
@@ -262,7 +264,7 @@ public final class ContainerBoundary implements ComponentContainer {
             }
         }
 
-        assert populatedContainers.containsKey(classLoader);
+        assert populatedContainers.containsKey(classLoader) : classLoader;
 
         // list of containers at and above current class loader
         final List<OpenComponentContainer> containers = new ArrayList<OpenComponentContainer>();
@@ -279,7 +281,8 @@ public final class ContainerBoundary implements ComponentContainer {
     }
 
     /**
-     * A container can be updated any time until it is locked once. After it has been locked, it can only be queried. When a container is loaded, all containers
+     * A container can be updated any time until it is locked once. After it has been locked, it can only be queried. When a container is loaded, all
+     * containers
      * up the class loader chain are also loaded. If one is locked, all above it are also locked.
      *
      * @param lock whether to lock the container. If it has not yet been locked and this parameter is <code>true</code>, the container is initialized and
@@ -309,7 +312,7 @@ public final class ContainerBoundary implements ComponentContainer {
         }
     }
 
-    public ComponentContainer observed(final DependencyGraph.Traversal.Strategy strategy, final DependencyGraph.Traversal.Observer observer) {
-        return loadContainer(true).observed(strategy, observer);
+    public ObservedComponentContainer observed(final ComponentResolutionObserver observer) {
+        return loadContainer(true).observed(observer);
     }
 }

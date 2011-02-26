@@ -30,9 +30,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.fluidity.composition.network.ContextDefinition;
 import org.fluidity.composition.spi.ComponentFactory;
 import org.fluidity.composition.spi.ComponentMapping;
+import org.fluidity.composition.spi.ComponentResolutionObserver;
 import org.fluidity.composition.spi.ComponentVariantFactory;
 import org.fluidity.foundation.Strings;
 import org.fluidity.foundation.logging.Log;
@@ -320,7 +320,7 @@ final class SimpleContainerImpl implements ParentContainer {
         return String.format("container %s", id());
     }
 
-    public Object initialize(final Object component, final ContextDefinition context, final Traversal.Observer observer) {
+    public Object initialize(final Object component, final ContextDefinition context, final ComponentResolutionObserver observer) {
         return injector.fields(services.graphTraversal(), this, new InstanceMapping(component), context, component);
     }
 

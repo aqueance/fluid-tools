@@ -20,14 +20,11 @@
  * THE SOFTWARE.
  */
 
-package org.fluidity.composition.network;
+package org.fluidity.composition;
 
 import java.lang.annotation.Annotation;
 import java.util.Collection;
 import java.util.Map;
-
-import org.fluidity.composition.ComponentContext;
-import org.fluidity.composition.Context;
 
 /**
  * Maintains context state during dependency resolution. Context definition is expanded as we descend a dependency path and each component along the chain may

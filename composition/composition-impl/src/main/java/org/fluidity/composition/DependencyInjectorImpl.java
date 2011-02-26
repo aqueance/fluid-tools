@@ -31,8 +31,6 @@ import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.fluidity.composition.network.ContextDefinition;
-import org.fluidity.composition.network.DependencyGraph;
 import org.fluidity.composition.spi.ComponentMapping;
 import org.fluidity.composition.spi.DependencyResolver;
 import org.fluidity.foundation.Exceptions;

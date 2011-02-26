@@ -22,7 +22,7 @@
 
 package org.fluidity.composition;
 
-import org.fluidity.composition.network.ContextDefinition;
+import org.fluidity.composition.spi.ComponentResolutionObserver;
 import org.fluidity.composition.spi.DependencyResolver;
 
 /**
@@ -127,7 +127,7 @@ interface SimpleContainer extends DependencyResolver {
      * @throws ComponentContainer.ResolutionException
      *          when dependency resolution fails.
      */
-    Object initialize(final Object component, final ContextDefinition context, final Traversal.Observer observer) throws ComponentContainer.ResolutionException;
+    Object initialize(final Object component, final ContextDefinition context, final ComponentResolutionObserver observer) throws ComponentContainer.ResolutionException;
 
     /**
      * Returns a textual identifier for the container.
