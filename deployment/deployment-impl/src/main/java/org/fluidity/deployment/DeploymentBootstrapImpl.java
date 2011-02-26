@@ -29,6 +29,7 @@ import java.util.List;
 
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentGroup;
+import org.fluidity.composition.Optional;
 import org.fluidity.foundation.logging.Log;
 import org.fluidity.foundation.logging.Marker;
 
@@ -47,14 +48,19 @@ final class DeploymentBootstrapImpl implements DeploymentBootstrap {
     private final Log log;
 
     public DeploymentBootstrapImpl(final @Marker(DeploymentBootstrapImpl.class) Log log,
-                                   final @ComponentGroup DeployedComponent[] components,
-                                   final @ComponentGroup DeploymentObserver[] observers,
+                                   final @Optional @ComponentGroup DeployedComponent[] components,
+                                   final @Optional @ComponentGroup DeploymentObserver[] observers,
                                    final DeploymentControl deployments) {
         this.log = log;
         this.deployments = deployments;
 
-        this.components.addAll(Arrays.asList(components));
-        this.observers.addAll(Arrays.asList(observers));
+        if (components != null) {
+            this.components.addAll(Arrays.asList(components));
+        }
+
+        if (observers != null) {
+            this.observers.addAll(Arrays.asList(observers));
+        }
     }
 
     private void info(final String message, final Object... args) {

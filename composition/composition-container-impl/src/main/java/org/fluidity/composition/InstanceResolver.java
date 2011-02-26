@@ -55,7 +55,7 @@ final class InstanceResolver extends AbstractResolver {
     }
 
     public Graph.Node resolve(final Graph.Traversal traversal, final SimpleContainer container, final ContextDefinition context) {
-        return traversal.follow(container, context, new Graph.Reference() {
+        return traversal.follow(container, context, new Graph.Node.Reference() {
             public Class<?> api() {
                 return api;
             }

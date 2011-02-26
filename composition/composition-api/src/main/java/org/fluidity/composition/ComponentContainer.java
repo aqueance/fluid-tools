@@ -68,6 +68,16 @@ import org.fluidity.foundation.Strings;
  */
 public interface ComponentContainer {
 
+    /**
+     * Returns a new container that calls the given dependency path traversal strategy and observer whenever a dependency is resolved while resolving a
+     * component via this
+     * container.
+     *
+     * @param strategy the strategy to use, may be <code>null</code>.
+     * @param observer the observer to call, may be <code>null</code>.
+     *
+     * @return a new container instance backed by this one but using a possibly different path traversal strategy and/or observer.
+     */
     ComponentContainer observed(Graph.Traversal.Strategy strategy, Graph.Traversal.Observer observer);
 
     /**
@@ -360,7 +370,10 @@ public interface ComponentContainer {
         }
 
         public CircularInvocationException(final Object object, final Set<Method> methods) {
-            super("Circular method invocation detected on %s@%x involving method(s) %s", object.getClass().getName(), System.identityHashCode(object), methodNames(methods));
+            super("Circular method invocation detected on %s@%x involving method(s) %s",
+                  object.getClass().getName(),
+                  System.identityHashCode(object),
+                  methodNames(methods));
         }
     }
 }

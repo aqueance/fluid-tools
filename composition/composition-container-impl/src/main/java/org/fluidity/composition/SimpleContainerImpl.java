@@ -343,7 +343,7 @@ final class SimpleContainerImpl implements ParentContainer {
         } else {
             final Class<?> arrayApi = empty.getClass();
 
-            return traversal.follow(this, context, new Reference() {
+            return traversal.follow(this, context, new Node.Reference() {
                 public Class<?> api() {
                     return arrayApi;
                 }

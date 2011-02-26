@@ -84,13 +84,11 @@ final class ComponentContainerShell extends EmptyComponentContainer {
         return new ComponentContainerShell(container, context, true, strategy, observer);
     }
 
-    public void bindComponent(final Class<?> implementation, final Class<?>[] interfaces, final Class<?>[] groups)
-            throws ComponentContainer.BindingException {
+    public void bindComponent(final Class<?> implementation, final Class<?>[] interfaces, final Class<?>[] groups) throws ComponentContainer.BindingException {
         container.bindComponent(implementation, interfaces, groups);
     }
 
-    public void bindInstance(final Object instance, final Class<?>[] interfaces, final Class<?>[] groups)
-            throws ComponentContainer.BindingException {
+    public void bindInstance(final Object instance, final Class<?>[] interfaces, final Class<?>[] groups) throws ComponentContainer.BindingException {
         container.bindInstance(instance, interfaces, groups);
     }
 
@@ -101,9 +99,13 @@ final class ComponentContainerShell extends EmptyComponentContainer {
 
     private Graph.Traversal.Strategy composite(final Graph.Traversal.Strategy strategy) {
         return this.strategy == null ? strategy : new Graph.Traversal.Strategy() {
-            public Graph.Node resolve(final Graph graph, final ContextDefinition context, final Graph.Traversal traversal, final boolean repeating, final Graph.Traversal.Trail trail) {
-                final Graph.Node resolved = strategy.resolve(graph, context, traversal, repeating, trail);
-                return resolved == null ? ComponentContainerShell.this.strategy.resolve(graph, context, traversal, repeating, trail) : resolved;
+            public Graph.Node advance(final Graph graph,
+                                      final ContextDefinition context,
+                                      final Graph.Traversal traversal,
+                                      final boolean repeating,
+                                      final Graph.Traversal.Trail trail) {
+                final Graph.Node resolved = strategy.advance(graph, context, traversal, repeating, trail);
+                return resolved == null ? ComponentContainerShell.this.strategy.advance(graph, context, traversal, repeating, trail) : resolved;
             }
         };
     }
@@ -118,7 +120,7 @@ final class ComponentContainerShell extends EmptyComponentContainer {
     }
 
     public ComponentContainer observed(final Graph.Traversal.Strategy strategy, final Graph.Traversal.Observer observer) {
-        return new ComponentContainerShell(container, context, false, composite(strategy), composite(observer));
+        return strategy == null && observer == null ? this : new ComponentContainerShell(container, context, false, composite(strategy), composite(observer));
     }
 
     @Override

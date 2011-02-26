@@ -95,7 +95,7 @@ public abstract class ContainerProviderAbstractTest extends MockGroupAbstractTes
         final PackageBindings bindings = new StandalonePackageBindingsImpl();
 
         final PackageBindings[] instance = { bindings };
-        EasyMock.expect(traversal.follow(EasyMock.<Graph>notNull(), EasyMock.same(context), EasyMock.<Graph.Reference>notNull())).andReturn(node);
+        EasyMock.expect(traversal.follow(EasyMock.<Graph>notNull(), EasyMock.same(context), EasyMock.<Graph.Node.Reference>notNull())).andReturn(node);
 
         EasyMock.expect(node.instance()).andReturn(instance);
 
@@ -118,7 +118,7 @@ public abstract class ContainerProviderAbstractTest extends MockGroupAbstractTes
         final DependentPackageBindingsImpl bindings3 = new DependentPackageBindingsImpl(bindings2);
 
         final PackageBindings[] bindings = { bindings1, bindings2, bindings3 };
-        EasyMock.expect(traversal.follow(EasyMock.<Graph>notNull(), EasyMock.same(context), EasyMock.<Graph.Reference>notNull())).andReturn(node);
+        EasyMock.expect(traversal.follow(EasyMock.<Graph>notNull(), EasyMock.same(context), EasyMock.<Graph.Node.Reference>notNull())).andReturn(node);
 
         EasyMock.expect(node.instance()).andReturn(bindings);
 
