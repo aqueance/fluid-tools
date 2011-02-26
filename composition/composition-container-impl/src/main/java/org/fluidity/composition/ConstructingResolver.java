@@ -29,7 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.fluidity.composition.network.ContextDefinition;
-import org.fluidity.composition.network.Graph;
+import org.fluidity.composition.network.DependencyGraph;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**
@@ -146,13 +146,13 @@ final class ConstructingResolver extends AbstractResolver {
         }
     }
 
-    public Graph.Node resolve(final Graph.Traversal traversal, final SimpleContainer container, final ContextDefinition context) {
-        return traversal.follow(container, context, new Graph.Node.Reference() {
+    public DependencyGraph.Node resolve(final DependencyGraph.Traversal traversal, final SimpleContainer container, final ContextDefinition context) {
+        return traversal.follow(container, context, new DependencyGraph.Node.Reference() {
             public Class<?> api() {
                 return api;
             }
 
-            public Graph.Node resolve(final Graph.Traversal traversal, final ContextDefinition context) {
+            public DependencyGraph.Node resolve(final DependencyGraph.Traversal traversal, final ContextDefinition context) {
                 return cachingNode(injector.constructor(traversal, container, ConstructingResolver.this, context, constructor()), container);
             }
         });

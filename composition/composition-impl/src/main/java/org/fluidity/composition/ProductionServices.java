@@ -23,7 +23,7 @@
 package org.fluidity.composition;
 
 import org.fluidity.composition.network.ContextDefinition;
-import org.fluidity.composition.network.Graph;
+import org.fluidity.composition.network.DependencyGraph;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**
@@ -55,12 +55,12 @@ final class ProductionServices implements ContainerServices {
         return dependencyInjector;
     }
 
-    public Graph.Traversal graphTraversal() {
+    public DependencyGraph.Traversal graphTraversal() {
         return graphTraversal(null, null);
     }
 
-    public Graph.Traversal graphTraversal(final Graph.Traversal.Strategy strategy, final Graph.Traversal.Observer observer) {
-        return new DependencyPathTraversal(strategy == null ? Graph.Traversal.Strategy.DEFAULT : strategy, observer);
+    public DependencyGraph.Traversal graphTraversal(final DependencyGraph.Traversal.Strategy strategy, final DependencyGraph.Traversal.Observer observer) {
+        return new DependencyPathTraversal(strategy == null ? DependencyGraph.Traversal.Strategy.DEFAULT : strategy, observer);
     }
 
     public LogFactory logs() {

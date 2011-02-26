@@ -25,7 +25,7 @@ package org.fluidity.composition;
 import java.lang.annotation.Annotation;
 
 import org.fluidity.composition.network.ContextDefinition;
-import org.fluidity.composition.network.Graph;
+import org.fluidity.composition.network.DependencyGraph;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**
@@ -52,7 +52,7 @@ final class LinkingResolver extends AbstractResolver {
         return delegate.annotation(type);
     }
 
-    public Graph.Node resolve(final Graph.Traversal traversal, final SimpleContainer container, final ContextDefinition context) {
+    public DependencyGraph.Node resolve(final DependencyGraph.Traversal traversal, final SimpleContainer container, final ContextDefinition context) {
         assert target.parentContainer() == container;
         return delegate.resolve(traversal, target, context);
     }

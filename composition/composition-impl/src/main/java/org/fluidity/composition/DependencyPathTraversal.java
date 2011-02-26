@@ -34,7 +34,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.fluidity.composition.network.ContextDefinition;
-import org.fluidity.composition.network.Graph;
+import org.fluidity.composition.network.DependencyGraph;
 import org.fluidity.foundation.Exceptions;
 import org.fluidity.foundation.Strings;
 
@@ -43,7 +43,7 @@ import org.fluidity.foundation.Strings;
  * <p/>
  * This object keeps state, do not use it concurrently or if its API method terminates abnormally (i.e., throws an exception).
  */
-final class DependencyPathTraversal implements Graph.Traversal {
+final class DependencyPathTraversal implements DependencyGraph.Traversal {
 
     private final Strategy strategy;
     private final Observer observer;
@@ -60,7 +60,7 @@ final class DependencyPathTraversal implements Graph.Traversal {
         this.observer = observer;
     }
 
-    public Graph.Node follow(final Graph graph, final ContextDefinition context, final Graph.Node.Reference reference) {
+    public DependencyGraph.Node follow(final DependencyGraph graph, final ContextDefinition context, final DependencyGraph.Node.Reference reference) {
         final Class<?> api = reference.api();
 
         assert context != null;
@@ -73,7 +73,7 @@ final class DependencyPathTraversal implements Graph.Traversal {
             final boolean repeating = currentPath.repeating;
 
             if (repeating) {
-                final Graph.Node node = strategy.advance(graph, context, this, repeating, new TerminationTrail(currentPath));
+                final DependencyGraph.Node node = strategy.advance(graph, context, this, repeating, new TerminationTrail(currentPath));
 
                 if (node == null) {
                     return new ProxyNode(api, currentPath, null);
@@ -86,8 +86,8 @@ final class DependencyPathTraversal implements Graph.Traversal {
                 }
             } else {
                 final Trail trail = new ResolutionTrail(this, currentPath, reference, context);
-                final Graph.Node node = strategy.advance(graph, context, this, repeating, trail);
-                final Graph.Node resolved = node == null ? trail.advance() : node;
+                final DependencyGraph.Node node = strategy.advance(graph, context, this, repeating, trail);
+                final DependencyGraph.Node resolved = node == null ? trail.advance() : node;
 
                 if (observer != null) {
                     observer.resolved(currentPath, resolved.type());
@@ -100,7 +100,7 @@ final class DependencyPathTraversal implements Graph.Traversal {
         }
     }
 
-    public Graph.Traversal observed(final Observer observer) {
+    public DependencyGraph.Traversal observed(final Observer observer) {
         return new DependencyPathTraversal(resolutionPath, strategy, this.observer == null ? observer : new Observer() {
             public void resolved(final Path path, final Class<?> type) {
                 DependencyPathTraversal.this.observer.resolved(path, type);
@@ -109,13 +109,13 @@ final class DependencyPathTraversal implements Graph.Traversal {
         });
     }
 
-    Object instantiate(final Class<?> api, final Graph.Node node, final Element element) {
+    Object instantiate(final Class<?> api, final DependencyGraph.Node node, final Element element) {
         final DependencyPath savedPath = resolutionPath;
         final DependencyPath currentPath = savedPath.descend(element.redefine(node));
 
         resolutionPath = currentPath;
         try {
-            final Graph.Node resolved = currentPath.head.node = resolve(api, savedPath, node);
+            final DependencyGraph.Node resolved = currentPath.head.node = resolve(api, savedPath, node);
             Object instance = resolved.instance();
 
             if (instance != null) {
@@ -138,10 +138,10 @@ final class DependencyPathTraversal implements Graph.Traversal {
         }
     }
 
-    private Graph.Node resolve(final Class<?> api, final DependencyPath path, final Graph.Node node) throws CircularReferencesException {
+    private DependencyGraph.Node resolve(final Class<?> api, final DependencyPath path, final DependencyGraph.Node node) throws CircularReferencesException {
         try {
             final Object instance = node.instance();
-            return instance == null ? null : new Graph.Node.Constant(node.type(), instance, node.context());
+            return instance == null ? null : new DependencyGraph.Node.Constant(node.type(), instance, node.context());
         } catch (final CircularReferencesException error) {
             if (error.node == node) {
                 throw error;
@@ -151,7 +151,7 @@ final class DependencyPathTraversal implements Graph.Traversal {
         }
     }
 
-    private class ProxyNode implements Graph.Node {
+    private class ProxyNode implements DependencyGraph.Node {
 
         public final Element repeat;
         public final Class<?> api;
@@ -173,7 +173,7 @@ final class DependencyPathTraversal implements Graph.Traversal {
             if (api.isInterface()) {
                 return Exceptions.wrap(new Exceptions.Command<Object>() {
                     public Object run() throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
-                        return Proxy.newProxyInstance(api.getClassLoader(), new Class<?>[] {api}, new InvocationHandler() {
+                        return Proxy.newProxyInstance(api.getClassLoader(), new Class<?>[] { api }, new InvocationHandler() {
                             private volatile Object delegate;
                             private Set<Method> methods = new HashSet<Method>();
 
@@ -231,13 +231,13 @@ final class DependencyPathTraversal implements Graph.Traversal {
         return node.error == null ? new CircularReferencesException(node) : node.error;
     }
 
-    private class ResolvedNode implements Graph.Node {
+    private class ResolvedNode implements DependencyGraph.Node {
 
         private final Class<?> api;
-        private final Graph.Node node;
+        private final DependencyGraph.Node node;
         private final Element element;
 
-        public ResolvedNode(final Class<?> api, final Element element, final Graph.Node node) {
+        public ResolvedNode(final Class<?> api, final Element element, final DependencyGraph.Node node) {
             this.api = api;
             this.element = element;
             this.node = node;
@@ -337,7 +337,7 @@ final class DependencyPathTraversal implements Graph.Traversal {
         public final Class<?> api;
         public ContextDefinition definition;
         public ComponentContext context;
-        public Graph.Node node;
+        public DependencyGraph.Node node;
         public Cache cache;
 
         private Element(final Class<?> api) {
@@ -374,7 +374,7 @@ final class DependencyPathTraversal implements Graph.Traversal {
             return context != null ? context.hashCode() + 31 * hash : hash;
         }
 
-        public Element redefine(final Graph.Node node) {
+        public Element redefine(final DependencyGraph.Node node) {
             this.definition = null;
             this.context = node.context();
             return this;
@@ -407,19 +407,22 @@ final class DependencyPathTraversal implements Graph.Traversal {
             return currentPath.path();
         }
 
-        public Graph.Node advance() {
+        public DependencyGraph.Node advance() {
             return null;
         }
     }
 
     private static class ResolutionTrail implements Trail {
 
-        private final Graph.Traversal traversal;
+        private final DependencyGraph.Traversal traversal;
         private final DependencyPath currentPath;
-        private final Graph.Node.Reference reference;
+        private final DependencyGraph.Node.Reference reference;
         private final ContextDefinition context;
 
-        public ResolutionTrail(final Graph.Traversal traversal, final DependencyPath currentPath, final Graph.Node.Reference reference, final ContextDefinition context) {
+        public ResolutionTrail(final DependencyGraph.Traversal traversal,
+                               final DependencyPath currentPath,
+                               final DependencyGraph.Node.Reference reference,
+                               final ContextDefinition context) {
             this.traversal = traversal;
             this.currentPath = currentPath;
             this.reference = reference;
@@ -434,7 +437,7 @@ final class DependencyPathTraversal implements Graph.Traversal {
             return currentPath.path();
         }
 
-        public Graph.Node advance() {
+        public DependencyGraph.Node advance() {
             return reference.resolve(traversal, context);
         }
     }

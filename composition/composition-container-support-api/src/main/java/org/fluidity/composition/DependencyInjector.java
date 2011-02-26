@@ -25,7 +25,7 @@ package org.fluidity.composition;
 import java.lang.reflect.Constructor;
 
 import org.fluidity.composition.network.ContextDefinition;
-import org.fluidity.composition.network.Graph;
+import org.fluidity.composition.network.DependencyGraph;
 import org.fluidity.composition.spi.ComponentMapping;
 import org.fluidity.composition.spi.DependencyResolver;
 
@@ -39,35 +39,30 @@ public interface DependencyInjector {
     /**
      * Resolves all parameters of the given constructor and invokes it to construct a new object with it.
      *
-     * @param traversal
-     * @param container
+     * @param traversal   the graph traversal to use.
+     * @param container   the container that can resolve dependencies
      * @param mapping     the mapping that triggered the dependency resolution.
      * @param context     the instantiation context of the object being constructed.
      * @param constructor the constructor to find the arguments for.
      *
      * @return the argument array for the given constructor.
      */
-    Graph.Node constructor(Graph.Traversal traversal,
-                           DependencyResolver container,
-                           ComponentMapping mapping,
-                           ContextDefinition context,
-                           Constructor<?> constructor);
+    DependencyGraph.Node constructor(DependencyGraph.Traversal traversal,
+                                     DependencyResolver container,
+                                     ComponentMapping mapping,
+                                     ContextDefinition context,
+                                     Constructor<?> constructor);
 
     /**
      * Sets all {@link Component} annotated fields of the receiver.
      *
+     * @param traversal the graph traversal to use.
+     * @param container the container that can resolve dependencies
+     * @param mapping   the mapping that triggered the dependency resolution.
+     * @param context   the instantiation context of the object being constructed.
+     * @param instance  the object to set the fields of.     @return the received instances.
      *
-     * @param traversal
-     * @param container
-     * @param mapping     the mapping that triggered the dependency resolution.
-     * @param context  the instantiation context of the object being constructed.
-     * @param instance the object to set the fields of.     @return the received instances.
-     * @param observer
-     * */
-    <T> T fields(Graph.Traversal traversal,
-                 DependencyResolver container,
-                 ComponentMapping mapping,
-                 ContextDefinition context,
-                 T instance,
-                 final Graph.Traversal.Observer observer);
+     * @return the received instance.
+     */
+    <T> T fields(DependencyGraph.Traversal traversal, DependencyResolver container, ComponentMapping mapping, ContextDefinition context, T instance);
 }

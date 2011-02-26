@@ -321,7 +321,7 @@ final class SimpleContainerImpl implements ParentContainer {
     }
 
     public Object initialize(final Object component, final ContextDefinition context, final Traversal.Observer observer) {
-        return injector.fields(services.graphTraversal(), this, new InstanceMapping(component), context, component, observer);
+        return injector.fields(services.graphTraversal(), this, new InstanceMapping(component), context, component);
     }
 
     public Node resolveComponent(final Class<?> api, final ContextDefinition context, final Traversal traversal) {

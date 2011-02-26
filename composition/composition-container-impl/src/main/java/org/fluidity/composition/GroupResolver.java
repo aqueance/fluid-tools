@@ -29,7 +29,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.fluidity.composition.network.ContextDefinition;
-import org.fluidity.composition.network.Graph;
+import org.fluidity.composition.network.DependencyGraph;
 
 /**
  * Component mapping for a component group.
@@ -41,11 +41,11 @@ final class GroupResolver {
     private Set<Class<?>> members = new LinkedHashSet<Class<?>>();
     private volatile Set<Class<?>> sorted;
 
-    public void resolve(final Graph.Traversal traversal, final SimpleContainer container, final ContextDefinition context, final List<Graph.Node> list) {
+    public void resolve(final DependencyGraph.Traversal traversal, final SimpleContainer container, final ContextDefinition context, final List<DependencyGraph.Node> list) {
         Set<Class<?>> cache = sorted;
 
         if (cache == null) {
-            final Map<Class<?>, Graph.Node> map = new HashMap<Class<?>, Graph.Node>();
+            final Map<Class<?>, DependencyGraph.Node> map = new HashMap<Class<?>, DependencyGraph.Node>();
 
             synchronized (this) {
                 cache = sorted;
@@ -53,8 +53,8 @@ final class GroupResolver {
                 if (cache == null) {
                     final Set<Class<?>> local = cache = new LinkedHashSet<Class<?>>();
 
-                    final Graph.Traversal observed = traversal.observed(new Graph.Traversal.Observer() {
-                        public void resolved(final Graph.Traversal.Path path, final Class<?> type) {
+                    final DependencyGraph.Traversal observed = traversal.observed(new DependencyGraph.Traversal.Observer() {
+                        public void resolved(final DependencyGraph.Traversal.Path path, final Class<?> type) {
                             if (members.contains(type)) {
                                 local.add(type);
                             }
@@ -62,7 +62,7 @@ final class GroupResolver {
                     });
 
                     for (final Class<?> member : members) {
-                        final Graph.Node node = container.resolver(member, false).resolve(observed, container, context);
+                        final DependencyGraph.Node node = container.resolver(member, false).resolve(observed, container, context);
                         map.put(node.type(), node);
                     }
 

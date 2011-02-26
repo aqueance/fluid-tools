@@ -27,7 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import org.fluidity.composition.network.Graph;
+import org.fluidity.composition.network.DependencyGraph;
 import org.fluidity.foundation.Strings;
 
 /**
@@ -78,7 +78,7 @@ public interface ComponentContainer {
      *
      * @return a new container instance backed by this one but using a possibly different path traversal strategy and/or observer.
      */
-    ComponentContainer observed(Graph.Traversal.Strategy strategy, Graph.Traversal.Observer observer);
+    ComponentContainer observed(DependencyGraph.Traversal.Strategy strategy, DependencyGraph.Traversal.Observer observer);
 
     /**
      * Returns a component by interface or (super)class. This method is provided for boundary objects (objects created outside the container by third party

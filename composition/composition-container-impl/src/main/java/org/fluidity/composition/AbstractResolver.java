@@ -22,7 +22,7 @@
 
 package org.fluidity.composition;
 
-import org.fluidity.composition.network.Graph;
+import org.fluidity.composition.network.DependencyGraph;
 import org.fluidity.foundation.logging.Log;
 import org.fluidity.foundation.spi.LogFactory;
 
@@ -71,16 +71,16 @@ abstract class AbstractResolver implements ComponentResolver {
         return false;
     }
 
-    protected final CachingNode cachingNode(final Graph.Node node, final SimpleContainer container) {
+    protected final CachingNode cachingNode(final DependencyGraph.Node node, final SimpleContainer container) {
         return new CachingNode(node, container);
     }
 
-    private class CachingNode implements Graph.Node {
+    private class CachingNode implements DependencyGraph.Node {
 
-        private final Graph.Node node;
+        private final DependencyGraph.Node node;
         private final SimpleContainer container;
 
-        public CachingNode(final Graph.Node node, final SimpleContainer container) {
+        public CachingNode(final DependencyGraph.Node node, final SimpleContainer container) {
             this.node = node;
             this.container = container;
         }

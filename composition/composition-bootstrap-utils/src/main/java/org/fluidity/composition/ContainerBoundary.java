@@ -31,7 +31,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
 
-import org.fluidity.composition.network.Graph;
+import org.fluidity.composition.network.DependencyGraph;
 import org.fluidity.composition.spi.ContainerProvider;
 import org.fluidity.foundation.spi.LogFactory;
 
@@ -309,7 +309,7 @@ public final class ContainerBoundary implements ComponentContainer {
         }
     }
 
-    public ComponentContainer observed(final Graph.Traversal.Strategy strategy, final Graph.Traversal.Observer observer) {
+    public ComponentContainer observed(final DependencyGraph.Traversal.Strategy strategy, final DependencyGraph.Traversal.Observer observer) {
         return loadContainer(true).observed(strategy, observer);
     }
 }

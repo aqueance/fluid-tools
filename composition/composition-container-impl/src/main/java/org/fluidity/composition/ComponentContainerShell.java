@@ -23,7 +23,7 @@
 package org.fluidity.composition;
 
 import org.fluidity.composition.network.ContextDefinition;
-import org.fluidity.composition.network.Graph;
+import org.fluidity.composition.network.DependencyGraph;
 import org.fluidity.composition.spi.EmptyComponentContainer;
 
 /**
@@ -35,8 +35,8 @@ final class ComponentContainerShell extends EmptyComponentContainer {
 
     private final SimpleContainer container;
     private final ContextDefinition context;
-    private final Graph.Traversal.Strategy strategy;
-    private final Graph.Traversal.Observer observer;
+    private final DependencyGraph.Traversal.Strategy strategy;
+    private final DependencyGraph.Traversal.Observer observer;
 
     public ComponentContainerShell(final ContainerServices services) {
         this.container = new SimpleContainerImpl(services);
@@ -52,8 +52,8 @@ final class ComponentContainerShell extends EmptyComponentContainer {
     public ComponentContainerShell(final SimpleContainer container,
                                    final ContextDefinition context,
                                    final boolean child,
-                                   final Graph.Traversal.Strategy strategy,
-                                   final Graph.Traversal.Observer observer) {
+                                   final DependencyGraph.Traversal.Strategy strategy,
+                                   final DependencyGraph.Traversal.Observer observer) {
         assert container != null;
         assert context != null;
         this.container = child ? container.newChildContainer() : container;
@@ -64,13 +64,13 @@ final class ComponentContainerShell extends EmptyComponentContainer {
 
     @SuppressWarnings("unchecked")
     public <T> T getComponent(final Class<T> api) {
-        final Graph.Node node = container.resolveComponent(api, context, container.services().graphTraversal(strategy, observer));
+        final DependencyGraph.Node node = container.resolveComponent(api, context, container.services().graphTraversal(strategy, observer));
         return node == null ? null : (T) node.instance();
     }
 
     @SuppressWarnings("unchecked")
     public <T> T[] getComponentGroup(final Class<T> api) {
-        final Graph.Node node = container.resolveGroup(api, context, container.services().graphTraversal(strategy, observer));
+        final DependencyGraph.Node node = container.resolveGroup(api, context, container.services().graphTraversal(strategy, observer));
         assert node != null : api;
         return (T[]) node.instance();
     }
@@ -97,29 +97,29 @@ final class ComponentContainerShell extends EmptyComponentContainer {
         return new ComponentContainerShell(container.linkComponent(implementation, interfaces, groups), context, false, strategy, observer);
     }
 
-    private Graph.Traversal.Strategy composite(final Graph.Traversal.Strategy strategy) {
-        return this.strategy == null ? strategy : new Graph.Traversal.Strategy() {
-            public Graph.Node advance(final Graph graph,
+    private DependencyGraph.Traversal.Strategy composite(final DependencyGraph.Traversal.Strategy strategy) {
+        return this.strategy == null ? strategy : new DependencyGraph.Traversal.Strategy() {
+            public DependencyGraph.Node advance(final DependencyGraph graph,
                                       final ContextDefinition context,
-                                      final Graph.Traversal traversal,
+                                      final DependencyGraph.Traversal traversal,
                                       final boolean repeating,
-                                      final Graph.Traversal.Trail trail) {
-                final Graph.Node resolved = strategy.advance(graph, context, traversal, repeating, trail);
+                                      final DependencyGraph.Traversal.Trail trail) {
+                final DependencyGraph.Node resolved = strategy.advance(graph, context, traversal, repeating, trail);
                 return resolved == null ? ComponentContainerShell.this.strategy.advance(graph, context, traversal, repeating, trail) : resolved;
             }
         };
     }
 
-    private Graph.Traversal.Observer composite(final Graph.Traversal.Observer observer) {
-        return this.observer == null ? observer : new Graph.Traversal.Observer() {
-            public void resolved(final Graph.Traversal.Path path, final Class<?> type) {
+    private DependencyGraph.Traversal.Observer composite(final DependencyGraph.Traversal.Observer observer) {
+        return this.observer == null ? observer : new DependencyGraph.Traversal.Observer() {
+            public void resolved(final DependencyGraph.Traversal.Path path, final Class<?> type) {
                 ComponentContainerShell.this.observer.resolved(path, type);
                 observer.resolved(path, type);
             }
         };
     }
 
-    public ComponentContainer observed(final Graph.Traversal.Strategy strategy, final Graph.Traversal.Observer observer) {
+    public ComponentContainer observed(final DependencyGraph.Traversal.Strategy strategy, final DependencyGraph.Traversal.Observer observer) {
         return strategy == null && observer == null ? this : new ComponentContainerShell(container, context, false, composite(strategy), composite(observer));
     }
 

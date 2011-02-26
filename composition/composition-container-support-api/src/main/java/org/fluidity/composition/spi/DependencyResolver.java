@@ -24,12 +24,12 @@ package org.fluidity.composition.spi;
 
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.network.ContextDefinition;
-import org.fluidity.composition.network.Graph;
+import org.fluidity.composition.network.DependencyGraph;
 
 /**
  * Capable of resolving component references.
  */
-public interface DependencyResolver extends Graph {
+public interface DependencyResolver extends DependencyGraph {
 
     /**
      * Returns the component mapping for the given component API.

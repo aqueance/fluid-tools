@@ -25,7 +25,7 @@ package org.fluidity.composition;
 import java.lang.annotation.Annotation;
 
 import org.fluidity.composition.network.ContextDefinition;
-import org.fluidity.composition.network.Graph;
+import org.fluidity.composition.network.DependencyGraph;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**
@@ -54,14 +54,14 @@ final class InstanceResolver extends AbstractResolver {
         return true;
     }
 
-    public Graph.Node resolve(final Graph.Traversal traversal, final SimpleContainer container, final ContextDefinition context) {
-        return traversal.follow(container, context, new Graph.Node.Reference() {
+    public DependencyGraph.Node resolve(final DependencyGraph.Traversal traversal, final SimpleContainer container, final ContextDefinition context) {
+        return traversal.follow(container, context, new DependencyGraph.Node.Reference() {
             public Class<?> api() {
                 return api;
             }
 
-            public Graph.Node resolve(final Graph.Traversal traversal, final ContextDefinition context) {
-                return new Graph.Node.Constant(instance.getClass(), instance, context.create());
+            public DependencyGraph.Node resolve(final DependencyGraph.Traversal traversal, final ContextDefinition context) {
+                return new DependencyGraph.Node.Constant(instance.getClass(), instance, context.create());
             }
         });
     }

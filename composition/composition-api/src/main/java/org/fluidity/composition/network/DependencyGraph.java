@@ -30,11 +30,31 @@ import org.fluidity.composition.ComponentContext;
  * A dependency graph of components and component groups. The graph is backed by static and dynamic dependencies between components. The graph can be traversed
  * to get a component or component group instance and during that traversal the actual dependency graph, starting at the sought component or component group,
  * is realized.
+ *
+ * @author Tibor Varga
  */
-public interface Graph {
+public interface DependencyGraph {
 
+    /**
+     * Resolves a component using the given traversal in the given context.
+     *
+     * @param api       the component interface.
+     * @param context   the component context at the point of resolution.
+     * @param traversal the graph traversal to use.
+     *
+     * @return the resolved component or <code>null</code> if none could be resolved.
+     */
     Node resolveComponent(Class<?> api, ContextDefinition context, Traversal traversal);
 
+    /**
+     * Resolves a component group with the given traversal in the given context.
+     *
+     * @param api       the group interface.
+     * @param context   the component context at the point of resolution.
+     * @param traversal the graph traversal to use.
+     *
+     * @return the resolved component group or <code>null</code> if none could be resolved.
+     */
     Node resolveGroup(Class<?> api, ContextDefinition context, Traversal traversal);
 
     /**
@@ -137,7 +157,7 @@ public interface Graph {
          *
          * @return the resolved node.
          */
-        Node follow(final Graph graph, ContextDefinition context, Node.Reference reference);
+        Node follow(DependencyGraph graph, ContextDefinition context, Node.Reference reference);
 
         /**
          * Returns a new instance, one that invokes the given observer in addition to invoking the observer this object already has. The returned traversal
@@ -155,7 +175,7 @@ public interface Graph {
         interface Strategy {
 
             Strategy DEFAULT = new Strategy() {
-                public Node advance(final Graph graph, final ContextDefinition context, final Traversal traversal, final boolean repeating, final Trail trail) {
+                public Node advance(final DependencyGraph graph, final ContextDefinition context, final Traversal traversal, final boolean repeating, final Trail trail) {
                     return repeating ? null : trail.advance();
                 }
             };
@@ -171,7 +191,7 @@ public interface Graph {
              *
              * @return the next node on the dependency path.
              */
-            Node advance(Graph graph, ContextDefinition context, Traversal traversal, boolean repeating, Trail trail);
+            Node advance(DependencyGraph graph, ContextDefinition context, Traversal traversal, boolean repeating, Trail trail);
         }
 
         /**

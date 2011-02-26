@@ -25,7 +25,7 @@ package org.fluidity.composition;
 import java.lang.annotation.Annotation;
 
 import org.fluidity.composition.network.ContextDefinition;
-import org.fluidity.composition.network.Graph;
+import org.fluidity.composition.network.DependencyGraph;
 import org.fluidity.composition.spi.ComponentVariantFactory;
 import org.fluidity.foundation.spi.LogFactory;
 
@@ -49,7 +49,7 @@ abstract class VariantResolver extends AbstractResolver {
      *
      * @return the {@link ComponentVariantFactory} instance this is a mapping for.
      */
-    protected abstract ComponentVariantFactory factory(final SimpleContainer container, final Graph.Traversal traversal);
+    protected abstract ComponentVariantFactory factory(final SimpleContainer container, final DependencyGraph.Traversal traversal);
 
     public VariantResolver(final int priority,
                            final SimpleContainer container,
@@ -134,7 +134,7 @@ abstract class VariantResolver extends AbstractResolver {
         return factoryClass;
     }
 
-    public Graph.Node resolve(final Graph.Traversal traversal, final SimpleContainer container, final ContextDefinition context) {
+    public DependencyGraph.Node resolve(final DependencyGraph.Traversal traversal, final SimpleContainer container, final ContextDefinition context) {
         final SimpleContainer child = container.newChildContainer();
         child.bindResolver(api, findDelegate());
         factory(container, traversal).newComponent(new ComponentContainerShell(child, context, false), context.create());

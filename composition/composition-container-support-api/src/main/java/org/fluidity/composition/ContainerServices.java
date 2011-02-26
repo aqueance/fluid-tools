@@ -23,7 +23,7 @@
 package org.fluidity.composition;
 
 import org.fluidity.composition.network.ContextDefinition;
-import org.fluidity.composition.network.Graph;
+import org.fluidity.composition.network.DependencyGraph;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**
@@ -59,7 +59,7 @@ public interface ContainerServices {
      *
      * @return the default graph traversal.
      */
-    Graph.Traversal graphTraversal();
+    DependencyGraph.Traversal graphTraversal();
 
     /**
      * Returns the default graph traversal with the given strategy and observer.
@@ -69,7 +69,7 @@ public interface ContainerServices {
      *
      * @return the default graph traversal with the given strategy and observer.
      */
-    Graph.Traversal graphTraversal(Graph.Traversal.Strategy strategy, Graph.Traversal.Observer observer);
+    DependencyGraph.Traversal graphTraversal(DependencyGraph.Traversal.Strategy strategy, DependencyGraph.Traversal.Observer observer);
 
     /**
      * Returns the logger factory to use by the container.
