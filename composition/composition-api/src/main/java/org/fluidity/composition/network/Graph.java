@@ -78,12 +78,12 @@ public interface Graph {
         interface Strategy {
 
             Strategy DEFAULT = new Strategy() {
-                public Node resolve(final Graph graph, final ContextDefinition context, final Traversal traversal, final boolean circular, final Trail trail) {
-                    return circular ? null : trail.advance();
+                public Node resolve(final Graph graph, final ContextDefinition context, final Traversal traversal, final boolean repeating, final Trail trail) {
+                    return repeating ? null : trail.advance();
                 }
             };
 
-            Node resolve(Graph graph, ContextDefinition context, Traversal traversal, boolean circular, Trail trail);
+            Node resolve(Graph graph, ContextDefinition context, Traversal traversal, boolean repeating, Trail trail);
         }
 
         interface Observer {

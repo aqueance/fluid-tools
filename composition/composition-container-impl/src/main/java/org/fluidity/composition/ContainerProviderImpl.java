@@ -39,6 +39,7 @@ final class ContainerProviderImpl implements ContainerProvider {
         return new ComponentContainerShell(services);
     }
 
+    @SuppressWarnings("unchecked")
     public List<PackageBindings> instantiateBindings(final ContainerServices services,
                                                      final Map properties,
                                                      final Collection<Class<PackageBindings>> bindings) {
@@ -59,6 +60,10 @@ final class ContainerProviderImpl implements ContainerProvider {
         /*
          * Get the instances in instantiation order
          */
-        return Arrays.asList((PackageBindings[]) container.resolveGroup(PackageBindings.class, services.emptyContext(), container.services().graphTraversal()).instance());
+        final PackageBindings[] instances = (PackageBindings[]) container.resolveGroup(PackageBindings.class,
+                                                                                       services.emptyContext(),
+                                                                                       services.graphTraversal()).instance();
+        assert instances != null : PackageBindings.class;
+        return Arrays.asList(instances);
     }
 }

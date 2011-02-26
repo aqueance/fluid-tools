@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.fluidity.composition.network.Graph;
+import org.fluidity.foundation.Strings;
 
 /**
  * This is a dependency injection container.
@@ -128,7 +129,7 @@ public interface ComponentContainer {
      *
      * @param api the group interface class.
      *
-     * @return a possibly empty array of components that belong to the given group.
+     * @return an array of components that belong to the given group; may be <code>null</code>.
      */
     <T> T[] getComponentGroup(Class<T> api);
 
@@ -340,7 +341,7 @@ public interface ComponentContainer {
     class CircularReferencesException extends ResolutionException {
 
         public CircularReferencesException(final Class<?> api, final String path) {
-            super("Circular dependency detected when resolving %s: %s", api, path);
+            super("Circular dependency detected when resolving %s: %s", Strings.arrayNotation(api), path);
         }
     }
 

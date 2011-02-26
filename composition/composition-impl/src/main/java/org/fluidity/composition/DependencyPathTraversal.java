@@ -36,6 +36,7 @@ import java.util.Set;
 import org.fluidity.composition.network.ContextDefinition;
 import org.fluidity.composition.network.Graph;
 import org.fluidity.foundation.Exceptions;
+import org.fluidity.foundation.Strings;
 
 /**
  * Detects and handles circular reference when possible.
@@ -69,10 +70,10 @@ final class DependencyPathTraversal implements Graph.Traversal {
 
         resolutionPath = currentPath;
         try {
-            final boolean circular = currentPath.circular;
+            final boolean repeating = currentPath.repeating;
 
-            if (circular) {
-                final Graph.Node node = strategy.resolve(graph, context, this, circular, new TerminationTrail(currentPath));
+            if (repeating) {
+                final Graph.Node node = strategy.resolve(graph, context, this, repeating, new TerminationTrail(currentPath));
 
                 if (node == null) {
                     return new ProxyNode(api, currentPath, null);
@@ -85,7 +86,7 @@ final class DependencyPathTraversal implements Graph.Traversal {
                 }
             } else {
                 final Trail trail = new ResolutionTrail(this, currentPath, reference, context);
-                final Graph.Node node = strategy.resolve(graph, context, this, circular, trail);
+                final Graph.Node node = strategy.resolve(graph, context, this, repeating, trail);
                 final Graph.Node resolved = node == null ? trail.advance() : node;
 
                 if (observer != null) {
@@ -123,7 +124,7 @@ final class DependencyPathTraversal implements Graph.Traversal {
                     // chain has been cut short
                     instance = currentPath.head.cache.instance;
                 } else {
-                    if (currentPath.circular && !currentPath.tip) {
+                    if (currentPath.repeating && !currentPath.tip) {
 
                         // cut short the instantiation chain
                         currentPath.head.cache = new Cache(instance);
@@ -261,14 +262,14 @@ final class DependencyPathTraversal implements Graph.Traversal {
     private static class DependencyPath implements Path {
 
         public final Element head;
-        public final boolean circular;
+        public final boolean repeating;
         public final boolean tip;
 
         private final List<Element> list = new ArrayList<Element>();
         private final Map<Element, Element> map = new LinkedHashMap<Element, Element>();
 
         private DependencyPath() {
-            this.circular = false;
+            this.repeating = false;
             this.tip = false;
             this.head = null;
         }
@@ -276,9 +277,9 @@ final class DependencyPathTraversal implements Graph.Traversal {
         public DependencyPath(final List<Element> list, final Map<Element, Element> map, final Element head) {
             this.list.addAll(list);
             this.map.putAll(map);
-            this.circular = map.containsKey(head);
+            this.repeating = map.containsKey(head);
 
-            if (!this.circular) {
+            if (!this.repeating) {
                 this.map.put(head, head);
             }
 
@@ -309,7 +310,16 @@ final class DependencyPathTraversal implements Graph.Traversal {
 
         @Override
         public String toString() {
-            return path().toString();
+            final StringBuilder builder = new StringBuilder();
+            for (final Class<?> type : path()) {
+                if (builder.length() > 0) {
+                    builder.append(", ");
+                }
+
+                builder.append(Strings.arrayNotation(type));
+            }
+
+            return builder.insert(0, '[').append(']').toString();
         }
     }
 

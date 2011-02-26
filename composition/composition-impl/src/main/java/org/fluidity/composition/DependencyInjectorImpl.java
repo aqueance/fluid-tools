@@ -206,9 +206,10 @@ final class DependencyInjectorImpl implements DependencyInjector {
                                                final Dependency dependency) {
         final ComponentGroup componentGroup = dependency.annotation(ComponentGroup.class);
         final Class<?> dependencyType = findDependencyType(dependency.annotation(Component.class), dependency.type(), declaringType);
+        final boolean mandatory = dependency.annotation(Optional.class) == null;
 
         assert mapping != null : declaringType;
-        final Annotation[] typeContext = neverNull(mapping.providedContext());
+        final Annotation[] typeContext = neverNull(mapping.annotations());
 
         if (componentGroup != null) {
             if (!dependencyType.isArray()) {
@@ -230,9 +231,9 @@ final class DependencyInjectorImpl implements DependencyInjector {
                         declaringType);
             }
 
-            dependency.set(container.resolveGroup(itemType, context, traversal));
+            dependency.set(new DependencyNode(mandatory, container.resolveGroup(itemType, context, traversal), declaringType, dependencyType));
         } else if (dependency.type() == ComponentContext.class) {
-            dependency.set(new Graph.Node.Constant(ComponentContext.class, context.reduce(mapping.contextSpecification(Context.class)).create(), null));
+                dependency.set(new Graph.Node.Constant(ComponentContext.class, context.reduce(mapping.annotation(Context.class)).create(), null));
         } else {
             final Annotation[] dependencyContext = neverNull(dependency.annotations());
 
@@ -253,11 +254,11 @@ final class DependencyInjectorImpl implements DependencyInjector {
                 final ComponentMapping dependencyMapping = container.mapping(dependencyType);
 
                 if (dependencyMapping != null) {
-                    node = container.resolveComponent(dependencyType, context.reduce(dependencyMapping.contextSpecification(Context.class)), traversal);
+                    node = container.resolveComponent(dependencyType, context.reduce(dependencyMapping.annotation(Context.class)), traversal);
                 }
             }
 
-            dependency.set(new DependencyNode(dependency.annotation(Optional.class) == null, node, declaringType, dependencyType));
+            dependency.set(new DependencyNode(mandatory, node, declaringType, dependencyType));
         }
 
         return context;

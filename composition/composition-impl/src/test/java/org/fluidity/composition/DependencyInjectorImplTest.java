@@ -54,11 +54,11 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
 
     private final ComponentMapping dummyMapping = new ComponentMapping() {
 
-        public <T extends Annotation> T contextSpecification(Class<T> type) {
+        public <T extends Annotation> T annotation(Class<T> type) {
             return null;
         }
 
-        public Annotation[] providedContext() {
+        public Annotation[] annotations() {
             return null;
         }
     };
@@ -128,7 +128,7 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
             EasyMock.expect(resolver.resolveGroup(dependencyType.getComponentType(), copy, traversal))
                     .andReturn(new Graph.Node.Constant(dependencyType, services, null));
         } else if (dependencyType == ComponentContext.class) {
-            EasyMock.expect(mapping.contextSpecification(Context.class)).andReturn(contextAnnotations);
+            EasyMock.expect(mapping.annotation(Context.class)).andReturn(contextAnnotations);
             EasyMock.expect(copy.reduce(contextAnnotations)).andReturn(copy);
 
             EasyMock.expect(copy.create()).andReturn(createdContext);
@@ -145,13 +145,13 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
             EasyMock.expect(copy.expand(EasyMock.aryEq(definitions))).andReturn(copy);
 
             if (dependencyType == ComponentContainer.class) {
-                EasyMock.expect(mapping.providedContext()).andReturn(containerAnnotations).anyTimes();
+                EasyMock.expect(mapping.annotations()).andReturn(containerAnnotations).anyTimes();
                 EasyMock.expect(resolver.container(copy)).andReturn(container);
             } else {
                 final ComponentMapping mapping = addLocalControl(ComponentMapping.class);
 
                 EasyMock.expect(resolver.mapping(dependencyType)).andReturn(mapping);
-                EasyMock.expect(mapping.contextSpecification(Context.class)).andReturn(acceptedContext);
+                EasyMock.expect(mapping.annotation(Context.class)).andReturn(acceptedContext);
                 EasyMock.expect(copy.reduce(acceptedContext)).andReturn(copy);
                 EasyMock.expect(resolver.resolveComponent(dependencyType, copy, traversal)).andReturn(new Graph.Node.Constant(dependencyType, component, null));
             }

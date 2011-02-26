@@ -38,7 +38,7 @@ public final class ContainerHierarchyTests extends AbstractContainerTests {
         registry.bindComponent(DependentValue.class);
         registry.makeChildContainer(Value.class);
 
-        verifyComponent(Value.instanceCount, 1, container);
+        verifyComponent(container);
     }
 
     @Test
@@ -46,7 +46,7 @@ public final class ContainerHierarchyTests extends AbstractContainerTests {
         final OpenComponentContainer child = registry.makeChildContainer(Value.class);
         child.getRegistry().bindComponent(DependentValue.class);
 
-        verifyComponent(Value.instanceCount, 1, container);
+        verifyComponent(container);
     }
 
     @Test
@@ -56,23 +56,23 @@ public final class ContainerHierarchyTests extends AbstractContainerTests {
         final OpenComponentContainer child = container.makeChildContainer();
         child.getRegistry().bindComponent(Value.class);
 
-        verifyComponent(Value.instanceCount, 1, child);
+        verifyComponent(child);
     }
 
     @Test
-    public void linkingComponentDependencyResolvesOnOther0LinkingComponentAtSameLevel() throws Exception {
+    public void linkingComponentDependencyResolvesOnOtherLinkingComponentAtSameLevel() throws Exception {
         registry.makeChildContainer(DependentValue.class);
         registry.makeChildContainer(Value.class);
 
-        verifyComponent(Value.instanceCount, 1, container);
+        verifyComponent(container);
     }
 
     @Test
-    public void linkingComponentDependencyResolvesOnOther0LinkingComponentAtHigherLevel() throws Exception {
+    public void linkingComponentDependencyResolvesOnOtherLinkingComponentAtHigherLevel() throws Exception {
         registry.makeChildContainer(DependentValue.class);
         final OpenComponentContainer child = registry.makeChildContainer().getRegistry().makeChildContainer(Value.class);
 
-        verifyComponent(Value.instanceCount, 1, child);
+        verifyComponent(child);
     }
 
     @Test
@@ -85,15 +85,13 @@ public final class ContainerHierarchyTests extends AbstractContainerTests {
         childRegistry.bindComponent(DependentValue.class);
         childRegistry.bindComponent(Value.class);
 
-        final int originalCount = Value.instanceCount;
+        verifyComponent(child);
 
         assert child.getComponent(Key.class) instanceof Value;
         assert child.getComponent(DependentKey.class) instanceof DependentValue;
 
         assert container.getComponent(Key.class) instanceof OtherValue;
         assert container.getComponent(DependentKey.class) instanceof OtherDependentValue;
-
-        verifyComponent(originalCount, 1, child);
     }
 
     @Test

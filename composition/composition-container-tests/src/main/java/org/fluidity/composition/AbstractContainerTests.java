@@ -52,66 +52,20 @@ public abstract class AbstractContainerTests extends MockGroupAbstractTest {
     /**
      * Verifies that the given container contains a Key component whose class is Value.
      *
-     * @param originalCount the value of Value.instanceCount before the container was accessed.
-     * @param extraCount    the number of Value instances expected to be created
-     * @param container     the container to verify.
+     * @param container the container to verify.
      */
-    protected void verifyComponent(final int originalCount, final int extraCount, final ComponentContainer container) {
+    protected void verifyComponent(final ComponentContainer container) {
+        final int originalCount = Value.instanceCount;
+
         final Key component = container.getComponent(Key.class);
         assert component != null : "Test component not found in container";
         assert component instanceof Value : String.format("Test component is not of correct type: %s", component);
 
-        // the key tells us how many times the class was instantiated
+        // ask for the component again and compare with the last result
         assert container.getComponent(Key.class).key().equals(component.key()) : "Multiple component queries created multiple instances";
-        assert Value.instanceCount == originalCount + extraCount : String.format("Expected only %d Key object, got %d",
-                                                                                 extraCount,
-                                                                                 Value.instanceCount - originalCount);
-    }
 
-    public static interface DependentKey {
-
-        ComponentContext context();
-    }
-
-    /**
-     * This is intentionally protected - makes sure the container is able to instantiate non-public classes
-     */
-    protected static class DependentValue implements DependentKey {
-
-        private final ComponentContext context;
-
-        public DependentValue() {
-            this(null);
-        }
-
-        public DependentValue(final ComponentContext context) {
-            this.context = context;
-        }
-
-        public ComponentContext context() {
-            return context;
-        }
-    }
-
-    /**
-     * This is intentionally protected - makes sure the container is able to instantiate non-public classes
-     */
-    @Component(primary = false, automatic = false)
-    protected static class DefaultDependentValue implements DependentKey {
-
-        private final ComponentContext context;
-
-        public DefaultDependentValue() {
-            this(null);
-        }
-
-        public DefaultDependentValue(final ComponentContext context) {
-            this.context = context;
-        }
-
-        public ComponentContext context() {
-            return context;
-        }
+        // this tells us how many times the class was instantiated in this method
+        assert Value.instanceCount == originalCount + 1 : String.format("Expected only 1 Key object, got %d", Value.instanceCount - originalCount);
     }
 
     public static interface Key {
@@ -122,6 +76,7 @@ public abstract class AbstractContainerTests extends MockGroupAbstractTest {
     /**
      * This is intentionally protected - makes sure the container is able to instantiate non-public classes
      */
+    @Component(automatic = false)
     protected static class Value implements Key {
 
         public static DependentKey dependent;
@@ -150,10 +105,57 @@ public abstract class AbstractContainerTests extends MockGroupAbstractTest {
         }
     }
 
+    public static interface DependentKey {
+
+        ComponentContext context();
+    }
+
+    /**
+     * This is intentionally protected - makes sure the container is able to instantiate non-public classes
+     */
+    @Component(automatic = false)
+    protected static class DependentValue implements DependentKey {
+
+        private final ComponentContext context;
+
+        public DependentValue() {
+            this(null);
+        }
+
+        public DependentValue(final ComponentContext context) {
+            this.context = context;
+        }
+
+        public ComponentContext context() {
+            return context;
+        }
+    }
+
+    /**
+     * This is intentionally protected - makes sure the container is able to instantiate non-public classes
+     */
+    @Component(primary = false, automatic = false)
+    protected static class FallbackDependentValue implements DependentKey {
+
+        private final ComponentContext context;
+
+        public FallbackDependentValue() {
+            this(null);
+        }
+
+        public FallbackDependentValue(final ComponentContext context) {
+            this.context = context;
+        }
+
+        public ComponentContext context() {
+            return context;
+        }
+    }
+
     /**
      * Depends on the enclosing container.
      */
-    @Component(primary = false, automatic = false)
+    @Component(automatic = false)
     protected static class ContainerDependent {
 
         private final ComponentContainer container;
@@ -171,6 +173,7 @@ public abstract class AbstractContainerTests extends MockGroupAbstractTest {
     /**
      * Something for a factory to depend on, tests dependency resolution on factories.
      */
+    @Component(automatic = false)
     public static class FactoryDependency {
         // empty
     }

@@ -26,7 +26,6 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -340,7 +339,7 @@ final class SimpleContainerImpl implements ParentContainer {
         final Object empty = Array.newInstance(api, 0);
 
         if (group == null) {
-            return parent == null ? new Node.Constant(api, empty, null) : parent.resolveGroup(api, context, traversal);
+            return parent == null ? null : parent.resolveGroup(api, context, traversal);
         } else {
             final Class<?> arrayApi = empty.getClass();
 
@@ -357,15 +356,17 @@ final class SimpleContainerImpl implements ParentContainer {
     }
 
     public List<Node> resolveGroup(final Class<?> api, final Traversal traversal, final ContextDefinition context) {
-        @SuppressWarnings("unchecked")
-        final List<Node> enclosing = parent == null ? (List<Node>) Collections.EMPTY_LIST : parent.resolveGroup(api, traversal, context);
+        final List<Node> enclosing = parent == null ? null : parent.resolveGroup(api, traversal, context);
         final GroupResolver group = groups.get(api);
 
         if (group == null) {
             return enclosing;
         } else {
             final List<Node> list = new ArrayList<Node>();
-            list.addAll(enclosing);
+
+            if (enclosing != null) {
+                list.addAll(enclosing);
+            }
 
             group.resolve(traversal, this, context, list);
 
@@ -374,10 +375,9 @@ final class SimpleContainerImpl implements ParentContainer {
     }
 
     private Node groupNode(final Class<?> api, final List<Node> list, final ContextDefinition context) {
-        assert list != null : api;
         final ComponentContext componentContext = context.create();
 
-        return new Node() {
+        return list == null ? null : new Node() {
             public Class<?> type() {
                 return api;
             }
@@ -465,11 +465,11 @@ final class SimpleContainerImpl implements ParentContainer {
             this.componentClass = component.getClass();
         }
 
-        public <T extends Annotation> T contextSpecification(final Class<T> type) {
+        public <T extends Annotation> T annotation(final Class<T> type) {
             return componentClass.getAnnotation(type);
         }
 
-        public Annotation[] providedContext() {
+        public Annotation[] annotations() {
             return componentClass.getAnnotations();
         }
     }

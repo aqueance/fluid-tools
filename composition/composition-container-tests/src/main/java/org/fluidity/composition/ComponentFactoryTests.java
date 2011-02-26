@@ -63,7 +63,7 @@ public final class ComponentFactoryTests extends AbstractContainerTests {
         EasyMock.expectLastCall().andAnswer(new FactoryInvocation(Serializable.class, check)).anyTimes();
 
         replay();
-        verifyComponent(Value.instanceCount, 1, container);
+        verifyComponent(container);
         verify();
     }
 
@@ -83,7 +83,7 @@ public final class ComponentFactoryTests extends AbstractContainerTests {
         EasyMock.expectLastCall().andAnswer(new FactoryInvocation(Serializable.class, check)).anyTimes();
 
         replay();
-        verifyComponent(Value.instanceCount, 1, container);
+        verifyComponent(container);
         verify();
     }
 
@@ -101,7 +101,7 @@ public final class ComponentFactoryTests extends AbstractContainerTests {
         EasyMock.expectLastCall().andAnswer(new CircularFactoryInvocation()).anyTimes();
 
         replay();
-        verifyComponent(Value.instanceCount, 1, container);
+        verifyComponent(container);
         verify();
     }
 

@@ -29,7 +29,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Annotates a component reference as optional dependency. An optional dependency may receive a <code>null</code> value upon dependency resolution.
+ * Annotates a component reference as optional dependency. An optional dependency will receive a <code>null</code> value upon dependency resolution if the
+ * dependency cannot be satisfied.
  *
  * @author Tibor Varga
  */

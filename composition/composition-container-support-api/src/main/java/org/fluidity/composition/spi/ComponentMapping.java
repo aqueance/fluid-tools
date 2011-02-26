@@ -39,14 +39,14 @@ public interface ComponentMapping {
      *
      * @return the mapping annotation of the given type or <code>null</code> when none found.
      */
-    <T extends Annotation> T contextSpecification(Class<T> type);
+    <T extends Annotation> T annotation(Class<T> type);
 
     /**
      * Returns the list of annotations that may comprise the context of some other component. Factories do not provide context annotations.
      *
      * @return the list of annotations that may comprise the context of some other component or <code>null</code> if none present.
      */
-    Annotation[] providedContext();
+    Annotation[] annotations();
 
     /**
      * Converts the dependency mapping to a (more or less) human readable form.

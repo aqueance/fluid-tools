@@ -44,12 +44,12 @@ final class LinkingResolver extends AbstractResolver {
         this.target = container;
     }
 
-    public Annotation[] providedContext() {
-        return delegate.providedContext();
+    public Annotation[] annotations() {
+        return delegate.annotations();
     }
 
-    public <T extends Annotation> T contextSpecification(final Class<T> type) {
-        return delegate.contextSpecification(type);
+    public <T extends Annotation> T annotation(final Class<T> type) {
+        return delegate.annotation(type);
     }
 
     public Graph.Node resolve(final Graph.Traversal traversal, final SimpleContainer container, final ContextDefinition context) {

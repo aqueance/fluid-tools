@@ -80,7 +80,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
         EasyMock.expectLastCall().andAnswer(new VariantContainerCheck(container, Serializable.class, check)).anyTimes();
 
         replay();
-        verifyComponent(Value.instanceCount, 1, container);
+        verifyComponent(container);
         Value.dependent.context();
         verify();
     }
@@ -101,7 +101,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
         EasyMock.expectLastCall().andAnswer(new VariantContainerCheck(child, Serializable.class, check)).anyTimes();
 
         replay();
-        verifyComponent(Value.instanceCount, 1, container);
+        verifyComponent(container);
         verify();
     }
 
@@ -191,7 +191,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
 
         replay();
 
-        verifyComponent(Value.instanceCount, 1, container);
+        verifyComponent(container);
 
         // get objects that specify all contexts
         verifyContext(container, ContextDependentValue.class);
@@ -218,7 +218,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
 
         replay();
 
-        verifyComponent(Value.instanceCount, 1, container);
+        verifyComponent(container);
 
         // get objects that specify all contexts
         verifyContext(container, ContextDependentValue.class);
@@ -251,7 +251,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
 
         replay();
 
-        verifyComponent(Value.instanceCount, 1, container);
+        verifyComponent(container);
 
         // get objects that specify all contexts
         verifyContext(container, Variants.class);
@@ -280,7 +280,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
 
         replay();
 
-        verifyComponent(Value.instanceCount, 1, container);
+        verifyComponent(container);
 
         // get objects that specify all contexts
         verifyContext(child, Variants.class);
@@ -313,7 +313,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
 
         replay();
 
-        verifyComponent(Value.instanceCount, 1, container);
+        verifyComponent(container);
 
         // get objects that specify all contexts
         verifyContext(child, Variants.class);
@@ -332,6 +332,16 @@ public final class ComponentVariantTests extends AbstractContainerTests {
         assert consumer.dependency == oblivious;
     }
 
+    @Test(enabled = false)  // TODO: intermediate factory makes variant's context specification lost
+    public void testVariantFactoryComponentFactoryChain() throws Exception {
+        registry.bindComponent(ConfiguredComponentFactory.class);
+        registry.bindComponent(ConfiguredComponentVariants.class);
+        registry.bindComponent(ConfigurationProvider.class);
+
+        final ConfigurationProvider component = container.getComponent(ConfigurationProvider.class);
+        assert component != null;
+    }
+
     /**
      * This is intentionally private - makes sure the container is able to instantiate non-public classes
      */
@@ -344,7 +354,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
     }
 
     @Component(api = DependentKey.class)
-    @Context({ Setting1.class, Setting2.class })
+    @Context( { Setting1.class, Setting2.class })
     private static class Variants implements ComponentVariantFactory {
 
         public static ComponentVariantFactory delegate;
@@ -360,7 +370,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
     }
 
     @Component(api = DependentKey.class)
-    @Context({ Setting1.class, Setting2.class })
+    @Context( { Setting1.class, Setting2.class })
     private static class Factory implements ComponentFactory {
 
         public static ComponentFactory delegate;
@@ -460,7 +470,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
 
     @Documented
     @Retention(RetentionPolicy.RUNTIME)
-    @Target({ ElementType.TYPE, ElementType.FIELD, ElementType.PARAMETER })
+    @Target( { ElementType.TYPE, ElementType.FIELD, ElementType.PARAMETER })
     @SuppressWarnings("UnusedDeclaration")
     public static @interface Setting1 {
 
@@ -469,7 +479,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
 
     @Documented
     @Retention(RetentionPolicy.RUNTIME)
-    @Target({ ElementType.TYPE, ElementType.FIELD, ElementType.PARAMETER })
+    @Target( { ElementType.TYPE, ElementType.FIELD, ElementType.PARAMETER })
     @SuppressWarnings("UnusedDeclaration")
     public static @interface Setting2 {
 
@@ -488,5 +498,53 @@ public final class ComponentVariantTests extends AbstractContainerTests {
         }
     }
 
-    public static class ContextOblivious { }
+    public static class ContextOblivious {
+
+    }
+
+    public static interface ConfiguredComponent {
+
+        ComponentContext context();
+    }
+
+    public static class ConfiguredComponentImpl implements ConfiguredComponent {
+        private final ComponentContext context;
+
+        public ConfiguredComponentImpl(final ComponentContext context) {
+            this.context = context;
+        }
+
+        public ComponentContext context() {
+            return context;
+        }
+    }
+
+    @Component(api = ConfiguredComponent.class)
+    public static class ConfiguredComponentFactory implements ComponentFactory {
+
+        public void newComponent(final OpenComponentContainer container, final ComponentContext context) {
+            container.getRegistry().bindComponent(ConfiguredComponentImpl.class);
+        }
+    }
+
+    @Component(api = ConfiguredComponent.class)
+    @Context(Setting1.class)
+    public static class ConfiguredComponentVariants implements ComponentVariantFactory {
+
+        public void newComponent(final OpenComponentContainer container, final ComponentContext context) throws ComponentContainer.ResolutionException {
+            container.getRegistry().bindInstance(context);
+        }
+    }
+
+    @Setting1(ConfigurationProvider.CONTEXT)
+    public static class ConfigurationProvider {
+
+        public static final String CONTEXT = "context-value";
+
+        public ConfigurationProvider(final ConfiguredComponent component) {
+            final Setting1 setting = component.context().annotation(Setting1.class, null);
+            assert setting != null : Setting1.class;
+            assert CONTEXT.equals(setting.value());
+        }
+    }
 }

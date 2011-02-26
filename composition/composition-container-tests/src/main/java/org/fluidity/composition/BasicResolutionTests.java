@@ -66,20 +66,20 @@ public final class BasicResolutionTests extends AbstractContainerTests {
 
     @Test
     public void singletonComponentRegistration() throws Exception {
-        registry.bindComponent(Value.class); // Value depends on DependentKey
-        registry.bindComponent(DependentValue.class);
+        registry.bindComponent(Value.class);            // depends on DependentKey
+        registry.bindComponent(DependentValue.class);   // implements DependentKey
 
-        verifyComponent(Value.instanceCount, 1, container);
+        verifyComponent(container);
     }
 
     @Test
-    public void findsDefaultImplementation() throws Exception {
-        registry.bindComponent(Value.class);
-        registry.bindComponent(DefaultDependentValue.class);
+    public void findsFallbackImplementation() throws Exception {
+        registry.bindComponent(Value.class);                    // depends on DependentKey
+        registry.bindComponent(FallbackDependentValue.class);   // implements DependentKey
 
-        verifyComponent(Value.instanceCount, 1, container);
+        verifyComponent(container);
 
-        assert Value.dependent instanceof DefaultDependentValue;
+        assert Value.dependent instanceof FallbackDependentValue;
     }
 
     @Test
@@ -87,12 +87,12 @@ public final class BasicResolutionTests extends AbstractContainerTests {
         registry.bindComponent(Value.class);
 
         // this is the fallback
-        registry.bindComponent(DefaultDependentValue.class);
+        registry.bindComponent(FallbackDependentValue.class);
 
         // this is the primary
         registry.bindComponent(DependentValue.class);
 
-        verifyComponent(Value.instanceCount, 1, container);
+        verifyComponent(container);
 
         // registration by interface took precedence
         assert Value.dependent instanceof DependentValue : Value.dependent;
@@ -103,7 +103,7 @@ public final class BasicResolutionTests extends AbstractContainerTests {
         registry.bindComponent(Value.class);
         registry.bindInstance(new DependentValue());
 
-        verifyComponent(Value.instanceCount, 1, container);
+        verifyComponent(container);
     }
 
     @Test
@@ -152,7 +152,6 @@ public final class BasicResolutionTests extends AbstractContainerTests {
     @Test
     public void transientComponentInstantiation() throws Exception {
         final Key value = container.getComponent(Key.class, new ComponentContainer.Bindings() {
-
             public void bindComponents(ComponentContainer.Registry registry) {
                 registry.bindComponent(Value.class);
                 registry.bindComponent(DependentValue.class);
@@ -177,7 +176,7 @@ public final class BasicResolutionTests extends AbstractContainerTests {
     }
 
     @Test
-    public void checkSerialization() throws Exception {
+    public void serialization() throws Exception {
         SerializableComponent.container = container;
 
         registry.bindComponent(Value.class); // Value depends on DependentKey
@@ -196,7 +195,7 @@ public final class BasicResolutionTests extends AbstractContainerTests {
     }
 
     @Test()
-    public void checkLocalClass() throws Exception {
+    public void localClass() throws Exception {
         class Local { }
 
         registry.bindInstance(this);
@@ -206,7 +205,7 @@ public final class BasicResolutionTests extends AbstractContainerTests {
     }
 
     @Test
-    public void checkNonStaticInnerClass() throws Exception {
+    public void nonStaticInnerClass() throws Exception {
         registry.bindComponent(OuterClass.class);
         registry.bindComponent(OuterClass.InnerClass.class);
 
@@ -214,14 +213,14 @@ public final class BasicResolutionTests extends AbstractContainerTests {
     }
 
     @Test(expectedExceptions = ComponentContainer.BindingException.class, expectedExceptionsMessageRegExp = ".*anonymous.*")
-    public void checkAnonymousClass() throws Exception {
+    public void anonymousClass() throws Exception {
         registry.bindInstance(this);
         registry.bindComponent(new Serializable() { }.getClass());
 
         assert container.getComponent(Serializable.class) == null : "Anonymous inner class should not be instantiated";
     }
 
-    // this is how to inject dependencies into a serializable component
+    // this is how to inject dependencies into a Serializable component
     public static class SerializableComponent implements Serializable {
 
         /* in real life you'd use new ContainerBoundary() here */

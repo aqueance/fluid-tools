@@ -39,10 +39,119 @@ public final class ComponentGroupDependencyTests extends AbstractContainerTests 
     }
 
     @Test
+    public void componentResolved() throws Exception {
+        registry.bindGroup(Filter.class, Filter1.class, Filter2.class);
+
+        final Filter[] group = container.getComponentGroup(Filter.class);
+
+        assert group != null;
+        assert group.length == 2;
+
+        assertOrder(group, Filter1.class, Filter2.class);
+    }
+
+    @Test
     public void dependencyResolved() throws Exception {
         registry.bindComponent(Processor.class);
         registry.bindGroup(Filter.class, Filter1.class, Filter2.class);
         assert container.getComponent(Processor.class) != null;
+    }
+
+    @Test
+    public void testMemberOrder() throws Exception {
+        registry.bindGroup(Filter.class,
+                           OrderedFilter8.class,
+                           OrderedFilter7.class,
+                           OrderedFilter6.class,
+                           OrderedFilter5.class,
+                           OrderedFilter4.class,
+                           OrderedFilter3.class,
+                           OrderedFilter2.class,
+                           OrderedFilter1.class);
+
+        final Filter[] group = container.getComponentGroup(Filter.class);
+
+        assert group != null;
+        assert group.length == 8;
+
+        assertOrder(group,
+                    OrderedFilter1.class,
+                    OrderedFilter2.class,
+                    OrderedFilter3.class,
+                    OrderedFilter4.class,
+                    OrderedFilter5.class,
+                    OrderedFilter6.class,
+                    OrderedFilter7.class,
+                    OrderedFilter8.class);
+    }
+
+    @Test
+    public void testDependentGroupInHierarchy() throws Exception {
+        final OpenComponentContainer child = registry.makeChildContainer();
+        final ComponentContainer.Registry nested = child.getRegistry();
+
+        registry.bindGroup(Filter.class, OrderedFilter4.class, OrderedFilter3.class, OrderedFilter2.class, OrderedFilter1.class);
+
+        nested.bindGroup(Filter.class, OrderedFilter8.class, OrderedFilter7.class, OrderedFilter6.class, OrderedFilter5.class);
+
+        final Filter[] parentGroup = container.getComponentGroup(Filter.class);
+
+        assert parentGroup != null;
+        assert parentGroup.length == 4;
+
+        assertOrder(parentGroup, OrderedFilter1.class, OrderedFilter2.class, OrderedFilter3.class, OrderedFilter4.class);
+
+        final Filter[] childGroup = child.getComponentGroup(Filter.class);
+
+        assert childGroup != null;
+        assert childGroup.length == 8;
+
+        assertOrder(childGroup,
+                    OrderedFilter1.class,
+                    OrderedFilter2.class,
+                    OrderedFilter3.class,
+                    OrderedFilter4.class,
+                    OrderedFilter5.class,
+                    OrderedFilter6.class,
+                    OrderedFilter7.class,
+                    OrderedFilter8.class);
+    }
+
+    @Test
+    public void testGroupInHierarchy() throws Exception {
+        final OpenComponentContainer child = registry.makeChildContainer();
+        final ComponentContainer.Registry nested = child.getRegistry();
+
+        registry.bindGroup(Filter.class, Filter1.class);
+        nested.bindGroup(Filter.class, Filter2.class);
+
+        final Filter[] group = child.getComponentGroup(Filter.class);
+
+        assert group != null;
+        assert group.length == 2;
+
+        assertOrder(group, Filter1.class, Filter2.class);
+    }
+
+    @Test(expectedExceptions = ComponentContainer.CircularReferencesException.class)
+    public void testCircularDependency() throws Exception {
+        registry.bindGroup(Filter.class, CircularFilter1.class, CircularFilter2.class, CircularFilter3.class);
+        container.getComponentGroup(Filter.class);
+    }
+
+    @Test(expectedExceptions = ComponentContainer.CircularReferencesException.class)
+    public void testGroupDependentMember() throws Exception {
+        registry.bindGroup(Filter.class, GroupDependentMember.class, Filter1.class, Filter2.class);
+        container.getComponentGroup(Filter.class);
+    }
+
+    private <T> void assertOrder(final T[] group, final Class<? extends T>... types) {
+        for (int i = 0, limit = group.length; i < limit; i++) {
+            final T t = group[i];
+
+            assert t != null : i;
+            assert t.getClass() == types[i];
+        }
     }
 
     @ComponentGroup
@@ -72,5 +181,94 @@ public final class ComponentGroupDependencyTests extends AbstractContainerTests 
 
     public static class Filter2 implements Filter {
 
+    }
+
+    private static class OrderedFilter1 implements Filter {
+
+    }
+
+    @SuppressWarnings("UnusedDeclaration")
+    private static class OrderedFilter2 implements Filter {
+
+        private OrderedFilter2(final OrderedFilter1 dependency) {
+            assert dependency != null : OrderedFilter1.class;
+        }
+    }
+
+    @SuppressWarnings("UnusedDeclaration")
+    private static class OrderedFilter3 implements Filter {
+
+        private OrderedFilter3(final OrderedFilter2 dependency) {
+            assert dependency != null : OrderedFilter2.class;
+        }
+    }
+
+    @SuppressWarnings("UnusedDeclaration")
+    private static class OrderedFilter4 implements Filter {
+
+        private OrderedFilter4(final OrderedFilter3 dependency) {
+            assert dependency != null : OrderedFilter3.class;
+        }
+    }
+
+    @SuppressWarnings("UnusedDeclaration")
+    private static class OrderedFilter5 implements Filter {
+
+        private OrderedFilter5(final OrderedFilter4 dependency) {
+            assert dependency != null : OrderedFilter4.class;
+        }
+    }
+
+    @SuppressWarnings("UnusedDeclaration")
+    private static class OrderedFilter6 implements Filter {
+
+        private OrderedFilter6(final OrderedFilter5 dependency) {
+            assert dependency != null : OrderedFilter5.class;
+        }
+    }
+
+    @SuppressWarnings("UnusedDeclaration")
+    private static class OrderedFilter7 implements Filter {
+
+        private OrderedFilter7(final OrderedFilter6 dependency) {
+            assert dependency != null : OrderedFilter6.class;
+        }
+    }
+
+    @SuppressWarnings("UnusedDeclaration")
+    private static class OrderedFilter8 implements Filter {
+
+        private OrderedFilter8(final OrderedFilter7 dependency) {
+            assert dependency != null : OrderedFilter7.class;
+        }
+    }
+
+    @SuppressWarnings("UnusedDeclaration")
+    private static class CircularFilter1 implements Filter {
+
+        private CircularFilter1(final CircularFilter2 dependency) {
+        }
+    }
+
+    @SuppressWarnings("UnusedDeclaration")
+    private static class CircularFilter2 implements Filter {
+
+        private CircularFilter2(final CircularFilter3 dependency) {
+        }
+    }
+
+    @SuppressWarnings("UnusedDeclaration")
+    private static class CircularFilter3 implements Filter {
+
+        private CircularFilter3(final CircularFilter1 dependency) {
+        }
+    }
+
+    @SuppressWarnings("UnusedDeclaration")
+    private static class GroupDependentMember implements Filter {
+
+        public GroupDependentMember(final @ComponentGroup Filter[] filters) {
+            assert false;
+        }
     }
 }
