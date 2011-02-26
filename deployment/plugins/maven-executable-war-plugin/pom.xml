@@ -61,7 +61,7 @@ project:
 &lt;dependency>
     &lt;groupId>org.fluidity.deployment&lt;/groupId>
     &lt;artifactId>war-bootstrap-jetty-impl&lt;/artifactId>
-    &lt;version>${fluidity-version}&lt;/version>
+    &lt;version>${fluid-tools-version}&lt;/version>
 &lt;/dependency>
 
 The plugin exports an org.fluidity.deployment.RuntimeControl component in the
