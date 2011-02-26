@@ -332,7 +332,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
         assert consumer.dependency == oblivious;
     }
 
-    @Test(enabled = false)  // TODO: intermediate factory makes variant's context specification lost
+    @Test
     public void testVariantFactoryComponentFactoryChain() throws Exception {
         registry.bindComponent(ConfiguredComponentFactory.class);
         registry.bindComponent(ConfiguredComponentVariants.class);
@@ -504,18 +504,18 @@ public final class ComponentVariantTests extends AbstractContainerTests {
 
     public static interface ConfiguredComponent {
 
-        ComponentContext context();
+        Configuration configuration();
     }
 
     public static class ConfiguredComponentImpl implements ConfiguredComponent {
-        private final ComponentContext context;
+        private final Configuration configuration;
 
-        public ConfiguredComponentImpl(final ComponentContext context) {
-            this.context = context;
+        public ConfiguredComponentImpl(final Configuration configuration) {
+            this.configuration = configuration;
         }
 
-        public ComponentContext context() {
-            return context;
+        public Configuration configuration() {
+            return configuration;
         }
     }
 
@@ -527,12 +527,24 @@ public final class ComponentVariantTests extends AbstractContainerTests {
         }
     }
 
+    @Context(Setting1.class)
+    public static class Configuration {
+
+        public final String value;
+
+        public Configuration(final ComponentContext context) {
+            this.value = context.annotation(Setting1.class, null).value();
+        }
+    }
+
     @Component(api = ConfiguredComponent.class)
     @Context(Setting1.class)
     public static class ConfiguredComponentVariants implements ComponentVariantFactory {
 
         public void newComponent(final OpenComponentContainer container, final ComponentContext context) throws ComponentContainer.ResolutionException {
-            container.getRegistry().bindInstance(context);
+            final ComponentContainer.Registry registry = container.getRegistry();
+            registry.bindInstance(context);
+            registry.bindComponent(Configuration.class);
         }
     }
 
@@ -542,9 +554,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
         public static final String CONTEXT = "context-value";
 
         public ConfigurationProvider(final ConfiguredComponent component) {
-            final Setting1 setting = component.context().annotation(Setting1.class, null);
-            assert setting != null : Setting1.class;
-            assert CONTEXT.equals(setting.value());
+            assert CONTEXT.equals(component.configuration().value);
         }
     }
 }

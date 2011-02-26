@@ -32,9 +32,9 @@ import org.testng.annotations.Test;
  * @author Tibor Varga
  */
 @SuppressWarnings("unchecked")
-public final class ComponentGroupDependencyTests extends AbstractContainerTests {
+public final class ComponentGroupTests extends AbstractContainerTests {
 
-    public ComponentGroupDependencyTests(final ContainerFactory factory) {
+    public ComponentGroupTests(final ContainerFactory factory) {
         super(factory);
     }
 
@@ -145,6 +145,18 @@ public final class ComponentGroupDependencyTests extends AbstractContainerTests 
         container.getComponentGroup(Filter.class);
     }
 
+    @Test(expectedExceptions = ComponentContainer.ResolutionException.class, expectedExceptionsMessageRegExp = ".*Filter\\[\\].*")
+    public void testMandatoryGroupDependency() throws Exception {
+        registry.bindComponent(Processor.class);
+        container.getComponent(Processor.class);
+    }
+
+    @Test
+    public void testOptionalGroupDependency() throws Exception {
+        registry.bindComponent(OptionalProcessor.class);
+        assert container.getComponent(OptionalProcessor.class) != null;
+    }
+
     private <T> void assertOrder(final T[] group, final Class<? extends T>... types) {
         for (int i = 0, limit = group.length; i < limit; i++) {
             final T t = group[i];
@@ -172,6 +184,14 @@ public final class ComponentGroupDependencyTests extends AbstractContainerTests 
             }
 
             assert provided.equals(new HashSet<Class<? extends Filter>>(Arrays.asList(Filter1.class, Filter2.class))) : provided;
+        }
+    }
+
+    @Component
+    public static class OptionalProcessor {
+
+        public OptionalProcessor(final @Optional @ComponentGroup Filter[] filters) {
+            assert filters == null;
         }
     }
 

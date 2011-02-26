@@ -233,7 +233,9 @@ final class DependencyInjectorImpl implements DependencyInjector {
 
             dependency.set(new DependencyNode(mandatory, container.resolveGroup(itemType, context, traversal), declaringType, dependencyType));
         } else if (dependency.type() == ComponentContext.class) {
-                dependency.set(new Graph.Node.Constant(ComponentContext.class, context.reduce(mapping.annotation(Context.class)).create(), null));
+
+            // always reduce the context to what the component accepts to avoid leaking contextual information to the component that it may inadvertently use without explicitly declaring it as accepted
+            dependency.set(new Graph.Node.Constant(ComponentContext.class, context.reduce(mapping.annotation(Context.class)).create(), null));
         } else {
             final Annotation[] dependencyContext = neverNull(dependency.annotations());
 
