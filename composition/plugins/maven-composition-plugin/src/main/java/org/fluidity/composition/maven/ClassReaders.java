@@ -42,7 +42,7 @@ import org.objectweb.asm.Type;
 /**
  * Class related convenience methods.
  */
-public final class ClassReaders {
+public final class ClassReaders implements Opcodes{
 
     public static final String CONSTRUCTOR_METHOD_NAME = "<init>";
 
@@ -51,15 +51,15 @@ public final class ClassReaders {
     }
 
     public static boolean isInterface(final ClassReader data) {
-        return (data.getAccess() & Opcodes.ACC_INTERFACE) != 0;
+        return (data.getAccess() & ACC_INTERFACE) != 0;
     }
 
     public static boolean isAbstract(final ClassReader data) {
-        return (data.getAccess() & Opcodes.ACC_ABSTRACT) != 0;
+        return (data.getAccess() & ACC_ABSTRACT) != 0;
     }
 
     public static boolean isFinal(final ClassReader data) {
-        return (data.getAccess() & Opcodes.ACC_FINAL) != 0;
+        return (data.getAccess() & ACC_FINAL) != 0;
     }
 
     public static ClassWriter makePublic(String className, ClassReader reader) throws MojoExecutionException {
@@ -78,7 +78,7 @@ public final class ClassReaders {
                               final String signature,
                               final String superName,
                               final String[] interfaces) {
-                super.visit(version, access & ~Opcodes.ACC_PRIVATE & ~Opcodes.ACC_PROTECTED | Opcodes.ACC_PUBLIC, name, signature, superName, interfaces);
+                super.visit(version, access & ~ACC_PRIVATE & ~ACC_PROTECTED | ACC_PUBLIC, name, signature, superName, interfaces);
             }
 
             @Override
@@ -89,11 +89,7 @@ public final class ClassReaders {
                     constructorFound.set(true);
                 }
 
-                return super.visitMethod(defaultConstructor ? access & ~Opcodes.ACC_PRIVATE & ~Opcodes.ACC_PROTECTED | Opcodes.ACC_PUBLIC : access,
-                                         name,
-                                         desc,
-                                         signature,
-                                         exceptions);
+                return super.visitMethod(defaultConstructor ? access & ~ACC_PRIVATE & ~ACC_PROTECTED | ACC_PUBLIC : access, name, desc, signature, exceptions);
             }
         }, 0);
 
