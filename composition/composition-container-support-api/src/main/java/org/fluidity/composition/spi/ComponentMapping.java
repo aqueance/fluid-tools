@@ -23,6 +23,7 @@
 package org.fluidity.composition.spi;
 
 import java.lang.annotation.Annotation;
+import java.util.Set;
 
 /**
  * Component mapping details used by container services.
@@ -32,14 +33,11 @@ import java.lang.annotation.Annotation;
 public interface ComponentMapping {
 
     /**
-     * Returns the mapping annotation of the given type, if any.
+     * Returns the list of context annotation accepted by the component.
      *
-     * @param type the class of the annotation to return.
-     * @param <T>  the annotation type.
-     *
-     * @return the mapping annotation of the given type or <code>null</code> when none found.
+     * @return the list of context annotation accepted by the component.
      */
-    <T extends Annotation> T annotation(Class<T> type);
+    Set<Class<? extends Annotation>> acceptedContext();
 
     /**
      * Returns the list of annotations that may comprise the context of some other component. Factories do not provide context annotations.

@@ -23,6 +23,7 @@
 package org.fluidity.composition;
 
 import java.lang.annotation.Annotation;
+import java.util.Set;
 
 import org.fluidity.composition.spi.ComponentVariantFactory;
 import org.fluidity.foundation.spi.LogFactory;
@@ -57,6 +58,11 @@ abstract class VariantResolver extends AbstractResolver {
                            final LogFactory logs) {
         super(priority, api, cache, logs);
         this.parent = container.parentContainer();
+
+        if (factoryClass.getAnnotation(Context.class) == null) {
+            throw new ComponentContainer.BindingException("Factory %s is not annotated by @%s", factoryClass, Context.class);
+        }
+
         this.factoryClass = factoryClass;
     }
 
@@ -105,8 +111,8 @@ abstract class VariantResolver extends AbstractResolver {
         return null;
     }
 
-    public <T extends Annotation> T annotation(final Class<T> type) {
-        return factoryClass.getAnnotation(type);
+    public Set<Class<? extends Annotation>> acceptedContext() {
+        return AbstractResolver.acceptedContext(factoryClass);
     }
 
     @Override

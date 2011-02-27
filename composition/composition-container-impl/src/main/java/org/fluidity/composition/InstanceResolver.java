@@ -23,6 +23,7 @@
 package org.fluidity.composition;
 
 import java.lang.annotation.Annotation;
+import java.util.Set;
 
 import org.fluidity.foundation.spi.LogFactory;
 
@@ -44,7 +45,7 @@ final class InstanceResolver extends AbstractResolver {
         return null;
     }
 
-    public <T extends Annotation> T annotation(final Class<T> type) {
+    public Set<Class<? extends Annotation>> acceptedContext() {
         return null;
     }
 

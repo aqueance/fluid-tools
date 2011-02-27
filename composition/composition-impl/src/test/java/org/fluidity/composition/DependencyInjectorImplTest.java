@@ -27,7 +27,9 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.fluidity.composition.spi.ComponentMapping;
 import org.fluidity.composition.spi.DependencyResolver;
@@ -51,8 +53,7 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
     private final DependencyInjector injector = new DependencyInjectorImpl();
 
     private final ComponentMapping dummyMapping = new ComponentMapping() {
-
-        public <T extends Annotation> T annotation(Class<T> type) {
+        public Set<Class<? extends Annotation>> acceptedContext() {
             return null;
         }
 
@@ -68,7 +69,7 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
     private ContextDefinition setupFieldResolution(final Class<?> componentType,
                                                    final String fieldName,
                                                    final Object component,
-                                                   final Context contextAnnotations,
+                                                   final Set<Class<? extends Annotation>> contextAnnotations,
                                                    final ComponentContext createdContext,
                                                    final Annotation[] containerAnnotations) throws Exception {
         assert fieldName != null;
@@ -86,7 +87,7 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
 
     private ContextDefinition[] setupConstructorResolution(final Class<?> componentType,
                                                            final Constructor<?> constructor,
-                                                           final Context contextAnnotations,
+                                                           final Set<Class<? extends Annotation>> contextAnnotations,
                                                            final ComponentContext createdContext,
                                                            final Annotation[] containerAnnotations,
                                                            final Object... components) throws Exception {
@@ -111,7 +112,7 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
     private ContextDefinition setupDependencyResolution(final Class<?> componentType,
                                                         final Class<?> dependencyType,
                                                         final Annotation[] dependencyAnnotations,
-                                                        final Context contextAnnotations,
+                                                        final Set<Class<? extends Annotation>> contextAnnotations,
                                                         final ComponentContext createdContext,
                                                         final Annotation[] containerAnnotations,
                                                         final Object component) {
@@ -126,7 +127,7 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
             EasyMock.expect(resolver.resolveGroup(dependencyType.getComponentType(), copy, traversal))
                     .andReturn(new DependencyGraph.Node.Constant(dependencyType, services, null));
         } else if (dependencyType == ComponentContext.class) {
-            EasyMock.expect(mapping.annotation(Context.class)).andReturn(contextAnnotations);
+            EasyMock.expect(mapping.acceptedContext()).andReturn(contextAnnotations);
             EasyMock.expect(copy.reduce(contextAnnotations)).andReturn(copy);
 
             EasyMock.expect(copy.create()).andReturn(createdContext);
@@ -134,7 +135,8 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
             final Annotation[] componentContext = neverNull(componentType.getAnnotations());
             final Annotation[] dependencyContext = neverNull(dependencyAnnotations);
 
-            final Context acceptedContext = dependencyType.getAnnotation(Context.class);
+            final Context annotation = dependencyType.getAnnotation(Context.class);
+            final Set<Class<? extends Annotation>> acceptedContext = annotation == null ? null : new HashSet<Class<? extends Annotation>>(Arrays.asList(annotation.value()));
 
             final Annotation[] definitions = new Annotation[componentContext.length + dependencyContext.length];
             System.arraycopy(componentContext, 0, definitions, 0, componentContext.length);
@@ -149,7 +151,7 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
                 final ComponentMapping mapping = addLocalControl(ComponentMapping.class);
 
                 EasyMock.expect(resolver.mapping(dependencyType)).andReturn(mapping);
-                EasyMock.expect(mapping.annotation(Context.class)).andReturn(acceptedContext);
+                EasyMock.expect(mapping.acceptedContext()).andReturn(acceptedContext);
                 EasyMock.expect(copy.reduce(acceptedContext)).andReturn(copy);
                 EasyMock.expect(resolver.resolveComponent(dependencyType, copy, traversal)).andReturn(new DependencyGraph.Node.Constant(dependencyType, component, null));
             }

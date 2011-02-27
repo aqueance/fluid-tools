@@ -79,12 +79,12 @@ final class ContextDefinitionImpl implements ContextDefinition {
         return this;
     }
 
-    public ContextDefinition reduce(final Context accepted) {
+    public ContextDefinition reduce(final Set<Class<? extends Annotation>> accepted) {
+        collected.clear();
+
         if (accepted != null) {
             collected.putAll(defined);
-            collected.keySet().retainAll(Arrays.asList(accepted.value()));
-        } else {
-            collected.clear();
+            collected.keySet().retainAll(accepted);
         }
 
         return this;

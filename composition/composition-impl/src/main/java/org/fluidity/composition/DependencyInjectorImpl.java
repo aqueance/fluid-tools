@@ -232,7 +232,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
         } else if (dependency.type() == ComponentContext.class) {
 
             // always reduce the context to what the component accepts to avoid leaking contextual information to the component that it may inadvertently use without explicitly declaring it as accepted
-            dependency.set(new DependencyGraph.Node.Constant(ComponentContext.class, context.reduce(mapping.annotation(Context.class)).create(), null));
+            dependency.set(new DependencyGraph.Node.Constant(ComponentContext.class, context.reduce(mapping.acceptedContext()).create(), null));
         } else {
             final Annotation[] dependencyContext = neverNull(dependency.annotations());
 
@@ -253,7 +253,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
                 final ComponentMapping dependencyMapping = container.mapping(dependencyType);
 
                 if (dependencyMapping != null) {
-                    node = container.resolveComponent(dependencyType, context.reduce(dependencyMapping.annotation(Context.class)), traversal);
+                    node = container.resolveComponent(dependencyType, context.reduce(dependencyMapping.acceptedContext()), traversal);
                 }
             }
 

@@ -23,6 +23,7 @@
 package org.fluidity.composition;
 
 import java.lang.annotation.Annotation;
+import java.util.Set;
 
 import org.fluidity.composition.spi.ComponentFactory;
 import org.fluidity.foundation.spi.LogFactory;
@@ -55,12 +56,12 @@ abstract class FactoryResolver extends AbstractResolver {
         this.factoryClass = factoryClass;
     }
 
-    public Annotation[] annotations() {
-        return null;
+    public Set<Class<? extends Annotation>> acceptedContext() {
+        return AbstractResolver.acceptedContext(factoryClass);
     }
 
-    public <T extends Annotation> T annotation(final Class<T> type) {
-        return factoryClass.getAnnotation(type);
+    public Annotation[] annotations() {
+        return null;
     }
 
     public final Class<? extends ComponentFactory> factoryClass() {

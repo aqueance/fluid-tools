@@ -25,6 +25,7 @@ package org.fluidity.composition;
 import java.lang.annotation.Annotation;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Maintains context state during dependency resolution. Context definition is expanded as we descend a dependency path and each component along the chain may
@@ -50,7 +51,7 @@ public interface ContextDefinition {
      *
      * @return the receiver.
      */
-    ContextDefinition reduce(Context accepted);
+    ContextDefinition reduce(Set<Class<? extends Annotation>> accepted);
 
     /**
      * Adds the accepted context annotations from all supplied contexts to the accepted annotations of the receiver.

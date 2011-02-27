@@ -29,6 +29,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.fluidity.composition.spi.ComponentFactory;
 import org.fluidity.composition.spi.ComponentMapping;
@@ -465,8 +466,8 @@ final class SimpleContainerImpl implements ParentContainer {
             this.componentClass = component.getClass();
         }
 
-        public <T extends Annotation> T annotation(final Class<T> type) {
-            return componentClass.getAnnotation(type);
+        public Set<Class<? extends Annotation>> acceptedContext() {
+            return AbstractResolver.acceptedContext(componentClass);
         }
 
         public Annotation[] annotations() {

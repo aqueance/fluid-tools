@@ -27,6 +27,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import org.fluidity.foundation.spi.LogFactory;
 
@@ -62,8 +63,8 @@ final class ConstructingResolver extends AbstractResolver {
         return ignoreContext ? null : componentClass.getAnnotations();
     }
 
-    public <T extends Annotation> T annotation(final Class<T> type) {
-        return ignoreContext ? null : componentClass.getAnnotation(type);
+    public Set<Class<? extends Annotation>> acceptedContext() {
+        return ignoreContext ? null : AbstractResolver.acceptedContext(componentClass);
     }
 
     private synchronized Constructor<?> constructor() {
