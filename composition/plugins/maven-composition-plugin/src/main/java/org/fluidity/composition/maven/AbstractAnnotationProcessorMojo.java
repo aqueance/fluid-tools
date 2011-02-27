@@ -433,7 +433,7 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
                         } else if (componentGroupType.equals(type)) {
                             return new ComponentProcessor(new ProcessorCallback<ComponentProcessor>() {
                                 public void complete(final ComponentProcessor processor) {
-                                    flags.group = true;
+                                    flags.group = !flags.dependent;
 
                                     if (flags.group) {
                                         componentGroupApis.addAll(processor.apiSet());
