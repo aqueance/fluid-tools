@@ -49,7 +49,7 @@ public final class ComponentGroupTests extends AbstractContainerTests {
         assert group != null;
         assert group.length == 2;
 
-        assertOrder(group, Filter1.class, Filter2.class);
+        checkComponentOrder(group, Filter1.class, Filter2.class);
     }
 
     @Test
@@ -76,15 +76,15 @@ public final class ComponentGroupTests extends AbstractContainerTests {
         assert group != null;
         assert group.length == 8;
 
-        assertOrder(group,
-                    OrderedFilter1.class,
-                    OrderedFilter2.class,
-                    OrderedFilter3.class,
-                    OrderedFilter4.class,
-                    OrderedFilter5.class,
-                    OrderedFilter6.class,
-                    OrderedFilter7.class,
-                    OrderedFilter8.class);
+        checkComponentOrder(group,
+                            OrderedFilter1.class,
+                            OrderedFilter2.class,
+                            OrderedFilter3.class,
+                            OrderedFilter4.class,
+                            OrderedFilter5.class,
+                            OrderedFilter6.class,
+                            OrderedFilter7.class,
+                            OrderedFilter8.class);
     }
 
     @Test
@@ -108,34 +108,34 @@ public final class ComponentGroupTests extends AbstractContainerTests {
         assert group != null;
         assert group.length == 11;
 
-        assertOrder(group,
-                    OrderedFilter1.class,
-                    OrderedFilter2.class,
-                    DynamicFilter3.class,
-                    OrderedFilter3.class,
-                    OrderedFilter4.class,
-                    DynamicFilter1.class,
-                    OrderedFilter5.class,
-                    OrderedFilter6.class,
-                    OrderedFilter7.class,
-                    OrderedFilter8.class,
-                    DynamicFilter2.class);
+        checkComponentOrder(group,
+                            OrderedFilter1.class,
+                            OrderedFilter2.class,
+                            DynamicFilter3.class,
+                            OrderedFilter3.class,
+                            OrderedFilter4.class,
+                            DynamicFilter1.class,
+                            OrderedFilter5.class,
+                            OrderedFilter6.class,
+                            OrderedFilter7.class,
+                            OrderedFilter8.class,
+                            DynamicFilter2.class);
 
         // subsequent resolution
         final Filter[] persistent = container.getComponentGroup(Filter.class);
 
-        assertOrder(persistent,
-                    OrderedFilter1.class,
-                    OrderedFilter2.class,
-                    DynamicFilter3.class,
-                    OrderedFilter3.class,
-                    OrderedFilter4.class,
-                    DynamicFilter1.class,
-                    OrderedFilter5.class,
-                    OrderedFilter6.class,
-                    OrderedFilter7.class,
-                    OrderedFilter8.class,
-                    DynamicFilter2.class);
+        checkComponentOrder(persistent,
+                            OrderedFilter1.class,
+                            OrderedFilter2.class,
+                            DynamicFilter3.class,
+                            OrderedFilter3.class,
+                            OrderedFilter4.class,
+                            DynamicFilter1.class,
+                            OrderedFilter5.class,
+                            OrderedFilter6.class,
+                            OrderedFilter7.class,
+                            OrderedFilter8.class,
+                            DynamicFilter2.class);
     }
 
     @Test
@@ -144,7 +144,6 @@ public final class ComponentGroupTests extends AbstractContainerTests {
         final ComponentContainer.Registry nested = child.getRegistry();
 
         registry.bindGroup(Filter.class, OrderedFilter4.class, OrderedFilter3.class, OrderedFilter2.class, OrderedFilter1.class);
-
         nested.bindGroup(Filter.class, OrderedFilter8.class, OrderedFilter7.class, OrderedFilter6.class, OrderedFilter5.class);
 
         final Filter[] parentGroup = container.getComponentGroup(Filter.class);
@@ -152,22 +151,22 @@ public final class ComponentGroupTests extends AbstractContainerTests {
         assert parentGroup != null;
         assert parentGroup.length == 4;
 
-        assertOrder(parentGroup, OrderedFilter1.class, OrderedFilter2.class, OrderedFilter3.class, OrderedFilter4.class);
+        checkComponentOrder(parentGroup, OrderedFilter1.class, OrderedFilter2.class, OrderedFilter3.class, OrderedFilter4.class);
 
         final Filter[] childGroup = child.getComponentGroup(Filter.class);
 
         assert childGroup != null;
         assert childGroup.length == 8;
 
-        assertOrder(childGroup,
-                    OrderedFilter1.class,
-                    OrderedFilter2.class,
-                    OrderedFilter3.class,
-                    OrderedFilter4.class,
-                    OrderedFilter5.class,
-                    OrderedFilter6.class,
-                    OrderedFilter7.class,
-                    OrderedFilter8.class);
+        checkComponentOrder(childGroup,
+                            OrderedFilter1.class,
+                            OrderedFilter2.class,
+                            OrderedFilter3.class,
+                            OrderedFilter4.class,
+                            OrderedFilter5.class,
+                            OrderedFilter6.class,
+                            OrderedFilter7.class,
+                            OrderedFilter8.class);
     }
 
     @Test
@@ -183,7 +182,7 @@ public final class ComponentGroupTests extends AbstractContainerTests {
         assert group != null;
         assert group.length == 2;
 
-        assertOrder(group, Filter1.class, Filter2.class);
+        checkComponentOrder(group, Filter1.class, Filter2.class);
     }
 
     @Test(expectedExceptions = ComponentContainer.CircularReferencesException.class)
@@ -210,7 +209,7 @@ public final class ComponentGroupTests extends AbstractContainerTests {
         assert container.getComponent(OptionalProcessor.class) != null;
     }
 
-    private <T> void assertOrder(final T[] group, final Class<? extends T>... types) {
+    private <T> void checkComponentOrder(final T[] group, final Class<? extends T>... types) {
         final List<Class<? extends T>> expected = Arrays.asList(types);
         final List<Class<?>> actual = new ArrayList<Class<?>>();
 

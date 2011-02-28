@@ -44,8 +44,7 @@ import org.fluidity.composition.spi.DependencyPath;
 final class GroupResolver {
 
     private Set<Class<?>> members = new LinkedHashSet<Class<?>>();
-    private volatile Set<Class<?>> staticOrder;
-    private volatile Set<Class<?>> dynamicOrder;
+    private volatile Set<Class<?>> sorted;
 
     public static interface Node {
 
@@ -59,11 +58,11 @@ final class GroupResolver {
 
         return new Node() {
             public Collection<?> instance() {
-                Set<Class<?>> cache = dynamicOrder;
+                Set<Class<?>> cache = sorted;
 
                 if (cache == null) {
                     synchronized (this) {
-                        cache = dynamicOrder;
+                        cache = sorted;
 
                         if (cache == null) {
                             @SuppressWarnings("UnusedAssignment")   // IntelliJ IDEA fails to recognize the use of cache below as use of this assignment value
@@ -130,7 +129,7 @@ final class GroupResolver {
                                         }
                                     }
 
-                                    dynamicOrder = local;
+                                    sorted = local;
 
                                     return instantiated.values();
                                 }
@@ -150,53 +149,40 @@ final class GroupResolver {
         };
     }
 
+    // returns node ordered according to the static dependencies among the group members
     private List<DependencyGraph.Node> staticResolution(final DependencyGraph.Traversal traversal,
                                                         final SimpleContainer container,
                                                         final ContextDefinition context) {
         final List<DependencyGraph.Node> list = new ArrayList<DependencyGraph.Node>();
-        Set<Class<?>> cache = staticOrder;
 
-        if (cache == null) {
-            final Map<Class<?>, DependencyGraph.Node> map = new HashMap<Class<?>, DependencyGraph.Node>();
+        // maps node types to nodes
+        final Map<Class<?>, DependencyGraph.Node> map = new HashMap<Class<?>, DependencyGraph.Node>();
 
-            synchronized (this) {
-                cache = staticOrder;
+        // contains the types in reference order
+        final Set<Class<?>> sequence = new LinkedHashSet<Class<?>>();
 
-                if (cache == null) {
-                    final Set<Class<?>> local = cache = new LinkedHashSet<Class<?>>();
-
-                    final DependencyGraph.Traversal observed = traversal.observed(new ComponentResolutionObserver() {
-                        public void resolved(final DependencyPath path, final Class<?> type) {
-                            if (members.contains(type)) {
-                                local.add(type);
-                            }
-                        }
-                    });
-
-                    for (final Class<?> member : members) {
-                        final DependencyGraph.Node node = container.resolver(member, false).resolve(observed, container, context);
-                        map.put(node.type(), node);
-                    }
-
-                    assert !map.isEmpty();
-                    assert cache.equals(members);
-                    staticOrder = cache;
-                    members = null;
+        // collects the types in reference order
+        final DependencyGraph.Traversal observed = traversal.observed(new ComponentResolutionObserver() {
+            public void resolved(final DependencyPath path, final Class<?> type) {
+                if (members.contains(type)) {
+                    sequence.add(type);
                 }
             }
+        });
 
-            if (!map.isEmpty()) {
-                for (final Class<?> type : cache) {
-                    assert map.containsKey(type) : type;
-                    list.add(map.get(type));
-                }
-            }
+        // resolves each member and fills the node type to node mapping
+        for (final Class<?> member : members) {
+            final DependencyGraph.Node node = container.resolver(member, false).resolve(observed, container, context);
+            map.put(node.type(), node);
         }
 
-        if (list.isEmpty()) {
-            for (final Class<?> member : cache) {
-                list.add(container.resolver(member, false).resolve(traversal, container, context));
-            }
+        // we should have the same element in possibly different order
+        assert sequence.equals(members);
+
+        // fill the list of nodes in reference order
+        for (final Class<?> type : sequence) {
+            assert map.containsKey(type) : type;
+            list.add(map.get(type));
         }
 
         return list;
