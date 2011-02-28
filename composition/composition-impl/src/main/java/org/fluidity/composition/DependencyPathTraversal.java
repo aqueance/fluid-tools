@@ -102,12 +102,11 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
     }
 
     public DependencyGraph.Traversal observed(final ComponentResolutionObserver observer) {
-        return new DependencyPathTraversal(resolutionPath, strategy, this.observer == null ? observer : new ComponentResolutionObserver() {
-            public void resolved(final org.fluidity.composition.spi.DependencyPath path, final Class<?> type) {
-                DependencyPathTraversal.this.observer.resolved(path, type);
-                observer.resolved(path, type);
-            }
-        });
+        return new DependencyPathTraversal(resolutionPath,
+                                           strategy,
+                                           this.observer == null
+                                           ? observer
+                                           : observer == null ? this.observer : new CompositeObserver(this.observer, observer));
     }
 
     Object instantiate(final Class<?> api, final DependencyGraph.Node node, final Element element) {

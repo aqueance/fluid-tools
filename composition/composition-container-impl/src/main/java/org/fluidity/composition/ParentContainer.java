@@ -36,7 +36,8 @@ interface ParentContainer extends SimpleContainer {
      * @param traversal the current graph traversal.
      * @param context   the current context.
      *
-     * @return the list of component nodes for the group API.
+     * @return a list of objects representing the group members in this container and its parent(s), if any, starting with those in the top level container and
+     *         ending with those in this one.
      */
-    List<Node> resolveGroup(Class<?> api, Traversal traversal, ContextDefinition context);
+    List<GroupResolver.Node> resolveGroup(Class<?> api, Traversal traversal, ContextDefinition context);
 }

@@ -27,7 +27,6 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -36,7 +35,6 @@ import org.fluidity.composition.spi.ComponentFactory;
 import org.fluidity.composition.spi.ComponentMapping;
 import org.fluidity.composition.spi.ComponentResolutionObserver;
 import org.fluidity.composition.spi.ComponentVariantFactory;
-import org.fluidity.composition.spi.DependencyPath;
 import org.fluidity.foundation.Strings;
 import org.fluidity.foundation.logging.Log;
 import org.fluidity.foundation.spi.LogFactory;
@@ -46,7 +44,7 @@ import org.fluidity.foundation.spi.LogFactory;
  */
 final class SimpleContainerImpl implements ParentContainer {
 
-    private static final ThreadLocal<ComponentResolutionObserver> observer = new InheritableThreadLocal<ComponentResolutionObserver>();
+    private static final ThreadLocal<DependencyGraph.Traversal> traversal = new InheritableThreadLocal<DependencyGraph.Traversal>();
 
     private final ContainerServices services;
     private final Log log;
@@ -316,13 +314,14 @@ final class SimpleContainerImpl implements ParentContainer {
     }
 
     public <T> T observe(final ComponentResolutionObserver recent, final Observed<T> command) {
-        final ComponentResolutionObserver present = observer.get();
+        final Traversal saved = traversal.get();
+        final Traversal current = saved == null ? services.graphTraversal(recent) : saved.observed(recent);
 
-        observer.set(present == null ? recent : recent == null ? present : new CompositeObserver(present, recent));
+        traversal.set(current);
         try {
-            return command.run(services.graphTraversal(observer.get()));
+            return command.run(current);
         } finally {
-            observer.set(present);
+            traversal.set(saved);
         }
     }
 
@@ -361,26 +360,26 @@ final class SimpleContainerImpl implements ParentContainer {
         }
     }
 
-    public List<Node> resolveGroup(final Class<?> api, final Traversal traversal, final ContextDefinition context) {
-        final List<Node> enclosing = parent == null ? null : parent.resolveGroup(api, traversal, context);
+    public List<GroupResolver.Node> resolveGroup(final Class<?> api, final Traversal traversal, final ContextDefinition context) {
+        final List<GroupResolver.Node> enclosing = parent == null ? null : parent.resolveGroup(api, traversal, context);
         final GroupResolver group = groups.get(api);
 
         if (group == null) {
             return enclosing;
         } else {
-            final List<Node> list = new ArrayList<Node>();
+            final List<GroupResolver.Node> list = new ArrayList<GroupResolver.Node>();
 
             if (enclosing != null) {
                 list.addAll(enclosing);
             }
 
-            group.resolve(traversal, this, context, list);
+            list.add(group.resolve(traversal, this, context));
 
             return list;
         }
     }
 
-    private Node groupNode(final Class<?> api, final List<Node> list, final ContextDefinition context) {
+    private Node groupNode(final Class<?> api, final List<GroupResolver.Node> list, final ContextDefinition context) {
         final ComponentContext componentContext = context.create();
 
         return list == null ? null : new Node() {
@@ -388,52 +387,15 @@ final class SimpleContainerImpl implements ParentContainer {
                 return api;
             }
 
+            @SuppressWarnings("unchecked")
             public Object instance() {
+                final List output = new ArrayList();
 
-                // list of types resolved while instantiating, i.e., resolved from within a constructor
-                final List<Class<?>> dynamic = new ArrayList<Class<?>>();
-
-                final Map<Class<?>, Node> map = new HashMap<Class<?>, Node>();
-                for (final Node node : list) {
-                    map.put(node.type(), node);
+                for (final GroupResolver.Node node : list) {
+                    output.addAll(node.instance());
                 }
 
-                // observer to collect dynamically resolved group members
-                final ComponentResolutionObserver observer = new ComponentResolutionObserver() {
-                    public void resolved(final DependencyPath path, final Class<?> type) {
-                        if (map.containsKey(type)) {
-                            dynamic.add(type);
-                        }
-                    }
-                };
-
-                return observe(observer, new Observed<Object>() {
-                    public Object run(final Traversal traversal) {
-                        final Map<Node, Object> processed = new LinkedHashMap<Node, Object>();
-
-                        for (final Node node : list) {
-                            if (!processed.containsKey(node)) {
-
-                                // clear the collection
-                                dynamic.clear();
-
-                                // fill the collection
-                                final Object instance = node.instance();
-
-                                // process items in the collection before the one that triggered their resolution
-                                for (final Class<?> type : dynamic) {
-                                    final Node next = map.get(type);
-                                    processed.put(next, next.instance());
-                                }
-
-                                // process the one that triggered the resolutions
-                                processed.put(node, instance);
-                            }
-                        }
-
-                        return processed.values().toArray((Object[]) Array.newInstance(api, processed.size()));
-                    }
-                });
+                return output.toArray((Object[]) Array.newInstance(api, output.size()));
             }
 
             public ComponentContext context() {

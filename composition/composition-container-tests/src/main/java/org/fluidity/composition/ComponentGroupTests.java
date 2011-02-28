@@ -90,8 +90,9 @@ public final class ComponentGroupTests extends AbstractContainerTests {
     @Test
     public void testDynamicOrder() throws Exception {
         registry.bindGroup(Filter.class,
-                           DynamicFilter1.class,    // dynamically depends on OrderedFilter4
+                           DynamicFilter1.class,    // dynamically depends on OrderedFilter4 and DynamicFilter3
                            DynamicFilter2.class,    // dynamically depends on OrderedFilter8
+                           DynamicFilter3.class,    // dynamically depends on OrderedFilter2
                            OrderedFilter8.class,
                            OrderedFilter7.class,
                            OrderedFilter6.class,
@@ -101,14 +102,16 @@ public final class ComponentGroupTests extends AbstractContainerTests {
                            OrderedFilter2.class,
                            OrderedFilter1.class);
 
+        // first resolution
         final Filter[] group = container.getComponentGroup(Filter.class);
 
         assert group != null;
-        assert group.length == 10;
+        assert group.length == 11;
 
         assertOrder(group,
                     OrderedFilter1.class,
                     OrderedFilter2.class,
+                    DynamicFilter3.class,
                     OrderedFilter3.class,
                     OrderedFilter4.class,
                     DynamicFilter1.class,
@@ -118,12 +121,13 @@ public final class ComponentGroupTests extends AbstractContainerTests {
                     OrderedFilter8.class,
                     DynamicFilter2.class);
 
-/*
+        // subsequent resolution
         final Filter[] persistent = container.getComponentGroup(Filter.class);
 
         assertOrder(persistent,
                     OrderedFilter1.class,
                     OrderedFilter2.class,
+                    DynamicFilter3.class,
                     OrderedFilter3.class,
                     OrderedFilter4.class,
                     DynamicFilter1.class,
@@ -132,7 +136,6 @@ public final class ComponentGroupTests extends AbstractContainerTests {
                     OrderedFilter7.class,
                     OrderedFilter8.class,
                     DynamicFilter2.class);
-*/
     }
 
     @Test
@@ -348,15 +351,25 @@ public final class ComponentGroupTests extends AbstractContainerTests {
     private static class DynamicFilter1 implements Filter {
 
         private DynamicFilter1(final ComponentContainer container) {
+            container.getComponent(DynamicFilter3.class);
             container.getComponent(OrderedFilter4.class);
         }
     }
 
     @SuppressWarnings("UnusedDeclaration")
     private static class DynamicFilter2 implements Filter {
+        private final Filter filter = new Filter() { };     // should be ignored in the group calculations
 
         private DynamicFilter2(final ComponentContainer container) {
             container.getComponent(OrderedFilter8.class);
+        }
+    }
+
+    @SuppressWarnings("UnusedDeclaration")
+    private static class DynamicFilter3 implements Filter {
+
+        private DynamicFilter3(final ComponentContainer container) {
+            container.getComponent(OrderedFilter2.class);
         }
     }
 }
