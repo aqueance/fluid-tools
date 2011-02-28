@@ -234,7 +234,7 @@ public final class BasicResolutionTests extends AbstractContainerTests {
         observed.resolveComponent(Interface2.class);
         observed.resolveComponent(Interface3.class);
 
-        assert resolved.size() == 3;
+        assert resolved.size() == 3 : resolved;
         assert resolved.get(Interface1.class) == MultipleInterfaces.class;
         assert resolved.get(Interface2.class) == MultipleInterfaces.class;
         assert resolved.get(Interface3.class) == MultipleInterfaces.class;

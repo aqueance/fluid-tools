@@ -84,7 +84,7 @@ interface SimpleContainer extends DependencyResolver {
      * @throws ComponentContainer.BindingException
      *          when binding fails.
      */
-    void bindComponent(Class<?> implementation, Class<?>[] componentInterfaces, final Class<?>[] groupInterfaces) throws ComponentContainer.BindingException;
+    void bindComponent(Class<?> implementation, Class<?>[] componentInterfaces, Class<?>[] groupInterfaces) throws ComponentContainer.BindingException;
 
     /**
      * Binds a component instance to an interface.
@@ -96,7 +96,7 @@ interface SimpleContainer extends DependencyResolver {
      * @throws ComponentContainer.BindingException
      *          when binding fails.
      */
-    void bindInstance(Object instance, Class<?>[] componentInterfaces, final Class<?>[] groupInterfaces) throws ComponentContainer.BindingException;
+    void bindInstance(Object instance, Class<?>[] componentInterfaces, Class<?>[] groupInterfaces) throws ComponentContainer.BindingException;
 
     /**
      * Creates a child container of the receiver and links the given interface to a mapping added to the returned child, effectively directing the component
@@ -111,23 +111,21 @@ interface SimpleContainer extends DependencyResolver {
      * @throws ComponentContainer.BindingException
      *          when binding fails.
      */
-    SimpleContainer linkComponent(Class<?> implementation, Class<?>[] componentInterfaces, final Class<?>[] groupInterfaces)
-            throws ComponentContainer.BindingException;
+    SimpleContainer linkComponent(Class<?> implementation, Class<?>[] componentInterfaces, Class<?>[] groupInterfaces) throws ComponentContainer.BindingException;
 
     /**
      * Injects the {@link Component} annotated fields of the given component instance.
      *
-     *
      * @param component the component instance.
      * @param context   the base context to resolve the component's dependencies in.
+     * @param observer  the resolution observer to use.
      *
-     * @param observer
      * @return the component instance.
      *
      * @throws ComponentContainer.ResolutionException
      *          when dependency resolution fails.
      */
-    Object initialize(final Object component, final ContextDefinition context, final ComponentResolutionObserver observer) throws ComponentContainer.ResolutionException;
+    Object initialize(Object component, ContextDefinition context, ComponentResolutionObserver observer) throws ComponentContainer.ResolutionException;
 
     /**
      * Returns a textual identifier for the container.
@@ -144,4 +142,32 @@ interface SimpleContainer extends DependencyResolver {
      * @param replacement the new resolver.
      */
     void replaceResolver(Class<?> key, ComponentResolver previous, ComponentResolver replacement);
+
+    /**
+     * Establishes the given resolution observer for the duration of the given command's execution in any container that may be involved.
+     *
+     * @param observer the resolution observer to establish; may be <code>null</code>.
+     * @param command  the command to execute while the observer is active.
+     * @param <T>      the return value type of the command.
+     *
+     * @return whatever the command returns.
+     */
+    <T> T observe(ComponentResolutionObserver observer, Observed<T> command);
+
+    /**
+     * A command that is executed while some resolution observer is active.
+     *
+     * @param <T> the return value type of the command.
+     */
+    interface Observed<T> {
+
+        /**
+         * Executes the business logic while some resolution observer is active.
+         *
+         * @param traversal the strategy to use to traverse the dependency graph.
+         *
+         * @return whatever the caller of {@link SimpleContainer#observe(ComponentResolutionObserver, Observed)} expects.
+         */
+        T run(Traversal traversal);
+    }
 }

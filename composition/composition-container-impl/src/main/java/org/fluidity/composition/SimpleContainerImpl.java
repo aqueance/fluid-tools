@@ -27,6 +27,7 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -35,6 +36,7 @@ import org.fluidity.composition.spi.ComponentFactory;
 import org.fluidity.composition.spi.ComponentMapping;
 import org.fluidity.composition.spi.ComponentResolutionObserver;
 import org.fluidity.composition.spi.ComponentVariantFactory;
+import org.fluidity.composition.spi.DependencyPath;
 import org.fluidity.foundation.Strings;
 import org.fluidity.foundation.logging.Log;
 import org.fluidity.foundation.spi.LogFactory;
@@ -43,6 +45,8 @@ import org.fluidity.foundation.spi.LogFactory;
  * @author Tibor Varga
  */
 final class SimpleContainerImpl implements ParentContainer {
+
+    private static final ThreadLocal<ComponentResolutionObserver> observer = new InheritableThreadLocal<ComponentResolutionObserver>();
 
     private final ContainerServices services;
     private final Log log;
@@ -301,11 +305,6 @@ final class SimpleContainerImpl implements ParentContainer {
         return resolver == null && parent != null && ascend ? parent.resolver(api, ascend) : resolver;
     }
 
-    public String id() {
-        final String id = String.format("%x", System.identityHashCode(this));
-        return parent == null ? id : String.format("%s > %s", id, parent.id());
-    }
-
     public void replaceResolver(final Class<?> key, final ComponentResolver previous, final ComponentResolver replacement) {
         for (final ComponentResolver resolver : components.values()) {
             resolver.resolverReplaced(key, previous, replacement);
@@ -316,9 +315,15 @@ final class SimpleContainerImpl implements ParentContainer {
         }
     }
 
-    @Override
-    public String toString() {
-        return String.format("container %s", id());
+    public <T> T observe(final ComponentResolutionObserver recent, final Observed<T> command) {
+        final ComponentResolutionObserver present = observer.get();
+
+        observer.set(present == null ? recent : recent == null ? present : new CompositeObserver(present, recent));
+        try {
+            return command.run(services.graphTraversal(observer.get()));
+        } finally {
+            observer.set(present);
+        }
     }
 
     public Object initialize(final Object component, final ContextDefinition context, final ComponentResolutionObserver observer) {
@@ -384,13 +389,51 @@ final class SimpleContainerImpl implements ParentContainer {
             }
 
             public Object instance() {
-                final Object[] instances = (Object[]) Array.newInstance(api, list.size());
-                int i = 0;
+
+                // list of types resolved while instantiating, i.e., resolved from within a constructor
+                final List<Class<?>> dynamic = new ArrayList<Class<?>>();
+
+                final Map<Class<?>, Node> map = new HashMap<Class<?>, Node>();
                 for (final Node node : list) {
-                    instances[i++] = node.instance();
+                    map.put(node.type(), node);
                 }
 
-                return instances;
+                // observer to collect dynamically resolved group members
+                final ComponentResolutionObserver observer = new ComponentResolutionObserver() {
+                    public void resolved(final DependencyPath path, final Class<?> type) {
+                        if (map.containsKey(type)) {
+                            dynamic.add(type);
+                        }
+                    }
+                };
+
+                return observe(observer, new Observed<Object>() {
+                    public Object run(final Traversal traversal) {
+                        final Map<Node, Object> processed = new LinkedHashMap<Node, Object>();
+
+                        for (final Node node : list) {
+                            if (!processed.containsKey(node)) {
+
+                                // clear the collection
+                                dynamic.clear();
+
+                                // fill the collection
+                                final Object instance = node.instance();
+
+                                // process items in the collection before the one that triggered their resolution
+                                for (final Class<?> type : dynamic) {
+                                    final Node next = map.get(type);
+                                    processed.put(next, next.instance());
+                                }
+
+                                // process the one that triggered the resolutions
+                                processed.put(node, instance);
+                            }
+                        }
+
+                        return processed.values().toArray((Object[]) Array.newInstance(api, processed.size()));
+                    }
+                });
             }
 
             public ComponentContext context() {
@@ -405,6 +448,16 @@ final class SimpleContainerImpl implements ParentContainer {
 
     public ComponentContainer container(final ContextDefinition context) {
         return new ComponentContainerShell(this, context, false);
+    }
+
+    public String id() {
+        final String id = String.format("%x", System.identityHashCode(this));
+        return parent == null ? id : String.format("%s > %s", id, parent.id());
+    }
+
+    @Override
+    public String toString() {
+        return String.format("container %s", id());
     }
 
     /**

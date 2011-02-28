@@ -22,8 +22,10 @@
 
 package org.fluidity.composition;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.testng.annotations.Test;
@@ -83,6 +85,54 @@ public final class ComponentGroupTests extends AbstractContainerTests {
                     OrderedFilter6.class,
                     OrderedFilter7.class,
                     OrderedFilter8.class);
+    }
+
+    @Test
+    public void testDynamicOrder() throws Exception {
+        registry.bindGroup(Filter.class,
+                           DynamicFilter1.class,    // dynamically depends on OrderedFilter4
+                           DynamicFilter2.class,    // dynamically depends on OrderedFilter8
+                           OrderedFilter8.class,
+                           OrderedFilter7.class,
+                           OrderedFilter6.class,
+                           OrderedFilter5.class,
+                           OrderedFilter4.class,
+                           OrderedFilter3.class,
+                           OrderedFilter2.class,
+                           OrderedFilter1.class);
+
+        final Filter[] group = container.getComponentGroup(Filter.class);
+
+        assert group != null;
+        assert group.length == 10;
+
+        assertOrder(group,
+                    OrderedFilter1.class,
+                    OrderedFilter2.class,
+                    OrderedFilter3.class,
+                    OrderedFilter4.class,
+                    DynamicFilter1.class,
+                    OrderedFilter5.class,
+                    OrderedFilter6.class,
+                    OrderedFilter7.class,
+                    OrderedFilter8.class,
+                    DynamicFilter2.class);
+
+/*
+        final Filter[] persistent = container.getComponentGroup(Filter.class);
+
+        assertOrder(persistent,
+                    OrderedFilter1.class,
+                    OrderedFilter2.class,
+                    OrderedFilter3.class,
+                    OrderedFilter4.class,
+                    DynamicFilter1.class,
+                    OrderedFilter5.class,
+                    OrderedFilter6.class,
+                    OrderedFilter7.class,
+                    OrderedFilter8.class,
+                    DynamicFilter2.class);
+*/
     }
 
     @Test
@@ -158,12 +208,14 @@ public final class ComponentGroupTests extends AbstractContainerTests {
     }
 
     private <T> void assertOrder(final T[] group, final Class<? extends T>... types) {
-        for (int i = 0, limit = group.length; i < limit; i++) {
-            final T t = group[i];
+        final List<Class<? extends T>> expected = Arrays.asList(types);
+        final List<Class<?>> actual = new ArrayList<Class<?>>();
 
-            assert t != null : i;
-            assert t.getClass() == types[i];
+        for (final T t : group) {
+            actual.add(t.getClass());
         }
+
+        assert actual.equals(expected) : String.format("Expected %s, got %s", expected, actual);
     }
 
     @ComponentGroup
@@ -289,6 +341,22 @@ public final class ComponentGroupTests extends AbstractContainerTests {
 
         public GroupDependentMember(final @ComponentGroup Filter[] filters) {
             assert false;
+        }
+    }
+
+    @SuppressWarnings("UnusedDeclaration")
+    private static class DynamicFilter1 implements Filter {
+
+        private DynamicFilter1(final ComponentContainer container) {
+            container.getComponent(OrderedFilter4.class);
+        }
+    }
+
+    @SuppressWarnings("UnusedDeclaration")
+    private static class DynamicFilter2 implements Filter {
+
+        private DynamicFilter2(final ComponentContainer container) {
+            container.getComponent(OrderedFilter8.class);
         }
     }
 }

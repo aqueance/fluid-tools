@@ -23,7 +23,6 @@
 package org.fluidity.composition;
 
 import org.fluidity.composition.spi.ComponentResolutionObserver;
-import org.fluidity.composition.spi.DependencyPath;
 import org.fluidity.composition.spi.EmptyComponentContainer;
 
 /**
@@ -60,22 +59,40 @@ final class ComponentContainerShell extends EmptyComponentContainer {
 
     @SuppressWarnings("unchecked")
     public <T> T getComponent(final Class<T> api) {
-        final DependencyGraph.Node node = container.resolveComponent(api, context, container.services().graphTraversal(observer));
-        return node == null ? null : (T) node.instance();
+        return container.observe(observer, new SimpleContainer.Observed<T>() {
+            public T run(final DependencyGraph.Traversal traversal) {
+                final DependencyGraph.Node node = container.resolveComponent(api, context, traversal);
+                return node == null ? null : (T) node.instance();
+            }
+        });
     }
 
     @SuppressWarnings("unchecked")
     public <T> T[] getComponentGroup(final Class<T> api) {
-        final DependencyGraph.Node node = container.resolveGroup(api, context, container.services().graphTraversal(observer));
-        return node == null ? null : (T[]) node.instance();
+        return container.observe(observer, new SimpleContainer.Observed<T[]>() {
+            public T[] run(final DependencyGraph.Traversal traversal) {
+                final DependencyGraph.Node node = container.resolveGroup(api, context, traversal);
+                return node == null ? null : (T[]) node.instance();
+            }
+        });
     }
 
     public void resolveComponent(final Class<?> api) {
-        container.resolveComponent(api, context, container.services().graphTraversal(observer));
+        container.observe(observer, new SimpleContainer.Observed<Void>() {
+            public Void run(final DependencyGraph.Traversal traversal) {
+                container.resolveComponent(api, context, traversal);
+                return null;
+            }
+        });
     }
 
     public void resolveGroup(final Class<?> api) {
-        container.resolveGroup(api, context, container.services().graphTraversal(observer));
+        container.observe(observer, new SimpleContainer.Observed<Void>() {
+            public Void run(final DependencyGraph.Traversal traversal) {
+                container.resolveGroup(api, context, traversal);
+                return null;
+            }
+        });
     }
 
     @SuppressWarnings("unchecked")
@@ -84,7 +101,7 @@ final class ComponentContainerShell extends EmptyComponentContainer {
     }
 
     public OpenComponentContainer makeChildContainer() {
-        return new ComponentContainerShell(container, context, true, observer);
+        return new ComponentContainerShell(container, context, true);
     }
 
     public void bindComponent(final Class<?> implementation, final Class<?>[] interfaces, final Class<?>[] groups) throws ComponentContainer.BindingException {
@@ -97,20 +114,12 @@ final class ComponentContainerShell extends EmptyComponentContainer {
 
     public OpenComponentContainer makeChildContainer(final Class<?> implementation, final Class<?>[] interfaces, final Class<?>[] groups)
             throws ComponentContainer.BindingException {
-        return new ComponentContainerShell(container.linkComponent(implementation, interfaces, groups), context, false, observer);
-    }
-
-    private ComponentResolutionObserver composite(final ComponentResolutionObserver observer) {
-        return this.observer == null ? observer : new ComponentResolutionObserver() {
-            public void resolved(final DependencyPath path, final Class<?> type) {
-                ComponentContainerShell.this.observer.resolved(path, type);
-                observer.resolved(path, type);
-            }
-        };
+        return new ComponentContainerShell(container.linkComponent(implementation, interfaces, groups), context, false);
     }
 
     public ObservedComponentContainer observed(final ComponentResolutionObserver observer) {
-        return observer == null ? this : new ComponentContainerShell(container, context, false, composite(observer));
+        return observer == null ? this : new ComponentContainerShell(container, context, false,
+                                                                     this.observer == null ? observer : new CompositeObserver(this.observer, observer));
     }
 
     @Override
