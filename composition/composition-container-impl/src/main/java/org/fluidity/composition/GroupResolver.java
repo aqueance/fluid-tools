@@ -43,7 +43,7 @@ import org.fluidity.composition.spi.DependencyPath;
  */
 final class GroupResolver {
 
-    private Set<Class<?>> members = new LinkedHashSet<Class<?>>();
+    private Set<ComponentResolver> members = new LinkedHashSet<ComponentResolver>();
     private volatile Set<Class<?>> sorted;
 
     public static interface Node {
@@ -51,10 +51,10 @@ final class GroupResolver {
         Collection<?> instance();
     }
 
-    public Node resolve(final DependencyGraph.Traversal traversal, final SimpleContainer container, final ContextDefinition context) {
+    public Node resolve(final Class<?> api, final DependencyGraph.Traversal traversal, final SimpleContainer container, final ContextDefinition context) {
 
         // make sure we perform the static part of the component resolution of group members
-        final List<DependencyGraph.Node> staticOrder = staticResolution(traversal, container, context);
+        final List<DependencyGraph.Node> staticOrder = staticResolution(api, traversal, container, context);
 
         return new Node() {
             public Collection<?> instance() {
@@ -150,7 +150,8 @@ final class GroupResolver {
     }
 
     // returns node ordered according to the static dependencies among the group members
-    private List<DependencyGraph.Node> staticResolution(final DependencyGraph.Traversal traversal,
+    private List<DependencyGraph.Node> staticResolution(final Class<?> api,
+                                                        final DependencyGraph.Traversal traversal,
                                                         final SimpleContainer container,
                                                         final ContextDefinition context) {
         final List<DependencyGraph.Node> list = new ArrayList<DependencyGraph.Node>();
@@ -164,31 +165,32 @@ final class GroupResolver {
         // collects the types in reference order
         final DependencyGraph.Traversal observed = traversal.observed(new ComponentResolutionObserver() {
             public void resolved(final DependencyPath path, final Class<?> type) {
-                if (members.contains(type)) {
+                if (api.isAssignableFrom(type)) {
                     sequence.add(type);
                 }
             }
         });
 
         // resolves each member and fills the node type to node mapping
-        for (final Class<?> member : members) {
-            final DependencyGraph.Node node = container.resolver(member, false).resolve(observed, container, context);
+        for (final ComponentResolver member : members) {
+            final DependencyGraph.Node node = member.resolve(observed, container, context);
             map.put(node.type(), node);
         }
 
-        // we should have the same element in possibly different order
-        assert sequence.equals(members);
-
         // fill the list of nodes in reference order
         for (final Class<?> type : sequence) {
-            assert map.containsKey(type) : type;
-            list.add(map.get(type));
+            final DependencyGraph.Node node = map.get(type);
+
+            // sequence may contain members resolved from a parent container: we ignore those here
+            if (node != null) {
+                list.add(node);
+            }
         }
 
         return list;
     }
 
-    public void add(final Class<?> implementation) {
-        members.add(implementation);
+    public void add(final ComponentResolver resolver) {
+        members.add(resolver);
     }
 }

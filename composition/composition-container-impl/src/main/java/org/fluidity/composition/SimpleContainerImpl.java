@@ -95,7 +95,7 @@ final class SimpleContainerImpl implements ParentContainer {
         }
     }
 
-    public GroupResolver bindGroup(final Class<?> api) {
+    private GroupResolver bindGroup(final Class<?> api) {
         GroupResolver resolver;
 
         synchronized (groups) {
@@ -122,17 +122,24 @@ final class SimpleContainerImpl implements ParentContainer {
                               final Class<?>[] groupInterfaces,
                               final boolean stateful,
                               final ContentResolvers resolvers) {
-        // TODO: factories and group interfaces?
         if (resolvers.isVariantFactory()) {
 
             // bind the variant factory to its class
             bindResolver(implementation, resolvers.component(implementation, services.newCache(true), true));
 
             final ComponentCache cache = services.newCache(true);
-            for (final Class<?> api : componentInterfaces) {
+            if (componentInterfaces != null) {
+                for (final Class<?> api : componentInterfaces) {
 
-                // bind the variant resolver to the component interface
-                bindResolver(api, resolvers.variant(api, cache));
+                    // bind a variant resolver to the component interface
+                    bindResolver(api, resolvers.variant(api, cache));
+                }
+            }
+
+            if (groupInterfaces != null) {
+                for (final Class<?> api : groupInterfaces) {
+                    bindGroup(api).add(resolvers.variant(api, cache));
+                }
             }
         } else if (resolvers.isCustomFactory()) {
 
@@ -140,10 +147,18 @@ final class SimpleContainerImpl implements ParentContainer {
             bindResolver(implementation, resolvers.component(implementation, services.newCache(true), true));
 
             final ComponentCache cache = services.newCache(true);
-            for (final Class<?> api : componentInterfaces) {
+            if (componentInterfaces != null) {
+                for (final Class<?> api : componentInterfaces) {
 
-                // bind the factory resolver to the component interface
-                bindResolver(api, resolvers.factory(api, cache));
+                    // bind a factory resolver to the component interface
+                    bindResolver(api, resolvers.factory(api, cache));
+                }
+            }
+
+            if (groupInterfaces != null) {
+                for (final Class<?> api : groupInterfaces) {
+                    bindGroup(api).add(resolvers.factory(api, cache));
+                }
             }
         } else {
             final ComponentCache cache = services.newCache(!stateful);
@@ -154,11 +169,11 @@ final class SimpleContainerImpl implements ParentContainer {
                 }
             }
 
-            if (groupInterfaces != null && groupInterfaces.length > 0) {
-                bindResolver(implementation, resolvers.component(implementation, cache, false));
+            if (groupInterfaces != null) {
+                final ComponentResolver resolver = resolvers.component(implementation, cache, false);
 
                 for (final Class<?> api : groupInterfaces) {
-                    bindGroup(api).add(implementation);
+                    bindGroup(api).add(resolver);
                 }
             }
         }
@@ -373,7 +388,7 @@ final class SimpleContainerImpl implements ParentContainer {
                 list.addAll(enclosing);
             }
 
-            list.add(group.resolve(traversal, this, context));
+            list.add(group.resolve(api, traversal, this, context));
 
             return list;
         }

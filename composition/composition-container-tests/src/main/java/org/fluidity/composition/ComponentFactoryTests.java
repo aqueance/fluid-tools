@@ -47,6 +47,7 @@ public final class ComponentFactoryTests extends AbstractContainerTests {
     @BeforeMethod
     public void setMockFactory() {
         Factory.delegate = this.factory;
+        GroupMemberFactory.delegate = this.factory;
     }
 
     @Test
@@ -105,6 +106,29 @@ public final class ComponentFactoryTests extends AbstractContainerTests {
         verify();
     }
 
+    @Test
+    public void groupMemberFactory() throws Exception {
+        registry.bindComponent(GroupMember2.class);
+        registry.bindComponent(GroupMemberFactory.class);
+
+        factory.newComponent(EasyMock.<OpenComponentContainer>notNull(), EasyMock.<ComponentContext>notNull());
+        EasyMock.expectLastCall().andAnswer(new IAnswer<Void>() {
+            public Void answer() throws Throwable {
+                final OpenComponentContainer container = (OpenComponentContainer) EasyMock.getCurrentArguments()[0];
+                container.getRegistry().bindComponent(GroupMember1.class, GroupApi.class);
+                return null;
+            }
+        }).anyTimes();
+
+        replay();
+        final GroupApi[] group = container.getComponentGroup(GroupApi.class);
+        verify();
+
+        assert group != null : GroupApi.class;
+        assert group.length == 2;
+        assert group[0] != group[1];
+    }
+
     @Component(api = DependentKey.class)
     private static class Factory implements ComponentFactory {
 
@@ -117,6 +141,32 @@ public final class ComponentFactoryTests extends AbstractContainerTests {
         public void newComponent(final OpenComponentContainer container, final ComponentContext context) {
             final ComponentContainer.Registry registry = container.getRegistry();
             registry.bindComponent(DependentValue.class);
+
+            assert delegate != null;
+            delegate.newComponent(container, context);
+        }
+    }
+
+    @ComponentGroup
+    private static interface GroupApi { }
+
+    @ComponentGroup(api = {})
+    private static class GroupMember1 implements GroupApi {
+
+    }
+
+    private static class GroupMember2 implements GroupApi {
+
+    }
+
+    @ComponentGroup(api = GroupApi.class)
+    private static class GroupMemberFactory implements ComponentFactory {
+
+        public static ComponentFactory delegate;
+
+        public void newComponent(final OpenComponentContainer container, final ComponentContext context) {
+            final ComponentContainer.Registry registry = container.getRegistry();
+            registry.bindComponent(GroupMember1.class);
 
             assert delegate != null;
             delegate.newComponent(container, context);
