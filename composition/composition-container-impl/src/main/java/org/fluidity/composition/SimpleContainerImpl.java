@@ -45,6 +45,7 @@ import org.fluidity.foundation.spi.LogFactory;
 final class SimpleContainerImpl implements ParentContainer {
 
     private static final ThreadLocal<DependencyGraph.Traversal> traversal = new InheritableThreadLocal<DependencyGraph.Traversal>();
+    private static final ThreadLocal<ComponentResolver> resolved = new InheritableThreadLocal<ComponentResolver>();
 
     private final ContainerServices services;
     private final Log log;
@@ -79,6 +80,10 @@ final class SimpleContainerImpl implements ParentContainer {
 
     public SimpleContainer newChildContainer() {
         return new SimpleContainerImpl(this, services);
+    }
+
+    public ComponentResolver resolved() {
+        return resolved.get();
     }
 
     public void bindResolver(final Class<?> api, final ComponentResolver entry) {
@@ -117,47 +122,43 @@ final class SimpleContainerImpl implements ParentContainer {
         components.put(key, replacement);
     }
 
+    private ComponentResolver local(final ComponentResolver resolver) {
+        return new LocalResolver(resolver);
+    }
+
     public void bindResolvers(Class<?> implementation,
                               final Class<?>[] componentInterfaces,
                               final Class<?>[] groupInterfaces,
                               final boolean stateful,
                               final ContentResolvers resolvers) {
         if (resolvers.isVariantFactory()) {
-
-            // bind the variant factory to its class
-            bindResolver(implementation, resolvers.component(implementation, services.newCache(true), true));
+            bindResolver(implementation, local(resolvers.component(implementation, services.newCache(true), true)));
 
             final ComponentCache cache = services.newCache(true);
             if (componentInterfaces != null) {
                 for (final Class<?> api : componentInterfaces) {
-
-                    // bind a variant resolver to the component interface
-                    bindResolver(api, resolvers.variant(api, cache));
+                    bindResolver(api, local(resolvers.variant(api, cache)));
                 }
             }
 
             if (groupInterfaces != null) {
                 for (final Class<?> api : groupInterfaces) {
-                    bindGroup(api).add(resolvers.variant(api, cache));
+                    bindGroup(api).add(local(resolvers.variant(api, cache)));
                 }
             }
         } else if (resolvers.isCustomFactory()) {
-
-            // bind the factory to its class
-            bindResolver(implementation, resolvers.component(implementation, services.newCache(true), true));
+            bindResolver(implementation, local(resolvers.component(implementation, services.newCache(true), true)));
 
             final ComponentCache cache = services.newCache(true);
             if (componentInterfaces != null) {
                 for (final Class<?> api : componentInterfaces) {
-
-                    // bind a factory resolver to the component interface
-                    bindResolver(api, resolvers.factory(api, cache));
+                    bindResolver(api, local(resolvers.factory(api, cache)));
                 }
             }
 
             if (groupInterfaces != null) {
                 for (final Class<?> api : groupInterfaces) {
-                    bindGroup(api).add(resolvers.factory(api, cache));
+                    bindGroup(api).add(local(resolvers.factory(api, cache)));
                 }
             }
         } else {
@@ -165,12 +166,12 @@ final class SimpleContainerImpl implements ParentContainer {
 
             if (componentInterfaces != null) {
                 for (final Class<?> api : componentInterfaces) {
-                    bindResolver(api, resolvers.component(api, cache, false));
+                    bindResolver(api, local(resolvers.component(api, cache, false)));
                 }
             }
 
             if (groupInterfaces != null) {
-                final ComponentResolver resolver = resolvers.component(implementation, cache, false);
+                final ComponentResolver resolver = local(resolvers.component(implementation, cache, false));
 
                 for (final Class<?> api : groupInterfaces) {
                     bindGroup(api).add(resolver);
@@ -191,9 +192,7 @@ final class SimpleContainerImpl implements ParentContainer {
         final boolean isAnonymousClass = implementation.isAnonymousClass();
 
         if (isSyntheticClass || isAnonymousClass) {
-            throw new ComponentContainer.BindingException("Component %s is not instantiable (%s)",
-                                                          implementation,
-                                                          isSyntheticClass ? "synthetic" : "anonymous");
+            throw new ComponentContainer.BindingException("Component %s is not instantiable (%s)", implementation, isSyntheticClass ? "synthetic" : "anonymous");
         }
 
         final Component componentSpec = implementation.getAnnotation(Component.class);
@@ -202,23 +201,13 @@ final class SimpleContainerImpl implements ParentContainer {
 
         if (componentInterfaces != null) {
             for (final Class<?> api : componentInterfaces) {
-                log.info("%s: binding %s to %s (%s, %s)",
-                         this,
-                         api,
-                         implementation,
-                         isStateful ? "stateful" : "stateless",
-                         isFallback ? "fallback" : "primary");
+                log.info("%s: binding %s to %s (%s, %s)", this, api, implementation, isStateful ? "stateful" : "stateless", isFallback ? "fallback" : "primary");
             }
         }
 
         if (groupInterfaces != null) {
             for (final Class<?> api : groupInterfaces) {
-                log.info("%s: adding %s to group %s (%s, %s)",
-                         this,
-                         implementation,
-                         api,
-                         isStateful ? "stateful" : "stateless",
-                         isFallback ? "fallback" : "primary");
+                log.info("%s: adding %s to group %s (%s, %s)", this, implementation, api, isStateful ? "stateful" : "stateless", isFallback ? "fallback" : "primary");
             }
         }
 
@@ -502,6 +491,56 @@ final class SimpleContainerImpl implements ParentContainer {
 
         public Annotation[] annotations() {
             return componentClass.getAnnotations();
+        }
+    }
+
+    /**
+     * Keeps track of the last resolver being invoked in this container.
+     */
+    private class LocalResolver implements ComponentResolver {
+
+        private final ComponentResolver delegate;
+
+        public LocalResolver(final ComponentResolver delegate) {
+            this.delegate = delegate;
+        }
+
+        public Node resolve(final Traversal traversal, final SimpleContainer container, final ContextDefinition context) {
+            final ComponentResolver saved = resolved.get();
+            resolved.set(this);
+            try {
+                return delegate.resolve(traversal, container, context);
+            } finally {
+                resolved.set(saved);
+            }
+        }
+
+        public int priority() {
+            return delegate.priority();
+        }
+
+        public boolean isVariantMapping() {
+            return delegate.isVariantMapping();
+        }
+
+        public boolean isInstanceMapping() {
+            return delegate.isInstanceMapping();
+        }
+
+        public boolean replaces(final ComponentResolver another) {
+            return delegate.replaces(another);
+        }
+
+        public void resolverReplaced(final Class<?> api, final ComponentResolver previous, final ComponentResolver replacement) {
+            delegate.resolverReplaced(api, previous, replacement);
+        }
+
+        public Set<Class<? extends Annotation>> acceptedContext() {
+            return delegate.acceptedContext();
+        }
+
+        public Annotation[] annotations() {
+            return delegate.annotations();
         }
     }
 }

@@ -207,6 +207,13 @@ final class DependencyInjectorImpl implements DependencyInjector {
 
         assert mapping != null : declaringType;
         final Annotation[] typeContext = neverNull(mapping.annotations());
+        final Annotation[] dependencyContext = neverNull(dependency.annotations());
+
+        final Annotation[] definitions = new Annotation[typeContext.length + dependencyContext.length];
+        System.arraycopy(typeContext, 0, definitions, 0, typeContext.length);
+        System.arraycopy(dependencyContext, 0, definitions, typeContext.length, dependencyContext.length);
+
+        context.expand(definitions);
 
         if (componentGroup != null) {
             if (!dependencyType.isArray()) {
@@ -234,14 +241,6 @@ final class DependencyInjectorImpl implements DependencyInjector {
             // always reduce the context to what the component accepts to avoid leaking contextual information to the component that it may inadvertently use without explicitly declaring it as accepted
             dependency.set(new DependencyGraph.Node.Constant(ComponentContext.class, context.reduce(mapping.acceptedContext()).create(), null));
         } else {
-            final Annotation[] dependencyContext = neverNull(dependency.annotations());
-
-            final Annotation[] definitions = new Annotation[typeContext.length + dependencyContext.length];
-            System.arraycopy(typeContext, 0, definitions, 0, typeContext.length);
-            System.arraycopy(dependencyContext, 0, definitions, typeContext.length, dependencyContext.length);
-
-            context.expand(definitions);
-
             DependencyGraph.Node node = null;
 
             if (ComponentContainer.class.isAssignableFrom(dependencyType)) {

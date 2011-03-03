@@ -95,15 +95,17 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
 
         final List<ContextDefinition> copies = new ArrayList<ContextDefinition>();
 
-        int i = 0;
-        for (final Class<?> dependencyType : constructor.getParameterTypes()) {
+        final Class<?>[] parameterTypes = constructor.getParameterTypes();
+        final Annotation[][] annotations = constructor.getParameterAnnotations();
+        for (int i = 0, parameterTypesLength = parameterTypes.length; i < parameterTypesLength; i++) {
+            final Class<?> dependencyType = parameterTypes[i];
             copies.add(setupDependencyResolution(componentType,
                                                  dependencyType,
-                                                 dependencyType.getAnnotations(),
+                                                 annotations[i],
                                                  contextAnnotations,
                                                  createdContext,
                                                  containerAnnotations,
-                                                 components[i++]));
+                                                 components[i]));
         }
 
         return copies.toArray(new ContextDefinition[copies.size()]);
@@ -120,6 +122,18 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
 
         EasyMock.expect(context.copy()).andReturn(copy);
 
+        final Annotation[] componentContext = neverNull(componentType.getAnnotations());
+        final Annotation[] dependencyContext = neverNull(dependencyAnnotations);
+
+        final Context annotation = dependencyType.getAnnotation(Context.class);
+        final Set<Class<? extends Annotation>> acceptedContext = annotation == null ? null : new HashSet<Class<? extends Annotation>>(Arrays.asList(annotation.value()));
+
+        final Annotation[] definitions = new Annotation[componentContext.length + dependencyContext.length];
+        System.arraycopy(componentContext, 0, definitions, 0, componentContext.length);
+        System.arraycopy(dependencyContext, 0, definitions, componentContext.length, dependencyContext.length);
+
+        EasyMock.expect(copy.expand(EasyMock.aryEq(definitions))).andReturn(copy);
+
         if (dependencyType.isArray()) {
             assert component == null || component.getClass().isArray() : component.getClass();
             final Object[] services = (Object[]) component;
@@ -132,18 +146,6 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
 
             EasyMock.expect(copy.create()).andReturn(createdContext);
         } else {
-            final Annotation[] componentContext = neverNull(componentType.getAnnotations());
-            final Annotation[] dependencyContext = neverNull(dependencyAnnotations);
-
-            final Context annotation = dependencyType.getAnnotation(Context.class);
-            final Set<Class<? extends Annotation>> acceptedContext = annotation == null ? null : new HashSet<Class<? extends Annotation>>(Arrays.asList(annotation.value()));
-
-            final Annotation[] definitions = new Annotation[componentContext.length + dependencyContext.length];
-            System.arraycopy(componentContext, 0, definitions, 0, componentContext.length);
-            System.arraycopy(dependencyContext, 0, definitions, componentContext.length, dependencyContext.length);
-
-            EasyMock.expect(copy.expand(EasyMock.aryEq(definitions))).andReturn(copy);
-
             if (dependencyType == ComponentContainer.class) {
                 EasyMock.expect(mapping.annotations()).andReturn(containerAnnotations).anyTimes();
                 EasyMock.expect(resolver.container(copy)).andReturn(container);
@@ -172,14 +174,10 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
         final Dependency dependency = new DependencyImpl();
         final ContextDefinition copy1 = setupFieldResolution(FieldInjected.class, "dependency", dependency, null, null, null);
 
-        final ContextDefinition copy2 = addLocalControl(ContextDefinition.class);
-        EasyMock.expect(context.copy()).andReturn(copy2);
-
         final ServiceImpl1 service1 = new ServiceImpl1();
         final ServiceImpl2 service2 = new ServiceImpl2();
-
-        EasyMock.expect(resolver.resolveGroup(Service.class, copy2, traversal))
-                .andReturn(new DependencyGraph.Node.Constant(Service[].class, new Service[] { service1, service2 }, null));
+        final Service[] services = { service1, service2 };
+        final ContextDefinition copy2 = setupFieldResolution(FieldInjected.class, "services", services, null, null, null);
 
         setupCollection(context, copy1, copy2);
 

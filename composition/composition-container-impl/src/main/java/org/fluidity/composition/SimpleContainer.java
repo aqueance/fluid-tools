@@ -54,6 +54,13 @@ interface SimpleContainer extends DependencyResolver {
     SimpleContainer newChildContainer();
 
     /**
+     * Returns the currently active resolver in this container.
+     *
+     * @return the currently active resolver in this container.
+     */
+    ComponentResolver resolved();
+
+    /**
      * Finds the component mapping for the given component interface.
      *
      * @param api    the component interface to find the mapping for.
@@ -111,7 +118,8 @@ interface SimpleContainer extends DependencyResolver {
      * @throws ComponentContainer.BindingException
      *          when binding fails.
      */
-    SimpleContainer linkComponent(Class<?> implementation, Class<?>[] componentInterfaces, Class<?>[] groupInterfaces) throws ComponentContainer.BindingException;
+    SimpleContainer linkComponent(Class<?> implementation, Class<?>[] componentInterfaces, Class<?>[] groupInterfaces)
+            throws ComponentContainer.BindingException;
 
     /**
      * Injects the {@link Component} annotated fields of the given component instance.

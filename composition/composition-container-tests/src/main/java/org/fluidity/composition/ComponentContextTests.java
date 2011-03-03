@@ -215,6 +215,62 @@ public final class ComponentContextTests extends AbstractContainerTests {
         assert "setting-3".equals(setting3.value()) : setting3.value();
     }
 
+    @ComponentGroup
+    public static interface GroupApi {
+    }
+
+    private static class GroupMember1 implements GroupApi {}
+
+    @SuppressWarnings("UnusedDeclaration")
+    @Context(Setting1.class)
+    private static class GroupMember2 implements GroupApi {
+        public final String setting;
+
+        private GroupMember2(final ComponentContext context) {
+            final Setting1 annotation = context.annotation(Setting1.class, null);
+            setting = annotation == null ? null : annotation.value();
+        }
+    }
+
+    private static class GroupMember3 implements GroupApi {}
+
+    @Setting1("context-1")
+    public static class GroupDependent1 {
+
+        public GroupDependent1(final @ComponentGroup GroupApi[] group) {
+            assert group.length == 3;
+
+            for (final GroupApi member : group) {
+                if (member instanceof GroupMember2) {
+                    assert "context-1".equals(((GroupMember2) member).setting) : ((GroupMember2) member).setting;
+                }
+            }
+        }
+    }
+
+    public static class GroupDependent2 {
+
+        public GroupDependent2(final @Setting1("context-2") @ComponentGroup GroupApi[] group) {
+            assert group.length == 3;
+
+            for (final GroupApi member : group) {
+                if (member instanceof GroupMember2) {
+                    assert "context-2".equals(((GroupMember2) member).setting) : ((GroupMember2) member).setting;
+                }
+            }
+        }
+    }
+
+    @Test
+    public void testGroupMembers() throws Exception {
+        registry.bindGroup(GroupApi.class, GroupMember1.class, GroupMember2.class, GroupMember3.class);
+        registry.bindComponent(GroupDependent1.class);
+        registry.bindComponent(GroupDependent2.class);
+
+        assert container.getComponent(GroupDependent1.class) != null;
+        assert container.getComponent(GroupDependent2.class) != null;
+    }
+
     private static interface ContextAware {
 
         String setting();
@@ -476,6 +532,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
         public ContextConsumer2 consumer;
     }
 
+    @SuppressWarnings("UnusedDeclaration")
     @Context({Setting1.class, Setting2.class})
     private static class ContextConsumer1 {
 
@@ -487,6 +544,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
         }
     }
 
+    @SuppressWarnings("UnusedDeclaration")
     @Context({Setting1.class, Setting3.class})
     private static class ContextConsumer2 {
 
