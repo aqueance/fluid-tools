@@ -118,7 +118,7 @@ final class GroupResolver {
                                                 assert next != null : type;
 
                                                 try {
-                                                    instantiated.put(next, next.instance());    // TODO: see if we can avoid instantiating again
+                                                    instantiated.put(next, next.instance());    // cached instance if stateless, new instance if stateful
                                                 } catch (final ConcurrentModificationException e) {
                                                     throw new ComponentContainer.ResolutionException( "Set of dynamic dependencies of %s changed from one instance to the next", type);
                                                 }

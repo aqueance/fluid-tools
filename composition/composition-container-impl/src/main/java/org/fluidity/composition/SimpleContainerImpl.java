@@ -44,7 +44,10 @@ import org.fluidity.foundation.spi.LogFactory;
  */
 final class SimpleContainerImpl implements ParentContainer {
 
+    // allows traversal path to propagate between containers
     private static final ThreadLocal<DependencyGraph.Traversal> traversal = new InheritableThreadLocal<DependencyGraph.Traversal>();
+
+    // allows per container maintenance of current resolver
     private static final ThreadLocal<ComponentResolver> resolved = new InheritableThreadLocal<ComponentResolver>();
 
     private final ContainerServices services;
