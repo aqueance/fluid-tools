@@ -26,6 +26,8 @@ import java.util.List;
 
 /**
  * Interface to separate internal container methods from the higher level container interface.
+ *
+ * @author Tibor Varga
  */
 interface ParentContainer extends SimpleContainer {
 

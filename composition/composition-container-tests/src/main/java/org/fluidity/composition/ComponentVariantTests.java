@@ -29,9 +29,11 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -115,10 +117,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
             for (final Class<? extends Annotation> key : against.types()) {
                 final Annotation[] value = check.annotations(key);
                 assert value != null : String.format("Context %s not found", key);
-                assert Arrays.equals(value, against.annotations(key)) : String.format("Context %s expected %s, got %s",
-                                                                                      key,
-                                                                                      Arrays.asList(value),
-                                                                                      Arrays.asList(against.annotations(key)));
+                assert Arrays.equals(value, against.annotations(key)) : String.format("Context %s expected %s, got %s", key, Arrays.asList(value), Arrays.asList(against.annotations(key)));
             }
         }
     }
@@ -395,9 +394,106 @@ public final class ComponentVariantTests extends AbstractContainerTests {
         assert !component.dependency.context().defines(Setting2.class) : Setting2.class;
     }
 
+    @Test
+    public void testGroupMembersOrder1() throws Exception {
+        registry.bindComponent(GroupMember1.class);
+        registry.bindComponent(GroupMember2.class);
+        registry.bindComponent(GroupMember3.class);
+        registry.bindComponent(GroupMember2Variants.class);
+        groupMemberChecks(Arrays.asList(GroupMember1.class, GroupMember2.class, GroupMember3.class));
+    }
+
+    @Test
+    public void testGroupMembersOrder2() throws Exception {
+        registry.bindComponent(GroupMember2Variants.class);
+        registry.bindComponent(GroupMember1.class);
+        registry.bindComponent(GroupMember2.class);
+        registry.bindComponent(GroupMember3.class);
+        groupMemberChecks(Arrays.asList(GroupMember2.class, GroupMember1.class, GroupMember3.class));
+    }
+
+    private void groupMemberChecks(final List<Class<? extends GroupApi>> expected) throws NoSuchMethodException {
+        registry.bindComponent(GroupDependent1.class);
+        registry.bindComponent(GroupDependent2.class);
+
+        final GroupDependent1 dependent1 = container.getComponent(GroupDependent1.class);
+        final GroupDependent2 dependent2 = container.getComponent(GroupDependent2.class);
+
+        assert dependent1 != null;
+        assert dependent2 != null;
+
+        final List<Class<? extends GroupApi>> group1 = new ArrayList<Class<? extends GroupApi>>();
+        final List<Class<? extends GroupApi>> group2 = new ArrayList<Class<? extends GroupApi>>();
+
+        for (final GroupApi member : dependent1.group) {
+            group1.add(member.getClass());
+
+            if (member instanceof GroupMember2) {
+                assert GroupDependent1.class.getAnnotation(Setting1.class).value().equals(((GroupMember2) member).setting) : ((GroupMember2) member).setting;
+            }
+        }
+
+        for (final GroupApi member : dependent2.group) {
+            group2.add(member.getClass());
+
+            if (member instanceof GroupMember2) {
+                assert ((Setting1) GroupDependent2.class.getConstructor(GroupApi[].class).getParameterAnnotations()[0][0]).value().equals(((GroupMember2) member).setting) : ((GroupMember2) member).setting;
+            }
+        }
+
+        assert expected.equals(group1) : group1;
+        assert expected.equals(group2) : group2;
+    }
+
+    @ComponentGroup
+    public static interface GroupApi {
+    }
+
+    private static class GroupMember1 implements GroupApi {}
+
+    @Context(Setting1.class)
+    @Component(api = GroupMember2.class)
+    private static class GroupMember2Variants implements ComponentVariantFactory {
+
+        public void newComponent(final OpenComponentContainer container, final ComponentContext context) throws ComponentContainer.ResolutionException {
+            final Setting1 annotation = context.annotation(Setting1.class, null);
+            container.getRegistry().bindInstance(annotation == null ? null : annotation.value());
+        }
+    }
+
+    private static class GroupMember2 implements GroupApi {
+        public final String setting;
+
+        public GroupMember2(final String setting) {
+            this.setting = setting;
+        }
+    }
+
+    private static class GroupMember3 implements GroupApi {}
+
+    @Setting1("context-1")
+    private static class GroupDependent1 {
+
+        public final List<GroupApi> group;
+
+        public GroupDependent1(final @ComponentGroup GroupApi[] group) {
+            this.group = Arrays.asList(group);
+        }
+    }
+
+    public static class GroupDependent2 {
+
+        public final List<GroupApi> group;
+
+        public GroupDependent2(final @Setting1("context-2") @ComponentGroup GroupApi[] group) {
+            this.group = Arrays.asList(group);
+        }
+    }
+
     /**
      * This is intentionally private - makes sure the container is able to instantiate non-public classes
      */
+    @Component
     @Context(Setting1.class)
     private static class ContextDependentValue extends DependentValue {
 
@@ -461,6 +557,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
         }
     }
 
+    @Component
     private static class ContextProvider0 extends ContextProvider {
 
         public ContextProvider0(final DependentKey dependency) {
@@ -470,6 +567,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
 
     @Setting1("value11")
     @Setting2("value12")
+    @Component
     private static class ContextProvider1 extends ContextProvider {
 
         public ContextProvider1(final DependentKey dependency) {
@@ -479,6 +577,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
 
     @Setting1("value21")
     @Setting2("value22")
+    @Component
     private static class ContextProvider2 extends ContextProvider {
 
         public ContextProvider2(final DependentKey dependency) {
@@ -554,6 +653,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
     @Setting1("value1")
     @Setting2("value2")
     @Context(Setting1.class)
+    @Component
     public static class ContextConsumer {
 
         public ContextOblivious dependency;
@@ -563,6 +663,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
         }
     }
 
+    @Component
     public static class ContextOblivious {
 
     }
@@ -572,6 +673,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
         Configuration configuration();
     }
 
+    @Component
     public static class ConfiguredComponentImpl implements ConfiguredComponent {
         private final Configuration configuration;
 

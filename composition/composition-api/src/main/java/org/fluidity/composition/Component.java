@@ -29,7 +29,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * In case of simple interface to implementation mapping, this annotation can be used to specify at the implementation class what interface it should be bound
+ * In case of simple interface to implementation mapping, this annotation can be used to specify at the implementation class what interfaces it should be bound
  * to. The org.fluidity.maven:maven-composition-plugin Maven plugin will generate the necessary {@link org.fluidity.composition.spi.PackageBindings} object
  * unless {@link #automatic()} is set to <code>false</code>, and will create the appropriate service provider descriptor file even if you manually supply the
  * bindings by implementing the {@link org.fluidity.composition.spi.EmptyPackageBindings} class.

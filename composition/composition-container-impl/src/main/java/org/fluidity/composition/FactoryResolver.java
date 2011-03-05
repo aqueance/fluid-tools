@@ -56,6 +56,11 @@ abstract class FactoryResolver extends AbstractResolver {
         this.factoryClass = factoryClass;
     }
 
+    @Override
+    public boolean isFactoryMapping() {
+        return true;
+    }
+
     public Set<Class<? extends Annotation>> acceptedContext() {
         return AbstractResolver.acceptedContext(factoryClass);
     }

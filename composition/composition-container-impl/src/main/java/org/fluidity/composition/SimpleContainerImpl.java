@@ -25,7 +25,6 @@ package org.fluidity.composition;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -89,16 +88,16 @@ final class SimpleContainerImpl implements ParentContainer {
         return resolved.get();
     }
 
-    public void bindResolver(final Class<?> api, final ComponentResolver entry) {
+    public void bindResolver(final Class<?> api, final ComponentResolver resolver) {
         synchronized (components) {
-            final ComponentResolver resolver = components.get(api);
+            final ComponentResolver previous = components.get(api);
 
-            if (resolver == null) {
-                replace(api, null, entry);
-            } else if (resolver.isVariantMapping() && resolver.replaces(entry)) {
-                replace(api, entry, resolver);
-            } else if (entry.replaces(resolver)) {
-                replace(api, resolver, entry);
+            if (previous == null) {
+                replace(api, null, resolver);
+            } else if (previous.isVariantMapping() && previous.replaces(resolver)) {
+                replace(api, resolver, previous);
+            } else if (resolver.replaces(previous)) {
+                replace(api, previous, resolver);
             }
         }
     }
@@ -145,8 +144,12 @@ final class SimpleContainerImpl implements ParentContainer {
             }
 
             if (groupInterfaces != null) {
+                assert componentInterfaces != null : implementation;
+
                 for (final Class<?> api : groupInterfaces) {
-                    bindGroup(api).add(local(resolvers.variant(api, cache)));
+                    for (final Class<?> component : componentInterfaces) {
+                        bindGroup(api).addResolver(component, resolver(component, false));
+                    }
                 }
             }
         } else if (resolvers.isCustomFactory()) {
@@ -160,24 +163,27 @@ final class SimpleContainerImpl implements ParentContainer {
             }
 
             if (groupInterfaces != null) {
+                assert componentInterfaces != null : implementation;
+
                 for (final Class<?> api : groupInterfaces) {
-                    bindGroup(api).add(local(resolvers.factory(api, cache)));
+                    for (final Class<?> component : componentInterfaces) {
+                        bindGroup(api).addResolver(component, resolver(component, false));
+                    }
                 }
             }
         } else {
             final ComponentCache cache = services.newCache(!stateful);
+            if (componentInterfaces == null || componentInterfaces.length == 0) {
+                throw new ComponentContainer.BindingException("Component interface list empty for %s", implementation);
+            }
 
-            if (componentInterfaces != null) {
-                for (final Class<?> api : componentInterfaces) {
-                    bindResolver(api, local(resolvers.component(api, cache, false)));
-                }
+            for (final Class<?> api : componentInterfaces) {
+                bindResolver(api, local(resolvers.component(api, cache, false)));
             }
 
             if (groupInterfaces != null) {
-                final ComponentResolver resolver = local(resolvers.component(implementation, cache, false));
-
                 for (final Class<?> api : groupInterfaces) {
-                    bindGroup(api).add(resolver);
+                    bindGroup(api).addResolver(implementation, resolver(implementation, false));
                 }
             }
         }
@@ -185,7 +191,7 @@ final class SimpleContainerImpl implements ParentContainer {
 
     public void bindComponent(final Class<?> implementation, final Class<?>[] componentInterfaces, final Class<?>[] groupInterfaces) {
         if (implementation == null) {
-            throw new ComponentContainer.BindingException("Component class for %s is null", Arrays.toString(componentInterfaces));
+            throw new ComponentContainer.BindingException("Component class for %s is null", print(null, componentInterfaces));
         }
 
         /*
@@ -203,15 +209,11 @@ final class SimpleContainerImpl implements ParentContainer {
         final boolean isFallback = componentSpec != null && !componentSpec.primary();
 
         if (componentInterfaces != null) {
-            for (final Class<?> api : componentInterfaces) {
-                log.info("%s: binding %s to %s (%s, %s)", this, api, implementation, isStateful ? "stateful" : "stateless", isFallback ? "fallback" : "primary");
-            }
+            log.info("%s: binding %s to %s (%s, %s)", this, implementation, print(implementation, componentInterfaces), isStateful ? "stateful" : "stateless", isFallback ? "fallback" : "primary");
         }
 
         if (groupInterfaces != null) {
-            for (final Class<?> api : groupInterfaces) {
-                log.info("%s: adding %s to group %s (%s, %s)", this, implementation, api, isStateful ? "stateful" : "stateless", isFallback ? "fallback" : "primary");
-            }
+            log.info("%s: adding %s to group %s (%s, %s)", this, implementation, print(null, groupInterfaces), isStateful ? "stateful" : "stateless", isFallback ? "fallback" : "primary");
         }
 
         bindResolvers(implementation, componentInterfaces, groupInterfaces, isStateful, new ContentResolvers() {
@@ -241,7 +243,7 @@ final class SimpleContainerImpl implements ParentContainer {
 
     public void bindInstance(final Object instance, final Class<?>[] componentInterfaces, final Class<?>[] groupInterfaces) {
         if (instance == null) {
-            throw new ComponentContainer.BindingException("Component instance for %s is null", Arrays.toString(componentInterfaces));
+            throw new ComponentContainer.BindingException("Component instance for %s is null", print(null, componentInterfaces));
         }
 
         final Class<?> implementation = instance.getClass();
@@ -253,15 +255,11 @@ final class SimpleContainerImpl implements ParentContainer {
                              : ("instance of " + Strings.arrayNotation(implementation));
 
         if (componentInterfaces != null) {
-            for (final Class<?> api : componentInterfaces) {
-                log.info("%s: binding %s to '%s' (%s)", this, Strings.arrayNotation(api), value, isFallback ? "fallback" : "primary");
-            }
+            log.info("%s: binding '%s' to %s (%s)", this, value, print(implementation, componentInterfaces), isFallback ? "fallback" : "primary");
         }
 
         if (groupInterfaces != null) {
-            for (final Class<?> api : groupInterfaces) {
-                log.info("%s: adding '%s' to group %s (%s)", this, value, Strings.arrayNotation(api), isFallback ? "fallback" : "primary");
-            }
+            log.info("%s: adding '%s' to group %s (%s)", this, value, print(null, groupInterfaces), isFallback ? "fallback" : "primary");
         }
 
         bindResolvers(implementation, componentInterfaces, groupInterfaces, false, new ContentResolvers() {
@@ -287,6 +285,24 @@ final class SimpleContainerImpl implements ParentContainer {
                 return new FactoryResolverInstance(isFallback ? 0 : 1, api, (ComponentFactory) instance, cache, logs);
             }
         });
+    }
+
+    private String print(final Class<?> self, final Class<?>[] classes) {
+        final StringBuilder text = new StringBuilder();
+
+        boolean multiple = false;
+        for (final Class<?> type : classes) {
+            if (type != self) {
+                if (text.length() > 0) {
+                    text.append(", ");
+                    multiple = true;
+                }
+
+                text.append(Strings.arrayNotation(type));
+            }
+        }
+
+        return (multiple ? text.insert(0, '[').append(']') : text).toString();
     }
 
     public SimpleContainer linkComponent(final Class<?> implementation, final Class<?>[] componentInterfaces, final Class<?>[] groupInterfaces)
@@ -526,6 +542,10 @@ final class SimpleContainerImpl implements ParentContainer {
             return delegate.isVariantMapping();
         }
 
+        public boolean isFactoryMapping() {
+            return delegate.isFactoryMapping();
+        }
+
         public boolean isInstanceMapping() {
             return delegate.isInstanceMapping();
         }
@@ -538,12 +558,31 @@ final class SimpleContainerImpl implements ParentContainer {
             delegate.resolverReplaced(api, previous, replacement);
         }
 
+        public ComponentResolver unlink() {
+            return delegate;
+        }
+
         public Set<Class<? extends Annotation>> acceptedContext() {
             return delegate.acceptedContext();
         }
 
         public Annotation[] annotations() {
             return delegate.annotations();
+        }
+
+        @Override
+        public boolean equals(final Object obj) {
+            return delegate.equals(obj instanceof LocalResolver ? ((LocalResolver) obj).delegate : obj);
+        }
+
+        @Override
+        public int hashCode() {
+            return delegate.hashCode();
+        }
+
+        @Override
+        public String toString() {
+            return delegate.toString();
         }
     }
 }

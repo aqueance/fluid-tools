@@ -186,7 +186,11 @@ public interface ComponentContainer {
          * <li>If the class implements no interfaces and its super class is not {@link Object} then this algorithm is run from the beginning through the
          * super class.</li>
          * <li>If the class directly implements one or more interfaces then the component will be bound to all of those interfaces.
+         * <li>If the class will <b>not</b> be bound to any of the group interfaces it implements, directly or indirectly.
          * </ol>
+         * <p/>
+         * <b>Note</b>: the above algorithm is employed only when the @{@link Component} annotation is present. In cases when that annotation is not present,
+         * the component is bound to its class.
          * <p/>
          * Two special cases must be handled by the receiver: when <code>implementation</code> is either a {@link
          * org.fluidity.composition.spi.ComponentFactory}
@@ -209,6 +213,8 @@ public interface ComponentContainer {
          * The supplied component instance may be a {@link org.fluidity.composition.spi.ComponentFactory} or a {@link
          * org.fluidity.composition.spi.ComponentVariantFactory} instance, in which case the receiver must support their respective functionality as described
          * in their documentation and at {@link #bindComponent(Class)}.
+         * <p/>
+         * See {@link #bindComponent(Class)} for a description of the algorithm use to discover the interfaces the component will be bound to.
          *
          * @param instance the component instance.
          *
@@ -216,17 +222,6 @@ public interface ComponentContainer {
          *          when the binding cannot be performed
          */
         <T> void bindInstance(T instance) throws BindingException;
-
-        /**
-         * Binds a list of components to a component group.
-         *
-         * @param api             the group interface to bind the components against.
-         * @param implementations the components to bind against the group interface.
-         *
-         * @throws ComponentContainer.BindingException
-         *          when the binding cannot be performed
-         */
-        <T> void bindGroup(Class<T> api, Class<? extends T>... implementations) throws BindingException;
 
         /**
          * Binds a component class to the given component interfaces.

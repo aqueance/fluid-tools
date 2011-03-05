@@ -43,7 +43,7 @@ import org.fluidity.composition.spi.DependencyPath;
  */
 final class GroupResolver {
 
-    private Set<ComponentResolver> members = new LinkedHashSet<ComponentResolver>();
+    private final Map<Class<?>, ComponentResolver> members = new LinkedHashMap<Class<?>, ComponentResolver>();
     private volatile Set<ComponentResolver> sorted;
 
     public static interface Node {
@@ -155,9 +155,9 @@ final class GroupResolver {
 
     // returns node ordered according to the static dependencies among the group members
     private Map<DependencyGraph.Node, ComponentResolver> staticResolution(final Class<?> api,
-                                                        final DependencyGraph.Traversal traversal,
-                                                        final SimpleContainer container,
-                                                        final ContextDefinition context) {
+                                                                          final DependencyGraph.Traversal traversal,
+                                                                          final SimpleContainer container,
+                                                                          final ContextDefinition context) {
         final Map<DependencyGraph.Node, ComponentResolver> list = new LinkedHashMap<DependencyGraph.Node, ComponentResolver>();
         final Map<Class<?>, ComponentResolver> resolvers = new HashMap<Class<?>, ComponentResolver>();
 
@@ -178,11 +178,18 @@ final class GroupResolver {
             }
         });
 
-        // resolves each member and fills the node type to node mapping
-        for (final ComponentResolver member : members) {
-            final DependencyGraph.Node node = member.resolve(observed, container, context);
+        // resolves each member and fills the node type to node mapping while maintaining the context
+        final List<ContextDefinition> consumed = new ArrayList<ContextDefinition>();
+        for (final ComponentResolver member : members.values()) {
+            final ContextDefinition copy = context.copy();
+
+            final DependencyGraph.Node node = member.resolve(observed, container, copy.reduce(member.acceptedContext()));
             map.put(node.type(), node);
+
+            consumed.add(copy);
         }
+
+        context.collect(consumed);
 
         // fill the list of nodes in reference order
         for (final Class<?> type : sequence) {
@@ -197,7 +204,35 @@ final class GroupResolver {
         return list;
     }
 
-    public void add(final ComponentResolver resolver) {
-        members.add(resolver);
+    public void addResolver(final Class<?> api, final ComponentResolver entry) {
+        assert entry != null : api;
+
+        synchronized (members) {
+            final ComponentResolver resolver = members.get(api);
+
+            if (resolver == null) {
+                replace(api, null, entry);
+            } else if (resolver.isVariantMapping() && resolver.replaces(entry)) {
+                replace(api, entry, resolver);
+            } else if (entry.isVariantMapping() && entry.replaces(resolver)) {
+                replace(api, resolver, entry);
+            } else if (entry.replaces(resolver)) {
+                replace(api, resolver, entry);
+            }
+        }
+    }
+
+    public void replace(final Class<?> key, final ComponentResolver previous, final ComponentResolver replacement) {
+        if (members.get(key) == previous) {
+            replaceResolver(key, previous, replacement);
+        }
+
+        members.put(key, replacement);
+    }
+
+    public void replaceResolver(final Class<?> key, final ComponentResolver previous, final ComponentResolver replacement) {
+        for (final ComponentResolver resolver : members.values()) {
+            resolver.resolverReplaced(key, previous, replacement);
+        }
     }
 }

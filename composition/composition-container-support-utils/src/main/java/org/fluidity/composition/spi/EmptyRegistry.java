@@ -23,9 +23,9 @@
 package org.fluidity.composition.spi;
 
 import java.lang.annotation.Inherited;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
@@ -48,57 +48,139 @@ final class EmptyRegistry implements ComponentContainer.Registry {
     }
 
     public final <T> void bindComponent(final Class<T> implementation) throws ComponentContainer.BindingException {
-        final Class<?>[] groups = groups(implementation);
-        delegate.bindComponent(implementation, interfaces(implementation, groups != null && groups.length > 0), groups);
+        final Class<?>[] types = reference(implementation);
+        final Class<?>[] groups = groups(types);
+        final Class<?>[] interfaces = interfaces(types, groups);
+        delegate.bindComponent(implementation, interfaces, groups);
     }
 
-    public final <T> void bindComponent(final Class<T> implementation, final Class<? super T>... interfaces) throws ComponentContainer.BindingException {
-        delegate.bindComponent(implementation, interfaces, groups(implementation));
+    public final <T> void bindComponent(final Class<T> implementation, final Class<? super T>... classes) throws ComponentContainer.BindingException {
+        final Class<?>[] groups = groups(reference(implementation));
+        final Class<?>[] interfaces = interfaces(implementation, classes, groups);
+        delegate.bindComponent(implementation, interfaces, groups);
     }
 
     @SuppressWarnings("unchecked")
     public final <T> void bindInstance(final T instance) throws ComponentContainer.BindingException {
+        assert instance != null;
         final Class<?> implementation = instance.getClass();
-        final Class<?>[] groups = groups(implementation);
-        delegate.bindInstance(instance, interfaces(implementation, groups != null && groups.length > 0), groups);
+        final Class<?>[] types = reference(implementation);
+        final Class<?>[] groups = groups(types);
+        final Class<?>[] interfaces = interfaces(types, groups);
+        delegate.bindInstance(instance, interfaces, groups);
     }
 
     @SuppressWarnings("unchecked")
-    public final <T> void bindInstance(final T instance, final Class<? super T>... interfaces) throws ComponentContainer.BindingException {
-        delegate.bindInstance(instance, interfaces, groups(instance.getClass()));
+    public final <T> void bindInstance(final T instance, final Class<? super T>... classes) throws ComponentContainer.BindingException {
+        assert instance != null;
+        final Class<?> implementation = instance.getClass();
+        final Class<?>[] groups = groups(reference(implementation));
+        final Class<?>[] interfaces = interfaces(isFactory(implementation) ? null : implementation, classes, groups);
+        delegate.bindInstance(instance, interfaces, groups);
     }
 
-    public final void bindFactory(final Class<?> factory, final Class<?>... interfaces) throws ComponentContainer.BindingException {
-        delegate.bindComponent(factory, interfaces, groups(factory));
-    }
-
-    public <T> void bindGroup(final Class<T> api, final Class<? extends T>... implementations) throws ComponentContainer.BindingException {
-        for (final Class<? extends T> implementation : implementations) {
-            delegate.bindComponent(implementation, null, new Class<?>[] { api });
-        }
+    public final void bindFactory(final Class<?> factory, final Class<?>... classes) throws ComponentContainer.BindingException {
+        final Class<?>[] groups = groups(reference(factory));
+        final Class<?>[] interfaces = interfaces(null, classes, groups);
+        delegate.bindComponent(factory, interfaces, groups);
     }
 
     @SuppressWarnings("unchecked")
     public final <T> OpenComponentContainer makeChildContainer(final Class<T> implementation) throws ComponentContainer.BindingException {
-        final Class<?>[] groups = groups(implementation);
-        return delegate.makeChildContainer(implementation, interfaces(implementation, groups != null && groups.length > 0), groups);
+        final Class<?>[] types = reference(implementation);
+        final Class<?>[] groups = groups(types);
+        final Class<?>[] interfaces = interfaces(types, groups);
+        return delegate.makeChildContainer(implementation, interfaces, groups);
     }
 
-    public final <T> OpenComponentContainer makeChildContainer(final Class<T> implementation, final Class<? super T>... interfaces) {
-        return delegate.makeChildContainer(implementation, interfaces, groups(implementation));
+    public final <T> OpenComponentContainer makeChildContainer(final Class<T> implementation, final Class<? super T>... classes) {
+        final Class<?>[] groups = groups(reference(implementation));
+        final Class<?>[] interfaces = interfaces(implementation, classes, groups);
+        return delegate.makeChildContainer(implementation, interfaces, groups);
+    }
+
+    private Class<?>[] reference(final Class<?> implementation) {
+        return isFactory(implementation) ? delegate(implementation) : new Class<?>[] { implementation };
+    }
+
+    private Class<?>[] groups(final Class<?>[] types) {
+        final Set<Class<?>> list = new LinkedHashSet<Class<?>>();
+
+        for (final Class<?> type : types) {
+            final Class<?>[] groups = groups(type);
+
+            if (groups != null) {
+                list.addAll(Arrays.asList(groups));
+            }
+        }
+
+        return list.isEmpty() ? null : list.toArray(new Class<?>[list.size()]);
+    }
+
+    private Class<?>[] interfaces(final Class<?>[] types, final Class<?>[] groups) {
+        final Set<Class<?>> list = new LinkedHashSet<Class<?>>();
+
+        for (final Class<?> type : types) {
+            list.add(type);
+
+            final Class<?>[] interfaces = interfaces(type);
+
+            if (interfaces != null) {
+                list.addAll(Arrays.asList(interfaces));
+            }
+        }
+
+        if (groups != null) {
+            list.removeAll(Arrays.asList(groups));
+        }
+
+        return list.toArray(new Class<?>[list.size()]);
+    }
+
+    private Class<?>[] interfaces(final Class<?> implementation, final Class<?>[] interfaces, final Class<?>[] groups) {
+        final Set<Class<?>> types = new LinkedHashSet<Class<?>>();
+
+        if (implementation != null) {
+            types.add(implementation);
+        }
+
+        types.addAll(Arrays.asList(interfaces));
+
+        if (groups != null) {
+            types.removeAll(Arrays.asList(groups));
+        }
+
+        return types.toArray(new Class<?>[types.size()]);
+    }
+
+    private boolean isFactory(final Class<?> implementation) {
+        return ComponentFactory.class.isAssignableFrom(implementation) || ComponentVariantFactory.class.isAssignableFrom(implementation);
+    }
+
+    private Class<?>[] delegate(final Class<?> implementation) {
+        final Component annotation = implementation.getAnnotation(Component.class);
+        final Class<?>[] api = annotation == null ? null : annotation.api();
+
+        if (api != null) {
+            for (final Class<?> type : api) {
+                if (isFactory(type)) {
+                    throw new ComponentContainer.BindingException("Factory %s cannot stand for another factory %s", implementation, type);
+                }
+            }
+        }
+
+        return api == null ? new Class<?>[0] : api;
     }
 
     /**
      * Returns the configured component interfaces for the given component class.
      *
      * @param implementation the component class.
-     * @param group          tells if the component has or inherits a group annotation.
-     *
      * @return the list of interfaces configured for the component.
      */
-    private Class<?>[] interfaces(final Class<?> implementation, final boolean group) {
+    private Class<?>[] interfaces(final Class<?> implementation) {
         final Component component = implementation.getAnnotation(Component.class);
-        return component == null && group ? null : interfaces(!group, implementation, component == null ? null : component.api());
+        return component == null ? null : interfaces(implementation, component.api());
     }
 
     /**
@@ -109,27 +191,23 @@ final class EmptyRegistry implements ComponentContainer.Registry {
      * @return the list of group interfaces configured for the component.
      */
     private Class<?>[] groups(final Class<?> implementation) {
-        final Component component = implementation.getAnnotation(Component.class);
-        final List<Class<?>> groups = groupInterfaces(implementation);
-        return groups.isEmpty() ? null : interfaces(component == null, implementation, groups.toArray(new Class[groups.size()]));
+        final Set<Class<?>> groups = groupInterfaces(implementation);
+        return groups.isEmpty() ? null : interfaces(implementation, groups.toArray(new Class[groups.size()]));
     }
 
     /**
      * Finds the possible single API that the given component class should be bound against.
      *
-     * @param discover       specifies whether suitable interfaces should be found if none are specified.
      * @param implementation the component class.
      * @param specified      the list of interfaces specified for the component. Discovery is performed if empty or <code>null</code>.
      *
      * @return an array of class objects, never <code>null</code>. When no suitable interface is found, the implementation class itself is returned.
      */
-    private Class<?>[] interfaces(final boolean discover, final Class<?> implementation, final Class<?>... specified) {
-        if ((specified != null && specified.length > 0) || !discover) {
-            if (specified != null && !ComponentFactory.class.isAssignableFrom(implementation) && !ComponentVariantFactory.class.isAssignableFrom(implementation)) {
-                for (final Class<?> api : specified) {
-                    if (!api.isAssignableFrom(implementation)) {
-                        throw new ComponentContainer.BindingException("%s is not assignable to %s", implementation, api);
-                    }
+    private Class<?>[] interfaces(final Class<?> implementation, final Class<?>... specified) {
+        if ((specified != null && specified.length > 0)) {
+            for (final Class<?> api : specified) {
+                if (!api.isAssignableFrom(implementation)) {
+                    throw new ComponentContainer.BindingException("%s is not assignable to %s", implementation, api);
                 }
             }
 
@@ -140,13 +218,13 @@ final class EmptyRegistry implements ComponentContainer.Registry {
         return implemented == null ? new Class[] { implementation } : implemented;
     }
 
-    private List<Class<?>> groupInterfaces(final Class<?> current) {
-        final List<Class<?>> list = new ArrayList<Class<?>>();
+    private Set<Class<?>> groupInterfaces(final Class<?> current) {
+        final Set<Class<?>> list = new LinkedHashSet<Class<?>>();
         final ComponentGroup direct = current.getAnnotation(ComponentGroup.class);
         assert ComponentGroup.class.isAnnotationPresent(Inherited.class);
 
         if (direct != null) {
-            list.addAll(Arrays.asList(interfaces(true, current, direct.api())));
+            list.addAll(Arrays.asList(interfaces(current, direct.api())));
         }
 
         for (final Class<?> implemented : current.getInterfaces()) {

@@ -42,14 +42,14 @@ public class ConstructorDiscoveryTests extends AbstractContainerTests {
 
     @Test
     public void testTwoConstructors0() throws Exception {
-        registry.bindInstance("string", String.class);
+        registry.bindInstance("string");
         registry.bindComponent(TwoConstructors0.class);
         assert container.getComponent(TwoConstructors0.class) != null : "Non-default constructor not accepted";
     }
 
     @Test
     public void testSingleComponentConstructor() throws Exception {
-        registry.bindInstance("string", String.class);
+        registry.bindInstance("string");
         registry.bindComponent(SingleComponentConstructor.class);
         assert container.getComponent(SingleComponentConstructor.class) != null : "Single annotated constructor not accepted";
     }

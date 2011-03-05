@@ -69,8 +69,7 @@ public interface ComponentRegistry {
      * @throws ComponentContainer.BindingException
      *          when the implementation cannot be bound to some interface
      */
-    OpenComponentContainer makeChildContainer(Class<?> implementation, Class<?>[] interfaces, final Class<?>[] groups)
-            throws ComponentContainer.BindingException;
+    OpenComponentContainer makeChildContainer(Class<?> implementation, Class<?>[] interfaces, Class<?>[] groups) throws ComponentContainer.BindingException;
 
     /**
      * Creates an empty child container.

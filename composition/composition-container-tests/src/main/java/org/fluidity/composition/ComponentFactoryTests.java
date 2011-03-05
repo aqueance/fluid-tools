@@ -47,7 +47,8 @@ public final class ComponentFactoryTests extends AbstractContainerTests {
     @BeforeMethod
     public void setMockFactory() {
         Factory.delegate = this.factory;
-        GroupMemberFactory.delegate = this.factory;
+        GroupMember1Factory.delegate = this.factory;
+        GroupMember2Factory.delegate = this.factory;
     }
 
     @Test
@@ -107,25 +108,47 @@ public final class ComponentFactoryTests extends AbstractContainerTests {
     }
 
     @Test
-    public void groupMemberFactory() throws Exception {
+    public void groupMemberFactoryOrder1() throws Exception {
         registry.bindComponent(GroupMember2.class);
-        registry.bindComponent(GroupMemberFactory.class);
+        registry.bindComponent(GroupMember1Factory.class);
+        groupMemberChecks(1);
+    }
 
+    @Test
+    public void groupMemberFactoryOrder2() throws Exception {
+        registry.bindComponent(GroupMember1Factory.class);
+        registry.bindComponent(GroupMember2.class);
+        groupMemberChecks(1);
+    }
+
+    @Test
+    public void groupMemberComponentFactoryOrder1() throws Exception {
+        registry.bindComponent(GroupMember1Factory.class);
+        registry.bindComponent(GroupMember2Factory.class);
+        registry.bindComponent(GroupMember1.class);
+        registry.bindComponent(GroupMember2.class);
+        groupMemberChecks(2);
+    }
+
+    @Test
+    public void groupMemberComponentFactoryOrder2() throws Exception {
+        registry.bindComponent(GroupMember1.class);
+        registry.bindComponent(GroupMember2.class);
+        registry.bindComponent(GroupMember1Factory.class);
+        registry.bindComponent(GroupMember2Factory.class);
+        groupMemberChecks(2);
+    }
+
+    private void groupMemberChecks(final int factories) {
         factory.newComponent(EasyMock.<OpenComponentContainer>notNull(), EasyMock.<ComponentContext>notNull());
-        EasyMock.expectLastCall().andAnswer(new IAnswer<Void>() {
-            public Void answer() throws Throwable {
-                final OpenComponentContainer container = (OpenComponentContainer) EasyMock.getCurrentArguments()[0];
-                container.getRegistry().bindComponent(GroupMember1.class, GroupApi.class);
-                return null;
-            }
-        }).anyTimes();
+        EasyMock.expectLastCall().times(factories);
 
         replay();
         final GroupApi[] group = container.getComponentGroup(GroupApi.class);
         verify();
 
         assert group != null : GroupApi.class;
-        assert group.length == 2;
+        assert group.length == 2 : group.length;
         assert group[0] != group[1];
     }
 
@@ -150,23 +173,35 @@ public final class ComponentFactoryTests extends AbstractContainerTests {
     @ComponentGroup
     private static interface GroupApi { }
 
-    @ComponentGroup(api = {})
-    private static class GroupMember1 implements GroupApi {
+    private static interface GroupMember2Api extends GroupApi { }
 
-    }
+    private static class GroupMember1 implements GroupApi { }
 
-    private static class GroupMember2 implements GroupApi {
+    @Component
+    private static class GroupMember2 implements GroupMember2Api { }
 
-    }
-
-    @ComponentGroup(api = GroupApi.class)
-    private static class GroupMemberFactory implements ComponentFactory {
+    @Component(api = GroupMember1.class)
+    private static class GroupMember1Factory implements ComponentFactory {
 
         public static ComponentFactory delegate;
 
         public void newComponent(final OpenComponentContainer container, final ComponentContext context) {
             final ComponentContainer.Registry registry = container.getRegistry();
             registry.bindComponent(GroupMember1.class);
+
+            assert delegate != null;
+            delegate.newComponent(container, context);
+        }
+    }
+
+    @Component(api = {GroupMember2Api.class })
+    private static class GroupMember2Factory implements ComponentFactory {
+
+        public static ComponentFactory delegate;
+
+        public void newComponent(final OpenComponentContainer container, final ComponentContext context) {
+            final ComponentContainer.Registry registry = container.getRegistry();
+            registry.bindComponent(GroupMember2.class);
 
             assert delegate != null;
             delegate.newComponent(container, context);

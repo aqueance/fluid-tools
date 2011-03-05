@@ -105,6 +105,7 @@ public final class FieldInjectionTests extends AbstractContainerTests {
     /**
      * A class that has a field dependency to itself.
      */
+    @Component
     public static class SelfDependentImpl implements SelfDependent {
 
         @Component

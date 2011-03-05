@@ -42,7 +42,8 @@ public final class ComponentGroupTests extends AbstractContainerTests {
 
     @Test
     public void componentResolved() throws Exception {
-        registry.bindGroup(Filter.class, Filter1.class, Filter2.class);
+        registry.bindComponent(Filter1.class);
+        registry.bindComponent(Filter2.class);
 
         final Filter[] group = container.getComponentGroup(Filter.class);
 
@@ -55,30 +56,21 @@ public final class ComponentGroupTests extends AbstractContainerTests {
     @Test
     public void dependencyResolved() throws Exception {
         registry.bindComponent(Processor.class);
-        registry.bindGroup(Filter.class, Filter1.class, Filter2.class);
+        registry.bindComponent(Filter1.class);
+        registry.bindComponent(Filter2.class);
         assert container.getComponent(Processor.class) != null;
     }
 
     @Test
     public void testMemberOrder() throws Exception {
-        registry.bindComponent(OrderedFilter1.class, OrderedFilter1.class);
-        registry.bindComponent(OrderedFilter2.class, OrderedFilter2.class);
-        registry.bindComponent(OrderedFilter3.class, OrderedFilter3.class);
-        registry.bindComponent(OrderedFilter4.class, OrderedFilter4.class);
-        registry.bindComponent(OrderedFilter5.class, OrderedFilter5.class);
-        registry.bindComponent(OrderedFilter6.class, OrderedFilter6.class);
-        registry.bindComponent(OrderedFilter7.class, OrderedFilter7.class);
-        registry.bindComponent(OrderedFilter8.class, OrderedFilter8.class);
-
-        registry.bindGroup(Filter.class,
-                           OrderedFilter8.class,
-                           OrderedFilter7.class,
-                           OrderedFilter6.class,
-                           OrderedFilter5.class,
-                           OrderedFilter4.class,
-                           OrderedFilter3.class,
-                           OrderedFilter2.class,
-                           OrderedFilter1.class);
+        registry.bindComponent(OrderedFilter8.class);
+        registry.bindComponent(OrderedFilter7.class);
+        registry.bindComponent(OrderedFilter6.class);
+        registry.bindComponent(OrderedFilter5.class);
+        registry.bindComponent(OrderedFilter4.class);
+        registry.bindComponent(OrderedFilter3.class);
+        registry.bindComponent(OrderedFilter2.class);
+        registry.bindComponent(OrderedFilter1.class);
 
         final Filter[] group = container.getComponentGroup(Filter.class);
 
@@ -98,30 +90,17 @@ public final class ComponentGroupTests extends AbstractContainerTests {
 
     @Test
     public void testDynamicOrder() throws Exception {
-        registry.bindComponent(DynamicFilter1.class, DynamicFilter1.class);
-        registry.bindComponent(DynamicFilter2.class, DynamicFilter2.class);
-        registry.bindComponent(DynamicFilter3.class, DynamicFilter3.class);
-        registry.bindComponent(OrderedFilter1.class, OrderedFilter1.class);
-        registry.bindComponent(OrderedFilter2.class, OrderedFilter2.class);
-        registry.bindComponent(OrderedFilter3.class, OrderedFilter3.class);
-        registry.bindComponent(OrderedFilter4.class, OrderedFilter4.class);
-        registry.bindComponent(OrderedFilter5.class, OrderedFilter5.class);
-        registry.bindComponent(OrderedFilter6.class, OrderedFilter6.class);
-        registry.bindComponent(OrderedFilter7.class, OrderedFilter7.class);
-        registry.bindComponent(OrderedFilter8.class, OrderedFilter8.class);
-
-        registry.bindGroup(Filter.class,
-                           DynamicFilter1.class,    // dynamically depends on OrderedFilter4 and DynamicFilter3
-                           DynamicFilter2.class,    // dynamically depends on OrderedFilter8
-                           DynamicFilter3.class,    // dynamically depends on OrderedFilter2
-                           OrderedFilter8.class,
-                           OrderedFilter7.class,
-                           OrderedFilter6.class,
-                           OrderedFilter5.class,
-                           OrderedFilter4.class,
-                           OrderedFilter3.class,
-                           OrderedFilter2.class,
-                           OrderedFilter1.class);
+        registry.bindComponent(DynamicFilter1.class);   // dynamically depends on OrderedFilter4 and DynamicFilter3
+        registry.bindComponent(DynamicFilter2.class);   // dynamically depends on OrderedFilter8
+        registry.bindComponent(DynamicFilter3.class);   // dynamically depends on OrderedFilter2
+        registry.bindComponent(OrderedFilter8.class);
+        registry.bindComponent(OrderedFilter7.class);
+        registry.bindComponent(OrderedFilter6.class);
+        registry.bindComponent(OrderedFilter5.class);
+        registry.bindComponent(OrderedFilter4.class);
+        registry.bindComponent(OrderedFilter3.class);
+        registry.bindComponent(OrderedFilter2.class);
+        registry.bindComponent(OrderedFilter1.class);
 
         // first resolution
         final Filter[] group = container.getComponentGroup(Filter.class);
@@ -164,17 +143,15 @@ public final class ComponentGroupTests extends AbstractContainerTests {
         final OpenComponentContainer child = registry.makeChildContainer();
         final ComponentContainer.Registry nested = child.getRegistry();
 
-        registry.bindComponent(OrderedFilter1.class, OrderedFilter1.class);
-        registry.bindComponent(OrderedFilter2.class, OrderedFilter2.class);
-        registry.bindComponent(OrderedFilter3.class, OrderedFilter3.class);
-        registry.bindComponent(OrderedFilter4.class, OrderedFilter4.class);
-        registry.bindGroup(Filter.class, OrderedFilter4.class, OrderedFilter3.class, OrderedFilter2.class, OrderedFilter1.class);
+        registry.bindComponent(OrderedFilter4.class);
+        registry.bindComponent(OrderedFilter3.class);
+        registry.bindComponent(OrderedFilter2.class);
+        registry.bindComponent(OrderedFilter1.class);
 
-        nested.bindComponent(OrderedFilter5.class, OrderedFilter5.class);
-        nested.bindComponent(OrderedFilter6.class, OrderedFilter6.class);
-        nested.bindComponent(OrderedFilter7.class, OrderedFilter7.class);
-        nested.bindComponent(OrderedFilter8.class, OrderedFilter8.class);
-        nested.bindGroup(Filter.class, OrderedFilter8.class, OrderedFilter7.class, OrderedFilter6.class, OrderedFilter5.class);
+        nested.bindComponent(OrderedFilter8.class);
+        nested.bindComponent(OrderedFilter7.class);
+        nested.bindComponent(OrderedFilter6.class);
+        nested.bindComponent(OrderedFilter5.class);
 
         final Filter[] parentGroup = container.getComponentGroup(Filter.class);
 
@@ -204,8 +181,8 @@ public final class ComponentGroupTests extends AbstractContainerTests {
         final OpenComponentContainer child = registry.makeChildContainer();
         final ComponentContainer.Registry nested = child.getRegistry();
 
-        registry.bindGroup(Filter.class, Filter1.class);
-        nested.bindGroup(Filter.class, Filter2.class);
+        registry.bindComponent(Filter1.class);
+        nested.bindComponent(Filter2.class);
 
         final Filter[] group = child.getComponentGroup(Filter.class);
 
@@ -217,16 +194,17 @@ public final class ComponentGroupTests extends AbstractContainerTests {
 
     @Test(expectedExceptions = ComponentContainer.CircularReferencesException.class)
     public void testCircularDependency() throws Exception {
-        registry.bindComponent(CircularFilter1.class, CircularFilter1.class);
-        registry.bindComponent(CircularFilter2.class, CircularFilter2.class);
-        registry.bindComponent(CircularFilter3.class, CircularFilter3.class);
-        registry.bindGroup(Filter.class, CircularFilter1.class, CircularFilter2.class, CircularFilter3.class);
+        registry.bindComponent(CircularFilter1.class);
+        registry.bindComponent(CircularFilter2.class);
+        registry.bindComponent(CircularFilter3.class);
         container.getComponentGroup(Filter.class);
     }
 
     @Test(expectedExceptions = ComponentContainer.CircularReferencesException.class)
     public void testGroupDependentMember() throws Exception {
-        registry.bindGroup(Filter.class, GroupDependentMember.class, Filter1.class, Filter2.class);
+        registry.bindComponent(GroupDependentMember.class);
+        registry.bindComponent(Filter1.class);
+        registry.bindComponent(Filter2.class);
         container.getComponentGroup(Filter.class);
     }
 
@@ -240,6 +218,20 @@ public final class ComponentGroupTests extends AbstractContainerTests {
     public void testOptionalGroupDependency() throws Exception {
         registry.bindComponent(OptionalProcessor.class);
         assert container.getComponent(OptionalProcessor.class) != null;
+    }
+
+    @Test
+    public void testComponentMember() throws Exception {
+        registry.bindComponent(ComponentImpl.class);
+
+        final ComponentApi component = container.getComponent(ComponentApi.class);
+        assert component != null : ComponentApi.class;
+        assert container.getComponent(ComponentImpl.class) == component : ComponentImpl.class;
+
+        final GroupApi[] group = container.getComponentGroup(GroupApi.class);
+        assert group != null : GroupApi.class;
+        assert group.length == 1;
+        assert group[0] == component;
     }
 
     private <T> void checkComponentOrder(final T[] group, final Class<? extends T>... types) {
@@ -404,4 +396,12 @@ public final class ComponentGroupTests extends AbstractContainerTests {
             container.getComponent(OrderedFilter2.class);
         }
     }
+
+    private static interface GroupApi { }
+
+    private static interface ComponentApi { }
+
+    @Component
+    @ComponentGroup(api = GroupApi.class)
+    private static class ComponentImpl implements ComponentApi, GroupApi { }
 }

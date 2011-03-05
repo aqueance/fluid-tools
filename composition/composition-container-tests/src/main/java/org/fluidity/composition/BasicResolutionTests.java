@@ -254,7 +254,7 @@ public final class BasicResolutionTests extends AbstractContainerTests {
         /* in real life you'd use new ContainerBoundary() here */
         private static ComponentContainer container;
 
-        @Component(automatic = false)
+        @Component
         @SuppressWarnings("UnusedDeclaration")
         private transient Key dependency;
 
@@ -283,7 +283,7 @@ public final class BasicResolutionTests extends AbstractContainerTests {
 
     public static class OuterClass {
 
-        @Component(automatic = false)
+        @Component
         public class InnerClass {
 
         }
@@ -295,5 +295,6 @@ public final class BasicResolutionTests extends AbstractContainerTests {
 
     private static interface Interface3 { }
 
+    @Component
     private static class MultipleInterfaces implements Interface1, Interface2, Interface3 {}
 }

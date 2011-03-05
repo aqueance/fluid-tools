@@ -30,13 +30,18 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * This annotation marks interfaces or classes that are expected to have several implementations, which are all used by some component. Any class implementing
+ * This annotation marks interfaces or classes that are expected to have several implementations, which are all used by some component. All classes
+ * implementing
  * or extending such an interface or class will be provided to other components as a whole, in the form of an array of the marked type, to components that
- * depend on such an array or that use {@link ComponentContainer#getComponentGroup(Class)}.
- *
+ * depend on such an array or that use {@link ComponentContainer#getComponentGroup(Class)} to get one.
+ * <p/>
  * When the group interface or class is not available to annotate, actual implementations may also be annotated with this class but in that case only those
- * implementations that are actually annotated will be found and proved to components that depend on an array of the group interface.
- *
+ * implementations that are actually annotated will be found and provided as an array of the group interface.
+ * <p/>
+ * Components, i.e., classes annotated with the @{@link Component} annotation, may also implement or extend an interface or class marked with this annotation.
+ * However, such annotation will only be recognized if inherited via a component interface, i.e., one by which the component can be depended upon. The algorithm
+ * for computing the set of component interfaces is described at {@link ComponentContainer.Registry#bindComponent(Class)}.
+ * <p/>
  * Example of use:
  * <pre>
  * &#64;ComponentGroup
@@ -61,7 +66,7 @@ import java.lang.annotation.Target;
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ ElementType.TYPE, ElementType.FIELD, ElementType.PARAMETER })
+@Target( { ElementType.TYPE, ElementType.FIELD, ElementType.PARAMETER })
 @Inherited
 public @interface ComponentGroup {
 

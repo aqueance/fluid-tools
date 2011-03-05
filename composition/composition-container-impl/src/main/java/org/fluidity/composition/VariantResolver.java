@@ -71,9 +71,10 @@ abstract class VariantResolver extends AbstractResolver {
         final int check = resolver.priority();
 
         if (resolver.isVariantMapping()) {
-            final VariantResolver variants = (VariantResolver) resolver;
-
-            if (check == priority()) {
+            final VariantResolver variants = (VariantResolver) resolver.unlink();
+            if (variants == this) {
+                return false;
+            } else if (check == priority()) {
                 throw new ComponentContainer.BindingException("Component %s already hijacked by %s", api, variants.factoryClass);
             } else {
                 final boolean replaces = super.replaces(variants);
@@ -100,7 +101,7 @@ abstract class VariantResolver extends AbstractResolver {
             delegate = parent == null ? null : parent.resolver(api, true);
 
             if (delegate == null) {
-                throw new ComponentContainer.BindingException("Variant factory %s requires separate binding for %s", factoryClass, api);
+                throw new ComponentContainer.ResolutionException("No component bound to %s", api);
             }
         }
 
@@ -130,6 +131,7 @@ abstract class VariantResolver extends AbstractResolver {
         return delegate;
     }
 
+    @Override
     public boolean isVariantMapping() {
         return true;
     }
@@ -140,7 +142,7 @@ abstract class VariantResolver extends AbstractResolver {
 
     public DependencyGraph.Node resolve(final DependencyGraph.Traversal traversal, final SimpleContainer container, final ContextDefinition context) {
         final SimpleContainer child = container.newChildContainer();
-        child.bindResolver(api, findDelegate());
+        child.bindResolver(api, findDelegate().unlink());
         factory(container, traversal).newComponent(new ComponentContainerShell(child, context, false), context.create());
         return cachingNode(child.resolveComponent(api, context, traversal), child);
     }

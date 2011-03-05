@@ -116,6 +116,7 @@ public final class ContainerHierarchyTests extends AbstractContainerTests {
     /**
      * This is intentionally private - makes sure the container is able to instantiate non-public classes
      */
+    @Component
     private static class OtherValue implements Key {
 
         public OtherValue(final DependentKey dependent) {
@@ -130,6 +131,7 @@ public final class ContainerHierarchyTests extends AbstractContainerTests {
     /**
      * This is intentionally private - makes sure the container is able to instantiate non-public classes
      */
+    @Component
     private static class OtherDependentValue extends DependentValue {
 
         public OtherDependentValue() {

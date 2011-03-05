@@ -57,7 +57,15 @@ abstract class AbstractResolver implements ComponentResolver {
         final int check = resolver.priority();
 
         if (check == priority) {
-            throw new ComponentContainer.BindingException("Component %s already bound", api);
+            if (isFactoryMapping() && !resolver.isFactoryMapping()) {
+                return true;
+            } else if (!isFactoryMapping() && resolver.isFactoryMapping()) {
+                return false;
+            } else if (resolver.unlink() == this) {
+                return false;
+            } else {
+                throw new ComponentContainer.BindingException("Component %s already bound", api);
+            }
         } else {
             return check < priority;
         }
@@ -67,7 +75,15 @@ abstract class AbstractResolver implements ComponentResolver {
         // empty
     }
 
+    public ComponentResolver unlink() {
+        return this;
+    }
+
     public boolean isVariantMapping() {
+        return false;
+    }
+
+    public boolean isFactoryMapping() {
         return false;
     }
 

@@ -27,6 +27,9 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import org.fluidity.composition.spi.ComponentVariantFactory;
 
@@ -235,40 +238,63 @@ public final class ComponentContextTests extends AbstractContainerTests {
     private static class GroupMember3 implements GroupApi {}
 
     @Setting1("context-1")
-    public static class GroupDependent1 {
+    private static class GroupDependent1 {
+
+        public final List<GroupApi> group;
 
         public GroupDependent1(final @ComponentGroup GroupApi[] group) {
-            assert group.length == 3;
-
-            for (final GroupApi member : group) {
-                if (member instanceof GroupMember2) {
-                    assert "context-1".equals(((GroupMember2) member).setting) : ((GroupMember2) member).setting;
-                }
-            }
+            this.group = Arrays.asList(group);
         }
     }
 
     public static class GroupDependent2 {
 
-        public GroupDependent2(final @Setting1("context-2") @ComponentGroup GroupApi[] group) {
-            assert group.length == 3;
+        public final List<GroupApi> group;
 
-            for (final GroupApi member : group) {
-                if (member instanceof GroupMember2) {
-                    assert "context-2".equals(((GroupMember2) member).setting) : ((GroupMember2) member).setting;
-                }
-            }
+        public GroupDependent2(final @Setting1("context-2") @ComponentGroup GroupApi[] group) {
+            this.group = Arrays.asList(group);
         }
     }
 
     @Test
     public void testGroupMembers() throws Exception {
-        registry.bindGroup(GroupApi.class, GroupMember1.class, GroupMember2.class, GroupMember3.class);
+        registry.bindComponent(GroupMember1.class);
+        registry.bindComponent(GroupMember2.class);
+        registry.bindComponent(GroupMember3.class);
         registry.bindComponent(GroupDependent1.class);
         registry.bindComponent(GroupDependent2.class);
 
-        assert container.getComponent(GroupDependent1.class) != null;
-        assert container.getComponent(GroupDependent2.class) != null;
+        GroupDependent1 dependent1 = container.getComponent(GroupDependent1.class);
+        GroupDependent2 dependent2 = container.getComponent(GroupDependent2.class);
+
+        assert dependent1 != null;
+        assert dependent2 != null;
+
+        assert dependent1.group.size() == 3;
+        assert dependent2.group.size() == 3;
+
+        final List<Class<? extends GroupApi>> expected = Arrays.asList(GroupMember1.class, GroupMember2.class, GroupMember3.class);
+        final List<Class<? extends GroupApi>> group1 = new ArrayList<Class<? extends GroupApi>>();
+        final List<Class<? extends GroupApi>> group2 = new ArrayList<Class<? extends GroupApi>>();
+
+        for (final GroupApi member : dependent1.group) {
+            group1.add(member.getClass());
+
+            if (member instanceof GroupMember2) {
+                assert GroupDependent1.class.getAnnotation(Setting1.class).value().equals(((GroupMember2) member).setting) : ((GroupMember2) member).setting;
+            }
+        }
+
+        for (final GroupApi member : dependent2.group) {
+            group2.add(member.getClass());
+
+            if (member instanceof GroupMember2) {
+                assert ((Setting1) GroupDependent2.class.getConstructor(GroupApi[].class).getParameterAnnotations()[0][0]).value().equals(((GroupMember2) member).setting) : ((GroupMember2) member).setting;
+            }
+        }
+
+        assert expected.equals(group1) : group1;
+        assert expected.equals(group2) : group2;
     }
 
     private static interface ContextAware {

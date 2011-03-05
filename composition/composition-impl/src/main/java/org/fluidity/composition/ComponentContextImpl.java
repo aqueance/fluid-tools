@@ -81,9 +81,11 @@ final class ComponentContextImpl implements ComponentContext {
     private static String toString(final Map<Class<? extends Annotation>, Annotation[]> map) {
         final StringBuilder builder = new StringBuilder();
 
+        boolean multiple = false;
         for (final Map.Entry<Class<? extends Annotation>, Annotation[]> entry : map.entrySet()) {
             if (builder.length() > 0) {
                 builder.append(", ");
+                multiple = true;
             }
 
             for (final Annotation annotation : entry.getValue()) {
@@ -91,8 +93,7 @@ final class ComponentContextImpl implements ComponentContext {
             }
         }
 
-        builder.insert(0, '[').append(']');
-        return builder.toString();
+        return (multiple ? builder.insert(0, '[').append(']') : builder).toString();
     }
 
     @Override

@@ -54,7 +54,7 @@ final class ContainerProviderImpl implements ContainerProvider {
          */
         final Class<?>[] group = { PackageBindings.class };
         for (final Class<?> binding : bindings) {
-            container.bindComponent(binding, null, group);
+            container.bindComponent(binding, new Class<?>[] { binding }, group);
         }
 
         /*

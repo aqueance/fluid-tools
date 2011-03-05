@@ -60,9 +60,9 @@ final class ConfigurationComponentFactory implements ComponentFactory {
 
         final Properties properties = context.annotation(Properties.class, Configuration.class);
 
-        registry.bindInstance(properties);
+        registry.bindInstance(properties, Properties.class);
         registry.bindComponent(properties.provider(), PropertyProvider.class);
-        registry.bindComponent(ConfigurationImpl.class);
+        registry.bindComponent(ConfigurationImpl.class, Configuration.class);
     }
 
     static class ConfigurationImpl<T> implements Configuration<T> {

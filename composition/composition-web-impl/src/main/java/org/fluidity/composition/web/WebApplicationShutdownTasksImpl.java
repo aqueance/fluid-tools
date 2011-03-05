@@ -43,7 +43,7 @@ import org.fluidity.foundation.logging.Marker;
  *
  * @author Tibor Varga
  */
-@Component(api = ShutdownTasks.class)
+@Component
 @ComponentGroup(api = ServletContextListener.class)
 final class WebApplicationShutdownTasksImpl implements ShutdownTasks, ServletContextListener {
 

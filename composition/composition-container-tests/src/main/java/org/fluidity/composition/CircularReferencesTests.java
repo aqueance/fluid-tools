@@ -168,6 +168,7 @@ public final class CircularReferencesTests extends AbstractContainerTests {
 
     }
 
+    @Component
     private static class Circular2Dependent1Impl extends PingableImpl implements Circular2Dependent1 {
 
         public Circular2Dependent1Impl(final Circular2Dependent2 dependency) {
@@ -175,6 +176,7 @@ public final class CircularReferencesTests extends AbstractContainerTests {
         }
     }
 
+    @Component
     private static class Circular2Dependent2Impl extends PingableImpl implements Circular2Dependent2 {
 
         public Circular2Dependent2Impl(final Circular2Dependent1 dependency) {
@@ -194,6 +196,7 @@ public final class CircularReferencesTests extends AbstractContainerTests {
 
     }
 
+    @Component
     private static class Circular3Dependent1Impl extends PingableImpl implements Circular3Dependent1 {
 
         public Circular3Dependent1Impl(final Circular3Dependent2 dependency) {
@@ -201,6 +204,7 @@ public final class CircularReferencesTests extends AbstractContainerTests {
         }
     }
 
+    @Component
     private static class Circular3Dependent2Impl extends PingableImpl implements Circular3Dependent2 {
 
         public Circular3Dependent2Impl(final Circular3Dependent3 dependency) {
@@ -208,6 +212,7 @@ public final class CircularReferencesTests extends AbstractContainerTests {
         }
     }
 
+    @Component
     private static class Circular3Dependent3Impl extends PingableImpl implements Circular3Dependent3 {
 
         public Circular3Dependent3Impl(final Circular3Dependent1 dependency) {
@@ -271,10 +276,12 @@ public final class CircularReferencesTests extends AbstractContainerTests {
         }
     }
 
+    @Component
     private static interface Circular3IntermediateDependent3 extends Pingable {
 
     }
 
+    @Component
     private static class Circular3IntermediateDependent3Class extends PingableImpl implements Circular3IntermediateDependent3 {
 
         public Circular3IntermediateDependent3Class(final Circular3IntermediateDependent1Class dependency) {
@@ -282,10 +289,13 @@ public final class CircularReferencesTests extends AbstractContainerTests {
         }
     }
 
+    @Component
     private static interface CircularConstructor1 extends Pingable {}
 
+    @Component
     private static interface CircularConstructor2 extends Pingable {}
 
+    @Component
     private static interface CircularConstructor3 extends Pingable {}
 
     // this will be instantiated once
