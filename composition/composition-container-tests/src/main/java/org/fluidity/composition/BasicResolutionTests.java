@@ -62,7 +62,7 @@ public final class BasicResolutionTests extends AbstractContainerTests {
         }
 
         for (int i = 0; i < 100000 && !collected; ++i) {
-            container.makeChildContainer().getRegistry().bindInstance(new FinalizationAware(), Object.class);
+            container.makeChildContainer().getRegistry().bindInstance(new FinalizationAware());
             Runtime.getRuntime().gc();
         }
 
@@ -283,7 +283,7 @@ public final class BasicResolutionTests extends AbstractContainerTests {
 
     public static class OuterClass {
 
-        @Component
+        @Component(automatic = false)
         public class InnerClass {
 
         }
@@ -295,6 +295,6 @@ public final class BasicResolutionTests extends AbstractContainerTests {
 
     private static interface Interface3 { }
 
-    @Component
+    @Component(automatic = false)
     private static class MultipleInterfaces implements Interface1, Interface2, Interface3 {}
 }

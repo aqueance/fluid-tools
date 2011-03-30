@@ -56,7 +56,7 @@ public class ConstructorDiscoveryTests extends AbstractContainerTests {
 
     @Test
     public void testHiddenComponentConstructor() throws Exception {
-        registry.bindInstance(1, Integer.TYPE);
+        registry.bindInstance(1);
         registry.bindComponent(HiddenComponentConstructor.class);
         assert container.getComponent(HiddenComponentConstructor.class) != null : "Private annotated constructor not accepted";
     }
@@ -81,7 +81,7 @@ public class ConstructorDiscoveryTests extends AbstractContainerTests {
 
     @Test(expectedExceptions = ComponentContainer.ResolutionException.class, expectedExceptionsMessageRegExp = ".*constructor.*")
     public void testMixedComponentConstructors() throws Exception {
-        registry.bindInstance(1, Integer.TYPE);
+        registry.bindInstance(1);
         registry.bindComponent(MixedComponentConstructors.class);
         assert container.getComponent(MixedComponentConstructors.class) == null : "Ambiguous constructor accepted";
     }

@@ -33,18 +33,14 @@ import org.fluidity.composition.OpenComponentContainer;
  * <p/>
  * A {@link ComponentVariantFactory} works in conjunction with an otherwise singleton component independently registered in a dependency injection container
  * accessible to the factory with a binding that allows new instances to be created, i.e., the component has not been bound by {@link
- * ComponentContainer.Registry#bindInstance(Object)} or {@link ComponentContainer.Registry#bindInstance(Object, Class[])}.
+ * ComponentContainer.Registry#bindInstance(Object, Class[])} or {@link ComponentContainer.Registry#bindInstance(Object, Class[])}.
  *
  * @author Tibor Varga
  */
 public interface ComponentVariantFactory {
 
     /**
-     * Binds the component that this is a factory for in the provided container. The original bindings for the component will be applied to the container
-     * returned by the factory.
-     *
-     *
-     *
+     * Binds in the provided container the dependencies of the component that this is a factory for.
      *
      * @param container is the container to resolve dependencies of the component from.
      * @param context   is the context for the instance to create. When this is null or empty, the default instance must be returned. The key set in the context

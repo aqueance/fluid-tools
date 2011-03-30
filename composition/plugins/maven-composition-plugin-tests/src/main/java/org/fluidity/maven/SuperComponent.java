@@ -28,6 +28,7 @@ public interface SuperComponent {
 
 }
 
+@Component(automatic = false)
 class AbstractComponentImpl implements SuperComponent {
 
 }

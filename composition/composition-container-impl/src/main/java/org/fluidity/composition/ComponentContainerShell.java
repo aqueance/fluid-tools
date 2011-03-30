@@ -104,17 +104,17 @@ final class ComponentContainerShell extends EmptyComponentContainer {
         return new ComponentContainerShell(container, context, true);
     }
 
-    public void bindComponent(final Class<?> implementation, final Class<?>[] interfaces, final Class<?>[] groups) throws ComponentContainer.BindingException {
-        container.bindComponent(implementation, interfaces, groups);
+    public void bindComponent(final Components.Interfaces interfaces) throws ComponentContainer.BindingException {
+        container.bindComponent(interfaces);
     }
 
-    public void bindInstance(final Object instance, final Class<?>[] interfaces, final Class<?>[] groups) throws ComponentContainer.BindingException {
-        container.bindInstance(instance, interfaces, groups);
+    public void bindInstance(final Object instance, final Components.Interfaces interfaces) throws ComponentContainer.BindingException {
+        container.bindInstance(instance, interfaces);
     }
 
-    public OpenComponentContainer makeChildContainer(final Class<?> implementation, final Class<?>[] interfaces, final Class<?>[] groups)
+    public OpenComponentContainer makeChildContainer(final Components.Interfaces interfaces)
             throws ComponentContainer.BindingException {
-        return new ComponentContainerShell(container.linkComponent(implementation, interfaces, groups), context, false);
+        return new ComponentContainerShell(container.linkComponent(interfaces), context, false);
     }
 
     public ObservedComponentContainer observed(final ComponentResolutionObserver observer) {

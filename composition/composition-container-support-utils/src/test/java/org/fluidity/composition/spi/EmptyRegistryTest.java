@@ -26,6 +26,7 @@ import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.ComponentGroup;
+import org.fluidity.composition.Components;
 import org.fluidity.composition.OpenComponentContainer;
 import org.fluidity.tests.MockGroupAbstractTest;
 
@@ -54,10 +55,7 @@ public class EmptyRegistryTest extends MockGroupAbstractTest {
 
     @Test
     public void linkingContainer() throws Exception {
-        EasyMock.expect(mock.makeChildContainer(EasyMock.same(MarkedGroupComponent.class),
-                                                EasyMock.aryEq(new Class[] { MarkedGroupComponent.class, Interface1.class, Interface2.class }),
-                                                EasyMock.aryEq(new Class[] { GroupInterface3.class, GroupInterface1.class, GroupInterface2.class })))
-                .andReturn(container);
+        EasyMock.expect(mock.makeChildContainer(Components.inspect(MarkedGroupComponent.class))).andReturn(container);
 
         replay();
         final OpenComponentContainer container = registry.makeChildContainer(MarkedGroupComponent.class);
@@ -67,90 +65,8 @@ public class EmptyRegistryTest extends MockGroupAbstractTest {
     }
 
     @Test
-    public void specifiedLinkingContainer() throws Exception {
-        EasyMock.expect(mock.makeChildContainer(EasyMock.same(MarkedGroupComponent.class),
-                                                EasyMock.aryEq(new Class[] { MarkedGroupComponent.class, Interface1.class, Interface2.class }),
-                                                EasyMock.aryEq(new Class[] { GroupInterface3.class, GroupInterface1.class, GroupInterface2.class })))
-                .andReturn(container);
-
-        replay();
-        final OpenComponentContainer container = registry.makeChildContainer(MarkedGroupComponent.class);
-        verify();
-
-        assert container == this.container;
-    }
-
-    @Test
-    @SuppressWarnings("unchecked")
-    public void overriddenLinkingContainer() throws Exception {
-        EasyMock.expect(mock.makeChildContainer(EasyMock.same(MarkedGroupComponent.class),
-                                                EasyMock.aryEq(new Class[] { MarkedGroupComponent.class, Interface2.class }),
-                                                EasyMock.aryEq(new Class[] { GroupInterface3.class, GroupInterface1.class, GroupInterface2.class })))
-                .andReturn(container);
-
-        replay();
-        final OpenComponentContainer container = registry.makeChildContainer(MarkedGroupComponent.class, Interface2.class);
-        verify();
-
-        assert container == this.container;
-    }
-
-    @Test(expectedExceptions = ComponentContainer.BindingException.class, expectedExceptionsMessageRegExp = ".*assign.*")
-    public void invalidComponent() throws Exception {
-
-        // group api refers to incompatible interface
-        replay();
-        registry.bindComponent(InvalidComponent.class);
-        verify();
-
-        final Object component = new InvalidComponent();
-
-        replay();
-        registry.bindInstance(component);
-        verify();
-    }
-
-    @Test(expectedExceptions = ComponentContainer.BindingException.class, expectedExceptionsMessageRegExp = ".*assign.*")
-    public void invalidGroupComponent() throws Exception {
-
-        // group api refers to incompatible interface
-        replay();
-        registry.bindComponent(InvalidGroupComponent.class);
-        verify();
-
-        final Object component = new InvalidGroupComponent();
-
-        replay();
-        registry.bindInstance(component);
-        verify();
-    }
-
-    @Test
-    public void standaloneComponentWithNoAnnotation() throws Exception {
-
-        // no annotation and no interfaces: class itself for component API and no group API
-        mock.bindComponent(EasyMock.same(UnmarkedStandaloneComponent.class),
-                           EasyMock.aryEq(new Class[] { UnmarkedStandaloneComponent.class }),
-                           EasyMock.<Class[]>isNull());
-
-        replay();
-        registry.bindComponent(UnmarkedStandaloneComponent.class);
-        verify();
-
-        final Object component = new UnmarkedStandaloneComponent();
-
-        mock.bindInstance(EasyMock.same(component), EasyMock.aryEq(new Class[] { UnmarkedStandaloneComponent.class }), EasyMock.<Class[]>isNull());
-
-        replay();
-        registry.bindInstance(component);
-        verify();
-    }
-
-    @Test
-    public void implementationWithNoAnnotation() throws Exception {
-
-        // no annotation and has interfaces: class itself for component API and no group API
-        mock.bindComponent(EasyMock.same(UnmarkedComponent.class), EasyMock.aryEq(new Class[] { UnmarkedComponent.class }), EasyMock.<Class[]>isNull());
+    public void subclassWithComponentAnnotation() throws Exception {
+        mock.bindComponent(Components.inspect(UnmarkedComponent.class));
 
         replay();
         registry.bindComponent(UnmarkedComponent.class);
@@ -158,285 +74,11 @@ public class EmptyRegistryTest extends MockGroupAbstractTest {
 
         final Object component = new UnmarkedComponent();
 
-        mock.bindInstance(EasyMock.same(component), EasyMock.aryEq(new Class[] { UnmarkedComponent.class }), EasyMock.<Class[]>isNull());
+        mock.bindInstance(component, Components.inspect(UnmarkedComponent.class));
 
         replay();
         registry.bindInstance(component);
         verify();
-    }
-
-    @Test
-    public void subclassWithNoAnnotation() throws Exception {
-
-        // no annotation with super class that has interfaces: class itself for component API and no group API
-        mock.bindComponent(EasyMock.same(UnmarkedSubclass.class), EasyMock.aryEq(new Class[] { UnmarkedSubclass.class }), EasyMock.<Class[]>isNull());
-
-        replay();
-        registry.bindComponent(UnmarkedSubclass.class);
-        verify();
-
-        final Object component = new UnmarkedSubclass();
-
-        mock.bindInstance(EasyMock.same(component), EasyMock.aryEq(new Class[] { UnmarkedSubclass.class }), EasyMock.<Class[]>isNull());
-
-        replay();
-        registry.bindInstance(component);
-        verify();
-    }
-
-    @Test
-    public void subclassWithComponentAnnotation() throws Exception {
-
-        // no annotation with interface and super class that has interfaces: direct interface for component API and no group API
-        mock.bindComponent(EasyMock.same(ComponentSubclass.class), EasyMock.aryEq(new Class[] { ComponentSubclass.class, Interface3.class }), EasyMock.<Class[]>isNull());
-
-        replay();
-        registry.bindComponent(ComponentSubclass.class);
-        verify();
-
-        final Object component = new ComponentSubclass();
-
-        mock.bindInstance(EasyMock.same(component), EasyMock.aryEq(new Class[] { ComponentSubclass.class, Interface3.class }), EasyMock.<Class[]>isNull());
-
-        replay();
-        registry.bindInstance(component);
-        verify();
-    }
-
-    @Test
-    public void componentSubclassWithApi() throws Exception {
-
-        // marker annotation with API and a super class that has interfaces: specified interfaces for component API and no group API
-        mock.bindComponent(EasyMock.same(ComponentImplementation.class),
-                           EasyMock.aryEq(new Class[] { ComponentImplementation.class, Interface1.class, Interface2.class }),
-                           EasyMock.<Class[]>isNull());
-
-        replay();
-        registry.bindComponent(ComponentImplementation.class);
-        verify();
-
-        final Object component = new ComponentImplementation();
-
-        mock.bindInstance(EasyMock.same(component),
-                          EasyMock.aryEq(new Class[] { ComponentImplementation.class, Interface1.class, Interface2.class }),
-                          EasyMock.<Class[]>isNull());
-
-        replay();
-        registry.bindInstance(component);
-        verify();
-    }
-
-    @Test
-    public void implementationWithGroupAnnotation() throws Exception {
-
-        // group annotation and has interfaces: direct interfaces for group API and class itself component API
-        mock.bindComponent(EasyMock.same(GroupComponent.class),
-                           EasyMock.aryEq(new Class<?>[] { GroupComponent.class }),
-                           EasyMock.aryEq(new Class[] { Interface1.class, Interface2.class }));
-
-        replay();
-        registry.bindComponent(GroupComponent.class);
-        verify();
-
-        final Object component = new GroupComponent();
-
-        mock.bindInstance(EasyMock.same(component),
-                          EasyMock.aryEq(new Class<?>[] { GroupComponent.class }),
-                          EasyMock.aryEq(new Class[] { Interface1.class, Interface2.class }));
-
-        replay();
-        registry.bindInstance(component);
-        verify();
-    }
-
-    @Test
-    public void subclassWithGroupAnnotation() throws Exception {
-
-        // group annotation with super class that has interfaces: all interfaces for group API and class itself component API
-        mock.bindComponent(EasyMock.same(GroupSubclass.class),
-                           EasyMock.aryEq(new Class<?>[] { GroupSubclass.class }),
-                           EasyMock.aryEq(new Class[] { Interface1.class, Interface2.class }));
-
-        replay();
-        registry.bindComponent(GroupSubclass.class);
-        verify();
-
-        final Object component = new GroupSubclass();
-
-        mock.bindInstance(EasyMock.same(component),
-                          EasyMock.aryEq(new Class<?>[] { GroupSubclass.class }),
-                          EasyMock.aryEq(new Class[] { Interface1.class, Interface2.class }));
-
-        replay();
-        registry.bindInstance(component);
-        verify();
-    }
-
-    @Test
-    public void componentWithGroupAnnotation() throws Exception {
-
-        // group annotation with interface and super class that has interfaces: direct interfaces for group API and class itself component API
-        mock.bindComponent(EasyMock.same(GroupSubclassComponent.class),
-                           EasyMock.aryEq(new Class<?>[] { GroupSubclassComponent.class }),
-                           EasyMock.aryEq(new Class[] { Interface3.class }));
-
-        replay();
-        registry.bindComponent(GroupSubclassComponent.class);
-        verify();
-
-        final Object component = new GroupSubclassComponent();
-
-        mock.bindInstance(EasyMock.same(component),
-                          EasyMock.aryEq(new Class<?>[] { GroupSubclassComponent.class }),
-                          EasyMock.aryEq(new Class[] { Interface3.class }));
-
-        replay();
-        registry.bindInstance(component);
-        verify();
-    }
-
-    @Test
-    public void groupSubclassWithApi() throws Exception {
-
-        // group annotation with API and super class that has interfaces: specified interfaces for group API and class itself component API
-        mock.bindComponent(EasyMock.same(GroupImplementation.class),
-                           EasyMock.aryEq(new Class<?>[] { GroupImplementation.class }),
-                           EasyMock.aryEq(new Class[] { Interface1.class, Interface2.class }));
-
-        replay();
-        registry.bindComponent(GroupImplementation.class);
-        verify();
-
-        final Object component = new GroupImplementation();
-
-        mock.bindInstance(EasyMock.same(component),
-                          EasyMock.aryEq(new Class<?>[] { GroupImplementation.class }),
-                          EasyMock.aryEq(new Class[] { Interface1.class, Interface2.class }));
-
-        replay();
-        registry.bindInstance(component);
-        verify();
-    }
-
-    @Test
-    public void inheritedGroup() throws Exception {
-
-        // no annotation with super group interfaces: all specified interfaces for group API and clas itself component API
-        mock.bindComponent(EasyMock.same(InheritedGroup.class),
-                           EasyMock.aryEq(new Class<?>[] { InheritedGroup.class }),
-                           EasyMock.aryEq(new Class[] { GroupInterface1.class, GroupInterface2.class }));
-
-        replay();
-        registry.bindComponent(InheritedGroup.class);
-        verify();
-
-        final Object component = new InheritedGroup();
-
-        mock.bindInstance(EasyMock.same(component),
-                          EasyMock.aryEq(new Class<?>[] { InheritedGroup.class }),
-                          EasyMock.aryEq(new Class[] { GroupInterface1.class, GroupInterface2.class }));
-
-        replay();
-        registry.bindInstance(component);
-        verify();
-    }
-
-    @Test
-    public void inheritedGroupComponent() throws Exception {
-
-        // component annotation with API and super group interfaces: all specified interfaces for group API and specified interfaces for component API
-        mock.bindComponent(EasyMock.same(UnmarkedGroupComponent.class),
-                           EasyMock.aryEq(new Class[] { UnmarkedGroupComponent.class, Interface1.class, Interface2.class }),
-                           EasyMock.aryEq(new Class[] { GroupInterface1.class, GroupInterface2.class }));
-
-        replay();
-        registry.bindComponent(UnmarkedGroupComponent.class);
-        verify();
-
-        final Object component = new UnmarkedGroupComponent();
-
-        mock.bindInstance(EasyMock.same(component),
-                          EasyMock.aryEq(new Class[] { UnmarkedGroupComponent.class, Interface1.class, Interface2.class }),
-                          EasyMock.aryEq(new Class[] { GroupInterface1.class, GroupInterface2.class }));
-
-        replay();
-        registry.bindInstance(component);
-        verify();
-    }
-
-    @Test
-    public void inheritedMarkedGroupComponent() throws Exception {
-
-        // group and component annotations with API and super group interfaces: all specified interfaces for group API and all specified interfaces for component API
-        mock.bindComponent(EasyMock.same(MarkedGroupComponent.class),
-                           EasyMock.aryEq(new Class[] { MarkedGroupComponent.class, Interface1.class, Interface2.class }),
-                           EasyMock.aryEq(new Class[] { GroupInterface3.class, GroupInterface1.class, GroupInterface2.class }));
-
-        replay();
-        registry.bindComponent(MarkedGroupComponent.class);
-        verify();
-
-        final Object component = new MarkedGroupComponent();
-
-        mock.bindInstance(EasyMock.same(component),
-                          EasyMock.aryEq(new Class[] { MarkedGroupComponent.class, Interface1.class, Interface2.class }),
-                          EasyMock.aryEq(new Class[] { GroupInterface3.class, GroupInterface1.class, GroupInterface2.class }));
-
-        replay();
-        registry.bindInstance(component);
-        verify();
-    }
-
-    @Test
-    @SuppressWarnings("unchecked")
-    public void overridesComponentMark() throws Exception {
-
-        // group and component annotations with API and super group interfaces: all specified interfaces for group API and all specified interfaces for component API
-        mock.bindComponent(EasyMock.same(MarkedGroupComponent.class),
-                           EasyMock.aryEq(new Class[] { MarkedGroupComponent.class, Interface2.class }),
-                           EasyMock.aryEq(new Class[] { GroupInterface3.class, GroupInterface1.class, GroupInterface2.class }));
-
-        replay();
-        registry.bindComponent(MarkedGroupComponent.class, Interface2.class);
-        verify();
-
-        final MarkedGroupComponent component = new MarkedGroupComponent();
-
-        mock.bindInstance(EasyMock.same(component),
-                          EasyMock.aryEq(new Class[] { MarkedGroupComponent.class, Interface2.class }),
-                          EasyMock.aryEq(new Class[] { GroupInterface3.class, GroupInterface1.class, GroupInterface2.class }));
-
-        replay();
-        registry.bindInstance(component, Interface2.class);
-        verify();
-    }
-
-    @Test
-    public void unmarkedFactoryRegistration() throws Exception {
-        mock.bindComponent(EasyMock.same(UnmarkedFactory.class),
-                           EasyMock.aryEq(new Class[] { Interface1.class, Interface2.class }),
-                           EasyMock.<Class[]>isNull());
-
-        replay();
-        registry.bindFactory(UnmarkedFactory.class, Interface1.class, Interface2.class);
-        verify();
-    }
-
-    @Test
-    public void markedFactoryRegistration() throws Exception {
-
-        // we can override the @Component API list
-        mock.bindComponent(EasyMock.same(MarkedFactory.class),
-                           EasyMock.aryEq(new Class[] { Interface1.class, Interface2.class }),
-                           EasyMock.<Class[]>isNull());
-
-        replay();
-        registry.bindFactory(MarkedFactory.class, Interface1.class, Interface2.class);
-        verify();
-    }
-
-    private static class UnmarkedStandaloneComponent {
-
     }
 
     private static interface Interface1 {
@@ -478,16 +120,7 @@ public class EmptyRegistryTest extends MockGroupAbstractTest {
 
     }
 
-    @ComponentGroup(api = Interface1.class)
-    private static class InvalidGroupComponent {
-
-    }
-
     private static class UnmarkedComponent implements Interface1, Interface2 {
-
-    }
-
-    private static class UnmarkedSubclass extends UnmarkedComponent {
 
     }
 
@@ -501,30 +134,6 @@ public class EmptyRegistryTest extends MockGroupAbstractTest {
 
     }
 
-    @ComponentGroup
-    private static class GroupComponent implements Interface1, Interface2 {
-
-    }
-
-    @ComponentGroup
-    private static class GroupSubclass extends UnmarkedComponent {
-
-    }
-
-    @ComponentGroup
-    private static class GroupSubclassComponent extends UnmarkedComponent implements Interface3 {
-
-    }
-
-    @ComponentGroup(api = { Interface1.class, Interface2.class })
-    private static class GroupImplementation extends UnmarkedComponent implements Interface3 {
-
-    }
-
-    private static class InheritedGroup implements InheritingInterface1, InheritingInterface2, GroupInterface3 {
-
-    }
-
     @Component(api = { Interface1.class, Interface2.class })
     private static class UnmarkedGroupComponent implements Interface1, Interface2, InheritingInterface1, InheritingInterface2, GroupInterface3 {
 
@@ -534,13 +143,6 @@ public class EmptyRegistryTest extends MockGroupAbstractTest {
     @ComponentGroup(api = GroupInterface3.class)
     private static class MarkedGroupComponent implements Interface1, Interface2, InheritingInterface1, InheritingInterface2, GroupInterface3 {
 
-    }
-
-    private static class UnmarkedFactory implements ComponentFactory {
-
-        public void newComponent(final OpenComponentContainer container, final ComponentContext context) {
-            throw new UnsupportedOperationException();
-        }
     }
 
     @Component(api = Interface1.class)

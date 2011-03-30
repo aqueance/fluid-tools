@@ -250,7 +250,7 @@ public final class ComponentGroupTests extends AbstractContainerTests {
 
     }
 
-    @Component
+    @Component(automatic = false)
     public static class Processor {
 
         public Processor(final @ComponentGroup Filter[] filters) {
@@ -266,7 +266,7 @@ public final class ComponentGroupTests extends AbstractContainerTests {
         }
     }
 
-    @Component
+    @Component(automatic = false)
     public static class OptionalProcessor {
 
         public OptionalProcessor(final @Optional @ComponentGroup Filter[] filters) {
@@ -401,7 +401,7 @@ public final class ComponentGroupTests extends AbstractContainerTests {
 
     private static interface ComponentApi { }
 
-    @Component
+    @Component(automatic = false)
     @ComponentGroup(api = GroupApi.class)
     private static class ComponentImpl implements ComponentApi, GroupApi { }
 }

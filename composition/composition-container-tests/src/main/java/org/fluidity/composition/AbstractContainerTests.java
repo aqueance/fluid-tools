@@ -76,7 +76,7 @@ public abstract class AbstractContainerTests extends MockGroupAbstractTest {
     /**
      * This is intentionally protected - makes sure the container is able to instantiate non-public classes
      */
-    @Component
+    @Component(automatic = false)
     protected static class Value implements Key {
 
         public static DependentKey dependent;
@@ -113,7 +113,7 @@ public abstract class AbstractContainerTests extends MockGroupAbstractTest {
     /**
      * This is intentionally protected - makes sure the container is able to instantiate non-public classes
      */
-    @Component
+    @Component(automatic = false)
     protected static class DependentValue implements DependentKey {
 
         private final ComponentContext context;
@@ -134,7 +134,7 @@ public abstract class AbstractContainerTests extends MockGroupAbstractTest {
     /**
      * This is intentionally protected - makes sure the container is able to instantiate non-public classes
      */
-    @Component(primary = false)
+    @Component(primary = false, automatic = false)
     protected static class FallbackDependentValue implements DependentKey {
 
         private final ComponentContext context;
@@ -155,7 +155,7 @@ public abstract class AbstractContainerTests extends MockGroupAbstractTest {
     /**
      * Depends on the enclosing container.
      */
-    @Component
+    @Component(automatic = false)
     protected static class ContainerDependent {
 
         private final ComponentContainer container;
@@ -173,8 +173,16 @@ public abstract class AbstractContainerTests extends MockGroupAbstractTest {
     /**
      * Something for a factory to depend on, tests dependency resolution on factories.
      */
-    @Component
+    @Component(automatic = false)
     public static class FactoryDependency {
         // empty
+    }
+
+    /**
+     * Just a class with no dependencies, intended to be registered to a container and then checked if the registration there in a container received from the
+     * system.
+     */
+    public static class Check {
+
     }
 }

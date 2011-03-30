@@ -22,11 +22,7 @@
 
 package org.fluidity.composition.maven.annotation;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import org.objectweb.asm.AnnotationVisitor;
-import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.EmptyVisitor;
 
 /**
@@ -36,16 +32,29 @@ import org.objectweb.asm.commons.EmptyVisitor;
  */
 public final class ComponentProcessor extends EmptyVisitor {
 
-    private static final String ATR_API = "api";
     private static final String ATR_AUTOMATIC = "automatic";
 
     private final ProcessorCallback<ComponentProcessor> callback;
 
-    private final Set<String> apiSet = new HashSet<String>();
     private boolean automatic = true;
 
-    public ComponentProcessor(ProcessorCallback<ComponentProcessor> callback) {
+    public ComponentProcessor(final ProcessorCallback<ComponentProcessor> callback) {
         this.callback = callback;
+    }
+
+    @Override
+    public AnnotationVisitor visitAnnotation(final String desc, final boolean visible) {
+        return null;
+    }
+
+    @Override
+    public AnnotationVisitor visitParameterAnnotation(final int parameter, final String desc, final boolean visible) {
+        return null;
+    }
+
+    @Override
+    public AnnotationVisitor visitArray(final String desc) {
+        return null;
     }
 
     @Override
@@ -55,25 +64,8 @@ public final class ComponentProcessor extends EmptyVisitor {
         }
     }
 
-    @Override
-    public AnnotationVisitor visitArray(final String name) {
-        assert ATR_API.equals(name) : name;
-        return new EmptyVisitor() {
-
-            @Override
-            public void visit(final String ignore, final Object value) {
-                assert ignore == null : ignore;
-                apiSet.add(((Type) value).getClassName());
-            }
-        };
-    }
-
     public boolean isAutomatic() {
         return automatic;
-    }
-
-    public Set<String> apiSet() {
-        return apiSet;
     }
 
     @Override

@@ -79,7 +79,7 @@ public class DependencyResolverImplTest extends MockGroupAbstractTest {
                 });
 
         // this is what the testee should do when invoking above from the inner class
-        registry.bindComponent(Dependency.class, Dependency.class);
+        registry.bindComponent(Dependency.class);
 
         replay();
         assert resolver.findComponent(container, Dependency.class.getName()) == dependency;

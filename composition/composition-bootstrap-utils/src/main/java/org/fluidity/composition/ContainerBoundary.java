@@ -130,14 +130,14 @@ public final class ContainerBoundary implements ComponentContainer {
      * <p/>
      * Calling this method will trigger population of the associated container and its parents.
      *
-     * @param key      the key by which to register the component; preferably an interface class.
      * @param instance the component instance.
+     * @param api optional list of interfaces to bind the object against.
      *
      * @throws IllegalStateException if the container is made read only by getting any component out of it.
      */
     @SuppressWarnings("unchecked")
-    public <T> void bindBootComponent(final Class<? super T> key, final T instance) {
-        loadContainer(false).getRegistry().bindInstance(instance, key);
+    public <T> void bindBootComponent(final T instance, final Class<? super T>... api) {
+        loadContainer(false).getRegistry().bindInstance(instance, api);
     }
 
     /**

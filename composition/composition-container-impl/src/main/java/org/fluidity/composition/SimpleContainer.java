@@ -84,42 +84,36 @@ interface SimpleContainer extends DependencyResolver {
     /**
      * Binds a component class to an interface.
      *
-     * @param implementation      the class to bind.
-     * @param componentInterfaces the component interfaces to bind to.
-     * @param groupInterfaces     the group interfaces to bind to.
+     * @param interfaces     the component and group interfaces to bind to.
      *
      * @throws ComponentContainer.BindingException
      *          when binding fails.
      */
-    void bindComponent(Class<?> implementation, Class<?>[] componentInterfaces, Class<?>[] groupInterfaces) throws ComponentContainer.BindingException;
+    void bindComponent(Components.Interfaces interfaces) throws ComponentContainer.BindingException;
 
     /**
      * Binds a component instance to an interface.
      *
-     * @param instance            the component instance to bind.
-     * @param componentInterfaces the component interfaces to bind to.
-     * @param groupInterfaces     the group interfaces to bind to.
+     * @param instance   the component instance to bind.
+     * @param interfaces the component and group interfaces to bind to.
      *
      * @throws ComponentContainer.BindingException
      *          when binding fails.
      */
-    void bindInstance(Object instance, Class<?>[] componentInterfaces, Class<?>[] groupInterfaces) throws ComponentContainer.BindingException;
+    void bindInstance(Object instance, Components.Interfaces interfaces) throws ComponentContainer.BindingException;
 
     /**
      * Creates a child container of the receiver and links the given interface to a mapping added to the returned child, effectively directing the component
      * resolution in the parent container to the child.
      *
-     * @param implementation      the implementation to bind to the interface in the returned child container.
-     * @param componentInterfaces the component interfaces to bind to.
-     * @param groupInterfaces     the group interfaces to bind to.
+     * @param interfaces     the component and group interfaces to bind to.
      *
      * @return the child container returned.
      *
      * @throws ComponentContainer.BindingException
      *          when binding fails.
      */
-    SimpleContainer linkComponent(Class<?> implementation, Class<?>[] componentInterfaces, Class<?>[] groupInterfaces)
-            throws ComponentContainer.BindingException;
+    SimpleContainer linkComponent(Components.Interfaces interfaces) throws ComponentContainer.BindingException;
 
     /**
      * Injects the {@link Component} annotated fields of the given component instance.

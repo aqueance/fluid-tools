@@ -43,7 +43,7 @@ public class ComponentRegistrationTest {
         component(DefaultComponent.class, PrimaryComponentImpl.class);
         component(FallbackComponent.class, FallbackComponentImpl.class);
 
-        assert container.getComponent(DefaultComponentImpl.class) != null;
+        assert container.getComponent(DefaultComponentImpl.class) == null;
         assert container.getComponent(ManualComponent.class) == null;
     }
 

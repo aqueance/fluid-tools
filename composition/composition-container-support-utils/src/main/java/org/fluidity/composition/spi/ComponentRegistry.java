@@ -23,6 +23,7 @@
 package org.fluidity.composition.spi;
 
 import org.fluidity.composition.ComponentContainer;
+import org.fluidity.composition.Components;
 import org.fluidity.composition.OpenComponentContainer;
 
 /**
@@ -35,41 +36,36 @@ public interface ComponentRegistry {
     /**
      * Binds a component class to a list of component interfaces and group interfaces.
      *
-     * @param implementation the component class.
-     * @param interfaces     the component interfaces; may be <code>null</code>.
-     * @param groups         the group interfaces; may be <code>null</code>.
+     * @param interfaces     the component and group interfaces; never <code>null</code>.
      *
      * @throws ComponentContainer.BindingException
      *          when the implementation cannot be bound to some interface
      */
-    void bindComponent(Class<?> implementation, Class<?>[] interfaces, Class<?>[] groups) throws ComponentContainer.BindingException;
+    void bindComponent(Components.Interfaces interfaces) throws ComponentContainer.BindingException;
 
     /**
      * Binds a component instance to a list of component interfaces and group interfaces.
      *
      * @param instance   the component instance.
-     * @param interfaces the component interfaces; may be <code>null</code>.
-     * @param groups     the group interfaces; may be <code>null</code>.
+     * @param interfaces the component and group interfaces; never <code>null</code>.
      *
      * @throws ComponentContainer.BindingException
      *          when the implementation cannot be bound to some interface
      */
-    void bindInstance(Object instance, Class<?>[] interfaces, Class<?>[] groups) throws ComponentContainer.BindingException;
+    void bindInstance(Object instance, Components.Interfaces interfaces) throws ComponentContainer.BindingException;
 
     /**
-     * Creates a child container and calls {@link #bindComponent(Class, Class[], Class[])} with the given parameters. The component implementation
-     * will be bound to all component interfaces and group interfaces also in the container the receiver is a registry for.
+     * Creates a child container and calls {@link #bindComponent(Components.Interfaces)} with the given parameters. The component implementation will be
+     * bound to all component interfaces and group interfaces also in the container the receiver is a registry for.
      *
-     * @param implementation the component class.
-     * @param interfaces     the component interfaces; may be <code>null</code>.
-     * @param groups         the group interfaces; may be <code>null</code>.
+     * @param interfaces     the component and group interfaces; never <code>null</code>.
      *
      * @return the child container to bind further components in.
      *
      * @throws ComponentContainer.BindingException
      *          when the implementation cannot be bound to some interface
      */
-    OpenComponentContainer makeChildContainer(Class<?> implementation, Class<?>[] interfaces, Class<?>[] groups) throws ComponentContainer.BindingException;
+    OpenComponentContainer makeChildContainer(Components.Interfaces interfaces) throws ComponentContainer.BindingException;
 
     /**
      * Creates an empty child container.

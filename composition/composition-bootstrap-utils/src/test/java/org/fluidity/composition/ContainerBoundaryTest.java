@@ -282,18 +282,18 @@ public class ContainerBoundaryTest extends MockGroupAbstractTest {
         final BootComponent2 component2 = new BootComponent2();
 
         EasyMock.expect(container.getRegistry()).andReturn(registry);
-        registry.bindInstance(component1, BootComponent1.class);
+        registry.bindInstance(component1);
 
         EasyMock.expect(container.getRegistry()).andReturn(registry);
-        registry.bindInstance(component2, BootComponent2.class);
+        registry.bindInstance(component2);
 
         // container is initialized
         bootstrap.initializeContainer(container, services);
 
         replay();
 
-        boundary.bindBootComponent(BootComponent1.class, component1);
-        boundary.bindBootComponent(BootComponent2.class, component2);
+        boundary.bindBootComponent(component1);
+        boundary.bindBootComponent(component2);
 
         // first access goes through the above interaction
         assert boundary.getContainer() == container;
@@ -303,7 +303,7 @@ public class ContainerBoundaryTest extends MockGroupAbstractTest {
         replay();
 
         try {
-            boundary.bindBootComponent(BootComponent3.class, new BootComponent3());
+            boundary.bindBootComponent(new BootComponent3());
         } catch (final IllegalStateException e) {
             // ignore
         }

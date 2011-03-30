@@ -52,13 +52,13 @@ import org.fluidity.foundation.Strings;
  * methods are invoked from the {@link org.fluidity.composition.spi.PackageBindings#bindComponents(ComponentContainer.Registry)} method of your binding
  * implementation.
  * <ul>
- * <li>To simply register a component implementation for its component interfaces, use {@link ComponentContainer.Registry#bindComponent(Class)}. This is
+ * <li>To simply register a component implementation for its component interfaces, use {@link ComponentContainer.Registry#bindComponent(Class, Class[])}. This is
  * exactly what the Maven plugin uses for a @{@link Component} annotated class with no @{@link Component#automatic()} setting so if this method is all you need
  * then you should simply use the plugin instead of creating your own binding class.</li>
- * <li>To register an already instantiated component implementation for a component interface, use {@link ComponentContainer.Registry#bindInstance(Object,
- * Class[])}. If the implementation is annotated with @{@link Component} then its @{@link Component#automatic()} setting must be set to
+ * <li>To register an already instantiated component implementation for a component interface, use {@link ComponentContainer.Registry#bindInstance(Object, Class[])}. If
+ * the implementation is annotated with @{@link Component} then its @{@link Component#automatic()} setting must be set to
  * <code>false</code>.</li>
- * <li>To register a component implementation without having some or all of its dependencies accessible in the same container, use {@link
+ * <li>To register a component implementation when some or all of its dependencies are not accessible in the same container, use {@link
  * ComponentContainer.Registry#makeChildContainer(Class, Class[])} method and use the returned container's {@link OpenComponentContainer#getRegistry()} method
  * to gain access to the registry in which to bind the hidden dependencies. If the implementation is annotated with @{@link Component} then its @{@link
  * Component#automatic()} setting must be set to <code>false</code>.</li>
@@ -189,43 +189,6 @@ public interface ComponentContainer {
          * <li>If the class will <b>not</b> be bound to any of the group interfaces it implements, directly or indirectly.
          * </ol>
          * <p/>
-         * <b>Note</b>: the above algorithm is employed only when the @{@link Component} annotation is present. In cases when that annotation is not present,
-         * the component is bound to its class.
-         * <p/>
-         * Two special cases must be handled by the receiver: when <code>implementation</code> is either a {@link
-         * org.fluidity.composition.spi.ComponentFactory}
-         * or a {@link org.fluidity.composition.spi.ComponentVariantFactory}. In the latter case, a total of two bindings must take place, one for the variant
-         * factory and one for the component it creates variants of, and they can take place in any order. Irrespective of the order, the variant factory must
-         * receive any component lookup for the target component.
-         *
-         * @param implementation the component class.
-         *
-         * @throws ComponentContainer.BindingException
-         *          when the binding cannot be performed
-         */
-        <T> void bindComponent(Class<T> implementation) throws BindingException;
-
-        /**
-         * Binds a component instance to its component interfaces. In most case you should use the other registration methods that accept a class rather then
-         * instantiating the component yourself. Use this method when you have no control over the instantiation of a class, such as those performed by third
-         * party tools, but you still want to make the instances available for components in the container to depend on.
-         * <p/>
-         * The supplied component instance may be a {@link org.fluidity.composition.spi.ComponentFactory} or a {@link
-         * org.fluidity.composition.spi.ComponentVariantFactory} instance, in which case the receiver must support their respective functionality as described
-         * in their documentation and at {@link #bindComponent(Class)}.
-         * <p/>
-         * See {@link #bindComponent(Class)} for a description of the algorithm use to discover the interfaces the component will be bound to.
-         *
-         * @param instance the component instance.
-         *
-         * @throws ComponentContainer.BindingException
-         *          when the binding cannot be performed
-         */
-        <T> void bindInstance(T instance) throws BindingException;
-
-        /**
-         * Binds a component class to the given component interfaces.
-         * <p/>
          * Two special cases must be handled by the receiver: when <code>implementation</code> is either a {@link
          * org.fluidity.composition.spi.ComponentFactory}
          * or a {@link org.fluidity.composition.spi.ComponentVariantFactory}. In the latter case, a total of two bindings must take place, one for the variant
@@ -241,23 +204,6 @@ public interface ComponentContainer {
         <T> void bindComponent(Class<T> implementation, Class<? super T>... interfaces) throws BindingException;
 
         /**
-         * Binds a factory class to the given component interfaces.
-         * <p/>
-         * Two special cases must be handled by the receiver: when <code>implementation</code> is either a {@link
-         * org.fluidity.composition.spi.ComponentFactory}
-         * or a {@link org.fluidity.composition.spi.ComponentVariantFactory}. In the latter case, a total of two bindings must take place, one for the variant
-         * factory and one for the component it creates variants of, and they can take place in any order. Irrespective of the order, the variant factory must
-         * receive any component lookup for the target component.
-         *
-         * @param factory    the component class.
-         * @param interfaces the interfaces against which to bind the component; preferably an interface class.
-         *
-         * @throws ComponentContainer.BindingException
-         *          when the binding cannot be performed
-         */
-        void bindFactory(Class<?> factory, Class<?>... interfaces) throws BindingException;
-
-        /**
          * Binds a component instance to its interface. In most case you should use the other registration methods that accept a class rather then
          * instantiating the component yourself. Use this method when you have no control over the instantiation of a class, such as those performed by third
          * party tools,
@@ -265,7 +211,7 @@ public interface ComponentContainer {
          * <p/>
          * The supplied component instance may be a {@link org.fluidity.composition.spi.ComponentFactory} or a {@link
          * org.fluidity.composition.spi.ComponentVariantFactory} instance, in which case the receiver must support their respective functionality as described
-         * in their documentation and at {@link #bindComponent(Class)}.
+         * in their documentation and at {@link #bindComponent(Class, Class[])}.
          *
          * @param instance   the component instance.
          * @param interfaces the interfaces to which to bind the component; preferably an interface class.
@@ -281,19 +227,6 @@ public interface ComponentContainer {
          * @return an open container, never <code>null</code>.
          */
         OpenComponentContainer makeChildContainer();
-
-        /**
-         * Returns a new child container that will use the container for this registry as its parent, for the purpose of resolving through the parent
-         * dependencies on <code>interfaces</code>.
-         *
-         * @param implementation the component whose dependencies the child container will help resolving.
-         *
-         * @return an open container, never <code>null</code>.
-         *
-         * @throws ComponentContainer.BindingException
-         *          when the binding cannot be performed
-         */
-        <T> OpenComponentContainer makeChildContainer(Class<T> implementation) throws BindingException;
 
         /**
          * Returns a new child container that will use the container for this registry as its parent, for the purpose of resolving through the parent

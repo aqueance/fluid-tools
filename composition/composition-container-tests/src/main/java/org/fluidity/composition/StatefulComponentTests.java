@@ -65,10 +65,10 @@ public final class StatefulComponentTests extends AbstractContainerTests {
         assert stateless1.dependency != stateless2.dependency;
     }
 
-    @Component(stateful = true)
+    @Component(stateful = true, automatic = false)
     private static class StatefulComponent { }
 
-    @Component
+    @Component(automatic = false)
     private static class StatelessComponent1 {
 
         public final StatefulComponent dependency;
@@ -78,7 +78,7 @@ public final class StatefulComponentTests extends AbstractContainerTests {
         }
     }
 
-    @Component
+    @Component(automatic = false)
     private static class StatelessComponent2 {
 
         public final StatefulComponent dependency;

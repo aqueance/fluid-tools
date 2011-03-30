@@ -49,10 +49,10 @@ public final class ComponentContextTests extends AbstractContainerTests {
     @DataProvider(name = "component-types")
     public Object[][] componentTypes() {
         return new Object[][] {
-                new Object[] { ContextAwareComponent1Impl.class, null },
-                new Object[] { ContextAwareComponent2Impl.class, null },
-                new Object[] { OrdinaryComponent1Impl.class, OrdinaryVariants1.class },
-                new Object[] { OrdinaryComponent2Impl.class, OrdinaryVariants2.class },
+                new Object[] { ContextAware1Impl.class, null },
+                new Object[] { ContextAware2Impl.class, null },
+                new Object[] { NotContextAware1Impl.class, ContextAwareVariants1.class },
+                new Object[] { NotContextAware2Impl.class, ContextAwareVariants2.class },
         };
     }
 
@@ -123,9 +123,9 @@ public final class ComponentContextTests extends AbstractContainerTests {
     public void implicitContext() throws Exception {
         registry.bindComponent(BaseComponent.class);
         registry.bindComponent(OverridingComponent.class);
-        registry.bindComponent(ContextAwareComponent1Impl.class, ContextAwareComponent1.class);
-        registry.bindComponent(OrdinaryComponent2Impl.class, OrdinaryComponent2.class);
-        registry.bindComponent(OrdinaryVariants2.class);
+        registry.bindComponent(ContextAwareComponent1Impl.class);
+        registry.bindComponent(OrdinaryComponent2Impl.class);
+        registry.bindComponent(OrdinaryComponentVariants2.class);
 
         final BaseComponent root = container.getComponent(BaseComponent.class);
 
@@ -140,12 +140,12 @@ public final class ComponentContextTests extends AbstractContainerTests {
 
     @Test
     public void contextInheritance() throws Exception {
-        registry.bindComponent(ContextAwareComponent1Impl.class, ContextAwareComponent1.class);
-        registry.bindComponent(ContextAwareComponent2Impl.class, ContextAwareComponent2.class);
-        registry.bindComponent(OrdinaryComponent1Impl.class, OrdinaryComponent1.class);
-        registry.bindComponent(OrdinaryComponent2Impl.class, OrdinaryComponent2.class);
-        registry.bindFactory(OrdinaryVariants1.class, OrdinaryComponent1.class);
-        registry.bindFactory(OrdinaryVariants2.class, OrdinaryComponent2.class);
+        registry.bindComponent(ContextAwareComponent1Impl.class);
+        registry.bindComponent(ContextAwareComponent2Impl.class);
+        registry.bindComponent(OrdinaryComponent1Impl.class);
+        registry.bindComponent(OrdinaryComponent2Impl.class);
+        registry.bindComponent(OrdinaryComponentVariants1.class);
+        registry.bindComponent(OrdinaryComponentVariants2.class);
         registry.bindComponent(InnocentBystanderComponent.class);
         registry.bindComponent(ContextSetterComponent1.class);
         registry.bindComponent(ContextSetterComponent2.class);
@@ -324,7 +324,41 @@ public final class ComponentContextTests extends AbstractContainerTests {
     }
 
     @Context(Setting1.class)
-    @Component(api = { ContextAware.class, ContextAwareComponent1.class} )
+    @Component(automatic = false)
+    private static class ContextAware1Impl implements ContextAware {
+
+        private final String setting;
+
+        public ContextAware1Impl(final ComponentContext context) {
+            final Setting1 setting = context.annotation(Setting1.class, null);
+            final String value = setting == null ? null : setting.value();
+            this.setting = value == null ? "missing-value" : value;
+        }
+
+        public String setting() {
+            return setting;
+        }
+    }
+
+    @Context(Setting2.class)
+    @Component(automatic = false)
+    private static class ContextAware2Impl implements ContextAware {
+
+        private final String setting;
+
+        public ContextAware2Impl(final ComponentContext context) {
+            final Setting2 setting = context.annotation(Setting2.class, null);
+            final String value = setting == null ? null : setting.value();
+            this.setting = value == null ? "missing-value" : value;
+        }
+
+        public String setting() {
+            return setting;
+        }
+    }
+
+    @Context(Setting1.class)
+    @Component(automatic = false)
     private static class ContextAwareComponent1Impl implements ContextAwareComponent1 {
 
         private final String setting;
@@ -341,7 +375,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
     }
 
     @Context(Setting2.class)
-    @Component(api = { ContextAware.class, ContextAwareComponent2.class} )
+    @Component(automatic = false)
     private static class ContextAwareComponent2Impl implements ContextAwareComponent2 {
 
         private final String setting;
@@ -357,7 +391,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
         }
     }
 
-    @Component(api = { ContextAware.class, OrdinaryComponent1.class} )
+    @Component(automatic = false)
     private static class OrdinaryComponent1Impl implements OrdinaryComponent1 {
 
         private final String setting;
@@ -371,7 +405,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
         }
     }
 
-    @Component(api = { ContextAware.class, OrdinaryComponent2.class} )
+    @Component(automatic = false)
     private static class OrdinaryComponent2Impl implements OrdinaryComponent2 {
 
         private final String setting;
@@ -385,9 +419,37 @@ public final class ComponentContextTests extends AbstractContainerTests {
         }
     }
 
-    @Component(api = { ContextAware.class, OrdinaryComponent1.class} )
+    @Component(automatic = false)
+    private static class NotContextAware1Impl implements ContextAware {
+
+        private final String setting;
+
+        public NotContextAware1Impl(final Settings settings) {
+            this.setting = settings.setting();
+        }
+
+        public String setting() {
+            return setting;
+        }
+    }
+
+    @Component(automatic = false)
+    private static class NotContextAware2Impl implements ContextAware {
+
+        private final String setting;
+
+        public NotContextAware2Impl(final Settings settings) {
+            this.setting = settings.setting();
+        }
+
+        public String setting() {
+            return setting;
+        }
+    }
+
+    @Component(api = ContextAware.class, automatic = false)
     @Context(Setting1.class)
-    private static class OrdinaryVariants1 implements ComponentVariantFactory {
+    private static class ContextAwareVariants1 implements ComponentVariantFactory {
 
         public void newComponent(final OpenComponentContainer container, final ComponentContext context) {
             container.getRegistry().bindInstance(new ContextAware.Settings() {
@@ -396,13 +458,13 @@ public final class ComponentContextTests extends AbstractContainerTests {
                     final String value = setting == null ? null : setting.value();
                     return value == null ? "missing-value" : value;
                 }
-            }, ContextAware.Settings.class);
+            });
         }
     }
 
-    @Component(api = { ContextAware.class, OrdinaryComponent2.class} )
+    @Component(api = ContextAware.class, automatic = false)
     @Context(Setting2.class)
-    private static class OrdinaryVariants2 implements ComponentVariantFactory {
+    private static class ContextAwareVariants2 implements ComponentVariantFactory {
 
         public void newComponent(final OpenComponentContainer container, final ComponentContext context) {
             container.getRegistry().bindInstance(new ContextAware.Settings() {
@@ -411,11 +473,41 @@ public final class ComponentContextTests extends AbstractContainerTests {
                     final String value = setting == null ? null : setting.value();
                     return value == null ? "missing-value" : value;
                 }
-            }, ContextAware.Settings.class);
+            });
         }
     }
 
-    @Component
+    @Component(api = OrdinaryComponent1.class, automatic = false)
+    @Context(Setting1.class)
+    private static class OrdinaryComponentVariants1 implements ComponentVariantFactory {
+
+        public void newComponent(final OpenComponentContainer container, final ComponentContext context) {
+            container.getRegistry().bindInstance(new ContextAware.Settings() {
+                public String setting() {
+                    final Setting1 setting = context.annotation(Setting1.class, null);
+                    final String value = setting == null ? null : setting.value();
+                    return value == null ? "missing-value" : value;
+                }
+            });
+        }
+    }
+
+    @Component(api = OrdinaryComponent2.class, automatic = false)
+    @Context(Setting2.class)
+    private static class OrdinaryComponentVariants2 implements ComponentVariantFactory {
+
+        public void newComponent(final OpenComponentContainer container, final ComponentContext context) {
+            container.getRegistry().bindInstance(new ContextAware.Settings() {
+                public String setting() {
+                    final Setting2 setting = context.annotation(Setting2.class, null);
+                    final String value = setting == null ? null : setting.value();
+                    return value == null ? "missing-value" : value;
+                }
+            });
+        }
+    }
+
+    @Component(automatic = false)
     private static class InnocentBystanderComponent {
 
         final ContextAwareComponent1 contextAware;
@@ -435,7 +527,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
         }
     }
 
-    @Component
+    @Component(automatic = false)
     @Setting1("value1")
     private static class ContextSetterComponent1 {
 
@@ -462,7 +554,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
         }
     }
 
-    @Component
+    @Component(automatic = false)
     private static class ContextSetterComponent2 {
 
         final InnocentBystanderComponent innocent;
@@ -584,7 +676,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
 
     @Documented
     @Retention(RetentionPolicy.RUNTIME)
-    @Target( { ElementType.TYPE, ElementType.FIELD, ElementType.PARAMETER })
+    @Target({ ElementType.TYPE, ElementType.FIELD, ElementType.PARAMETER })
     public static @interface Setting1 {
 
         String value();
@@ -592,7 +684,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
 
     @Documented
     @Retention(RetentionPolicy.RUNTIME)
-    @Target( { ElementType.TYPE, ElementType.FIELD, ElementType.PARAMETER })
+    @Target({ ElementType.TYPE, ElementType.FIELD, ElementType.PARAMETER })
     public static @interface Setting2 {
 
         String value();
@@ -600,7 +692,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
 
     @Documented
     @Retention(RetentionPolicy.RUNTIME)
-    @Target( { ElementType.TYPE, ElementType.FIELD, ElementType.PARAMETER })
+    @Target({ ElementType.TYPE, ElementType.FIELD, ElementType.PARAMETER })
     public static @interface Setting3 {
 
         @SuppressWarnings("UnusedDeclaration") String value();

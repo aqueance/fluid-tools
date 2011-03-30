@@ -62,9 +62,10 @@ final class ConfigurationComponentFactory implements ComponentFactory {
 
         registry.bindInstance(properties, Properties.class);
         registry.bindComponent(properties.provider(), PropertyProvider.class);
-        registry.bindComponent(ConfigurationImpl.class, Configuration.class);
+        registry.bindComponent(ConfigurationImpl.class);
     }
 
+    @Component(automatic = false)
     static class ConfigurationImpl<T> implements Configuration<T> {
 
         private final AtomicReference<T> configuration = new AtomicReference<T>();

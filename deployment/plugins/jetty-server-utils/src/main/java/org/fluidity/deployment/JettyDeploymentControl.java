@@ -76,8 +76,8 @@ final class JettyDeploymentControl implements DeploymentControl {
         static void set(final ContainerBoundary container, final Server server, final boolean standalone) {
             container.setBindingProperty(BINDINGS_KEY, new ComponentContainer.Bindings() {
                 public void bindComponents(final ComponentContainer.Registry registry) {
-                    registry.bindInstance(server, Server.class);
-                    registry.bindInstance(standalone, Boolean.TYPE);
+                    registry.bindInstance(server);
+                    registry.bindInstance(standalone);
                 }
             });
         }

@@ -22,8 +22,6 @@
 
 package org.fluidity.composition;
 
-import java.io.Serializable;
-
 import org.fluidity.composition.spi.ComponentFactory;
 
 import org.easymock.EasyMock;
@@ -57,12 +55,12 @@ public final class ComponentFactoryTests extends AbstractContainerTests {
         registry.bindComponent(Factory.class);
         registry.bindComponent(FactoryDependency.class);
 
-        final String check = "check";
+        final Check check = new Check();
 
-        registry.bindInstance(check, Serializable.class);
+        registry.bindInstance(check);
 
         factory.newComponent(EasyMock.<OpenComponentContainer>notNull(), EasyMock.<ComponentContext>notNull());
-        EasyMock.expectLastCall().andAnswer(new FactoryInvocation(Serializable.class, check)).anyTimes();
+        EasyMock.expectLastCall().andAnswer(new FactoryInvocation(Check.class, check)).anyTimes();
 
         replay();
         verifyComponent(container);
@@ -75,14 +73,14 @@ public final class ComponentFactoryTests extends AbstractContainerTests {
 
         final OpenComponentContainer child = registry.makeChildContainer(Factory.class);
 
-        final String check = "check";
+        final Check check = new Check();
         final ComponentContainer.Registry childRegistry = child.getRegistry();
 
         childRegistry.bindComponent(FactoryDependency.class);
-        childRegistry.bindInstance(check, Serializable.class);
+        childRegistry.bindInstance(check);
 
         factory.newComponent(EasyMock.<OpenComponentContainer>notNull(), EasyMock.<ComponentContext>notNull());
-        EasyMock.expectLastCall().andAnswer(new FactoryInvocation(Serializable.class, check)).anyTimes();
+        EasyMock.expectLastCall().andAnswer(new FactoryInvocation(Check.class, check)).anyTimes();
 
         replay();
         verifyComponent(container);
@@ -95,9 +93,9 @@ public final class ComponentFactoryTests extends AbstractContainerTests {
         registry.bindComponent(Factory.class);
         registry.bindComponent(FactoryDependency.class);
 
-        final String check = "check";
+        final Check check = new Check();
 
-        registry.bindInstance(check, Serializable.class);
+        registry.bindInstance(check);
 
         factory.newComponent(EasyMock.<OpenComponentContainer>notNull(), EasyMock.<ComponentContext>notNull());
         EasyMock.expectLastCall().andAnswer(new CircularFactoryInvocation()).anyTimes();
@@ -152,7 +150,7 @@ public final class ComponentFactoryTests extends AbstractContainerTests {
         assert group[0] != group[1];
     }
 
-    @Component(api = DependentKey.class)
+    @Component(api = DependentKey.class, automatic = false)
     private static class Factory implements ComponentFactory {
 
         public static ComponentFactory delegate;
@@ -177,10 +175,10 @@ public final class ComponentFactoryTests extends AbstractContainerTests {
 
     private static class GroupMember1 implements GroupApi { }
 
-    @Component
+    @Component(automatic = false)
     private static class GroupMember2 implements GroupMember2Api { }
 
-    @Component(api = GroupMember1.class)
+    @Component(api = GroupMember1.class, automatic = false)
     private static class GroupMember1Factory implements ComponentFactory {
 
         public static ComponentFactory delegate;
@@ -194,7 +192,7 @@ public final class ComponentFactoryTests extends AbstractContainerTests {
         }
     }
 
-    @Component(api = {GroupMember2Api.class })
+    @Component(api = GroupMember2Api.class, automatic = false)
     private static class GroupMember2Factory implements ComponentFactory {
 
         public static ComponentFactory delegate;

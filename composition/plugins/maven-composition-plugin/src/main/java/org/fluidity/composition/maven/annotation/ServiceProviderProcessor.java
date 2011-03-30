@@ -93,6 +93,16 @@ public final class ServiceProviderProcessor extends EmptyVisitor {
         };
     }
 
+    @Override
+    public AnnotationVisitor visitAnnotation(final String desc, final boolean visible) {
+        return null;
+    }
+
+    @Override
+    public AnnotationVisitor visitParameterAnnotation(final int parameter, final String desc, final boolean visible) {
+        return null;
+    }
+
     public Set<String> apiSet() {
         return apiSet;
     }

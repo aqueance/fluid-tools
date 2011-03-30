@@ -25,6 +25,7 @@ package org.fluidity.composition;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -128,71 +129,50 @@ final class SimpleContainerImpl implements ParentContainer {
         return new LocalResolver(resolver);
     }
 
-    public void bindResolvers(Class<?> implementation,
-                              final Class<?>[] componentInterfaces,
-                              final Class<?>[] groupInterfaces,
-                              final boolean stateful,
-                              final ContentResolvers resolvers) {
+    private void bindResolvers(final Class<?> implementation, final Components.Specification[] interfaces, final boolean stateful, final ContentResolvers resolvers) {
         if (resolvers.isVariantFactory()) {
             bindResolver(implementation, local(resolvers.component(implementation, services.newCache(true), true)));
 
             final ComponentCache cache = services.newCache(true);
-            if (componentInterfaces != null) {
-                for (final Class<?> api : componentInterfaces) {
-                    bindResolver(api, local(resolvers.variant(api, cache)));
-                }
-            }
+            for (final Components.Specification api : interfaces) {
+                final Class<?> component = api.api;
 
-            if (groupInterfaces != null) {
-                assert componentInterfaces != null : implementation;
+                bindResolver(component, local(resolvers.variant(component, cache)));
 
-                for (final Class<?> api : groupInterfaces) {
-                    for (final Class<?> component : componentInterfaces) {
-                        bindGroup(api).addResolver(component, resolver(component, false));
-                    }
+                for (final Class<?> group : api.groups) {
+                        bindGroup(group).addResolver(component, resolver(component, false));
                 }
             }
         } else if (resolvers.isCustomFactory()) {
             bindResolver(implementation, local(resolvers.component(implementation, services.newCache(true), true)));
 
             final ComponentCache cache = services.newCache(true);
-            if (componentInterfaces != null) {
-                for (final Class<?> api : componentInterfaces) {
-                    bindResolver(api, local(resolvers.factory(api, cache)));
-                }
-            }
+            for (final Components.Specification api : interfaces) {
+                final Class<?> component = api.api;
 
-            if (groupInterfaces != null) {
-                assert componentInterfaces != null : implementation;
+                bindResolver(component, local(resolvers.factory(component, cache)));
 
-                for (final Class<?> api : groupInterfaces) {
-                    for (final Class<?> component : componentInterfaces) {
-                        bindGroup(api).addResolver(component, resolver(component, false));
-                    }
+                for (final Class<?> group : api.groups) {
+                    bindGroup(group).addResolver(component, resolver(component, false));
                 }
             }
         } else {
             final ComponentCache cache = services.newCache(!stateful);
-            if (componentInterfaces == null || componentInterfaces.length == 0) {
-                throw new ComponentContainer.BindingException("Component interface list empty for %s", implementation);
-            }
 
-            for (final Class<?> api : componentInterfaces) {
-                bindResolver(api, local(resolvers.component(api, cache, false)));
-            }
+            for (final Components.Specification api : interfaces) {
+                final Class<?> component = api.api;
 
-            if (groupInterfaces != null) {
-                for (final Class<?> api : groupInterfaces) {
-                    bindGroup(api).addResolver(implementation, resolver(implementation, false));
+                bindResolver(component, local(resolvers.component(component, cache, false)));
+
+                for (final Class<?> group : api.groups) {
+                    bindGroup(group).addResolver(component, resolver(component, false));
                 }
             }
         }
     }
 
-    public void bindComponent(final Class<?> implementation, final Class<?>[] componentInterfaces, final Class<?>[] groupInterfaces) {
-        if (implementation == null) {
-            throw new ComponentContainer.BindingException("Component class for %s is null", print(null, componentInterfaces));
-        }
+    public void bindComponent(final Components.Interfaces interfaces) {
+        final Class<?> implementation = interfaces.implementation;
 
         /*
          * No synthetic classes or anonymous inner classes are allowed.
@@ -208,15 +188,9 @@ final class SimpleContainerImpl implements ParentContainer {
         final boolean isStateful = componentSpec != null && componentSpec.stateful();
         final boolean isFallback = componentSpec != null && !componentSpec.primary();
 
-        if (componentInterfaces != null) {
-            log.info("%s: binding %s to %s (%s, %s)", this, implementation, print(implementation, componentInterfaces), isStateful ? "stateful" : "stateless", isFallback ? "fallback" : "primary");
-        }
+        log.info("%s: binding %s to %s (%s, %s)", this, implementation, print(interfaces), isStateful ? "stateful" : "stateless", isFallback ? "fallback" : "primary");
 
-        if (groupInterfaces != null) {
-            log.info("%s: adding %s to group %s (%s, %s)", this, implementation, print(null, groupInterfaces), isStateful ? "stateful" : "stateless", isFallback ? "fallback" : "primary");
-        }
-
-        bindResolvers(implementation, componentInterfaces, groupInterfaces, isStateful, new ContentResolvers() {
+        bindResolvers(implementation, interfaces.api, isStateful, new ContentResolvers() {
             public boolean isVariantFactory() {
                 return ComponentVariantFactory.class.isAssignableFrom(implementation);
             }
@@ -241,9 +215,9 @@ final class SimpleContainerImpl implements ParentContainer {
         });
     }
 
-    public void bindInstance(final Object instance, final Class<?>[] componentInterfaces, final Class<?>[] groupInterfaces) {
+    public void bindInstance(final Object instance, final Components.Interfaces interfaces) {
         if (instance == null) {
-            throw new ComponentContainer.BindingException("Component instance for %s is null", print(null, componentInterfaces));
+            throw new ComponentContainer.BindingException("Component instance for %s is null", interfaces.implementation);
         }
 
         final Class<?> implementation = instance.getClass();
@@ -254,15 +228,9 @@ final class SimpleContainerImpl implements ParentContainer {
                              ? ('\'' + String.valueOf(instance) + '\'')
                              : ("instance of " + Strings.arrayNotation(implementation));
 
-        if (componentInterfaces != null) {
-            log.info("%s: binding '%s' to %s (%s)", this, value, print(implementation, componentInterfaces), isFallback ? "fallback" : "primary");
-        }
+        log.info("%s: binding '%s' to %s (%s)", this, value, print(interfaces), isFallback ? "fallback" : "primary");
 
-        if (groupInterfaces != null) {
-            log.info("%s: adding '%s' to group %s (%s)", this, value, print(null, groupInterfaces), isFallback ? "fallback" : "primary");
-        }
-
-        bindResolvers(implementation, componentInterfaces, groupInterfaces, false, new ContentResolvers() {
+        bindResolvers(implementation, interfaces.api, false, new ContentResolvers() {
             public boolean isVariantFactory() {
                 return instance instanceof ComponentVariantFactory;
             }
@@ -287,35 +255,37 @@ final class SimpleContainerImpl implements ParentContainer {
         });
     }
 
-    private String print(final Class<?> self, final Class<?>[] classes) {
+    private String print(final Components.Interfaces interfaces) {
         final StringBuilder text = new StringBuilder();
 
         boolean multiple = false;
-        for (final Class<?> type : classes) {
-            if (type != self) {
-                if (text.length() > 0) {
-                    text.append(", ");
-                    multiple = true;
-                }
+        for (final Components.Specification specification : interfaces.api) {
+            final Class<?> type = specification.api;
 
-                text.append(Strings.arrayNotation(type));
+            if (text.length() > 0) {
+                text.append(", ");
+                multiple = true;
+            }
+
+            text.append(Strings.arrayNotation(type));
+
+            if (specification.groups.length > 0) {
+                text.append(" group ").append(Arrays.toString(specification.groups));
             }
         }
 
         return (multiple ? text.insert(0, '[').append(']') : text).toString();
     }
 
-    public SimpleContainer linkComponent(final Class<?> implementation, final Class<?>[] componentInterfaces, final Class<?>[] groupInterfaces)
+    public SimpleContainer linkComponent(final Components.Interfaces interfaces)
             throws ComponentContainer.BindingException {
         final LogFactory logs = this.logs;
         final SimpleContainer child = newChildContainer();
 
-        child.bindComponent(implementation, componentInterfaces, groupInterfaces);
+        child.bindComponent(interfaces);
 
-        if (componentInterfaces != null) {
-            for (final Class<?> api : componentInterfaces) {
-                bindResolver(api, new LinkingResolver(child, api, child.resolver(api, false), logs));
-            }
+        for (final Components.Specification specification : interfaces.api) {
+            bindResolver(specification.api, new LinkingResolver(child, specification.api, child.resolver(specification.api, false), logs));
         }
 
         return child;

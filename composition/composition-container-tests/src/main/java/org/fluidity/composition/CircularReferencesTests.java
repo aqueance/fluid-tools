@@ -168,7 +168,7 @@ public final class CircularReferencesTests extends AbstractContainerTests {
 
     }
 
-    @Component
+    @Component(automatic = false)
     private static class Circular2Dependent1Impl extends PingableImpl implements Circular2Dependent1 {
 
         public Circular2Dependent1Impl(final Circular2Dependent2 dependency) {
@@ -176,7 +176,7 @@ public final class CircularReferencesTests extends AbstractContainerTests {
         }
     }
 
-    @Component
+    @Component(automatic = false)
     private static class Circular2Dependent2Impl extends PingableImpl implements Circular2Dependent2 {
 
         public Circular2Dependent2Impl(final Circular2Dependent1 dependency) {
@@ -196,7 +196,7 @@ public final class CircularReferencesTests extends AbstractContainerTests {
 
     }
 
-    @Component
+    @Component(automatic = false)
     private static class Circular3Dependent1Impl extends PingableImpl implements Circular3Dependent1 {
 
         public Circular3Dependent1Impl(final Circular3Dependent2 dependency) {
@@ -204,7 +204,7 @@ public final class CircularReferencesTests extends AbstractContainerTests {
         }
     }
 
-    @Component
+    @Component(automatic = false)
     private static class Circular3Dependent2Impl extends PingableImpl implements Circular3Dependent2 {
 
         public Circular3Dependent2Impl(final Circular3Dependent3 dependency) {
@@ -212,7 +212,7 @@ public final class CircularReferencesTests extends AbstractContainerTests {
         }
     }
 
-    @Component
+    @Component(automatic = false)
     private static class Circular3Dependent3Impl extends PingableImpl implements Circular3Dependent3 {
 
         public Circular3Dependent3Impl(final Circular3Dependent1 dependency) {
@@ -220,7 +220,7 @@ public final class CircularReferencesTests extends AbstractContainerTests {
         }
     }
 
-    @Component(api = Circular2Dependent1Class.class)
+    @Component(api = Circular2Dependent1Class.class, automatic = false)
     private static class Circular2Dependent1Class extends PingableImpl implements Pingable {
 
         public Circular2Dependent1Class(final Circular2Dependent2Class dependency) {
@@ -228,7 +228,7 @@ public final class CircularReferencesTests extends AbstractContainerTests {
         }
     }
 
-    @Component(api = Circular2Dependent2Class.class)
+    @Component(api = Circular2Dependent2Class.class, automatic = false)
     private static class Circular2Dependent2Class extends PingableImpl implements Pingable {
 
         public Circular2Dependent2Class(final Circular2Dependent1Class dependency) {
@@ -236,7 +236,7 @@ public final class CircularReferencesTests extends AbstractContainerTests {
         }
     }
 
-    @Component(api = Circular3Dependent1Class.class)
+    @Component(api = Circular3Dependent1Class.class, automatic = false)
     private static class Circular3Dependent1Class extends PingableImpl implements Pingable {
 
         public Circular3Dependent1Class(final Circular3Dependent2Class dependency) {
@@ -244,7 +244,7 @@ public final class CircularReferencesTests extends AbstractContainerTests {
         }
     }
 
-    @Component(api = Circular3Dependent2Class.class)
+    @Component(api = Circular3Dependent2Class.class, automatic = false)
     private static class Circular3Dependent2Class extends PingableImpl implements Pingable {
 
         public Circular3Dependent2Class(final Circular3Dependent3Class dependency) {
@@ -252,7 +252,7 @@ public final class CircularReferencesTests extends AbstractContainerTests {
         }
     }
 
-    @Component(api = Circular3Dependent3Class.class)
+    @Component(api = Circular3Dependent3Class.class, automatic = false)
     private static class Circular3Dependent3Class extends PingableImpl implements Pingable {
 
         public Circular3Dependent3Class(final Circular3Dependent1Class dependency) {
@@ -260,7 +260,7 @@ public final class CircularReferencesTests extends AbstractContainerTests {
         }
     }
 
-    @Component(api = Circular3IntermediateDependent1Class.class)
+    @Component(api = Circular3IntermediateDependent1Class.class, automatic = false)
     private static class Circular3IntermediateDependent1Class extends PingableImpl implements Pingable {
 
         public Circular3IntermediateDependent1Class(final Circular3IntermediateDependent2Class dependency) {
@@ -268,7 +268,7 @@ public final class CircularReferencesTests extends AbstractContainerTests {
         }
     }
 
-    @Component(api = Circular3IntermediateDependent2Class.class)
+    @Component(api = Circular3IntermediateDependent2Class.class, automatic = false)
     private static class Circular3IntermediateDependent2Class extends PingableImpl implements Pingable {
 
         public Circular3IntermediateDependent2Class(final Circular3IntermediateDependent3 dependency) {
@@ -276,12 +276,12 @@ public final class CircularReferencesTests extends AbstractContainerTests {
         }
     }
 
-    @Component
+    @Component(automatic = false)
     private static interface Circular3IntermediateDependent3 extends Pingable {
 
     }
 
-    @Component
+    @Component(automatic = false)
     private static class Circular3IntermediateDependent3Class extends PingableImpl implements Circular3IntermediateDependent3 {
 
         public Circular3IntermediateDependent3Class(final Circular3IntermediateDependent1Class dependency) {
@@ -289,17 +289,17 @@ public final class CircularReferencesTests extends AbstractContainerTests {
         }
     }
 
-    @Component
+    @Component(automatic = false)
     private static interface CircularConstructor1 extends Pingable {}
 
-    @Component
+    @Component(automatic = false)
     private static interface CircularConstructor2 extends Pingable {}
 
-    @Component
+    @Component(automatic = false)
     private static interface CircularConstructor3 extends Pingable {}
 
     // this will be instantiated once
-    @Component
+    @Component(automatic = false)
     private static class CircularConstructor1Impl implements CircularConstructor1 {
 
         public static boolean call = false;
@@ -314,7 +314,7 @@ public final class CircularReferencesTests extends AbstractContainerTests {
     }
 
     // this will be instantiated twice because it forces in its constructor the instantiation of its dependency
-    @Component
+    @Component(automatic = false)
     private static class CircularConstructor2Impl implements CircularConstructor2 {
 
         public static boolean call = false;
@@ -329,7 +329,7 @@ public final class CircularReferencesTests extends AbstractContainerTests {
     }
 
     // this will be instantiated thrice because both it and CircularConstructor2Impl force in their constructor the instantiation of their dependency
-    @Component
+    @Component(automatic = false)
     private static class CircularConstructor3Impl implements CircularConstructor3 {
 
         public static boolean call = false;
