@@ -140,7 +140,7 @@ final class SimpleContainerImpl implements ParentContainer {
                 bindResolver(component, local(resolvers.variant(component, cache)));
 
                 for (final Class<?> group : api.groups) {
-                        bindGroup(group).addResolver(component, resolver(component, false));
+                        bindGroup(group).addResolver(component);
                 }
             }
         } else if (resolvers.isCustomFactory()) {
@@ -153,7 +153,7 @@ final class SimpleContainerImpl implements ParentContainer {
                 bindResolver(component, local(resolvers.factory(component, cache)));
 
                 for (final Class<?> group : api.groups) {
-                    bindGroup(group).addResolver(component, resolver(component, false));
+                    bindGroup(group).addResolver(component);
                 }
             }
         } else {
@@ -165,7 +165,7 @@ final class SimpleContainerImpl implements ParentContainer {
                 bindResolver(component, local(resolvers.component(component, cache, false)));
 
                 for (final Class<?> group : api.groups) {
-                    bindGroup(group).addResolver(component, resolver(component, false));
+                    bindGroup(group).addResolver(component);
                 }
             }
         }
@@ -228,7 +228,7 @@ final class SimpleContainerImpl implements ParentContainer {
                              ? ('\'' + String.valueOf(instance) + '\'')
                              : ("instance of " + Strings.arrayNotation(implementation));
 
-        log.info("%s: binding '%s' to %s (%s)", this, value, print(interfaces), isFallback ? "fallback" : "primary");
+        log.info("%s: binding %s to %s (%s)", this, value, print(interfaces), isFallback ? "fallback" : "primary");
 
         bindResolvers(implementation, interfaces.api, false, new ContentResolvers() {
             public boolean isVariantFactory() {
@@ -510,10 +510,6 @@ final class SimpleContainerImpl implements ParentContainer {
 
         public boolean isVariantMapping() {
             return delegate.isVariantMapping();
-        }
-
-        public boolean isFactoryMapping() {
-            return delegate.isFactoryMapping();
         }
 
         public boolean isInstanceMapping() {

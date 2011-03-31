@@ -374,6 +374,7 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
                 final Map<String, Set<String>> serviceProviderApis = new HashMap<String, Set<String>>();
 
                 class ClassFlags {
+                    public boolean ignored;
                     public boolean component;
                     public boolean group;
                     public boolean dependent;
@@ -385,6 +386,15 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
                     private final Type serviceProviderType = Type.getType(ServiceProvider.class);
                     private final Type componentType = Type.getType(Component.class);
                     private final Type componentGroupType = Type.getType(ComponentGroup.class);
+
+                    private final String name = ClassReaders.internalName(className);
+                    private boolean original;
+
+                    @Override
+                    public void visit(final int version, final int access, final String name, final String signature, final String superName, final String[] interfaces) {
+                        original = this.name.equals(name);
+                        super.visit(version, access, name, signature, superName, interfaces);
+                    }
 
                     @Override
                     public FieldVisitor visitField(final int access, final String name, final String desc, final String signature, final Object value) {
@@ -418,9 +428,8 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
                         } else if (componentType.equals(type)) {
                             return new ComponentProcessor(new ProcessorCallback<ComponentProcessor>() {
                                 public void complete(final ComponentProcessor processor) {
-                                    if (processor.isAutomatic()) {
-                                        flags.component = !ClassReaders.isAbstract(classData) && !ClassReaders.isInterface(classData);
-                                    }
+                                    flags.ignored = original && !processor.isAutomatic();
+                                    flags.component = !ClassReaders.isAbstract(classData) && !ClassReaders.isInterface(classData);
                                 }
                             });
                         } else if (componentGroupType.equals(type)) {
@@ -457,29 +466,31 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
                 if (processClass(classData, processor)) {
                     final Map<String, Collection<String>> providerMap = providerMap(PackageBindings.SERVICE_TYPE, serviceProviderMap);
 
-                    if (flags.component) {
-                        addBinding(bindingClassName, ClassReaders.externalName(classData), providerMap, componentMap);
-                    }
+                    if (!flags.ignored) {
+                        if (flags.component) {
+                            addBinding(bindingClassName, ClassReaders.externalName(classData), providerMap, componentMap);
+                        }
 
-                    if (flags.group) {
-                        addBinding(bindingClassName, ClassReaders.externalName(classData), providerMap, componentGroupMap);
-                    }
+                        if (flags.group) {
+                            addBinding(bindingClassName, ClassReaders.externalName(classData), providerMap, componentGroupMap);
+                        }
 
-                    if (!flags.dependent) {
-                        for (final Map.Entry<String, Set<String>> entry : serviceProviderApis.entrySet()) {
-                            final Set<String> providerNames = entry.getValue();
-                            if (!providerNames.isEmpty()) {
-                                addServiceProviders(className, providerNames, providerMap(entry.getKey(), serviceProviderMap));
-                            }
-
-                            for (final String api : providerNames) {
-                                Set<String> providers = serviceProviders.get(api);
-
-                                if (providers == null) {
-                                    serviceProviders.put(api, providers = new HashSet<String>());
+                        if (!flags.dependent) {
+                            for (final Map.Entry<String, Set<String>> entry : serviceProviderApis.entrySet()) {
+                                final Set<String> providerNames = entry.getValue();
+                                if (!providerNames.isEmpty()) {
+                                    addServiceProviders(className, providerNames, providerMap(entry.getKey(), serviceProviderMap));
                                 }
 
-                                providers.add(className);
+                                for (final String api : providerNames) {
+                                    Set<String> providers = serviceProviders.get(api);
+
+                                    if (providers == null) {
+                                        serviceProviders.put(api, providers = new HashSet<String>());
+                                    }
+
+                                    providers.add(className);
+                                }
                             }
                         }
                     }

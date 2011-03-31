@@ -68,7 +68,7 @@ final class ComponentCacheImpl implements ComponentCache {
                          source,
                          component.getClass().getName(),
                          System.identityHashCode(component),
-                         context.types().isEmpty() ? "" : String.format(" for context %s", context));
+                         context.types().isEmpty() ? "" : String.format(" for %s", context));
             }
         }
 

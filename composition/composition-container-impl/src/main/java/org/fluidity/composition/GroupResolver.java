@@ -43,8 +43,8 @@ import org.fluidity.composition.spi.DependencyPath;
  */
 final class GroupResolver {
 
-    private final Map<Class<?>, ComponentResolver> members = new LinkedHashMap<Class<?>, ComponentResolver>();
-    private volatile Set<ComponentResolver> sorted;
+    private final Set<Class<?>> members = new LinkedHashSet<Class<?>>();
+    private volatile Set<Class<?>> sorted;
 
     public static interface Node {
 
@@ -54,11 +54,11 @@ final class GroupResolver {
     public Node resolve(final Class<?> api, final DependencyGraph.Traversal traversal, final SimpleContainer container, final ContextDefinition context) {
 
         // make sure we perform the static part of the component resolution of group members
-        final Map<DependencyGraph.Node, ComponentResolver> staticOrder = staticResolution(api, traversal, container, context);
+        final Map<DependencyGraph.Node, Class<?>> staticOrder = staticResolution(api, traversal, container, context);
 
         return new Node() {
             public Collection<?> instance() {
-                Set<ComponentResolver> cache = sorted;
+                Set<Class<?>> cache = sorted;
 
                 if (cache == null) {
                     synchronized (this) {
@@ -66,7 +66,7 @@ final class GroupResolver {
 
                         if (cache == null) {
                             @SuppressWarnings("UnusedAssignment")   // IntelliJ IDEA fails to recognize the use of cache below as use of this assignment value
-                            final Set<ComponentResolver> local = cache = new LinkedHashSet<ComponentResolver>();
+                            final Set<Class<?>> local = cache = new LinkedHashSet<Class<?>>();
 
                             // list of types resolved while instantiating a group member, i.e., resolved from within its constructor
                             final List<Class<?>> dynamic = new ArrayList<Class<?>>();
@@ -123,7 +123,7 @@ final class GroupResolver {
                                                     throw new ComponentContainer.ResolutionException( "Set of dynamic dependencies of %s changed from one instance to the next", type);
                                                 }
 
-                                                local.add(resolvers.get(type));
+                                                local.add(type);
                                             }
 
                                             // process the one that triggered the resolutions
@@ -144,8 +144,8 @@ final class GroupResolver {
 
                 final List<Object> dynamicOrder = new ArrayList<Object>();
 
-                for (final ComponentResolver resolver : cache) {
-                    dynamicOrder.add(resolver.resolve(traversal, container, context).instance());
+                for (final Class<?> api : cache) {
+                    dynamicOrder.add(container.resolver(api, false).resolve(traversal, container, context).instance());
                 }
 
                 return dynamicOrder;
@@ -154,11 +154,11 @@ final class GroupResolver {
     }
 
     // returns node ordered according to the static dependencies among the group members
-    private Map<DependencyGraph.Node, ComponentResolver> staticResolution(final Class<?> api,
-                                                                          final DependencyGraph.Traversal traversal,
-                                                                          final SimpleContainer container,
-                                                                          final ContextDefinition context) {
-        final Map<DependencyGraph.Node, ComponentResolver> list = new LinkedHashMap<DependencyGraph.Node, ComponentResolver>();
+    private Map<DependencyGraph.Node, Class<?>> staticResolution(final Class<?> api,
+                                                                 final DependencyGraph.Traversal traversal,
+                                                                 final SimpleContainer container,
+                                                                 final ContextDefinition context) {
+        final Map<DependencyGraph.Node, Class<?>> list = new LinkedHashMap<DependencyGraph.Node, Class<?>>();
         final Map<Class<?>, ComponentResolver> resolvers = new HashMap<Class<?>, ComponentResolver>();
 
         // maps node types to nodes
@@ -180,10 +180,11 @@ final class GroupResolver {
 
         // resolves each member and fills the node type to node mapping while maintaining the context
         final List<ContextDefinition> consumed = new ArrayList<ContextDefinition>();
-        for (final ComponentResolver member : members.values()) {
+        for (final Class<?> member : members) {
             final ContextDefinition copy = context.copy();
 
-            final DependencyGraph.Node node = member.resolve(observed, container, copy.reduce(member.acceptedContext()));
+            final ComponentResolver resolver = container.resolver(member, false);
+            final DependencyGraph.Node node = resolver.resolve(observed, container, copy.reduce(resolver.acceptedContext()));
             map.put(node.type(), node);
 
             consumed.add(copy);
@@ -197,42 +198,14 @@ final class GroupResolver {
 
             // sequence may contain members resolved from a parent container: we ignore those here
             if (node != null) {
-                list.put(node, resolvers.get(type));
+                list.put(node, type);
             }
         }
 
         return list;
     }
 
-    public void addResolver(final Class<?> api, final ComponentResolver entry) {
-        assert entry != null : api;
-
-        synchronized (members) {
-            final ComponentResolver resolver = members.get(api);
-
-            if (resolver == null) {
-                replace(api, null, entry);
-            } else if (resolver.isVariantMapping() && resolver.replaces(entry)) {
-                replace(api, entry, resolver);
-            } else if (entry.isVariantMapping() && entry.replaces(resolver)) {
-                replace(api, resolver, entry);
-            } else if (entry.replaces(resolver)) {
-                replace(api, resolver, entry);
-            }
-        }
-    }
-
-    public void replace(final Class<?> key, final ComponentResolver previous, final ComponentResolver replacement) {
-        if (members.get(key) == previous) {
-            replaceResolver(key, previous, replacement);
-        }
-
-        members.put(key, replacement);
-    }
-
-    public void replaceResolver(final Class<?> key, final ComponentResolver previous, final ComponentResolver replacement) {
-        for (final ComponentResolver resolver : members.values()) {
-            resolver.resolverReplaced(key, previous, replacement);
-        }
+    public void addResolver(final Class<?> api) {
+        members.add(api);
     }
 }

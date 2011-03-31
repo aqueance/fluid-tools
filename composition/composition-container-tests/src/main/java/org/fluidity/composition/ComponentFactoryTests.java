@@ -119,24 +119,6 @@ public final class ComponentFactoryTests extends AbstractContainerTests {
         groupMemberChecks(1);
     }
 
-    @Test
-    public void groupMemberComponentFactoryOrder1() throws Exception {
-        registry.bindComponent(GroupMember1Factory.class);
-        registry.bindComponent(GroupMember2Factory.class);
-        registry.bindComponent(GroupMember1.class);
-        registry.bindComponent(GroupMember2.class);
-        groupMemberChecks(2);
-    }
-
-    @Test
-    public void groupMemberComponentFactoryOrder2() throws Exception {
-        registry.bindComponent(GroupMember1.class);
-        registry.bindComponent(GroupMember2.class);
-        registry.bindComponent(GroupMember1Factory.class);
-        registry.bindComponent(GroupMember2Factory.class);
-        groupMemberChecks(2);
-    }
-
     private void groupMemberChecks(final int factories) {
         factory.newComponent(EasyMock.<OpenComponentContainer>notNull(), EasyMock.<ComponentContext>notNull());
         EasyMock.expectLastCall().times(factories);
@@ -173,6 +155,7 @@ public final class ComponentFactoryTests extends AbstractContainerTests {
 
     private static interface GroupMember2Api extends GroupApi { }
 
+    @Component(automatic = false)
     private static class GroupMember1 implements GroupApi { }
 
     @Component(automatic = false)

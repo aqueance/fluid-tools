@@ -53,3 +53,8 @@ class SimpleServiceProvider3 implements SimpleServiceProvider {
 class SimpleServiceProvider4 implements SimpleServiceProvider {
 
 }
+
+@Component(automatic = false)
+class SimpleServiceProvider5 implements SimpleServiceProvider {
+
+}

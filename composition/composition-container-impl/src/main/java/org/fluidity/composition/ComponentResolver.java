@@ -48,13 +48,6 @@ interface ComponentResolver extends ComponentMapping {
     boolean isVariantMapping();
 
     /**
-     * Tells whether the mapping is that of a {@link org.fluidity.composition.spi.ComponentFactory}.
-     *
-     * @return <code>true</code> if the mapping is that of a {@link org.fluidity.composition.spi.ComponentFactory}, <code>false</code> otherwise.
-     */
-    boolean isFactoryMapping();
-
-    /**
      * Tells whether this mapping has been created for an already instantiated component.
      *
      * @return <code>true</code> if this mapping represents an already instantiated component, <code>false</code> otherwise.
