@@ -41,7 +41,7 @@ import java.lang.annotation.Target;
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
-@Target( { ElementType.TYPE })
+@Target(ElementType.TYPE)
 @Inherited
 public @interface ServiceProvider {
 

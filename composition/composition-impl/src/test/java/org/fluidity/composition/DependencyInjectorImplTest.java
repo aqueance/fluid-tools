@@ -220,7 +220,7 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
     }
 
     @Test
-    @SuppressWarnings( { "unchecked" })
+    @SuppressWarnings("unchecked")
     public void injectsConstructor() throws Exception {
         final Dependency dependency = new DependencyImpl();
         final ServiceImpl1 service1 = new ServiceImpl1();
