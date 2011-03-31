@@ -70,7 +70,6 @@ final class GroupResolver {
 
                             // list of types resolved while instantiating a group member, i.e., resolved from within its constructor
                             final List<Class<?>> dynamic = new ArrayList<Class<?>>();
-                            final Map<Class<?>, ComponentResolver> resolvers = new HashMap<Class<?>, ComponentResolver>();
 
                             final Map<Class<?>, DependencyGraph.Node> map = new HashMap<Class<?>, DependencyGraph.Node>();
                             for (final DependencyGraph.Node node : staticOrder.keySet()) {
@@ -91,8 +90,6 @@ final class GroupResolver {
                                         }
 
                                         dynamic.add(index, type);
-                                        resolvers.put(type, container.resolved());
-                                        assert resolvers.get(type) != null : type;
                                     }
                                 }
                             };
@@ -159,7 +156,6 @@ final class GroupResolver {
                                                                  final SimpleContainer container,
                                                                  final ContextDefinition context) {
         final Map<DependencyGraph.Node, Class<?>> list = new LinkedHashMap<DependencyGraph.Node, Class<?>>();
-        final Map<Class<?>, ComponentResolver> resolvers = new HashMap<Class<?>, ComponentResolver>();
 
         // maps node types to nodes
         final Map<Class<?>, DependencyGraph.Node> map = new HashMap<Class<?>, DependencyGraph.Node>();
@@ -172,8 +168,6 @@ final class GroupResolver {
             public void resolved(final DependencyPath path, final Class<?> type) {
                 if (api.isAssignableFrom(type)) {
                     sequence.add(type);
-                    resolvers.put(type, container.resolved());
-                    assert resolvers.get(type) != null : type;
                 }
             }
         });

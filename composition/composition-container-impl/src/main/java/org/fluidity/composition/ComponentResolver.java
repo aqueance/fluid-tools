@@ -71,11 +71,4 @@ interface ComponentResolver extends ComponentMapping {
      * @param replacement the new resolver.
      */
     void resolverReplaced(Class<?> api, ComponentResolver previous, ComponentResolver replacement);
-
-    /**
-     * Returns the original resolver in case it has been linked to a container to be returned in its {@link org.fluidity.composition.SimpleContainer#resolved()} method.
-     *
-     * @return the original resolver.
-     */
-    ComponentResolver unlink();
 }

@@ -71,7 +71,7 @@ abstract class VariantResolver extends AbstractResolver {
         final int check = resolver.priority();
 
         if (resolver.isVariantMapping()) {
-            final VariantResolver variants = (VariantResolver) resolver.unlink();
+            final VariantResolver variants = (VariantResolver) resolver;
             if (variants == this) {
                 return false;
             } else if (check == priority()) {
@@ -142,7 +142,7 @@ abstract class VariantResolver extends AbstractResolver {
 
     public DependencyGraph.Node resolve(final DependencyGraph.Traversal traversal, final SimpleContainer container, final ContextDefinition context) {
         final SimpleContainer child = container.newChildContainer();
-        child.bindResolver(api, findDelegate().unlink());
+        child.bindResolver(api, findDelegate());
         factory(container, traversal).newComponent(new ComponentContainerShell(child, context, false), context.create());
         return cachingNode(child.resolveComponent(api, context, traversal), child);
     }

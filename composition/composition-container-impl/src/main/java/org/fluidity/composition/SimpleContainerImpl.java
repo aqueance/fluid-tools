@@ -47,9 +47,6 @@ final class SimpleContainerImpl implements ParentContainer {
     // allows traversal path to propagate between containers
     private static final ThreadLocal<DependencyGraph.Traversal> traversal = new InheritableThreadLocal<DependencyGraph.Traversal>();
 
-    // allows per container maintenance of current resolver
-    private static final ThreadLocal<ComponentResolver> resolved = new InheritableThreadLocal<ComponentResolver>();
-
     private final ContainerServices services;
     private final Log log;
 
@@ -83,10 +80,6 @@ final class SimpleContainerImpl implements ParentContainer {
 
     public SimpleContainer newChildContainer() {
         return new SimpleContainerImpl(this, services);
-    }
-
-    public ComponentResolver resolved() {
-        return resolved.get();
     }
 
     public void bindResolver(final Class<?> api, final ComponentResolver resolver) {
@@ -125,32 +118,28 @@ final class SimpleContainerImpl implements ParentContainer {
         components.put(key, replacement);
     }
 
-    private ComponentResolver local(final ComponentResolver resolver) {
-        return new LocalResolver(resolver);
-    }
-
     private void bindResolvers(final Class<?> implementation, final Components.Specification[] interfaces, final boolean stateful, final ContentResolvers resolvers) {
         if (resolvers.isVariantFactory()) {
-            bindResolver(implementation, local(resolvers.component(implementation, services.newCache(true), true)));
+            bindResolver(implementation, resolvers.component(implementation, services.newCache(true), true));
 
             final ComponentCache cache = services.newCache(true);
             for (final Components.Specification api : interfaces) {
                 final Class<?> component = api.api;
 
-                bindResolver(component, local(resolvers.variant(component, cache)));
+                bindResolver(component, resolvers.variant(component, cache));
 
                 for (final Class<?> group : api.groups) {
                         bindGroup(group).addResolver(component);
                 }
             }
         } else if (resolvers.isCustomFactory()) {
-            bindResolver(implementation, local(resolvers.component(implementation, services.newCache(true), true)));
+            bindResolver(implementation, resolvers.component(implementation, services.newCache(true), true));
 
             final ComponentCache cache = services.newCache(true);
             for (final Components.Specification api : interfaces) {
                 final Class<?> component = api.api;
 
-                bindResolver(component, local(resolvers.factory(component, cache)));
+                bindResolver(component, resolvers.factory(component, cache));
 
                 for (final Class<?> group : api.groups) {
                     bindGroup(group).addResolver(component);
@@ -162,7 +151,7 @@ final class SimpleContainerImpl implements ParentContainer {
             for (final Components.Specification api : interfaces) {
                 final Class<?> component = api.api;
 
-                bindResolver(component, local(resolvers.component(component, cache, false)));
+                bindResolver(component, resolvers.component(component, cache, false));
 
                 for (final Class<?> group : api.groups) {
                     bindGroup(group).addResolver(component);
@@ -480,75 +469,6 @@ final class SimpleContainerImpl implements ParentContainer {
 
         public Annotation[] annotations() {
             return componentClass.getAnnotations();
-        }
-    }
-
-    /**
-     * Keeps track of the last resolver being invoked in this container.
-     */
-    private class LocalResolver implements ComponentResolver {
-
-        private final ComponentResolver delegate;
-
-        public LocalResolver(final ComponentResolver delegate) {
-            this.delegate = delegate;
-        }
-
-        public Node resolve(final Traversal traversal, final SimpleContainer container, final ContextDefinition context) {
-            final ComponentResolver saved = resolved.get();
-            resolved.set(this);
-            try {
-                return delegate.resolve(traversal, container, context);
-            } finally {
-                resolved.set(saved);
-            }
-        }
-
-        public int priority() {
-            return delegate.priority();
-        }
-
-        public boolean isVariantMapping() {
-            return delegate.isVariantMapping();
-        }
-
-        public boolean isInstanceMapping() {
-            return delegate.isInstanceMapping();
-        }
-
-        public boolean replaces(final ComponentResolver another) {
-            return delegate.replaces(another);
-        }
-
-        public void resolverReplaced(final Class<?> api, final ComponentResolver previous, final ComponentResolver replacement) {
-            delegate.resolverReplaced(api, previous, replacement);
-        }
-
-        public ComponentResolver unlink() {
-            return delegate;
-        }
-
-        public Set<Class<? extends Annotation>> acceptedContext() {
-            return delegate.acceptedContext();
-        }
-
-        public Annotation[] annotations() {
-            return delegate.annotations();
-        }
-
-        @Override
-        public boolean equals(final Object obj) {
-            return delegate.equals(obj instanceof LocalResolver ? ((LocalResolver) obj).delegate : obj);
-        }
-
-        @Override
-        public int hashCode() {
-            return delegate.hashCode();
-        }
-
-        @Override
-        public String toString() {
-            return delegate.toString();
         }
     }
 }

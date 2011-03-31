@@ -67,10 +67,6 @@ abstract class AbstractResolver implements ComponentResolver {
         // empty
     }
 
-    public ComponentResolver unlink() {
-        return this;
-    }
-
     public boolean isVariantMapping() {
         return false;
     }
