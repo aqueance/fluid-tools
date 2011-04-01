@@ -22,22 +22,16 @@
 
 package org.fluidity.composition;
 
-import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Annotates a component reference as optional dependency. An optional dependency will receive a <code>null</code> value upon dependency resolution if the
- * dependency cannot be satisfied.
- *
- * @author Tibor Varga
+ * Denotes annotations defined by Fluid Tools.
  */
-@Internal
-@Documented
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.PARAMETER, ElementType.FIELD})
-public @interface Optional {
+@Target(ElementType.ANNOTATION_TYPE)
+public @interface Internal {
 
 }

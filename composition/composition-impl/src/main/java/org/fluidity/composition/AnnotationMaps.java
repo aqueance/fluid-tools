@@ -29,7 +29,11 @@ import java.util.Map;
 /**
  * Convenience methods on maps of arrays of annotations.
  */
-public class AnnotationMaps {
+final class AnnotationMaps {
+
+    public AnnotationMaps() {
+        throw new UnsupportedOperationException("No instance allowed");
+    }
 
     public static boolean equal(Map<Class<? extends Annotation>, Annotation[]> map1, Map<Class<? extends Annotation>, Annotation[]> map2) {
         if (map1 == map2) {
@@ -55,10 +59,8 @@ public class AnnotationMaps {
     public static int hashCode(final Map<Class<? extends Annotation>, Annotation[]> map) {
         int result = map.keySet().hashCode();
 
-        for (Annotation[] annotations : map.values()) {
-            for (Annotation annotation : annotations) {
-                result += annotation.hashCode();
-            }
+        for (final Annotation[] annotations : map.values()) {
+            result += Arrays.hashCode(annotations);
         }
 
         return result;

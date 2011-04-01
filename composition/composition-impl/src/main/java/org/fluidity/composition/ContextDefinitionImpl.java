@@ -28,7 +28,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
@@ -37,13 +36,6 @@ import java.util.Set;
  * @author Tibor Varga
  */
 final class ContextDefinitionImpl implements ContextDefinition {
-
-    @SuppressWarnings("unchecked")
-    private static final Set<Class<?>> notContext = new HashSet<Class<?>>(Arrays.asList(Component.class,
-                                                                                        ComponentGroup.class,
-                                                                                        Optional.class,
-                                                                                        Context.class,
-                                                                                        ServiceProvider.class));
 
     private final Map<Class<? extends Annotation>, Annotation[]> defined = new HashMap<Class<? extends Annotation>, Annotation[]>();
     private final Map<Class<? extends Annotation>, Annotation[]> collected = new HashMap<Class<? extends Annotation>, Annotation[]>();
@@ -63,16 +55,17 @@ final class ContextDefinitionImpl implements ContextDefinition {
     public ContextDefinition expand(final Annotation[] definition) {
         if (definition != null) {
             for (final Annotation value : definition) {
-                final Class<? extends Annotation> type = noProxy(value.getClass());
+                final Class<? extends Annotation> type = annotationType(value.getClass());
 
-                if (defined.containsKey(type)) {
-                    defined.put(type, combine(defined.get(type), value));
-                } else {
-                    defined.put(type, new Annotation[] { value });
+                if (!type.isAnnotationPresent(Internal.class)) {
+                    if (defined.containsKey(type)) {
+                        defined.put(type, combine(defined.get(type), value));
+                    } else {
+                        defined.put(type, new Annotation[] { value });
+                    }
                 }
             }
 
-            this.defined.keySet().removeAll(notContext);
             hashCode = AnnotationMaps.hashCode(this.defined);
         }
 
@@ -131,7 +124,7 @@ final class ContextDefinitionImpl implements ContextDefinition {
         for (final Map.Entry<Class<? extends Annotation>, Annotation[]> entry : in.entrySet()) {
             final Class<? extends Annotation> key = entry.getKey();
 
-            final Class<? extends Annotation> type = noProxy(key);
+            final Class<? extends Annotation> type = annotationType(key);
             out.put(type, entry.getValue().clone());
         }
     }
@@ -144,7 +137,7 @@ final class ContextDefinitionImpl implements ContextDefinition {
     }
 
     @SuppressWarnings("unchecked")
-    private Class<? extends Annotation> noProxy(Class<? extends Annotation> key) {
+    private Class<? extends Annotation> annotationType(Class<? extends Annotation> key) {
         return Proxy.isProxyClass(key) ? (Class<? extends Annotation>) key.getInterfaces()[0] : key;
     }
 

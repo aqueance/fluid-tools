@@ -39,6 +39,7 @@ import java.lang.annotation.Target;
  *
  * @author Tibor Varga
  */
+@Internal
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
