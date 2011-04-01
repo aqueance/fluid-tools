@@ -25,6 +25,4 @@ package org.fluidity.composition.types;
 import org.fluidity.composition.Component;
 
 @Component(api = SelfReferringComponent.class)
-public class SelfReferringComponent {
-
-}
+public class SelfReferringComponent { }

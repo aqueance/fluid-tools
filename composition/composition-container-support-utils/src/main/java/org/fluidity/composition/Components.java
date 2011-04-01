@@ -198,7 +198,7 @@ public final class Components {
 
                 if (component == null && !anonymous) {
                     if (factory) {
-                        throw new ComponentContainer.BindingException("Factory class %s is missing %s", checked, Component.class);
+                        throw new ComponentContainer.BindingException("Factory class %s is missing @%s", checked, Component.class.getSimpleName());
                     } else {
                         interfaceMap.put(actual, groups(checked));
                     }

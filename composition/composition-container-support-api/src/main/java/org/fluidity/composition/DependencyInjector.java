@@ -52,7 +52,7 @@ public interface DependencyInjector {
                                      Constructor<?> constructor);
 
     /**
-     * Sets all {@link Component} annotated fields of the receiver.
+     * Sets all {@link Inject} annotated fields of the receiver.
      *
      * @param traversal the graph traversal to use.
      * @param container the container that can resolve dependencies

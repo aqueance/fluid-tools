@@ -29,6 +29,8 @@ import java.lang.annotation.Target;
 
 /**
  * Denotes annotations defined by Fluid Tools.
+ *
+ * @author Tibor Varga
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.ANNOTATION_TYPE)

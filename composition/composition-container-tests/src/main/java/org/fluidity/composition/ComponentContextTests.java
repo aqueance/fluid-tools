@@ -645,7 +645,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
     @Setting1("setting-1")
     private static class ContextProvider2 {
 
-        @Component
+        @Inject
         @Setting3("setting-3")
         public ContextConsumer2 consumer;
     }

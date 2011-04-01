@@ -26,9 +26,7 @@ import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentGroup;
 
 @ComponentGroup
-public interface SimpleServiceProvider {
-
-}
+public interface SimpleServiceProvider { }
 
 @Component
 class SimpleServiceConsumer {
@@ -38,23 +36,13 @@ class SimpleServiceConsumer {
     }
 }
 
-class SimpleServiceProvider1 implements SimpleServiceProvider {
+class SimpleServiceProvider1 implements SimpleServiceProvider { }
 
-}
+class SimpleServiceProvider2 implements SimpleServiceProvider { }
 
-class SimpleServiceProvider2 implements SimpleServiceProvider {
+class SimpleServiceProvider3 implements SimpleServiceProvider { }
 
-}
-
-class SimpleServiceProvider3 implements SimpleServiceProvider {
-
-}
-
-class SimpleServiceProvider4 implements SimpleServiceProvider {
-
-}
+class SimpleServiceProvider4 implements SimpleServiceProvider { }
 
 @Component(automatic = false)
-class SimpleServiceProvider5 implements SimpleServiceProvider {
-
-}
+class SimpleServiceProvider5 implements SimpleServiceProvider { }

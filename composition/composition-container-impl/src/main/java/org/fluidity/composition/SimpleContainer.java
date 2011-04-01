@@ -109,7 +109,7 @@ interface SimpleContainer extends DependencyResolver {
     SimpleContainer linkComponent(Components.Interfaces interfaces) throws ComponentContainer.BindingException;
 
     /**
-     * Injects the {@link Component} annotated fields of the given component instance.
+     * Injects the {@link Inject} annotated fields of the given component instance.
      *
      * @param component the component instance.
      * @param context   the base context to resolve the component's dependencies in.

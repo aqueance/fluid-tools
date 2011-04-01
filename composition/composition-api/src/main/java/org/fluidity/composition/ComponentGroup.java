@@ -40,7 +40,7 @@ import java.lang.annotation.Target;
  * <p/>
  * Components, i.e., classes annotated with the @{@link Component} annotation, may also implement or extend an interface or class marked with this annotation.
  * However, such annotation will only be recognized if inherited via a component interface, i.e., one by which the component can be depended upon. The algorithm
- * for computing the set of component interfaces is described at {@link ComponentContainer.Registry#bindComponent(Class)}.
+ * for computing the set of component interfaces is described at {@link ComponentContainer.Registry#bindComponent(Class, Class[])}.
  * <p/>
  * Example of use:
  * <pre>

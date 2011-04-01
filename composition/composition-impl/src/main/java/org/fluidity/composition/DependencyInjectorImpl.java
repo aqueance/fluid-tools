@@ -37,7 +37,7 @@ import org.fluidity.foundation.Exceptions;
 import org.fluidity.foundation.Strings;
 
 /**
- * Finds, resolves and sets, using the given container, all @{@link Component} annotated fields of an object that have not yet been set.
+ * Finds, resolves and sets, using the given container, all @{@link Inject} annotated fields of an object that have not yet been set.
  *
  * @author Tibor Varga
  */
@@ -165,7 +165,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
                 continue;
             }
 
-            if (field.isAnnotationPresent(Component.class) || field.isAnnotationPresent(ComponentGroup.class)) {
+            if (field.isAnnotationPresent(Inject.class)) {
                 consumed.add(injectDependency(traversal, container, mapping, context.copy(), declaringType, new Dependency() {
 
                     public Class<?> type() {

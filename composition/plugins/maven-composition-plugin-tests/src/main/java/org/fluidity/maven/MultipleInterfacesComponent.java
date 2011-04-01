@@ -24,20 +24,12 @@ package org.fluidity.maven;
 
 import org.fluidity.composition.Component;
 
-interface ComponentInterface1 {
+interface ComponentInterface1 { }
 
-}
-
-interface ComponentInterface2 {
-
-}
+interface ComponentInterface2 { }
 
 @Component(api = { ComponentInterface1.class, ComponentInterface2.class }, primary = false)
-public class MultipleInterfacesComponent implements ComponentInterface1, ComponentInterface2 {
-
-}
+public class MultipleInterfacesComponent implements ComponentInterface1, ComponentInterface2 { }
 
 @Component(api = { ComponentInterface2.class })
-class SingleInterfaceComponent implements ComponentInterface1, ComponentInterface2 {
-
-}
+class SingleInterfaceComponent implements ComponentInterface1, ComponentInterface2 { }

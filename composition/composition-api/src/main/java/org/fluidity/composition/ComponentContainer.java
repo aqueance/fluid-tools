@@ -122,7 +122,7 @@ public interface ComponentContainer {
     OpenComponentContainer makeChildContainer();
 
     /**
-     * Post-initialize the @{@link Component} annotated fields of the given object.
+     * Post-initialize the @{@link Inject} annotated fields of the given object.
      *
      * @param component is a component that needs field injection of dependencies.
      *

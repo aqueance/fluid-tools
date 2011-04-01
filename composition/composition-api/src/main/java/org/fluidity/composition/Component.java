@@ -29,21 +29,17 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * In case of simple interface to implementation mapping, this annotation can be used to specify at the implementation class what interfaces it should be bound
- * to. The org.fluidity.maven:maven-composition-plugin Maven plugin will generate the necessary {@link org.fluidity.composition.spi.PackageBindings} object
- * unless {@link #automatic()} is set to <code>false</code>, and will create the appropriate service provider descriptor file even if you manually supply the
- * bindings by implementing the {@link org.fluidity.composition.spi.EmptyPackageBindings} class.
- * <p/>
- * This annotation can also be used to mark instance fields of components for dependency injection. In that case the annotation is processed at run-time after
- * the component has been instantiated - either by the container or externally and in the latter case the container has to be explicitly asked to initialize the
- * externally instantiated object by calling {@link ComponentContainer#initialize(Object)}.
+ * This annotation can be used to specify at the implementation class what interfaces it should be bound to. The org.fluidity.maven:maven-composition-plugin
+ * Maven plugin will generate the necessary {@link org.fluidity.composition.spi.PackageBindings} object unless {@link #automatic()} is set to
+ * <code>false</code>, and will create the appropriate service provider descriptor file even if you manually supply the bindings by implementing the {@link
+ * org.fluidity.composition.spi.EmptyPackageBindings} class.
  *
  * @author Tibor Varga
  */
 @Internal
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ ElementType.TYPE, ElementType.FIELD, ElementType.CONSTRUCTOR })
+@Target(ElementType.TYPE)
 public @interface Component {
 
     /**

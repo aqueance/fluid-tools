@@ -24,11 +24,7 @@ package org.fluidity.maven;
 
 import org.fluidity.composition.Component;
 
-public interface SimpleComponent {
-
-}
+public interface SimpleComponent { }
 
 @Component
-class SimpleComponentImpl implements SimpleComponent {
-
-}
+class SimpleComponentImpl implements SimpleComponent { }

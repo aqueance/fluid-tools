@@ -254,7 +254,7 @@ public final class BasicResolutionTests extends AbstractContainerTests {
         /* in real life you'd use new ContainerBoundary() here */
         private static ComponentContainer container;
 
-        @Component
+        @Inject
         @SuppressWarnings("UnusedDeclaration")
         private transient Key dependency;
 

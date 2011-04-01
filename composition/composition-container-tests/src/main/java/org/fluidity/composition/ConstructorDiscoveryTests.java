@@ -132,7 +132,7 @@ public class ConstructorDiscoveryTests extends AbstractContainerTests {
         private SingleComponentConstructor(final int ignore) {
         }
 
-        @Component
+        @Inject
         private SingleComponentConstructor(final String ignore) {
         }
     }
@@ -143,11 +143,11 @@ public class ConstructorDiscoveryTests extends AbstractContainerTests {
         private MultipleComponentConstructors() {
         }
 
-        @Component
+        @Inject
         private MultipleComponentConstructors(final int ignore) {
         }
 
-        @Component
+        @Inject
         private MultipleComponentConstructors(final String ignore) {
         }
     }
@@ -160,7 +160,7 @@ public class ConstructorDiscoveryTests extends AbstractContainerTests {
         public HiddenComponentConstructor(final String ignore) {
         }
 
-        @Component
+        @Inject
         private HiddenComponentConstructor(final int ignore) {
         }
     }
@@ -170,11 +170,11 @@ public class ConstructorDiscoveryTests extends AbstractContainerTests {
         private MixedComponentConstructors() {
         }
 
-        @Component
+        @Inject
         public MixedComponentConstructors(final int ignore) {
         }
 
-        @Component
+        @Inject
         private MixedComponentConstructors(final String ignore) {
         }
     }

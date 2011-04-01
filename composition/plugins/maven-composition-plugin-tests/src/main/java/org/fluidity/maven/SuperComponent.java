@@ -24,16 +24,10 @@ package org.fluidity.maven;
 
 import org.fluidity.composition.Component;
 
-public interface SuperComponent {
-
-}
+public interface SuperComponent { }
 
 @Component(automatic = false)
-class AbstractComponentImpl implements SuperComponent {
-
-}
+class AbstractComponentImpl implements SuperComponent { }
 
 @Component
-class InheritedComponentImpl extends AbstractComponentImpl {
-
-}
+class InheritedComponentImpl extends AbstractComponentImpl { }

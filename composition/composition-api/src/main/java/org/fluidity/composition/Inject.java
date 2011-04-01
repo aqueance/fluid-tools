@@ -20,11 +20,25 @@
  * THE SOFTWARE.
  */
 
-package org.fluidity.maven;
+package org.fluidity.composition;
 
-import org.fluidity.composition.Component;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-public interface ManualComponent { }
-
-@Component(automatic = false)
-class ManualComponentImpl implements ManualComponent { }
+/**
+ * This annotation is used to mark instance fields and/or constructors of a component for dependency injection. In case a constructor is marked, that single
+ * constructor will be used by the dependency injection container to instantiate the class.
+ * <p/>
+ * The dependency injection container handles the annotated fields as well. If the component was instantiated by the container, no further action is necessary
+ * on the part of the developer. To inject the fields of a manually instantiated, call {@link ComponentContainer#initialize(Object)} on a suitable container.
+ *
+ * @author Tibor Varga
+ */
+@Internal
+@Documented
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ ElementType.FIELD, ElementType.CONSTRUCTOR })
+public @interface Inject { }

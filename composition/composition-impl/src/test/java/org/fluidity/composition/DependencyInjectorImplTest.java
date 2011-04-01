@@ -270,17 +270,17 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
 
     private final class FieldInjected {
 
-        @Component
+        @Inject
         public Dependency dependency;
 
-        @ComponentGroup
+        @Inject @ComponentGroup
         public Service[] services;
     }
 
     private final class OptionalFieldInjected {
 
         @Optional
-        @Component
+        @Inject
         public Dependency dependency;
     }
 
@@ -332,10 +332,10 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
 
     public static class SpecialDependent {
 
-        @Component
+        @Inject
         public ComponentContainer container;
 
-        @Component
+        @Inject
         public ComponentContext context;
     }
 

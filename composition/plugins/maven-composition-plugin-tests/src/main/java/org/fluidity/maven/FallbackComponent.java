@@ -24,11 +24,7 @@ package org.fluidity.maven;
 
 import org.fluidity.composition.Component;
 
-public interface FallbackComponent {
-
-}
+public interface FallbackComponent { }
 
 @Component(primary = false)
-class FallbackComponentImpl implements FallbackComponent {
-
-}
+class FallbackComponentImpl implements FallbackComponent { }

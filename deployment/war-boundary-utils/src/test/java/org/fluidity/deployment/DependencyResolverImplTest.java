@@ -87,7 +87,5 @@ public class DependencyResolverImplTest extends MockGroupAbstractTest {
     }
 
     @Component(primary = false, automatic = false)
-    public static class Dependency {
-
-    }
+    public static class Dependency { }
 }

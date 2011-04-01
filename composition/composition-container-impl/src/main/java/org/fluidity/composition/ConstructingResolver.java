@@ -92,9 +92,9 @@ final class ConstructingResolver extends AbstractResolver {
                     validConstructors.add(constructor);
                 }
 
-                if (constructor.isAnnotationPresent(Component.class)) {
+                if (constructor.isAnnotationPresent(Inject.class)) {
                     if (designated != null) {
-                        throw new ComponentContainer.ResolutionException("Multiple @Component constructors found for %s", componentClass);
+                        throw new ComponentContainer.ResolutionException("Multiple @%s constructors found for %s", Inject.class.getSimpleName(), componentClass);
                     } else {
                         designated = constructor;
                     }

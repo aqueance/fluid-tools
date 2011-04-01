@@ -26,13 +26,9 @@ import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentGroup;
 
 @ComponentGroup(api = { Service1.class, Service2.class })
-public interface MultipleServiceProvider extends Service1, Service2 {
+public interface MultipleServiceProvider extends Service1, Service2 { }
 
-}
-
-class MultipleServiceProviderImpl implements MultipleServiceProvider {
-
-}
+class MultipleServiceProviderImpl implements MultipleServiceProvider { }
 
 @Component
 class MultipleServicesConsumer {
@@ -45,10 +41,6 @@ class MultipleServicesConsumer {
     }
 }
 
-interface Service1 {
+interface Service1 { }
 
-}
-
-interface Service2 {
-
-}
+interface Service2 { }

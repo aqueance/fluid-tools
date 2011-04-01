@@ -43,11 +43,7 @@ class MultipleServiceConsumer {
 }
 
 @ComponentGroup
-interface ServiceProvider1 {
-
-}
+interface ServiceProvider1 { }
 
 @ComponentGroup
-interface ServiceProvider2 {
-
-}
+interface ServiceProvider2 { }

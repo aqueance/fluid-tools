@@ -24,16 +24,10 @@ package org.fluidity.maven;
 
 import org.fluidity.composition.Component;
 
-public interface DefaultComponent {
-
-}
+public interface DefaultComponent { }
 
 @Component(primary = false)
-class DefaultComponentImpl implements DefaultComponent {
-
-}
+class DefaultComponentImpl implements DefaultComponent { }
 
 @Component
-class PrimaryComponentImpl implements DefaultComponent {
-
-}
+class PrimaryComponentImpl implements DefaultComponent { }
