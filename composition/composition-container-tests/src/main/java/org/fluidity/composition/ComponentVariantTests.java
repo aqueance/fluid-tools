@@ -518,7 +518,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
     }
 
     @Component(api = DependentKey.class, automatic = false)
-    @Context({ Setting2.class })
+    @Context(Setting2.class)
     private static class ExpandingVariants implements ComponentVariantFactory {
 
         public static ComponentVariantFactory delegate;

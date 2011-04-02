@@ -50,7 +50,6 @@
         <module>foundation-utils</module>
         <module>foundation-bootstrap-utils</module>
         <module>foundation-easymock</module>
-        <module>foundation-component-tests</module>
     </modules>
 
 </project>

@@ -47,7 +47,7 @@ public interface ContextDefinition {
     /**
      * Reduces the returned context annotations to those specified by the parameter.
      *
-     * @param accepted the {@link org.fluidity.composition.Context} annotation listing the accepted annotations.
+     * @param accepted the {@link Context} annotation listing the accepted annotations.
      *
      * @return the receiver.
      */

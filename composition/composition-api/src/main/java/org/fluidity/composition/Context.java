@@ -31,15 +31,16 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Allows the component to specify the annotation classes that will configure instances of the component at the points of dependency reference to the component.
- * Such a configuration could, for instance, contain a database identifier for a database access dependency, etc.
+ * This annotation lists the context annotations accepted by the annotated class, thereby allowing the component to specify the annotation classes that will
+ * configure instances of the component at the points of dependency reference to the component. Such a configuration could, for instance, contain a database
+ * identifier for a database access dependency, etc.
  *
  * @author Tibor Varga
  */
 @Internal
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ ElementType.TYPE, ElementType.PARAMETER, ElementType.FIELD })
+@Target(ElementType.TYPE)
 @Inherited
 public @interface Context {
 

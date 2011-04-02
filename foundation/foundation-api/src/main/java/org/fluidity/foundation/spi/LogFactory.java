@@ -25,7 +25,7 @@ package org.fluidity.foundation.spi;
 import org.fluidity.foundation.logging.Log;
 
 /**
- * This is an service provider interface for Fluid Tools. For use in client code, see to the documentation of the {@link Log} class.
+ * This is a service provider interface for Fluid Tools. For use in client code, see to the documentation of the {@link Log} class.
  * <p/>
  * Creates source-bound {@link Log} objects. Your implementation should hook the {@link Log} interface to the respective log sink of the logging framework of
  * your choice. The prevalent implementation of this interface will be looked for as a <a href="http://download.oracle.com/javase/1.5.0/docs/guide/jar/jar.html#Service

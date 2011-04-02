@@ -23,8 +23,8 @@
 package org.fluidity.foundation.logging;
 
 /**
- * Log interface to use by Fluid Tools components. An instance of this component is provided to your class via dependency injection. You need to specify the
- * source of the log messages as an annotation of the dependency on this interface. For instance:
+ * Log interface to use by Fluid Tools components. An instance of this component is provided to your component via dependency injection. You need to specify the
+ * marker for the log messages as an annotation of the dependency on this interface. For instance:
  * <pre>
  * &#64;Component
  * public class MyComponent {
@@ -47,25 +47,25 @@ public interface Log {
 
     boolean isInfoEnabled();
 
-    void trace(final String message, final Object... args);
+    void trace(String message, Object... args);
 
-    void debug(final String message, final Object... args);
+    void debug(String message, Object... args);
 
-    void info(final String message, final Object... args);
+    void info(String message, Object... args);
 
-    void warning(final String message, final Object... args);
+    void warning(String message, Object... args);
 
-    void error(final String message, final Object... args);
+    void error(String message, Object... args);
 
-    void trace(final Throwable exception, final String message, final Object... args);
+    void trace(Throwable exception, String message, Object... args);
 
-    void debug(final Throwable exception, final String message, final Object... args);
+    void debug(Throwable exception, String message, Object... args);
 
-    void info(final Throwable exception, final String message, final Object... args);
+    void info(Throwable exception, String message, Object... args);
 
-    void warning(final Throwable exception, final String message, final Object... args);
+    void warning(Throwable exception, String message, Object... args);
 
-    void error(final Throwable exception, final String message, final Object... args);
+    void error(Throwable exception, String message, Object... args);
 
     void timer(String message, long beginMillis);
 }
