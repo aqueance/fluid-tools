@@ -264,6 +264,15 @@ public final class BasicResolutionTests extends AbstractContainerTests {
         assert container.getComponent(Serializable.class) == null : "Anonymous inner class should not be instantiated";
     }
 
+    @Test(expectedExceptions = ComponentContainer.InstantiationException.class, expectedExceptionsMessageRegExp = ".*DependencyChain1.*DependencyChain2.*DependencyChain3.*")
+    public void testInstantiationPath() throws Exception {
+        registry.bindComponent(DependencyChain1.class);
+        registry.bindComponent(DependencyChain2.class);
+        registry.bindComponent(DependencyChain3.class);
+
+        container.getComponent(DependencyChain1.class);
+    }
+
     // this is how to inject dependencies into a Serializable component
     public static class SerializableComponent implements Serializable {
 
@@ -313,4 +322,28 @@ public final class BasicResolutionTests extends AbstractContainerTests {
 
     @Component(automatic = false)
     private static class MultipleInterfaces implements Interface1, Interface2, Interface3 {}
+
+    @Component(automatic = false)
+    private static class DependencyChain1 {
+
+        @SuppressWarnings("UnusedDeclaration")
+        private DependencyChain1(final DependencyChain2 dependency) {
+        }
+    }
+
+    @Component(automatic = false)
+    private static class DependencyChain2 {
+
+        @SuppressWarnings("UnusedDeclaration")
+        private DependencyChain2(final DependencyChain3 dependency) {
+        }
+    }
+
+    @Component(automatic = false)
+    private static class DependencyChain3 {
+
+        private DependencyChain3() {
+            throw new UnsupportedOperationException();
+        }
+    }
 }

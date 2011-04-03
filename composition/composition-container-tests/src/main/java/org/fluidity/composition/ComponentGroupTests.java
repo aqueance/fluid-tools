@@ -215,7 +215,12 @@ public final class ComponentGroupTests extends AbstractContainerTests {
     @Test(expectedExceptions = ComponentContainer.ResolutionException.class, expectedExceptionsMessageRegExp = ".*Filter\\[\\].*")
     public void testMandatoryGroupDependency() throws Exception {
         registry.bindComponent(Processor.class);
-        container.getComponent(Processor.class);
+
+        try {
+            container.getComponent(Processor.class);
+        } catch (final ComponentContainer.InstantiationException e) {
+            throw (Exception) e.getCause();
+        }
     }
 
     @Test

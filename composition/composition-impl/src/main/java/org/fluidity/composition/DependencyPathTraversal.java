@@ -159,6 +159,10 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
             } else {
                 return new ProxyNode(api, path, error.node.error == null ? error : error.node.error);
             }
+        } catch (final ComponentContainer.InstantiationException e) {
+            throw e;
+        } catch (final Exception e) {
+            throw new ComponentContainer.InstantiationException(resolutionPath.get(), e);
         }
     }
 

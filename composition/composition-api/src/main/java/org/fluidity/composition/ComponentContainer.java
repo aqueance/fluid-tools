@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.fluidity.composition.spi.ComponentResolutionObserver;
+import org.fluidity.composition.spi.DependencyPath;
 import org.fluidity.foundation.Strings;
 
 /**
@@ -248,6 +249,10 @@ public interface ComponentContainer {
      */
     class ContainerException extends RuntimeException {
 
+        public ContainerException(final Exception cause, final String format, final Object... data) {
+            super(String.format(format, data), cause);
+        }
+
         public ContainerException(final String format, final Object... data) {
             super(String.format(format, data));
         }
@@ -268,6 +273,10 @@ public interface ComponentContainer {
      */
     class ResolutionException extends ContainerException {
 
+        public ResolutionException(final Exception e, final String format, final Object... data) {
+            super(e, format, data);
+        }
+
         public ResolutionException(final String format, final Object... data) {
             super(format, data);
         }
@@ -283,7 +292,7 @@ public interface ComponentContainer {
         }
     }
 
-    public class CircularInvocationException extends ContainerException {
+    class CircularInvocationException extends ContainerException {
 
         private static List<String> methodNames(final Set<Method> methods) {
             final List<String> list = new ArrayList<String>();
@@ -304,4 +313,19 @@ public interface ComponentContainer {
                   methodNames(methods));
         }
     }
+
+    class InstantiationException extends ResolutionException {
+
+        private final DependencyPath path;
+
+        public InstantiationException(final DependencyPath path, final Exception e) {
+            super(e, path.toString(false));
+            this.path = path;
+        }
+
+        public DependencyPath getInstantiationPath() {
+            return path;
+        }
+    }
+
 }
