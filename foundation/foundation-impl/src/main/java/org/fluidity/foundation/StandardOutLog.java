@@ -118,8 +118,4 @@ final class StandardOutLog implements Log {
     public void error(final Throwable exception, final String message, final Object... args) {
         log("ERROR", exception, message, args);
     }
-
-    public void timer(final String message, final long beginMillis) {
-        info(source, String.format("%s took %d ms", message, System.currentTimeMillis() - beginMillis));
-    }
 }

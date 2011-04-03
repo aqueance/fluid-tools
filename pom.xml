@@ -151,6 +151,12 @@
             </dependency>
 
             <dependency>
+                <groupId>${fluidity.export.groupId}</groupId>
+                <artifactId>fluid-tools-commons-logging</artifactId>
+                <version>${fluidity.version}</version>
+            </dependency>
+
+            <dependency>
                 <groupId>${fluidity.foundation.groupId}</groupId>
                 <artifactId>foundation-easymock</artifactId>
                 <version>${fluidity.version}</version>

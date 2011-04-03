@@ -22,18 +22,17 @@
 
 package org.fluidity.foundation.logging;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.commons.logging.LogFactory;
 
 /**
  * Uses commons-logging as the underlying logging framework.
  */
-final class Slf4jLogImpl implements Log {
+final class CommonsLogImpl implements Log {
 
-    private final Logger log;
+    private final org.apache.commons.logging.Log log;
 
-    public Slf4jLogImpl(final Class<?> marker) {
-        this.log = LoggerFactory.getLogger(marker);
+    public CommonsLogImpl(final Class<?> marker) {
+        this.log = LogFactory.getLog(marker);
     }
 
     public boolean isTraceEnabled() {

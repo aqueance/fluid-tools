@@ -87,10 +87,6 @@ public final class NoLogFactory implements LogFactory {
         public void error(final Throwable exception, final String message, final Object... args) {
             // empty
         }
-
-        public void timer(final String message, final long beginMillis) {
-            // empty
-        }
     };
 
     public Log createLog(final Class<?> ignored) {

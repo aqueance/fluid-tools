@@ -23,15 +23,15 @@
 package org.fluidity.foundation.logging;
 
 /**
- * Log interface to use by Fluid Tools components. An instance of this component is provided to your component via dependency injection. You need to specify the
- * marker for the log messages as an annotation of the dependency on this interface. For instance:
+ * Log interface to use by Fluid Tools components. An instance is provided to your component via dependency injection. You need to specify the @{@link Marker}
+ * for the log messages as an annotation of the dependency on this interface. For instance:
  * <pre>
  * &#64;Component
  * public class MyComponent {
  *
  *   private final Log log;
  *
- *   public MyComponent(&#64;Marker(MyComponent.class) Log log) {
+ *   public MyComponent(final &#64;Marker(MyComponent.class) Log log) {
  *     this.log = log;
  *   }
  * }
@@ -66,6 +66,4 @@ public interface Log {
     void warning(Throwable exception, String message, Object... args);
 
     void error(Throwable exception, String message, Object... args);
-
-    void timer(String message, long beginMillis);
 }
