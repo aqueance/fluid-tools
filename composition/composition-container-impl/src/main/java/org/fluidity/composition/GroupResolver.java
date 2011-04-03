@@ -24,14 +24,14 @@ package org.fluidity.composition;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.ConcurrentModificationException;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.fluidity.composition.spi.ComponentResolutionObserver;
 import org.fluidity.composition.spi.DependencyPath;
@@ -43,160 +43,75 @@ import org.fluidity.composition.spi.DependencyPath;
  */
 final class GroupResolver {
 
+    private final Class<?> api;
     private final Set<Class<?>> members = new LinkedHashSet<Class<?>>();
-    private volatile Set<Class<?>> sorted;
+
+    private final AtomicInteger index = new AtomicInteger(0);
+    private final Map<Class<?>, Integer> instantiated = new HashMap<Class<?>, Integer>();
+
+    private final ComponentResolutionObserver observer = new ComponentResolutionObserver() {
+        public void resolved(final DependencyPath path, final Class<?> type) {
+            // ignore
+        }
+
+        public void instantiated(final DependencyPath path) {
+            synchronized (instantiated) {
+                final Class<?> type = path.head(false);
+                if (api.isAssignableFrom(type) && !instantiated.containsKey(type)) {
+                    instantiated.put(type, index.getAndIncrement());
+                }
+            }
+        }
+    };
+
+    private final Comparator<Object> order = new Comparator<Object>() {
+        public int compare(final Object o1, final Object o2) {
+            return instantiated.get(o1.getClass()).compareTo(instantiated.get(o2.getClass()));
+        }
+    };
+
+    public GroupResolver(final Class<?> api) {
+        this.api = api;
+    }
+
+    public ComponentResolutionObserver observer() {
+        return observer;
+    }
 
     public static interface Node {
 
-        Collection<?> instance();
+        Collection<?> instance(DependencyGraph.Traversal traversal);
     }
 
-    public Node resolve(final Class<?> api, final DependencyGraph.Traversal traversal, final SimpleContainer container, final ContextDefinition context) {
+    public Node resolve(final DependencyGraph.Traversal traversal, final SimpleContainer container, final ContextDefinition context) {
+        final List<DependencyGraph.Node> nodes = new ArrayList<DependencyGraph.Node>();
 
-        // make sure we perform the static part of the component resolution of group members
-        final Map<DependencyGraph.Node, Class<?>> staticOrder = staticResolution(api, traversal, container, context);
-
-        return new Node() {
-            public Collection<?> instance() {
-                Set<Class<?>> cache = sorted;
-
-                if (cache == null) {
-                    synchronized (this) {
-                        cache = sorted;
-
-                        if (cache == null) {
-                            @SuppressWarnings("UnusedAssignment")   // IntelliJ IDEA fails to recognize the use of cache below as use of this assignment value
-                            final Set<Class<?>> local = cache = new LinkedHashSet<Class<?>>();
-
-                            // list of types resolved while instantiating a group member, i.e., resolved from within its constructor
-                            final List<Class<?>> dynamic = new ArrayList<Class<?>>();
-
-                            final Map<Class<?>, DependencyGraph.Node> map = new HashMap<Class<?>, DependencyGraph.Node>();
-                            for (final DependencyGraph.Node node : staticOrder.keySet()) {
-                                map.put(node.type(), node);
-                            }
-
-                            // observer to collect dynamically resolved group members
-                            final ComponentResolutionObserver observer = new ComponentResolutionObserver() {
-                                public void resolved(final DependencyPath path, final Class<?> type) {
-                                    if (map.containsKey(type)) {
-                                        final Set<Class<?>> set = new HashSet<Class<?>>(path.path());
-
-                                        int index = 0;
-                                        for (final Class<?> previous : dynamic) {
-                                            if (previous == type) return;
-                                            if (set.contains(previous)) break;
-                                            ++index;
-                                        }
-
-                                        dynamic.add(index, type);
-                                    }
-                                }
-                            };
-
-                            // perform dynamic resolution and adjust the order based on dynamic component dependencies
-                            return container.observe(observer, new SimpleContainer.Observed<Collection<?>>() {
-                                public Collection<?> run(final DependencyGraph.Traversal traversal) {
-                                    final Map<DependencyGraph.Node, Object> instantiated = new LinkedHashMap<DependencyGraph.Node, Object>();
-
-                                    for (final DependencyGraph.Node node : staticOrder.keySet()) {
-                                        if (!instantiated.containsKey(node)) {
-
-                                            // clear the dynamic resolution collection
-                                            dynamic.clear();
-
-                                            // fill the collection
-                                            final Object instance = node.instance();
-
-                                            // instantiate items in the collection before the one that triggered their resolution
-                                            // they have already been instantiated so no further dynamic resolution is expected
-                                            for (final Class<?> type : dynamic) {
-                                                final DependencyGraph.Node next = map.remove(type);
-                                                assert next != null : type;
-
-                                                try {
-                                                    instantiated.put(next, next.instance());    // cached instance if stateless, new instance if stateful
-                                                } catch (final ConcurrentModificationException e) {
-                                                    throw new ComponentContainer.ResolutionException( "Set of dynamic dependencies of %s changed from one instance to the next", type);
-                                                }
-
-                                                local.add(type);
-                                            }
-
-                                            // process the one that triggered the resolutions
-                                            instantiated.put(node, instance);
-                                            local.add(staticOrder.get(node));
-                                        }
-                                    }
-
-                                    assert !local.contains(null);
-                                    sorted = local;
-
-                                    return instantiated.values();
-                                }
-                            });
-                        }
-                    }
-                }
-
-                final List<Object> dynamicOrder = new ArrayList<Object>();
-
-                for (final Class<?> api : cache) {
-                    dynamicOrder.add(container.resolver(api, false).resolve(traversal, container, context).instance());
-                }
-
-                return dynamicOrder;
-            }
-        };
-    }
-
-    // returns node ordered according to the static dependencies among the group members
-    private Map<DependencyGraph.Node, Class<?>> staticResolution(final Class<?> api,
-                                                                 final DependencyGraph.Traversal traversal,
-                                                                 final SimpleContainer container,
-                                                                 final ContextDefinition context) {
-        final Map<DependencyGraph.Node, Class<?>> list = new LinkedHashMap<DependencyGraph.Node, Class<?>>();
-
-        // maps node types to nodes
-        final Map<Class<?>, DependencyGraph.Node> map = new HashMap<Class<?>, DependencyGraph.Node>();
-
-        // contains the types in reference order
-        final Set<Class<?>> sequence = new LinkedHashSet<Class<?>>();
-
-        // collects the types in reference order
-        final DependencyGraph.Traversal observed = traversal.observed(new ComponentResolutionObserver() {
-            public void resolved(final DependencyPath path, final Class<?> type) {
-                if (api.isAssignableFrom(type)) {
-                    sequence.add(type);
-                }
-            }
-        });
-
-        // resolves each member and fills the node type to node mapping while maintaining the context
         final List<ContextDefinition> consumed = new ArrayList<ContextDefinition>();
         for (final Class<?> member : members) {
             final ContextDefinition copy = context.copy();
 
             final ComponentResolver resolver = container.resolver(member, false);
-            final DependencyGraph.Node node = resolver.resolve(observed, container, copy.reduce(resolver.acceptedContext()));
-            map.put(node.type(), node);
+            nodes.add(container.resolveComponent(false, member, copy.reduce(resolver.acceptedContext()), traversal));
 
             consumed.add(copy);
         }
 
         context.collect(consumed);
 
-        // fill the list of nodes in reference order
-        for (final Class<?> type : sequence) {
-            final DependencyGraph.Node node = map.get(type);
+        return new Node() {
+            public Collection<?> instance(final DependencyGraph.Traversal traversal) {
+                final List<Object> instances = new ArrayList<Object>();
 
-            // sequence may contain members resolved from a parent container: we ignore those here
-            if (node != null) {
-                list.put(node, type);
+                for (final DependencyGraph.Node node : nodes) {
+                    instances.add(node.instance(traversal.observed(observer)));
+                }
+
+                assert instantiated.size() >= instances.size() : String.format("%s: %d != #%s", api, instances.size(), instantiated);
+                Collections.sort(instances, order);
+
+                return instances;
             }
-        }
-
-        return list;
+        };
     }
 
     public void addResolver(final Class<?> api) {

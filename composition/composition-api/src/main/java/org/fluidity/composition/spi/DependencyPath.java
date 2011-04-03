@@ -32,16 +32,29 @@ import java.util.List;
 public interface DependencyPath {
 
     /**
-     * The component interface that is to be resolved at the head of the path.
+     * The component interface at the head of the path.
      *
-     * @return the component interface that is to be resolved at the head of the path.
+     * @param api specifies whether the interface (<code>true</code>) or the class (<code>false</code>), if available, is to be returned.
+     *
+     * @return the component interface at the head of the path.
      */
-    Class<?> head();
+    Class<?> head(boolean api);
 
     /**
-     * The list component APIs that comprise the dependency path.
+     * The list of component interfaces or classes that comprise the dependency path.
      *
-     * @return the list component APIs that comprise the dependency path.
+     * @param api specifies whether the interface (<code>true</code>) or the class (<code>false</code>), if available, is to be returned for each path element.
+     *
+     * @return the list of component interfaces or classes that comprise the dependency path.
      */
-    List<Class<?>> path();
+    List<Class<?>> path(boolean api);
+
+    /**
+     * Returns a string representation of the path.
+     *
+     * @param api specifies whether the interface (<code>true</code>) or the class (<code>false</code>), if available, is to be returned for each path element.
+     *
+     * @return a string representation of the path.
+     */
+    String toString(boolean api);
 }

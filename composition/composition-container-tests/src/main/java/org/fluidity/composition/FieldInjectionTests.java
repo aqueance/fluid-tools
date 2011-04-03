@@ -27,6 +27,7 @@ import org.testng.annotations.Test;
 /**
  * @author Tibor Varga
  */
+@SuppressWarnings("unchecked")
 public final class FieldInjectionTests extends AbstractContainerTests {
 
     public FieldInjectionTests(final ContainerFactory factory) {

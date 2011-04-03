@@ -64,20 +64,34 @@ interface SimpleContainer extends DependencyResolver {
     ComponentResolver resolver(Class<?> api, boolean ascend);
 
     /**
+     * Resolves a component using the given traversal in the given context.
+     *
+     * @param ascend    tells whether to consult the parent on a missing resolver (<code>true</code>) or not (<code>false</code>).
+     * @param api       the component interface.
+     * @param context   the component context at the point of resolution.
+     * @param traversal the graph traversal to use.
+     *
+     * @return the resolved component or <code>null</code> if none could be resolved.
+     */
+    Node resolveComponent(boolean ascend, Class<?> api, ContextDefinition context, Traversal traversal);
+
+    /**
      * Binds a component mapping in the container
      *
      * @param key   the component interface to bind.
      * @param entry the mapping to bind.
      *
+     * @return the bound resolver.
+     *
      * @throws ComponentContainer.BindingException
      *          when binding fails.
      */
-    void bindResolver(Class<?> key, ComponentResolver entry) throws ComponentContainer.BindingException;
+    ComponentResolver bindResolver(Class<?> key, ComponentResolver entry) throws ComponentContainer.BindingException;
 
     /**
      * Binds a component class to an interface.
      *
-     * @param interfaces     the component and group interfaces to bind to.
+     * @param interfaces the component and group interfaces to bind to.
      *
      * @throws ComponentContainer.BindingException
      *          when binding fails.
@@ -99,7 +113,7 @@ interface SimpleContainer extends DependencyResolver {
      * Creates a child container of the receiver and links the given interface to a mapping added to the returned child, effectively directing the component
      * resolution in the parent container to the child.
      *
-     * @param interfaces     the component and group interfaces to bind to.
+     * @param interfaces the component and group interfaces to bind to.
      *
      * @return the child container returned.
      *

@@ -105,6 +105,7 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
         assert implementedParameters[0] == ComponentContainer.Registry.class : implementedMethod;
 
         invokedMethod = Methods.get(ComponentContainer.Registry.class, new Methods.Invoker<ComponentContainer.Registry>() {
+            @SuppressWarnings("unchecked")
             public void invoke(final ComponentContainer.Registry dummy) {
                 dummy.bindComponent(null);
             }

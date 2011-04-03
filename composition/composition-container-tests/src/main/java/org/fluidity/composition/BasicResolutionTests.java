@@ -28,7 +28,9 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.fluidity.composition.spi.ComponentResolutionObserver;
@@ -222,11 +224,16 @@ public final class BasicResolutionTests extends AbstractContainerTests {
         registry.bindComponent(MultipleInterfaces.class);
 
         final Map<Class<?>, Class<?>> resolved = new HashMap<Class<?>, Class<?>>();
+        final List<Class<?>> instantiated = new ArrayList<Class<?>>();
 
         final ObservedComponentContainer observed = container.observed(new ComponentResolutionObserver() {
             public void resolved(final DependencyPath path, final Class<?> type) {
                 assert path != null;
-                resolved.put(path.head(), type);
+                resolved.put(path.head(true), type);
+            }
+
+            public void instantiated(final DependencyPath path) {
+                instantiated.add(path.head(false));
             }
         });
 
@@ -238,6 +245,15 @@ public final class BasicResolutionTests extends AbstractContainerTests {
         assert resolved.get(Interface1.class) == MultipleInterfaces.class;
         assert resolved.get(Interface2.class) == MultipleInterfaces.class;
         assert resolved.get(Interface3.class) == MultipleInterfaces.class;
+
+        assert instantiated.size() == 0 : instantiated;
+
+        observed.getComponent(Interface1.class);
+        observed.getComponent(Interface2.class);
+        observed.getComponent(Interface3.class);
+
+        assert instantiated.size() == 1 : instantiated;
+        assert instantiated.contains(MultipleInterfaces.class);
     }
 
     @Test(expectedExceptions = ComponentContainer.BindingException.class, expectedExceptionsMessageRegExp = ".*anonymous.*")

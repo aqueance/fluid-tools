@@ -42,6 +42,6 @@ final class FactoryResolverClass extends FactoryResolver {
 
     @Override
     protected ComponentFactory factory(final SimpleContainer container, final DependencyGraph.Traversal traversal) {
-        return (ComponentFactory) container.resolveComponent(factoryClass(), container.services().emptyContext(), traversal).instance();
+        return (ComponentFactory) container.resolveComponent(factoryClass(), container.services().emptyContext(), traversal).instance(traversal);
     }
 }

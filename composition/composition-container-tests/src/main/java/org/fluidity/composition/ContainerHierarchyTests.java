@@ -27,6 +27,7 @@ import org.testng.annotations.Test;
 /**
  * @author Tibor Varga
  */
+@SuppressWarnings("unchecked")
 public final class ContainerHierarchyTests extends AbstractContainerTests {
 
     public ContainerHierarchyTests(final ContainerFactory factory) {

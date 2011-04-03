@@ -62,7 +62,7 @@ final class ComponentContainerShell extends EmptyComponentContainer {
         return container.observe(observer, new SimpleContainer.Observed<T>() {
             public T run(final DependencyGraph.Traversal traversal) {
                 final DependencyGraph.Node node = container.resolveComponent(api, context, traversal);
-                return node == null ? null : (T) node.instance();
+                return node == null ? null : (T) node.instance(traversal);
             }
         });
     }
@@ -72,7 +72,7 @@ final class ComponentContainerShell extends EmptyComponentContainer {
         return container.observe(observer, new SimpleContainer.Observed<T[]>() {
             public T[] run(final DependencyGraph.Traversal traversal) {
                 final DependencyGraph.Node node = container.resolveGroup(api, context, traversal);
-                return node == null ? null : (T[]) node.instance();
+                return node == null ? null : (T[]) node.instance(traversal);
             }
         });
     }
@@ -118,8 +118,7 @@ final class ComponentContainerShell extends EmptyComponentContainer {
     }
 
     public ObservedComponentContainer observed(final ComponentResolutionObserver observer) {
-        return observer == null ? this : new ComponentContainerShell(container, context, false,
-                                                                     this.observer == null ? observer : new CompositeObserver(this.observer, observer));
+        return observer == null ? this : new ComponentContainerShell(container, context, false, CompositeObserver.combine(this.observer, observer));
     }
 
     @Override

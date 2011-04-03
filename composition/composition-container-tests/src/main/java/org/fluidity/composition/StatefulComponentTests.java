@@ -27,6 +27,7 @@ import org.testng.annotations.Test;
 /**
  * @author Tibor Varga
  */
+@SuppressWarnings("unchecked")
 public final class StatefulComponentTests extends AbstractContainerTests {
 
     public StatefulComponentTests(final ContainerFactory factory) {

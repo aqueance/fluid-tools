@@ -73,9 +73,11 @@ public interface DependencyGraph {
          * dynamically resolves a component, as well as changes to the traversal up to this point in case of a circular dependency that cannot be replaced with
          * a proxy, due to the reference not being made to an interface.
          *
+         * @param traversal the graph traversal to notify about instantiation.
+         *
          * @return the instance at this node.
          */
-        Object instance();
+        Object instance(final Traversal traversal);
 
         /**
          * The component context at this node. Calculating this value requires that the path leading up to this node has already been resolved.
@@ -131,7 +133,7 @@ public interface DependencyGraph {
                 return type;
             }
 
-            public final Object instance() {
+            public final Object instance(final Traversal traversal) {
                 return instance;
             }
 
@@ -167,6 +169,20 @@ public interface DependencyGraph {
          * @return the new traversal.
          */
         Traversal observed(ComponentResolutionObserver observer);
+
+        /**
+         * Notifies the traversal about the actual class of the object being instantiated.
+         *
+         * @param type the class of the object being instantiated.
+         */
+        void instantiating(Class<?> type);
+
+        /**
+         * Notifies the traversal's observer, if any, about the instantiation of the given type.
+         *
+         * @param type the type just instantiated.
+         */
+        void instantiated(Class<?> type);
 
         /**
          * A path traversal strategy. The strategy is consulted before advancing on a dependency path.

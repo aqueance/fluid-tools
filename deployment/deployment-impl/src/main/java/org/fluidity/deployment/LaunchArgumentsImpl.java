@@ -62,6 +62,7 @@ final class LaunchArgumentsImpl implements LaunchArguments {
         }
 
         @Override
+        @SuppressWarnings("unchecked")
         public void bindComponents(final ComponentContainer.Registry registry) {
             if (arguments != null) {
                 registry.makeChildContainer(LaunchArgumentsImpl.class).getRegistry().bindInstance(arguments);

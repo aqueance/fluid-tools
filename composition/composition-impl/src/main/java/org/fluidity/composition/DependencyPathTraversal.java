@@ -32,6 +32,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.fluidity.composition.spi.ComponentResolutionObserver;
 import org.fluidity.foundation.Exceptions;
@@ -47,13 +48,13 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
     private final Strategy strategy;
     private final ComponentResolutionObserver observer;
 
-    private DependencyPath resolutionPath;
+    private final AtomicReference<DependencyPath> resolutionPath;
 
     public DependencyPathTraversal(final Strategy strategy, final ComponentResolutionObserver observer) {
-        this(new DependencyPath(), strategy, observer);
+        this(new AtomicReference<DependencyPath>(new DependencyPath()), strategy, observer);
     }
 
-    public DependencyPathTraversal(final DependencyPath path, final Strategy strategy, final ComponentResolutionObserver observer) {
+    public DependencyPathTraversal(final AtomicReference<DependencyPath> path, final Strategy strategy, final ComponentResolutionObserver observer) {
         assert path != null;
         assert strategy != null;
         this.resolutionPath = path;
@@ -66,10 +67,10 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
 
         assert context != null;
 
-        final DependencyPath savedPath = resolutionPath;
+        final DependencyPath savedPath = resolutionPath.get();
         final DependencyPath currentPath = savedPath.descend(new Element(api, context));
 
-        resolutionPath = currentPath;
+        resolutionPath.set(currentPath);
         try {
             final boolean repeating = currentPath.repeating;
 
@@ -97,26 +98,32 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
                 return new ResolvedNode(api, currentPath.head, resolved);
             }
         } finally {
-            resolutionPath = savedPath;
+            resolutionPath.set(savedPath);
         }
     }
 
     public DependencyGraph.Traversal observed(final ComponentResolutionObserver observer) {
-        return new DependencyPathTraversal(resolutionPath,
-                                           strategy,
-                                           this.observer == null
-                                           ? observer
-                                           : observer == null ? this.observer : new CompositeObserver(this.observer, observer));
+        return new DependencyPathTraversal(resolutionPath, strategy, CompositeObserver.combine(this.observer, observer));
     }
 
-    Object instantiate(final Class<?> api, final DependencyGraph.Node node, final Element element) {
-        final DependencyPath savedPath = resolutionPath;
+    public void instantiating(final Class<?> type) {
+        resolutionPath.get().head.type = type;
+    }
+
+    public void instantiated(final Class<?> type) {
+        if (observer != null) {
+            observer.instantiated(resolutionPath.get());
+        }
+    }
+
+    Object instantiate(final Class<?> api, final DependencyGraph.Node node, final Element element, final DependencyGraph.Traversal traversal) {
+        final DependencyPath savedPath = resolutionPath.get();
         final DependencyPath currentPath = savedPath.descend(element.redefine(node));
 
-        resolutionPath = currentPath;
+        resolutionPath.set(currentPath);
         try {
-            final DependencyGraph.Node resolved = currentPath.head.node = resolve(api, savedPath, node);
-            Object instance = resolved.instance();
+            final DependencyGraph.Node resolved = currentPath.head.node = resolve(api, savedPath, node, traversal);
+            Object instance = resolved.instance(traversal);
 
             if (instance != null) {
                 if (currentPath.head.cache != null) {
@@ -134,13 +141,16 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
 
             return instance;
         } finally {
-            resolutionPath = savedPath;
+            resolutionPath.set(savedPath);
         }
     }
 
-    private DependencyGraph.Node resolve(final Class<?> api, final DependencyPath path, final DependencyGraph.Node node) throws CircularReferencesException {
+    private DependencyGraph.Node resolve(final Class<?> api,
+                                         final DependencyPath path,
+                                         final DependencyGraph.Node node,
+                                         final DependencyGraph.Traversal traversal) throws CircularReferencesException {
         try {
-            final Object instance = node.instance();
+            final Object instance = node.instance(traversal);
             return instance == null ? null : new DependencyGraph.Node.Constant(node.type(), instance, node.context());
         } catch (final CircularReferencesException error) {
             if (error.node == node) {
@@ -169,7 +179,7 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
             return Proxy.class;
         }
 
-        public Object instance() {
+        public Object instance(final DependencyGraph.Traversal traversal) {
             if (api.isInterface()) {
                 return Exceptions.wrap(new Exceptions.Command<Object>() {
                     public Object run() throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
@@ -205,7 +215,7 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
                                                 throw circularity(ProxyNode.this);
                                             } else {
                                                 assert repeat.node != ProxyNode.this : api;
-                                                delegate = cache = repeat.node.instance();
+                                                delegate = cache = repeat.node.instance(traversal);
                                             }
                                         }
                                     }
@@ -247,8 +257,8 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
             return node.type();
         }
 
-        public Object instance() {
-            return instantiate(api, node, element);
+        public Object instance(final DependencyGraph.Traversal traversal) {
+            return instantiate(api, node, element, traversal);
         }
 
         public ComponentContext context() {
@@ -294,15 +304,15 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
             return new DependencyPath(list, map, element);
         }
 
-        public Class<?> head() {
-            return head.api;
+        public Class<?> head(final boolean api) {
+            return api || head.type == null ? head.api : head.type;
         }
 
-        public List<Class<?>> path() {
+        public List<Class<?>> path(final boolean api) {
             final List<Class<?>> path = new ArrayList<Class<?>>();
 
             for (final Element element : list) {
-                path.add(element.api);
+                path.add(api || element.type == null ? element.api : element.type);
             }
 
             return path;
@@ -310,8 +320,12 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
 
         @Override
         public String toString() {
+            return toString(true);
+        }
+
+        public String toString(final boolean api) {
             final StringBuilder builder = new StringBuilder();
-            for (final Class<?> type : path()) {
+            for (final Class<?> type : path(api)) {
                 if (builder.length() > 0) {
                     builder.append(", ");
                 }
@@ -335,6 +349,7 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
     private static final class Element {
 
         public final Class<?> api;
+        public Class<?> type;
         public ContextDefinition definition;
         public ComponentContext context;
         public DependencyGraph.Node node;
@@ -399,12 +414,21 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
             this.currentPath = currentPath;
         }
 
-        public Class<?> head() {
-            return currentPath.head();
+        public Class<?> head(final boolean api) {
+            return currentPath.head(api);
         }
 
-        public List<Class<?>> path() {
-            return currentPath.path();
+        public List<Class<?>> path(final boolean api) {
+            return currentPath.path(api);
+        }
+
+        @Override
+        public String toString() {
+            return currentPath.toString();
+        }
+
+        public String toString(final boolean api) {
+            return currentPath.toString(api);
         }
 
         public DependencyGraph.Node advance() {
@@ -429,12 +453,21 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
             this.context = context;
         }
 
-        public Class<?> head() {
-            return currentPath.head();
+        public Class<?> head(final boolean api) {
+            return currentPath.head(api);
         }
 
-        public List<Class<?>> path() {
-            return currentPath.path();
+        public List<Class<?>> path(final boolean api) {
+            return currentPath.path(api);
+        }
+
+        @Override
+        public String toString() {
+            return currentPath.toString();
+        }
+
+        public String toString(final boolean api) {
+            return currentPath.toString(api);
         }
 
         public DependencyGraph.Node advance() {

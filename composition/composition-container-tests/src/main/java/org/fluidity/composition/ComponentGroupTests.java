@@ -22,6 +22,7 @@
 
 package org.fluidity.composition;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -71,14 +72,17 @@ public final class ComponentGroupTests extends AbstractContainerTests {
         registry.bindComponent(OrderedFilter3.class);
         registry.bindComponent(OrderedFilter2.class);
         registry.bindComponent(OrderedFilter1.class);
+        registry.bindComponent(OrderedFilter9.class);
 
+        container.getComponent(Serializable.class);     // instantiates OrderedFilter9 before any other group item; depends OrderedFilter1
         final Filter[] group = container.getComponentGroup(Filter.class);
 
         assert group != null;
-        assert group.length == 8;
+        assert group.length == 9;
 
         checkComponentOrder(group,
                             OrderedFilter1.class,
+                            OrderedFilter9.class,
                             OrderedFilter2.class,
                             OrderedFilter3.class,
                             OrderedFilter4.class,
@@ -339,6 +343,15 @@ public final class ComponentGroupTests extends AbstractContainerTests {
 
         private OrderedFilter8(final OrderedFilter7 dependency) {
             assert dependency != null : OrderedFilter7.class;
+        }
+    }
+
+    @SuppressWarnings("UnusedDeclaration")
+    @Component(api = Serializable.class, automatic = false)
+    private static class OrderedFilter9 implements Filter, Serializable {
+
+        private OrderedFilter9(final OrderedFilter1 dependency) {
+            assert dependency != null : OrderedFilter1.class;
         }
     }
 

@@ -42,4 +42,13 @@ interface ParentContainer extends SimpleContainer {
      *         ending with those in this one.
      */
     List<GroupResolver.Node> resolveGroup(Class<?> api, Traversal traversal, ContextDefinition context);
+
+    /**
+     * Returns the group resolver for the given interface, consulting the parent, if any, if not found in the container.
+     *
+     * @param api the group interface.
+     *
+     * @return the group resolver for the given interface.
+     */
+    GroupResolver groupResolver(Class<?> api);
 }

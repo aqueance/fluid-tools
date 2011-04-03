@@ -22,6 +22,11 @@
 
 package org.fluidity.composition;
 
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.Set;
+
 import org.fluidity.composition.spi.ComponentResolutionObserver;
 import org.fluidity.composition.spi.DependencyPath;
 
@@ -32,18 +37,54 @@ import org.fluidity.composition.spi.DependencyPath;
  */
 final class CompositeObserver implements ComponentResolutionObserver {
 
-    private final ComponentResolutionObserver present;
-    private final ComponentResolutionObserver recent;
+    private final Set<ComponentResolutionObserver> observers = new LinkedHashSet<ComponentResolutionObserver>();
 
-    public CompositeObserver(final ComponentResolutionObserver present, final ComponentResolutionObserver recent) {
-        assert present != null;
-        assert recent != null;
-        this.present = present;
-        this.recent = recent;
+    public static ComponentResolutionObserver combine(final ComponentResolutionObserver... observers) {
+        return combine(Arrays.asList(observers));
+    }
+
+    public static ComponentResolutionObserver combine(final Collection<ComponentResolutionObserver> observers) {
+        final Set<ComponentResolutionObserver> list = new LinkedHashSet<ComponentResolutionObserver>(observers.size(), (float) 1.0);
+
+        for (final ComponentResolutionObserver observer : observers) {
+            if (observer != null) {
+                list.add(observer);
+            }
+        }
+
+        switch (list.size()) {
+        case 0:
+            return null;
+        case 1:
+            return list.iterator().next();
+        default:
+            return new CompositeObserver(list);
+        }
+    }
+
+    private CompositeObserver(final Collection<ComponentResolutionObserver> observers) {
+        for (final ComponentResolutionObserver observer : observers) {
+            add(observer);
+        }
     }
 
     public void resolved(final DependencyPath path, final Class<?> type) {
-        present.resolved(path, type);
-        recent.resolved(path, type);
+        for (final ComponentResolutionObserver observer : observers) {
+            observer.resolved(path, type);
+        }
+    }
+
+    public void instantiated(final DependencyPath path) {
+        for (final ComponentResolutionObserver observer : observers) {
+            observer.instantiated(path);
+        }
+    }
+
+    private void add(final ComponentResolutionObserver observer) {
+        if (observer instanceof CompositeObserver) {
+            observers.addAll(((CompositeObserver) observer).observers);
+        } else {
+            observers.add(observer);
+        }
     }
 }

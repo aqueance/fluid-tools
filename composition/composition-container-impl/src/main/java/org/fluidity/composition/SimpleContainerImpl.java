@@ -26,7 +26,9 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -82,16 +84,18 @@ final class SimpleContainerImpl implements ParentContainer {
         return new SimpleContainerImpl(this, services);
     }
 
-    public void bindResolver(final Class<?> api, final ComponentResolver resolver) {
+    public ComponentResolver bindResolver(final Class<?> api, final ComponentResolver resolver) {
         synchronized (components) {
             final ComponentResolver previous = components.get(api);
 
             if (previous == null) {
-                replace(api, null, resolver);
+                return replace(api, null, resolver);
             } else if (previous.isVariantMapping() && previous.replaces(resolver)) {
-                replace(api, resolver, previous);
+                return replace(api, resolver, previous);
             } else if (resolver.replaces(previous)) {
-                replace(api, previous, resolver);
+                return replace(api, previous, resolver);
+            } else {
+                return previous;
             }
         }
     }
@@ -103,19 +107,46 @@ final class SimpleContainerImpl implements ParentContainer {
             resolver = groups.get(api);
 
             if (resolver == null) {
-                groups.put(api, resolver = new GroupResolver());
+                groups.put(api, resolver = new GroupResolver(api));
             }
         }
 
         return resolver;
     }
 
-    public void replace(final Class<?> key, final ComponentResolver previous, final ComponentResolver replacement) {
+    public ComponentResolver replace(final Class<?> key, final ComponentResolver previous, final ComponentResolver replacement) {
         if (components.remove(key) == previous) {
             replaceResolver(key, previous, replacement);
         }
 
         components.put(key, replacement);
+
+        return replacement;
+    }
+
+    private static interface Resolver {
+
+        ComponentResolver resolver(Class<?> type);
+    }
+
+    private void bindResolvers(final Components.Specification[] interfaces, final Resolver main) {
+        final Set<Class<?>> groups = new HashSet<Class<?>>();
+        final Set<ComponentResolver> resolvers = new HashSet<ComponentResolver>();
+
+        for (final Components.Specification api : interfaces) {
+            final Class<?> component = api.api;
+
+            resolvers.add(bindResolver(component, main.resolver(component)));
+
+            for (final Class<?> group : api.groups) {
+                bindGroup(group).addResolver(component);
+                groups.add(group);
+            }
+        }
+
+        for (final ComponentResolver resolver : resolvers) {
+            resolver.addGroups(groups);
+        }
     }
 
     private void bindResolvers(final Class<?> implementation, final Components.Specification[] interfaces, final boolean stateful, final ContentResolvers resolvers) {
@@ -123,40 +154,30 @@ final class SimpleContainerImpl implements ParentContainer {
             bindResolver(implementation, resolvers.component(implementation, services.newCache(true), true));
 
             final ComponentCache cache = services.newCache(true);
-            for (final Components.Specification api : interfaces) {
-                final Class<?> component = api.api;
 
-                bindResolver(component, resolvers.variant(component, cache));
-
-                for (final Class<?> group : api.groups) {
-                        bindGroup(group).addResolver(component);
+            bindResolvers(interfaces, new Resolver() {
+                public ComponentResolver resolver(final Class<?> type) {
+                    return resolvers.variant(type, cache);
                 }
-            }
+            });
         } else if (resolvers.isCustomFactory()) {
             bindResolver(implementation, resolvers.component(implementation, services.newCache(true), true));
 
             final ComponentCache cache = services.newCache(true);
-            for (final Components.Specification api : interfaces) {
-                final Class<?> component = api.api;
 
-                bindResolver(component, resolvers.factory(component, cache));
-
-                for (final Class<?> group : api.groups) {
-                    bindGroup(group).addResolver(component);
+            bindResolvers(interfaces, new Resolver() {
+                public ComponentResolver resolver(final Class<?> type) {
+                    return resolvers.factory(type, cache);
                 }
-            }
+            });
         } else {
             final ComponentCache cache = services.newCache(!stateful);
 
-            for (final Components.Specification api : interfaces) {
-                final Class<?> component = api.api;
-
-                bindResolver(component, resolvers.component(component, cache, false));
-
-                for (final Class<?> group : api.groups) {
-                    bindGroup(group).addResolver(component);
+            bindResolvers(interfaces, new Resolver() {
+                public ComponentResolver resolver(final Class<?> type) {
+                    return resolvers.component(type, cache, false);
                 }
-            }
+            });
         }
     }
 
@@ -311,14 +332,49 @@ final class SimpleContainerImpl implements ParentContainer {
         return injector.fields(services.graphTraversal(), this, new InstanceMapping(component), context, component);
     }
 
-    public Node resolveComponent(final Class<?> api, final ContextDefinition context, final Traversal traversal) {
+    public Node resolveComponent(final boolean ascend, final Class<?> api, final ContextDefinition context, final Traversal traversal) {
         final ComponentResolver resolver = components.get(api);
 
         if (resolver == null) {
-            return parent == null ? null : parent.resolveComponent(api, context, traversal);
+            return parent == null || !ascend ? null : parent.resolveComponent(api, context, traversal);
         } else {
-            return resolver.resolve(traversal, SimpleContainerImpl.this, context);
+            final Node node = resolver.resolve(traversal, SimpleContainerImpl.this, context);
+
+            return new Node() {
+                public Class<?> type() {
+                    return node.type();
+                }
+
+                // whenever a component is instantiated, all groups it belongs to are notified
+                public Object instance(final Traversal traversal) {
+                    final Collection<Class<?>> interfaces = resolver.groups();
+                    final Set<ComponentResolutionObserver> observers = new HashSet<ComponentResolutionObserver>();
+
+                    for (final Class<?> api : interfaces) {
+                        final GroupResolver resolver = groupResolver(api);
+
+                        if (resolver != null) {
+                            observers.add(resolver.observer());
+                        }
+                    }
+
+                    return node.instance(observers.isEmpty() ? traversal : traversal.observed(CompositeObserver.combine(observers)));
+                }
+
+                public ComponentContext context() {
+                    return node.context();
+                }
+            };
         }
+    }
+
+    public Node resolveComponent(final Class<?> api, final ContextDefinition context, final Traversal traversal) {
+        return resolveComponent(true, api, context, traversal);
+    }
+
+    public GroupResolver groupResolver(final Class<?> api) {
+        final GroupResolver resolver = groups.get(api);
+        return resolver == null ? parent == null ? null : parent.groupResolver(api) : resolver;
     }
 
     public Node resolveGroup(final Class<?> api, final ContextDefinition context, final Traversal traversal) {
@@ -355,7 +411,7 @@ final class SimpleContainerImpl implements ParentContainer {
                 list.addAll(enclosing);
             }
 
-            list.add(group.resolve(api, traversal, this, context));
+            list.add(group.resolve(traversal, this, context));
 
             return list;
         }
@@ -370,11 +426,11 @@ final class SimpleContainerImpl implements ParentContainer {
             }
 
             @SuppressWarnings("unchecked")
-            public Object instance() {
+            public Object instance(final Traversal traversal) {
                 final List output = new ArrayList();
 
                 for (final GroupResolver.Node node : list) {
-                    output.addAll(node.instance());
+                    output.addAll(node.instance(traversal));
                 }
 
                 return output.toArray((Object[]) Array.newInstance(api, output.size()));

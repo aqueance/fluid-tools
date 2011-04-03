@@ -27,6 +27,7 @@ import org.testng.annotations.Test;
 /**
  * @author Tibor Varga
  */
+@SuppressWarnings("unchecked")
 public final class OptionalDependencyTests extends AbstractContainerTests {
 
     public OptionalDependencyTests(final ContainerFactory factory) {

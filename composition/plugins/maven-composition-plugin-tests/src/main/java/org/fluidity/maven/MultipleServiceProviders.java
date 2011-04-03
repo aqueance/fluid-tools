@@ -28,7 +28,6 @@ import org.fluidity.composition.ComponentGroup;
 public class MultipleServiceProviders implements ServiceProvider1, ServiceProvider2 {
 
     private final ServiceProvider1 ignored = new ServiceProvider1() { };
-
 }
 
 @Component

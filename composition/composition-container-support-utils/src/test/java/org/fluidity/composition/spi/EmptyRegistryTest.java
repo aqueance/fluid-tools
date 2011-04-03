@@ -36,6 +36,7 @@ import org.testng.annotations.Test;
 /**
  * @author Tibor Varga
  */
+@SuppressWarnings("unchecked")
 public class EmptyRegistryTest extends MockGroupAbstractTest {
 
     private final ComponentRegistry mock = addControl(ComponentRegistry.class);

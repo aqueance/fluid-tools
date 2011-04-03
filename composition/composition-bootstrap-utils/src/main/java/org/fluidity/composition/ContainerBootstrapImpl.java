@@ -40,12 +40,15 @@ import org.fluidity.foundation.logging.Log;
  */
 final class ContainerBootstrapImpl implements ContainerBootstrap {
 
+    @SuppressWarnings("unchecked")
     public OpenComponentContainer populateContainer(final ContainerServices services,
                                                     final ContainerProvider provider,
                                                     final Map properties,
                                                     final OpenComponentContainer parent,
                                                     final ClassLoader classLoader) {
         final Log log = services.logs().createLog(getClass());
+        final ClassDiscovery discovery = services.classDiscovery();
+
         final OpenComponentContainer container = parent == null ? provider.newContainer(services) : parent.makeChildContainer();
 
         log.info("Created new %s%s", container, (classLoader == null ? "" : String.format(" for %s", classLoader)));
@@ -53,8 +56,7 @@ final class ContainerBootstrapImpl implements ContainerBootstrap {
         /*
          * Find instances of classes implementing the PackageBindings interface.
          */
-        final List<Class<PackageBindings>> classes = Arrays.asList(services.classDiscovery()
-                                                                           .findComponentClasses(PackageBindings.class, classLoader, parent != null));
+        final List<Class<PackageBindings>> classes = Arrays.asList(discovery.findComponentClasses(PackageBindings.class, classLoader, parent != null));
 
         log.info("Found %s binding set(s) for %s", classes.size(), container);
 
@@ -67,7 +69,7 @@ final class ContainerBootstrapImpl implements ContainerBootstrap {
         final ComponentContainer.Registry registry = container.getRegistry();
 
         if (parent == null) {
-            registry.bindInstance(services.classDiscovery());
+            registry.bindInstance(discovery);
         }
 
         /*

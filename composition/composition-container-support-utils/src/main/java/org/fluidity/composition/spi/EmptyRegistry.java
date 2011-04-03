@@ -41,6 +41,7 @@ final class EmptyRegistry implements ComponentContainer.Registry {
         return delegate.makeChildContainer();
     }
 
+    @SuppressWarnings("unchecked")
     public final <T> void bindComponent(final Class<T> implementation, final Class<? super T>... interfaces) throws ComponentContainer.BindingException {
         delegate.bindComponent(Components.inspect(implementation, interfaces));
     }

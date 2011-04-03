@@ -36,4 +36,13 @@ public interface ComponentResolutionObserver {
      * @param type the type that has been resolved at the given dependency path.
      */
     void resolved(DependencyPath path, Class<?> type);
+
+    /**
+     * Invoked for each instantiated graph node. The path and type are final. The receiver <em>must not</em> call any method on the just instantiated component
+     * other than those of {@link Object}.
+     *
+     * @param path      the dependency path at which the given type has been instantiated. Does not yet include <code>type</code>.
+     *
+     */
+    void instantiated(DependencyPath path);
 }

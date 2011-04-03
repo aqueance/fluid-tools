@@ -61,9 +61,8 @@ final class ContainerProviderImpl implements ContainerProvider {
         /*
          * Get the instances in instantiation order
          */
-        final PackageBindings[] instances = (PackageBindings[]) container.resolveGroup(PackageBindings.class,
-                                                                                       services.emptyContext(),
-                                                                                       services.graphTraversal()).instance();
+        final DependencyGraph.Traversal traversal = services.graphTraversal();
+        final PackageBindings[] instances = (PackageBindings[]) container.resolveGroup(PackageBindings.class, services.emptyContext(), traversal).instance(traversal);
         assert instances != null : PackageBindings.class;
         return Arrays.asList(instances);
     }

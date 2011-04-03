@@ -24,6 +24,8 @@ package org.fluidity.composition;
 
 import java.lang.annotation.Annotation;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -41,6 +43,8 @@ abstract class AbstractResolver implements ComponentResolver {
     protected final Log log;
     protected final Class<?> api;
     protected final ComponentCache cache;
+
+    private final Collection<Class<?>> groups = new HashSet<Class<?>>();
 
     protected AbstractResolver(final int priority, final Class<?> api, final ComponentCache cache, final LogFactory logs) {
         this.priority = priority;
@@ -65,6 +69,14 @@ abstract class AbstractResolver implements ComponentResolver {
 
     public void resolverReplaced(final Class<?> api, final ComponentResolver previous, final ComponentResolver replacement) {
         // empty
+    }
+
+    public final void addGroups(final Collection<Class<?>> groups) {
+        this.groups.addAll(groups);
+    }
+
+    public final Collection<Class<?>> groups() {
+        return Collections.unmodifiableCollection(groups);
     }
 
     public boolean isVariantMapping() {
@@ -98,10 +110,10 @@ abstract class AbstractResolver implements ComponentResolver {
             return node.type();
         }
 
-        public Object instance() {
+        public Object instance(final DependencyGraph.Traversal traversal) {
             return cache.lookup(container, node.context(), api, new ComponentCache.Instantiation() {
                 public Object perform() {
-                    return node.instance();
+                    return node.instance(traversal);
                 }
             });
         }

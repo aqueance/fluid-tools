@@ -22,6 +22,8 @@
 
 package org.fluidity.composition;
 
+import java.util.Collection;
+
 import org.fluidity.composition.spi.ComponentMapping;
 
 /**
@@ -71,4 +73,18 @@ interface ComponentResolver extends ComponentMapping {
      * @param replacement the new resolver.
      */
     void resolverReplaced(Class<?> api, ComponentResolver previous, ComponentResolver replacement);
+
+    /**
+     * Adds a list of group interfaces that the resolved component belongs to.
+     *
+     * @param groups list of group interfaces that the resolved component belongs to.
+     */
+    void addGroups(Collection<Class<?>> groups);
+
+    /**
+     * Returns the list of group interfaces that the resolved component belongs to.
+     *
+     * @return the list of group interfaces that the resolved component belongs to.
+     */
+    Collection<Class<?>> groups();
 }
