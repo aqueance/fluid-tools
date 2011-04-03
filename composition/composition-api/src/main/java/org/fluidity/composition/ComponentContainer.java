@@ -32,7 +32,7 @@ import org.fluidity.composition.spi.DependencyPath;
 import org.fluidity.foundation.Strings;
 
 /**
- * This is a dependency injection container.
+ * This is an external API of a dependency injection container and you should not need to use it very often.
  * <p/>
  * Containers may form a hierarchy. If a component is not found in a child container, it tries to find the component in its parent.
  * <p/>
@@ -327,5 +327,4 @@ public interface ComponentContainer {
             return path;
         }
     }
-
 }
