@@ -30,7 +30,8 @@ package org.fluidity.composition.spi;
 public interface ComponentResolutionObserver {
 
     /**
-     * Invoked for each resolved graph node. The path and type are not final, they may change as circular references are handled.
+     * Invoked for each resolved graph node. The path and type are not final, they may change as circular references are handled. Elements of the path are
+     * reference declaration and may not be the actual classes that will be instantiated for those references.
      *
      * @param path the dependency path at which the given type has been resolved.
      * @param type the type that has been resolved at the given dependency path.
@@ -38,11 +39,10 @@ public interface ComponentResolutionObserver {
     void resolved(DependencyPath path, Class<?> type);
 
     /**
-     * Invoked for each instantiated graph node. The path and type are final. The receiver <em>must not</em> call any method on the just instantiated component
-     * other than those of {@link Object}.
+     * Invoked for each instantiated graph node. The path and type are final. Elements of the path are actual classes that will be or have been instantiated.
+     * The {@link DependencyPath#head(boolean)} returns the class just instantiated.
      *
-     * @param path      the dependency path at which the given type has been instantiated. Does not yet include <code>type</code>.
-     *
+     * @param path the dependency path at which the given type has been instantiated. Does not yet include <code>type</code>.
      */
     void instantiated(DependencyPath path);
 }
