@@ -43,7 +43,7 @@ final class ContainerProviderImpl implements ContainerProvider {
     @SuppressWarnings("unchecked")
     public List<PackageBindings> instantiateBindings(final ContainerServices services,
                                                      final Map properties,
-                                                     final Collection<Class<PackageBindings>> bindings) {
+                                                     final Class<PackageBindings>[] bindings) {
         final SimpleContainer container = new SimpleContainerImpl(services);
 
         if (properties != null) {

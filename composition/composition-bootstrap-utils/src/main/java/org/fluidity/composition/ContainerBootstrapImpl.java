@@ -22,8 +22,6 @@
 
 package org.fluidity.composition;
 
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -56,14 +54,14 @@ final class ContainerBootstrapImpl implements ContainerBootstrap {
         /*
          * Find instances of classes implementing the PackageBindings interface.
          */
-        final List<Class<PackageBindings>> classes = Arrays.asList(discovery.findComponentClasses(PackageBindings.class, classLoader, parent != null));
+        final Class<PackageBindings>[] classes = discovery.findComponentClasses(PackageBindings.class, classLoader, parent != null);
 
-        log.info("Found %s binding set(s) for %s", classes.size(), container);
+        log.info("Found %s binding set(s) for %s", classes.length, container);
 
         /*
          * Let the container provider instantiate them using an actual container to resolve inter-binding dependencies.
          */
-        final List<PackageBindings> assemblies = provider.instantiateBindings(services, properties, new HashSet<Class<PackageBindings>>(classes));
+        final List<PackageBindings> assemblies = provider.instantiateBindings(services, properties, classes);
         assert assemblies != null;
 
         final ComponentContainer.Registry registry = container.getRegistry();

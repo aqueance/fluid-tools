@@ -22,7 +22,6 @@
 
 package org.fluidity.composition.spi;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -52,9 +51,9 @@ public interface ContainerProvider {
      *
      * @param services   provides service components for containers, in case needed.
      * @param properties is to be made available to any {@link PackageBindings} object that may depend on it
-     * @param bindings the collection of classes to instantiate. Some may depend on others in the set.
+     * @param bindings   the collection of classes to instantiate. Some may depend on others in the set.
      *
      * @return the list of {@link PackageBindings} instances in instantiation order.
      */
-    List<PackageBindings> instantiateBindings(ContainerServices services, Map properties, Collection<Class<PackageBindings>> bindings);
+    List<PackageBindings> instantiateBindings(ContainerServices services, Map properties, Class<PackageBindings>[] bindings);
 }

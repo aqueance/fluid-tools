@@ -22,9 +22,7 @@
 
 package org.fluidity.composition;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -88,7 +86,7 @@ public abstract class ContainerProviderAbstractTest extends MockGroupAbstractTes
     @Test
     @SuppressWarnings("unchecked")
     public void standaloneBindings() throws Exception {
-        final List assemblies = Collections.singletonList(StandalonePackageBindingsImpl.class);
+        final Class<?>[] assemblies = { StandalonePackageBindingsImpl.class };
 
         final PackageBindings bindings = new StandalonePackageBindingsImpl();
 
@@ -98,7 +96,7 @@ public abstract class ContainerProviderAbstractTest extends MockGroupAbstractTes
         EasyMock.expect(node.instance(traversal)).andReturn(instance);
 
         replay();
-        final List<PackageBindings> list = provider.instantiateBindings(services, map, assemblies);
+        final List<PackageBindings> list = provider.instantiateBindings(services, map, (Class<PackageBindings>[]) assemblies);
         verify();
 
         assert list.equals(Arrays.asList(instance)) : list;
@@ -107,9 +105,7 @@ public abstract class ContainerProviderAbstractTest extends MockGroupAbstractTes
     @Test
     @SuppressWarnings("unchecked")
     public void connectedBindings() throws Exception {
-        final List assemblies = new ArrayList(Arrays.asList(PackageBindingsImpl.class,
-                                                            DependentPackageBindingsImpl.class,
-                                                            ResponsiblePackageBindingsImpl.class));
+        final Class<?>[] assemblies = { PackageBindingsImpl.class, DependentPackageBindingsImpl.class, ResponsiblePackageBindingsImpl.class };
 
         final ResponsiblePackageBindingsImpl bindings1 = new ResponsiblePackageBindingsImpl();
         final PackageBindingsImpl bindings2 = new PackageBindingsImpl(bindings1);
@@ -121,7 +117,7 @@ public abstract class ContainerProviderAbstractTest extends MockGroupAbstractTes
         EasyMock.expect(node.instance(traversal)).andReturn(bindings);
 
         replay();
-        final List<PackageBindings> list = provider.instantiateBindings(services, map, assemblies);
+        final List<PackageBindings> list = provider.instantiateBindings(services, map, (Class<PackageBindings>[]) assemblies);
         verify();
 
         assert list.equals(Arrays.asList(bindings)) : list;
