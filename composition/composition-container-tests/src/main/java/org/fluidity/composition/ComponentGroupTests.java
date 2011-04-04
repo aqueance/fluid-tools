@@ -46,12 +46,7 @@ public final class ComponentGroupTests extends AbstractContainerTests {
         registry.bindComponent(Filter1.class);
         registry.bindComponent(Filter2.class);
 
-        final Filter[] group = container.getComponentGroup(Filter.class);
-
-        assert group != null;
-        assert group.length == 2;
-
-        checkComponentOrder(group, Filter1.class, Filter2.class);
+        checkComponentOrder(container.getComponentGroup(Filter.class), Filter1.class, Filter2.class);
     }
 
     @Test
@@ -75,12 +70,8 @@ public final class ComponentGroupTests extends AbstractContainerTests {
         registry.bindComponent(OrderedFilter9.class);
 
         container.getComponent(Serializable.class);     // instantiates OrderedFilter9 before any other group item; depends OrderedFilter1
-        final Filter[] group = container.getComponentGroup(Filter.class);
 
-        assert group != null;
-        assert group.length == 9;
-
-        checkComponentOrder(group,
+        checkComponentOrder(container.getComponentGroup(Filter.class),
                             OrderedFilter1.class,
                             OrderedFilter9.class,
                             OrderedFilter2.class,
@@ -108,9 +99,6 @@ public final class ComponentGroupTests extends AbstractContainerTests {
 
         // first resolution
         final Filter[] group = container.getComponentGroup(Filter.class);
-
-        assert group != null;
-        assert group.length == 11;
 
         checkComponentOrder(group,
                             OrderedFilter1.class,
@@ -157,19 +145,9 @@ public final class ComponentGroupTests extends AbstractContainerTests {
         nested.bindComponent(OrderedFilter6.class);
         nested.bindComponent(OrderedFilter5.class);
 
-        final Filter[] parentGroup = container.getComponentGroup(Filter.class);
+        checkComponentOrder(container.getComponentGroup(Filter.class), OrderedFilter1.class, OrderedFilter2.class, OrderedFilter3.class, OrderedFilter4.class);
 
-        assert parentGroup != null;
-        assert parentGroup.length == 4;
-
-        checkComponentOrder(parentGroup, OrderedFilter1.class, OrderedFilter2.class, OrderedFilter3.class, OrderedFilter4.class);
-
-        final Filter[] childGroup = child.getComponentGroup(Filter.class);
-
-        assert childGroup != null;
-        assert childGroup.length == 8;
-
-        checkComponentOrder(childGroup,
+        checkComponentOrder(child.getComponentGroup(Filter.class),
                             OrderedFilter1.class,
                             OrderedFilter2.class,
                             OrderedFilter3.class,
@@ -188,12 +166,8 @@ public final class ComponentGroupTests extends AbstractContainerTests {
         registry.bindComponent(Filter1.class);
         nested.bindComponent(Filter2.class);
 
-        final Filter[] group = child.getComponentGroup(Filter.class);
-
-        assert group != null;
-        assert group.length == 2;
-
-        checkComponentOrder(group, Filter1.class, Filter2.class);
+        checkComponentOrder(container.getComponentGroup(Filter.class), Filter1.class);
+        checkComponentOrder(child.getComponentGroup(Filter.class), Filter1.class, Filter2.class);
     }
 
     @Test(expectedExceptions = ComponentContainer.CircularReferencesException.class)
