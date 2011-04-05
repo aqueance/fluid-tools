@@ -198,6 +198,7 @@
                     <version>2.5</version>
                     <configuration>
                         <encoding>UTF-8</encoding>
+                        <escapeString>\</escapeString>
                     </configuration>
                 </plugin>
 

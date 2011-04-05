@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2006-2010 Tibor Adam Varga (tibor.adam.varga on gmail)
+  ~ Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
   ~
   ~ Permission is hereby granted, free of charge, to any person obtaining a copy
   ~ of this software and associated documentation files (the "Software"), to deal
@@ -19,6 +19,7 @@
   ~ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
   ~ THE SOFTWARE.
   -->
+
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
@@ -60,15 +61,6 @@
         </extensions>
 
         <plugins>
-            <plugin>
-              <groupId>org.apache.maven.plugins</groupId>
-              <artifactId>maven-resources-plugin</artifactId>
-              <version>2.5</version>
-              <configuration>
-                <escapeString>\</escapeString>
-              </configuration>
-            </plugin>
-
             <plugin>
                 <artifactId>maven-archetype-plugin</artifactId>
                 <version>2.0-alpha-4</version>
