@@ -53,6 +53,7 @@ Utilities that aid in finding Maven project dependencies.
         <dependency>
             <groupId>${fluidity.foundation.groupId}</groupId>
             <artifactId>foundation-bootstrap-utils</artifactId>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>

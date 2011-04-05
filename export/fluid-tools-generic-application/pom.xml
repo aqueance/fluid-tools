@@ -54,17 +54,20 @@ containing application wrappers other than command line, web or enterprise appli
         <dependency>
             <groupId>${fluidity.export.groupId}</groupId>
             <artifactId>fluid-tools-bootstrap</artifactId>
+            <version>${project.version}</version>
             <type>pom</type>
         </dependency>
 
         <dependency>
             <groupId>${fluidity.foundation.groupId}</groupId>
             <artifactId>foundation-impl</artifactId>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>
             <groupId>${fluidity.deployment.groupId}</groupId>
             <artifactId>deployment-impl</artifactId>
+            <version>${project.version}</version>
         </dependency>
 
     </dependencies>

@@ -53,11 +53,13 @@ Contains the class that loads an embedded Jetty and deploys one or more war arti
         <dependency>
             <groupId>${fluidity.foundation.groupId}</groupId>
             <artifactId>foundation-utils</artifactId>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>
             <groupId>${fluidity.deployment.groupId}</groupId>
             <artifactId>war-bootstrap-spi</artifactId>
+            <version>${project.version}</version>
         </dependency>
 
     </dependencies>

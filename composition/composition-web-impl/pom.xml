@@ -61,16 +61,19 @@ WebApplicationLifecycleListener to be registered as a listener in the host appli
         <dependency>
             <groupId>${fluidity.foundation.groupId}</groupId>
             <artifactId>foundation-api</artifactId>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>
             <groupId>${fluidity.composition.groupId}</groupId>
             <artifactId>composition-api</artifactId>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>
             <groupId>${fluidity.composition.groupId}</groupId>
             <artifactId>composition-bootstrap-utils</artifactId>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>
@@ -98,7 +101,6 @@ WebApplicationLifecycleListener to be registered as a listener in the host appli
             <plugin>
                 <groupId>${fluidity.plugin.groupId}</groupId>
                 <artifactId>maven-composition-plugin</artifactId>
-                <version>${fluidity.version}</version>
                 <executions>
                     <execution>
                         <goals>

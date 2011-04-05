@@ -77,11 +77,13 @@ using a class loader that can load classes from those embedded dependencies.
         <dependency>
             <groupId>${fluidity.deployment.groupId}</groupId>
             <artifactId>maven-dependency-utils</artifactId>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>
             <groupId>${fluidity.foundation.groupId}</groupId>
             <artifactId>foundation-bootstrap-utils</artifactId>
+            <version>${project.version}</version>
         </dependency>
 
     </dependencies>

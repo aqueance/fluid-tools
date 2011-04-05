@@ -54,17 +54,20 @@ containing web application wrappers.
         <dependency>
             <groupId>${fluidity.export.groupId}</groupId>
             <artifactId>fluid-tools-generic-application</artifactId>
+            <version>${project.version}</version>
             <type>pom</type>
         </dependency>
 
         <dependency>
             <groupId>${fluidity.composition.groupId}</groupId>
             <artifactId>composition-web-impl</artifactId>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>
             <groupId>${fluidity.deployment.groupId}</groupId>
             <artifactId>war-boundary-utils</artifactId>
+            <version>${project.version}</version>
         </dependency>
 
     </dependencies>

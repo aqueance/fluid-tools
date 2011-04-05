@@ -56,22 +56,26 @@ include this dependency in your projects.
         <dependency>
             <groupId>${fluidity.export.groupId}</groupId>
             <artifactId>fluid-tools-boundary-api</artifactId>
+            <version>${project.version}</version>
             <type>pom</type>
         </dependency>
 
         <dependency>
             <groupId>${fluidity.foundation.groupId}</groupId>
             <artifactId>foundation-impl</artifactId>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>
             <groupId>${fluidity.composition.groupId}</groupId>
             <artifactId>composition-impl</artifactId>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>
             <groupId>${fluidity.composition.groupId}</groupId>
             <artifactId>composition-container-impl</artifactId>
+            <version>${project.version}</version>
         </dependency>
 
     </dependencies>

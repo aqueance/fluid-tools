@@ -54,6 +54,7 @@ containing top level application wrappers that wish to use Apache Commons Loggin
         <dependency>
             <groupId>${fluidity.export.groupId}</groupId>
             <artifactId>fluid-tools-component-api</artifactId>
+            <version>${project.version}</version>
             <type>pom</type>
         </dependency>
 
@@ -83,7 +84,6 @@ containing top level application wrappers that wish to use Apache Commons Loggin
             <plugin>
                 <groupId>${fluidity.plugin.groupId}</groupId>
                 <artifactId>maven-composition-plugin</artifactId>
-                <version>${fluidity.version}</version>
                 <executions>
                     <execution>
                         <goals>

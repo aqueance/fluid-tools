@@ -54,6 +54,7 @@ that make use of Fluid Tools testing support classes.
         <dependency>
             <groupId>${fluidity.foundation.groupId}</groupId>
             <artifactId>foundation-easymock</artifactId>
+            <version>${project.version}</version>
         </dependency>
 
     </dependencies>

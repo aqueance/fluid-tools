@@ -53,11 +53,13 @@ Jetty implementation of the war-bootstrap-spi module.
         <dependency>
             <groupId>${fluidity.deployment.groupId}</groupId>
             <artifactId>war-bootstrap-spi</artifactId>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>
             <groupId>${fluidity.deployment.groupId}</groupId>
             <artifactId>jetty-server-utils</artifactId>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>
@@ -68,13 +70,14 @@ Jetty implementation of the war-bootstrap-spi module.
         <dependency>
             <groupId>${fluidity.composition.groupId}</groupId>
             <artifactId>composition-command-line-impl</artifactId>
+            <version>${project.version}</version>
             <scope>runtime</scope>
         </dependency>
 
         <dependency>
             <groupId>${fluidity.export.groupId}</groupId>
             <artifactId>fluid-tools-bootstrap</artifactId>
-            <version>${fluidity.version}</version>
+            <version>${project.version}</version>
             <type>pom</type>
             <scope>runtime</scope>
         </dependency>
@@ -99,7 +102,6 @@ Jetty implementation of the war-bootstrap-spi module.
             <plugin>
                 <groupId>${fluidity.plugin.groupId}</groupId>
                 <artifactId>maven-composition-plugin</artifactId>
-                <version>${fluidity.version}</version>
                 <executions>
                     <execution>
                         <goals>

@@ -53,21 +53,25 @@ Common classes and components to control an embedded Jetty server.
         <dependency>
             <groupId>${fluidity.composition.groupId}</groupId>
             <artifactId>composition-api</artifactId>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>
             <groupId>${fluidity.composition.groupId}</groupId>
             <artifactId>composition-bootstrap-utils</artifactId>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>
             <groupId>${fluidity.foundation.groupId}</groupId>
             <artifactId>foundation-utils</artifactId>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>
             <groupId>${fluidity.deployment.groupId}</groupId>
             <artifactId>deployment-api</artifactId>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>
@@ -100,7 +104,6 @@ Common classes and components to control an embedded Jetty server.
             <plugin>
                 <groupId>${fluidity.plugin.groupId}</groupId>
                 <artifactId>maven-composition-plugin</artifactId>
-                <version>${fluidity.version}</version>
                 <executions>
                     <execution>
                         <goals>

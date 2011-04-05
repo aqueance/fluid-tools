@@ -45,14 +45,14 @@
         <dependency>
             <groupId>org.fluidity.export</groupId>
             <artifactId>fluid-tools-component-api</artifactId>
-            <version>${fluidity.version}</version>
+            <version>${project.version}</version>
             <type>pom</type>
         </dependency>
 
         <dependency>
             <groupId>org.fluidity.export</groupId>
             <artifactId>fluid-tools-tests</artifactId>
-            <version>${fluidity.version}</version>
+            <version>${project.version}</version>
             <type>pom</type>
             <scope>test</scope>
         </dependency>
@@ -60,7 +60,7 @@
         <dependency>
             <groupId>org.fluidity.export</groupId>
             <artifactId>fluid-tools-bootstrap</artifactId>
-            <version>${fluidity.version}</version>
+            <version>${project.version}</version>
             <type>pom</type>
             <scope>test</scope>
         </dependency>
@@ -68,7 +68,7 @@
         <dependency>
             <groupId>org.fluidity.export</groupId>
             <artifactId>fluid-tools-cli-application</artifactId>
-            <version>${fluidity.version}</version>
+            <version>${project.version}</version>
             <type>pom</type>
             <scope>test</scope>
         </dependency>
@@ -80,7 +80,7 @@
         <plugins>
 
             <plugin>
-                <groupId>org.fluidity.maven</groupId>
+                <groupId>${fluidity.plugin.groupId}</groupId>
                 <artifactId>maven-composition-plugin</artifactId>
                 <executions>
                     <execution>

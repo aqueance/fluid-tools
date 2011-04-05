@@ -109,11 +109,13 @@ of the org.fluidity.deployment:war-bootstrap-jetty-impl dependency above.
         <dependency>
             <groupId>${fluidity.deployment.groupId}</groupId>
             <artifactId>maven-dependency-utils</artifactId>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>
             <groupId>${fluidity.deployment.groupId}</groupId>
             <artifactId>war-bootstrap</artifactId>
+            <version>${project.version}</version>
         </dependency>
 
     </dependencies>

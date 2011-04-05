@@ -74,11 +74,13 @@ class name of the Service Provider interface> unless one already exists.
         <dependency>
             <groupId>${fluidity.foundation.groupId}</groupId>
             <artifactId>foundation-utils</artifactId>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>
             <groupId>${fluidity.composition.groupId}</groupId>
             <artifactId>composition-api</artifactId>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>

@@ -56,12 +56,14 @@ resolve some dependency.
         <dependency>
             <groupId>${fluidity.export.groupId}</groupId>
             <artifactId>fluid-tools-component-api</artifactId>
+            <version>${project.version}</version>
             <type>pom</type>
         </dependency>
 
         <dependency>
             <groupId>${fluidity.composition.groupId}</groupId>
             <artifactId>composition-bootstrap-utils</artifactId>
+            <version>${project.version}</version>
         </dependency>
 
     </dependencies>

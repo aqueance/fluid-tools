@@ -53,6 +53,7 @@ Exports the &lt;code>org.fluidity.deployment.ServerBootstrap&lt;/code> interface
         <dependency>
             <groupId>${fluidity.composition.groupId}</groupId>
             <artifactId>composition-api</artifactId>
+            <version>${project.version}</version>
             <scope>provided</scope>
         </dependency>
 
