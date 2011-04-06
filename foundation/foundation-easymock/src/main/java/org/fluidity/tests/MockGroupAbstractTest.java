@@ -16,19 +16,18 @@
 
 package org.fluidity.tests;
 
+import org.easymock.EasyMock;
+import org.easymock.IMocksControl;
+import org.easymock.internal.matchers.Equals;
+import org.easymock.internal.matchers.NotNull;
+import org.easymock.internal.matchers.Same;
+import org.testng.annotations.BeforeMethod;
+
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.easymock.EasyMock;
-import org.easymock.IMocksControl;
-import org.testng.annotations.BeforeMethod;
+import java.util.*;
 
 /**
  * Abstract test cases that facilitates the use of a {@link IMocksControl}.
@@ -53,7 +52,6 @@ public abstract class MockGroupAbstractTest {
      *
      * @param interfaceClass the interface to mock.
      * @param <T>            the interface class.
-     *
      * @return the mock object for the interface.
      */
     protected final <T> T addControl(final Class<T> interfaceClass) {
@@ -66,7 +64,6 @@ public abstract class MockGroupAbstractTest {
      *
      * @param interfaceClass the interface to mock.
      * @param <T>            the interface class.
-     *
      * @return the mock object for the interface.
      */
     protected final <T> T addNiceControl(final Class<T> interfaceClass) {
@@ -79,7 +76,6 @@ public abstract class MockGroupAbstractTest {
      *
      * @param interfaceClass the interface to mock.
      * @param <T>            the interface class.
-     *
      * @return the mock object for the interface.
      */
     protected final <T> T addStrictControl(final Class<T> interfaceClass) {
@@ -92,7 +88,6 @@ public abstract class MockGroupAbstractTest {
      *
      * @param interfaceClass the interface to mock.
      * @param <T>            the interface class.
-     *
      * @return the mock object for the interface.
      */
     protected final <T> T addLocalControl(final Class<T> interfaceClass) {
@@ -105,7 +100,6 @@ public abstract class MockGroupAbstractTest {
      *
      * @param interfaceClass the interface to mock.
      * @param <T>            the interface class.
-     *
      * @return the mock object for the interface.
      */
     protected final <T> T addLocalNiceControl(final Class<T> interfaceClass) {
@@ -118,7 +112,6 @@ public abstract class MockGroupAbstractTest {
      *
      * @param interfaceClass the interface to mock.
      * @param <T>            the interface class.
-     *
      * @return the mock object for the interface.
      */
     protected final <T> T addLocalStrictControl(final Class<T> interfaceClass) {
@@ -136,7 +129,6 @@ public abstract class MockGroupAbstractTest {
      * @param <T>             the interface class.
      * @param mainInterface   the interface to use as a reference and also the on that determines the return type.
      * @param otherInterfaces the other interfaces to mock.
-     *
      * @return the mock object for the interface.
      */
     @SuppressWarnings("unchecked")
@@ -156,7 +148,6 @@ public abstract class MockGroupAbstractTest {
      * @param <T>             the interface class.
      * @param mainInterface   the interface to use as a reference and also the on that determines the return type.
      * @param otherInterfaces the other interfaces to mock.
-     *
      * @return the mock object for the interface.
      */
     @SuppressWarnings("unchecked")
@@ -191,6 +182,48 @@ public abstract class MockGroupAbstractTest {
         localGroup.reset();
     }
 
+    /**
+     * Argument matcher that understands variadic arguments.
+     *
+     * @param expected the array of expected values.
+     * @return the matcher.
+     */
+    protected final <T> T[] varEq(final T[] expected) {
+        for (final T value : expected) {
+            EasyMock.reportMatcher(new Equals(value));
+        }
+
+        return expected;
+    }
+
+    /**
+     * Argument matcher that understands variadic arguments.
+     *
+     * @param expected the array of expected values.
+     * @return the matcher.
+     */
+    protected final <T> T[] varSame(final T[] expected) {
+        for (final T value : expected) {
+            EasyMock.reportMatcher(new Same(value));
+        }
+
+        return expected;
+    }
+
+    /**
+     * Argument matcher that understands variadic arguments.
+     *
+     * @param expected an array with the expected size.
+     * @return the matcher.
+     */
+    protected final <T> T[] varNotNull(final T[] expected) {
+        for (final T value : expected) {
+            EasyMock.reportMatcher(NotNull.NOT_NULL);
+        }
+
+        return expected;
+    }
+
     private static class ControlGroup {
 
         public final IMocksControl group = EasyMock.createControl();
@@ -211,7 +244,6 @@ public abstract class MockGroupAbstractTest {
          *
          * @param interfaceClass the interface to mock.
          * @param <T>            the interface class.
-         *
          * @return the mock object for the interface.
          */
         protected final <T> T addControl(final Class<T> interfaceClass) {
@@ -224,7 +256,6 @@ public abstract class MockGroupAbstractTest {
          *
          * @param interfaceClass the interface to mock.
          * @param <T>            the interface class.
-         *
          * @return the mock object for the interface.
          */
         protected final <T> T addNiceControl(final Class<T> interfaceClass) {
@@ -237,7 +268,6 @@ public abstract class MockGroupAbstractTest {
          *
          * @param interfaceClass the interface to mock.
          * @param <T>            the interface class.
-         *
          * @return the mock object for the interface.
          */
         protected final <T> T addStrictControl(final Class<T> interfaceClass) {
@@ -256,7 +286,6 @@ public abstract class MockGroupAbstractTest {
          * @param <T>             the interface class.
          * @param mainInterface   the interface to use as a reference and also the on that determines the return type.
          * @param otherInterfaces the other interfaces to mock.
-         *
          * @return the mock object for the interface.
          */
         @SuppressWarnings("unchecked")
