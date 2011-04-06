@@ -16,13 +16,11 @@
 
 package org.fluidity.deployment;
 
+import org.easymock.EasyMock;
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.OpenComponentContainer;
 import org.fluidity.tests.MockGroupAbstractTest;
-
-import org.easymock.EasyMock;
-import org.easymock.IAnswer;
 import org.testng.annotations.Test;
 
 /**
@@ -57,23 +55,7 @@ public class DependencyResolverImplTest extends MockGroupAbstractTest {
         final Dependency dependency = new Dependency();
 
         EasyMock.expect(container.getComponent(Dependency.class)).andReturn(null);
-        EasyMock.expect(
-                container.getComponent(EasyMock.same(Dependency.class), EasyMock.<ComponentContainer.Bindings>notNull()))
-                .andAnswer(new IAnswer<Dependency>() {
-                    public Dependency answer() throws Throwable {
-                        ComponentContainer.Bindings bindings =
-                                (ComponentContainer.Bindings) EasyMock.getCurrentArguments()[1];
-
-                        // invoke testee supplied parameter
-                        bindings.bindComponents(registry);
-
-                        // return to testee
-                        return dependency;
-                    }
-                });
-
-        // this is what the testee should do when invoking above from the inner class
-        registry.bindComponent(Dependency.class);
+        EasyMock.expect(container.instantiate(Dependency.class)).andReturn(dependency);
 
         replay();
         assert resolver.findComponent(container, Dependency.class.getName()) == dependency;

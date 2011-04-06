@@ -151,7 +151,7 @@ public final class BasicResolutionTests extends AbstractContainerTests {
     }
 
     @Test
-    public void transientComponentInstantiation() throws Exception {
+    public void transientComponentBindings() throws Exception {
         final Key value = container.getComponent(Key.class, new ComponentContainer.Bindings() {
             public void bindComponents(ComponentContainer.Registry registry) {
                 registry.bindComponent(Value.class);
@@ -162,6 +162,11 @@ public final class BasicResolutionTests extends AbstractContainerTests {
         assert value != null;
         assert container.getComponent(Key.class) == null;
         assert container.getComponent(DependentKey.class) == null;
+    }
+
+    @Test
+    public void transientComponentInstantiation() throws Exception {
+        assert container.instantiate(Check.class) != null;
     }
 
     @Test

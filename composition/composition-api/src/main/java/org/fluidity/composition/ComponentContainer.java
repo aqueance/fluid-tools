@@ -92,6 +92,27 @@ public interface ComponentContainer {
     <T> T getComponent(Class<T> api) throws ResolutionException;
 
     /**
+     * Returns the list of components implementing the given interface, provided that they each, or the given interface itself, has been marked with the {@link
+     * ComponentGroup} annotation.
+     *
+     * @param api the group interface class.
+     *
+     * @return an array of components that belong to the given group; may be <code>null</code>.
+     */
+    <T> T[] getComponentGroup(Class<T> api);
+
+    /**
+     * Creates another container whose components' dependencies will be satisfied from itself first and then from this container when the child could find no
+     * component to satisfy a dependency with.
+     * <p/>
+     * This method can be used to gain access to the dependency resolution and injection functionality of the container without polluting it with new
+     * components after it has been set up. Components placed in the child container will not be visible to clients of, or components in, this container.
+     *
+     * @return a container that defaults to this container for satisfying component dependencies.
+     */
+    OpenComponentContainer makeChildContainer();
+
+    /**
      * Returns a component by interface or (super)class. This method is provided for factory objects (objects creating transient components) as a convenient
      * shortcut to acquire a child container, register component bindings in it and get the child container instantiate the requested component.
      *
@@ -106,17 +127,6 @@ public interface ComponentContainer {
     <T> T getComponent(Class<T> api, Bindings bindings) throws ResolutionException;
 
     /**
-     * Creates another container whose components' dependencies will be satisfied from itself first and then from this container when the child could find no
-     * component to satisfy a dependency with.
-     * <p/>
-     * This method can be used to gain access to the dependency resolution and injection functionality of the container without polluting it with new
-     * components after it has been set up. Components placed in the child container will not be visible to clients of, or components in, this container.
-     *
-     * @return a container that defaults to this container for satisfying component dependencies.
-     */
-    OpenComponentContainer makeChildContainer();
-
-    /**
      * Post-initialize the @{@link Inject} annotated fields of the given object.
      *
      * @param component is a component that needs field injection of dependencies.
@@ -129,14 +139,17 @@ public interface ComponentContainer {
     <T> T initialize(T component) throws ResolutionException;
 
     /**
-     * Returns the list of components implementing the given interface, provided that they each, or the given interface itself, has been marked with the {@link
-     * ComponentGroup} annotation.
+     * Instantiates the given class as a component. No caching takes place, a new instance is created at every invocation. This is method is intended
+     * for use by boundary objects.
      *
-     * @param api the group interface class.
+     * @param componentClass is the component class to instantiate.
      *
-     * @return an array of components that belong to the given group; may be <code>null</code>.
+     * @return the new component.
+     *
+     * @throws ComponentContainer.ResolutionException
+     *          when dependency resolution fails
      */
-    <T> T[] getComponentGroup(Class<T> api);
+    <T> T instantiate(Class<T> componentClass) throws ResolutionException;
 
     /**
      * Component bindings.

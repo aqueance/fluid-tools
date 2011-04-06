@@ -170,6 +170,10 @@ public final class ContainerBoundary implements ComponentContainer {
         return loadContainer(true).initialize(component);
     }
 
+    public <T> T instantiate(final Class<T> componentClass) throws ResolutionException {
+        return loadContainer(true).instantiate(componentClass);
+    }
+
     public <T> T[] getComponentGroup(final Class<T> api) {
         return loadContainer(true).getComponentGroup(api);
     }

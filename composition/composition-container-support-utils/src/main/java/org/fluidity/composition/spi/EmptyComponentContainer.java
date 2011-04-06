@@ -39,6 +39,17 @@ public abstract class EmptyComponentContainer implements OpenComponentContainer,
         return child.getComponent(api);
     }
 
+    /**
+     * Implements this convenience method using the primary methods of the container.
+     * <p/>
+     * {@inheritDoc}
+     */
+    public final <T> T instantiate(final Class<T> componentClass) throws ResolutionException {
+        final OpenComponentContainer container = makeChildContainer();
+        container.getRegistry().bindComponent(componentClass, componentClass);
+        return container.getComponent(componentClass);
+    }
+
     public final Registry getRegistry() {
         return registry;
     }
