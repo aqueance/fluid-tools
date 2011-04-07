@@ -20,18 +20,26 @@
     <parent>
         <artifactId>composition-plugins-root</artifactId>
         <groupId>org.fluidity.maven</groupId>
-        <version>1.0-SNAPSHOT</version>
+        <version>1.0.0-SNAPSHOT</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.fluidity.maven</groupId>
     <artifactId>maven-composition-plugin-tests</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0.0-SNAPSHOT</version>
 
     <!-- we configure the build cycle ourselves: see the build/plugins section -->
     <packaging>pom</packaging>
 
     <name>Plugins: Composition Tests</name>
+
+    <licenses>
+        <license>
+            <name>Apache License 2.0</name>
+            <url>file:LICENSE.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
 
     <dependencies>
 

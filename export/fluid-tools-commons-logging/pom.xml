@@ -20,19 +20,19 @@
     <parent>
         <groupId>org.fluidity</groupId>
         <artifactId>exports</artifactId>
-        <version>1.0-SNAPSHOT</version>
+        <version>1.0.0-SNAPSHOT</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.fluidity.export</groupId>
     <artifactId>fluid-tools-commons-logging</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0.0-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>Fluid Tools: Commons Logging Implementation</name>
 
     <licenses>
         <license>
-            <name>The MIT License</name>
+            <name>Apache License 2.0</name>
             <url>file:LICENSE.txt</url>
             <distribution>repo</distribution>
         </license>
