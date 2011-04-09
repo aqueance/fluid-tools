@@ -16,18 +16,6 @@
 
 package org.fluidity.deployment.maven;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.fluidity.foundation.JarStreams;
-
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.DefaultArtifact;
 import org.apache.maven.artifact.handler.ArtifactHandler;
@@ -36,6 +24,7 @@ import org.apache.maven.artifact.versioning.VersionRange;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Exclusion;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.fluidity.foundation.JarStreams;
 import org.sonatype.aether.RepositorySystem;
 import org.sonatype.aether.RepositorySystemSession;
 import org.sonatype.aether.collection.CollectRequest;
@@ -50,6 +39,9 @@ import org.sonatype.aether.util.artifact.ArtifactProperties;
 import org.sonatype.aether.util.artifact.DefaultArtifactType;
 import org.sonatype.aether.util.artifact.JavaScopes;
 import org.sonatype.aether.util.graph.PreorderNodeListGenerator;
+
+import java.io.File;
+import java.util.*;
 
 /**
  * Convenience methods to access the Maven dependency resolution mechanism.
@@ -68,12 +60,14 @@ public final class MavenDependencies {
     /**
      * Returns the transitive dependencies of the given dependency of the given root artifact.
      *
+     *
      * @param system             a Maven component of the respective type.
      * @param session            a Maven component of the respective type.
      * @param remoteRepositories a Maven component of the respective type.
-     * @param root               the root artifact.
-     * @param dependency         the dependency of the root artifact.
+     * @param dependency         a class from a dependency of the root artifact.
      *
+     * @param root               the root artifact.
+     * @param dependencies       the dependencies of the root artifact.
      * @return the list of transitive dependencies of the given dependency, including the dependency.
      *
      * @throws MojoExecutionException when something went wrong.
@@ -81,8 +75,9 @@ public final class MavenDependencies {
     public static Collection<Artifact> transitiveDependencies(final RepositorySystem system,
                                                               final RepositorySystemSession session,
                                                               final List<RemoteRepository> remoteRepositories,
+                                                              final Class<?> dependency,
                                                               final Artifact root,
-                                                              final Class<?> dependency) throws MojoExecutionException {
+                                                              final List<Dependency> dependencies) throws MojoExecutionException {
         final String[] spec = JarStreams.manifestAttributes(dependency,
                                                             MavenDependencies.MANIFEST_MAVEN_GROUP_ID,
                                                             MavenDependencies.MANIFEST_MAVEN_ARTIFACT_ID);
@@ -92,6 +87,7 @@ public final class MavenDependencies {
         }
 
         // level 0
+        final TransitiveDependencySelector dependencySelector = new TransitiveDependencySelector(false);
         final DependencySelector selector = new DependencySelector() {
 
             // level 0: root
@@ -111,7 +107,7 @@ public final class MavenDependencies {
 
                     // level 2
                     public DependencySelector deriveChildSelector(final DependencyCollectionContext context) {
-                        return new TransitiveDependencySelector(false);
+                        return dependencySelector;
                     }
                 };
             }
@@ -119,6 +115,13 @@ public final class MavenDependencies {
 
         final Collection<Artifact> artifacts = transitiveDependencies(system, remoteRepositories, root, session, selector);
         artifacts.remove(root);
+
+        if (dependencies != null) {
+            for (final Dependency artifact : dependencies) {
+                artifacts.addAll(transitiveDependencies(system, remoteRepositories, dependencyArtifact(artifact), session, dependencySelector));
+            }
+        }
+
         return artifacts;
     }
 

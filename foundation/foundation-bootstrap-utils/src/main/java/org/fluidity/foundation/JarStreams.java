@@ -17,6 +17,7 @@
 package org.fluidity.foundation;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.JarURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
@@ -41,10 +42,9 @@ public final class JarStreams {
      *
      * @param jar    the URL of the jar file.
      * @param reader the object that filters and reads the jar entries.
-     *
      * @throws java.io.IOException when something goes wrong reading the jar file.
      */
-    public static void readEntries(final URL jar, final JarEntryReader reader) throws IOException {
+    public static void readNestedEntries(final URL jar, final JarEntryReader reader) throws IOException {
         final JarInputStream container = new JarInputStream(jar.openStream(), false);
 
         try {
@@ -78,15 +78,57 @@ public final class JarStreams {
     }
 
     /**
+     * Allows the caller to read an entry in a jar file as a jar file.
+     *
+     * @param jar    the URL of the jar file.
+     * @param reader the object that reads the jar entries.
+     * @throws java.io.IOException when something goes wrong reading the jar file.
+     */
+    public static void readEntries(final URL jar, final JarEntryReader reader) throws IOException {
+        assert jar != null;
+        final JarInputStream container = new JarInputStream(jar.openStream(), false);
+
+        try {
+            JarEntry entry;
+            while ((entry = container.getNextJarEntry()) != null) {
+                try {
+                    if (!entry.isDirectory()) {
+                        if (reader.matches(entry)) {
+                            if (!reader.read(entry, container)) {
+                                break;
+                            }
+                        }
+                    }
+                } finally {
+                    try {
+                        container.closeEntry();
+                    } catch (final IOException e) {
+                        // ignore
+                    }
+                }
+            }
+        } finally {
+            try {
+                container.close();
+            } catch (final IOException e) {
+                // ignore
+            }
+        }
+    }
+
+    /**
      * Loads manifest attributes from the jar file where the given class was loaded from.
      *
      * @param aClass the class whose source jar is to be processed.
      * @param names  the list of attribute names to load.
-     *
      * @return an array of Strings, each being the value of the attribute name at the same index.
      */
     public static String[] manifestAttributes(final Class<?> aClass, final String... names) {
         final URL url = ClassLoaders.findClassResource(aClass);
+
+        if (url == null) {
+            throw new IllegalArgumentException(String.format("Can't find class loader for %s", aClass));
+        }
 
         try {
             final URLConnection connection = url.openConnection();
@@ -118,6 +160,18 @@ public final class JarStreams {
         }
     }
 
+    public static Manifest loadManifest(final InputStream stream) throws IOException {
+        final Manifest manifest = new Manifest();
+
+        try {
+            manifest.read(stream);
+        } finally {
+            stream.close();
+        }
+
+        return manifest;
+    }
+
     /**
      * Filters and reads entries in a jar file.
      */
@@ -127,9 +181,7 @@ public final class JarStreams {
          * Tells if the {@link #read(JarEntry, JarInputStream)} method should be invoked with the given entry.
          *
          * @param entry the entry to decide about; never <code>null</code>.
-         *
          * @return <code>true</code> if the given entry should be passed to the {@link #read(JarEntry, JarInputStream)} method, <code>false</code> if not.
-         *
          * @throws java.io.IOException when something goes wrong reading the jar file.
          */
         boolean matches(JarEntry entry) throws IOException;
@@ -139,9 +191,7 @@ public final class JarStreams {
          *
          * @param entry  the entry to read.
          * @param stream the stream containing the entry's contnt.
-         *
          * @return <code>true</code> if further searching is needed, <code>false</code> if search should terminate.
-         *
          * @throws java.io.IOException when something goes wrong reading the jar file.
          */
         boolean read(JarEntry entry, JarInputStream stream) throws IOException;

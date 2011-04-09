@@ -18,43 +18,43 @@ package org.fluidity.foundation;
 
 import java.io.IOException;
 import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.Enumeration;
 
 /**
- * Handles jar files inside another jar file with known location.
+ * Handles jar files visible to the parent class loader. Classes found by the parent class loader are not able to refer to classes loaded by this class so if
+ * you have a JAR file with nested JAR files in it, use the {@link JarJarClassLoader} instead of this class.
  */
-public class JarJarClassLoader extends URLClassLoader {
+public class ParentJarClassLoader extends ClassLoader {
 
     private final NestedJarClassLoaderImpl nested;
 
-    public JarJarClassLoader(final URL url, final ClassLoader parent, final String... paths) throws IOException {
-        super(new URL[] { url }, parent);
+    public ParentJarClassLoader(final ClassLoader parent, final String... paths) throws IOException {
+        super(parent);
 
         this.nested = new NestedJarClassLoaderImpl(new NestedJarClassLoaderImpl.Caller() {
             public Class<?> findClass(final String name) throws ClassNotFoundException {
-                return JarJarClassLoader.super.findClass(name);
+                return ParentJarClassLoader.super.findClass(name);
             }
 
             public URL findResource(final String resource) {
-                return JarJarClassLoader.super.findResource(resource);
+                return ParentJarClassLoader.super.findResource(resource);
             }
 
             public Enumeration<URL> findResources(final String resource) throws IOException {
-                return JarJarClassLoader.super.findResources(resource);
+                return ParentJarClassLoader.super.findResources(resource);
             }
 
             public Class<?> defineClass(final String name, final byte[] bytes, final int offset, final int length) throws ClassFormatError {
-                return JarJarClassLoader.this.defineClass(name, bytes, offset, length);
+                return ParentJarClassLoader.this.defineClass(name, bytes, offset, length);
             }
 
             public URL getResource(final String resource) {
-                return JarJarClassLoader.this.getResource(resource);
+                return ParentJarClassLoader.this.getResource(resource);
             }
 
             @Override
             public String toString() {
-                return getURLs()[0].toExternalForm();
+                return getParent().toString();
             }
         });
 

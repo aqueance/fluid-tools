@@ -16,33 +16,25 @@
 
 package org.fluidity.maven;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.Collection;
-import java.util.Enumeration;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.jar.Attributes;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
-import java.util.jar.JarOutputStream;
-import java.util.jar.Manifest;
-
-import org.fluidity.deployment.maven.MavenDependencies;
-import org.fluidity.foundation.JarJarLauncher;
-import org.fluidity.foundation.Streams;
-
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
+import org.fluidity.deployment.maven.MavenDependencies;
+import org.fluidity.foundation.JarManifest;
+import org.fluidity.foundation.ServiceProviders;
+import org.fluidity.foundation.Streams;
 import org.sonatype.aether.RepositorySystem;
 import org.sonatype.aether.RepositorySystemSession;
 import org.sonatype.aether.repository.RemoteRepository;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.*;
+import java.util.jar.*;
 
 /**
  * Adds code to the project's executable .jar artifact that allows it to embed its dependencies.
@@ -142,19 +134,32 @@ public class ExecutableJarMojo extends AbstractMojo {
         }
 
         final String pluginKey = Plugin.constructKey(pluginGroupId, pluginArtifactId);
+        final Plugin plugin = project.getPlugin(pluginKey);
         final Artifact pluginArtifact = project.getPluginArtifactMap().get(pluginKey);
+
+        final JarManifest handler = ServiceProviders.findInstance(JarManifest.class, getClass().getClassLoader());
 
         final Collection<Artifact> bootstrapDependencies = MavenDependencies.transitiveDependencies(repositorySystem,
                                                                                                     repositorySession,
                                                                                                     projectRepositories,
+                                                                                                    handler.getClass(),
                                                                                                     pluginArtifact,
-                                                                                                    JarJarLauncher.class);
+                                                                                                    plugin.getDependencies());
 
         final Collection<Artifact> projectDependencies = MavenDependencies.transitiveDependencies(repositorySystem,
                                                                                                   repositorySession,
                                                                                                   projectRepositories,
                                                                                                   project.getArtifact(),
                                                                                                   false);
+
+        // keep only JAR artifacts
+        for (final Iterator<Artifact> i = projectDependencies.iterator(); i.hasNext();) {
+            final Artifact artifact = i.next();
+
+            if (!artifact.getType().equals(JAR_TYPE)) {
+                i.remove();
+            }
+        }
 
         if (projectDependencies.isEmpty()) {
 
@@ -181,44 +186,32 @@ public class ExecutableJarMojo extends AbstractMojo {
                         // ignored
                     }
                 }
+                final Attributes attributes = manifest.getMainAttributes();
+
+                if (attributes.get(Attributes.Name.CLASS_PATH) != null) {
+                    throw new MojoExecutionException(String.format("Manifest contains %s", Attributes.Name.CLASS_PATH));
+                }
 
                 final String dependencyPath = META_INF.concat("dependencies/");
-                final Attributes mainAttributes = manifest.getMainAttributes();
+                final StringBuilder dependencyList = new StringBuilder();
 
-                if (mainAttributes.get(Attributes.Name.MAIN_CLASS) == null) {
-                    throw new MojoExecutionException(String.format("Manifest does not contain %s", Attributes.Name.MAIN_CLASS));
-                } else {
-                    mainAttributes.putValue(JarJarLauncher.ORIGINAL_MAIN_CLASS, mainAttributes.getValue(Attributes.Name.MAIN_CLASS));
-                    mainAttributes.put(Attributes.Name.MAIN_CLASS, JarJarLauncher.class.getName());
-                    mainAttributes.putValue(JarJarLauncher.DEPENDENCIES_PATH, dependencyPath);
-                }
+                for (final Artifact artifact : projectDependencies) {
+                    final File dependency = artifact.getFile();
 
-                // jar files needed by the project artifact, i.e., the Class-Path attribute in its manifest
-                final Set<String> bootLibraries = new HashSet<String>();
-
-                final String classPath = mainAttributes.getValue(Attributes.Name.CLASS_PATH);
-                if (classPath != null) {
-                    for (final String path : classPath.split("\\s+")) {
-                        bootLibraries.add(path.trim());
-                    }
-                }
-
-                if (bootLibraries.removeAll(absolutePaths(projectDependencies))) {
-                    final StringBuilder strippedClassPath = new StringBuilder();
-                    for (final String library : bootLibraries) {
-                        if (strippedClassPath.length() > 0) {
-                            strippedClassPath.append(' ');
-                        }
-
-                        strippedClassPath.append(library);
+                    if (!dependency.exists()) {
+                        throw new MojoExecutionException(String.format("Dependency %s not found (tried: %s)", artifact, dependency));
                     }
 
-                    if (strippedClassPath.length() > 0) {
-                        mainAttributes.put(Attributes.Name.CLASS_PATH, strippedClassPath.toString());
-                    } else {
-                        mainAttributes.remove(Attributes.Name.CLASS_PATH);
+                    if (dependencyList.length() > 0) {
+                        dependencyList.append(' ');
                     }
+
+                    dependencyList.append(dependencyPath).append(dependency.getName());
                 }
+
+                attributes.putValue(JarManifest.NESTED_DEPENDENCIES, dependencyList.toString());
+
+                handler.processManifest(attributes);
 
                 final byte buffer[] = new byte[1024 * 16];
 
@@ -257,11 +250,6 @@ public class ExecutableJarMojo extends AbstractMojo {
                 // copy the dependencies, including the original project artifact
                 for (final Artifact artifact : projectDependencies) {
                     final File dependency = artifact.getFile();
-
-                    if (!dependency.exists()) {
-                        throw new MojoExecutionException(String.format("Dependency %s not found (tried: %s)", artifact, dependency));
-                    }
-
                     outputStream.putNextEntry(new JarEntry(dependencyPath.concat(dependency.getName())));
                     Streams.copy(new FileInputStream(dependency), outputStream, buffer, false);
                 }
@@ -283,16 +271,6 @@ public class ExecutableJarMojo extends AbstractMojo {
         } catch (final IOException e) {
             throw new MojoExecutionException(String.format("Processing %s", packageFile), e);
         }
-    }
-
-    private Collection<String> absolutePaths(final Collection<Artifact> artifacts) {
-        final HashSet<String> list = new HashSet<String>();
-
-        for (final Artifact artifact : artifacts) {
-            list.add(artifact.getFile().getAbsolutePath());
-        }
-
-        return list;
     }
 
     private File createTempFile() throws MojoExecutionException {

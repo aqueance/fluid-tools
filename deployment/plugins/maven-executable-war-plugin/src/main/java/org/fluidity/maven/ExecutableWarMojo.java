@@ -16,36 +16,25 @@
 
 package org.fluidity.maven;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.Collection;
-import java.util.Enumeration;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.jar.Attributes;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
-import java.util.jar.JarOutputStream;
-import java.util.jar.Manifest;
-
-import org.fluidity.deployment.WarBootstrapLoader;
-import org.fluidity.deployment.maven.MavenDependencies;
-import org.fluidity.foundation.Streams;
-
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
+import org.fluidity.deployment.WarBootstrapLoader;
+import org.fluidity.deployment.maven.MavenDependencies;
+import org.fluidity.foundation.Streams;
 import org.sonatype.aether.RepositorySystem;
 import org.sonatype.aether.RepositorySystemSession;
 import org.sonatype.aether.repository.RemoteRepository;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.*;
+import java.util.jar.*;
 
 /**
  * Adds code to the project .war file that allows it to be run as a .jar file, e.g. <code>$ java -jar &lt;file name>.war</code>. More .war files can be
@@ -103,13 +92,6 @@ public class ExecutableWarMojo extends AbstractMojo {
      */
     @SuppressWarnings("UnusedDeclaration")
     private File packageFile;
-
-    /**
-     * @parameter expression="${plugin.artifactMap}"
-     * @required
-     */
-    @SuppressWarnings({ "UnusedDeclaration", "MismatchedQueryAndUpdateOfCollection" })
-    private Map<String, Artifact> pluginArtifactMap;
 
     /**
      * @parameter expression="${plugin.groupId}"
@@ -182,8 +164,9 @@ public class ExecutableWarMojo extends AbstractMojo {
         final Collection<Artifact> bootstrapDependencies = MavenDependencies.transitiveDependencies(repositorySystem,
                                                                                                     repositorySession,
                                                                                                     projectRepositories,
+                                                                                                    WarBootstrapLoader.class,
                                                                                                     pluginArtifact,
-                                                                                                    WarBootstrapLoader.class);
+                                                                                                    null);
         final Set<Artifact> serverDependencies = new HashSet<Artifact>();
         for (final Dependency dependency : project.getPlugin(pluginKey).getDependencies()) {
             if (!dependency.isOptional()) {
@@ -354,8 +337,4 @@ public class ExecutableWarMojo extends AbstractMojo {
 
         return tempFile;
     }
-
-    /*
-     * The following conversion methods were created based on the logic found in org.apache.maven.RepositoryUtils
-     */
 }

@@ -25,18 +25,28 @@ import java.util.jar.Attributes;
 
 /**
  * Launches a main class from a jar file using a class loader that can load classes from jar files nested inside the main jar. Nested jar files must be located
- * in the path denoted by the Dependencies-Path manifest attribute. The main class to be loaded is defined by the Original-Main-Class manifest attribute. The
+ * in the path denoted by the Nested-Dependencies manifest attribute. The main class to be loaded is defined by the Original-Main-Class manifest attribute. The
  * Main-Class manifest attribute, obviously, points to this class.
  *
  * @author Tibor Varga
  */
-public class JarJarLauncher {
+public class CommandLineJarManifest implements JarManifest {
 
-    public static final String NESTED_DEPENDENCIES = "Nested-Dependencies";
-    public static final String ORIGINAL_MAIN_CLASS = "Original-Main-Class";
+    private static final String ORIGINAL_MAIN_CLASS = "Original-Main-Class";
+
+    public void processManifest(final Attributes attributes) {
+        final String mainClass = attributes.getValue(Attributes.Name.MAIN_CLASS);
+
+        if (mainClass == null) {
+            throw new IllegalStateException(String.format("Manifest does not contain %s", Attributes.Name.MAIN_CLASS));
+        }
+
+        attributes.putValue(ORIGINAL_MAIN_CLASS, mainClass);
+        attributes.put(Attributes.Name.MAIN_CLASS, getClass().getName());
+    }
 
     public static void main(final String[] args) throws IOException, ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-        final Class<?> main = JarJarLauncher.class;
+        final Class<?> main = CommandLineJarManifest.class;
 
         final URL url = ClassLoaders.findClassResource(main);
         final URLConnection connection = url.openConnection();

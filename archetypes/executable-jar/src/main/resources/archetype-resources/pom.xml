@@ -83,6 +83,13 @@ limitations under the License.
                         </goals>
                     </execution>
                 </executions>
+                <dependencies>
+                  <dependency>
+                      <groupId>org.fluidity.export</groupId>
+                      <artifactId>fluid-tools-cli-manifest</artifactId>
+                      <version>${symbol_dollar}{fluid-tools-version}</version>
+                  </dependency>
+                </dependencies>
             </plugin>
 
         </plugins>

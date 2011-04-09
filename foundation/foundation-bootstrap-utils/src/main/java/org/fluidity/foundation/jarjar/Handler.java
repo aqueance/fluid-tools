@@ -16,19 +16,15 @@
 
 package org.fluidity.foundation.jarjar;
 
+import org.fluidity.foundation.ClassLoaders;
+
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLConnection;
-import java.net.URLDecoder;
-import java.net.URLStreamHandler;
+import java.net.*;
 import java.util.Arrays;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
-
-import org.fluidity.foundation.ClassLoaders;
 
 /**
  * Handles resources inside JAR files inside JAR files, ad infinitum.
@@ -68,7 +64,7 @@ public class Handler extends URLStreamHandler {
     @Override
     protected void parseURL(final URL url, final String spec, final int start, final int limit) {
         final String string = spec.substring(start, limit);
-        final int delimiter = string.indexOf('!');
+        final int delimiter = string.indexOf(DELIMITER);
 
         if (delimiter < 0) {
             throw new IllegalStateException(new MalformedURLException(String.format("%s is not an embedded jar file.", spec)));
@@ -86,16 +82,31 @@ public class Handler extends URLStreamHandler {
         }
     }
 
-    public static URL formatURL(final URL root, final String... paths) throws MalformedURLException {
+    public static URL formatURL(final URL root, final String... paths) throws IOException {
         final StringBuilder specification = new StringBuilder(256);
+        final URLConnection connection = root.openConnection();
 
-        specification.append(PROTOCOL).append(':').append(root.toExternalForm());
+        if (connection instanceof JarURLConnection) {
+
+            // we have a JAR URL but we need the enclosed URL and the JAR file path relative to the URL separately
+            final URL url = ((JarURLConnection) connection).getJarFileURL();
+            final String path = root.getPath().split(DELIMITER)[1];
+
+            specification.append(PROTOCOL).append(':').append(url.toExternalForm());
+            specification.append(DELIMITER).append(path);
+        } else {
+            specification.append(PROTOCOL).append(':').append(root.toExternalForm());
+        }
 
         for (final String path : paths) {
             specification.append(DELIMITER).append(ClassLoaders.absoluteResourceName(path));
         }
 
-        return new URL(specification.toString());
+        try {
+            return new URL(specification.toString());
+        } catch (final MalformedURLException e) {
+            return new URL(null, specification.toString(), Singleton.INSTANCE);
+        }
     }
 
     public static class EmbeddedConnection extends URLConnection {
@@ -148,5 +159,11 @@ public class Handler extends URLStreamHandler {
 
             throw new FileNotFoundException(getURL().toExternalForm());
         }
+    }
+
+    private static class Singleton {
+
+    // must come after the static block that registers the this class as an URL stream handler
+        public static final Handler INSTANCE = new Handler();
     }
 }

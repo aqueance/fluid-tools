@@ -18,19 +18,20 @@ package org.fluidity.foundation;
 
 import java.io.IOException;
 import java.net.URL;
+import java.net.URLClassLoader;
 
 /**
  * @author Tibor Varga
  */
-public class JarJarClassLoaderTest extends NestedJarClassLoaderTest {
+public class ParentJarClassLoaderTest extends NestedJarClassLoaderTest {
 
     @Override
     protected ClassLoader createLoader(final URL root, final ClassLoader parent, final String... paths) throws IOException {
-        return new JarJarClassLoader(root, parent, paths);
+        return new ParentJarClassLoader(new URLClassLoader(new URL[] { root }, parent), paths);
     }
 
     @Override
     protected boolean supportsRootClasses() {
-        return true;
+        return false;
     }
 }
