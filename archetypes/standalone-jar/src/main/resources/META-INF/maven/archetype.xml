@@ -15,5 +15,5 @@
   ~ limitations under the License.
   -->
 <archetype>
-    <id>fluidity-archetype-executable-war</id>
+    <id>fluidity-archetype-standalone-jar</id>
 </archetype>

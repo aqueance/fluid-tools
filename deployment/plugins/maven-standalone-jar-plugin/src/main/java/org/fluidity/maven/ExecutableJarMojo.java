@@ -37,7 +37,7 @@ import java.util.*;
 import java.util.jar.*;
 
 /**
- * Adds code to the project's executable .jar artifact that allows it to embed its dependencies.
+ * Adds code to the project's standalone .jar artifact that allows it to embed its dependencies.
  *
  * @author Tibor Varga
  * @goal package

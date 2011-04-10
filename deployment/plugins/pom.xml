@@ -43,8 +43,8 @@
     </properties>
 
     <modules>
-        <module>maven-executable-jar-plugin</module>
-        <module>maven-executable-war-plugin</module>
+        <module>maven-standalone-jar-plugin</module>
+        <module>maven-standalone-war-plugin</module>
         <module>war-bootstrap</module>
         <module>war-bootstrap-jetty-impl</module>
         <module>jetty-server-utils</module>

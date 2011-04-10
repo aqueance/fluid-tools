@@ -19,7 +19,7 @@ package org.fluidity.foundation;
 import java.util.jar.Attributes;
 
 /**
- * Used by the maven-executable-jar plugin after it has copied all transitive dependencies of the host project to the project artifact to modify the JAR
+ * Used by the maven-standalone-jar plugin after it has copied all transitive dependencies of the host project to the project artifact to modify the JAR
  * manifest of that artifact so that the host OSGi container finds those embedded JAR files and understands them to be in the bundle's class path.
  *
  * @author Tibor Varga

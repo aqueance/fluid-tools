@@ -44,8 +44,8 @@
         <module>api-module</module>
         <module>impl-module</module>
         <module>deployment-module</module>
-        <module>executable-jar</module>
-        <module>executable-war</module>
+        <module>standalone-jar</module>
+        <module>standalone-war</module>
     </modules>
 
     <build>
