@@ -28,7 +28,7 @@ limitations under the License.
     </prerequisites>
 
     <properties>
-        <fluid-tools-version>${project.version}</fluid-tools-version>
+        <fluid.tools.version>${project.version}</fluid.tools.version>
     </properties>
 
     <distributionManagement>
@@ -47,7 +47,7 @@ limitations under the License.
             <dependency>
                 <groupId>org.fluidity</groupId>
                 <artifactId>public</artifactId>
-                <version>${symbol_dollar}{fluid-tools-version}</version>
+                <version>${symbol_dollar}{fluid.tools.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -94,7 +94,7 @@ limitations under the License.
                 <plugin>
                     <groupId>org.fluidity.maven</groupId>
                     <artifactId>maven-composition-plugin</artifactId>
-                    <version>${symbol_dollar}{fluid-tools-version}</version>
+                    <version>${symbol_dollar}{fluid.tools.version}</version>
                 </plugin>
 
             </plugins>

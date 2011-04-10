@@ -42,7 +42,7 @@ limitations under the License.
         <dependency>
             <groupId>org.fluidity.public</groupId>
             <artifactId>fluid-tools-web-application</artifactId>
-            <version>${symbol_dollar}{fluid-tools-version}</version>
+            <version>${symbol_dollar}{fluid.tools.version}</version>
             <type>pom</type>
         </dependency>
 
@@ -54,7 +54,7 @@ limitations under the License.
             <plugin>
                 <groupId>org.fluidity.maven</groupId>
                 <artifactId>maven-composition-plugin</artifactId>
-                <version>${symbol_dollar}{fluid-tools-version}</version>
+                <version>${symbol_dollar}{fluid.tools.version}</version>
                 <executions>
                     <execution>
                         <goals>
@@ -68,7 +68,7 @@ limitations under the License.
             <plugin>
                 <groupId>org.fluidity.maven</groupId>
                 <artifactId>maven-standalone-war-plugin</artifactId>
-                <version>${symbol_dollar}{fluid-tools-version}</version>
+                <version>${symbol_dollar}{fluid.tools.version}</version>
 <!--
                 <configuration>
                     <commandLineOnly>true</commandLineOnly>
@@ -86,7 +86,7 @@ limitations under the License.
                     <dependency>
                         <groupId>org.fluidity.deployment</groupId>
                         <artifactId>war-bootstrap-jetty-impl</artifactId>
-                        <version>${symbol_dollar}{fluid-tools-version}</version>
+                        <version>${symbol_dollar}{fluid.tools.version}</version>
                     </dependency>
 
                 </dependencies>
