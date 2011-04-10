@@ -19,16 +19,16 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <parent>
         <groupId>org.fluidity</groupId>
-        <artifactId>exports</artifactId>
+        <artifactId>public</artifactId>
         <version>1.0.0-SNAPSHOT</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
-    <groupId>org.fluidity.export</groupId>
-    <artifactId>fluid-tools-bootstrap</artifactId>
+    <groupId>org.fluidity.public</groupId>
+    <artifactId>fluid-tools-cli-application</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
-    <name>Fluid Tools: Bootstrap Module</name>
+    <name>Fluid Tools: Command Line Deployment</name>
 
     <licenses>
         <license>
@@ -39,36 +39,28 @@
     </licenses>
 
     <description><![CDATA[
-This project is intended to be transitively depended on by Maven projects
-containing application wrappers. Each kind may need some other dependencies
-listed by other Fluid Tools export projects so you rarely need to directly
-include this dependency in your projects.
+This project is intended to be the Fluid Tools dependency of Maven modules
+containing command line application wrappers.
     ]]></description>
 
     <dependencies>
 
         <dependency>
-            <groupId>${fluidity.export.groupId}</groupId>
-            <artifactId>fluid-tools-boundary-api</artifactId>
+            <groupId>${fluidity.public.groupId}</groupId>
+            <artifactId>fluid-tools-generic-application</artifactId>
             <version>${project.version}</version>
             <type>pom</type>
         </dependency>
 
         <dependency>
-            <groupId>${fluidity.foundation.groupId}</groupId>
-            <artifactId>foundation-impl</artifactId>
+            <groupId>${fluidity.deployment.groupId}</groupId>
+            <artifactId>cli-bootstrap</artifactId>
             <version>${project.version}</version>
         </dependency>
 
         <dependency>
             <groupId>${fluidity.composition.groupId}</groupId>
-            <artifactId>composition-impl</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>${fluidity.composition.groupId}</groupId>
-            <artifactId>composition-container-impl</artifactId>
+            <artifactId>composition-command-line-impl</artifactId>
             <version>${project.version}</version>
         </dependency>
 

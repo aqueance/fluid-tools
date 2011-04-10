@@ -19,16 +19,16 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <parent>
         <groupId>org.fluidity</groupId>
-        <artifactId>exports</artifactId>
+        <artifactId>public</artifactId>
         <version>1.0.0-SNAPSHOT</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
-    <groupId>org.fluidity.export</groupId>
-    <artifactId>fluid-tools-boundary-api</artifactId>
+    <groupId>org.fluidity.public</groupId>
+    <artifactId>fluid-tools-web-application</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
-    <name>Fluid Tools: Boundary API</name>
+    <name>Fluid Tools: Web Deployment</name>
 
     <licenses>
         <license>
@@ -39,24 +39,28 @@
     </licenses>
 
     <description><![CDATA[
-This project is intended to be the Fluid Tools dependency in Maven projects
-containing boundary objects - objects instantiated externally to the
-application and needing to reach into the dependency injection container to
-resolve some dependency.
+This project is intended to be the Fluid Tools dependency of Maven modules
+containing web application wrappers.
     ]]></description>
 
     <dependencies>
 
         <dependency>
-            <groupId>${fluidity.export.groupId}</groupId>
-            <artifactId>fluid-tools-component-api</artifactId>
+            <groupId>${fluidity.public.groupId}</groupId>
+            <artifactId>fluid-tools-generic-application</artifactId>
             <version>${project.version}</version>
             <type>pom</type>
         </dependency>
 
         <dependency>
             <groupId>${fluidity.composition.groupId}</groupId>
-            <artifactId>composition-bootstrap-utils</artifactId>
+            <artifactId>composition-web-impl</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>${fluidity.deployment.groupId}</groupId>
+            <artifactId>war-boundary-utils</artifactId>
             <version>${project.version}</version>
         </dependency>
 

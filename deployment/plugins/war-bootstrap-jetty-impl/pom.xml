@@ -69,7 +69,7 @@ Jetty implementation of the war-bootstrap-spi module.
         </dependency>
 
         <dependency>
-            <groupId>${fluidity.export.groupId}</groupId>
+            <groupId>${fluidity.public.groupId}</groupId>
             <artifactId>fluid-tools-bootstrap</artifactId>
             <version>${project.version}</version>
             <type>pom</type>

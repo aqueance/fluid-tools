@@ -46,7 +46,7 @@ limitations under the License.
             <!-- fluid tools -->
             <dependency>
                 <groupId>org.fluidity</groupId>
-                <artifactId>exports</artifactId>
+                <artifactId>public</artifactId>
                 <version>${symbol_dollar}{fluid-tools-version}</version>
                 <type>pom</type>
                 <scope>import</scope>

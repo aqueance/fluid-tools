@@ -27,7 +27,7 @@ limitations under the License.
     <dependencies>
 
         <dependency>
-            <groupId>org.fluidity.export</groupId>
+            <groupId>org.fluidity.public</groupId>
             <artifactId>fluid-tools-component-api</artifactId>
             <version>${symbol_dollar}{fluid-tools-version}</version>
             <type>pom</type>

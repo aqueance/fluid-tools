@@ -19,16 +19,16 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <parent>
         <groupId>org.fluidity</groupId>
-        <artifactId>exports</artifactId>
+        <artifactId>public</artifactId>
         <version>1.0.0-SNAPSHOT</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
-    <groupId>org.fluidity.export</groupId>
-    <artifactId>fluid-tools-component-api</artifactId>
+    <groupId>org.fluidity.public</groupId>
+    <artifactId>fluid-tools-osgi-manifest</artifactId>
     <version>1.0.0-SNAPSHOT</version>
-    <packaging>pom</packaging>
-    <name>Fluid Tools: Component API</name>
+    <packaging>jar</packaging>
+    <name>Fluid Tools: OSGi Manifest</name>
 
     <licenses>
         <license>
@@ -38,35 +38,20 @@
         </license>
     </licenses>
 
-    <description><![CDATA[
-This project is intended to be the Fluid Tools dependency in Maven projects
-not listing on any other Fluid Tools dependency.
-    ]]></description>
-
     <dependencies>
 
         <dependency>
             <groupId>${fluidity.foundation.groupId}</groupId>
-            <artifactId>foundation-api</artifactId>
+            <artifactId>foundation-bootstrap-utils</artifactId>
             <version>${project.version}</version>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
-            <groupId>${fluidity.foundation.groupId}</groupId>
-            <artifactId>foundation-utils</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>${fluidity.composition.groupId}</groupId>
-            <artifactId>composition-api</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>${fluidity.deployment.groupId}</groupId>
-            <artifactId>deployment-api</artifactId>
-            <version>${project.version}</version>
+            <artifactId>org.osgi.core</artifactId>
+            <groupId>org.osgi</groupId>
+            <version>4.2.0</version>
+            <scope>provided</scope>
         </dependency>
 
     </dependencies>

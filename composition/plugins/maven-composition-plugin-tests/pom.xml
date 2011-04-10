@@ -44,14 +44,14 @@
     <dependencies>
 
         <dependency>
-            <groupId>org.fluidity.export</groupId>
+            <groupId>org.fluidity.public</groupId>
             <artifactId>fluid-tools-component-api</artifactId>
             <version>${project.version}</version>
             <type>pom</type>
         </dependency>
 
         <dependency>
-            <groupId>org.fluidity.export</groupId>
+            <groupId>org.fluidity.public</groupId>
             <artifactId>fluid-tools-tests</artifactId>
             <version>${project.version}</version>
             <type>pom</type>
@@ -59,7 +59,7 @@
         </dependency>
 
         <dependency>
-            <groupId>org.fluidity.export</groupId>
+            <groupId>org.fluidity.public</groupId>
             <artifactId>fluid-tools-bootstrap</artifactId>
             <version>${project.version}</version>
             <type>pom</type>
@@ -67,7 +67,7 @@
         </dependency>
 
         <dependency>
-            <groupId>org.fluidity.export</groupId>
+            <groupId>org.fluidity.public</groupId>
             <artifactId>fluid-tools-cli-application</artifactId>
             <version>${project.version}</version>
             <type>pom</type>

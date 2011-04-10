@@ -19,16 +19,16 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <parent>
         <groupId>org.fluidity</groupId>
-        <artifactId>exports</artifactId>
+        <artifactId>public</artifactId>
         <version>1.0.0-SNAPSHOT</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
-    <groupId>org.fluidity.export</groupId>
-    <artifactId>fluid-tools-slf4j-logging</artifactId>
+    <groupId>org.fluidity.public</groupId>
+    <artifactId>fluid-tools-component-api</artifactId>
     <version>1.0.0-SNAPSHOT</version>
-    <packaging>jar</packaging>
-    <name>Fluid Tools: SLF4J Logging Implementation</name>
+    <packaging>pom</packaging>
+    <name>Fluid Tools: Component API</name>
 
     <licenses>
         <license>
@@ -39,23 +39,34 @@
     </licenses>
 
     <description><![CDATA[
-This project is intended to be the Fluid Tools dependency of Maven modules
-containing top level application wrappers that wish to use SLF4 for logging.
+This project is intended to be the Fluid Tools dependency in Maven projects
+not listing on any other Fluid Tools dependency.
     ]]></description>
 
     <dependencies>
 
         <dependency>
-            <groupId>${fluidity.export.groupId}</groupId>
-            <artifactId>fluid-tools-component-api</artifactId>
+            <groupId>${fluidity.foundation.groupId}</groupId>
+            <artifactId>foundation-api</artifactId>
             <version>${project.version}</version>
-            <type>pom</type>
         </dependency>
 
         <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>1.6.1</version>
+            <groupId>${fluidity.foundation.groupId}</groupId>
+            <artifactId>foundation-utils</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>${fluidity.composition.groupId}</groupId>
+            <artifactId>composition-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>${fluidity.deployment.groupId}</groupId>
+            <artifactId>deployment-api</artifactId>
+            <version>${project.version}</version>
         </dependency>
 
     </dependencies>
@@ -72,21 +83,5 @@ containing top level application wrappers that wish to use SLF4 for logging.
             </build>
         </profile>
     </profiles>
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>${fluidity.plugin.groupId}</groupId>
-                <artifactId>maven-composition-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>process-annotations</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
 
 </project>

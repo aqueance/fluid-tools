@@ -19,12 +19,12 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <parent>
         <groupId>org.fluidity</groupId>
-        <artifactId>exports</artifactId>
+        <artifactId>public</artifactId>
         <version>1.0.0-SNAPSHOT</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
-    <groupId>org.fluidity.export</groupId>
+    <groupId>org.fluidity.public</groupId>
     <artifactId>fluid-tools-generic-application</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
@@ -46,7 +46,7 @@ containing application wrappers other than command line, web or enterprise appli
     <dependencies>
 
         <dependency>
-            <groupId>${fluidity.export.groupId}</groupId>
+            <groupId>${fluidity.public.groupId}</groupId>
             <artifactId>fluid-tools-bootstrap</artifactId>
             <version>${project.version}</version>
             <type>pom</type>

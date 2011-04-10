@@ -19,16 +19,16 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <parent>
         <groupId>org.fluidity</groupId>
-        <artifactId>exports</artifactId>
+        <artifactId>public</artifactId>
         <version>1.0.0-SNAPSHOT</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
-    <groupId>org.fluidity.export</groupId>
-    <artifactId>fluid-tools-commons-logging</artifactId>
+    <groupId>org.fluidity.public</groupId>
+    <artifactId>fluid-tools-tests</artifactId>
     <version>1.0.0-SNAPSHOT</version>
-    <packaging>jar</packaging>
-    <name>Fluid Tools: Commons Logging Implementation</name>
+    <packaging>pom</packaging>
+    <name>Fluid Tools: Testing Support</name>
 
     <licenses>
         <license>
@@ -40,22 +40,15 @@
 
     <description><![CDATA[
 This project is intended to be the Fluid Tools dependency of Maven modules
-containing top level application wrappers that wish to use Apache Commons Logging.
+that make use of Fluid Tools testing support classes.
     ]]></description>
 
     <dependencies>
 
         <dependency>
-            <groupId>${fluidity.export.groupId}</groupId>
-            <artifactId>fluid-tools-component-api</artifactId>
+            <groupId>${fluidity.foundation.groupId}</groupId>
+            <artifactId>foundation-easymock</artifactId>
             <version>${project.version}</version>
-            <type>pom</type>
-        </dependency>
-
-        <dependency>
-            <groupId>commons-logging</groupId>
-            <artifactId>commons-logging</artifactId>
-            <version>1.1.1</version>
         </dependency>
 
     </dependencies>
@@ -72,21 +65,5 @@ containing top level application wrappers that wish to use Apache Commons Loggin
             </build>
         </profile>
     </profiles>
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>${fluidity.plugin.groupId}</groupId>
-                <artifactId>maven-composition-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>process-annotations</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
 
 </project>
