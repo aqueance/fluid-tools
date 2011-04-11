@@ -21,7 +21,12 @@ import org.fluidity.foundation.ClassLoaders;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.*;
+import java.net.JarURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.net.URLDecoder;
+import java.net.URLStreamHandler;
 import java.util.Arrays;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
@@ -163,7 +168,7 @@ public class Handler extends URLStreamHandler {
 
     private static class Singleton {
 
-    // must come after the static block that registers the this class as an URL stream handler
+        // must come after the static block that registers the this class as an URL stream handler
         public static final Handler INSTANCE = new Handler();
     }
 }

@@ -33,17 +33,28 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.*;
-import java.util.jar.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Enumeration;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+import java.util.jar.Attributes;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
+import java.util.jar.JarOutputStream;
+import java.util.jar.Manifest;
 
 /**
- * Adds code to the project's standalone .jar artifact that allows it to embed its dependencies.
+ * Packages all transitive dependencies of the project to its JAR artifact. This plugin uses an implementation of the {@link JarManifest} interface, found as a
+ * JAR service provider, to process the JAR's manifest attributes.
  *
  * @author Tibor Varga
  * @goal package
  * @phase package
  */
-public class ExecutableJarMojo extends AbstractMojo {
+public class StandaloneJarMojo extends AbstractMojo {
 
     private static final String JAR_TYPE = "jar";
     private static final String META_INF = "META-INF/";
@@ -193,7 +204,7 @@ public class ExecutableJarMojo extends AbstractMojo {
                 }
 
                 final String dependencyPath = META_INF.concat("dependencies/");
-                final StringBuilder dependencyList = new StringBuilder();
+                final List<String> dependencyList = new ArrayList<String>();
 
                 for (final Artifact artifact : projectDependencies) {
                     final File dependency = artifact.getFile();
@@ -202,16 +213,10 @@ public class ExecutableJarMojo extends AbstractMojo {
                         throw new MojoExecutionException(String.format("Dependency %s not found (tried: %s)", artifact, dependency));
                     }
 
-                    if (dependencyList.length() > 0) {
-                        dependencyList.append(' ');
-                    }
-
-                    dependencyList.append(dependencyPath).append(dependency.getName());
+                    dependencyList.add(dependencyPath.concat(dependency.getName()));
                 }
 
-                attributes.putValue(JarManifest.NESTED_DEPENDENCIES, dependencyList.toString());
-
-                handler.processManifest(attributes);
+                handler.processManifest(attributes, dependencyList);
 
                 final byte buffer[] = new byte[1024 * 16];
 

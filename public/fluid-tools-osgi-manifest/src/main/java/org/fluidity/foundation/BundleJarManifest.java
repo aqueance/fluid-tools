@@ -16,6 +16,7 @@
 
 package org.fluidity.foundation;
 
+import java.util.List;
 import java.util.jar.Attributes;
 
 /**
@@ -26,11 +27,11 @@ import java.util.jar.Attributes;
  */
 public class BundleJarManifest implements JarManifest {
 
+    public static final String DEFAULT_BUNDLE_VERSION = "1.0.0";
     public static final String BUNDLE_CLASSPATH = "Bundle-Classpath";
+    public static final String BUNDLE_VERSION = "Bundle-Version";
 
-    public void processManifest(final Attributes attributes) {
-        final String[] dependencies = attributes.getValue(JarManifest.NESTED_DEPENDENCIES).split(" ");
-
+    public void processManifest(final Attributes attributes, final List<String> dependencies) {
         final StringBuilder classpath = new StringBuilder();
         for (final String dependency : dependencies) {
             if (classpath.length() > 0) {
@@ -40,7 +41,48 @@ public class BundleJarManifest implements JarManifest {
             classpath.append(dependency);
         }
 
-        attributes.putValue(BUNDLE_CLASSPATH, classpath.toString());
-        attributes.remove(new Attributes.Name(JarManifest.NESTED_DEPENDENCIES));
+        if (classpath.length() > 0) {
+            attributes.putValue(BUNDLE_CLASSPATH, classpath.toString());
+        }
+
+        // http://www.osgi.org/javadoc/r4v42/org/osgi/framework/Version.html#Version(java.lang.String)
+        final String projectVersion = attributes.getValue(BUNDLE_VERSION);
+        final StringBuilder bundleVersion = new StringBuilder();
+
+        if (projectVersion != null) {
+            int partCount = 0;
+            for (final String part : projectVersion.split("[\\.-]")) {
+                if (partCount < 3) {
+                    try {
+                        Integer.parseInt(part);   // just checking if part is a number
+                        bundleVersion.append('.').append(part);
+                    } catch (final NumberFormatException e) {
+
+                        // part is not numeric
+                        partCount = padVersion(bundleVersion, partCount);
+
+                        bundleVersion.append('.').append(part);
+                    }
+                } else {
+                    bundleVersion.append(partCount == 3 ? '.' : '-').append(part);
+                }
+
+                ++partCount;
+            }
+
+            padVersion(bundleVersion, partCount);
+
+            attributes.putValue(BUNDLE_VERSION, bundleVersion.toString().substring(1));
+        } else {
+            attributes.putValue(BUNDLE_VERSION, DEFAULT_BUNDLE_VERSION);
+        }
+    }
+
+    private int padVersion(final StringBuilder bundleVersion, int partCount) {
+        for (; partCount < 3; ++partCount) {
+            bundleVersion.append(".0");
+        }
+
+        return partCount;
     }
 }

@@ -21,6 +21,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.JarURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.List;
 import java.util.jar.Attributes;
 
 /**
@@ -34,7 +35,7 @@ public class CommandLineJarManifest implements JarManifest {
 
     private static final String ORIGINAL_MAIN_CLASS = "Original-Main-Class";
 
-    public void processManifest(final Attributes attributes) {
+    public void processManifest(final Attributes attributes, final List<String> dependencies) {
         final String mainClass = attributes.getValue(Attributes.Name.MAIN_CLASS);
 
         if (mainClass == null) {
@@ -43,9 +44,22 @@ public class CommandLineJarManifest implements JarManifest {
 
         attributes.putValue(ORIGINAL_MAIN_CLASS, mainClass);
         attributes.put(Attributes.Name.MAIN_CLASS, getClass().getName());
+
+        final StringBuilder dependencyList = new StringBuilder();
+
+        for (final String dependency : dependencies) {
+            if (dependencyList.length() > 0) {
+                dependencyList.append(' ');
+            }
+
+            dependencyList.append(dependency);
+        }
+
+        attributes.putValue(JarManifest.NESTED_DEPENDENCIES, dependencyList.toString());
     }
 
-    public static void main(final String[] args) throws IOException, ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+    public static void main(final String[] args)
+            throws IOException, ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         final Class<?> main = CommandLineJarManifest.class;
 
         final URL url = ClassLoaders.findClassResource(main);
