@@ -55,6 +55,9 @@ public final class Components {
         assert ComponentGroup.class.isAnnotationPresent(Inherited.class);
     }
 
+    @SuppressWarnings("unchecked")
+    private static Set<Class<?>> factories = new HashSet<Class<?>>(Arrays.asList(ComponentFactory.class, ComponentVariantFactory.class));
+
     private Components() {
         throw new UnsupportedOperationException("No instance allowed");
     }
@@ -157,7 +160,13 @@ public final class Components {
         final Set<Specification> interfaces = new LinkedHashSet<Specification>();
 
         for (final Map.Entry<Class<?>, Set<Class<?>>> entry : interfaceMap.entrySet()) {
-            interfaces.add(new Specification(entry.getKey(), entry.getValue()));
+          final Class<?> type = entry.getKey();
+
+          if (factories.contains(type)) {
+            throw new ComponentContainer.BindingException("Component interface for %s is the factory interface itself: %s", componentClass, type);
+          }
+
+          interfaces.add(new Specification(type, entry.getValue()));
         }
 
         final Set<Class<?>> allGroups = new HashSet<Class<?>>();

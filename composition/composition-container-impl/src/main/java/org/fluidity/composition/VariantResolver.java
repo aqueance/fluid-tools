@@ -27,22 +27,11 @@ import org.fluidity.foundation.spi.LogFactory;
  *
  * @author Tibor Varga
  */
-abstract class VariantResolver extends AbstractResolver {
+abstract class VariantResolver extends AbstractFactoryResolver {
 
-    private final Class<? extends ComponentVariantFactory> factoryClass;
     private final SimpleContainer parent;
 
     private ComponentResolver delegate;     // the one creating instances
-
-    /**
-     * Returns the {@link ComponentVariantFactory} instance this is a mapping for.
-     *
-     * @param container the container in which to resolve dependencies of the factory.
-     * @param traversal the current graph traversal.
-     *
-     * @return the {@link ComponentVariantFactory} instance this is a mapping for.
-     */
-    protected abstract ComponentVariantFactory factory(final SimpleContainer container, final DependencyGraph.Traversal traversal);
 
     public VariantResolver(final int priority,
                            final SimpleContainer container,
@@ -50,14 +39,12 @@ abstract class VariantResolver extends AbstractResolver {
                            final Class<? extends ComponentVariantFactory> factoryClass,
                            final ComponentCache cache,
                            final LogFactory logs) {
-        super(priority, api, cache, logs);
+        super(factoryClass, priority, api, cache, logs);
         this.parent = container.parentContainer();
 
         if (factoryClass.getAnnotation(Context.class) == null) {
             throw new ComponentContainer.BindingException("Factory %s is not annotated by @%s", factoryClass, Context.class);
         }
-
-        this.factoryClass = factoryClass;
     }
 
     @Override
@@ -69,7 +56,7 @@ abstract class VariantResolver extends AbstractResolver {
             if (variants == this) {
                 return false;
             } else if (check == priority()) {
-                throw new ComponentContainer.BindingException("Component %s already hijacked by %s", api, variants.factoryClass);
+                throw new ComponentContainer.BindingException("Component %s already hijacked by %s", api, variants.factoryClass());
             } else {
                 final boolean replaces = super.replaces(variants);
 
@@ -80,7 +67,7 @@ abstract class VariantResolver extends AbstractResolver {
                 return replaces;
             }
         } else if (resolver.isInstanceMapping()) {
-            throw new ComponentContainer.BindingException("Component instance %s cannot be hijacked by %s", api, factoryClass);
+            throw new ComponentContainer.BindingException("Component instance %s cannot be hijacked by %s", api, factoryClass());
         } else {
             if (delegate == null || resolver.replaces(delegate)) {
                 resolverReplaced(api, delegate, resolver);
@@ -107,7 +94,7 @@ abstract class VariantResolver extends AbstractResolver {
     }
 
     public Set<Class<? extends Annotation>> acceptedContext() {
-        return AbstractResolver.acceptedContext(factoryClass);
+        return AbstractResolver.acceptedContext(factoryClass());
     }
 
     @Override
@@ -130,19 +117,16 @@ abstract class VariantResolver extends AbstractResolver {
         return true;
     }
 
-    public final Class<? extends ComponentVariantFactory> factoryClass() {
-        return factoryClass;
-    }
-
     public DependencyGraph.Node resolve(final DependencyGraph.Traversal traversal, final SimpleContainer container, final ContextDefinition context) {
         final SimpleContainer child = container.newChildContainer();
+
         child.bindResolver(api, findDelegate());
-        factory(container, traversal).newComponent(new ComponentContainerShell(child, context, false), context.create());
-        return cachingNode(child.resolveComponent(api, context, traversal), child);
+
+      return resolve(traversal, container, context, child);
     }
 
-    @Override
+  @Override
     public String toString() {
-        return String.format("%s (via %s)", delegate == null ? api : delegate.toString(), factoryClass.getName());
+        return String.format("%s (via %s)", delegate == null ? api : delegate.toString(), factoryClass().getName());
     }
 }

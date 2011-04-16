@@ -79,18 +79,7 @@ final class ContextDefinitionImpl implements ContextDefinition {
 
     public ContextDefinition collect(final Collection<ContextDefinition> contexts) {
         for (final ContextDefinition context : contexts) {
-            if (context != null) {
-                final Map<Class<? extends Annotation>, Annotation[]> map = context.collected();
-                for (final Map.Entry<Class<? extends Annotation>, Annotation[]> entry : map.entrySet()) {
-                    final Class<? extends Annotation> type = entry.getKey();
-                    final Annotation[] annotations = entry.getValue();
-                    if (collected.containsKey(type)) {
-                        collected.put(type, combine(collected.get(type), annotations));
-                    } else {
-                        collected.put(type, annotations);
-                    }
-                }
-            }
+          collectOne(context);
         }
 
         collected.keySet().retainAll(defined.keySet());
@@ -98,7 +87,29 @@ final class ContextDefinitionImpl implements ContextDefinition {
         return this;
     }
 
-    public Map<Class<? extends Annotation>, Annotation[]> defined() {
+    public void collect(final ContextDefinition context) {
+        collectOne(context);
+        collected.keySet().retainAll(defined.keySet());
+    }
+
+    private void collectOne(final ContextDefinition context) {
+        if (context != null) {
+            final Map<Class<? extends Annotation>, Annotation[]> map = context.collected();
+
+            for (final Map.Entry<Class<? extends Annotation>, Annotation[]> entry : map.entrySet()) {
+                final Class<? extends Annotation> type = entry.getKey();
+                final Annotation[] annotations = entry.getValue();
+
+                if (collected.containsKey(type)) {
+                    collected.put(type, combine(collected.get(type), annotations));
+                } else {
+                    collected.put(type, annotations);
+                }
+            }
+        }
+    }
+
+  public Map<Class<? extends Annotation>, Annotation[]> defined() {
         return Collections.unmodifiableMap(defined);
     }
 
@@ -143,5 +154,13 @@ final class ContextDefinitionImpl implements ContextDefinition {
     @Override
     public int hashCode() {
         return hashCode;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("Context %d%n  defined: %s%n  collected: %s",
+                             System.identityHashCode(this),
+                             AnnotationMaps.toString(defined),
+                             AnnotationMaps.toString(collected));
     }
 }

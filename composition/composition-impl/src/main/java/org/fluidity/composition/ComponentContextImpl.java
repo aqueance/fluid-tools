@@ -17,12 +17,11 @@
 package org.fluidity.composition;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Array;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-
-import org.fluidity.foundation.Strings;
 
 /**
  * @author Tibor Varga
@@ -40,9 +39,17 @@ final class ComponentContextImpl implements ComponentContext {
         hashCode = AnnotationMaps.hashCode(annotations);
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({ "unchecked", "SuspiciousSystemArraycopy" })
     public <T extends Annotation> T[] annotations(final Class<T> type) {
-        return (T[]) annotations.get(type);
+        final Annotation[] array = annotations.get(type);
+
+        if (array == null) {
+            return null;
+        } else {
+            final T[] cast = (T[]) Array.newInstance(type, array.length);
+            System.arraycopy(array, 0, cast, 0, cast.length);
+            return cast;
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -69,25 +76,7 @@ final class ComponentContextImpl implements ComponentContext {
 
     @Override
     public String toString() {
-        return toString(annotations);
-    }
-
-    private static String toString(final Map<Class<? extends Annotation>, Annotation[]> map) {
-        final StringBuilder builder = new StringBuilder();
-
-        boolean multiple = false;
-        for (final Map.Entry<Class<? extends Annotation>, Annotation[]> entry : map.entrySet()) {
-            if (builder.length() > 0) {
-                builder.append(", ");
-                multiple = true;
-            }
-
-            for (final Annotation annotation : entry.getValue()) {
-                builder.append(Strings.simpleNotation(annotation));
-            }
-        }
-
-        return (multiple ? builder.insert(0, '[').append(']') : builder).toString();
+        return AnnotationMaps.toString(annotations);
     }
 
     @Override

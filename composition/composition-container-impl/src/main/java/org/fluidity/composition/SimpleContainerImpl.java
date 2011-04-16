@@ -16,24 +16,26 @@
 
 package org.fluidity.composition;
 
+import org.fluidity.composition.spi.ComponentFactory;
+import org.fluidity.composition.spi.ComponentMapping;
+import org.fluidity.composition.spi.ComponentResolutionObserver;
+import org.fluidity.composition.spi.ComponentVariantFactory;
+import org.fluidity.composition.spi.PlatformContainer;
+import org.fluidity.foundation.Strings;
+import org.fluidity.foundation.logging.Log;
+import org.fluidity.foundation.spi.LogFactory;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import org.fluidity.composition.spi.ComponentFactory;
-import org.fluidity.composition.spi.ComponentMapping;
-import org.fluidity.composition.spi.ComponentResolutionObserver;
-import org.fluidity.composition.spi.ComponentVariantFactory;
-import org.fluidity.foundation.Strings;
-import org.fluidity.foundation.logging.Log;
-import org.fluidity.foundation.spi.LogFactory;
 
 /**
  * @author Tibor Varga
@@ -54,8 +56,8 @@ final class SimpleContainerImpl implements ParentContainer {
     private final DependencyInjector injector;
     private final LogFactory logs;
 
-    public SimpleContainerImpl(final ContainerServices services) {
-        this(null, services);
+    public SimpleContainerImpl(final ContainerServices services, final PlatformContainer platform) {
+        this(platform == null ? null : new SuperContainer(platform), services);
     }
 
     private SimpleContainerImpl(final ParentContainer parent, final ContainerServices services) {
@@ -281,8 +283,7 @@ final class SimpleContainerImpl implements ParentContainer {
         return (multiple ? text.insert(0, '[').append(']') : text).toString();
     }
 
-    public SimpleContainer linkComponent(final Components.Interfaces interfaces)
-            throws ComponentContainer.BindingException {
+    public SimpleContainer linkComponent(final Components.Interfaces interfaces) throws ComponentContainer.BindingException {
         final LogFactory logs = this.logs;
         final SimpleContainer child = newChildContainer();
 
@@ -345,9 +346,9 @@ final class SimpleContainerImpl implements ParentContainer {
                     final Set<ComponentResolutionObserver> observers = new HashSet<ComponentResolutionObserver>();
 
                     for (final Class<?> api : interfaces) {
-                        final GroupResolver resolver = groupResolver(api);
+                        final List<GroupResolver> resolvers = groupResolvers(api);
 
-                        if (resolver != null) {
+                        for (final GroupResolver resolver : resolvers) {
                             observers.add(resolver.observer());
                         }
                     }
@@ -366,9 +367,19 @@ final class SimpleContainerImpl implements ParentContainer {
         return resolveComponent(true, api, context, traversal);
     }
 
-    public GroupResolver groupResolver(final Class<?> api) {
+    public List<GroupResolver> groupResolvers(final Class<?> api) {
+        final List<GroupResolver> list = new ArrayList<GroupResolver>();
+
         final GroupResolver resolver = groups.get(api);
-        return resolver == null ? parent == null ? null : parent.groupResolver(api) : resolver;
+        if (resolver != null) {
+            list.add(resolver);
+        }
+
+        if (parent != null) {
+            list.addAll(parent.groupResolvers(api));
+        }
+
+        return list;
     }
 
     public Node resolveGroup(final Class<?> api, final ContextDefinition context, final Traversal traversal) {
@@ -436,8 +447,9 @@ final class SimpleContainerImpl implements ParentContainer {
         };
     }
 
-    public ComponentMapping mapping(final Class<?> type) {
-        return resolver(type, true);
+    public ComponentMapping mapping(final Class<?> type, final ContextDefinition context) {
+        final ComponentResolver resolver = resolver(type, true);
+        return resolver == null && parent != null ? parent.mapping(type, context) : resolver;
     }
 
     public ComponentContainer container(final ContextDefinition context) {
@@ -479,7 +491,6 @@ final class SimpleContainerImpl implements ParentContainer {
          * @param api             the interface to which the component will be bound.
          * @param cache           the cache to use for the component.
          * @param resolvesFactory tells if the component resolves a factory instance.
-         *
          * @return a component resolver that will resolve, and cache if necessary, a single instance of the component.
          */
         ComponentResolver component(Class<?> api, final ComponentCache cache, final boolean resolvesFactory);
@@ -489,7 +500,6 @@ final class SimpleContainerImpl implements ParentContainer {
          *
          * @param api   the interface to which the variant factory will be bound.
          * @param cache the cache to use for the variant factory.
-         *
          * @return a variant resolver that will produce, and cache if necessary, a single instance of a variant factory.
          */
         VariantResolver variant(Class<?> api, final ComponentCache cache);
@@ -499,7 +509,6 @@ final class SimpleContainerImpl implements ParentContainer {
          *
          * @param api   the interface to which the factory will be bound.
          * @param cache the cache to use for the factory.
-         *
          * @return a component resolver that will produce, and cache if necessary, a single instance of a component factory.
          */
         FactoryResolver factory(Class<?> api, final ComponentCache cache);
@@ -519,6 +528,128 @@ final class SimpleContainerImpl implements ParentContainer {
 
         public Annotation[] annotations() {
             return componentClass.getAnnotations();
+        }
+    }
+
+    private static class SuperContainer implements ParentContainer {
+        private final PlatformContainer platform;
+        private final ComponentMapping emptyMapping = new ComponentMapping() {
+            public Set<Class<? extends Annotation>> acceptedContext() {
+                return null;
+            }
+
+            public Annotation[] annotations() {
+                return new Annotation[0];
+            }
+        };
+        private final List<GroupResolver> emptyList = Collections.emptyList();
+
+        public SuperContainer(final PlatformContainer platform) {
+            this.platform = platform;
+        }
+
+        public Node resolveComponent(final Class<?> api, final ContextDefinition context, final Traversal traversal) {
+            return !platform.containsComponent(api, context) ? null : new Node() {
+                public Class<?> type() {
+                    return api;
+                }
+
+                public Object instance(final Traversal traversal) {
+                    return platform.getComponent(api, context);
+                }
+
+                public ComponentContext context() {
+                    return null;
+                }
+            };
+        }
+
+        public Node resolveGroup(final Class<?> api, final ContextDefinition context, final Traversal traversal) {
+            return !platform.containsComponentGroup(api, context) ? null : new Node() {
+                public Class<?> type() {
+                    return api;
+                }
+
+                public Object instance(final Traversal traversal) {
+                    return platform.getComponentGroup(api, context);
+                }
+
+                public ComponentContext context() {
+                    return null;
+                }
+            };
+        }
+
+        public List<GroupResolver.Node> resolveGroup(final Class<?> api, final Traversal traversal, final ContextDefinition context) {
+            return !platform.containsComponentGroup(api, context) ? null : Collections.<GroupResolver.Node>singletonList(new GroupResolver.Node() {
+                public Collection<?> instance(final Traversal traversal) {
+                    return Arrays.asList(platform.getComponentGroup(api, context));
+                }
+            });
+        }
+
+        public List<GroupResolver> groupResolvers(final Class<?> api) {
+            return emptyList;
+        }
+
+        public ComponentMapping mapping(final Class<?> type, final ContextDefinition context) {
+            return platform.containsComponent(type, context) ? emptyMapping : null;
+        }
+
+        public ComponentResolver resolver(final Class<?> api, final boolean ascend) {
+            return null;
+        }
+
+        public void replaceResolver(final Class<?> key, final ComponentResolver previous, final ComponentResolver replacement) {
+            // empty
+        }
+
+        public String id() {
+            return platform.id();
+        }
+
+        public Node resolveComponent(final boolean ascend, final Class<?> api, final ContextDefinition context, final Traversal traversal) {
+            throw new UnsupportedOperationException();
+        }
+
+        public ContainerServices services() {
+            throw new UnsupportedOperationException();
+        }
+
+        public SimpleContainer parentContainer() {
+            throw new UnsupportedOperationException();
+        }
+
+        public SimpleContainer newChildContainer() {
+            throw new UnsupportedOperationException();
+        }
+
+        public ComponentResolver bindResolver(final Class<?> key, final ComponentResolver entry) throws ComponentContainer.BindingException {
+            throw new UnsupportedOperationException();
+        }
+
+        public void bindComponent(final Components.Interfaces interfaces) throws ComponentContainer.BindingException {
+            throw new UnsupportedOperationException();
+        }
+
+        public void bindInstance(final Object instance, final Components.Interfaces interfaces) throws ComponentContainer.BindingException {
+            throw new UnsupportedOperationException();
+        }
+
+        public SimpleContainer linkComponent(final Components.Interfaces interfaces) throws ComponentContainer.BindingException {
+            throw new UnsupportedOperationException();
+        }
+
+        public Object initialize(final Object component, final ContextDefinition context, final ComponentResolutionObserver observer) throws ComponentContainer.ResolutionException {
+            throw new UnsupportedOperationException();
+        }
+
+        public <T> T observe(final ComponentResolutionObserver observer, final Observed<T> command) {
+            throw new UnsupportedOperationException();
+        }
+
+        public ComponentContainer container(final ContextDefinition context) {
+            throw new UnsupportedOperationException();
         }
     }
 }

@@ -125,7 +125,9 @@ final class DependencyInjectorImpl implements DependencyInjector {
         };
     }
 
-    private Object injectFields(final Map<Field, DependencyGraph.Node> fieldNodes, final DependencyGraph.Traversal traversal, final Object instance) {
+    private Object injectFields(final Map<Field, DependencyGraph.Node> fieldNodes,
+                                final DependencyGraph.Traversal traversal,
+                                final Object instance) {
         return Exceptions.wrap(String.format("setting %s fields", instance.getClass()), new Exceptions.Command<Object>() {
             public Object run() throws Exception {
                 for (final Map.Entry<Field, DependencyGraph.Node> entry : fieldNodes.entrySet()) {
@@ -246,7 +248,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
             }
 
             if (node == null) {
-                final ComponentMapping dependencyMapping = container.mapping(dependencyType);
+                final ComponentMapping dependencyMapping = container.mapping(dependencyType, context);
 
                 if (dependencyMapping != null) {
                     node = container.resolveComponent(dependencyType, context.reduce(dependencyMapping.acceptedContext()), traversal);

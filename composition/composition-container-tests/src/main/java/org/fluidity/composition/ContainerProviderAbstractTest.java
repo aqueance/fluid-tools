@@ -24,6 +24,7 @@ import java.util.Map;
 import org.fluidity.composition.spi.ContainerProvider;
 import org.fluidity.composition.spi.EmptyPackageBindings;
 import org.fluidity.composition.spi.PackageBindings;
+import org.fluidity.composition.spi.PlatformContainer;
 import org.fluidity.foundation.NoLogFactory;
 import org.fluidity.foundation.spi.LogFactory;
 import org.fluidity.tests.MockGroupAbstractTest;
@@ -73,7 +74,16 @@ public abstract class ContainerProviderAbstractTest extends MockGroupAbstractTes
     @Test
     public void createsContainer() throws Exception {
         replay();
-        assert provider.newContainer(services) != null;
+        assert provider.newContainer(services, null) != null;
+        verify();
+    }
+
+    @Test
+    public void createsPlatformContainer() throws Exception {
+        final PlatformContainer platform = addLocalControl(PlatformContainer.class);
+
+        replay();
+        assert provider.newContainer(services, platform) != null;
         verify();
     }
 

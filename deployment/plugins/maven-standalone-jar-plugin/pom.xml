@@ -73,9 +73,22 @@ class loader that can load classes from those embedded dependencies.
         </dependency>
 
         <dependency>
+            <groupId>${fluidity.deployment.groupId}</groupId>
+            <artifactId>manifest-handler-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
             <groupId>${fluidity.foundation.groupId}</groupId>
             <artifactId>foundation-bootstrap-utils</artifactId>
             <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>${fluidity.composition.groupId}</groupId>
+            <artifactId>composition-bootstrap-utils</artifactId>
+            <version>${project.version}</version>
+            <optional>true</optional>
         </dependency>
 
     </dependencies>

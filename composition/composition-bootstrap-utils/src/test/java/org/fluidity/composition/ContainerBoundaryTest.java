@@ -16,6 +16,16 @@
 
 package org.fluidity.composition;
 
+import org.easymock.EasyMock;
+import org.easymock.IAnswer;
+import org.easymock.IMocksControl;
+import org.fluidity.composition.spi.ContainerProvider;
+import org.fluidity.composition.spi.PlatformContainer;
+import org.fluidity.foundation.NoLogFactory;
+import org.fluidity.foundation.spi.LogFactory;
+import org.fluidity.tests.MockGroupAbstractTest;
+import org.testng.annotations.Test;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -23,21 +33,12 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.Properties;
 
-import org.fluidity.composition.spi.ContainerProvider;
-import org.fluidity.foundation.NoLogFactory;
-import org.fluidity.foundation.spi.LogFactory;
-import org.fluidity.tests.MockGroupAbstractTest;
-
-import org.easymock.EasyMock;
-import org.easymock.IAnswer;
-import org.easymock.IMocksControl;
-import org.testng.annotations.Test;
-
 /**
  * @author Tibor Varga
  */
 public class ContainerBoundaryTest extends MockGroupAbstractTest {
 
+    private final PlatformContainer platform = addControl(PlatformContainer.class);
     private final BootstrapServices providers = addControl(BootstrapServices.class);
     private final ContainerBootstrap bootstrap = addControl(ContainerBootstrap.class);
     private final ContainerProvider provider = addControl(ContainerProvider.class);
@@ -57,8 +58,7 @@ public class ContainerBoundaryTest extends MockGroupAbstractTest {
         if (assign) {
             EasyMock.expect(providers.<ContainerServicesFactory>findInstance(ContainerServicesFactory.class, classLoader)).andReturn(servicesFactory);
             EasyMock.expect(providers.<LogFactory>findInstance(LogFactory.class, classLoader)).andReturn(logs);
-            EasyMock.expect(providers.<DependencyGraph.Traversal.Strategy>findInstance(DependencyGraph.Traversal.Strategy.class, classLoader)).andReturn(
-                    strategy);
+            EasyMock.expect(providers.<DependencyGraph.Traversal.Strategy>findInstance(DependencyGraph.Traversal.Strategy.class, classLoader)).andReturn(strategy);
             EasyMock.expect(servicesFactory.containerServices(logs, strategy)).andReturn(services);
         }
     }
@@ -79,6 +79,8 @@ public class ContainerBoundaryTest extends MockGroupAbstractTest {
         final ContainerBoundary boundary = new ContainerBoundary(classLoader);
         boundary.reset(providers);
 
+        boundary.setPlatformContainer(platform);
+
         for (final Map.Entry<String, String> entry : properties.entrySet()) {
             boundary.setBindingProperty(entry.getKey(), entry.getValue());
         }
@@ -86,22 +88,33 @@ public class ContainerBoundaryTest extends MockGroupAbstractTest {
         // make testee receive its dependencies from the top-level class loader
         setupDependencies(classLoader, true);
 
+        final ContainerBootstrap.Callback callback[] = new ContainerBootstrap.Callback[1];
+
         // give testee a container for that class loader
         EasyMock.expect(bootstrap.populateContainer(EasyMock.same(services),
                                                     EasyMock.same(provider),
                                                     EasyMock.<Properties>notNull(),
                                                     EasyMock.<OpenComponentContainer>same(null),
-                                                    EasyMock.same(classLoader))).andAnswer(new IAnswer<OpenComponentContainer>() {
+                                                    EasyMock.same(classLoader),
+                                                    EasyMock.same(platform),
+                                                    EasyMock.<ContainerBootstrap.Callback>notNull())).andAnswer(new IAnswer<OpenComponentContainer>() {
             public OpenComponentContainer answer() throws Throwable {
 
                 // check that the properties received by bootstrap is contains exactly what we set up above
                 assert properties.equals(EasyMock.getCurrentArguments()[2]);
+                callback[0] = ((ContainerBootstrap.Callback) EasyMock.getCurrentArguments()[6]);
 
                 return container;
             }
         });
 
         bootstrap.initializeContainer(container, services);
+        EasyMock.expectLastCall().andAnswer(new IAnswer<Object>() {
+            public Object answer() throws Throwable {
+                callback[0].containerInitialized(container);
+                return null;
+            }
+        });
 
         replay();
 
@@ -149,22 +162,33 @@ public class ContainerBoundaryTest extends MockGroupAbstractTest {
         // make testee receive its dependencies from the top-level class loader
         setupDependencies(getClass().getClassLoader(), true);
 
+        final ContainerBootstrap.Callback callback[] = new ContainerBootstrap.Callback[1];
+
         // give testee a container for our class loader
         EasyMock.expect(bootstrap.populateContainer(EasyMock.same(services),
                                                     EasyMock.same(provider),
                                                     EasyMock.<Properties>notNull(),
                                                     EasyMock.<OpenComponentContainer>same(null),
-                                                    EasyMock.same(getClass().getClassLoader()))).andAnswer(new IAnswer<OpenComponentContainer>() {
+                                                    EasyMock.same(getClass().getClassLoader()),
+                                                    EasyMock.<PlatformContainer>isNull(),
+                                                    EasyMock.<ContainerBootstrap.Callback>notNull())).andAnswer(new IAnswer<OpenComponentContainer>() {
             public OpenComponentContainer answer() throws Throwable {
 
                 // check that the properties received by bootstrap is contains exactly what we set up above
                 assert properties.equals(EasyMock.getCurrentArguments()[2]);
+                callback[0] = ((ContainerBootstrap.Callback) EasyMock.getCurrentArguments()[6]);
 
                 return container;
             }
         });
 
         bootstrap.initializeContainer(container, services);
+        EasyMock.expectLastCall().andAnswer(new IAnswer<Object>() {
+            public Object answer() throws Throwable {
+                callback[0].containerInitialized(container);
+                return null;
+            }
+        });
 
         replay();
 
@@ -210,15 +234,30 @@ public class ContainerBoundaryTest extends MockGroupAbstractTest {
             final ClassLoader cl = i.previous();
             final OpenComponentContainer container = containers.get(cl);
 
+            final ContainerBootstrap.Callback callback[] = new ContainerBootstrap.Callback[1];
+
             // make testee receive a container (the same) at each level
             EasyMock.expect(bootstrap.populateContainer(EasyMock.same(services),
                                                         EasyMock.same(provider),
                                                         EasyMock.<Properties>notNull(),
                                                         EasyMock.same(containers.get(cl.getParent())),
-                                                        EasyMock.same(cl))).andReturn(container);
+                                                        EasyMock.same(cl),
+                                                        EasyMock.<PlatformContainer>isNull(),
+                                                        EasyMock.<ContainerBootstrap.Callback>notNull())).andAnswer(new IAnswer<OpenComponentContainer>() {
+                public OpenComponentContainer answer() throws Throwable {
+                    callback[0] = ((ContainerBootstrap.Callback) EasyMock.getCurrentArguments()[6]);
+                    return container;
+                }
+            });
 
             // the container must also be initialized at some point
             bootstrap.initializeContainer(container, services);
+            EasyMock.expectLastCall().andAnswer(new IAnswer<Object>() {
+                public Object answer() throws Throwable {
+                    callback[0].containerInitialized(container);
+                    return null;
+                }
+            });
         }
 
         final OpenComponentContainer ourContainer = containers.get(ourClassLoader);
@@ -265,14 +304,23 @@ public class ContainerBoundaryTest extends MockGroupAbstractTest {
         // make testee receive its dependencies from the top-level class loader
         setupDependencies(classLoader, true);
 
+        final ContainerBootstrap.Callback callback[] = new ContainerBootstrap.Callback[1];
+
         // give testee a container for that class loader
         EasyMock.expect(bootstrap.populateContainer(EasyMock.same(services),
                                                     EasyMock.same(provider),
                                                     EasyMock.<Properties>notNull(),
                                                     EasyMock.<OpenComponentContainer>same(null),
-                                                    EasyMock.same(classLoader))).andReturn(container);
+                                                    EasyMock.same(classLoader),
+                                                    EasyMock.<PlatformContainer>isNull(),
+                                                    EasyMock.<ContainerBootstrap.Callback>notNull())).andAnswer(new IAnswer<OpenComponentContainer>() {
+            public OpenComponentContainer answer() throws Throwable {
+                callback[0] = (ContainerBootstrap.Callback) EasyMock.getCurrentArguments()[6];
+                return container;
+            }
+        });
 
-        final BootComponent1 component1 = new BootComponent1();
+      final BootComponent1 component1 = new BootComponent1();
         final BootComponent2 component2 = new BootComponent2();
 
         EasyMock.expect(container.getRegistry()).andReturn(registry);
@@ -283,6 +331,12 @@ public class ContainerBoundaryTest extends MockGroupAbstractTest {
 
         // container is initialized
         bootstrap.initializeContainer(container, services);
+        EasyMock.expectLastCall().andAnswer(new IAnswer<Object>() {
+          public Object answer() throws Throwable {
+            callback[0].containerInitialized(container);
+            return null;
+          }
+        });
 
         replay();
 

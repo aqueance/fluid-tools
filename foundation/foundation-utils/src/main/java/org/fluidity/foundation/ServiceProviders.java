@@ -16,16 +16,16 @@
 
 package org.fluidity.foundation;
 
-import java.util.Iterator;
-import java.util.ServiceLoader;
-
 import sun.misc.Service;
 import sun.misc.ServiceConfigurationError;
 
+import java.util.Iterator;
+import java.util.ServiceLoader;
+
 /**
- * Wraps the Sun JDK service provider discovery implementation, which was private API prior to Java 6. This class is used internally before the more convenient
- * service provider mechanism is available. Use the <code>@ServiceProvider</code> annotation instead of this low level utility to make your tasks in dealing
- * with service providers much, much simpler.
+ * Wraps the Sun JDK service provider discovery implementation, which was private API prior to Java 6. This class is used internally before the more
+ * convenient service provider mechanism is available. Use the <code>@ServiceProvider</code> annotation instead of this low level utility and the
+ * <code>ClassDiscovery<code> component to make your tasks in dealing with service providers much, much simpler.
  *
  * @author Tibor Varga
  */
@@ -41,23 +41,13 @@ public final class ServiceProviders {
      * @param interfaceClass the service provider interface.
      * @param classLoader    the class loader to look for implementations in.
      * @param <T>            the service provider interface
-     *
      * @return the first implementation of the given interface or <code>null</code> if none found.
      */
     public static <T> T findInstance(final Class<T> interfaceClass, final ClassLoader classLoader) {
-        for (final Iterator<T> providers = providers(interfaceClass, classLoader); providers.hasNext(); ) {
-            try {
-                return providers.next();
-            } catch (final ServiceConfigurationError e) {
-                System.err.printf("Finding service providers for %s using %s", interfaceClass, classLoader);
-                e.printStackTrace(System.err);
-            }
-        }
-
-        return null;
+        final Iterator<T> providers = providers(interfaceClass, classLoader);
+        return providers.hasNext() ? providers.next() : null;
     }
 
-    @SuppressWarnings("unchecked")
     private static <T> Iterator<T> providers(final Class<T> interfaceClass, final ClassLoader classLoader) {
         try {
 
@@ -66,6 +56,15 @@ public final class ServiceProviders {
         } catch (final NoClassDefFoundError e) {
 
             // Java 5-
+            return Java5ServiceLocator.providers(interfaceClass, classLoader);
+        }
+    }
+
+    // isolates dependence on sun.misc package
+    private static class Java5ServiceLocator {
+
+        @SuppressWarnings("unchecked")
+        public static <T> Iterator<T> providers(final Class<T> interfaceClass, final ClassLoader classLoader) throws ServiceConfigurationError {
             return (Iterator<T>) Service.providers(interfaceClass, classLoader);
         }
     }

@@ -57,7 +57,14 @@ public interface ContextDefinition {
     ContextDefinition collect(Collection<ContextDefinition> contexts);
 
     /**
-     * Returns the context definition from upstream.
+     * Adds the accepted context annotations from the supplied context to the accepted annotations of the receiver.
+     *
+     * @param context a context accepted during component instantiation downstream.
+     */
+    void collect(ContextDefinition context);
+
+    /**
+     * Returns the context definition from upstream. The more recently added annotations are at the end.
      *
      * @return the context definition from upstream.
      */

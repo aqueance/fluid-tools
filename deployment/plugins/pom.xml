@@ -48,6 +48,7 @@
         <module>war-bootstrap</module>
         <module>war-bootstrap-jetty-impl</module>
         <module>jetty-server-utils</module>
+        <module>manifest-handler-api</module>
         <module>maven-dependency-utils</module>
     </modules>
 

@@ -146,7 +146,7 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
             } else {
                 final ComponentMapping mapping = addLocalControl(ComponentMapping.class);
 
-                EasyMock.expect(resolver.mapping(dependencyType)).andReturn(mapping);
+                EasyMock.expect(resolver.mapping(dependencyType, copy)).andReturn(mapping);
                 EasyMock.expect(mapping.acceptedContext()).andReturn(acceptedContext);
                 EasyMock.expect(copy.reduce(acceptedContext)).andReturn(copy);
                 EasyMock.expect(resolver.resolveComponent(dependencyType, copy, traversal)).andReturn(new DependencyGraph.Node.Constant(dependencyType, component, null));

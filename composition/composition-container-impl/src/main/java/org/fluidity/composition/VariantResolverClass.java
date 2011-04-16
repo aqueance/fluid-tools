@@ -17,6 +17,7 @@
 package org.fluidity.composition;
 
 import org.fluidity.composition.spi.ComponentVariantFactory;
+import org.fluidity.composition.spi.Factory;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**
@@ -36,7 +37,7 @@ final class VariantResolverClass extends VariantResolver {
     }
 
     @Override
-    protected ComponentVariantFactory factory(final SimpleContainer container, final DependencyGraph.Traversal traversal) {
-        return (ComponentVariantFactory) container.resolveComponent(factoryClass(), container.services().emptyContext(), traversal).instance(traversal);
+    protected Factory factory(final SimpleContainer container, final DependencyGraph.Traversal traversal, final ContextDefinition definition) {
+        return (Factory) container.resolveComponent(factoryClass(), container.services().emptyContext(), traversal).instance(traversal);
     }
 }

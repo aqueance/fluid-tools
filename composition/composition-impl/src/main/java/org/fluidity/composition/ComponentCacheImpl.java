@@ -44,12 +44,12 @@ final class ComponentCacheImpl implements ComponentCache {
                                        final Object source,
                                        final ComponentContext context,
                                        final Class<?> api,
-                                       final Instantiation instantiation,
+                                       final Instantiation delegate,
                                        final Log log) {
         if (!cache.containsKey(context)) {
 
             // go ahead and create the component and then see if it was actually necessary; context may change as new instantiations take place
-            final Object component = instantiation.perform();
+            final Object component = delegate.instantiate();
 
             if (component == null) {
                 throw new ComponentContainer.ResolutionException("Could not create component for %s", api);
@@ -59,6 +59,15 @@ final class ComponentCacheImpl implements ComponentCache {
 
             if (log.isInfoEnabled()) {
                 log.info("%s: created %s@%s%s",
+                         source,
+                         component.getClass().getName(),
+                         System.identityHashCode(component),
+                         context.types().isEmpty() ? "" : String.format(" for %s", context));
+            }
+        } else {
+            if (log.isInfoEnabled()) {
+                final Object component = cache.get(context);
+                log.info("%s: reusing %s@%s%s",
                          source,
                          component.getClass().getName(),
                          System.identityHashCode(component),

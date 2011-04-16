@@ -31,17 +31,6 @@ import org.fluidity.composition.OpenComponentContainer;
  *
  * @author Tibor Varga
  */
-public interface ComponentVariantFactory {
+public interface ComponentVariantFactory extends Factory {
 
-    /**
-     * Binds in the provided container the dependencies of the component that this is a factory for.
-     *
-     * @param container is the container to resolve dependencies of the component from.
-     * @param context   is the context for the instance to create. When this is null or empty, the default instance must be returned. The key set in the context
-     *                  is taken from the list of annotation classes in the {@link org.fluidity.composition.Context} annotation of this factory.
-     *
-     * @throws ComponentContainer.ResolutionException
-     *          of a component cannot be created.
-     */
-    void newComponent(OpenComponentContainer container, ComponentContext context) throws ComponentContainer.ResolutionException;
 }

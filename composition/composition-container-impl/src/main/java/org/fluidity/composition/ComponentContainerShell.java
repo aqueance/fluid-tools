@@ -18,6 +18,7 @@ package org.fluidity.composition;
 
 import org.fluidity.composition.spi.ComponentResolutionObserver;
 import org.fluidity.composition.spi.EmptyComponentContainer;
+import org.fluidity.composition.spi.PlatformContainer;
 
 /**
  * This is a shell around a {@link SimpleContainer} object.
@@ -27,13 +28,12 @@ import org.fluidity.composition.spi.EmptyComponentContainer;
 final class ComponentContainerShell extends EmptyComponentContainer {
 
     private final SimpleContainer container;
-    private final ContextDefinition context;
+    private final ContextDefinition innerContext;
+    private final ContextDefinition outerContext;
     private final ComponentResolutionObserver observer;
 
-    public ComponentContainerShell(final ContainerServices services) {
-        this.container = new SimpleContainerImpl(services);
-        this.context = services.emptyContext();
-        this.observer = null;
+    public ComponentContainerShell(final ContainerServices services, final PlatformContainer platform) {
+        this(new SimpleContainerImpl(services, platform), services.emptyContext(), services.emptyContext(), false, null);
     }
 
     public ComponentContainerShell(final SimpleContainer container, final ContextDefinition context, final boolean child) {
@@ -44,58 +44,97 @@ final class ComponentContainerShell extends EmptyComponentContainer {
                                    final ContextDefinition context,
                                    final boolean child,
                                    final ComponentResolutionObserver observer) {
+      this(container, context, context.copy(), child, observer);
+    }
+
+    public ComponentContainerShell(final SimpleContainer container,
+                                   final ContextDefinition outerContext,
+                                   final ContextDefinition innerContext,
+                                   final boolean child,
+                                   final ComponentResolutionObserver observer) {
         assert container != null;
-        assert context != null;
+        assert innerContext != null;
+        assert outerContext != null;
         this.container = child ? container.newChildContainer() : container;
-        this.context = context;
+        this.outerContext = outerContext;
+        this.innerContext = innerContext;
         this.observer = observer;
+    }
+
+    private static interface Command<T> {
+        T run(ContextDefinition context);
+    }
+
+    private <T> T collect(final Command<T> command) {
+      final ContextDefinition context = innerContext.copy();
+      try {
+        return command.run(context);
+      } finally {
+        outerContext.collect(context);
+      }
     }
 
     @SuppressWarnings("unchecked")
     public <T> T getComponent(final Class<T> api) {
-        return container.observe(observer, new SimpleContainer.Observed<T>() {
-            public T run(final DependencyGraph.Traversal traversal) {
-                final DependencyGraph.Node node = container.resolveComponent(api, context, traversal);
-                return node == null ? null : (T) node.instance(traversal);
+        return collect(new Command<T>() {
+            public T run(final ContextDefinition context) {
+                return container.observe(observer, new SimpleContainer.Observed<T>() {
+                    public T run(final DependencyGraph.Traversal traversal) {
+                        final DependencyGraph.Node node = container.resolveComponent(api, context, traversal);
+                        return node == null ? null : (T) node.instance(traversal);
+                    }
+                });
             }
         });
     }
 
     @SuppressWarnings("unchecked")
     public <T> T[] getComponentGroup(final Class<T> api) {
-        return container.observe(observer, new SimpleContainer.Observed<T[]>() {
-            public T[] run(final DependencyGraph.Traversal traversal) {
-                final DependencyGraph.Node node = container.resolveGroup(api, context, traversal);
-                return node == null ? null : (T[]) node.instance(traversal);
+        return collect(new Command<T[]>() {
+            public T[] run(final ContextDefinition context) {
+                return container.observe(observer, new SimpleContainer.Observed<T[]>() {
+                    public T[] run(final DependencyGraph.Traversal traversal) {
+                        final DependencyGraph.Node node = container.resolveGroup(api, context, traversal);
+                        return node == null ? null : (T[]) node.instance(traversal);
+                   }
+                });
             }
         });
     }
 
     public void resolveComponent(final Class<?> api) {
-        container.observe(observer, new SimpleContainer.Observed<Void>() {
-            public Void run(final DependencyGraph.Traversal traversal) {
-                container.resolveComponent(api, context, traversal);
-                return null;
+        collect(new Command<Void>() {
+            public Void run(final ContextDefinition context) {
+                return container.observe(observer, new SimpleContainer.Observed<Void>() {
+                    public Void run(final DependencyGraph.Traversal traversal) {
+                        container.resolveComponent(api, innerContext, traversal);
+                        return null;
+                    }
+                });
             }
         });
     }
 
     public void resolveGroup(final Class<?> api) {
-        container.observe(observer, new SimpleContainer.Observed<Void>() {
-            public Void run(final DependencyGraph.Traversal traversal) {
-                container.resolveGroup(api, context, traversal);
+        collect(new Command<Void>() {
+          public Void run(final ContextDefinition context) {
+            return container.observe(observer, new SimpleContainer.Observed<Void>() {
+              public Void run(final DependencyGraph.Traversal traversal) {
+                container.resolveGroup(api, innerContext, traversal);
                 return null;
-            }
+              }
+            });
+          }
         });
     }
 
     @SuppressWarnings("unchecked")
     public <T> T initialize(final T component) {
-        return (T) container.initialize(component, context, null);
+        return (T) container.initialize(component, innerContext.copy(), null);
     }
 
     public OpenComponentContainer makeChildContainer() {
-        return new ComponentContainerShell(container, context, true);
+        return new ComponentContainerShell(container, outerContext, innerContext, true, observer);
     }
 
     public void bindComponent(final Components.Interfaces interfaces) throws ComponentContainer.BindingException {
@@ -108,11 +147,11 @@ final class ComponentContainerShell extends EmptyComponentContainer {
 
     public OpenComponentContainer makeChildContainer(final Components.Interfaces interfaces)
             throws ComponentContainer.BindingException {
-        return new ComponentContainerShell(container.linkComponent(interfaces), context, false);
+        return new ComponentContainerShell(container.linkComponent(interfaces), outerContext, innerContext, false, observer);
     }
 
     public ObservedComponentContainer observed(final ComponentResolutionObserver observer) {
-        return observer == null ? this : new ComponentContainerShell(container, context, false, CompositeObserver.combine(this.observer, observer));
+        return observer == null ? this : new ComponentContainerShell(container, outerContext, innerContext, false, CompositeObserver.combine(this.observer, observer));
     }
 
     @Override

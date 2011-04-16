@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.fluidity.composition.spi.ComponentFactory;
 import org.fluidity.composition.spi.ComponentVariantFactory;
 
 import org.testng.annotations.DataProvider;
@@ -289,6 +290,113 @@ public final class ComponentContextTests extends AbstractContainerTests {
 
         assert expected.equals(group1) : group1;
         assert expected.equals(group2) : group2;
+    }
+
+    @Setting1("first")
+    private static class FirstComponent {
+
+        public final Setting1[] settings1;
+        public final Setting2[] settings2;
+        public final Setting3[] settings3;
+
+        public final SecondComponent dependency;
+
+        public FirstComponent(final ThirdComponent cache, final @Setting2("second") SecondComponent second, final ComponentContext context) {
+            settings1 = context.annotations(Setting1.class);
+            settings2 = context.annotations(Setting2.class);
+            settings3 = context.annotations(Setting3.class);
+            dependency = second;
+        }
+    }
+
+    private static class SecondComponent {
+
+        public final Setting1[] settings1;
+        public final Setting2[] settings2;
+        public final Setting3[] settings3;
+
+        public final ThirdComponent dependency;
+
+        private SecondComponent(final @Setting3("third") ThirdComponent dependency, final Setting1[] settings1, final Setting2[] settings2, final Setting3[] settings3) {
+            this.settings1 = settings1;
+            this.settings2 = settings2;
+            this.settings3 = settings3;
+            this.dependency = dependency;
+        }
+    }
+
+    @SuppressWarnings("UnusedDeclaration")
+    private static class ThirdComponent {
+
+        public final Setting1[] settings1;
+        public final Setting2[] settings2;
+        public final Setting3[] settings3;
+
+        private ThirdComponent(final ComponentContext context) {
+            settings1 = context.annotations(Setting1.class);
+            settings2 = context.annotations(Setting2.class);
+            settings3 = context.annotations(Setting3.class);
+        }
+    }
+
+    @Component(api = SecondComponent.class)
+    @Context(Setting2.class)
+    private static final class SecondFactory implements ComponentFactory {
+
+        public void newComponent(final OpenComponentContainer container, final ComponentContext context) {
+            final ThirdComponent thirdComponent = container.getComponent(ThirdComponent.class);
+            container.getRegistry().bindInstance(new SecondComponent(thirdComponent,
+                                                                     context.annotations(Setting1.class),
+                                                                     context.annotations(Setting2.class),
+                                                                     context.annotations(Setting3.class)));
+        }
+    }
+
+    @Component(api = ThirdComponent.class)
+    @Context({ Setting1.class, Setting3.class })
+    private static final class ThirdFactory implements ComponentFactory {
+
+        public void newComponent(final OpenComponentContainer container, final ComponentContext context) {
+          container.getRegistry().bindInstance(new ThirdComponent(context));
+        }
+    }
+
+    @Test
+    public void testInstantiatingFactory() throws Exception {
+        registry.bindComponent(FirstComponent.class);
+        registry.bindComponent(ThirdFactory.class);
+        registry.bindComponent(SecondFactory.class);
+
+        final FirstComponent first = container.getComponent(FirstComponent.class);
+        assert first != null;
+        assertContext(first.settings1);
+        assertContext(first.settings2);
+        assertContext(first.settings3);
+
+        final SecondComponent second = first.dependency;
+        assert second != null;
+        assertContext(second.settings1);
+        assertContext(second.settings2, "second");
+        assertContext(second.settings3);
+
+        final ThirdComponent third = second.dependency;
+        assert third != null;
+        assertContext(third.settings1, "first");
+        assertContext(third.settings2);
+        assertContext(third.settings3/*, "third"*/);    // TODO?
+    }
+
+    private void assertContext(final Object[] settings, final String... expected) throws Exception {
+        final List<String> actual = new ArrayList<String>();
+
+        if (settings != null) {
+            for (final Object setting : settings) {
+                actual.add((String) setting.getClass().getDeclaredMethod("value").invoke(setting));
+            }
+        }
+
+        final List<String> got = Arrays.asList(expected);
+        assert actual.equals(got) : String.format("Expected %s, got %s", got, actual);
     }
 
     private static interface ContextAware {

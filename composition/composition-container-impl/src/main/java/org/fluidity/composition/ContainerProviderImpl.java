@@ -16,29 +16,30 @@
 
 package org.fluidity.composition;
 
+import org.fluidity.composition.spi.ContainerProvider;
+import org.fluidity.composition.spi.PackageBindings;
+import org.fluidity.composition.spi.PlatformContainer;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import org.fluidity.composition.spi.ContainerProvider;
-import org.fluidity.composition.spi.PackageBindings;
-
 /**
  * @author Tibor Varga
  */
 final class ContainerProviderImpl implements ContainerProvider {
 
-    public OpenComponentContainer newContainer(final ContainerServices services) {
-        return new ComponentContainerShell(services);
+    public OpenComponentContainer newContainer(final ContainerServices services, final PlatformContainer platform) {
+        return new ComponentContainerShell(services, platform);
     }
 
     @SuppressWarnings("unchecked")
     public List<PackageBindings> instantiateBindings(final ContainerServices services,
                                                      final Map properties,
                                                      final Class<PackageBindings>[] bindings) {
-        final SimpleContainer container = new SimpleContainerImpl(services);
+        final SimpleContainer container = new SimpleContainerImpl(services, null);
 
         if (properties != null) {
             container.bindInstance(properties, Components.inspect(properties.getClass(), Map.class));

@@ -51,7 +51,6 @@ final class ConfigurationComponentFactory implements ComponentFactory {
     @SuppressWarnings("unchecked")
     public void newComponent(final OpenComponentContainer container, final ComponentContext context) throws ComponentContainer.ResolutionException {
         final ComponentContainer.Registry registry = container.getRegistry();
-
         final Properties properties = context.annotation(Properties.class, Configuration.class);
 
         registry.bindInstance(properties, Properties.class);

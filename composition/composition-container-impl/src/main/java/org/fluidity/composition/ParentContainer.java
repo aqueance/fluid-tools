@@ -42,7 +42,7 @@ interface ParentContainer extends SimpleContainer {
      *
      * @param api the group interface.
      *
-     * @return the group resolver for the given interface.
+     * @return the group resolver for the given interface; never <code>null</code>.
      */
-    GroupResolver groupResolver(Class<?> api);
+    List<GroupResolver> groupResolvers(Class<?> api);
 }

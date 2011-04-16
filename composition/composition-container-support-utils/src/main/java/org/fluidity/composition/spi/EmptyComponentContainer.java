@@ -44,6 +44,7 @@ public abstract class EmptyComponentContainer implements OpenComponentContainer,
      * <p/>
      * {@inheritDoc}
      */
+    @SuppressWarnings("unchecked")
     public final <T> T instantiate(final Class<T> componentClass) throws ResolutionException {
         final OpenComponentContainer container = makeChildContainer();
         container.getRegistry().bindComponent(componentClass, componentClass);

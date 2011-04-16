@@ -16,6 +16,11 @@
 
 package org.fluidity.composition;
 
+import org.fluidity.composition.spi.ComponentResolutionObserver;
+import org.fluidity.composition.spi.ContainerProvider;
+import org.fluidity.composition.spi.PlatformContainer;
+import org.fluidity.foundation.spi.LogFactory;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -24,10 +29,6 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
-
-import org.fluidity.composition.spi.ComponentResolutionObserver;
-import org.fluidity.composition.spi.ContainerProvider;
-import org.fluidity.foundation.spi.LogFactory;
 
 /**
  * Static access to class loader specific dependency injection container. This utility class ensures that the child container - parent container hierarchy
@@ -54,7 +55,23 @@ public final class ContainerBoundary implements ComponentContainer {
     private static final Set<OpenComponentContainer> lockedContainers = new HashSet<OpenComponentContainer>();
     private static final Object stateLock = new Object();
 
-    /**
+    private static final ContainerBootstrap.Callback CONTAINER_LOCK_CALLBACK = new ContainerBootstrap.Callback() {
+        public void containerInitialized(final OpenComponentContainer container) {
+            synchronized (stateLock) {
+System.out.printf("Container %s locked", container);
+                lockedContainers.add(container);
+            }
+        }
+
+        public void containerShutdown(final OpenComponentContainer container) {
+            synchronized (stateLock) {
+System.out.printf("Container %s unlocked", container);
+                lockedContainers.remove(container);
+            }
+        }
+  };
+
+  /**
      * The component that can discover the above dependencies for us. The point is to have one single dependency for unit tests to override. This class is not
      * dependency injected and so it is important to keep its dependencies down to a minimum.
      */
@@ -79,6 +96,11 @@ public final class ContainerBoundary implements ComponentContainer {
      * The root class loader the parent of which will not have a container created
      */
     private ClassLoader rootClassLoader;
+
+    /**
+     * The super container.
+     */
+    private PlatformContainer platform;
 
     /**
      * The class loader associated with the container made accessible by this instance.
@@ -134,13 +156,18 @@ public final class ContainerBoundary implements ComponentContainer {
         loadContainer(false).getRegistry().bindInstance(instance, api);
     }
 
+    public void setPlatformContainer(final PlatformContainer platform) {
+        assert this.platform == null;
+        this.platform = platform;
+    }
+
     /**
      * Delegates to the enclosed container.
      * <p/>
      * {@inheritDoc}
      */
     public <T> T getComponent(final Class<T> api) {
-        return loadContainer(true).getComponent(api);
+      return loadContainer(true).getComponent(api);
     }
 
     /**
@@ -175,7 +202,7 @@ public final class ContainerBoundary implements ComponentContainer {
     }
 
     public <T> T[] getComponentGroup(final Class<T> api) {
-        return loadContainer(true).getComponentGroup(api);
+      return loadContainer(true).getComponentGroup(api);
     }
 
     /**
@@ -193,6 +220,7 @@ public final class ContainerBoundary implements ComponentContainer {
         this.rootClassLoader = null;
         this.containerBootstrap = null;
         this.containerProvider = null;
+        this.platform = null;
     }
 
     /**
@@ -249,11 +277,14 @@ public final class ContainerBoundary implements ComponentContainer {
                     }
 
                     final Map map = propertiesMap.get(loader);
+                    final OpenComponentContainer parent = populatedContainers.get(loader.getParent());
                     final OpenComponentContainer container = containerBootstrap.populateContainer(containerServices,
                                                                                                   containerProvider,
                                                                                                   map == null ? new HashMap() : map,
-                                                                                                  populatedContainers.get(loader.getParent()),
-                                                                                                  loader);
+                                                                                                  parent,
+                                                                                                  loader,
+                                                                                                  platform,
+                                                                                                  CONTAINER_LOCK_CALLBACK);
 
                     populatedContainers.put(loader, container);
                 } else {
@@ -280,8 +311,7 @@ public final class ContainerBoundary implements ComponentContainer {
 
     /**
      * A container can be updated any time until it is locked once. After it has been locked, it can only be queried. When a container is loaded, all
-     * containers
-     * up the class loader chain are also loaded. If one is locked, all above it are also locked.
+     * containers up the class loader chain are also loaded. If one is locked, all above it are also locked.
      *
      * @param lock whether to lock the container. If it has not yet been locked and this parameter is <code>true</code>, the container is initialized and
      *             locked. If the value is <code>false</code> and the container has already been locked, an {@link IllegalStateException} is thrown.
@@ -296,7 +326,6 @@ public final class ContainerBoundary implements ComponentContainer {
             for (final OpenComponentContainer container : containers) {
                 if (lock) {
                     if (!lockedContainers.contains(container)) {
-                        lockedContainers.add(container);
                         containerBootstrap.initializeContainer(container, containerServices);
                     }
                 } else if (first && lockedContainers.contains(container)) {

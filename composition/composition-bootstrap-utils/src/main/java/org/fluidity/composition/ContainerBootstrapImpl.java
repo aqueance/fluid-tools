@@ -16,13 +16,14 @@
 
 package org.fluidity.composition;
 
-import java.util.List;
-import java.util.Map;
-
 import org.fluidity.composition.spi.ContainerProvider;
 import org.fluidity.composition.spi.PackageBindings;
+import org.fluidity.composition.spi.PlatformContainer;
 import org.fluidity.composition.spi.ShutdownTasks;
 import org.fluidity.foundation.logging.Log;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * Bootstraps the component container. This class is exported via the standard service provider discovery mechanism described in the <a
@@ -32,18 +33,26 @@ import org.fluidity.foundation.logging.Log;
  */
 final class ContainerBootstrapImpl implements ContainerBootstrap {
 
-    @SuppressWarnings("unchecked")
+  @SuppressWarnings("unchecked")
     public OpenComponentContainer populateContainer(final ContainerServices services,
                                                     final ContainerProvider provider,
                                                     final Map properties,
                                                     final OpenComponentContainer parent,
-                                                    final ClassLoader classLoader) {
+                                                    final ClassLoader classLoader,
+                                                    final PlatformContainer platform,
+                                                    final Callback callback) {
         final Log log = services.logs().createLog(getClass());
         final ClassDiscovery discovery = services.classDiscovery();
 
-        final OpenComponentContainer container = parent == null ? provider.newContainer(services) : parent.makeChildContainer();
+        final OpenComponentContainer container;
 
-        log.info("Created new %s%s", container, (classLoader == null ? "" : String.format(" for %s", classLoader)));
+        if (parent == null) {
+            container = provider.newContainer(services, platform);
+        } else {
+            container = parent.makeChildContainer();
+        }
+
+        log.info("Created new %s%s", container, (classLoader == null ? "" : String.format(" for class loader %s", classLoader)));
 
         /*
          * Find instances of classes implementing the PackageBindings interface.
@@ -72,7 +81,7 @@ final class ContainerBootstrapImpl implements ContainerBootstrap {
             bindings.bindComponents(registry);
         }
 
-        final ContainerLifecycle state = new ContainerLifecycle(container, assemblies);
+        final ContainerLifecycle state = new ContainerLifecycle(container, assemblies, callback);
         registry.bindInstance(state);
 
         final ContainerLifecycle parentState = parent != null ? parent.getComponent(ContainerLifecycle.class) : null;

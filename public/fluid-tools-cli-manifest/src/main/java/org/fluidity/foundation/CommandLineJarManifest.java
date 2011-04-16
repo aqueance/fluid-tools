@@ -16,11 +16,15 @@
 
 package org.fluidity.foundation;
 
+import org.apache.maven.artifact.Artifact;
+import org.apache.maven.project.MavenProject;
+import org.fluidity.deployment.JarManifest;
+
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.JarURLConnection;
 import java.net.URL;
-import java.net.URLConnection;
+import java.util.Collection;
 import java.util.List;
 import java.util.jar.Attributes;
 
@@ -35,7 +39,11 @@ public class CommandLineJarManifest implements JarManifest {
 
     private static final String ORIGINAL_MAIN_CLASS = "Original-Main-Class";
 
-    public void processManifest(final Attributes attributes, final List<String> dependencies) {
+    public boolean needsCompileDependencies() {
+        return false;
+    }
+
+    public boolean processManifest(final MavenProject project, final Attributes attributes, final List<String> paths, final Collection<Artifact> dependencies) {
         final String mainClass = attributes.getValue(Attributes.Name.MAIN_CLASS);
 
         if (mainClass == null) {
@@ -47,7 +55,7 @@ public class CommandLineJarManifest implements JarManifest {
 
         final StringBuilder dependencyList = new StringBuilder();
 
-        for (final String dependency : dependencies) {
+        for (final String dependency : paths) {
             if (dependencyList.length() > 0) {
                 dependencyList.append(' ');
             }
@@ -56,6 +64,8 @@ public class CommandLineJarManifest implements JarManifest {
         }
 
         attributes.putValue(JarManifest.NESTED_DEPENDENCIES, dependencyList.toString());
+
+        return true;
     }
 
     public static void main(final String[] args)
@@ -63,11 +73,9 @@ public class CommandLineJarManifest implements JarManifest {
         final Class<?> main = CommandLineJarManifest.class;
 
         final URL url = ClassLoaders.findClassResource(main);
-        final URLConnection connection = url.openConnection();
+        final JarURLConnection jar = JarStreams.jarFile(url);
 
-        if (connection instanceof JarURLConnection) {
-            final JarURLConnection jar = (JarURLConnection) connection;
-
+        if (jar != null) {
             final URL jarURL = jar.getJarFileURL();
             final Attributes attributes = jar.getMainAttributes();
 

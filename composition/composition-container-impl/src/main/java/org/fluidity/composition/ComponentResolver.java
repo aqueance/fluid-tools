@@ -27,6 +27,15 @@ import org.fluidity.composition.spi.ComponentMapping;
  */
 interface ComponentResolver extends ComponentMapping {
 
+    /**
+     * Resolves the represented component.
+     *
+     * @param traversal the graph traversal to use.
+     * @param container the container calling the resolver.
+     * @param context   the context in which the resolution takes place.
+     *
+     * @return a node representing the component.
+     */
     DependencyGraph.Node resolve(DependencyGraph.Traversal traversal, final SimpleContainer container, final ContextDefinition context);
 
     /**

@@ -136,8 +136,7 @@ public final class ComponentFactoryTests extends AbstractContainerTests {
         }
 
         public void newComponent(final OpenComponentContainer container, final ComponentContext context) {
-            final ComponentContainer.Registry registry = container.getRegistry();
-            registry.bindComponent(DependentValue.class);
+            container.getRegistry().bindComponent(DependentValue.class);
 
             assert delegate != null;
             delegate.newComponent(container, context);
@@ -161,8 +160,7 @@ public final class ComponentFactoryTests extends AbstractContainerTests {
         public static ComponentFactory delegate;
 
         public void newComponent(final OpenComponentContainer container, final ComponentContext context) {
-            final ComponentContainer.Registry registry = container.getRegistry();
-            registry.bindComponent(GroupMember1.class);
+            container.getRegistry().bindComponent(GroupMember1.class);
 
             assert delegate != null;
             delegate.newComponent(container, context);
@@ -175,8 +173,7 @@ public final class ComponentFactoryTests extends AbstractContainerTests {
         public static ComponentFactory delegate;
 
         public void newComponent(final OpenComponentContainer container, final ComponentContext context) {
-            final ComponentContainer.Registry registry = container.getRegistry();
-            registry.bindComponent(GroupMember2.class);
+            container.getRegistry().bindComponent(GroupMember2.class);
 
             assert delegate != null;
             delegate.newComponent(container, context);

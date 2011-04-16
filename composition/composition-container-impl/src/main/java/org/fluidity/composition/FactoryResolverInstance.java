@@ -17,6 +17,7 @@
 package org.fluidity.composition;
 
 import org.fluidity.composition.spi.ComponentFactory;
+import org.fluidity.composition.spi.Factory;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**
@@ -34,7 +35,7 @@ final class FactoryResolverInstance extends FactoryResolver {
     }
 
     @Override
-    protected ComponentFactory factory(final SimpleContainer container, final DependencyGraph.Traversal traversal) {
+    protected Factory factory(final SimpleContainer container, final DependencyGraph.Traversal traversal, final ContextDefinition definition) {
         return factory;
     }
 }

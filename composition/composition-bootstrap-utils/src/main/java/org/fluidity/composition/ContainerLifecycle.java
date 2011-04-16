@@ -32,6 +32,7 @@ import org.fluidity.foundation.logging.Log;
  * @author Tibor Varga
  */
 final class ContainerLifecycle {
+    private ContainerBootstrap.Callback callback;
 
     private final OpenComponentContainer container;
     private final List<PackageBindings> bindings;
@@ -41,9 +42,10 @@ final class ContainerLifecycle {
     private final AtomicBoolean shouldInitialize = new AtomicBoolean(true);
     private final AtomicBoolean shouldShutdown = new AtomicBoolean(true);
 
-    public ContainerLifecycle(final OpenComponentContainer container, final List<PackageBindings> bindings) {
+    public ContainerLifecycle(final OpenComponentContainer container, final List<PackageBindings> bindings, final ContainerBootstrap.Callback callback) {
         this.container = container;
         this.bindings = bindings;
+        this.callback = callback;
     }
 
     public void initialize(final Log log) {
@@ -61,6 +63,10 @@ final class ContainerLifecycle {
             // child containers are initialized next
             for (final ContainerLifecycle child : children) {
                 child.initialize(log);
+            }
+
+            if (callback != null) {
+                callback.containerInitialized(container);
             }
         }
     }
@@ -82,6 +88,10 @@ final class ContainerLifecycle {
              */
             for (final ListIterator i = bindings.listIterator(bindings.size()); i.hasPrevious();) {
                 ((PackageBindings) i.previous()).shutdownComponents(container);
+            }
+
+            if (callback != null) {
+                callback.containerShutdown(container);
             }
 
             log.info("%s shut down", container);

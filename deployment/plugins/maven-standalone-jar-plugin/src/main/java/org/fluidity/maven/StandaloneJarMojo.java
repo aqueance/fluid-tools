@@ -21,8 +21,8 @@ import org.apache.maven.model.Plugin;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
-import org.fluidity.deployment.maven.MavenDependencies;
-import org.fluidity.foundation.JarManifest;
+import org.fluidity.deployment.JarManifest;
+import org.fluidity.deployment.maven.MavenSupport;
 import org.fluidity.foundation.ServiceProviders;
 import org.fluidity.foundation.Streams;
 import org.sonatype.aether.RepositorySystem;
@@ -35,6 +35,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -60,6 +61,15 @@ public class StandaloneJarMojo extends AbstractMojo {
     private static final String META_INF = "META-INF/";
 
     /**
+     * Instructs the plugin, when set, to create a new JAR with the given classifier and attach it to the project. When not set, the project's JAR artifact
+     * is overwritten.
+     *
+     * @parameter default-value=""
+     */
+    @SuppressWarnings("UnusedDeclaration")
+    private String classifier;
+
+    /**
      * The location of the compiled classes.
      *
      * @parameter expression="${project.build.directory}"
@@ -80,7 +90,27 @@ public class StandaloneJarMojo extends AbstractMojo {
     private File packageFile;
 
     /**
+     * The project artifact's final name.
+     *
+     * @parameter expression="${project.build.directory}/${project.build.finalName}"
+     * @required
+     * @readonly
+     */
+    @SuppressWarnings("UnusedDeclaration")
+    private String finalName;
+
+    /**
+     * Packaging type of the artifact to be installed. Retrieved from POM file if specified
+     *
+     * @parameter expression="${project.packaging}"
+     * @readonly
+     */
+    @SuppressWarnings("UnusedDeclaration")
+    private String packaging;
+
+    /**
      * @parameter expression="${plugin.groupId}"
+     * @readonly
      * @required
      */
     @SuppressWarnings("UnusedDeclaration")
@@ -88,18 +118,11 @@ public class StandaloneJarMojo extends AbstractMojo {
 
     /**
      * @parameter expression="${plugin.artifactId}"
+     * @readonly
      * @required
      */
     @SuppressWarnings("UnusedDeclaration")
     private String pluginArtifactId;
-
-    /**
-     * Packaging type of the artifact to be installed. Retrieved from POM file if specified
-     *
-     * @parameter expression="${project.packaging}"
-     */
-    @SuppressWarnings("UnusedDeclaration")
-    private String packaging;
 
     /**
      * The Maven project.
@@ -144,27 +167,12 @@ public class StandaloneJarMojo extends AbstractMojo {
             throw new MojoExecutionException(String.format("%s does not exist", packageFile));
         }
 
-        final String pluginKey = Plugin.constructKey(pluginGroupId, pluginArtifactId);
-        final Plugin plugin = project.getPlugin(pluginKey);
-        final Artifact pluginArtifact = project.getPluginArtifactMap().get(pluginKey);
-
         final JarManifest handler = ServiceProviders.findInstance(JarManifest.class, getClass().getClassLoader());
 
-        final Collection<Artifact> bootstrapDependencies = MavenDependencies.transitiveDependencies(repositorySystem,
-                                                                                                    repositorySession,
-                                                                                                    projectRepositories,
-                                                                                                    handler.getClass(),
-                                                                                                    pluginArtifact,
-                                                                                                    plugin.getDependencies());
-
-        final Collection<Artifact> projectDependencies = MavenDependencies.transitiveDependencies(repositorySystem,
-                                                                                                  repositorySession,
-                                                                                                  projectRepositories,
-                                                                                                  project.getArtifact(),
-                                                                                                  false);
+        final Collection<Artifact> runtimeDependencies = MavenSupport.runtimeDependencies(repositorySystem, repositorySession, projectRepositories, project);
 
         // keep only JAR artifacts
-        for (final Iterator<Artifact> i = projectDependencies.iterator(); i.hasNext();) {
+        for (final Iterator<Artifact> i = runtimeDependencies.iterator(); i.hasNext();) {
             final Artifact artifact = i.next();
 
             if (!artifact.getType().equals(JAR_TYPE)) {
@@ -172,7 +180,7 @@ public class StandaloneJarMojo extends AbstractMojo {
             }
         }
 
-        if (projectDependencies.isEmpty()) {
+        if (runtimeDependencies.isEmpty()) {
 
             // no project dependencies: we're done
             return;
@@ -206,7 +214,7 @@ public class StandaloneJarMojo extends AbstractMojo {
                 final String dependencyPath = META_INF.concat("dependencies/");
                 final List<String> dependencyList = new ArrayList<String>();
 
-                for (final Artifact artifact : projectDependencies) {
+                for (final Artifact artifact : runtimeDependencies) {
                     final File dependency = artifact.getFile();
 
                     if (!dependency.exists()) {
@@ -216,7 +224,21 @@ public class StandaloneJarMojo extends AbstractMojo {
                     dependencyList.add(dependencyPath.concat(dependency.getName()));
                 }
 
-                handler.processManifest(attributes, dependencyList);
+                final Collection<Artifact> dependencies = handler.needsCompileDependencies() ? compileDependencies() : runtimeDependencies;
+                final boolean copyHandler = handler.processManifest(project, attributes, dependencyList, dependencies);
+
+                final String pluginKey = Plugin.constructKey(pluginGroupId, pluginArtifactId);
+                final Plugin plugin = project.getPlugin(pluginKey);
+                final Artifact pluginArtifact = project.getPluginArtifactMap().get(pluginKey);
+
+                final Collection<Artifact> bootstrapDependencies = !copyHandler
+                                                                   ? Collections.<Artifact>emptyList()
+                                                                   : MavenSupport.transitiveDependencies(repositorySystem,
+                                                                                                         repositorySession,
+                                                                                                         projectRepositories,
+                                                                                                         handler.getClass(),
+                                                                                                         pluginArtifact,
+                                                                                                         plugin.getDependencies());
 
                 final byte buffer[] = new byte[1024 * 16];
 
@@ -253,7 +275,7 @@ public class StandaloneJarMojo extends AbstractMojo {
                 outputStream.putNextEntry(new JarEntry(dependencyPath));
 
                 // copy the dependencies, including the original project artifact
-                for (final Artifact artifact : projectDependencies) {
+                for (final Artifact artifact : runtimeDependencies) {
                     final File dependency = artifact.getFile();
                     outputStream.putNextEntry(new JarEntry(dependencyPath.concat(dependency.getName())));
                     Streams.copy(new FileInputStream(dependency), outputStream, buffer, false);
@@ -266,16 +288,14 @@ public class StandaloneJarMojo extends AbstractMojo {
                 }
             }
 
-            if (!packageFile.delete()) {
-                throw new MojoExecutionException(String.format("Could not delete %s", packageFile));
-            }
-
-            if (!file.renameTo(packageFile)) {
-                throw new MojoExecutionException(String.format("Could not create %s", packageFile));
-            }
+            MavenSupport.saveArtifact(project, file, finalName, classifier, packaging);
         } catch (final IOException e) {
             throw new MojoExecutionException(String.format("Processing %s", packageFile), e);
         }
+    }
+
+    private Collection<Artifact> compileDependencies() throws MojoExecutionException {
+        return MavenSupport.compileDependencies(repositorySystem, repositorySession, projectRepositories, project);
     }
 
     private File createTempFile() throws MojoExecutionException {

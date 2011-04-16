@@ -46,6 +46,12 @@
             <version>${project.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>${fluidity.deployment.groupId}</groupId>
+            <artifactId>manifest-handler-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
     </dependencies>
 
     <profiles>

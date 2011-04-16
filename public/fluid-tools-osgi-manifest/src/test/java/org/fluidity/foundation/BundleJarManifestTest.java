@@ -1,9 +1,12 @@
 package org.fluidity.foundation;
 
+import org.apache.maven.artifact.Artifact;
+import org.fluidity.deployment.JarManifest;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.jar.Attributes;
 
@@ -19,7 +22,7 @@ public class BundleJarManifestTest {
         final Attributes attributes = new Attributes();
         final List<String> dependencies = new ArrayList<String>();
 
-        manifest.processManifest(attributes, dependencies);
+        manifest.processManifest(null, attributes, dependencies, Collections.<Artifact>emptyList());
 
         assert attributes.getValue(BundleJarManifest.BUNDLE_CLASSPATH) == null;
 
@@ -35,7 +38,7 @@ public class BundleJarManifestTest {
         final String dependency = "dependency.jar";
         dependencies.add(dependency);
 
-        manifest.processManifest(attributes, dependencies);
+        manifest.processManifest(null, attributes, dependencies, Collections.<Artifact>emptyList());
 
         assert dependency.equals(attributes.getValue(BundleJarManifest.BUNDLE_CLASSPATH));
 
@@ -56,7 +59,7 @@ public class BundleJarManifestTest {
         dependencies.add(dependency2);
         dependencies.add(dependency3);
 
-        manifest.processManifest(attributes, dependencies);
+        manifest.processManifest(null, attributes, dependencies, Collections.<Artifact>emptyList());
 
         final StringBuilder dependencyList = new StringBuilder();
         for (final String dependency : dependencies) {
@@ -93,9 +96,11 @@ public class BundleJarManifestTest {
         final Attributes attributes = new Attributes();
         attributes.putValue(BundleJarManifest.BUNDLE_VERSION, projectVersion);
 
-        manifest.processManifest(attributes, new ArrayList<String>());
+        manifest.processManifest(null, attributes, new ArrayList<String>(), Collections.<Artifact>emptyList());
 
         final String version = attributes.getValue(BundleJarManifest.BUNDLE_VERSION);
         assert bundleVersion.equals(version) : version;
     }
+
+    // TODO: test Maven project metadata conversion
 }

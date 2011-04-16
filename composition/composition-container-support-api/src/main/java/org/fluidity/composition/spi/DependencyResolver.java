@@ -28,17 +28,16 @@ public interface DependencyResolver extends DependencyGraph {
     /**
      * Returns the component mapping for the given component API.
      *
-     * @param type the component API to return a mapping for.
-     *
+     * @param type    the component API to return a mapping for.
+     * @param context the context prevalent at the reference.
      * @return the component mapping for the given component API or <code>null</code> if not found.
      */
-    ComponentMapping mapping(Class<?> type);
+    ComponentMapping mapping(Class<?> type, ContextDefinition context);
 
     /**
      * Returns a new child container with its base context set to the given properties.
      *
      * @param context the context for the new container to use as base context.
-     *
      * @return a new component container.
      */
     ComponentContainer container(ContextDefinition context);

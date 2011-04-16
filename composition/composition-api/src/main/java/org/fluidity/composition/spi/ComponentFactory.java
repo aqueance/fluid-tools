@@ -16,6 +16,7 @@
 
 package org.fluidity.composition.spi;
 
+import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.OpenComponentContainer;
 
@@ -32,14 +33,5 @@ import org.fluidity.composition.OpenComponentContainer;
  *
  * @author Tibor Varga
  */
-public interface ComponentFactory {
-
-    /**
-     * Adds an appropriate binding to the given container to successfully get from it an instance of the API this is a factory for.
-     *
-     * @param container is the container to resolve dependencies of the component from.
-     * @param context   is the context for the instance to create. When this is null or empty, the default instance must be created by the binding. The key set
-     *                  in the context is taken from the list of annotation classes in the {@link org.fluidity.composition.Context} annotation of the component
-     */
-    void newComponent(OpenComponentContainer container, ComponentContext context);
+public interface ComponentFactory extends Factory {
 }

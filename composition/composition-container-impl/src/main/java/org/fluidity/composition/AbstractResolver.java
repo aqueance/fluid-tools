@@ -105,10 +105,13 @@ abstract class AbstractResolver implements ComponentResolver {
         }
 
         public Object instance(final DependencyGraph.Traversal traversal) {
-            return cache.lookup(container, node.context(), api, new ComponentCache.Instantiation() {
-                public Object perform() {
+            final ComponentContext context = node.context();
+
+            return cache.lookup(container, context, api, new ComponentCache.Instantiation() {
+                public Object instantiate() {
                     return node.instance(traversal);
                 }
+
             });
         }
 

@@ -16,30 +16,6 @@
 
 package org.fluidity.deployment.maven;
 
-import org.apache.maven.artifact.Artifact;
-import org.apache.maven.artifact.DefaultArtifact;
-import org.apache.maven.artifact.handler.ArtifactHandler;
-import org.apache.maven.artifact.handler.DefaultArtifactHandler;
-import org.apache.maven.artifact.versioning.VersionRange;
-import org.apache.maven.model.Dependency;
-import org.apache.maven.model.Exclusion;
-import org.apache.maven.plugin.MojoExecutionException;
-import org.fluidity.foundation.JarStreams;
-import org.sonatype.aether.RepositorySystem;
-import org.sonatype.aether.RepositorySystemSession;
-import org.sonatype.aether.collection.CollectRequest;
-import org.sonatype.aether.collection.DependencyCollectionContext;
-import org.sonatype.aether.collection.DependencyCollectionException;
-import org.sonatype.aether.collection.DependencySelector;
-import org.sonatype.aether.graph.DependencyNode;
-import org.sonatype.aether.repository.RemoteRepository;
-import org.sonatype.aether.resolution.ArtifactResolutionException;
-import org.sonatype.aether.util.FilterRepositorySystemSession;
-import org.sonatype.aether.util.artifact.ArtifactProperties;
-import org.sonatype.aether.util.artifact.DefaultArtifactType;
-import org.sonatype.aether.util.artifact.JavaScopes;
-import org.sonatype.aether.util.graph.PreorderNodeListGenerator;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -50,31 +26,58 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.fluidity.foundation.JarStreams;
+
+import org.apache.maven.artifact.Artifact;
+import org.apache.maven.artifact.DefaultArtifact;
+import org.apache.maven.artifact.handler.ArtifactHandler;
+import org.apache.maven.artifact.handler.DefaultArtifactHandler;
+import org.apache.maven.artifact.versioning.VersionRange;
+import org.apache.maven.model.Dependency;
+import org.apache.maven.model.Exclusion;
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.project.MavenProject;
+import org.sonatype.aether.RepositorySystem;
+import org.sonatype.aether.RepositorySystemSession;
+import org.sonatype.aether.collection.CollectRequest;
+import org.sonatype.aether.collection.DependencyCollectionContext;
+import org.sonatype.aether.collection.DependencyCollectionException;
+import org.sonatype.aether.collection.DependencySelector;
+import org.sonatype.aether.graph.DependencyFilter;
+import org.sonatype.aether.graph.DependencyNode;
+import org.sonatype.aether.repository.RemoteRepository;
+import org.sonatype.aether.resolution.DependencyRequest;
+import org.sonatype.aether.resolution.DependencyResolutionException;
+import org.sonatype.aether.util.FilterRepositorySystemSession;
+import org.sonatype.aether.util.artifact.ArtifactProperties;
+import org.sonatype.aether.util.artifact.DefaultArtifactType;
+import org.sonatype.aether.util.artifact.JavaScopes;
+import org.sonatype.aether.util.graph.PreorderNodeListGenerator;
+
 /**
  * Convenience methods to access the Maven dependency resolution mechanism.
  *
  * @author Tibor Vara
  */
-public final class MavenDependencies {
+public final class MavenSupport {
 
     private static final String MANIFEST_MAVEN_GROUP_ID = "Maven-Group-Id";
     private static final String MANIFEST_MAVEN_ARTIFACT_ID = "Maven-Artifact-Id";
 
-    private MavenDependencies() {
+    private MavenSupport() {
         throw new UnsupportedOperationException("No instance allowed");
     }
 
     /**
      * Returns the transitive dependencies of the given dependency of the given root artifact.
      *
-     *
      * @param system             a Maven component of the respective type.
      * @param session            a Maven component of the respective type.
      * @param remoteRepositories a Maven component of the respective type.
      * @param dependency         a class from a dependency of the root artifact.
-     *
      * @param root               the root artifact.
      * @param dependencies       the dependencies of the root artifact.
+     *
      * @return the list of transitive dependencies of the given dependency, including the dependency.
      *
      * @throws MojoExecutionException when something went wrong.
@@ -85,16 +88,14 @@ public final class MavenDependencies {
                                                               final Class<?> dependency,
                                                               final Artifact root,
                                                               final List<Dependency> dependencies) throws MojoExecutionException {
-        final String[] spec = JarStreams.manifestAttributes(dependency,
-                                                            MavenDependencies.MANIFEST_MAVEN_GROUP_ID,
-                                                            MavenDependencies.MANIFEST_MAVEN_ARTIFACT_ID);
+        final String[] spec = JarStreams.manifestAttributes(dependency, MANIFEST_MAVEN_GROUP_ID, MANIFEST_MAVEN_ARTIFACT_ID);
 
         if (spec == null || spec.length != 2 || spec[0] == null || spec[1] == null) {
             throw new MojoExecutionException(String.format("Could not find Maven project for %s", dependency));
         }
 
         // level 0
-        final TransitiveDependencySelector dependencySelector = new TransitiveDependencySelector(false);
+        final TransitiveDependencySelector dependencySelector = new TransitiveDependencySelector(false, false);
         final DependencySelector selector = new DependencySelector() {
 
             // level 0: root
@@ -139,6 +140,7 @@ public final class MavenDependencies {
      * @param session            a Maven component of the respective type.
      * @param remoteRepositories a Maven component of the respective type.
      * @param root               the root artifact.
+     * @param compile            should calculate compile time dependencies (<code>true</code>) or run-time dependencies (<code>false</code>).
      * @param optionals          should include optional dependencies and transitive dependencies thereof (value <code>true</code>) or not (value
      *                           <code>false</code>).
      * @param exclusions         the list of "artifactId:groupId" specifications not to include in the result.
@@ -151,9 +153,10 @@ public final class MavenDependencies {
                                                               final RepositorySystemSession session,
                                                               final List<RemoteRepository> remoteRepositories,
                                                               final Artifact root,
+                                                              final boolean compile,
                                                               final boolean optionals,
                                                               final String... exclusions) throws MojoExecutionException {
-        return transitiveDependencies(system, remoteRepositories, root, session, new TransitiveDependencySelector(optionals, exclusions));
+        return transitiveDependencies(system, remoteRepositories, root, session, new TransitiveDependencySelector(compile, optionals, exclusions));
     }
 
     private static Collection<Artifact> transitiveDependencies(final RepositorySystem system,
@@ -181,10 +184,14 @@ public final class MavenDependencies {
         final DependencyNode node;
         try {
             node = system.collectDependencies(filter, collectRequest).getRoot();
-            system.resolveDependencies(filter, node, null);
+            system.resolveDependencies(filter, new DependencyRequest(node, new DependencyFilter() {
+                public boolean accept(final DependencyNode dependency, final List<DependencyNode> path) {
+                    return true;
+                }
+            }));
         } catch (final DependencyCollectionException e) {
             throw new MojoExecutionException("Finding transitive dependencies of " + root, e);
-        } catch (final ArtifactResolutionException e) {
+        } catch (final DependencyResolutionException e) {
             throw new MojoExecutionException("Finding transitive dependencies of " + root, e);
         }
 
@@ -290,9 +297,9 @@ public final class MavenDependencies {
     /**
      * Converts a Maven dependency to an Aether dependency.
      *
-     * @param original the Aether dependency.
-     *
+     * @param original   the Aether dependency.
      * @param exclusions the list of dependency specifications to exclude.
+     *
      * @return the Maven dependency.
      */
     public static org.sonatype.aether.graph.Dependency aetherDependency(final Artifact original, final Collection<Exclusion> exclusions) {
@@ -306,6 +313,53 @@ public final class MavenDependencies {
 
         final org.sonatype.aether.artifact.Artifact artifact = aetherArtifact(original);
         return new org.sonatype.aether.graph.Dependency(artifact, original.getScope(), original.isOptional(), exclusions == null ? null : exclusionList);
+    }
+
+    public static Collection<Artifact> runtimeDependencies(final RepositorySystem system,
+                                                           final RepositorySystemSession session,
+                                                           final List<RemoteRepository> repositories,
+                                                           final MavenProject project) throws MojoExecutionException {
+        return transitiveDependencies(system, session, repositories, project.getArtifact(), false, false);
+    }
+
+    public static Collection<Artifact> compileDependencies(final RepositorySystem system,
+                                                           final RepositorySystemSession session,
+                                                           final List<RemoteRepository> repositories,
+                                                           final MavenProject project) throws MojoExecutionException {
+        return transitiveDependencies(system, session, repositories, project.getArtifact(), true, true);
+    }
+
+    public static void saveArtifact(final MavenProject project, final File file, final String finalName, final String classifier, final String packaging)
+            throws MojoExecutionException {
+        final Artifact artifact = project.getArtifact();
+        final File artifactFile = artifact.getFile();
+
+        if (classifier == null || classifier.length() == 0) {
+            if (!artifactFile.delete()) {
+                throw new MojoExecutionException(String.format("Could not delete %s", artifactFile));
+            }
+
+            if (!file.renameTo(artifactFile)) {
+                throw new MojoExecutionException(String.format("Could not create %s", artifactFile));
+            }
+        } else {
+            final File attachmentFile = new File(String.format("%s-%s.%s", finalName, classifier, packaging));
+
+            if (!file.renameTo(attachmentFile)) {
+                throw new MojoExecutionException(String.format("Could not create %s", attachmentFile));
+            }
+
+            final DefaultArtifact attachment = new DefaultArtifact(artifact.getGroupId(),
+                                                                   artifact.getArtifactId(),
+                                                                   artifact.getVersion(),
+                                                                   artifact.getScope(),
+                                                                   artifact.getType(),
+                                                                   classifier,
+                                                                   artifact.getArtifactHandler());
+            attachment.setFile(attachmentFile);
+
+            project.addAttachedArtifact(attachment);
+        }
     }
 
     private static class DependencyFilterSession extends FilterRepositorySystemSession {
@@ -326,11 +380,14 @@ public final class MavenDependencies {
     private static class TransitiveDependencySelector implements DependencySelector {
 
         private static final HashSet<String> RUNTIME_SCOPES = new HashSet<String>(Arrays.asList(JavaScopes.COMPILE, JavaScopes.RUNTIME));
+        private static final HashSet<String> COMPILE_SCOPES = new HashSet<String>(Arrays.asList(JavaScopes.COMPILE, JavaScopes.PROVIDED));
 
+        private final boolean compile;
         private final boolean optionals;
         private final Set<String> excluded;
 
-        public TransitiveDependencySelector(boolean optionals, final String... exclusions) {
+        public TransitiveDependencySelector(final boolean compile, boolean optionals, final String... exclusions) {
+            this.compile = compile;
             this.optionals = optionals;
             this.excluded = new HashSet<String>(Arrays.asList(exclusions));
         }
@@ -338,7 +395,7 @@ public final class MavenDependencies {
         public boolean selectDependency(final org.sonatype.aether.graph.Dependency dependency) {
             final org.sonatype.aether.artifact.Artifact artifact = dependency.getArtifact();
             final String spec = artifact.getGroupId() + ':' + artifact.getArtifactId();
-            return !excluded.contains(spec) && RUNTIME_SCOPES.contains(dependency.getScope()) && (optionals || !dependency.isOptional());
+            return !excluded.contains(spec) && (compile ? COMPILE_SCOPES : RUNTIME_SCOPES).contains(dependency.getScope()) && (optionals || !dependency.isOptional());
         }
 
         public DependencySelector deriveChildSelector(final DependencyCollectionContext context) {

@@ -43,6 +43,7 @@
         <module>deployment-impl</module>
         <module>war-bootstrap-spi</module>
         <module>cli-bootstrap</module>
+        <module>osgi-bootstrap</module>
         <module>war-boundary-utils</module>
         <module>plugins</module>
     </modules>

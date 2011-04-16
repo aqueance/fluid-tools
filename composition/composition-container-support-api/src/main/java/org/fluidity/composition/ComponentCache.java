@@ -47,6 +47,6 @@ public interface ComponentCache {
          *
          * @return a new instance of a component; never <code>null</code>.
          */
-        Object perform();
+        Object instantiate();
     }
 }

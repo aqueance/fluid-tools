@@ -23,7 +23,7 @@ import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 import org.fluidity.deployment.WarBootstrapLoader;
-import org.fluidity.deployment.maven.MavenDependencies;
+import org.fluidity.deployment.maven.MavenSupport;
 import org.fluidity.foundation.Streams;
 import org.sonatype.aether.RepositorySystem;
 import org.sonatype.aether.RepositorySystemSession;
@@ -83,6 +83,15 @@ public class StandaloneWarMojo extends AbstractMojo {
     private boolean commandLineOnly;
 
     /**
+     * Instructs the plugin, when set, to create a new JAR with the given classifier and attach it to the project. When not set, the project's JAR artifact
+     * is overwritten.
+     *
+     * @parameter default-value=""
+     */
+    @SuppressWarnings("UnusedDeclaration")
+    private String classifier;
+
+    /**
      * The location of the compiled classes.
      *
      * @parameter expression="${project.build.directory}"
@@ -101,6 +110,16 @@ public class StandaloneWarMojo extends AbstractMojo {
      */
     @SuppressWarnings("UnusedDeclaration")
     private File packageFile;
+
+    /**
+     * The project artifact's final name.
+     *
+     * @parameter expression="${project.build.directory}/${project.build.finalName}"
+     * @required
+     * @readonly
+     */
+    @SuppressWarnings("UnusedDeclaration")
+    private String finalName;
 
     /**
      * @parameter expression="${plugin.groupId}"
@@ -170,20 +189,21 @@ public class StandaloneWarMojo extends AbstractMojo {
         final String pluginKey = Plugin.constructKey(pluginGroupId, pluginArtifactId);
         final Artifact pluginArtifact = project.getPluginArtifactMap().get(pluginKey);
 
-        final Collection<Artifact> bootstrapDependencies = MavenDependencies.transitiveDependencies(repositorySystem,
-                                                                                                    repositorySession,
-                                                                                                    projectRepositories,
-                                                                                                    WarBootstrapLoader.class,
-                                                                                                    pluginArtifact,
-                                                                                                    null);
+        final Collection<Artifact> bootstrapDependencies = MavenSupport.transitiveDependencies(repositorySystem,
+                                                                                               repositorySession,
+                                                                                               projectRepositories,
+                                                                                               WarBootstrapLoader.class,
+                                                                                               pluginArtifact,
+                                                                                               null);
         final Set<Artifact> serverDependencies = new HashSet<Artifact>();
         for (final Dependency dependency : project.getPlugin(pluginKey).getDependencies()) {
             if (!dependency.isOptional()) {
-                serverDependencies.addAll(MavenDependencies.transitiveDependencies(repositorySystem,
-                                                                                   repositorySession,
-                                                                                   projectRepositories,
-                                                                                   MavenDependencies.dependencyArtifact(dependency),
-                                                                                   false));
+                serverDependencies.addAll(MavenSupport.transitiveDependencies(repositorySystem,
+                                                                              repositorySession,
+                                                                              projectRepositories,
+                                                                              MavenSupport.dependencyArtifact(dependency),
+                                                                              false,
+                                                                              false));
             }
         }
 
@@ -194,8 +214,8 @@ public class StandaloneWarMojo extends AbstractMojo {
             }
         }
 
-        serverDependencies.removeAll(MavenDependencies.transitiveDependencies(repositorySystem, repositorySession, projectRepositories, project.getArtifact(), false));
-        serverDependencies.removeAll(MavenDependencies.transitiveDependencies(repositorySystem, repositorySession, projectRepositories, pluginArtifact, false));
+        serverDependencies.removeAll(MavenSupport.transitiveDependencies(repositorySystem, repositorySession, projectRepositories, project.getArtifact(), false, false));
+        serverDependencies.removeAll(MavenSupport.transitiveDependencies(repositorySystem, repositorySession, projectRepositories, pluginArtifact, false, false));
         serverDependencies.remove(pluginArtifact);
 
         final Set<String> processedEntries = new HashSet<String>();
@@ -321,13 +341,7 @@ public class StandaloneWarMojo extends AbstractMojo {
                 }
             }
 
-            if (!packageFile.delete()) {
-                throw new MojoExecutionException(String.format("Could not delete %s", packageFile));
-            }
-
-            if (!file.renameTo(packageFile)) {
-                throw new MojoExecutionException(String.format("Could not create %s", packageFile));
-            }
+            MavenSupport.saveArtifact(project, file, finalName, classifier, packaging);
         } catch (final IOException e) {
             throw new MojoExecutionException(String.format("Processing %s", packageFile), e);
         }

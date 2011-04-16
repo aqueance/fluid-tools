@@ -16,9 +16,10 @@
 
 package org.fluidity.composition;
 
-import java.util.Map;
-
 import org.fluidity.composition.spi.ContainerProvider;
+import org.fluidity.composition.spi.PlatformContainer;
+
+import java.util.Map;
 
 /**
  * Bootstraps the component container provided by a {@link ContainerProvider}.
@@ -40,6 +41,8 @@ interface ContainerBootstrap {
      * @param parent      is the container to use as the parent of the one returned; can be <code>null</code>, in which case a standalone container is
      *                    returned.
      * @param classLoader is the class loader to use to discover package bindings. Package bindings found in the class loader ancestry are ignored when the
+     * @param platform    the container that turns the host platform's component container into a super container for Fluid Tools.
+     * @param callback    object to notify when a container is initialized or shut down.
      *
      * @return the container with the bindings registered.
      */
@@ -47,15 +50,22 @@ interface ContainerBootstrap {
                                              ContainerProvider provider,
                                              Map properties,
                                              OpenComponentContainer parent,
-                                             ClassLoader classLoader);
+                                             ClassLoader classLoader,
+                                             PlatformContainer platform, final Callback callback);
 
     /**
-     * Calls the {@link org.fluidity.composition.spi.PackageBindings#initializeComponents(ComponentContainer)} method on all bindings and adds shutdown tasks to
-     * call the {@link org.fluidity.composition.spi.PackageBindings#shutdownComponents(ComponentContainer)} method on the bindings, in reverse order.
+     * Calls the {@link org.fluidity.composition.spi.PackageBindings#initializeComponents(ComponentContainer)} method on all bindings and adds shutdown tasks
+     * to call the {@link org.fluidity.composition.spi.PackageBindings#shutdownComponents(ComponentContainer)} method on the bindings, in reverse order.
      *
-     * @param container the container, returned by the {@link #populateContainer(ContainerServices, org.fluidity.composition.spi.ContainerProvider,
-     *                  java.util.Map, OpenComponentContainer, ClassLoader)} method, to initialize.
+     * @param container the container, returned by the {@link #populateContainer(ContainerServices, org.fluidity.composition.spi.ContainerProvider, java.util.Map, OpenComponentContainer, ClassLoader, org.fluidity.composition.spi.PlatformContainer, org.fluidity.composition.ContainerBootstrap.Callback)} method, to initialize.
      * @param services  provides basic services for containers
      */
     void initializeContainer(OpenComponentContainer container, ContainerServices services);
+
+    interface Callback {
+
+        void containerInitialized(OpenComponentContainer container);
+
+        void containerShutdown(OpenComponentContainer container);
+    }
 }

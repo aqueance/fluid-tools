@@ -17,9 +17,11 @@
 package org.fluidity.composition;
 
 import java.lang.annotation.Annotation;
+import java.util.Arrays;
 import java.util.Set;
 
 import org.fluidity.composition.spi.ComponentFactory;
+import org.fluidity.composition.spi.Factory;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**
@@ -27,26 +29,16 @@ import org.fluidity.foundation.spi.LogFactory;
  *
  * @author Tibor Varga
  */
-abstract class FactoryResolver extends AbstractResolver {
+abstract class FactoryResolver extends AbstractFactoryResolver {
 
     private final Class<? extends ComponentFactory> factoryClass;
-
-    /**
-     * Returns the {@link ComponentFactory} instance this is a mapping for.
-
-     * @param container the container in which to resolve dependencies of the factory.
-     * @param traversal the current graph traversal.
-     *
-     * @return the {@link ComponentFactory} instance this is a mapping for.
-     */
-    protected abstract ComponentFactory factory(final SimpleContainer container, final DependencyGraph.Traversal traversal);
 
     public FactoryResolver(final int priority,
                            final Class<?> api,
                            final Class<? extends ComponentFactory> factoryClass,
                            final ComponentCache cache,
                            final LogFactory logs) {
-        super(priority, api, cache, logs);
+        super(factoryClass, priority, api, cache, logs);
         this.factoryClass = factoryClass;
     }
 
@@ -58,14 +50,8 @@ abstract class FactoryResolver extends AbstractResolver {
         return null;
     }
 
-    public final Class<? extends ComponentFactory> factoryClass() {
-        return factoryClass;
-    }
-
     public DependencyGraph.Node resolve(final DependencyGraph.Traversal traversal, final SimpleContainer container, final ContextDefinition context) {
-        final SimpleContainer child = container.newChildContainer();
-        factory(container, traversal).newComponent(new ComponentContainerShell(child, context, false), context.create());
-        return cachingNode(child.resolveComponent(api, context, traversal), child);
+        return resolve(traversal, container, context, container.newChildContainer());
     }
 
     @Override

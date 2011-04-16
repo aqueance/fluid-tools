@@ -131,10 +131,10 @@ public final class JarStreams {
         }
 
         try {
-            final URLConnection connection = url.openConnection();
+            final URL jar = jarFile(url).getJarFileURL();
 
-            if (connection instanceof JarURLConnection) {
-                final Attributes manifest = loadManifest(((JarURLConnection) connection).getJarFileURL()).getMainAttributes();
+            if (jar != null) {
+                final Attributes manifest = loadManifest(jar).getMainAttributes();
 
                 final List<String> list = new ArrayList<String>();
                 for (final String name : names) {
@@ -170,6 +170,15 @@ public final class JarStreams {
         }
 
         return manifest;
+    }
+
+    public static JarURLConnection jarFile(final URL url) {
+        try {
+            final URLConnection connection = url.openConnection();
+            return connection instanceof JarURLConnection ? ((JarURLConnection) connection) : null;
+        } catch (final IOException e) {
+            return null;
+        }
     }
 
     /**

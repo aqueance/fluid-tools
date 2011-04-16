@@ -16,25 +16,25 @@
 
 package org.fluidity.composition;
 
+import org.easymock.EasyMock;
+import org.easymock.IAnswer;
+import org.fluidity.composition.spi.ContainerProvider;
+import org.fluidity.composition.spi.EmptyPackageBindings;
+import org.fluidity.composition.spi.PackageBindings;
+import org.fluidity.composition.spi.PlatformContainer;
+import org.fluidity.composition.spi.ShutdownTasks;
+import org.fluidity.foundation.NoLogFactory;
+import org.fluidity.foundation.spi.LogFactory;
+import org.fluidity.tests.MockGroupAbstractTest;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-
-import org.fluidity.composition.spi.ContainerProvider;
-import org.fluidity.composition.spi.EmptyPackageBindings;
-import org.fluidity.composition.spi.PackageBindings;
-import org.fluidity.composition.spi.ShutdownTasks;
-import org.fluidity.foundation.NoLogFactory;
-import org.fluidity.foundation.spi.LogFactory;
-import org.fluidity.tests.MockGroupAbstractTest;
-
-import org.easymock.EasyMock;
-import org.easymock.IAnswer;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
 
 /**
  * @author Tibor Varga
@@ -43,6 +43,8 @@ public final class ContainerBootstrapImplTest extends MockGroupAbstractTest {
 
     private final LogFactory logs = new NoLogFactory();
 
+    private final ContainerBootstrap.Callback callback = addControl(ContainerBootstrap.Callback.class);
+    private final PlatformContainer platform = addControl(PlatformContainer.class);
     private final ContainerProvider provider = addControl(ContainerProvider.class);
     private final ContainerServices services = addControl(ContainerServices.class);
     private final ClassDiscovery discovery = addControl(ClassDiscovery.class);
@@ -64,7 +66,7 @@ public final class ContainerBootstrapImplTest extends MockGroupAbstractTest {
 
     @SuppressWarnings("unchecked")
     private Object populateContainer(final Class[] classes, final List<PackageBindings> instances) {
-        EasyMock.expect(provider.newContainer(services)).andReturn(container);
+        EasyMock.expect(provider.newContainer(services, platform)).andReturn(container);
         EasyMock.expect(discovery.findComponentClasses(PackageBindings.class, null, false)).andReturn(classes);
 
         EasyMock.expect(provider.instantiateBindings(EasyMock.same(services), EasyMock.<Map>isNull(), EasyMock.<Class<PackageBindings>[]>notNull()))
@@ -93,7 +95,7 @@ public final class ContainerBootstrapImplTest extends MockGroupAbstractTest {
         });
 
         replay();
-        bootstrap.populateContainer(services, provider, null, null, null);
+        bootstrap.populateContainer(services, provider, null, null, null, platform, callback);
         verify();
 
         dependencies();
@@ -139,6 +141,9 @@ public final class ContainerBootstrapImplTest extends MockGroupAbstractTest {
             }
         });
 
+        callback.containerInitialized(container);
+        callback.containerShutdown(container);
+
         this.bindings.initializeComponents(container);
         EasyMock.expectLastCall().times(2);
 
@@ -157,6 +162,7 @@ public final class ContainerBootstrapImplTest extends MockGroupAbstractTest {
 
         EasyMock.expect(container.getComponent(ShutdownTasks.class)).andReturn(null);
         EasyMock.expect(container.getComponent(EasyMock.<Class>anyObject())).andReturn(object);
+        callback.containerInitialized(container);
 
         replay();
 
@@ -202,7 +208,7 @@ public final class ContainerBootstrapImplTest extends MockGroupAbstractTest {
         registry.bindInstance(EasyMock.anyObject());
 
         replay();
-        assert container == bootstrap.populateContainer(services, provider, null, parent, null);
+        assert container == bootstrap.populateContainer(services, provider, null, parent, null, platform, callback);
         verify();
     }
 
@@ -211,7 +217,7 @@ public final class ContainerBootstrapImplTest extends MockGroupAbstractTest {
     public void standaloneComponentAssembly() throws Exception {
 
         // we're not passing a container so testee is expected to create one
-        EasyMock.expect(provider.newContainer(services)).andReturn(container);
+        EasyMock.expect(provider.newContainer(services, platform)).andReturn(container);
         EasyMock.expect(container.getRegistry()).andReturn(registry);
 
         final Class[] assemblies = {
@@ -235,7 +241,7 @@ public final class ContainerBootstrapImplTest extends MockGroupAbstractTest {
         registry.bindInstance(EasyMock.anyObject());
 
         replay();
-        assert bootstrap.populateContainer(services, provider, null, null, null) != null;
+        assert bootstrap.populateContainer(services, provider, null, null, null, platform, callback) != null;
         verify();
     }
 
@@ -260,7 +266,7 @@ public final class ContainerBootstrapImplTest extends MockGroupAbstractTest {
         registry.bindInstance(EasyMock.anyObject());
 
         replay();
-        assert container == bootstrap.populateContainer(services, provider, properties, parent, null);
+        assert container == bootstrap.populateContainer(services, provider, properties, parent, null, platform, callback);
         verify();
     }
 
