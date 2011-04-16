@@ -16,15 +16,15 @@
 
 package org.fluidity.composition;
 
-import org.fluidity.composition.spi.ContainerProvider;
-import org.fluidity.composition.spi.PackageBindings;
-import org.fluidity.composition.spi.PlatformContainer;
-
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+
+import org.fluidity.composition.spi.ContainerProvider;
+import org.fluidity.composition.spi.PackageBindings;
+import org.fluidity.composition.spi.PlatformContainer;
 
 /**
  * @author Tibor Varga
@@ -36,9 +36,7 @@ final class ContainerProviderImpl implements ContainerProvider {
     }
 
     @SuppressWarnings("unchecked")
-    public List<PackageBindings> instantiateBindings(final ContainerServices services,
-                                                     final Map properties,
-                                                     final Class<PackageBindings>[] bindings) {
+    public List<PackageBindings> instantiateBindings(final ContainerServices services, final Map properties, final Class<PackageBindings>[] bindings) {
         final SimpleContainer container = new SimpleContainerImpl(services, null);
 
         if (properties != null) {
@@ -50,7 +48,9 @@ final class ContainerProviderImpl implements ContainerProvider {
          */
         final Collection<Class<?>> groups = Collections.<Class<?>>singletonList(PackageBindings.class);
         for (final Class<PackageBindings> binding : bindings) {
-            container.bindComponent(new Components.Interfaces(binding, false, false, new Components.Specification[] { new Components.Specification(binding, groups) }));
+            container.bindComponent(new Components.Interfaces(binding, false, false, new Components.Specification[] {
+                    new Components.Specification(binding, groups)
+            }));
         }
 
         /*

@@ -42,6 +42,7 @@ public final class JarStreams {
      *
      * @param jar    the URL of the jar file.
      * @param reader the object that filters and reads the jar entries.
+     *
      * @throws java.io.IOException when something goes wrong reading the jar file.
      */
     public static void readNestedEntries(final URL jar, final JarEntryReader reader) throws IOException {
@@ -82,6 +83,7 @@ public final class JarStreams {
      *
      * @param jar    the URL of the jar file.
      * @param reader the object that reads the jar entries.
+     *
      * @throws java.io.IOException when something goes wrong reading the jar file.
      */
     public static void readEntries(final URL jar, final JarEntryReader reader) throws IOException {
@@ -121,6 +123,7 @@ public final class JarStreams {
      *
      * @param aClass the class whose source jar is to be processed.
      * @param names  the list of attribute names to load.
+     *
      * @return an array of Strings, each being the value of the attribute name at the same index.
      */
     public static String[] manifestAttributes(final Class<?> aClass, final String... names) {
@@ -190,7 +193,9 @@ public final class JarStreams {
          * Tells if the {@link #read(JarEntry, JarInputStream)} method should be invoked with the given entry.
          *
          * @param entry the entry to decide about; never <code>null</code>.
+         *
          * @return <code>true</code> if the given entry should be passed to the {@link #read(JarEntry, JarInputStream)} method, <code>false</code> if not.
+         *
          * @throws java.io.IOException when something goes wrong reading the jar file.
          */
         boolean matches(JarEntry entry) throws IOException;
@@ -200,7 +205,9 @@ public final class JarStreams {
          *
          * @param entry  the entry to read.
          * @param stream the stream containing the entry's contnt.
+         *
          * @return <code>true</code> if further searching is needed, <code>false</code> if search should terminate.
+         *
          * @throws java.io.IOException when something goes wrong reading the jar file.
          */
         boolean read(JarEntry entry, JarInputStream stream) throws IOException;

@@ -111,9 +111,8 @@ public final class Components {
      * those classes.</li>
      * </ul>
      *
-     *
      * @param componentClass the component class to inspect.
-     * @param restrictions optional list of interfaces to use instead of whatever the algorithm would find.
+     * @param restrictions   optional list of interfaces to use instead of whatever the algorithm would find.
      *
      * @return an object listing all component interfaces and the set of component group interfaces for each.
      *
@@ -160,13 +159,13 @@ public final class Components {
         final Set<Specification> interfaces = new LinkedHashSet<Specification>();
 
         for (final Map.Entry<Class<?>, Set<Class<?>>> entry : interfaceMap.entrySet()) {
-          final Class<?> type = entry.getKey();
+            final Class<?> type = entry.getKey();
 
-          if (factories.contains(type)) {
-            throw new ComponentContainer.BindingException("Component interface for %s is the factory interface itself: %s", componentClass, type);
-          }
+            if (factories.contains(type)) {
+                throw new ComponentContainer.BindingException("Component interface for %s is the factory interface itself: %s", componentClass, type);
+            }
 
-          interfaces.add(new Specification(type, entry.getValue()));
+            interfaces.add(new Specification(type, entry.getValue()));
         }
 
         final Set<Class<?>> allGroups = new HashSet<Class<?>>();

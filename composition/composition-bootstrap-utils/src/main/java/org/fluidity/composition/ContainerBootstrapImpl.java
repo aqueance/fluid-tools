@@ -16,14 +16,14 @@
 
 package org.fluidity.composition;
 
+import java.util.List;
+import java.util.Map;
+
 import org.fluidity.composition.spi.ContainerProvider;
 import org.fluidity.composition.spi.PackageBindings;
 import org.fluidity.composition.spi.PlatformContainer;
 import org.fluidity.composition.spi.ShutdownTasks;
 import org.fluidity.foundation.logging.Log;
-
-import java.util.List;
-import java.util.Map;
 
 /**
  * Bootstraps the component container. This class is exported via the standard service provider discovery mechanism described in the <a
@@ -33,7 +33,7 @@ import java.util.Map;
  */
 final class ContainerBootstrapImpl implements ContainerBootstrap {
 
-  @SuppressWarnings("unchecked")
+    @SuppressWarnings("unchecked")
     public OpenComponentContainer populateContainer(final ContainerServices services,
                                                     final ContainerProvider provider,
                                                     final Map properties,

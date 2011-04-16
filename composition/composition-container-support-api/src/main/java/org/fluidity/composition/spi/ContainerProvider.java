@@ -16,12 +16,12 @@
 
 package org.fluidity.composition.spi;
 
+import java.util.List;
+import java.util.Map;
+
 import org.fluidity.composition.ContainerServices;
 import org.fluidity.composition.OpenComponentContainer;
 import org.fluidity.composition.ServiceProvider;
-
-import java.util.List;
-import java.util.Map;
 
 /**
  * Provides actual dependency injection container instances and related functionality.
@@ -36,6 +36,7 @@ public interface ContainerProvider {
      *
      * @param services provides service components for the container.
      * @param platform the container that turns the host platform's component container into a super container for Fluid Tools.
+     *
      * @return and empty standalone dependency injection container.
      */
     OpenComponentContainer newContainer(ContainerServices services, PlatformContainer platform);
@@ -46,6 +47,7 @@ public interface ContainerProvider {
      * @param services   provides service components for containers, in case needed.
      * @param properties is to be made available to any {@link PackageBindings} object that may depend on it
      * @param bindings   the collection of classes to instantiate. Some may depend on others in the set.
+     *
      * @return the list of {@link PackageBindings} instances in instantiation order.
      */
     List<PackageBindings> instantiateBindings(ContainerServices services, Map properties, Class<PackageBindings>[] bindings);

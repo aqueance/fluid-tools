@@ -16,22 +16,23 @@
 
 package org.fluidity.composition;
 
-import org.easymock.EasyMock;
-import org.easymock.IAnswer;
-import org.easymock.IMocksControl;
-import org.fluidity.composition.spi.ContainerProvider;
-import org.fluidity.composition.spi.PlatformContainer;
-import org.fluidity.foundation.NoLogFactory;
-import org.fluidity.foundation.spi.LogFactory;
-import org.fluidity.tests.MockGroupAbstractTest;
-import org.testng.annotations.Test;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Properties;
+
+import org.fluidity.composition.spi.ContainerProvider;
+import org.fluidity.composition.spi.PlatformContainer;
+import org.fluidity.foundation.NoLogFactory;
+import org.fluidity.foundation.spi.LogFactory;
+import org.fluidity.tests.MockGroupAbstractTest;
+
+import org.easymock.EasyMock;
+import org.easymock.IAnswer;
+import org.easymock.IMocksControl;
+import org.testng.annotations.Test;
 
 /**
  * @author Tibor Varga
@@ -320,7 +321,7 @@ public class ContainerBoundaryTest extends MockGroupAbstractTest {
             }
         });
 
-      final BootComponent1 component1 = new BootComponent1();
+        final BootComponent1 component1 = new BootComponent1();
         final BootComponent2 component2 = new BootComponent2();
 
         EasyMock.expect(container.getRegistry()).andReturn(registry);
@@ -332,10 +333,10 @@ public class ContainerBoundaryTest extends MockGroupAbstractTest {
         // container is initialized
         bootstrap.initializeContainer(container, services);
         EasyMock.expectLastCall().andAnswer(new IAnswer<Object>() {
-          public Object answer() throws Throwable {
-            callback[0].containerInitialized(container);
-            return null;
-          }
+            public Object answer() throws Throwable {
+                callback[0].containerInitialized(container);
+                return null;
+            }
         });
 
         replay();

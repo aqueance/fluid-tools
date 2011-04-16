@@ -122,10 +122,10 @@ abstract class VariantResolver extends AbstractFactoryResolver {
 
         child.bindResolver(api, findDelegate());
 
-      return resolve(traversal, container, context, child);
+        return resolve(traversal, container, context, child);
     }
 
-  @Override
+    @Override
     public String toString() {
         return String.format("%s (via %s)", delegate == null ? api : delegate.toString(), factoryClass().getName());
     }

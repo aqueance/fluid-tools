@@ -16,15 +16,6 @@
 
 package org.fluidity.composition;
 
-import org.fluidity.composition.spi.ComponentFactory;
-import org.fluidity.composition.spi.ComponentMapping;
-import org.fluidity.composition.spi.ComponentResolutionObserver;
-import org.fluidity.composition.spi.ComponentVariantFactory;
-import org.fluidity.composition.spi.PlatformContainer;
-import org.fluidity.foundation.Strings;
-import org.fluidity.foundation.logging.Log;
-import org.fluidity.foundation.spi.LogFactory;
-
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
@@ -36,6 +27,15 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import org.fluidity.composition.spi.ComponentFactory;
+import org.fluidity.composition.spi.ComponentMapping;
+import org.fluidity.composition.spi.ComponentResolutionObserver;
+import org.fluidity.composition.spi.ComponentVariantFactory;
+import org.fluidity.composition.spi.PlatformContainer;
+import org.fluidity.foundation.Strings;
+import org.fluidity.foundation.logging.Log;
+import org.fluidity.foundation.spi.LogFactory;
 
 /**
  * @author Tibor Varga
@@ -145,7 +145,10 @@ final class SimpleContainerImpl implements ParentContainer {
         }
     }
 
-    private void bindResolvers(final Class<?> implementation, final Components.Specification[] interfaces, final boolean stateful, final ContentResolvers resolvers) {
+    private void bindResolvers(final Class<?> implementation,
+                               final Components.Specification[] interfaces,
+                               final boolean stateful,
+                               final ContentResolvers resolvers) {
         if (resolvers.isVariantFactory()) {
             bindResolver(implementation, resolvers.component(implementation, services.newCache(true), true));
 
@@ -491,6 +494,7 @@ final class SimpleContainerImpl implements ParentContainer {
          * @param api             the interface to which the component will be bound.
          * @param cache           the cache to use for the component.
          * @param resolvesFactory tells if the component resolves a factory instance.
+         *
          * @return a component resolver that will resolve, and cache if necessary, a single instance of the component.
          */
         ComponentResolver component(Class<?> api, final ComponentCache cache, final boolean resolvesFactory);
@@ -500,6 +504,7 @@ final class SimpleContainerImpl implements ParentContainer {
          *
          * @param api   the interface to which the variant factory will be bound.
          * @param cache the cache to use for the variant factory.
+         *
          * @return a variant resolver that will produce, and cache if necessary, a single instance of a variant factory.
          */
         VariantResolver variant(Class<?> api, final ComponentCache cache);
@@ -509,6 +514,7 @@ final class SimpleContainerImpl implements ParentContainer {
          *
          * @param api   the interface to which the factory will be bound.
          * @param cache the cache to use for the factory.
+         *
          * @return a component resolver that will produce, and cache if necessary, a single instance of a component factory.
          */
         FactoryResolver factory(Class<?> api, final ComponentCache cache);

@@ -16,11 +16,11 @@
 
 package org.fluidity.foundation;
 
-import sun.misc.Service;
-import sun.misc.ServiceConfigurationError;
-
 import java.util.Iterator;
 import java.util.ServiceLoader;
+
+import sun.misc.Service;
+import sun.misc.ServiceConfigurationError;
 
 /**
  * Wraps the Sun JDK service provider discovery implementation, which was private API prior to Java 6. This class is used internally before the more
@@ -41,6 +41,7 @@ public final class ServiceProviders {
      * @param interfaceClass the service provider interface.
      * @param classLoader    the class loader to look for implementations in.
      * @param <T>            the service provider interface
+     *
      * @return the first implementation of the given interface or <code>null</code> if none found.
      */
     public static <T> T findInstance(final Class<T> interfaceClass, final ClassLoader classLoader) {

@@ -16,20 +16,19 @@
 
 package org.fluidity.deployment.osgi;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Array;
+
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ContextDefinition;
 import org.fluidity.composition.Inject;
 import org.fluidity.composition.spi.PlatformContainer;
 import org.fluidity.foundation.logging.Log;
 import org.fluidity.foundation.logging.Marker;
+
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
-
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Adapts the OSGi service container to a super container for the dependency injection container of a deployed bundle.
@@ -78,7 +77,7 @@ final class ServiceContainer implements PlatformContainer {
                 final T[] components = (T[]) Array.newInstance(api, references.length);
 
                 for (int i = 0, limit = references.length; i < limit; i++) {
-                  final ServiceReference reference = references[i];
+                    final ServiceReference reference = references[i];
                     components[i] = (T) bundle.getService(reference);
                 }
 
@@ -114,7 +113,7 @@ final class ServiceContainer implements PlatformContainer {
         return selectors != null && selectors.length > 0 ? ((Selector) selectors[selectors.length - 1]).value() : null;
     }
 
-  public void stop() {
+    public void stop() {
         log.info("container %s shut down", id());
     }
 

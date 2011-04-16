@@ -16,11 +16,6 @@
 
 package org.fluidity.composition;
 
-import org.fluidity.composition.spi.ComponentResolutionObserver;
-import org.fluidity.composition.spi.ContainerProvider;
-import org.fluidity.composition.spi.PlatformContainer;
-import org.fluidity.foundation.spi.LogFactory;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -29,6 +24,11 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
+
+import org.fluidity.composition.spi.ComponentResolutionObserver;
+import org.fluidity.composition.spi.ContainerProvider;
+import org.fluidity.composition.spi.PlatformContainer;
+import org.fluidity.foundation.spi.LogFactory;
 
 /**
  * Static access to class loader specific dependency injection container. This utility class ensures that the child container - parent container hierarchy
@@ -58,21 +58,20 @@ public final class ContainerBoundary implements ComponentContainer {
     private static final ContainerBootstrap.Callback CONTAINER_LOCK_CALLBACK = new ContainerBootstrap.Callback() {
         public void containerInitialized(final OpenComponentContainer container) {
             synchronized (stateLock) {
-System.out.printf("Container %s locked", container);
                 lockedContainers.add(container);
             }
         }
 
         public void containerShutdown(final OpenComponentContainer container) {
             synchronized (stateLock) {
-System.out.printf("Container %s unlocked", container);
                 lockedContainers.remove(container);
             }
         }
-  };
+    };
 
-  /**
-     * The component that can discover the above dependencies for us. The point is to have one single dependency for unit tests to override. This class is not
+    /**
+     * The component that can discover the above dependencies for us. The point is to have one single dependency for unit tests to override. This class is
+     * not
      * dependency injected and so it is important to keep its dependencies down to a minimum.
      */
     private BootstrapServices services;
@@ -147,7 +146,7 @@ System.out.printf("Container %s unlocked", container);
      * Calling this method will trigger population of the associated container and its parents.
      *
      * @param instance the component instance.
-     * @param api optional list of interfaces to bind the object against.
+     * @param api      optional list of interfaces to bind the object against.
      *
      * @throws IllegalStateException if the container is made read only by getting any component out of it.
      */
@@ -167,7 +166,7 @@ System.out.printf("Container %s unlocked", container);
      * {@inheritDoc}
      */
     public <T> T getComponent(final Class<T> api) {
-      return loadContainer(true).getComponent(api);
+        return loadContainer(true).getComponent(api);
     }
 
     /**
@@ -202,7 +201,7 @@ System.out.printf("Container %s unlocked", container);
     }
 
     public <T> T[] getComponentGroup(final Class<T> api) {
-      return loadContainer(true).getComponentGroup(api);
+        return loadContainer(true).getComponentGroup(api);
     }
 
     /**

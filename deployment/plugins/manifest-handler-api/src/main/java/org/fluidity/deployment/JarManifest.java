@@ -16,12 +16,12 @@
 
 package org.fluidity.deployment;
 
-import org.apache.maven.artifact.Artifact;
-import org.apache.maven.project.MavenProject;
-
 import java.util.Collection;
 import java.util.List;
 import java.util.jar.Attributes;
+
+import org.apache.maven.artifact.Artifact;
+import org.apache.maven.project.MavenProject;
 
 /**
  * Interface that a manifest handler must implement. In practice this is a service provider but since no composition
@@ -49,6 +49,7 @@ public interface JarManifest {
      * @param attributes   the main manifest attributes.
      * @param paths        the list of dependency paths pointing to the embedded JAR files relative to the JAR file root.
      * @param dependencies the actual project dependencies.
+     *
      * @return <code>true</code> if the receiver and its dependencies should be copied to the root path in the JAR file, <code>false</code> if they should not.
      */
     boolean processManifest(MavenProject project, Attributes attributes, List<String> paths, Collection<Artifact> dependencies);
@@ -62,6 +63,7 @@ public interface JarManifest {
          * Do some computation and return the result.
          *
          * @param object some parameter.
+         *
          * @return the result.
          */
         R run(P object);

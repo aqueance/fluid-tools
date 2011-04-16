@@ -16,19 +16,6 @@
 
 package org.fluidity.maven;
 
-import org.apache.maven.artifact.Artifact;
-import org.apache.maven.model.Dependency;
-import org.apache.maven.model.Plugin;
-import org.apache.maven.plugin.AbstractMojo;
-import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.project.MavenProject;
-import org.fluidity.deployment.WarBootstrapLoader;
-import org.fluidity.deployment.maven.MavenSupport;
-import org.fluidity.foundation.Streams;
-import org.sonatype.aether.RepositorySystem;
-import org.sonatype.aether.RepositorySystemSession;
-import org.sonatype.aether.repository.RemoteRepository;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -44,6 +31,20 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
+
+import org.fluidity.deployment.WarBootstrapLoader;
+import org.fluidity.deployment.maven.MavenSupport;
+import org.fluidity.foundation.Streams;
+
+import org.apache.maven.artifact.Artifact;
+import org.apache.maven.model.Dependency;
+import org.apache.maven.model.Plugin;
+import org.apache.maven.plugin.AbstractMojo;
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.project.MavenProject;
+import org.sonatype.aether.RepositorySystem;
+import org.sonatype.aether.RepositorySystemSession;
+import org.sonatype.aether.repository.RemoteRepository;
 
 /**
  * Adds code to the project .war file that allows it to be run as a .jar file, e.g. <code>$ java -jar &lt;file name>.war</code>. More .war files can be
@@ -176,7 +177,7 @@ public class StandaloneWarMojo extends AbstractMojo {
      * @parameter default-value="${project.remoteProjectRepositories}"
      * @readonly
      */
-    @SuppressWarnings({ "UnusedDeclaration", "MismatchedQueryAndUpdateOfCollection" })
+    @SuppressWarnings( { "UnusedDeclaration", "MismatchedQueryAndUpdateOfCollection" })
     private List<RemoteRepository> projectRepositories;
 
     public void execute() throws MojoExecutionException {

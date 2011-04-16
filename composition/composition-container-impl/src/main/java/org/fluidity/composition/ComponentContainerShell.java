@@ -44,7 +44,7 @@ final class ComponentContainerShell extends EmptyComponentContainer {
                                    final ContextDefinition context,
                                    final boolean child,
                                    final ComponentResolutionObserver observer) {
-      this(container, context, context.copy(), child, observer);
+        this(container, context, context.copy(), child, observer);
     }
 
     public ComponentContainerShell(final SimpleContainer container,
@@ -66,12 +66,12 @@ final class ComponentContainerShell extends EmptyComponentContainer {
     }
 
     private <T> T collect(final Command<T> command) {
-      final ContextDefinition context = innerContext.copy();
-      try {
-        return command.run(context);
-      } finally {
-        outerContext.collect(context);
-      }
+        final ContextDefinition context = innerContext.copy();
+        try {
+            return command.run(context);
+        } finally {
+            outerContext.collect(context);
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -96,7 +96,7 @@ final class ComponentContainerShell extends EmptyComponentContainer {
                     public T[] run(final DependencyGraph.Traversal traversal) {
                         final DependencyGraph.Node node = container.resolveGroup(api, context, traversal);
                         return node == null ? null : (T[]) node.instance(traversal);
-                   }
+                    }
                 });
             }
         });
@@ -117,14 +117,14 @@ final class ComponentContainerShell extends EmptyComponentContainer {
 
     public void resolveGroup(final Class<?> api) {
         collect(new Command<Void>() {
-          public Void run(final ContextDefinition context) {
-            return container.observe(observer, new SimpleContainer.Observed<Void>() {
-              public Void run(final DependencyGraph.Traversal traversal) {
-                container.resolveGroup(api, innerContext, traversal);
-                return null;
-              }
-            });
-          }
+            public Void run(final ContextDefinition context) {
+                return container.observe(observer, new SimpleContainer.Observed<Void>() {
+                    public Void run(final DependencyGraph.Traversal traversal) {
+                        container.resolveGroup(api, innerContext, traversal);
+                        return null;
+                    }
+                });
+            }
         });
     }
 
@@ -145,8 +145,7 @@ final class ComponentContainerShell extends EmptyComponentContainer {
         container.bindInstance(instance, interfaces);
     }
 
-    public OpenComponentContainer makeChildContainer(final Components.Interfaces interfaces)
-            throws ComponentContainer.BindingException {
+    public OpenComponentContainer makeChildContainer(final Components.Interfaces interfaces) throws ComponentContainer.BindingException {
         return new ComponentContainerShell(container.linkComponent(interfaces), outerContext, innerContext, false, observer);
     }
 

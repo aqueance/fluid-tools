@@ -16,13 +16,13 @@
 
 package org.fluidity.composition;
 
-import org.fluidity.foundation.Strings;
-
 import java.lang.annotation.Annotation;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Map;
 import java.util.TreeMap;
+
+import org.fluidity.foundation.Strings;
 
 /**
  * Convenience methods on maps of arrays of annotations.
@@ -64,29 +64,29 @@ final class AnnotationMaps {
         return result;
     }
 
-  public static String toString(final Map<Class<? extends Annotation>, Annotation[]> map) {
-      final StringBuilder builder = new StringBuilder();
+    public static String toString(final Map<Class<? extends Annotation>, Annotation[]> map) {
+        final StringBuilder builder = new StringBuilder();
 
-      final Map<Class<? extends Annotation>, Annotation[]> sorted = new TreeMap<Class<? extends Annotation>, Annotation[]>(new Comparator<Class<? extends Annotation>>() {
-          public int compare(final Class<? extends Annotation> o1, final Class<? extends Annotation> o2) {
-              return o1.getName().compareTo(o2.getName());
-          }
-      });
+        final Map<Class<? extends Annotation>, Annotation[]> sorted = new TreeMap<Class<? extends Annotation>, Annotation[]>(new Comparator<Class<? extends Annotation>>() {
+            public int compare(final Class<? extends Annotation> o1, final Class<? extends Annotation> o2) {
+                return o1.getName().compareTo(o2.getName());
+            }
+        });
 
-      sorted.putAll(map);
+        sorted.putAll(map);
 
-      boolean multiple = false;
-      for (final Map.Entry<Class<? extends Annotation>, Annotation[]> entry : sorted.entrySet()) {
-          if (builder.length() > 0) {
-              builder.append(", ");
-              multiple = true;
-          }
+        boolean multiple = false;
+        for (final Map.Entry<Class<? extends Annotation>, Annotation[]> entry : sorted.entrySet()) {
+            if (builder.length() > 0) {
+                builder.append(", ");
+                multiple = true;
+            }
 
-          for (final Annotation annotation : entry.getValue()) {
-              builder.append(Strings.simpleNotation(annotation));
-          }
-      }
+            for (final Annotation annotation : entry.getValue()) {
+                builder.append(Strings.simpleNotation(annotation));
+            }
+        }
 
-      return (multiple ? builder.insert(0, '[').append(']') : builder).toString();
-  }
+        return (multiple ? builder.insert(0, '[').append(']') : builder).toString();
+    }
 }

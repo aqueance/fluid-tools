@@ -26,7 +26,7 @@ import org.fluidity.foundation.spi.LogFactory;
  */
 @ServiceProvider
 @Component(primary = false)
-public final class StandardOutLogFactory implements LogFactory {
+final class StandardOutLogFactory implements LogFactory {
 
     public Log createLog(final Class<?> marker) {
         return new StandardOutLog(marker);

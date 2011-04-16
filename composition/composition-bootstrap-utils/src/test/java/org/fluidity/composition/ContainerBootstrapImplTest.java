@@ -16,8 +16,13 @@
 
 package org.fluidity.composition;
 
-import org.easymock.EasyMock;
-import org.easymock.IAnswer;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+
 import org.fluidity.composition.spi.ContainerProvider;
 import org.fluidity.composition.spi.EmptyPackageBindings;
 import org.fluidity.composition.spi.PackageBindings;
@@ -26,15 +31,11 @@ import org.fluidity.composition.spi.ShutdownTasks;
 import org.fluidity.foundation.NoLogFactory;
 import org.fluidity.foundation.spi.LogFactory;
 import org.fluidity.tests.MockGroupAbstractTest;
+
+import org.easymock.EasyMock;
+import org.easymock.IAnswer;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
 
 /**
  * @author Tibor Varga

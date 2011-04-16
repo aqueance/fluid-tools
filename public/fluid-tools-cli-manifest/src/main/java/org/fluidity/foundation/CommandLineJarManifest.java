@@ -16,10 +16,6 @@
 
 package org.fluidity.foundation;
 
-import org.apache.maven.artifact.Artifact;
-import org.apache.maven.project.MavenProject;
-import org.fluidity.deployment.JarManifest;
-
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.JarURLConnection;
@@ -27,6 +23,11 @@ import java.net.URL;
 import java.util.Collection;
 import java.util.List;
 import java.util.jar.Attributes;
+
+import org.fluidity.deployment.JarManifest;
+
+import org.apache.maven.artifact.Artifact;
+import org.apache.maven.project.MavenProject;
 
 /**
  * Launches a main class from a jar file using a class loader that can load classes from jar files nested inside the main jar. Nested jar files must be located

@@ -26,12 +26,11 @@ public interface ComponentCache {
     /**
      * Looks up and instantiates if necessary using the supplied command, the component whose class is also specified to find its annotations.
      *
-     *
      * @param source  something to identify who is creating instances through this cache.
      * @param context the context for the component.
      * @param api     the interface the component implements.
-     * @param create  the command that performs instantiation of the component; if <code>null</code>, only a lookup is made otherwise instantiation is attempted
-     *                if the no cached instance is found.
+     * @param create  the command that performs instantiation of the component; if <code>null</code>, only a lookup is made otherwise instantiation is
+     *                attempted if the no cached instance is found.
      *
      * @return the component instance.
      */

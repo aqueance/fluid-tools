@@ -16,6 +16,14 @@
 
 package org.fluidity.deployment.osgi;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ContainerBoundary;
 import org.fluidity.composition.ContextDefinition;
@@ -28,17 +36,10 @@ import org.fluidity.deployment.DeploymentControl;
 import org.fluidity.deployment.DeploymentObserver;
 import org.fluidity.foundation.logging.Log;
 import org.fluidity.foundation.logging.Marker;
+
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * Bootstraps the dependency injection container in an OSGi bundle. Must be public with a zero-arg constructor for the OSGi container to be able to call.

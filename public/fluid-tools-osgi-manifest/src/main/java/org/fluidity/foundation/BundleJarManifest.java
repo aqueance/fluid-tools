@@ -16,12 +16,6 @@
 
 package org.fluidity.foundation;
 
-import org.apache.maven.artifact.Artifact;
-import org.apache.maven.project.MavenProject;
-import org.fluidity.composition.ContainerBoundary;
-import org.fluidity.deployment.JarManifest;
-import org.fluidity.deployment.osgi.BundleBootstrap;
-
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -29,6 +23,13 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.jar.Attributes;
+
+import org.fluidity.composition.ContainerBoundary;
+import org.fluidity.deployment.JarManifest;
+import org.fluidity.deployment.osgi.BundleBootstrap;
+
+import org.apache.maven.artifact.Artifact;
+import org.apache.maven.project.MavenProject;
 
 /**
  * Used by the maven-standalone-jar plugin after it has copied all transitive dependencies of the host project to the project artifact to modify the JAR

@@ -16,19 +16,6 @@
 
 package org.fluidity.maven;
 
-import org.apache.maven.artifact.Artifact;
-import org.apache.maven.model.Plugin;
-import org.apache.maven.plugin.AbstractMojo;
-import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.project.MavenProject;
-import org.fluidity.deployment.JarManifest;
-import org.fluidity.deployment.maven.MavenSupport;
-import org.fluidity.foundation.ServiceProviders;
-import org.fluidity.foundation.Streams;
-import org.sonatype.aether.RepositorySystem;
-import org.sonatype.aether.RepositorySystemSession;
-import org.sonatype.aether.repository.RemoteRepository;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -46,6 +33,20 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
+
+import org.fluidity.deployment.JarManifest;
+import org.fluidity.deployment.maven.MavenSupport;
+import org.fluidity.foundation.ServiceProviders;
+import org.fluidity.foundation.Streams;
+
+import org.apache.maven.artifact.Artifact;
+import org.apache.maven.model.Plugin;
+import org.apache.maven.plugin.AbstractMojo;
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.project.MavenProject;
+import org.sonatype.aether.RepositorySystem;
+import org.sonatype.aether.RepositorySystemSession;
+import org.sonatype.aether.repository.RemoteRepository;
 
 /**
  * Packages all transitive dependencies of the project to its JAR artifact. This plugin uses an implementation of the {@link JarManifest} interface, found as a

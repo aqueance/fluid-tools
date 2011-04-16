@@ -16,10 +16,10 @@
 
 package org.fluidity.composition;
 
+import java.util.Map;
+
 import org.fluidity.composition.spi.ContainerProvider;
 import org.fluidity.composition.spi.PlatformContainer;
-
-import java.util.Map;
 
 /**
  * Bootstraps the component container provided by a {@link ContainerProvider}.
@@ -51,21 +51,37 @@ interface ContainerBootstrap {
                                              Map properties,
                                              OpenComponentContainer parent,
                                              ClassLoader classLoader,
-                                             PlatformContainer platform, final Callback callback);
+                                             PlatformContainer platform,
+                                             Callback callback);
 
     /**
      * Calls the {@link org.fluidity.composition.spi.PackageBindings#initializeComponents(ComponentContainer)} method on all bindings and adds shutdown tasks
      * to call the {@link org.fluidity.composition.spi.PackageBindings#shutdownComponents(ComponentContainer)} method on the bindings, in reverse order.
      *
-     * @param container the container, returned by the {@link #populateContainer(ContainerServices, org.fluidity.composition.spi.ContainerProvider, java.util.Map, OpenComponentContainer, ClassLoader, org.fluidity.composition.spi.PlatformContainer, org.fluidity.composition.ContainerBootstrap.Callback)} method, to initialize.
+     * @param container the container, returned by the {@link #populateContainer(ContainerServices, org.fluidity.composition.spi.ContainerProvider,
+     *                  java.util.Map, OpenComponentContainer, ClassLoader, org.fluidity.composition.spi.PlatformContainer,
+     *                  org.fluidity.composition.ContainerBootstrap.Callback)} method, to initialize.
      * @param services  provides basic services for containers
      */
     void initializeContainer(OpenComponentContainer container, ContainerServices services);
 
+    /**
+     * Notification receiver concerning container initialization / shutdown.
+     */
     interface Callback {
 
+        /**
+         * Notifies the receiver that the given container has been initialized.
+         *
+         * @param container the container.
+         */
         void containerInitialized(OpenComponentContainer container);
 
+        /**
+         * Notifies the receiver that the given container has been shut down.
+         *
+         * @param container the container.
+         */
         void containerShutdown(OpenComponentContainer container);
     }
 }

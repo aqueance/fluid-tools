@@ -267,7 +267,8 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
         @Inject
         public Dependency dependency;
 
-        @Inject @ComponentGroup
+        @Inject
+        @ComponentGroup
         public Service[] services;
     }
 

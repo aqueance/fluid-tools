@@ -79,7 +79,7 @@ final class ContextDefinitionImpl implements ContextDefinition {
 
     public ContextDefinition collect(final Collection<ContextDefinition> contexts) {
         for (final ContextDefinition context : contexts) {
-          collectOne(context);
+            collectOne(context);
         }
 
         collected.keySet().retainAll(defined.keySet());
@@ -109,7 +109,7 @@ final class ContextDefinitionImpl implements ContextDefinition {
         }
     }
 
-  public Map<Class<? extends Annotation>, Annotation[]> defined() {
+    public Map<Class<? extends Annotation>, Annotation[]> defined() {
         return Collections.unmodifiableMap(defined);
     }
 

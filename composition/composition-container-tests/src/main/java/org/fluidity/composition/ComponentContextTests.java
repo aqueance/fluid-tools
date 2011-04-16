@@ -301,7 +301,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
 
         public final SecondComponent dependency;
 
-        public FirstComponent(final ThirdComponent cache, final @Setting2("second") SecondComponent second, final ComponentContext context) {
+        public FirstComponent(final ThirdComponent cached, final @Setting2("second") SecondComponent second, final ComponentContext context) {
             settings1 = context.annotations(Setting1.class);
             settings2 = context.annotations(Setting2.class);
             settings3 = context.annotations(Setting3.class);
@@ -317,7 +317,10 @@ public final class ComponentContextTests extends AbstractContainerTests {
 
         public final ThirdComponent dependency;
 
-        private SecondComponent(final @Setting3("third") ThirdComponent dependency, final Setting1[] settings1, final Setting2[] settings2, final Setting3[] settings3) {
+        private SecondComponent(final @Setting3("third") ThirdComponent dependency,
+                                final Setting1[] settings1,
+                                final Setting2[] settings2,
+                                final Setting3[] settings3) {
             this.settings1 = settings1;
             this.settings2 = settings2;
             this.settings3 = settings3;
@@ -353,11 +356,11 @@ public final class ComponentContextTests extends AbstractContainerTests {
     }
 
     @Component(api = ThirdComponent.class)
-    @Context({ Setting1.class, Setting3.class })
+    @Context( { Setting1.class, Setting3.class })
     private static final class ThirdFactory implements ComponentFactory {
 
         public void newComponent(final OpenComponentContainer container, final ComponentContext context) {
-          container.getRegistry().bindInstance(new ThirdComponent(context));
+            container.getRegistry().bindInstance(new ThirdComponent(context));
         }
     }
 
@@ -753,7 +756,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
     }
 
     @SuppressWarnings("UnusedDeclaration")
-    @Context({Setting1.class, Setting2.class})
+    @Context( { Setting1.class, Setting2.class })
     private static class ContextConsumer1 {
 
         public static ComponentContext context;
@@ -765,7 +768,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
     }
 
     @SuppressWarnings("UnusedDeclaration")
-    @Context({Setting1.class, Setting3.class})
+    @Context( { Setting1.class, Setting3.class })
     private static class ContextConsumer2 {
 
         public static ComponentContext context;
@@ -778,7 +781,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
 
     @Documented
     @Retention(RetentionPolicy.RUNTIME)
-    @Target({ ElementType.TYPE, ElementType.FIELD, ElementType.PARAMETER })
+    @Target( { ElementType.TYPE, ElementType.FIELD, ElementType.PARAMETER })
     public static @interface Setting1 {
 
         String value();
@@ -786,7 +789,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
 
     @Documented
     @Retention(RetentionPolicy.RUNTIME)
-    @Target({ ElementType.TYPE, ElementType.FIELD, ElementType.PARAMETER })
+    @Target( { ElementType.TYPE, ElementType.FIELD, ElementType.PARAMETER })
     public static @interface Setting2 {
 
         String value();
@@ -794,7 +797,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
 
     @Documented
     @Retention(RetentionPolicy.RUNTIME)
-    @Target({ ElementType.TYPE, ElementType.FIELD, ElementType.PARAMETER })
+    @Target( { ElementType.TYPE, ElementType.FIELD, ElementType.PARAMETER })
     public static @interface Setting3 {
 
         @SuppressWarnings("UnusedDeclaration") String value();
