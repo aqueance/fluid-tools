@@ -301,6 +301,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
 
         public final SecondComponent dependency;
 
+        @SuppressWarnings("UnusedParameters")
         public FirstComponent(final ThirdComponent cached, final @Setting2("second") SecondComponent second, final ComponentContext context) {
             settings1 = context.annotations(Setting1.class);
             settings2 = context.annotations(Setting2.class);

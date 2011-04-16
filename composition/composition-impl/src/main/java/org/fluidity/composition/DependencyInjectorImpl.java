@@ -56,6 +56,84 @@ final class DependencyInjectorImpl implements DependencyInjector {
         return instance;
     }
 
+    public Constructor<?> findConstructor(final Class<?> componentClass) throws ComponentContainer.ResolutionException {
+        Constructor<?> designated = null;
+
+        final List<Constructor<?>> validConstructors = new ArrayList<Constructor<?>>();
+
+        for (final Constructor<?> constructor : componentClass.getDeclaredConstructors()) {
+            if (!constructor.isSynthetic()) {
+                if (designated == null) {
+                    validConstructors.add(constructor);
+                }
+
+                if (constructor.isAnnotationPresent(Inject.class)) {
+                    if (designated != null) {
+                        throw new ComponentContainer.ResolutionException("Multiple @%s constructors found for %s", Inject.class, componentClass);
+                    } else {
+                        designated = constructor;
+                    }
+                }
+            }
+        }
+
+        if (designated != null) {
+            return designated;
+        }
+
+        try {
+            return selectConstructor(validConstructors, componentClass);
+        } catch (final MultipleConstructorsException e) {
+            final List<Constructor<?>> publicConstructors = new ArrayList<Constructor<?>>();
+
+            for (final Constructor<?> constructor1 : validConstructors) {
+                if (Modifier.isPublic(constructor1.getModifiers())) {
+                    publicConstructors.add(constructor1);
+                }
+            }
+
+            return selectConstructor(publicConstructors, componentClass);
+        }
+    }
+
+    private Constructor<?> selectConstructor(final List<Constructor<?>> constructors, final Class<?> componentClass) {
+        switch (constructors.size()) {
+        case 0:
+            throw new NoConstructorException(componentClass);
+        case 1:
+            return constructors.get(0);
+        case 2:
+
+            // return the one with more than 0 parameters
+            final int parameterCount0 = constructors.get(0).getParameterTypes().length;
+            final int parameterCount1 = constructors.get(1).getParameterTypes().length;
+
+            if (parameterCount0 == 0 && parameterCount1 != 0) {
+                return constructors.get(1);
+            } else if (parameterCount0 != 0 && parameterCount1 == 0) {
+                return constructors.get(0);
+            }
+
+            // fall through
+        default:
+            throw new MultipleConstructorsException(componentClass);
+        }
+    }
+
+    private static class MultipleConstructorsException extends ComponentContainer.ResolutionException {
+
+        public MultipleConstructorsException(final Class<?> componentClass) {
+            super("Multiple constructors found for %s", componentClass);
+        }
+    }
+
+    private static class NoConstructorException extends ComponentContainer.ResolutionException {
+
+        public NoConstructorException(final Class<?> componentClass) {
+            super("No suitable constructor found for %s", componentClass);
+        }
+    }
+
     public DependencyGraph.Node constructor(final DependencyGraph.Traversal traversal,
                                             final DependencyResolver container,
                                             final ComponentMapping mapping,

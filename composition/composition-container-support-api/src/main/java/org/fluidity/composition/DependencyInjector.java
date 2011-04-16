@@ -29,7 +29,7 @@ import org.fluidity.composition.spi.DependencyResolver;
 public interface DependencyInjector {
 
     /**
-     * Resolves all parameters of the given constructor and invokes it to construct a new object with it.
+     * Resolves all parameters of the given constructor.
      *
      * @param traversal   the graph traversal to use.
      * @param container   the container that can resolve dependencies
@@ -57,4 +57,22 @@ public interface DependencyInjector {
      * @return the received instance.
      */
     <T> T fields(DependencyGraph.Traversal traversal, DependencyResolver container, ComponentMapping mapping, ContextDefinition context, T instance);
+
+    /**
+     * Find the injectable constructor of the given class.
+     * <p/>
+     * There is no check for any constructor parameter being satisfiable. Synthetic constructors are ignored. If there is any constructor annotated with
+     * @{@link Inject}, all other constructors are ignored. If there's only one constructor, it is returned. If there is a default constructor and another, and
+     * neither is annotated with @Component, the other one is returned. If there are more constructors, the only one annotated with @{@link Inject} is returned.
+     * If these checks do not yield a single constructor, the same is repeated for public constructors only. If that yields no or multiple constructors, a
+     * ComponentContainer.ResolutionException is thrown.
+     * <p/>
+     * For synthetic constructors see http://java.sun.com/docs/books/jls/third_edition/html/binaryComp.html#13.1, "synthetic"
+     *
+     * @param componentClass the component class to find the injectable constructor of.
+     *
+     * @return the injectable constructor of the given class.
+     * @throws org.fluidity.composition.ComponentContainer.ResolutionException thrown when the search yields no or multiple constructors.
+     */
+    Constructor<?> findConstructor(Class<?> componentClass) throws ComponentContainer.ResolutionException;
 }
