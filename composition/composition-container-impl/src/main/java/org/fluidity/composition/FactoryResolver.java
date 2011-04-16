@@ -17,11 +17,9 @@
 package org.fluidity.composition;
 
 import java.lang.annotation.Annotation;
-import java.util.Arrays;
 import java.util.Set;
 
 import org.fluidity.composition.spi.ComponentFactory;
-import org.fluidity.composition.spi.Factory;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**
@@ -31,19 +29,16 @@ import org.fluidity.foundation.spi.LogFactory;
  */
 abstract class FactoryResolver extends AbstractFactoryResolver {
 
-    private final Class<? extends ComponentFactory> factoryClass;
-
     public FactoryResolver(final int priority,
                            final Class<?> api,
                            final Class<? extends ComponentFactory> factoryClass,
                            final ComponentCache cache,
                            final LogFactory logs) {
         super(factoryClass, priority, api, cache, logs);
-        this.factoryClass = factoryClass;
     }
 
     public Set<Class<? extends Annotation>> acceptedContext() {
-        return AbstractResolver.acceptedContext(factoryClass);
+        return AbstractResolver.acceptedContext(factoryClass());
     }
 
     public Annotation[] annotations() {
@@ -56,6 +51,6 @@ abstract class FactoryResolver extends AbstractFactoryResolver {
 
     @Override
     public String toString() {
-        return String.format("%s (via %s)", api.getName(), factoryClass.getName());
+        return String.format("%s (via %s)", api.getName(), factoryClass().getName());
     }
 }

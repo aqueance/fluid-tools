@@ -46,7 +46,7 @@ public abstract class ContainerProviderAbstractTest extends MockGroupAbstractTes
     private final ClassDiscovery classDiscovery = addControl(ClassDiscovery.class);
     private final DependencyGraph.Traversal traversal = addControl(DependencyGraph.Traversal.class);
     private final DependencyGraph.Node node = addControl(DependencyGraph.Node.class);
-    private final DependencyInjector dependencyInjector = addControl(DependencyInjector.class);
+    private final DependencyInjector injector = addControl(DependencyInjector.class);
     private final ComponentCache componentCache = addControl(ComponentCache.class);
     private final ContextDefinition context = addControl(ContextDefinition.class);
 
@@ -65,7 +65,7 @@ public abstract class ContainerProviderAbstractTest extends MockGroupAbstractTes
     public void dependencies() {
         EasyMock.expect(services.logs()).andReturn(logs).anyTimes();
         EasyMock.expect(services.classDiscovery()).andReturn(classDiscovery).anyTimes();
-        EasyMock.expect(services.dependencyInjector()).andReturn(dependencyInjector).anyTimes();
+        EasyMock.expect(services.dependencyInjector()).andReturn(injector).anyTimes();
         EasyMock.expect(services.newCache(EasyMock.anyBoolean())).andReturn(componentCache).anyTimes();
         EasyMock.expect(services.emptyContext()).andReturn(context).anyTimes();
         EasyMock.expect(services.graphTraversal()).andReturn(traversal).anyTimes();
@@ -98,6 +98,7 @@ public abstract class ContainerProviderAbstractTest extends MockGroupAbstractTes
         EasyMock.expect(traversal.follow(EasyMock.<DependencyGraph>notNull(), EasyMock.same(context), EasyMock.<DependencyGraph.Node.Reference>notNull())).andReturn(node);
 
         EasyMock.expect(node.instance(traversal)).andReturn(instance);
+        EasyMock.expect(injector.findConstructor(EasyMock.<Class<?>>notNull())).andReturn(null).anyTimes();
 
         replay();
         final List<PackageBindings> list = provider.instantiateBindings(services, map, (Class<PackageBindings>[]) assemblies);
@@ -117,6 +118,7 @@ public abstract class ContainerProviderAbstractTest extends MockGroupAbstractTes
 
         final PackageBindings[] bindings = { bindings1, bindings2, bindings3 };
         EasyMock.expect(traversal.follow(EasyMock.<DependencyGraph>notNull(), EasyMock.same(context), EasyMock.<DependencyGraph.Node.Reference>notNull())).andReturn(node);
+        EasyMock.expect(injector.findConstructor(EasyMock.<Class<?>>notNull())).andReturn(null).anyTimes();
 
         EasyMock.expect(node.instance(traversal)).andReturn(bindings);
 
