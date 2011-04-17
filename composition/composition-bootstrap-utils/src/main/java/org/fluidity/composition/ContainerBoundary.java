@@ -65,6 +65,10 @@ public final class ContainerBoundary implements ComponentContainer {
         public void containerShutdown(final OpenComponentContainer container) {
             synchronized (stateLock) {
                 lockedContainers.remove(container);
+
+                if (lockedContainers.isEmpty()) {
+                    reset();
+                }
             }
         }
     };
@@ -212,14 +216,18 @@ public final class ContainerBoundary implements ComponentContainer {
     /* package */ void reset(final BootstrapServices services) {
         this.services = services;
 
-        ContainerBoundary.populatedContainers.clear();
-        ContainerBoundary.propertiesMap.clear();
-        ContainerBoundary.lockedContainers.clear();
-
         this.rootClassLoader = null;
         this.containerBootstrap = null;
         this.containerProvider = null;
         this.platform = null;
+
+        reset();
+    }
+
+    private static void reset() {
+        ContainerBoundary.populatedContainers.clear();
+        ContainerBoundary.propertiesMap.clear();
+        ContainerBoundary.lockedContainers.clear();
     }
 
     /**
