@@ -125,12 +125,12 @@ public final class MavenSupport {
             }
         };
 
-        final Collection<Artifact> artifacts = transitiveDependencies(system, remoteRepositories, root, session, selector);
+        final Collection<Artifact> artifacts = transitiveDependencies(system, remoteRepositories, root, session, selector, types);
         artifacts.remove(root);
 
         if (dependencies != null) {
             for (final Dependency artifact : dependencies) {
-                artifacts.addAll(transitiveDependencies(system, remoteRepositories, dependencyArtifact(artifact), session, dependencySelector));
+                artifacts.addAll(transitiveDependencies(system, remoteRepositories, dependencyArtifact(artifact), session, dependencySelector, types));
             }
         }
 
@@ -157,6 +157,7 @@ public final class MavenSupport {
      * @param compile            should calculate compile time dependencies (<code>true</code>) or run-time dependencies (<code>false</code>).
      * @param optionals          should include optional dependencies and transitive dependencies thereof (value <code>true</code>) or not (value
      *                           <code>false</code>).
+     * @param types              the optional list of accepted dependency types; may be <code>null</code>.
      * @param exclusions         the list of "artifactId:groupId" specifications not to include in the result.
      *
      * @return the list of transitive dependencies of the given dependency, including the dependency.
@@ -169,15 +170,17 @@ public final class MavenSupport {
                                                               final Artifact root,
                                                               final boolean compile,
                                                               final boolean optionals,
+                                                              final Set<String> types,
                                                               final String... exclusions) throws MojoExecutionException {
-        return transitiveDependencies(system, remoteRepositories, root, session, new TransitiveDependencySelector(compile, optionals, exclusions));
+        return transitiveDependencies(system, remoteRepositories, root, session, new TransitiveDependencySelector(compile, optionals, exclusions), types);
     }
 
     private static Collection<Artifact> transitiveDependencies(final RepositorySystem system,
                                                                final List<RemoteRepository> remoteRepositories,
                                                                final Artifact root,
                                                                final RepositorySystemSession session,
-                                                               final DependencySelector selector) throws MojoExecutionException {
+                                                               final DependencySelector selector,
+                                                               final Set<String> types) throws MojoExecutionException {
 
         /*
         * https://docs.sonatype.org/display/AETHER/Home
@@ -221,7 +224,9 @@ public final class MavenSupport {
                 throw new MojoExecutionException(String.format("Could not resolve %s", mavenArtifact));
             }
 
-            dependencies.add(mavenArtifact);
+            if (types == null || types.contains(mavenArtifact.getType())) {
+                dependencies.add(mavenArtifact);
+            }
         }
 
         return dependencies;
@@ -332,15 +337,17 @@ public final class MavenSupport {
     public static Collection<Artifact> runtimeDependencies(final RepositorySystem system,
                                                            final RepositorySystemSession session,
                                                            final List<RemoteRepository> repositories,
-                                                           final MavenProject project) throws MojoExecutionException {
-        return transitiveDependencies(system, session, repositories, project.getArtifact(), false, false);
+                                                           final MavenProject project,
+                                                           final Set<String> types) throws MojoExecutionException {
+        return transitiveDependencies(system, session, repositories, project.getArtifact(), false, false, types);
     }
 
     public static Collection<Artifact> compileDependencies(final RepositorySystem system,
                                                            final RepositorySystemSession session,
                                                            final List<RemoteRepository> repositories,
-                                                           final MavenProject project) throws MojoExecutionException {
-        return transitiveDependencies(system, session, repositories, project.getArtifact(), true, true);
+                                                           final MavenProject project,
+                                                           final Set<String> types) throws MojoExecutionException {
+        return transitiveDependencies(system, session, repositories, project.getArtifact(), true, true, types);
     }
 
     public static void saveArtifact(final MavenProject project, final File file, final String finalName, final String classifier, final String packaging)

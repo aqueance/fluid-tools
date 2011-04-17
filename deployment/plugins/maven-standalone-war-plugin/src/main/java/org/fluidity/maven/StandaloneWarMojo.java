@@ -24,7 +24,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.jar.Attributes;
@@ -72,7 +71,7 @@ import org.sonatype.aether.repository.RemoteRepository;
 public class StandaloneWarMojo extends AbstractMojo {
 
     private static final String WAR_TYPE = "war";
-    private static final String JAR_TYPE = "jar";
+    private static final Set<String> DEPENDENCY_TYPES = Collections.singleton("jar");
 
     /**
      * Instructs the plugin, when set, to remove from the WEB-INF/lib directory all .jar files that the plugin puts in the WEB-INF/boot directory, effectively
@@ -197,7 +196,7 @@ public class StandaloneWarMojo extends AbstractMojo {
                                                                                                WarBootstrapLoader.class,
                                                                                                pluginArtifact,
                                                                                                null,
-                                                                                               Collections.singleton(JAR_TYPE));
+                                                                                               DEPENDENCY_TYPES);
         final Set<Artifact> serverDependencies = new HashSet<Artifact>();
         for (final Dependency dependency : project.getPlugin(pluginKey).getDependencies()) {
             if (!dependency.isOptional()) {
@@ -206,19 +205,13 @@ public class StandaloneWarMojo extends AbstractMojo {
                                                                               projectRepositories,
                                                                               MavenSupport.dependencyArtifact(dependency),
                                                                               false,
-                                                                              false));
+                                                                              false,
+                                                                              DEPENDENCY_TYPES));
             }
         }
 
-        for (final Iterator<Artifact> list = serverDependencies.iterator(); list.hasNext();) {
-            final Artifact dependency = list.next();
-            if (!dependency.getType().equals(JAR_TYPE)) {
-                list.remove();
-            }
-        }
-
-        serverDependencies.removeAll(MavenSupport.transitiveDependencies(repositorySystem, repositorySession, projectRepositories, project.getArtifact(), false, false));
-        serverDependencies.removeAll(MavenSupport.transitiveDependencies(repositorySystem, repositorySession, projectRepositories, pluginArtifact, false, false));
+        serverDependencies.removeAll(MavenSupport.transitiveDependencies(repositorySystem, repositorySession, projectRepositories, project.getArtifact(), false, false, DEPENDENCY_TYPES));
+        serverDependencies.removeAll(MavenSupport.transitiveDependencies(repositorySystem, repositorySession, projectRepositories, pluginArtifact, false, false, DEPENDENCY_TYPES));
         serverDependencies.remove(pluginArtifact);
 
         final Set<String> processedEntries = new HashSet<String>();

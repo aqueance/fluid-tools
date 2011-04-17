@@ -46,11 +46,22 @@ containing top level application wrappers that wish to use SLF4 for logging.
     <dependencies>
 
         <dependency>
-            <groupId>${fluidity.public.groupId}</groupId>
-            <artifactId>fluid-tools-component-api</artifactId>
+            <groupId>${fluidity.foundation.groupId}</groupId>
+            <artifactId>foundation-api</artifactId>
             <version>${project.version}</version>
-            <type>pom</type>
-            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>${fluidity.composition.groupId}</groupId>
+            <artifactId>composition-api</artifactId>
+            <version>${project.version}</version>
+
+            <exclusions>
+                <exclusion>
+                    <groupId>${fluidity.foundation.groupId}</groupId>
+                    <artifactId>foundation-utils</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>

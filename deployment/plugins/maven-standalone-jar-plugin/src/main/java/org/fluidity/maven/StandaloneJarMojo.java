@@ -60,6 +60,7 @@ public class StandaloneJarMojo extends AbstractMojo {
 
     private static final String JAR_TYPE = "jar";
     private static final String META_INF = "META-INF/";
+    private static final Set<String> DEPENDENCY_TYPES = Collections.singleton(JAR_TYPE);
 
     /**
      * Instructs the plugin, when set, to create a new JAR with the given classifier and attach it to the project. When not set, the project's JAR artifact
@@ -170,7 +171,7 @@ public class StandaloneJarMojo extends AbstractMojo {
 
         final JarManifest handler = ServiceProviders.findInstance(JarManifest.class, getClass().getClassLoader());
 
-        final Collection<Artifact> runtimeDependencies = MavenSupport.runtimeDependencies(repositorySystem, repositorySession, projectRepositories, project);
+        final Collection<Artifact> runtimeDependencies = MavenSupport.runtimeDependencies(repositorySystem, repositorySession, projectRepositories, project, DEPENDENCY_TYPES);
 
         // keep only JAR artifacts
         for (final Iterator<Artifact> i = runtimeDependencies.iterator(); i.hasNext();) {
@@ -240,7 +241,7 @@ public class StandaloneJarMojo extends AbstractMojo {
                                                                                                          handler.getClass(),
                                                                                                          pluginArtifact,
                                                                                                          plugin.getDependencies(),
-                                                                                                         Collections.singleton(JAR_TYPE));
+                                                                                                         DEPENDENCY_TYPES);
 
                 final byte buffer[] = new byte[1024 * 16];
 
@@ -297,7 +298,7 @@ public class StandaloneJarMojo extends AbstractMojo {
     }
 
     private Collection<Artifact> compileDependencies() throws MojoExecutionException {
-        return MavenSupport.compileDependencies(repositorySystem, repositorySession, projectRepositories, project);
+        return MavenSupport.compileDependencies(repositorySystem, repositorySession, projectRepositories, project, DEPENDENCY_TYPES);
     }
 
     private File createTempFile() throws MojoExecutionException {
