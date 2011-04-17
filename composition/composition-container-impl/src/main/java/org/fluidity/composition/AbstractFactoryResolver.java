@@ -72,6 +72,7 @@ abstract class AbstractFactoryResolver extends AbstractResolver {
             public DependencyGraph.Node resolve(final Class<?> api, final Annotation[] annotations) {
                 final ContextDefinition copy = collected.copy();
                 list.add(copy);
+                // TODO: use injector to resolve special dependencies, such as context and container
                 return child.resolveComponent(api, annotations == null ? copy : copy.expand(annotations), traversal);
             }
 

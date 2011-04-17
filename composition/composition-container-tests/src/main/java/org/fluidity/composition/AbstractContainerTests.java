@@ -128,6 +128,7 @@ public abstract class AbstractContainerTests extends MockGroupAbstractTest {
     /**
      * This is intentionally protected - makes sure the container is able to instantiate non-public classes
      */
+    @SuppressWarnings("UnusedDeclaration")
     @Component(primary = false, automatic = false)
     protected static class FallbackDependentValue implements DependentKey {
 
@@ -155,7 +156,6 @@ public abstract class AbstractContainerTests extends MockGroupAbstractTest {
         private final ComponentContainer container;
 
         public ContainerDependent(final ComponentContainer container) {
-            assert container != null;
             this.container = container;
         }
 

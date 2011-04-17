@@ -176,7 +176,10 @@ public final class ComponentContextTests extends AbstractContainerTests {
         registry.bindComponent(ContextProvider1.class);
         registry.bindComponent(ContextConsumer1.class);
 
-        assert container.getComponent(ContextProvider1.class) != null : ContextProvider1.class;
+        final ContextProvider1 provider = container.getComponent(ContextProvider1.class);
+        assert provider != null : ContextProvider1.class;
+
+        provider.init();    // container not accessible inside constructor
 
         final ComponentContext context = ContextConsumer1.context;
         assert context != null;
@@ -780,7 +783,13 @@ public final class ComponentContextTests extends AbstractContainerTests {
     @Setting1("setting-1")
     private static class ContextProvider1 {
 
+        private final ComponentContainer container;
+
         public ContextProvider1(final @Setting2("setting-2") ComponentContainer container) {
+            this.container = container;
+        }
+
+        public void init() {
             container.getComponent(ContextConsumer1.class);
         }
     }

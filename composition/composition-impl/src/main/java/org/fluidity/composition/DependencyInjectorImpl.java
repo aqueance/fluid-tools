@@ -24,8 +24,10 @@ import java.util.ArrayList;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.fluidity.composition.spi.ComponentMapping;
+import org.fluidity.composition.spi.ComponentResolutionObserver;
 import org.fluidity.composition.spi.DependencyResolver;
 import org.fluidity.foundation.Exceptions;
 import org.fluidity.foundation.Strings;
@@ -50,7 +52,9 @@ final class DependencyInjectorImpl implements DependencyInjector {
 
             context.collect(resolveFields(traversal, container, mapping, context, componentClass, fieldNodes));
 
-            injectFields(fieldNodes, traversal, instance);
+            final List<RestrictedContainer> containers = new ArrayList<RestrictedContainer>();
+            injectFields(fieldNodes, traversal, containers, instance);
+            enableContainers(containers);
         }
 
         return instance;
@@ -186,15 +190,21 @@ final class DependencyInjectorImpl implements DependencyInjector {
             }
 
             public Object instance(final DependencyGraph.Traversal traversal) {
-                return injectFields(fields, traversal, Exceptions.wrap(String.format("instantiating %s", componentClass), new Exceptions.Command<Object>() {
-                    public Object run() throws Exception {
-                        constructor.setAccessible(true);
-                        traversal.instantiating(componentClass);
-                        final Object component = constructor.newInstance(create(traversal, arguments));
-                        traversal.instantiated(componentClass);
-                        return component;
-                    }
-                }));
+                final List<RestrictedContainer> containers = new ArrayList<RestrictedContainer>();
+
+                try {
+                    return injectFields(fields, traversal, containers, Exceptions.wrap(String.format("instantiating %s", componentClass), new Exceptions.Command<Object>() {
+                        public Object run() throws Exception {
+                            constructor.setAccessible(true);
+                            traversal.instantiating(componentClass);
+                            final Object component = constructor.newInstance(create(traversal, containers, arguments));
+                            traversal.instantiated(componentClass);
+                            return component;
+                        }
+                    }));
+                } finally {
+                    enableContainers(containers);
+                }
             }
 
             public ComponentContext context() {
@@ -203,11 +213,18 @@ final class DependencyInjectorImpl implements DependencyInjector {
         };
     }
 
-    private Object injectFields(final Map<Field, DependencyGraph.Node> fieldNodes, final DependencyGraph.Traversal traversal, final Object instance) {
+    private void enableContainers(final List<RestrictedContainer> containers) {
+        for (final RestrictedContainer container : containers) {
+            container.enable();
+        }
+    }
+
+    private Object injectFields(final Map<Field, DependencyGraph.Node> fieldNodes,
+                                final DependencyGraph.Traversal traversal, final List<RestrictedContainer> containers, final Object instance) {
         return Exceptions.wrap(String.format("setting %s fields", instance.getClass()), new Exceptions.Command<Object>() {
             public Object run() throws Exception {
                 for (final Map.Entry<Field, DependencyGraph.Node> entry : fieldNodes.entrySet()) {
-                    entry.getKey().set(instance, create(traversal, entry.getValue())[0]);
+                    entry.getKey().set(instance, create(traversal, containers, entry.getValue())[0]);
                 }
 
                 return instance;
@@ -215,11 +232,17 @@ final class DependencyInjectorImpl implements DependencyInjector {
         });
     }
 
-    public Object[] create(final DependencyGraph.Traversal traversal, final DependencyGraph.Node... nodes) {
+    public Object[] create(final DependencyGraph.Traversal traversal, final List<RestrictedContainer> containers, final DependencyGraph.Node... nodes) {
         final Object[] values = new Object[nodes.length];
 
         for (int i = 0, limit = nodes.length; i < limit; i++) {
-            values[i] = nodes[i].instance(traversal);
+            final Object value = nodes[i].instance(traversal);
+
+            if (value instanceof RestrictedContainer) {
+                containers.add((RestrictedContainer) value);
+            }
+
+            values[i] = value;
         }
 
         return values;
@@ -321,7 +344,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
 
             if (ComponentContainer.class.isAssignableFrom(dependencyType)) {
                 final ComponentContainer value = container.container(context);
-                node = new DependencyGraph.Node.Constant(value.getClass(), value, null);
+                node = new DependencyGraph.Node.Constant(RestrictedContainer.class, new RestrictedContainer(value), null);
             }
 
             if (node == null) {
@@ -423,6 +446,82 @@ final class DependencyInjectorImpl implements DependencyInjector {
 
         public ComponentContext context() {
             return node.context();
+        }
+    }
+
+    private static class RestrictedContainer implements ComponentContainer {
+
+        private final AtomicReference<ComponentContainer> reference = new AtomicReference<ComponentContainer>(new NoContainer());
+        private final ComponentContainer delegate;
+
+        private RestrictedContainer(final ComponentContainer delegate) {
+            this.delegate = delegate;
+        }
+
+        public ObservedComponentContainer observed(final ComponentResolutionObserver observer) {
+            return reference.get().observed(observer);
+        }
+
+        public <T> T getComponent(final Class<T> api) throws ResolutionException {
+            return reference.get().getComponent(api);
+        }
+
+        public <T> T[] getComponentGroup(final Class<T> api) {
+            return reference.get().getComponentGroup(api);
+        }
+
+        public OpenComponentContainer makeChildContainer() {
+            return reference.get().makeChildContainer();
+        }
+
+        public <T> T getComponent(final Class<T> api, final Bindings bindings) throws ResolutionException {
+            return reference.get().getComponent(api, bindings);
+        }
+
+        public <T> T initialize(final T component) throws ResolutionException {
+            return reference.get().initialize(component);
+        }
+
+        public <T> T instantiate(final Class<T> componentClass) throws ResolutionException {
+            return reference.get().instantiate(componentClass);
+        }
+
+        void enable() {
+            reference.set(delegate);
+        }
+
+        private class NoContainer implements ComponentContainer {
+            private RuntimeException denied() {
+                return new ResolutionException("No dynamic dependency allowed, use a ComponentFactory if you need such functionality");
+            }
+
+            public ObservedComponentContainer observed(final ComponentResolutionObserver observer) {
+                throw denied();
+            }
+
+            public <T> T getComponent(final Class<T> api) throws ResolutionException {
+                throw denied();
+            }
+
+            public <T> T[] getComponentGroup(final Class<T> api) {
+                throw denied();
+            }
+
+            public OpenComponentContainer makeChildContainer() {
+                throw denied();
+            }
+
+            public <T> T getComponent(final Class<T> api, final Bindings bindings) throws ResolutionException {
+                throw denied();
+            }
+
+            public <T> T initialize(final T component) throws ResolutionException {
+                throw denied();
+            }
+
+            public <T> T instantiate(final Class<T> componentClass) throws ResolutionException {
+                throw denied();
+            }
         }
     }
 }

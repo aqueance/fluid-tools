@@ -23,6 +23,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.fluidity.composition.spi.ComponentFactory;
+
 import org.testng.annotations.Test;
 
 /**
@@ -79,9 +81,9 @@ public final class ComponentGroupTests extends AbstractContainerTests {
 
     @Test
     public void testDynamicOrder() throws Exception {
-        registry.bindComponent(DynamicFilter1.class);   // dynamically depends on OrderedFilter4 and DynamicFilter3
-        registry.bindComponent(DynamicFilter2.class);   // dynamically depends on OrderedFilter8
-        registry.bindComponent(DynamicFilter3.class);   // dynamically depends on OrderedFilter2
+        registry.bindComponent(DynamicFilter1Factory.class);   // dynamically depends on OrderedFilter4 and DynamicFilter3
+        registry.bindComponent(DynamicFilter2Factory.class);   // dynamically depends on OrderedFilter8
+        registry.bindComponent(DynamicFilter3Factory.class);   // dynamically depends on OrderedFilter2
         registry.bindComponent(OrderedFilter8.class);
         registry.bindComponent(OrderedFilter7.class);
         registry.bindComponent(OrderedFilter6.class);
@@ -357,30 +359,52 @@ public final class ComponentGroupTests extends AbstractContainerTests {
         }
     }
 
+    private static abstract class DynamicFilterFactory implements ComponentFactory {
+
+        private final Class<?> type;
+
+        protected DynamicFilterFactory() {
+            this.type = getClass().getAnnotation(Component.class).api()[0];
+        }
+
+        public final Instance resolve(final Resolver dependencies, final ComponentContext context) throws ComponentContainer.ResolutionException {
+            dependencies.discover(type);
+
+            return new Instance() {
+                public void bind(final Registry registry) throws ComponentContainer.BindingException {
+                    registry.bindComponent(type);
+                }
+            };
+        }
+    }
+
+    @Component(api = DynamicFilter1.class)
+    private static final class DynamicFilter1Factory extends DynamicFilterFactory { }
+
+    @Component(api = DynamicFilter2.class)
+    private static final class DynamicFilter2Factory extends DynamicFilterFactory { }
+
+    @Component(api = DynamicFilter3.class)
+    private static final class DynamicFilter3Factory extends DynamicFilterFactory { }
+
     @SuppressWarnings("UnusedDeclaration")
+    @Component(automatic = false)
     private static class DynamicFilter1 implements Filter {
 
-        private DynamicFilter1(final ComponentContainer container) {
-            container.getComponent(DynamicFilter3.class);
-            container.getComponent(OrderedFilter4.class);
-        }
+        private DynamicFilter1(final DynamicFilter3 dependency1, final OrderedFilter4 dependency2) { }
     }
 
     @SuppressWarnings("UnusedDeclaration")
     private static class DynamicFilter2 implements Filter {
         private final Filter filter = new Filter() { };     // should be ignored in the group calculations
 
-        private DynamicFilter2(final ComponentContainer container) {
-            container.getComponent(OrderedFilter8.class);
-        }
+        private DynamicFilter2(final OrderedFilter8 dependency) { }
     }
 
     @SuppressWarnings("UnusedDeclaration")
     private static class DynamicFilter3 implements Filter {
 
-        private DynamicFilter3(final ComponentContainer container) {
-            container.getComponent(OrderedFilter2.class);
-        }
+        private DynamicFilter3(final OrderedFilter2 dependency) { }
     }
 
     private static interface GroupApi { }

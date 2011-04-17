@@ -132,6 +132,18 @@ public final class ComponentFactoryTests extends AbstractContainerTests {
         assert group[0] != group[1];
     }
 
+    @Test(enabled = false)  // TODO
+    public void testContainerDependentInstantiatingFactory() throws Exception {
+        registry.bindComponent(Value.class);
+        registry.bindComponent(ContainerDependentInstantiatingFactory.class);
+
+        replay();
+        container.getComponent(ContainerDependentInstantiatingComponent.class);
+        verify();
+
+        assert false : "Dynamic dependency should have been prevented";
+    }
+
     @Component(api = DependentKey.class, automatic = false)
     private static class DependentFactory implements ComponentFactory {
 
@@ -230,6 +242,29 @@ public final class ComponentFactoryTests extends AbstractContainerTests {
             assert dependency != null && dependency.instance() == checkValue : "Container does not check up";
 
             return instance;
+        }
+    }
+
+    @Component(automatic = false)
+    private static class ContainerDependentInstantiatingComponent {
+
+        private ContainerDependentInstantiatingComponent(final ComponentContainer container) {
+            assert container != null : ComponentContainer.class;
+            container.getComponent(Key.class);
+        }
+    }
+
+    @Component(api = ContainerDependentInstantiatingComponent.class)
+    private static class ContainerDependentInstantiatingFactory implements ComponentFactory {
+
+        public Instance resolve(final Resolver dependencies, final ComponentContext context) throws ComponentContainer.ResolutionException {
+            final Dependency<?>[] args = dependencies.discover(ContainerDependentInstantiatingComponent.class);
+
+            return new Instance() {
+                public void bind(final Registry registry) throws ComponentContainer.BindingException {
+                    registry.bindInstance(new ContainerDependentInstantiatingComponent((ComponentContainer) args[0].instance()));
+                }
+            };
         }
     }
 }

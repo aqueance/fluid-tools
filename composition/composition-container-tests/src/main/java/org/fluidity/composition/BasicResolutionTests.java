@@ -132,6 +132,19 @@ public final class BasicResolutionTests extends AbstractContainerTests {
         assert container.getComponent(Key.class) != null;
     }
 
+    @Test(expectedExceptions = ComponentContainer.ResolutionException.class, expectedExceptionsMessageRegExp = ".*[Dd]ynamic.*Factory.*")
+    public void dynamicDependencies() throws Exception {
+        registry.bindComponent(ContainerDependent.class);
+        registry.bindComponent(DynamicDependent.class);
+
+        try {
+            container.getComponent(DynamicDependent.class);
+            assert false : "Dynamic dependency should have been prevented";
+        } catch (final ComponentContainer.InstantiationException e) {
+            throw (Exception) e.getCause();
+        }
+    }
+
     @Test
     public void identifiesContainerChain() throws Exception {
         final OpenComponentContainer child = container.makeChildContainer();
@@ -343,6 +356,17 @@ public final class BasicResolutionTests extends AbstractContainerTests {
 
         private DependencyChain3() {
             throw new UnsupportedOperationException();
+        }
+    }
+
+    /**
+     * Attempts dynamic component resolution.
+     */
+    @Component(automatic = false)
+    protected static class DynamicDependent {
+
+        public DynamicDependent(final ComponentContainer container) {
+            container.getComponent(ContainerDependent.class);
         }
     }
 }

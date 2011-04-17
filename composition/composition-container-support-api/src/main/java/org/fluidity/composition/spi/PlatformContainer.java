@@ -20,19 +20,15 @@ public interface PlatformContainer {
     boolean containsComponent(Class<?> api, final ContextDefinition context);
 
     /**
-     * Returns a component by interface or (super)class. This method is provided for boundary objects (objects created outside the container by third party
-     * tools) to acquire their dependencies.
-     * <p/>
-     * If there is no component bound to the given class itself, an attempt is made to locate a single component that implements the given interface or is an
-     * instance of the given class or any of its subclasses.
+     * See {@link ComponentContainer#getComponent(Class)}.
      *
-     * @param api     is a class object that was used to bind a component against; never <code>null</code>.
+     * @param api     see {@link ComponentContainer#getComponent(Class)}.
      * @param context the current component context.
      *
-     * @return the component bound against the give class or <code>null</code> when none was found.
+     * @return see {@link ComponentContainer#getComponent(Class)}.
      *
      * @throws ComponentContainer.ResolutionException
-     *          when dependency resolution fails
+     *          see {@link ComponentContainer#getComponent(Class)}
      */
     <T> T getComponent(Class<T> api, ContextDefinition context) throws ComponentContainer.ResolutionException;
 
@@ -47,13 +43,12 @@ public interface PlatformContainer {
     boolean containsComponentGroup(Class<?> api, final ContextDefinition context);
 
     /**
-     * Returns the list of components implementing the given interface, provided that they each, or the given interface itself, has been marked with the
-     * {@link org.fluidity.composition.ComponentGroup} annotation.
+     * See {@link ComponentContainer#getComponentGroup(Class)}.
      *
-     * @param api     the group interface class.
+     * @param api     see {@link ComponentContainer#getComponentGroup(Class)}.
      * @param context the component context prevalent at the group reference site.
      *
-     * @return an array of components that belong to the given group; may be <code>null</code>.
+     * @return see {@link ComponentContainer#getComponentGroup(Class)}.
      */
     <T> T[] getComponentGroup(Class<T> api, ContextDefinition context);
 

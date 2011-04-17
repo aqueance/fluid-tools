@@ -77,10 +77,7 @@ public interface ComponentContainer {
 
     /**
      * Returns a component by interface or (super)class. This method is provided for boundary objects (objects created outside the container by third party
-     * tools) to acquire their dependencies.
-     * <p/>
-     * If there is no component bound to the given class itself, an attempt is made to locate a single component that implements the given interface or is an
-     * instance of the given class or any of its subclasses.
+     * tools) to acquire their dependencies. If there is no explicit binding to the provided class, no component will be returned.
      *
      * @param api is a class object that was used to bind a component against; never <code>null</code>.
      *

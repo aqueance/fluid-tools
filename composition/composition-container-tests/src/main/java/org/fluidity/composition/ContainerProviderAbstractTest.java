@@ -49,6 +49,7 @@ public abstract class ContainerProviderAbstractTest extends MockGroupAbstractTes
     private final DependencyInjector injector = addControl(DependencyInjector.class);
     private final ComponentCache componentCache = addControl(ComponentCache.class);
     private final ContextDefinition context = addControl(ContextDefinition.class);
+    private final ContextDefinition copy = addControl(ContextDefinition.class);
 
     private final Map<String, String> map = new HashMap<String, String>();
 
@@ -73,6 +74,8 @@ public abstract class ContainerProviderAbstractTest extends MockGroupAbstractTes
 
     @Test
     public void createsContainer() throws Exception {
+        EasyMock.expect(context.copy()).andReturn(copy);
+
         replay();
         assert provider.newContainer(services, null) != null;
         verify();
@@ -81,6 +84,8 @@ public abstract class ContainerProviderAbstractTest extends MockGroupAbstractTes
     @Test
     public void createsPlatformContainer() throws Exception {
         final PlatformContainer platform = addLocalControl(PlatformContainer.class);
+
+        EasyMock.expect(context.copy()).andReturn(copy);
 
         replay();
         assert provider.newContainer(services, platform) != null;
