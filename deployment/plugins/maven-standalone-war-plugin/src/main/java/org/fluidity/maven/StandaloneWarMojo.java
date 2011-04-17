@@ -177,7 +177,7 @@ public class StandaloneWarMojo extends AbstractMojo {
      * @parameter default-value="${project.remoteProjectRepositories}"
      * @readonly
      */
-    @SuppressWarnings( { "UnusedDeclaration", "MismatchedQueryAndUpdateOfCollection" })
+    @SuppressWarnings({ "UnusedDeclaration", "MismatchedQueryAndUpdateOfCollection" })
     private List<RemoteRepository> projectRepositories;
 
     public void execute() throws MojoExecutionException {

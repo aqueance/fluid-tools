@@ -365,7 +365,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
     }
 
     @Component(api = ThirdComponent.class)
-    @Context( { Setting1.class, Setting3.class })
+    @Context({ Setting1.class, Setting3.class })
     private static final class ThirdFactory implements ComponentFactory {
 
         public Instance resolve(final Resolver dependencies, final ComponentContext context) throws ComponentContainer.ResolutionException {
@@ -794,7 +794,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
     }
 
     @SuppressWarnings("UnusedDeclaration")
-    @Context( { Setting1.class, Setting2.class })
+    @Context({ Setting1.class, Setting2.class })
     private static class ContextConsumer1 {
 
         public static ComponentContext context;
@@ -806,7 +806,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
     }
 
     @SuppressWarnings("UnusedDeclaration")
-    @Context( { Setting1.class, Setting3.class })
+    @Context({ Setting1.class, Setting3.class })
     private static class ContextConsumer2 {
 
         public static ComponentContext context;
@@ -819,7 +819,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
 
     @Documented
     @Retention(RetentionPolicy.RUNTIME)
-    @Target( { ElementType.TYPE, ElementType.FIELD, ElementType.PARAMETER })
+    @Target({ ElementType.TYPE, ElementType.FIELD, ElementType.PARAMETER })
     public static @interface Setting1 {
 
         String value();
@@ -827,7 +827,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
 
     @Documented
     @Retention(RetentionPolicy.RUNTIME)
-    @Target( { ElementType.TYPE, ElementType.FIELD, ElementType.PARAMETER })
+    @Target({ ElementType.TYPE, ElementType.FIELD, ElementType.PARAMETER })
     public static @interface Setting2 {
 
         String value();
@@ -835,7 +835,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
 
     @Documented
     @Retention(RetentionPolicy.RUNTIME)
-    @Target( { ElementType.TYPE, ElementType.FIELD, ElementType.PARAMETER })
+    @Target({ ElementType.TYPE, ElementType.FIELD, ElementType.PARAMETER })
     public static @interface Setting3 {
 
         @SuppressWarnings("UnusedDeclaration") String value();
