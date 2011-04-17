@@ -23,6 +23,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.fluidity.composition.spi.PackageBindings;
+import org.fluidity.composition.spi.ShutdownTasks;
 import org.fluidity.foundation.logging.Log;
 
 /**
@@ -48,8 +49,9 @@ final class ContainerLifecycle {
         this.callback = callback;
     }
 
-    public void initialize(final Log log) {
-        if (shouldInitialize.compareAndSet(true, false)) {
+    public boolean initialize(final Log log) {
+        final boolean init = shouldInitialize.compareAndSet(true, false);
+        if (init) {
 
             log.info("Initializing %s", container);
 
@@ -59,16 +61,31 @@ final class ContainerLifecycle {
             for (final PackageBindings next : bindings) {
                 next.initializeComponents(container);
             }
+        }
 
-            // child containers are initialized next
-            for (final ContainerLifecycle child : children) {
-                child.initialize(log);
-            }
+        // child containers are initialized next
+        for (final ContainerLifecycle child : children) {
+            child.initialize(log);
+        }
 
+        if (init) {
             if (callback != null) {
                 callback.containerInitialized(container);
             }
+
+            final ShutdownTasks shutdown = container.getComponent(ShutdownTasks.class);
+            if (shutdown == null) {
+                throw new RuntimeException(String.format("%s requires a %s component to function", container, ShutdownTasks.class.getName()));
+            }
+
+            shutdown.add("container-shutdown", new Runnable() {
+                public void run() {
+                    shutdown(log);
+                }
+            });
         }
+
+        return init;
     }
 
     public void addChild(final ContainerLifecycle child) {

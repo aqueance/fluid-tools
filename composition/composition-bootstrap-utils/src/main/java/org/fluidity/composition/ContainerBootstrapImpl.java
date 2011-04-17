@@ -22,7 +22,6 @@ import java.util.Map;
 import org.fluidity.composition.spi.ContainerProvider;
 import org.fluidity.composition.spi.PackageBindings;
 import org.fluidity.composition.spi.PlatformContainer;
-import org.fluidity.composition.spi.ShutdownTasks;
 import org.fluidity.foundation.logging.Log;
 
 /**
@@ -101,17 +100,6 @@ final class ContainerBootstrapImpl implements ContainerBootstrap {
         }
 
         lifecycle.initialize(log);
-
-        final ShutdownTasks shutdown = container.getComponent(ShutdownTasks.class);
-        if (shutdown == null) {
-            throw new RuntimeException(String.format("%s requires a %s component to function", container, ShutdownTasks.class.getName()));
-        }
-
-        shutdown.add("container-shutdown", new Runnable() {
-            public void run() {
-                lifecycle.shutdown(log);
-            }
-        });
     }
 }
 

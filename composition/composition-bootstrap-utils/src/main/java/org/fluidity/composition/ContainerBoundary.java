@@ -248,7 +248,7 @@ public final class ContainerBoundary implements ComponentContainer {
             classLoaders.add(loader);
         }
 
-        // going in reverse order because the container for a given class loader has to use as its parent the container for the parent class loader
+        // top down: going in reverse order because the container for a given class loader has to use as its parent the container for the parent class loader
         for (final ListIterator<ClassLoader> i = classLoaders.listIterator(classLoaders.size()); i.hasPrevious();) {
             final ClassLoader loader = i.previous();
 
@@ -294,7 +294,7 @@ public final class ContainerBoundary implements ComponentContainer {
 
         assert populatedContainers.containsKey(classLoader) : classLoader;
 
-        // list of containers at and above current class loader
+        // bottom up: list of containers at and above current class loader
         final List<OpenComponentContainer> containers = new ArrayList<OpenComponentContainer>();
 
         for (ClassLoader loader = classLoader; loader != null; loader = loader.getParent()) {
@@ -322,16 +322,32 @@ public final class ContainerBoundary implements ComponentContainer {
             final List<OpenComponentContainer> containers = makeContainer();
 
             boolean first = true;
+            OpenComponentContainer initialized = null;
+
             for (final OpenComponentContainer container : containers) {
                 if (lock) {
-                    if (!lockedContainers.contains(container)) {
-                        containerBootstrap.initializeContainer(container, containerServices);
+                    if (initialized == null && !lockedContainers.contains(container)) {
+                        initialized = container;
                     }
                 } else if (first && lockedContainers.contains(container)) {
                     throw new IllegalStateException("Component container is locked.");
                 }
 
                 first = false;
+            }
+
+            if (initialized != null) {
+
+                // initialize containers top down
+                for (final ListIterator<OpenComponentContainer> iterator = containers.listIterator(containers.size()); iterator.hasPrevious();) {
+                    final OpenComponentContainer container = iterator.previous();
+
+                    containerBootstrap.initializeContainer(container, containerServices);
+
+                    if (container == initialized) {
+                        break;
+                    }
+                }
             }
 
             return containers.isEmpty() ? null : containers.get(0);
