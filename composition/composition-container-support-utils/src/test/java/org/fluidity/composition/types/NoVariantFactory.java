@@ -16,13 +16,14 @@
 
 package org.fluidity.composition.types;
 
+import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
-import org.fluidity.composition.OpenComponentContainer;
 import org.fluidity.composition.spi.ComponentVariantFactory;
 
-public class NoVariantFactory implements ComponentVariantFactory {
+public final class NoVariantFactory implements ComponentVariantFactory {
 
-    public void newComponent(final OpenComponentContainer container, final ComponentContext context) {
+    public Instance resolve(final Resolver dependencies, final ComponentContext context) throws ComponentContainer.ResolutionException {
         throw new UnsupportedOperationException();
     }
+
 }

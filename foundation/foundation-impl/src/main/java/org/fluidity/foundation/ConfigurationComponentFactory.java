@@ -27,7 +27,6 @@ import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.Context;
-import org.fluidity.composition.OpenComponentContainer;
 import org.fluidity.composition.spi.ComponentFactory;
 import org.fluidity.foundation.configuration.Configuration;
 import org.fluidity.foundation.configuration.Properties;
@@ -48,14 +47,18 @@ import org.fluidity.foundation.spi.PropertyProvider;
 @Context(Properties.class)
 final class ConfigurationComponentFactory implements ComponentFactory {
 
-    @SuppressWarnings("unchecked")
-    public void newComponent(final OpenComponentContainer container, final ComponentContext context) throws ComponentContainer.ResolutionException {
-        final ComponentContainer.Registry registry = container.getRegistry();
+    public Instance resolve(final Resolver dependencies, final ComponentContext context) throws ComponentContainer.ResolutionException {
         final Properties properties = context.annotation(Properties.class, Configuration.class);
+        dependencies.discover(properties.provider());
+        dependencies.discover(ConfigurationImpl.class);
 
-        registry.bindInstance(properties, Properties.class);
-        registry.bindComponent(properties.provider(), PropertyProvider.class);
-        registry.bindComponent(ConfigurationImpl.class);
+        return new Instance() {
+            public void bind(final Registry registry) throws ComponentContainer.BindingException {
+                registry.bindInstance(properties, Properties.class);
+                registry.bindComponent(properties.provider(), PropertyProvider.class);
+                registry.bindComponent(ConfigurationImpl.class);
+            }
+        };
     }
 
     @Component(automatic = false)

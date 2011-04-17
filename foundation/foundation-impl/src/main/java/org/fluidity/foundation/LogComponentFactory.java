@@ -20,7 +20,6 @@ import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.Context;
-import org.fluidity.composition.OpenComponentContainer;
 import org.fluidity.composition.spi.ComponentFactory;
 import org.fluidity.foundation.logging.Log;
 import org.fluidity.foundation.logging.Marker;
@@ -42,9 +41,13 @@ final class LogComponentFactory implements ComponentFactory {
         this.factory = factory;
     }
 
-    @SuppressWarnings("unchecked")
-    public void newComponent(final OpenComponentContainer container, final ComponentContext context) throws ComponentContainer.ResolutionException {
-        final Marker marker = context.annotation(Marker.class, Log.class);
-        container.getRegistry().bindInstance(factory.createLog(marker.value()), Log.class);
+    public Instance resolve(final Resolver dependencies, final ComponentContext context) throws ComponentContainer.ResolutionException {
+        return new Instance() {
+            public void bind(final Registry registry) throws ComponentContainer.BindingException {
+                final Marker marker = context.annotation(Marker.class, Log.class);
+                registry.bindInstance(factory.createLog(marker.value()), Log.class);
+            }
+        };
     }
+
 }

@@ -1,10 +1,12 @@
 package org.fluidity.composition;
 
-import org.fluidity.composition.spi.ComponentFactory;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Constructor;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.fluidity.composition.spi.Factory;
 import org.fluidity.foundation.spi.LogFactory;
-
-import java.util.Arrays;
 
 /**
  * Encapsulates common functionality among various factory resolvers.
@@ -52,10 +54,98 @@ abstract class AbstractFactoryResolver extends AbstractResolver {
                                                  final ContextDefinition context,
                                                  final SimpleContainer child) {
         final ContextDefinition reduced = context.copy().reduce(acceptedContext());
-        final ContextDefinition collected = context.copy();
+        final ContextDefinition collected = context.copy().reduce(null);
+        final ComponentContext passed = reduced.create();
 
-        factory(container, traversal, context).newComponent(new ComponentContainerShell(child, collected.reduce(null), false), reduced.create());
+        final Factory factory = factory(container, traversal, context);
 
-        return cachingNode(child.resolveComponent(api, context.collect(Arrays.asList(reduced, collected)), traversal), child);
+        final List<ContextDefinition> list = new ArrayList<ContextDefinition>();
+        list.add(reduced);
+
+        final DependencyInjector injector = container.services().dependencyInjector();
+
+        final Factory.Instance instance = factory.resolve(new Factory.Resolver() {
+            public <T> Factory.Dependency<T> resolve(final Class<T> api) {
+                return new NodeDependency<T>(resolve(api, null), traversal);
+            }
+
+            public DependencyGraph.Node resolve(final Class<?> api, final Annotation[] annotations) {
+                final ContextDefinition copy = collected.copy();
+                list.add(copy);
+                return child.resolveComponent(api, annotations == null ? copy : copy.expand(annotations), traversal);
+            }
+
+            public Factory.Dependency<?>[] discover(final Class<?> type) {
+                return discover(injector.findConstructor(type));
+            }
+
+            public Factory.Dependency<?>[] discover(final Constructor<?> constructor) {
+                final Class<?>[] types = constructor.getParameterTypes();
+                final Annotation[][] annotations = constructor.getParameterAnnotations();
+
+                final List<Factory.Dependency<?>> nodes = new ArrayList<Factory.Dependency<?>>();
+                for (int i = 0, limit = types.length; i < limit; i++) {
+                    nodes.add(new NodeDependency<Object>(resolve(types[i], annotations[i]), traversal));
+                }
+
+                return nodes.toArray(new Factory.Dependency<?>[nodes.size()]);
+            }
+        }, passed);
+
+        final ContextDefinition saved = context.collect(list).copy();
+        final ComponentContext actual = saved.create();
+
+        return cachingNode(new DependencyGraph.Node() {
+            public Class<?> type() {
+                return api;
+            }
+
+            public Object instance(final DependencyGraph.Traversal traversal) {
+                instance.bind(new RegistryWrapper(child));
+                return child.resolveComponent(api, saved, traversal).instance(traversal);
+            }
+
+            public ComponentContext context() {
+                return actual;
+            }
+        }, child);
+    }
+
+    @SuppressWarnings("unchecked")
+    private class RegistryWrapper implements Factory.Registry {
+        private final SimpleContainer container;
+
+        public RegistryWrapper(final SimpleContainer container) {
+            this.container = container;
+        }
+
+        public <T> void bindComponent(final Class<T> implementation, final Class<? super T>... interfaces) throws ComponentContainer.BindingException {
+            container.bindComponent(Components.inspect(implementation, interfaces));
+        }
+
+        public <T> void bindInstance(final T instance, final Class<? super T>... interfaces) throws ComponentContainer.BindingException {
+            assert instance != null;
+            final Class<T> implementation = (Class<T>) instance.getClass();
+            container.bindInstance(instance, Components.inspect(implementation, interfaces));
+        }
+
+        public Factory.Registry makeChildContainer() {
+            return new RegistryWrapper(container.newChildContainer());
+        }
+    }
+
+    private class NodeDependency<T> implements Factory.Dependency<T> {
+        private final DependencyGraph.Node node;
+        private final DependencyGraph.Traversal traversal;
+
+        public NodeDependency(final DependencyGraph.Node node, final DependencyGraph.Traversal traversal) {
+            this.node = node;
+            this.traversal = traversal;
+        }
+
+        @SuppressWarnings("unchecked")
+        public T instance() {
+            return node == null ? null : (T) node.instance(traversal);
+        }
     }
 }

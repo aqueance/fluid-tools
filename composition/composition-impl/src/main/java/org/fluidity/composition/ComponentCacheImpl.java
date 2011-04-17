@@ -19,6 +19,7 @@ package org.fluidity.composition;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.fluidity.composition.spi.Factory;
 import org.fluidity.foundation.logging.Log;
 import org.fluidity.foundation.spi.LogFactory;
 
@@ -46,6 +47,9 @@ final class ComponentCacheImpl implements ComponentCache {
                                        final Class<?> api,
                                        final Instantiation delegate,
                                        final Log log) {
+        final boolean factory = Factory.class.isAssignableFrom(api);
+        final boolean note = !factory && log.isInfoEnabled();
+
         if (!cache.containsKey(context)) {
 
             // go ahead and create the component and then see if it was actually necessary; context may change as new instantiations take place
@@ -57,22 +61,20 @@ final class ComponentCacheImpl implements ComponentCache {
 
             cache.put(context, component);
 
-            if (log.isInfoEnabled()) {
-                log.info("%s: created %s@%s%s",
+            if (note) {
+                log.info("%s: created %s@%x%s",
                          source,
                          component.getClass().getName(),
                          System.identityHashCode(component),
                          context.types().isEmpty() ? "" : String.format(" for %s", context));
             }
-        } else {
-            if (log.isInfoEnabled()) {
-                final Object component = cache.get(context);
-                log.info("%s: reusing %s@%s%s",
-                         source,
-                         component.getClass().getName(),
-                         System.identityHashCode(component),
-                         context.types().isEmpty() ? "" : String.format(" for %s", context));
-            }
+        } else if (note) {
+            final Object component = cache.get(context);
+            log.info("%s: reusing %s@%x%s",
+                     source,
+                     component.getClass().getName(),
+                     System.identityHashCode(component),
+                     context.types().isEmpty() ? "" : String.format(" for %s", context));
         }
 
         assert cache.containsKey(context) : String.format("Component %s not found in context %s", api, context);

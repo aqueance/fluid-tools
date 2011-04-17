@@ -155,6 +155,7 @@ final class ContextDefinitionImpl implements ContextDefinition {
     public int hashCode() {
         return hashCode;
     }
+/*
 
     @Override
     public String toString() {
@@ -163,4 +164,5 @@ final class ContextDefinitionImpl implements ContextDefinition {
                              AnnotationMaps.toString(defined),
                              AnnotationMaps.toString(collected));
     }
+*/
 }

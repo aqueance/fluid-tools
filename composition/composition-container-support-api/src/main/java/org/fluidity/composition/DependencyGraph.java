@@ -128,7 +128,6 @@ public interface DependencyGraph {
             }
 
             public final Object instance(final Traversal traversal) {
-//                if (definition != null && context != null) definition.collect(context);
                 return instance;
             }
 

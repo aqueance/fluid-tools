@@ -32,6 +32,7 @@ import java.util.Set;
 
 import org.fluidity.composition.spi.ComponentFactory;
 import org.fluidity.composition.spi.ComponentVariantFactory;
+import org.fluidity.composition.spi.Factory;
 
 import org.easymock.EasyMock;
 import org.easymock.IAnswer;
@@ -44,9 +45,9 @@ import org.testng.annotations.Test;
 @SuppressWarnings("unchecked")
 public final class ComponentVariantTests extends AbstractContainerTests {
 
-    private ComponentVariantFactory variants = addControl(ComponentVariantFactory.class);
+    private final ComponentVariantFactory variants = addControl(ComponentVariantFactory.class);
+    private final Factory.Instance instance = addControl(Factory.Instance.class);
 
-    @SuppressWarnings("unchecked")
     private ComponentFactory factory = addControl(ComponentFactory.class);
 
     public ComponentVariantTests(final ContainerFactory factory) {
@@ -55,16 +56,16 @@ public final class ComponentVariantTests extends AbstractContainerTests {
 
     @BeforeMethod
     public void setMockFactory() {
-        Variants.delegate = this.variants;
+        DependentVariants.delegate = this.variants;
         ExpandingVariants.delegate = this.variants;
-        Factory.delegate = this.factory;
-        Factory.instances.clear();
+        DependentFactory.delegate = this.factory;
+        DependentFactory.instances.clear();
     }
 
     @Test
     public void invokesVariantsFactoryClassOnce() throws Exception {
         registry.bindComponent(Value.class);
-        registry.bindComponent(Variants.class);
+        registry.bindComponent(DependentVariants.class);
         registry.bindComponent(FactoryDependency.class);
         registry.bindComponent(DependentValue.class);
 
@@ -72,8 +73,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
 
         registry.bindInstance(check);
 
-        variants.newComponent(EasyMock.<OpenComponentContainer>notNull(), EasyMock.<ComponentContext>notNull());
-        EasyMock.expectLastCall().andAnswer(new VariantContainerCheck(container, Check.class, check)).anyTimes();
+        EasyMock.expect(variants.resolve(EasyMock.<Factory.Resolver>notNull(), EasyMock.<ComponentContext>notNull())).andAnswer(new VariantContainerCheck(Check.class, check)).anyTimes();
 
         replay();
         verifyComponent(container);
@@ -91,11 +91,10 @@ public final class ComponentVariantTests extends AbstractContainerTests {
         final Check check = new Check();
         final ComponentContainer.Registry childRegistry = child.getRegistry();
 
-        childRegistry.bindComponent(Variants.class);
+        childRegistry.bindComponent(DependentVariants.class);
         childRegistry.bindInstance(check);
 
-        variants.newComponent(EasyMock.<OpenComponentContainer>notNull(), EasyMock.<ComponentContext>notNull());
-        EasyMock.expectLastCall().andAnswer(new VariantContainerCheck(child, Check.class, check)).anyTimes();
+        EasyMock.expect(variants.resolve(EasyMock.<Factory.Resolver>notNull(), EasyMock.<ComponentContext>notNull())).andAnswer(new VariantContainerCheck(Check.class, check)).anyTimes();
 
         replay();
         verifyComponent(container);
@@ -196,7 +195,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
     @Test
     public void factoryCreatesMultipleInstances() throws Exception {
         registry.bindComponent(Value.class);
-        registry.bindComponent(Factory.class);
+        registry.bindComponent(DependentFactory.class);
         registry.bindComponent(FactoryDependency.class);
 
         registry.bindComponent(ContextProvider0.class);
@@ -207,8 +206,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
 
         registry.bindInstance(check);
 
-        factory.newComponent(EasyMock.<OpenComponentContainer>notNull(), EasyMock.<ComponentContext>notNull());
-        EasyMock.expectLastCall().andAnswer(new FactoryContainerCheck(container, Check.class, check)).anyTimes();
+        EasyMock.expect(factory.resolve(EasyMock.<Factory.Resolver>notNull(), EasyMock.<ComponentContext>notNull())).andAnswer(new FactoryContainerCheck(Check.class, check)).anyTimes();
 
         replay();
 
@@ -220,7 +218,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
         verify();
 
         // only one factory instance should be created as opposed to one for every context
-        assert Factory.instances.size() == 1 : Factory.instances.size();
+        assert DependentFactory.instances.size() == 1 : DependentFactory.instances.size();
     }
 
     @Test
@@ -233,22 +231,21 @@ public final class ComponentVariantTests extends AbstractContainerTests {
         registry.bindComponent(ContextProvider2.class);
 
         // add variants factory to hijack component instantiation
-        registry.bindComponent(Variants.class);
+        registry.bindComponent(DependentVariants.class);
         registry.bindComponent(FactoryDependency.class);
 
         final Check check = new Check();
 
         registry.bindInstance(check);
 
-        variants.newComponent(EasyMock.<OpenComponentContainer>notNull(), EasyMock.<ComponentContext>notNull());
-        EasyMock.expectLastCall().andAnswer(new VariantContainerCheck(container, Check.class, check)).anyTimes();
+        EasyMock.expect(variants.resolve(EasyMock.<Factory.Resolver>notNull(), EasyMock.<ComponentContext>notNull())).andAnswer(new VariantContainerCheck(Check.class, check)).anyTimes();
 
         replay();
 
         verifyComponent(container);
 
         // get objects that specify all contexts
-        verifyContext(container, Variants.class);
+        verifyContext(container, DependentVariants.class);
 
         verify();
     }
@@ -266,18 +263,17 @@ public final class ComponentVariantTests extends AbstractContainerTests {
         childRegistry.bindComponent(ContextProvider1.class);
         childRegistry.bindComponent(ContextProvider2.class);
 
-        childRegistry.bindComponent(Variants.class);
+        childRegistry.bindComponent(DependentVariants.class);
         childRegistry.bindInstance(check);
 
-        variants.newComponent(EasyMock.<OpenComponentContainer>notNull(), EasyMock.<ComponentContext>notNull());
-        EasyMock.expectLastCall().andAnswer(new VariantContainerCheck(child, Check.class, check)).anyTimes();
+        EasyMock.expect(variants.resolve(EasyMock.<Factory.Resolver>notNull(), EasyMock.<ComponentContext>notNull())).andAnswer(new VariantContainerCheck(Check.class, check)).anyTimes();
 
         replay();
 
         verifyComponent(container);
 
         // get objects that specify all contexts
-        verifyContext(child, Variants.class);
+        verifyContext(child, DependentVariants.class);
 
         verify();
     }
@@ -296,21 +292,20 @@ public final class ComponentVariantTests extends AbstractContainerTests {
         childRegistry.bindComponent(ContextProvider2.class);
 
         // corresponding binding component took place in the parent container but must still be found
-        childRegistry.bindComponent(Variants.class);
+        childRegistry.bindComponent(DependentVariants.class);
 
         final Check check = new Check();
 
         childRegistry.bindInstance(check);
 
-        variants.newComponent(EasyMock.<OpenComponentContainer>notNull(), EasyMock.<ComponentContext>notNull());
-        EasyMock.expectLastCall().andAnswer(new VariantContainerCheck(child, Check.class, check)).anyTimes();
+        EasyMock.expect(variants.resolve(EasyMock.<Factory.Resolver>notNull(), EasyMock.<ComponentContext>notNull())).andAnswer(new VariantContainerCheck(Check.class, check)).anyTimes();
 
         replay();
 
         verifyComponent(container);
 
         // get objects that specify all contexts
-        verifyContext(child, Variants.class);
+        verifyContext(child, DependentVariants.class);
 
         verify();
     }
@@ -342,13 +337,18 @@ public final class ComponentVariantTests extends AbstractContainerTests {
         registry.bindComponent(ExpandingVariants.class);            // accepts Setting2
         registry.bindComponent(ContextProvider1.class);
 
-        variants.newComponent(EasyMock.<OpenComponentContainer>notNull(), EasyMock.<ComponentContext>notNull());
-        EasyMock.expectLastCall().andAnswer(new IAnswer<Void>() {
-            public Void answer() throws Throwable {
+        EasyMock.expect(variants.resolve(EasyMock.<Factory.Resolver>notNull(), EasyMock.<ComponentContext>notNull())).andAnswer(new IAnswer<Factory.Instance>() {
+
+
+            public Factory.Instance answer() throws Throwable {
                 final ComponentContext context = (ComponentContext) EasyMock.getCurrentArguments()[1];
                 assert !context.defines(Setting1.class) : Setting1.class;
                 assert context.defines(Setting2.class) : Setting2.class;
-                return null;
+                return new Factory.Instance() {
+                    public void bind(final Factory.Registry registry) throws ComponentContainer.BindingException {
+                        // empty
+                    }
+                };
             }
         });
 
@@ -364,17 +364,21 @@ public final class ComponentVariantTests extends AbstractContainerTests {
     @Test
     public void variantsFactoryCanUseDelegateContext() throws Exception {
         registry.bindComponent(ContextDependentValue.class);        // accepts Setting1
-        registry.bindComponent(Variants.class);                     // accepts setting1 and Setting2
+        registry.bindComponent(DependentVariants.class);                     // accepts setting1 and Setting2
         registry.bindComponent(ContextProvider1.class);
         registry.bindComponent(FactoryDependency.class);
 
-        variants.newComponent(EasyMock.<OpenComponentContainer>notNull(), EasyMock.<ComponentContext>notNull());
-        EasyMock.expectLastCall().andAnswer(new IAnswer<Void>() {
-            public Void answer() throws Throwable {
+        EasyMock.expect(variants.resolve(EasyMock.<Factory.Resolver>notNull(),
+                                         EasyMock.<ComponentContext>notNull())).andAnswer(new IAnswer<Factory.Instance>() {
+            public Factory.Instance answer() throws Throwable {
                 final ComponentContext context = (ComponentContext) EasyMock.getCurrentArguments()[1];
                 assert context.defines(Setting1.class) : Setting1.class;
                 assert context.defines(Setting2.class) : Setting2.class;
-                return null;
+                return new Factory.Instance() {
+                    public void bind(final Factory.Registry registry) throws ComponentContainer.BindingException {
+                        // empty
+                    }
+                };
             }
         });
 
@@ -448,10 +452,15 @@ public final class ComponentVariantTests extends AbstractContainerTests {
     @Component(api = GroupMember2.class, automatic = false)
     private static class GroupMember2Variants implements ComponentVariantFactory {
 
-        public void newComponent(final OpenComponentContainer container, final ComponentContext context) throws ComponentContainer.ResolutionException {
-            final Setting1 annotation = context.annotation(Setting1.class, null);
-            container.getRegistry().bindInstance(annotation == null ? null : annotation.value());
+        public Instance resolve(final Resolver dependencies, final ComponentContext context) throws ComponentContainer.ResolutionException {
+            return new Instance() {
+                public void bind(final Registry registry) throws ComponentContainer.BindingException {
+                    final Setting1 annotation = context.annotation(Setting1.class, null);
+                    registry.bindInstance(annotation == null ? null : annotation.value());
+                }
+            };
         }
+
     }
 
     private static class GroupMember2 implements GroupApi {
@@ -497,18 +506,26 @@ public final class ComponentVariantTests extends AbstractContainerTests {
 
     @Component(api = DependentKey.class, automatic = false)
     @Context({ Setting1.class, Setting2.class })
-    private static class Variants implements ComponentVariantFactory {
+    private static class DependentVariants implements ComponentVariantFactory {
 
         public static ComponentVariantFactory delegate;
 
-        public Variants(final FactoryDependency dependent) {
+        public DependentVariants(final FactoryDependency dependent) {
             assert dependent != null;
         }
 
-        public void newComponent(final OpenComponentContainer container, final ComponentContext context) {
+        public Instance resolve(final Resolver dependencies, final ComponentContext context) throws ComponentContainer.ResolutionException {
             assert delegate != null;
-            delegate.newComponent(container, context);
+            final Instance instance = delegate.resolve(dependencies, context);
+
+            return new Instance() {
+                public void bind(final Registry registry) throws ComponentContainer.BindingException {
+                    assert instance != null;
+                    instance.bind(registry);
+                }
+            };
         }
+
     }
 
     @Component(api = DependentKey.class, automatic = false)
@@ -517,28 +534,44 @@ public final class ComponentVariantTests extends AbstractContainerTests {
 
         public static ComponentVariantFactory delegate;
 
-        public void newComponent(final OpenComponentContainer container, final ComponentContext context) {
+        public Instance resolve(final Resolver dependencies, final ComponentContext context) throws ComponentContainer.ResolutionException {
             assert delegate != null;
-            delegate.newComponent(container, context);
+            final Instance instance = delegate.resolve(dependencies, context);
+
+            return new Instance() {
+                public void bind(final Registry registry) throws ComponentContainer.BindingException {
+                    assert instance != null;
+                    instance.bind(registry);
+                }
+            };
         }
+
     }
 
     @Component(api = DependentKey.class, automatic = false)
     @Context({ Setting1.class, Setting2.class })
-    private static class Factory implements ComponentFactory {
+    private static class DependentFactory implements ComponentFactory {
 
         public static ComponentFactory delegate;
-        public static Set<Factory> instances = new HashSet<Factory>();
+        public static Set<DependentFactory> instances = new HashSet<DependentFactory>();
 
-        public Factory(final FactoryDependency dependent) {
+        public DependentFactory(final FactoryDependency dependent) {
             assert dependent != null;
         }
 
-        public void newComponent(final OpenComponentContainer container, final ComponentContext context) {
-            instances.add(this);        // only instances in actual use count
+        public Instance resolve(final Resolver dependencies, final ComponentContext context) throws ComponentContainer.ResolutionException {
             assert delegate != null;
-            delegate.newComponent(container, context);
+            final Instance instance = delegate.resolve(dependencies, context);
+
+            return new Instance() {
+                public void bind(final Registry registry) throws ComponentContainer.BindingException {
+                    instances.add(DependentFactory.this);        // only instances in actual use count
+                    assert instance != null;
+                    instance.bind(registry);
+                }
+            };
         }
+
     }
 
     private static class ContextProvider {
@@ -578,50 +611,56 @@ public final class ComponentVariantTests extends AbstractContainerTests {
         }
     }
 
-    private static class VariantContainerCheck implements IAnswer<Void> {
+    private static class VariantContainerCheck implements IAnswer<Factory.Instance> {
 
-        private final OpenComponentContainer container;
         private final Class<?> checkKey;
         private final Object checkValue;
 
-        public VariantContainerCheck(final OpenComponentContainer container, final Class<?> checkKey, final Object checkValue) {
-            this.container = container;
+        public VariantContainerCheck(final Class<?> checkKey, final Object checkValue) {
             this.checkKey = checkKey;
             this.checkValue = checkValue;
         }
 
-        public Void answer() throws Throwable {
-            final OpenComponentContainer received = (OpenComponentContainer) EasyMock.getCurrentArguments()[0];
+        public Factory.Instance answer() throws Throwable {
+            final Factory.Resolver resolver = (Factory.Resolver) EasyMock.getCurrentArguments()[0];
+            assert resolver != null : "Received no resolver";
 
-            assert received != null : "Received no container";
-            assert received.getComponent(checkKey) == checkValue : String.format("Expected %s, got %s", container.toString(), received.toString());
-            return null;
+            final Factory.Dependency<?> dependency = resolver.resolve(checkKey);
+            assert dependency != null && dependency.instance() == checkValue : "Container does not check up";
+
+            return new Factory.Instance() {
+                public void bind(final Factory.Registry registry) throws ComponentContainer.BindingException {
+                    // empty
+                }
+            };
         }
     }
 
-    private static class FactoryContainerCheck implements IAnswer<Void> {
+    private static class FactoryContainerCheck implements IAnswer<Factory.Instance> {
 
-        private final OpenComponentContainer container;
         private final Class<?> checkKey;
         private final Object checkValue;
 
-        public FactoryContainerCheck(final OpenComponentContainer container, final Class<?> checkKey, final Object checkValue) {
-            this.container = container;
+        public FactoryContainerCheck(final Class<?> checkKey, final Object checkValue) {
             this.checkKey = checkKey;
             this.checkValue = checkValue;
         }
 
-        public Void answer() throws Throwable {
+        public Factory.Instance answer() throws Throwable {
             final Object[] arguments = EasyMock.getCurrentArguments();
-            final OpenComponentContainer received = (OpenComponentContainer) arguments[0];
 
-            assert received != null : "Received no container";
-            assert received.getComponent(checkKey) == checkValue : String.format("Expected %s, got %s", container.toString(), received.toString());
+            final Factory.Resolver resolver = (Factory.Resolver) arguments[0];
+            assert resolver != null : "Received no resolver";
 
-            final ComponentContainer.Registry registry = received.getRegistry();
-            registry.bindInstance(arguments[1]);
-            registry.bindComponent(ContextDependentValue.class);
-            return null;
+            final Factory.Dependency<?> dependency = resolver.resolve(checkKey);
+            assert dependency != null && dependency.instance() == checkValue : "Container does not check up";
+
+            return new Factory.Instance() {
+                public void bind(final Factory.Registry registry) throws ComponentContainer.BindingException {
+                    registry.bindInstance(arguments[1]);
+                    registry.bindComponent(ContextDependentValue.class);
+                }
+            };
         }
     }
 
@@ -682,9 +721,16 @@ public final class ComponentVariantTests extends AbstractContainerTests {
     @Component(api = ConfiguredComponent.class, automatic = false)
     public static class ConfiguredComponentFactory implements ComponentFactory {
 
-        public void newComponent(final OpenComponentContainer container, final ComponentContext context) {
-            container.getRegistry().bindComponent(ConfiguredComponentImpl.class);
+        public Instance resolve(final Resolver dependencies, final ComponentContext context) throws ComponentContainer.ResolutionException {
+            dependencies.discover(ConfiguredComponentImpl.class);
+
+            return new Instance() {
+                public void bind(final Registry registry) throws ComponentContainer.BindingException {
+                    registry.bindComponent(ConfiguredComponentImpl.class);
+                }
+            };
         }
+
     }
 
     @Context(Setting1.class)
@@ -701,11 +747,17 @@ public final class ComponentVariantTests extends AbstractContainerTests {
     @Context(Setting1.class)
     public static class ConfiguredComponentVariants implements ComponentVariantFactory {
 
-        public void newComponent(final OpenComponentContainer container, final ComponentContext context) throws ComponentContainer.ResolutionException {
-            final ComponentContainer.Registry registry = container.getRegistry();
-            registry.bindInstance(context);
-            registry.bindComponent(Configuration.class);
+        public Instance resolve(final Resolver dependencies, final ComponentContext context) throws ComponentContainer.ResolutionException {
+            dependencies.discover(Configuration.class);
+
+            return new Instance() {
+                public void bind(final Registry registry) throws ComponentContainer.BindingException {
+                    registry.bindInstance(context);
+                    registry.bindComponent(Configuration.class);
+                }
+            };
         }
+
     }
 
     @Setting1(ConfigurationProvider.CONTEXT)

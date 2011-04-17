@@ -17,6 +17,7 @@
 package org.fluidity.composition;
 
 import org.fluidity.composition.spi.ComponentFactory;
+import org.fluidity.composition.spi.Factory;
 
 import org.easymock.EasyMock;
 import org.easymock.IAnswer;
@@ -30,7 +31,8 @@ import org.testng.annotations.Test;
 public final class ComponentFactoryTests extends AbstractContainerTests {
 
     @SuppressWarnings("unchecked")
-    private ComponentFactory factory = addControl(ComponentFactory.class);
+    private final ComponentFactory factory = addControl(ComponentFactory.class);
+    private final Factory.Instance instance = addControl(Factory.Instance.class);
 
     public ComponentFactoryTests(final ContainerFactory factory) {
         super(factory);
@@ -38,7 +40,7 @@ public final class ComponentFactoryTests extends AbstractContainerTests {
 
     @BeforeMethod
     public void setMockFactory() {
-        Factory.delegate = this.factory;
+        DependentFactory.delegate = this.factory;
         GroupMember1Factory.delegate = this.factory;
         GroupMember2Factory.delegate = this.factory;
     }
@@ -46,15 +48,16 @@ public final class ComponentFactoryTests extends AbstractContainerTests {
     @Test
     public void invokesStandaloneFactoryClassOnce() throws Exception {
         registry.bindComponent(Value.class);
-        registry.bindComponent(Factory.class);
+        registry.bindComponent(DependentFactory.class);
         registry.bindComponent(FactoryDependency.class);
 
         final Check check = new Check();
 
         registry.bindInstance(check);
 
-        factory.newComponent(EasyMock.<OpenComponentContainer>notNull(), EasyMock.<ComponentContext>notNull());
-        EasyMock.expectLastCall().andAnswer(new FactoryInvocation(Check.class, check)).anyTimes();
+        EasyMock.expect(factory.resolve(EasyMock.<Factory.Resolver>notNull(), EasyMock.<ComponentContext>notNull())).andAnswer(new FactoryInvocation(Check.class, check, instance)).anyTimes();
+        instance.bind(EasyMock.<Factory.Registry>notNull());
+        EasyMock.expectLastCall().anyTimes();
 
         replay();
         verifyComponent(container);
@@ -65,7 +68,7 @@ public final class ComponentFactoryTests extends AbstractContainerTests {
     public void invokesStandaloneFactoryClassOnceInChildContainer() throws Exception {
         registry.bindComponent(Value.class);
 
-        final OpenComponentContainer child = registry.makeChildContainer(Factory.class);
+        final OpenComponentContainer child = registry.makeChildContainer(DependentFactory.class);
 
         final Check check = new Check();
         final ComponentContainer.Registry childRegistry = child.getRegistry();
@@ -73,8 +76,9 @@ public final class ComponentFactoryTests extends AbstractContainerTests {
         childRegistry.bindComponent(FactoryDependency.class);
         childRegistry.bindInstance(check);
 
-        factory.newComponent(EasyMock.<OpenComponentContainer>notNull(), EasyMock.<ComponentContext>notNull());
-        EasyMock.expectLastCall().andAnswer(new FactoryInvocation(Check.class, check)).anyTimes();
+        EasyMock.expect(factory.resolve(EasyMock.<Factory.Resolver>notNull(), EasyMock.<ComponentContext>notNull())).andAnswer(new FactoryInvocation(Check.class, check, instance)).anyTimes();
+        instance.bind(EasyMock.<Factory.Registry>notNull());
+        EasyMock.expectLastCall().anyTimes();
 
         replay();
         verifyComponent(container);
@@ -84,15 +88,16 @@ public final class ComponentFactoryTests extends AbstractContainerTests {
     @Test
     public void circularFactoryInvocation() throws Exception {
         registry.bindComponent(Value.class);
-        registry.bindComponent(Factory.class);
+        registry.bindComponent(DependentFactory.class);
         registry.bindComponent(FactoryDependency.class);
 
         final Check check = new Check();
 
         registry.bindInstance(check);
 
-        factory.newComponent(EasyMock.<OpenComponentContainer>notNull(), EasyMock.<ComponentContext>notNull());
-        EasyMock.expectLastCall().andAnswer(new CircularFactoryInvocation()).anyTimes();
+        EasyMock.expect(factory.resolve(EasyMock.<Factory.Resolver>notNull(), EasyMock.<ComponentContext>notNull())).andReturn(instance).anyTimes();
+        instance.bind(EasyMock.<Factory.Registry>notNull());
+        EasyMock.expectLastCall().anyTimes();
 
         replay();
         verifyComponent(container);
@@ -114,7 +119,8 @@ public final class ComponentFactoryTests extends AbstractContainerTests {
     }
 
     private void groupMemberChecks(final int factories) {
-        factory.newComponent(EasyMock.<OpenComponentContainer>notNull(), EasyMock.<ComponentContext>notNull());
+        EasyMock.expect(factory.resolve(EasyMock.<Factory.Resolver>notNull(), EasyMock.<ComponentContext>notNull())).andReturn(instance).anyTimes();
+        instance.bind(EasyMock.<Factory.Registry>notNull());
         EasyMock.expectLastCall().times(factories);
 
         replay();
@@ -127,20 +133,28 @@ public final class ComponentFactoryTests extends AbstractContainerTests {
     }
 
     @Component(api = DependentKey.class, automatic = false)
-    private static class Factory implements ComponentFactory {
+    private static class DependentFactory implements ComponentFactory {
 
         public static ComponentFactory delegate;
 
-        public Factory(final FactoryDependency dependency) {
+        public DependentFactory(final FactoryDependency dependency) {
             assert dependency != null;
         }
 
-        public void newComponent(final OpenComponentContainer container, final ComponentContext context) {
-            container.getRegistry().bindComponent(DependentValue.class);
-
+        public Instance resolve(final Resolver dependencies, final ComponentContext context) throws ComponentContainer.ResolutionException {
             assert delegate != null;
-            delegate.newComponent(container, context);
+            final Instance instance = delegate.resolve(dependencies, context);
+
+            return new Instance() {
+                public void bind(final Registry registry) throws ComponentContainer.BindingException {
+                    registry.bindComponent(DependentValue.class);
+
+                    assert instance != null;
+                    instance.bind(registry);
+                }
+            };
         }
+
     }
 
     @ComponentGroup
@@ -159,12 +173,20 @@ public final class ComponentFactoryTests extends AbstractContainerTests {
 
         public static ComponentFactory delegate;
 
-        public void newComponent(final OpenComponentContainer container, final ComponentContext context) {
-            container.getRegistry().bindComponent(GroupMember1.class);
-
+        public Instance resolve(final Resolver dependencies, final ComponentContext context) throws ComponentContainer.ResolutionException {
             assert delegate != null;
-            delegate.newComponent(container, context);
+            final Instance instance = delegate.resolve(dependencies, context);
+
+            return new Instance() {
+                public void bind(final Registry registry) throws ComponentContainer.BindingException {
+                    registry.bindComponent(GroupMember1.class);
+
+                    assert instance != null;
+                    instance.bind(registry);
+                }
+            };
         }
+
     }
 
     @Component(api = GroupMember2Api.class, automatic = false)
@@ -172,40 +194,42 @@ public final class ComponentFactoryTests extends AbstractContainerTests {
 
         public static ComponentFactory delegate;
 
-        public void newComponent(final OpenComponentContainer container, final ComponentContext context) {
-            container.getRegistry().bindComponent(GroupMember2.class);
-
+        public Instance resolve(final Resolver dependencies, final ComponentContext context) throws ComponentContainer.ResolutionException {
             assert delegate != null;
-            delegate.newComponent(container, context);
+            final Instance instance = delegate.resolve(dependencies, context);
+
+            return new Instance() {
+                public void bind(final Registry registry) throws ComponentContainer.BindingException {
+                    registry.bindComponent(GroupMember2.class);
+
+                    assert instance != null;
+                    instance.bind(registry);
+                }
+            };
         }
+
     }
 
-    private static class FactoryInvocation implements IAnswer<Void> {
+    private static class FactoryInvocation implements IAnswer<Factory.Instance> {
 
         private final Class<?> checkKey;
         private final Object checkValue;
+        private final Factory.Instance instance;
 
-        public FactoryInvocation(final Class<?> checkKey, final Object checkValue) {
+        public FactoryInvocation(final Class<?> checkKey, final Object checkValue, final Factory.Instance instance) {
             this.checkKey = checkKey;
             this.checkValue = checkValue;
+            this.instance = instance;
         }
 
-        public Void answer() throws Throwable {
-            final OpenComponentContainer container = (OpenComponentContainer) EasyMock.getCurrentArguments()[0];
+        public Factory.Instance answer() throws Throwable {
+            final Factory.Resolver resolver = (Factory.Resolver) EasyMock.getCurrentArguments()[0];
+            assert resolver != null : "Received no resolver";
 
-            assert container != null : "Received no container";
-            assert container.getComponent(checkKey) == checkValue : "Container does not check up";
+            final Factory.Dependency<?> dependency = resolver.resolve(checkKey);
+            assert dependency != null && dependency.instance() == checkValue : "Container does not check up";
 
-            return null;
-        }
-    }
-
-    private static class CircularFactoryInvocation implements IAnswer<Void> {
-
-        public Void answer() throws Throwable {
-            final OpenComponentContainer container = (OpenComponentContainer) EasyMock.getCurrentArguments()[0];
-            assert container != null;
-            return null;
+            return instance;
         }
     }
 }

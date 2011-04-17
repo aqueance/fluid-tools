@@ -17,14 +17,15 @@
 package org.fluidity.composition.types;
 
 import org.fluidity.composition.Component;
+import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
-import org.fluidity.composition.OpenComponentContainer;
 import org.fluidity.composition.spi.ComponentFactory;
 
 @Component(api = GroupMemberComponent3.class)
 public class GroupMemberFactory1 implements ComponentFactory {
 
-    public void newComponent(final OpenComponentContainer container, final ComponentContext context) {
+    public Instance resolve(final Resolver dependencies, final ComponentContext context) throws ComponentContainer.ResolutionException {
         throw new UnsupportedOperationException();
     }
+
 }

@@ -347,22 +347,39 @@ public final class ComponentContextTests extends AbstractContainerTests {
     @Context(Setting2.class)
     private static final class SecondFactory implements ComponentFactory {
 
-        public void newComponent(final OpenComponentContainer container, final ComponentContext context) {
-            final ThirdComponent thirdComponent = container.getComponent(ThirdComponent.class);
-            container.getRegistry().bindInstance(new SecondComponent(thirdComponent,
-                                                                     context.annotations(Setting1.class),
-                                                                     context.annotations(Setting2.class),
-                                                                     context.annotations(Setting3.class)));
+        public Instance resolve(final Resolver dependencies, final ComponentContext context) throws ComponentContainer.ResolutionException {
+            final Dependency<?>[] args = dependencies.discover(SecondComponent.class);
+
+            return new Instance() {
+                public void bind(final Registry registry) throws ComponentContainer.BindingException {
+
+                    // direct instantiation to bypass the container when instantiating ThirdComponent
+                    registry.bindInstance(new SecondComponent((ThirdComponent) args[0].instance(),
+                                                              context.annotations(Setting1.class),
+                                                              context.annotations(Setting2.class),
+                                                              context.annotations(Setting3.class)));
+                }
+            };
         }
+
     }
 
     @Component(api = ThirdComponent.class)
     @Context( { Setting1.class, Setting3.class })
     private static final class ThirdFactory implements ComponentFactory {
 
-        public void newComponent(final OpenComponentContainer container, final ComponentContext context) {
-            container.getRegistry().bindInstance(new ThirdComponent(context));
+        public Instance resolve(final Resolver dependencies, final ComponentContext context) throws ComponentContainer.ResolutionException {
+            dependencies.discover(ThirdComponent.class);
+
+            return new Instance() {
+                public void bind(final Registry registry) throws ComponentContainer.BindingException {
+
+                    // direct instantiation to bypass the container
+                    registry.bindInstance(new ThirdComponent(context));
+                }
+            };
         }
+
     }
 
     @Test
@@ -387,7 +404,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
         assert third != null;
         assertContext(third.settings1, "first");
         assertContext(third.settings2);
-        assertContext(third.settings3/*, "third"*/);    // TODO?
+        assertContext(third.settings3, "third");
     }
 
     private void assertContext(final Object[] settings, final String... expected) throws Exception {
@@ -557,60 +574,80 @@ public final class ComponentContextTests extends AbstractContainerTests {
     @Context(Setting1.class)
     private static class ContextAwareVariants1 implements ComponentVariantFactory {
 
-        public void newComponent(final OpenComponentContainer container, final ComponentContext context) {
-            container.getRegistry().bindInstance(new ContextAware.Settings() {
-                public String setting() {
-                    final Setting1 setting = context.annotation(Setting1.class, null);
-                    final String value = setting == null ? null : setting.value();
-                    return value == null ? "missing-value" : value;
+        public Instance resolve(final Resolver dependencies, final ComponentContext context) throws ComponentContainer.ResolutionException {
+            return new Instance() {
+                public void bind(final Registry registry) throws ComponentContainer.BindingException {
+                    registry.bindInstance(new ContextAware.Settings() {
+                        public String setting() {
+                            final Setting1 setting = context.annotation(Setting1.class, null);
+                            final String value = setting == null ? null : setting.value();
+                            return value == null ? "missing-value" : value;
+                        }
+                    });
                 }
-            });
+            };
         }
+
     }
 
     @Component(api = ContextAware.class, automatic = false)
     @Context(Setting2.class)
     private static class ContextAwareVariants2 implements ComponentVariantFactory {
 
-        public void newComponent(final OpenComponentContainer container, final ComponentContext context) {
-            container.getRegistry().bindInstance(new ContextAware.Settings() {
-                public String setting() {
-                    final Setting2 setting = context.annotation(Setting2.class, null);
-                    final String value = setting == null ? null : setting.value();
-                    return value == null ? "missing-value" : value;
+        public Instance resolve(final Resolver dependencies, final ComponentContext context) throws ComponentContainer.ResolutionException {
+            return new Instance() {
+                public void bind(final Registry registry) throws ComponentContainer.BindingException {
+                    registry.bindInstance(new ContextAware.Settings() {
+                        public String setting() {
+                            final Setting2 setting = context.annotation(Setting2.class, null);
+                            final String value = setting == null ? null : setting.value();
+                            return value == null ? "missing-value" : value;
+                        }
+                    });
                 }
-            });
+            };
         }
+
     }
 
     @Component(api = OrdinaryComponent1.class, automatic = false)
     @Context(Setting1.class)
     private static class OrdinaryComponentVariants1 implements ComponentVariantFactory {
 
-        public void newComponent(final OpenComponentContainer container, final ComponentContext context) {
-            container.getRegistry().bindInstance(new ContextAware.Settings() {
-                public String setting() {
-                    final Setting1 setting = context.annotation(Setting1.class, null);
-                    final String value = setting == null ? null : setting.value();
-                    return value == null ? "missing-value" : value;
+        public Instance resolve(final Resolver dependencies, final ComponentContext context) throws ComponentContainer.ResolutionException {
+            return new Instance() {
+                public void bind(final Registry registry) throws ComponentContainer.BindingException {
+                    registry.bindInstance(new ContextAware.Settings() {
+                        public String setting() {
+                            final Setting1 setting = context.annotation(Setting1.class, null);
+                            final String value = setting == null ? null : setting.value();
+                            return value == null ? "missing-value" : value;
+                        }
+                    });
                 }
-            });
+            };
         }
+
     }
 
     @Component(api = OrdinaryComponent2.class, automatic = false)
     @Context(Setting2.class)
     private static class OrdinaryComponentVariants2 implements ComponentVariantFactory {
 
-        public void newComponent(final OpenComponentContainer container, final ComponentContext context) {
-            container.getRegistry().bindInstance(new ContextAware.Settings() {
-                public String setting() {
-                    final Setting2 setting = context.annotation(Setting2.class, null);
-                    final String value = setting == null ? null : setting.value();
-                    return value == null ? "missing-value" : value;
+        public Instance resolve(final Resolver dependencies, final ComponentContext context) throws ComponentContainer.ResolutionException {
+            return new Instance() {
+                public void bind(final Registry registry) throws ComponentContainer.BindingException {
+                    registry.bindInstance(new ContextAware.Settings() {
+                        public String setting() {
+                            final Setting2 setting = context.annotation(Setting2.class, null);
+                            final String value = setting == null ? null : setting.value();
+                            return value == null ? "missing-value" : value;
+                        }
+                    });
                 }
-            });
+            };
         }
+
     }
 
     @Component(automatic = false)
