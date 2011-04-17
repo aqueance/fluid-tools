@@ -161,7 +161,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
         final Set<Class<? extends Annotation>> set = new HashSet<Class<? extends Annotation>>(context.types());
         set.retainAll(Arrays.asList(accepted.value()));
 
-        final HashMap<Class<? extends Annotation>, Annotation[]> map = new HashMap<Class<? extends Annotation>, Annotation[]>();
+        final Map<Class<? extends Annotation>, Annotation[]> map = new HashMap<Class<? extends Annotation>, Annotation[]>();
         for (final Class<? extends Annotation> type : set) {
             map.put(type, context.annotations(type));
         }

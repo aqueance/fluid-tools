@@ -50,12 +50,14 @@ containing top level application wrappers that wish to use Apache Commons Loggin
             <artifactId>fluid-tools-component-api</artifactId>
             <version>${project.version}</version>
             <type>pom</type>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>commons-logging</groupId>
-            <artifactId>commons-logging</artifactId>
-            <version>1.1.1</version>
+            <artifactId>commons-logging-api</artifactId>
+            <version>1.1</version>
+            <scope>provided</scope>
         </dependency>
 
     </dependencies>

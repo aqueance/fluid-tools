@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package org.fluidity.foundation;
+package org.fluidity.foundation.logging;
 
-import org.fluidity.foundation.logging.Log;
+import org.fluidity.composition.Component;
+import org.fluidity.composition.ServiceProvider;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**
@@ -24,6 +25,8 @@ import org.fluidity.foundation.spi.LogFactory;
  *
  * @author Tibor Varga
  */
+@Component
+@ServiceProvider
 public final class NoLogFactory implements LogFactory {
 
     /**

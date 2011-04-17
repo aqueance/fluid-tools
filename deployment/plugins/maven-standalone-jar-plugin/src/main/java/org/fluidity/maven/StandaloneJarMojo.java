@@ -239,7 +239,8 @@ public class StandaloneJarMojo extends AbstractMojo {
                                                                                                          projectRepositories,
                                                                                                          handler.getClass(),
                                                                                                          pluginArtifact,
-                                                                                                         plugin.getDependencies());
+                                                                                                         plugin.getDependencies(),
+                                                                                                         Collections.singleton(JAR_TYPE));
 
                 final byte buffer[] = new byte[1024 * 16];
 

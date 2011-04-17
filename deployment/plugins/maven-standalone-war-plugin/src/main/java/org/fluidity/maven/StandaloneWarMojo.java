@@ -21,6 +21,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -195,7 +196,8 @@ public class StandaloneWarMojo extends AbstractMojo {
                                                                                                projectRepositories,
                                                                                                WarBootstrapLoader.class,
                                                                                                pluginArtifact,
-                                                                                               null);
+                                                                                               null,
+                                                                                               Collections.singleton(JAR_TYPE));
         final Set<Artifact> serverDependencies = new HashSet<Artifact>();
         for (final Dependency dependency : project.getPlugin(pluginKey).getDependencies()) {
             if (!dependency.isOptional()) {

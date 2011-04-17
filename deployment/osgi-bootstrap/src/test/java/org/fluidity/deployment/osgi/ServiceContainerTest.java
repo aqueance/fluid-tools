@@ -24,7 +24,7 @@ import java.util.Map;
 
 import org.fluidity.composition.ContextDefinition;
 import org.fluidity.composition.spi.PlatformContainer;
-import org.fluidity.foundation.NoLogFactory;
+import org.fluidity.foundation.logging.NoLogFactory;
 import org.fluidity.tests.MockGroupAbstractTest;
 
 import org.easymock.EasyMock;

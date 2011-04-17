@@ -29,8 +29,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.fluidity.foundation.ClassLoaders;
-import org.fluidity.foundation.NoLogFactory;
 import org.fluidity.foundation.Streams;
+import org.fluidity.foundation.logging.NoLogFactory;
 import org.fluidity.foundation.spi.LogFactory;
 import org.fluidity.tests.MockGroupAbstractTest;
 
@@ -55,7 +55,7 @@ public class ClassDiscoveryImplTest extends MockGroupAbstractTest {
         final File servicesFile = new File(classDir, "META-INF/services/" + Interface.class.getName());
         servicesFile.getParentFile().mkdirs();
 
-        final ArrayList<File> fileList = new ArrayList<File>();
+        final List<File> fileList = new ArrayList<File>();
         fileList.add(servicesFile);
 
         final PrintWriter pw = new PrintWriter(new FileWriter(servicesFile, false));

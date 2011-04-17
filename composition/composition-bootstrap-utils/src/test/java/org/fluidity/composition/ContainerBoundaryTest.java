@@ -25,7 +25,7 @@ import java.util.Properties;
 
 import org.fluidity.composition.spi.ContainerProvider;
 import org.fluidity.composition.spi.PlatformContainer;
-import org.fluidity.foundation.NoLogFactory;
+import org.fluidity.foundation.logging.NoLogFactory;
 import org.fluidity.foundation.spi.LogFactory;
 import org.fluidity.tests.MockGroupAbstractTest;
 

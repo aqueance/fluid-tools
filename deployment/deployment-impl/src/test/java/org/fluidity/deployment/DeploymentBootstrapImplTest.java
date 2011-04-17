@@ -20,8 +20,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import org.fluidity.foundation.NoLogFactory;
 import org.fluidity.foundation.logging.Log;
+import org.fluidity.foundation.logging.NoLogFactory;
 import org.fluidity.tests.MockGroupAbstractTest;
 
 import org.easymock.EasyMock;

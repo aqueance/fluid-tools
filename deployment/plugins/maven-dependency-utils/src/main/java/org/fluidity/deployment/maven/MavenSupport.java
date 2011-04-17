@@ -22,6 +22,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -71,14 +72,16 @@ public final class MavenSupport {
     /**
      * Returns the transitive dependencies of the given dependency of the given root artifact.
      *
+     *
      * @param system             a Maven component of the respective type.
      * @param session            a Maven component of the respective type.
      * @param remoteRepositories a Maven component of the respective type.
      * @param dependency         a class from a dependency of the root artifact.
      * @param root               the root artifact.
      * @param dependencies       the dependencies of the root artifact.
+     * @param types              the list of project types allowed in the result; may be <code>null</code>.
      *
-     * @return the list of transitive dependencies of the given dependency, including the dependency.
+     * @return the list of transitive dependencies of the given dependency, including the dependency itself.
      *
      * @throws MojoExecutionException when something went wrong.
      */
@@ -87,7 +90,8 @@ public final class MavenSupport {
                                                               final List<RemoteRepository> remoteRepositories,
                                                               final Class<?> dependency,
                                                               final Artifact root,
-                                                              final List<Dependency> dependencies) throws MojoExecutionException {
+                                                              final List<Dependency> dependencies,
+                                                              final Set<String> types) throws MojoExecutionException {
         final String[] spec = JarStreams.manifestAttributes(dependency, MANIFEST_MAVEN_GROUP_ID, MANIFEST_MAVEN_ARTIFACT_ID);
 
         if (spec == null || spec.length != 2 || spec[0] == null || spec[1] == null) {
@@ -127,6 +131,16 @@ public final class MavenSupport {
         if (dependencies != null) {
             for (final Dependency artifact : dependencies) {
                 artifacts.addAll(transitiveDependencies(system, remoteRepositories, dependencyArtifact(artifact), session, dependencySelector));
+            }
+        }
+
+        if (types != null) {
+            for (final Iterator<Artifact> results = artifacts.iterator(); results.hasNext();) {
+                final Artifact artifact = results.next();
+
+                if (!types.contains(artifact.getType())) {
+                    results.remove();
+                }
             }
         }
 
@@ -379,8 +393,8 @@ public final class MavenSupport {
 
     private static class TransitiveDependencySelector implements DependencySelector {
 
-        private static final HashSet<String> RUNTIME_SCOPES = new HashSet<String>(Arrays.asList(JavaScopes.COMPILE, JavaScopes.RUNTIME));
-        private static final HashSet<String> COMPILE_SCOPES = new HashSet<String>(Arrays.asList(JavaScopes.COMPILE, JavaScopes.PROVIDED));
+        private static final Set<String> RUNTIME_SCOPES = new HashSet<String>(Arrays.asList(JavaScopes.COMPILE, JavaScopes.RUNTIME));
+        private static final Set<String> COMPILE_SCOPES = new HashSet<String>(Arrays.asList(JavaScopes.COMPILE, JavaScopes.PROVIDED));
 
         private final boolean compile;
         private final boolean optionals;

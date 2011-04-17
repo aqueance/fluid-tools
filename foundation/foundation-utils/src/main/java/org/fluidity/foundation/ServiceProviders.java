@@ -16,7 +16,9 @@
 
 package org.fluidity.foundation;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.ServiceLoader;
 
 import sun.misc.Service;
@@ -47,6 +49,25 @@ public final class ServiceProviders {
     public static <T> T findInstance(final Class<T> interfaceClass, final ClassLoader classLoader) {
         final Iterator<T> providers = providers(interfaceClass, classLoader);
         return providers.hasNext() ? providers.next() : null;
+    }
+
+    /**
+     * Returns all service provider implementations for the given interface.
+     *
+     * @param interfaceClass the service provider interface.
+     * @param classLoader    the class loader to look for implementations in.
+     * @param <T>            the service provider interface
+     *
+     * @return the implementations of the given interface or an empty list if none found.
+     */
+    public static <T> List<T> findInstances(final Class<T> interfaceClass, final ClassLoader classLoader) {
+        final List<T> list = new ArrayList<T>();
+
+        for (final Iterator<T> providers = providers(interfaceClass, classLoader); providers != null && providers.hasNext();) {
+            list.add(providers.next());
+        }
+
+        return list;
     }
 
     private static <T> Iterator<T> providers(final Class<T> interfaceClass, final ClassLoader classLoader) {

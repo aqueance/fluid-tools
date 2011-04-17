@@ -50,12 +50,14 @@ containing top level application wrappers that wish to use SLF4 for logging.
             <artifactId>fluid-tools-component-api</artifactId>
             <version>${project.version}</version>
             <type>pom</type>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
             <version>1.6.1</version>
+            <scope>provided</scope>
         </dependency>
 
     </dependencies>

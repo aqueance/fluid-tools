@@ -24,6 +24,18 @@ import org.fluidity.foundation.ServiceProviders;
 final class BootstrapServicesImpl implements BootstrapServices {
 
     public <T> T findInstance(final Class<T> interfaceClass, final ClassLoader classLoader) {
-        return ServiceProviders.findInstance(interfaceClass, classLoader);
+        T found = null;
+
+        for (final T instance : ServiceProviders.findInstances(interfaceClass, classLoader)) {
+            final Class<?> type = instance.getClass();
+
+            if (!type.isAnnotationPresent(Component.class) || type.getAnnotation(Component.class).primary()) {
+                return instance;
+            } else if (found == null) {
+                found = instance;
+            }
+        }
+
+        return found;
     }
 }
