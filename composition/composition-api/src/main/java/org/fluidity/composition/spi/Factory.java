@@ -58,16 +58,16 @@ public interface Factory {
      * }
      * </pre>
      *
-     * @param dependencies the dependency resolver to notify of any dependencies the created class will have.
      * @param context      the context under which component creation will take place. This context contains only those annotations that the implementing class
      *                     lists in its {@link org.fluidity.composition.Context} annotation.
+     * @param dependencies the dependency resolver to notify of any dependencies the created class will have.
      *
      * @return an object that will bind the created components and its dependencies.
      *
      * @throws ComponentContainer.ResolutionException
      *          when resolution of the component or any of its dependencies fails.
      */
-    Instance resolve(Resolver dependencies, ComponentContext context) throws ComponentContainer.ResolutionException;
+    Instance resolve(ComponentContext context, Resolver dependencies) throws ComponentContainer.ResolutionException;
 
     /**
      * Represents an instance of the created component.
@@ -86,7 +86,7 @@ public interface Factory {
     }
 
     /**
-     * Represents a resolved dependency of the component being created by the {@link Factory} in its {@link Factory#resolve(Resolver, ComponentContext)} method.
+     * Represents a resolved dependency of the component being created by the {@link Factory} in its {@link Factory#resolve(ComponentContext, Resolver)} method.
      *
      * @param <T> the type of the dependency.
      */

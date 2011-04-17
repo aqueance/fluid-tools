@@ -22,7 +22,7 @@ import org.fluidity.composition.spi.ComponentVariantFactory;
 
 public final class NoVariantFactory implements ComponentVariantFactory {
 
-    public Instance resolve(final Resolver dependencies, final ComponentContext context) throws ComponentContainer.ResolutionException {
+    public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
         throw new UnsupportedOperationException();
     }
 

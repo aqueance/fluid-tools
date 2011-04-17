@@ -47,7 +47,7 @@ import org.fluidity.foundation.spi.PropertyProvider;
 @Context(Properties.class)
 final class ConfigurationComponentFactory implements ComponentFactory {
 
-    public Instance resolve(final Resolver dependencies, final ComponentContext context) throws ComponentContainer.ResolutionException {
+    public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
         final Properties properties = context.annotation(Properties.class, Configuration.class);
         dependencies.discover(properties.provider());
         dependencies.discover(ConfigurationImpl.class);

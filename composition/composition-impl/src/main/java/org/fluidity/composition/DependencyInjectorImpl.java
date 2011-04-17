@@ -24,10 +24,8 @@ import java.util.ArrayList;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicReference;
 
 import org.fluidity.composition.spi.ComponentMapping;
-import org.fluidity.composition.spi.ComponentResolutionObserver;
 import org.fluidity.composition.spi.DependencyResolver;
 import org.fluidity.foundation.Exceptions;
 import org.fluidity.foundation.Strings;
@@ -449,79 +447,4 @@ final class DependencyInjectorImpl implements DependencyInjector {
         }
     }
 
-    private static class RestrictedContainer implements ComponentContainer {
-
-        private final AtomicReference<ComponentContainer> reference = new AtomicReference<ComponentContainer>(new NoContainer());
-        private final ComponentContainer delegate;
-
-        private RestrictedContainer(final ComponentContainer delegate) {
-            this.delegate = delegate;
-        }
-
-        public ObservedComponentContainer observed(final ComponentResolutionObserver observer) {
-            return reference.get().observed(observer);
-        }
-
-        public <T> T getComponent(final Class<T> api) throws ResolutionException {
-            return reference.get().getComponent(api);
-        }
-
-        public <T> T[] getComponentGroup(final Class<T> api) {
-            return reference.get().getComponentGroup(api);
-        }
-
-        public OpenComponentContainer makeChildContainer() {
-            return reference.get().makeChildContainer();
-        }
-
-        public <T> T getComponent(final Class<T> api, final Bindings bindings) throws ResolutionException {
-            return reference.get().getComponent(api, bindings);
-        }
-
-        public <T> T initialize(final T component) throws ResolutionException {
-            return reference.get().initialize(component);
-        }
-
-        public <T> T instantiate(final Class<T> componentClass) throws ResolutionException {
-            return reference.get().instantiate(componentClass);
-        }
-
-        void enable() {
-            reference.set(delegate);
-        }
-
-        private class NoContainer implements ComponentContainer {
-            private RuntimeException denied() {
-                return new ResolutionException("No dynamic dependency allowed, use a ComponentFactory if you need such functionality");
-            }
-
-            public ObservedComponentContainer observed(final ComponentResolutionObserver observer) {
-                throw denied();
-            }
-
-            public <T> T getComponent(final Class<T> api) throws ResolutionException {
-                throw denied();
-            }
-
-            public <T> T[] getComponentGroup(final Class<T> api) {
-                throw denied();
-            }
-
-            public OpenComponentContainer makeChildContainer() {
-                throw denied();
-            }
-
-            public <T> T getComponent(final Class<T> api, final Bindings bindings) throws ResolutionException {
-                throw denied();
-            }
-
-            public <T> T initialize(final T component) throws ResolutionException {
-                throw denied();
-            }
-
-            public <T> T instantiate(final Class<T> componentClass) throws ResolutionException {
-                throw denied();
-            }
-        }
-    }
 }

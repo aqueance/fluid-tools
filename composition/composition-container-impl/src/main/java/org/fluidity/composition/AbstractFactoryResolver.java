@@ -64,16 +64,24 @@ abstract class AbstractFactoryResolver extends AbstractResolver {
 
         final DependencyInjector injector = container.services().dependencyInjector();
 
-        final Factory.Instance instance = factory.resolve(new Factory.Resolver() {
+        final List<RestrictedContainer> containers = new ArrayList<RestrictedContainer>();
+        final Factory.Instance instance = factory.resolve(passed, new Factory.Resolver() {
             public <T> Factory.Dependency<T> resolve(final Class<T> api) {
                 return new NodeDependency<T>(resolve(api, null), traversal);
             }
 
             public DependencyGraph.Node resolve(final Class<?> api, final Annotation[] annotations) {
-                final ContextDefinition copy = collected.copy();
-                list.add(copy);
-                // TODO: use injector to resolve special dependencies, such as context and container
-                return child.resolveComponent(api, annotations == null ? copy : copy.expand(annotations), traversal);
+                if (ComponentContext.class.isAssignableFrom(api)) {
+                    return new DependencyGraph.Node.Constant(passed.getClass(), passed, null);
+                } else if (ComponentContainer.class.isAssignableFrom(api)) {
+                    final RestrictedContainer restricted = new RestrictedContainer(new ComponentContainerShell(child, reduced.reduce(null), false));
+                    containers.add(restricted);
+                    return new DependencyGraph.Node.Constant(RestrictedContainer.class, restricted, passed);
+                } else {
+                    final ContextDefinition copy = collected.copy();
+                    list.add(copy);
+                    return child.resolveComponent(api, annotations == null ? copy : copy.expand(annotations), traversal);
+                }
             }
 
             public Factory.Dependency<?>[] discover(final Class<?> type) {
@@ -91,7 +99,7 @@ abstract class AbstractFactoryResolver extends AbstractResolver {
 
                 return nodes.toArray(new Factory.Dependency<?>[nodes.size()]);
             }
-        }, passed);
+        });
 
         final ContextDefinition saved = context.collect(list).copy();
         final ComponentContext actual = saved.create();
@@ -102,8 +110,14 @@ abstract class AbstractFactoryResolver extends AbstractResolver {
             }
 
             public Object instance(final DependencyGraph.Traversal traversal) {
-                instance.bind(new RegistryWrapper(child));
-                return child.resolveComponent(api, saved, traversal).instance(traversal);
+                try {
+                    instance.bind(new RegistryWrapper(child));
+                    return child.resolveComponent(api, saved, traversal).instance(traversal);
+                } finally {
+                    for (final RestrictedContainer restricted : containers) {
+                        restricted.enable();
+                    }
+                }
             }
 
             public ComponentContext context() {

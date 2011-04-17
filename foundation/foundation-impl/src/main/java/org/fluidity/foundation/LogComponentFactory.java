@@ -41,7 +41,7 @@ final class LogComponentFactory implements ComponentFactory {
         this.factory = factory;
     }
 
-    public Instance resolve(final Resolver dependencies, final ComponentContext context) throws ComponentContainer.ResolutionException {
+    public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
         return new Instance() {
             public void bind(final Registry registry) throws ComponentContainer.BindingException {
                 final Marker marker = context.annotation(Marker.class, Log.class);

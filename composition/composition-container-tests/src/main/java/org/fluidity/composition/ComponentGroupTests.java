@@ -367,7 +367,7 @@ public final class ComponentGroupTests extends AbstractContainerTests {
             this.type = getClass().getAnnotation(Component.class).api()[0];
         }
 
-        public final Instance resolve(final Resolver dependencies, final ComponentContext context) throws ComponentContainer.ResolutionException {
+        public final Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
             dependencies.discover(type);
 
             return new Instance() {

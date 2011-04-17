@@ -55,7 +55,7 @@ public final class ComponentFactoryTests extends AbstractContainerTests {
 
         registry.bindInstance(check);
 
-        EasyMock.expect(factory.resolve(EasyMock.<Factory.Resolver>notNull(), EasyMock.<ComponentContext>notNull())).andAnswer(new FactoryInvocation(Check.class, check, instance)).anyTimes();
+        EasyMock.expect(factory.resolve(EasyMock.<ComponentContext>notNull(), EasyMock.<Factory.Resolver>notNull())).andAnswer(new FactoryInvocation(Check.class, check, instance)).anyTimes();
         instance.bind(EasyMock.<Factory.Registry>notNull());
         EasyMock.expectLastCall().anyTimes();
 
@@ -76,7 +76,7 @@ public final class ComponentFactoryTests extends AbstractContainerTests {
         childRegistry.bindComponent(FactoryDependency.class);
         childRegistry.bindInstance(check);
 
-        EasyMock.expect(factory.resolve(EasyMock.<Factory.Resolver>notNull(), EasyMock.<ComponentContext>notNull())).andAnswer(new FactoryInvocation(Check.class, check, instance)).anyTimes();
+        EasyMock.expect(factory.resolve(EasyMock.<ComponentContext>notNull(), EasyMock.<Factory.Resolver>notNull())).andAnswer(new FactoryInvocation(Check.class, check, instance)).anyTimes();
         instance.bind(EasyMock.<Factory.Registry>notNull());
         EasyMock.expectLastCall().anyTimes();
 
@@ -95,7 +95,7 @@ public final class ComponentFactoryTests extends AbstractContainerTests {
 
         registry.bindInstance(check);
 
-        EasyMock.expect(factory.resolve(EasyMock.<Factory.Resolver>notNull(), EasyMock.<ComponentContext>notNull())).andReturn(instance).anyTimes();
+        EasyMock.expect(factory.resolve(EasyMock.<ComponentContext>notNull(), EasyMock.<Factory.Resolver>notNull())).andReturn(instance).anyTimes();
         instance.bind(EasyMock.<Factory.Registry>notNull());
         EasyMock.expectLastCall().anyTimes();
 
@@ -119,7 +119,7 @@ public final class ComponentFactoryTests extends AbstractContainerTests {
     }
 
     private void groupMemberChecks(final int factories) {
-        EasyMock.expect(factory.resolve(EasyMock.<Factory.Resolver>notNull(), EasyMock.<ComponentContext>notNull())).andReturn(instance).anyTimes();
+        EasyMock.expect(factory.resolve(EasyMock.<ComponentContext>notNull(), EasyMock.<Factory.Resolver>notNull())).andReturn(instance).anyTimes();
         instance.bind(EasyMock.<Factory.Registry>notNull());
         EasyMock.expectLastCall().times(factories);
 
@@ -132,16 +132,30 @@ public final class ComponentFactoryTests extends AbstractContainerTests {
         assert group[0] != group[1];
     }
 
-    @Test(enabled = false)  // TODO
-    public void testContainerDependentInstantiatingFactory() throws Exception {
+    @Test(expectedExceptions = ComponentContainer.ResolutionException.class, expectedExceptionsMessageRegExp = ".*[Dd]ynamic.*Factory.*")
+    public void testRestrictedContainer1() throws Exception {
         registry.bindComponent(Value.class);
-        registry.bindComponent(ContainerDependentInstantiatingFactory.class);
+        registry.bindComponent(DependentValue.class);
+        registry.bindComponent(DynamicFactory1.class);
 
         replay();
-        container.getComponent(ContainerDependentInstantiatingComponent.class);
+        container.getComponent(DynamicComponent1.class);
         verify();
 
         assert false : "Dynamic dependency should have been prevented";
+    }
+
+    @Test
+    public void testRestrictedContainer2() throws Exception {
+        registry.bindComponent(Value.class);
+        registry.bindComponent(DependentValue.class);
+        registry.bindComponent(DynamicFactory2.class);
+
+        replay();
+        final DynamicComponent2 component = container.getComponent(DynamicComponent2.class);
+        verify();
+
+        assert component.key() != null;
     }
 
     @Component(api = DependentKey.class, automatic = false)
@@ -153,9 +167,9 @@ public final class ComponentFactoryTests extends AbstractContainerTests {
             assert dependency != null;
         }
 
-        public Instance resolve(final Resolver dependencies, final ComponentContext context) throws ComponentContainer.ResolutionException {
+        public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
             assert delegate != null;
-            final Instance instance = delegate.resolve(dependencies, context);
+            final Instance instance = delegate.resolve(context, dependencies);
 
             return new Instance() {
                 public void bind(final Registry registry) throws ComponentContainer.BindingException {
@@ -185,9 +199,9 @@ public final class ComponentFactoryTests extends AbstractContainerTests {
 
         public static ComponentFactory delegate;
 
-        public Instance resolve(final Resolver dependencies, final ComponentContext context) throws ComponentContainer.ResolutionException {
+        public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
             assert delegate != null;
-            final Instance instance = delegate.resolve(dependencies, context);
+            final Instance instance = delegate.resolve(context, dependencies);
 
             return new Instance() {
                 public void bind(final Registry registry) throws ComponentContainer.BindingException {
@@ -206,9 +220,9 @@ public final class ComponentFactoryTests extends AbstractContainerTests {
 
         public static ComponentFactory delegate;
 
-        public Instance resolve(final Resolver dependencies, final ComponentContext context) throws ComponentContainer.ResolutionException {
+        public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
             assert delegate != null;
-            final Instance instance = delegate.resolve(dependencies, context);
+            final Instance instance = delegate.resolve(context, dependencies);
 
             return new Instance() {
                 public void bind(final Registry registry) throws ComponentContainer.BindingException {
@@ -235,7 +249,7 @@ public final class ComponentFactoryTests extends AbstractContainerTests {
         }
 
         public Factory.Instance answer() throws Throwable {
-            final Factory.Resolver resolver = (Factory.Resolver) EasyMock.getCurrentArguments()[0];
+            final Factory.Resolver resolver = (Factory.Resolver) EasyMock.getCurrentArguments()[1];
             assert resolver != null : "Received no resolver";
 
             final Factory.Dependency<?> dependency = resolver.resolve(checkKey);
@@ -246,23 +260,52 @@ public final class ComponentFactoryTests extends AbstractContainerTests {
     }
 
     @Component(automatic = false)
-    private static class ContainerDependentInstantiatingComponent {
+    private static class DynamicComponent1 {
 
-        private ContainerDependentInstantiatingComponent(final ComponentContainer container) {
+        private DynamicComponent1(final ComponentContainer container) {
             assert container != null : ComponentContainer.class;
             container.getComponent(Key.class);
         }
     }
 
-    @Component(api = ContainerDependentInstantiatingComponent.class)
-    private static class ContainerDependentInstantiatingFactory implements ComponentFactory {
+    @Component(api = DynamicComponent1.class)
+    private static class DynamicFactory1 implements ComponentFactory {
 
-        public Instance resolve(final Resolver dependencies, final ComponentContext context) throws ComponentContainer.ResolutionException {
-            final Dependency<?>[] args = dependencies.discover(ContainerDependentInstantiatingComponent.class);
+        public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
+            final Dependency<?>[] args = dependencies.discover(DynamicComponent1.class);
 
             return new Instance() {
                 public void bind(final Registry registry) throws ComponentContainer.BindingException {
-                    registry.bindInstance(new ContainerDependentInstantiatingComponent((ComponentContainer) args[0].instance()));
+                    registry.bindInstance(new DynamicComponent1((ComponentContainer) args[0].instance()));
+                }
+            };
+        }
+    }
+
+    @Component(automatic = false)
+    private static class DynamicComponent2 {
+
+        private final ComponentContainer container;
+
+        private DynamicComponent2(final ComponentContainer container) {
+            assert container != null : ComponentContainer.class;
+            this.container = container;
+        }
+
+        public Key key() {
+            return container.getComponent(Key.class);
+        }
+    }
+
+    @Component(api = DynamicComponent2.class)
+    private static class DynamicFactory2 implements ComponentFactory {
+
+        public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
+            final Dependency<?>[] args = dependencies.discover(DynamicComponent1.class);
+
+            return new Instance() {
+                public void bind(final Registry registry) throws ComponentContainer.BindingException {
+                    registry.bindInstance(new DynamicComponent2((ComponentContainer) args[0].instance()));
                 }
             };
         }

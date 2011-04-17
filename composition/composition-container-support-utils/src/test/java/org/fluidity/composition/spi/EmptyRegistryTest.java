@@ -143,7 +143,7 @@ public class EmptyRegistryTest extends MockGroupAbstractTest {
     @Component(api = Interface1.class)
     private static class MarkedFactory implements ComponentFactory {
 
-        public Instance resolve(final Resolver dependencies, final ComponentContext context) throws ComponentContainer.ResolutionException {
+        public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
             throw new UnsupportedOperationException();
         }
 
