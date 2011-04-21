@@ -366,6 +366,10 @@ public final class MavenSupport {
         } else {
             final File attachmentFile = new File(String.format("%s-%s.%s", finalName, classifier, packaging));
 
+            if (attachmentFile.exists() && !attachmentFile.delete()) {
+                throw new MojoExecutionException(String.format("Could not delete %s", attachmentFile));
+            }
+
             if (!file.renameTo(attachmentFile)) {
                 throw new MojoExecutionException(String.format("Could not create %s", attachmentFile));
             }
