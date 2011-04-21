@@ -75,4 +75,48 @@ public interface DependencyInjector {
      * @throws org.fluidity.composition.ComponentContainer.ResolutionException thrown when the search yields no or multiple constructors.
      */
     Constructor<?> findConstructor(Class<?> componentClass) throws ComponentContainer.ResolutionException;
+
+    /**
+     * Handles the special dependencies, e.g., {@link ComponentContext}, {@link ComponentContainer}, {@link org.fluidity.composition.spi.DependencyPath}, etc.
+     *
+     * @param api        the component interface to resolve.
+     * @param resolution callback methods for the various dependency types.
+     *
+     * @return a resolution node or <code>null</code> if the given interface could not be resolved.
+     */
+    DependencyGraph.Node resolve(Class<?> api, Resolution resolution);
+
+    /**
+     * Callback methods to resolve the various types of special and regular dependencies.
+     */
+    public interface Resolution {
+
+        /**
+         * A {@link ComponentContext} is being resolved.
+         *
+         * @return the component context to resolve.
+         */
+        ComponentContext context();
+
+        /**
+         * A {@link ComponentContainer} is being resolved.
+         *
+         * @return the component container to resolve.
+         */
+        ComponentContainer container();
+
+        /**
+         * A regular dependency is being resolved.
+         *
+         * @return the resolved dependency.
+         */
+        DependencyGraph.Node regular();
+
+        /**
+         * A restricted container has been resolved. The receiver can stash it somewhere and enable it later.
+         *
+         * @param container the restricted container that has been resolved.
+         */
+        void handle(RestrictedContainer container);
+    }
 }

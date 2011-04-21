@@ -16,6 +16,7 @@
 
 package org.fluidity.composition;
 
+import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -26,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.fluidity.composition.spi.ComponentResolutionObserver;
 import org.fluidity.composition.spi.DependencyPath;
@@ -44,13 +46,20 @@ final class GroupResolver {
     private final Map<Class<?>, Integer> instantiated = new HashMap<Class<?>, Integer>();
 
     private final ComponentResolutionObserver observer = new ComponentResolutionObserver() {
+        public void resolving(final Class<?> api, final Class<?> declaringType,
+                              final Class<?> dependencyType,
+                              final Annotation[] typeAnnotations,
+                              final Annotation[] referenceAnnotations) {
+            // ignore
+        }
+
         public void resolved(final DependencyPath path, final Class<?> type) {
             // ignore
         }
 
-        public void instantiated(final DependencyPath path) {
+        public void instantiated(final DependencyPath path, final AtomicReference<?> ignored) {
             synchronized (instantiated) {
-                final Class<?> type = path.head(false);
+                final Class<?> type = path.head().type();
                 if (api.isAssignableFrom(type) && !instantiated.containsKey(type)) {
                     instantiated.put(type, index.getAndIncrement());
                 }

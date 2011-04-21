@@ -17,28 +17,28 @@
 package org.fluidity.deployment.osgi;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
-import java.util.Set;
 
-import org.fluidity.composition.ComponentContainer;
+import org.fluidity.composition.ClassDiscovery;
+import org.fluidity.composition.Component;
+import org.fluidity.composition.ComponentGroup;
 import org.fluidity.composition.ContainerBoundary;
-import org.fluidity.composition.ContextDefinition;
 import org.fluidity.composition.Inject;
+import org.fluidity.composition.Optional;
 import org.fluidity.composition.spi.PlatformContainer;
 import org.fluidity.composition.spi.ShutdownTasks;
-import org.fluidity.deployment.DeployedComponent;
 import org.fluidity.deployment.DeploymentBootstrap;
 import org.fluidity.deployment.DeploymentControl;
-import org.fluidity.deployment.DeploymentObserver;
 import org.fluidity.foundation.logging.Log;
 import org.fluidity.foundation.logging.Marker;
 
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.BundleException;
 import org.osgi.framework.ServiceRegistration;
 
 /**
@@ -48,12 +48,12 @@ import org.osgi.framework.ServiceRegistration;
  */
 public final class BundleBootstrap implements BundleActivator {
 
-    private final Map<Runnable, String> shutdown = new LinkedHashMap<Runnable, String>();
-    private final List<BundleActivator> activators = new ArrayList<BundleActivator>();
-
     @Inject
     @Marker(BundleBootstrap.class)
     private Log log;
+
+    private final BundleShutdownTasks shutdown = new BundleShutdownTasks();
+    private Activators activators;
 
     @SuppressWarnings("unchecked")
     public void start(final BundleContext context) throws Exception {
@@ -61,106 +61,110 @@ public final class BundleBootstrap implements BundleActivator {
 
         final ContainerBoundary boundary = new ContainerBoundary();
 
-        // interfaces that are queried here and are certainly not OSGi services
-        final Set<Class<?>> ignored = new HashSet<Class<?>>(Arrays.asList(Service.class,
-                                                                          DeploymentBootstrap.class,
-                                                                          DeployedComponent.class,
-                                                                          DeploymentObserver.class,
-                                                                          BundleActivator.class));
+        final Map<Runnable, String> unwind = new LinkedHashMap<Runnable, String>();
+
+        shutdown.add("bundle", new Runnable() {
+            public void run() {
+                final ArrayList<Runnable> list = new ArrayList<Runnable>(unwind.keySet());
+                for (final ListIterator<Runnable> commands = list.listIterator(list.size()); commands.hasPrevious();) {
+                    final Runnable command = commands.previous();
+
+                    try {
+                        command.run();
+                    } catch (final Exception e) {
+                        log.warning(e, "Shutting down %s", unwind.get(command));
+                    }
+                }
+            }
+        });
+
         final PlatformContainer platform = new ServiceContainer(context);
 
-        boundary.setPlatformContainer(new PlatformContainer() {
-            public boolean containsComponent(final Class<?> api, final ContextDefinition context) {
-                return !ignored.contains(api) && platform.containsComponent(api, context);
-            }
-
-            public <T> T getComponent(final Class<T> api, final ContextDefinition context) throws ComponentContainer.ResolutionException {
-                return ignored.contains(api) ? null : platform.getComponent(api, context);
-            }
-
-            public boolean containsComponentGroup(final Class<?> api, final ContextDefinition context) {
-                return !ignored.contains(api) && platform.containsComponentGroup(api, context);
-            }
-
-            public <T> T[] getComponentGroup(final Class<T> api, final ContextDefinition context) {
-                return ignored.contains(api) ? null : platform.getComponentGroup(api, context);
-            }
-
-            public String id() {
-                return platform.id();
-            }
-
-            public void stop() {
-                platform.stop();
-            }
-        });
-        boundary.bindBootComponent(new ShutdownTasks() {
-            public void add(final String name, final Runnable command) {
-                shutdown.put(command, name);
-            }
-        });
-        boundary.bindBootComponent(new DeploymentControl() {
-            public void completed() {
-                // empty
-            }
-
-            public boolean isStandalone() {
-                return false;
-            }
-
-            public void stop() {
-                // empty
-            }
-        });
+        boundary.setPlatformContainer(platform);
+        boundary.bindBootComponent(shutdown);
+        boundary.bindBootComponent(new BundleDeploymentControl(context));
         boundary.bindBootComponent(context, BundleContext.class);
 
-        boundary.initialize(this);
         boundary.initialize(platform);
+        boundary.initialize(this);
 
-        final Service[] services = boundary.getComponentGroup(Service.class);
-        final ServiceRegistration[] registrations = new ServiceRegistration[services == null ? 0 : services.length];
-        if (services != null) {
-            for (int i = 0, limit = services.length; i < limit; i++) {
-                final Service service = services[i];
-                registrations[i] = context.registerService(serviceApi(service), service.service(), service.properties());
-            }
-        }
-
-        final DeploymentBootstrap deployments = boundary.getComponent(DeploymentBootstrap.class);
-
-        deployments.load();
-
-        shutdown.put(new Runnable() {
+        unwind.put(new Runnable() {
             public void run() {
-                deployments.unload();
-
-                for (final ServiceRegistration registration : registrations) {
-                    registration.unregister();
-                }
-
                 platform.stop();
             }
         }, "platform");
 
-        addActivators(activators, boundary.getComponent(BundleActivator.class));
-        addActivators(activators, boundary.getComponentGroup(BundleActivator.class));
+        final DeploymentBootstrap deployments = boundary.getComponent(DeploymentBootstrap.class);
 
-        for (final BundleActivator activator : activators) {
-            activator.start(context);
-        }
-    }
+        unwind.put(new Runnable() {
+            public void run() {
+                deployments.unload();
+            }
+        }, "deployments");
 
-    private void addActivators(final List<BundleActivator> list, final BundleActivator... found) {
-        if (found != null) {
-            for (final BundleActivator activator : found) {
-                if (activator != null) {
-                    list.add(activator);
+        final Registration[] services = boundary.getComponentGroup(Registration.class);
+        final ServiceRegistration[] registrations = new ServiceRegistration[services == null ? 0 : services.length];
+
+        unwind.put(new Runnable() {
+            public void run() {
+                for (final ServiceRegistration registration : registrations) {
+                    registration.unregister();
                 }
+            }
+        }, "service registrations");
+
+        if (services != null) {
+            for (int i = 0, limit = services.length; i < limit; i++) {
+                final Registration service = services[i];
+                registrations[i] = context.registerService(serviceApi(service), service.service(), service.properties());
+            }
+        }
+
+        deployments.load();
+
+        final EventSource[] sources = boundary.getComponentGroup(EventSource.class);
+        if (sources != null) {
+            unwind.put(new Runnable() {
+                public void run() {
+                    for (final EventSource source : sources) {
+                        // TODO
+                    }
+                }
+            }, "whiteboard");
+
+            for (final EventSource source : sources) {
+                // TODO
+            }
+        }
+
+        activators = boundary.getComponent(Activators.class);
+        activators.start();
+
+        // these automatically register themselves with one or more ServiceTracker components and start listening on service registration
+        boundary.getComponentGroup(ServiceTracker.Registration.class);
+
+        final ClassDiscovery discovery = boundary.getComponent(ClassDiscovery.class);
+
+        final Class<ServiceTracker.Managed>[] managed = discovery.findComponentClasses(ServiceTracker.Managed.class, getClass().getClassLoader(), false);
+        if (managed != null && managed.length > 0) {
+            final ServiceTracker tracker = boundary.getComponent(ServiceTracker.class);
+
+            for (final Class<ServiceTracker.Managed> type : managed) {
+                tracker.manage(type);
             }
         }
     }
 
-    private String[] serviceApi(final Service service) {
+    public void stop(final BundleContext context) throws Exception {
+        try {
+            activators.stop();
+        } finally {
+            shutdown.stop(log);
+            log = null;
+        }
+    }
+
+    private String[] serviceApi(final Registration service) {
         final Class<?>[] api = service.api();
         final String[] names = new String[api.length];
 
@@ -171,21 +175,99 @@ public final class BundleBootstrap implements BundleActivator {
         return names;
     }
 
-    public void stop(final BundleContext context) throws Exception {
-        try {
+    @Component(automatic = false)
+    private static class BundleDeploymentControl implements DeploymentControl {
+        private final BundleContext context;
+
+        public BundleDeploymentControl(final BundleContext context) {
+            this.context = context;
+        }
+
+        public void completed() {
+            // ok
+        }
+
+        public boolean isStandalone() {
+            return true;
+        }
+
+        public void stop() {
+            try {
+                context.getBundle().stop();
+            } catch (final BundleException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    @Component(automatic = false)
+    private static class BundleShutdownTasks implements ShutdownTasks {
+        private final Map<Runnable, String> tasks = new LinkedHashMap<Runnable, String>();
+
+        public void add(final String name, final Runnable command) {
+            tasks.put(command, name);
+        }
+
+        public void stop(final Log log) {
+            for (final Iterator<Map.Entry<Runnable, String>> list = tasks.entrySet().iterator(); list.hasNext();) {
+                final Map.Entry<Runnable, String> entry = list.next();
+
+                try {
+                    entry.getKey().run();
+                } catch (final Exception e) {
+                    log.warning(e, "Shutting down %s", entry.getValue());
+                } finally {
+                    list.remove();
+                }
+            }
+        }
+    }
+
+    @Component
+    private static class Activators {
+
+        private final BundleContext context;
+        private final List<BundleActivator> activators = new ArrayList<BundleActivator>();
+        private final Log log;
+
+        private Activators(final BundleContext context,
+                           final @Marker(Activators.class) Log log,
+                           final @Optional BundleActivator single,
+                           final @Optional @ComponentGroup BundleActivator[] multiple) {
+            this.context = context;
+            this.log = log;
+            addActivators(activators, single);
+            addActivators(activators, multiple);
+        }
+
+        private void addActivators(final List<BundleActivator> list, final BundleActivator... found) {
+            if (found != null) {
+                for (final BundleActivator activator : found) {
+                    if (activator != null) {
+                        list.add(activator);
+                    }
+                }
+            }
+        }
+
+        public void start() {
+            for (final BundleActivator activator : activators) {
+                try {
+                    activator.start(context);
+                } catch (final RuntimeException e) {
+                    throw e;
+                } catch (final Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+
+        public void stop() {
             for (final BundleActivator activator : activators) {
                 try {
                     activator.stop(context);
                 } catch (final Exception e) {
                     log.warning(e, "Stopping %s", activator.getClass().getName());
-                }
-            }
-        } finally {
-            for (final Map.Entry<Runnable, String> entry : shutdown.entrySet()) {
-                try {
-                    entry.getKey().run();
-                } catch (final Exception e) {
-                    log.warning(e, "Shutting down %s", entry.getValue());
                 }
             }
         }

@@ -16,6 +16,8 @@
 
 package org.fluidity.composition;
 
+import java.lang.annotation.Annotation;
+
 import org.fluidity.composition.spi.ComponentResolutionObserver;
 import org.fluidity.composition.spi.EmptyComponentContainer;
 import org.fluidity.composition.spi.PlatformContainer;
@@ -91,6 +93,26 @@ final class ComponentContainerShell extends EmptyComponentContainer {
     @SuppressWarnings("unchecked")
     public <T> T initialize(final T component) {
         return (T) container.initialize(component, context.copy(), null);
+    }
+
+    public ComponentContainer inheritContext(final ComponentContainer container) {
+        final ComponentContext context = container.context();
+
+        if (context == null) {
+            return this;
+        } else {
+            final ContextDefinition copy = this.context.copy();
+
+            for (final Class<? extends Annotation> type : context.types()) {
+                copy.expand(context.annotations(type));
+            }
+
+            return new ComponentContainerShell(this.container, copy, false, observer);
+        }
+    }
+
+    public ComponentContext context() {
+        return context.create();
     }
 
     public OpenComponentContainer makeChildContainer() {

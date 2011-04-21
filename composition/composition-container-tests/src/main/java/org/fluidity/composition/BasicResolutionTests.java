@@ -22,10 +22,12 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.fluidity.composition.spi.ComponentResolutionObserver;
 import org.fluidity.composition.spi.DependencyPath;
@@ -239,13 +241,20 @@ public final class BasicResolutionTests extends AbstractContainerTests {
         final List<Class<?>> instantiated = new ArrayList<Class<?>>();
 
         final ObservedComponentContainer observed = container.observed(new ComponentResolutionObserver() {
-            public void resolved(final DependencyPath path, final Class<?> type) {
-                assert path != null;
-                resolved.put(path.head(true), type);
+            public void resolving(final Class<?> api, final Class<?> declaringType,
+                                  final Class<?> dependencyType,
+                                  final Annotation[] typeAnnotations,
+                                  final Annotation[] referenceAnnotations) {
+                // empty
             }
 
-            public void instantiated(final DependencyPath path) {
-                instantiated.add(path.head(false));
+            public void resolved(final DependencyPath path, final Class<?> type) {
+                assert path != null;
+                resolved.put(path.head().api(), type);
+            }
+
+            public void instantiated(final DependencyPath path, final AtomicReference<?> ignored) {
+                instantiated.add(path.head().type());
             }
         });
 

@@ -16,34 +16,14 @@
 
 package org.fluidity.deployment.osgi;
 
-import org.fluidity.composition.ComponentGroup;
-
-import java.util.Properties;
-
 /**
- * Denotes an OSGi service that will be registered when the host bundle is started.
+ * An event source that wish to receive notification about event consumer registration as per the Whiteboard pattern.
  */
-@ComponentGroup
-public interface Service {
+public interface EventSource<T> {
 
-    /**
-     * Returns the dictionary to pass to OSGi when registering this service.
-     *
-     * @return the dictionary to pass to OSGi when registering this service; may be <code>null</code>.
-     */
-    Properties properties();
+    Class<T> consumerType();
 
-    /**
-     * Returns the service API.
-     *
-     * @return the service API.
-     */
-    Class<?>[] api();
+    void consumerAdded(T consumer);
 
-    /**
-     * Returns the service implementation.
-     *
-     * @return the service implementation.
-     */
-    Object service();
+    void consumerRemoved(T consumer);
 }

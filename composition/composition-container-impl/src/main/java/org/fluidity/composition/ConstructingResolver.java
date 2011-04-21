@@ -64,6 +64,10 @@ final class ConstructingResolver extends AbstractResolver {
                 return api;
             }
 
+            public Annotation[] annotations() {
+                return ConstructingResolver.this.annotations();
+            }
+
             public DependencyGraph.Node resolve(final DependencyGraph.Traversal traversal, final ContextDefinition context) {
                 return cachingNode(injector.constructor(traversal, container, ConstructingResolver.this, context, constructor), container);
             }

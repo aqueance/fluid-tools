@@ -27,14 +27,14 @@ import org.fluidity.foundation.spi.LogFactory;
 final class ProductionServices implements ContainerServices {
 
     private final LogFactory logs;
-    private final ClassDiscovery classDiscovery;
-    private final DependencyInjector dependencyInjector;
+    private final ClassDiscovery discovery;
+    private final DependencyInjector injector;
     private final DependencyGraph.Traversal.Strategy strategy;
 
     public ProductionServices(final LogFactory logs, final DependencyGraph.Traversal.Strategy strategy) {
         this.logs = logs;
-        this.classDiscovery = new ClassDiscoveryImpl(logs);
-        this.dependencyInjector = new DependencyInjectorImpl();
+        this.discovery = new ClassDiscoveryImpl(logs);
+        this.injector = new DependencyInjectorImpl();
 
         this.strategy = strategy != null ? strategy : new DependencyGraph.Traversal.Strategy() {
             public DependencyGraph.Node advance(final DependencyGraph graph,
@@ -52,11 +52,11 @@ final class ProductionServices implements ContainerServices {
     }
 
     public ClassDiscovery classDiscovery() {
-        return classDiscovery;
+        return discovery;
     }
 
     public DependencyInjector dependencyInjector() {
-        return dependencyInjector;
+        return injector;
     }
 
     public DependencyGraph.Traversal graphTraversal() {
@@ -64,7 +64,7 @@ final class ProductionServices implements ContainerServices {
     }
 
     public DependencyGraph.Traversal graphTraversal(final ComponentResolutionObserver observer) {
-        return new DependencyPathTraversal(strategy, observer);
+        return new DependencyPathTraversal(injector, strategy, observer);
     }
 
     public LogFactory logs() {

@@ -386,17 +386,25 @@ final class SimpleContainerImpl implements ParentContainer {
     }
 
     public Node resolveGroup(final Class<?> api, final ContextDefinition context, final Traversal traversal) {
+        return resolveGroup(api, context, traversal, null);
+    }
+
+    public Node resolveGroup(final Class<?> api, final ContextDefinition context, final Traversal traversal, final Annotation[] annotations) {
         final GroupResolver group = groups.get(api);
         final Object empty = Array.newInstance(api, 0);
 
         if (group == null) {
-            return parent == null ? null : parent.resolveGroup(api, context, traversal);
+            return parent == null ? null : parent.resolveGroup(api, context, traversal, annotations);
         } else {
             final Class<?> arrayApi = empty.getClass();
 
             return traversal.follow(this, context, new Node.Reference() {
                 public Class<?> api() {
                     return arrayApi;
+                }
+
+                public Annotation[] annotations() {
+                    return annotations;
                 }
 
                 public Node resolve(final Traversal traversal, final ContextDefinition context) {
@@ -592,6 +600,10 @@ final class SimpleContainerImpl implements ParentContainer {
                     return Arrays.asList(platform.getComponentGroup(api, context));
                 }
             });
+        }
+
+        public Node resolveGroup(final Class<?> api, final ContextDefinition context, final Traversal traversal, final Annotation[] annotations) {
+            return resolveGroup(api, context, traversal);
         }
 
         public List<GroupResolver> groupResolvers(final Class<?> api) {

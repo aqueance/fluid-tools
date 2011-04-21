@@ -16,6 +16,8 @@
 
 package org.fluidity.composition;
 
+import java.lang.annotation.Annotation;
+
 import org.fluidity.composition.spi.ComponentResolutionObserver;
 import org.fluidity.composition.spi.DependencyPath;
 
@@ -91,6 +93,13 @@ public interface DependencyGraph {
              * @return the component interface this node refers to.
              */
             Class<?> api();
+
+            /**
+             * Returns the annotations at this reference.
+             *
+             * @return the annotations at this reference.
+             */
+            Annotation[] annotations();
 
             /**
              * Resolves the node using the given traversal and context.
@@ -174,9 +183,28 @@ public interface DependencyGraph {
         /**
          * Notifies the traversal's observer, if any, about the instantiation of the given type.
          *
-         * @param type the type just instantiated.
+         * @param type      the type just instantiated.
+         *
+         * @param component the component that has just been instantiated. The receiver must not call any method on it.
          */
-        void instantiated(Class<?> type);
+        void instantiated(Class<?> type, Object component);
+
+        /**
+         * Returns the current resolution or instantiation path.
+         *
+         * @return the current resolution or instantiation path.
+         */
+        DependencyPath path();
+
+        /**
+         * Notifies the observer registered with the receiver that a dependency is being resolved. See {@link ComponentResolutionObserver} for details.
+         *
+         * @param declaringType        see {@link ComponentResolutionObserver}.
+         * @param dependencyType       see {@link ComponentResolutionObserver}.
+         * @param typeAnnotations      see {@link ComponentResolutionObserver}.
+         * @param referenceAnnotations see {@link ComponentResolutionObserver}.
+         */
+        void resolving(Class<?> declaringType, Class<?> dependencyType, Annotation[] typeAnnotations, Annotation[] referenceAnnotations);
 
         /**
          * A path traversal strategy. The strategy is consulted before advancing on a dependency path.

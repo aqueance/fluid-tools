@@ -57,8 +57,8 @@ final class AnnotationMaps {
     public static int hashCode(final Map<Class<? extends Annotation>, Annotation[]> map) {
         int result = map.keySet().hashCode();
 
-        for (final Annotation[] annotations : map.values()) {
-            result += Arrays.hashCode(annotations);
+        for (final Annotation[] annotations : sorted(map).values()) {
+            result += 31 * Arrays.hashCode(annotations);
         }
 
         return result;
@@ -67,16 +67,8 @@ final class AnnotationMaps {
     public static String toString(final Map<Class<? extends Annotation>, Annotation[]> map) {
         final StringBuilder builder = new StringBuilder();
 
-        final Map<Class<? extends Annotation>, Annotation[]> sorted = new TreeMap<Class<? extends Annotation>, Annotation[]>(new Comparator<Class<? extends Annotation>>() {
-            public int compare(final Class<? extends Annotation> o1, final Class<? extends Annotation> o2) {
-                return o1.getName().compareTo(o2.getName());
-            }
-        });
-
-        sorted.putAll(map);
-
         boolean multiple = false;
-        for (final Map.Entry<Class<? extends Annotation>, Annotation[]> entry : sorted.entrySet()) {
+        for (final Map.Entry<Class<? extends Annotation>, Annotation[]> entry : sorted(map).entrySet()) {
             if (builder.length() > 0) {
                 builder.append(", ");
                 multiple = true;
@@ -88,5 +80,16 @@ final class AnnotationMaps {
         }
 
         return (multiple ? builder.insert(0, '[').append(']') : builder).toString();
+    }
+
+    private static Map<Class<? extends Annotation>, Annotation[]> sorted(final Map<Class<? extends Annotation>, Annotation[]> map) {
+        final Map<Class<? extends Annotation>, Annotation[]> sorted = new TreeMap<Class<? extends Annotation>, Annotation[]>(new Comparator<Class<? extends Annotation >> () {
+            public int compare(final Class<? extends Annotation> o1, final Class<? extends Annotation> o2) {
+                return o1.getName().compareTo(o2.getName());
+            }
+        });
+
+        sorted.putAll(map);
+        return sorted;
     }
 }

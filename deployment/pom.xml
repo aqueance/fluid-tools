@@ -38,6 +38,10 @@
         </license>
     </licenses>
 
+    <properties>
+        <osgi.specification.version>4.2.0</osgi.specification.version>
+    </properties>
+
     <modules>
         <module>deployment-api</module>
         <module>deployment-impl</module>
@@ -45,6 +49,7 @@
         <module>cli-bootstrap</module>
         <module>osgi-bootstrap</module>
         <module>war-boundary-utils</module>
+        <module>osgi-deployment-api</module>
         <module>plugins</module>
     </modules>
 

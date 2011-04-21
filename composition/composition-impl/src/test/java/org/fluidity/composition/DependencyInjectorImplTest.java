@@ -123,7 +123,10 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
             assert component == null || component.getClass().isArray() : component.getClass();
             final Object[] services = (Object[]) component;
 
-            EasyMock.expect(resolver.resolveGroup(dependencyType.getComponentType(), copy, traversal))
+            EasyMock.expect(resolver.resolveGroup(EasyMock.same(dependencyType.getComponentType()),
+                                                  EasyMock.same(copy),
+                                                  EasyMock.same(traversal),
+                                                  EasyMock.<Annotation[]>notNull()))
                     .andReturn(new DependencyGraph.Node.Constant(dependencyType, services, null));
         } else if (dependencyType == ComponentContext.class) {
             EasyMock.expect(copy.reduce(EasyMock.<Set<Class<? extends Annotation>>>isNull())).andReturn(copy);
@@ -165,6 +168,8 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
 
         setupCollection(context, copy1, copy2);
 
+        expectCallbacks();
+
         replay();
         assert component == injector.fields(traversal, resolver, mapping, context, component);
         verify();
@@ -185,6 +190,8 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
                         setupFieldResolution(FieldInjected.class, "dependency", null, null, null),
                         setupFieldResolution(FieldInjected.class, "services", null, null, null));
 
+        expectCallbacks();
+
         replay();
         assert component == injector.fields(traversal, resolver, mapping, context, component);
         verify();
@@ -195,6 +202,8 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
         final OptionalFieldInjected component = new OptionalFieldInjected();
 
         setupCollection(context, setupFieldResolution(OptionalFieldInjected.class, "dependency", null, null, null));
+
+        expectCallbacks();
 
         replay();
         assert component == injector.fields(traversal, resolver, mapping, context, component);
@@ -218,6 +227,8 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
 
         ConstructorInjected.expectedGroupSize = services.length;
 
+        expectCallbacks();
+
         replay();
         assert injector.constructor(traversal, resolver, mapping, context, constructor) != null;
         verify();
@@ -233,6 +244,8 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
                         setupFieldResolution(component.getClass(), "container", container, null, null),
                         setupFieldResolution(component.getClass(), "context", context, created, null));
 
+        expectCallbacks();
+
         replay();
         assert component == injector.fields(traversal, resolver, mapping, context, component);
         verify();
@@ -241,6 +254,8 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
         assert component.container != null : component.container;
 
         EasyMock.expect(container.getComponent(ContextDefinition.class)).andReturn(context);
+
+        expectCallbacks();
 
         replay();
         assert component.container.getComponent(ContextDefinition.class) == context;
@@ -253,9 +268,16 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
         setupCollection(context, setupConstructorResolution(MissingGroupConsumer.class, constructor, null, null, (Object) null));
         EasyMock.expect(context.create()).andReturn(addLocalControl(ComponentContext.class));
 
+        expectCallbacks();
+
         replay();
         assert injector.constructor(traversal, resolver, mapping, context, constructor) != null;
         verify();
+    }
+
+    private void expectCallbacks() {
+        traversal.resolving(EasyMock.<Class<?>>notNull(), EasyMock.<Class<?>>notNull(), EasyMock.<Annotation[]>notNull(), EasyMock.<Annotation[]>notNull());
+        EasyMock.expectLastCall().anyTimes();
     }
 
     private final class FieldInjected {

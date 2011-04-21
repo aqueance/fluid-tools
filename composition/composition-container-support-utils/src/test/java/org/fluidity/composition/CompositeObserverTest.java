@@ -18,6 +18,7 @@ package org.fluidity.composition;
 
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.fluidity.composition.spi.ComponentResolutionObserver;
 import org.fluidity.composition.spi.DependencyPath;
@@ -34,6 +35,7 @@ public class CompositeObserverTest extends MockGroupAbstractTest {
     private final ComponentResolutionObserver observer2 = addControl(ComponentResolutionObserver.class);
     private final ComponentResolutionObserver observer3 = addControl(ComponentResolutionObserver.class);
     private final DependencyPath path = addControl(DependencyPath.class);
+    private final Object component = new Object();
 
     @Test
     public void testNoObserver() throws Exception {
@@ -65,12 +67,14 @@ public class CompositeObserverTest extends MockGroupAbstractTest {
         observer.resolved(path, Serializable.class);
         verify();
 
-        observer1.instantiated(path);
-        observer2.instantiated(path);
-        observer3.instantiated(path);
+        final AtomicReference<Object> reference = new AtomicReference<Object>(component);
+
+        observer1.instantiated(path, reference);
+        observer2.instantiated(path, reference);
+        observer3.instantiated(path, reference);
 
         replay();
-        observer.instantiated(path);
+        observer.instantiated(path, reference);
         verify();
     }
 }

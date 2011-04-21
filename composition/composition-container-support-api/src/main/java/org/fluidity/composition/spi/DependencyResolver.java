@@ -16,6 +16,8 @@
 
 package org.fluidity.composition.spi;
 
+import java.lang.annotation.Annotation;
+
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ContextDefinition;
 import org.fluidity.composition.DependencyGraph;
@@ -43,4 +45,16 @@ public interface DependencyResolver extends DependencyGraph {
      * @return a new component container.
      */
     ComponentContainer container(ContextDefinition context);
+
+    /**
+     * Resolves a component group with the given traversal in the given context.
+     *
+     * @param api         the group interface.
+     * @param context     the component context at the point of resolution.
+     * @param traversal   the graph traversal to use.
+     * @param annotations the annotations defined at the reference to the group interface being resolved.
+     *
+     * @return the resolved component group or <code>null</code> if none could be resolved.
+     */
+    Node resolveGroup(Class<?> api, ContextDefinition context, Traversal traversal, Annotation[] annotations);
 }

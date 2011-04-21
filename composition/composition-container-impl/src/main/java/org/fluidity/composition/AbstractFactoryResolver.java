@@ -2,6 +2,7 @@ package org.fluidity.composition;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -71,17 +72,30 @@ abstract class AbstractFactoryResolver extends AbstractResolver {
             }
 
             public DependencyGraph.Node resolve(final Class<?> api, final Annotation[] annotations) {
-                if (ComponentContext.class.isAssignableFrom(api)) {
-                    return new DependencyGraph.Node.Constant(passed.getClass(), passed, null);
-                } else if (ComponentContainer.class.isAssignableFrom(api)) {
-                    final RestrictedContainer restricted = new RestrictedContainer(new ComponentContainerShell(child, reduced.reduce(null), false));
-                    containers.add(restricted);
-                    return new DependencyGraph.Node.Constant(RestrictedContainer.class, restricted, passed);
-                } else {
-                    final ContextDefinition copy = collected.copy();
-                    list.add(copy);
-                    return child.resolveComponent(api, annotations == null ? copy : copy.expand(annotations), traversal);
-                }
+                final Class<?> resolving = AbstractFactoryResolver.this.api;
+
+                return injector.resolve(api, new DependencyInjector.Resolution() {
+                    public ComponentContext context() {
+                        traversal.resolving(resolving, api, null, null);
+                        return passed;
+                    }
+
+                    public ComponentContainer container() {
+                        traversal.resolving(resolving, api, null, null);
+                        return new ComponentContainerShell(child, reduced.reduce(null), false);
+                    }
+
+                    public DependencyGraph.Node regular() {
+                        traversal.resolving(resolving, api, null, annotations);
+                        final ContextDefinition copy = collected.copy();
+                        list.add(copy);
+                        return child.resolveComponent(api, annotations == null ? copy : copy.expand(annotations), traversal);
+                    }
+
+                    public void handle(final RestrictedContainer container) {
+                        containers.add(container);
+                    }
+                });
             }
 
             public Factory.Dependency<?>[] discover(final Class<?> type) {
@@ -89,9 +103,14 @@ abstract class AbstractFactoryResolver extends AbstractResolver {
             }
 
             public Factory.Dependency<?>[] discover(final Constructor<?> constructor) {
-                final Class<?>[] types = constructor.getParameterTypes();
-                final Annotation[][] annotations = constructor.getParameterAnnotations();
+                return discover(constructor.getParameterTypes(), constructor.getParameterAnnotations());
+            }
 
+            public Factory.Dependency<?>[] discover(final Method method) {
+                return discover(method.getParameterTypes(), method.getParameterAnnotations());
+            }
+
+            private Factory.Dependency<?>[] discover(final Class<?>[] types, final Annotation[][] annotations) {
                 final List<Factory.Dependency<?>> nodes = new ArrayList<Factory.Dependency<?>>();
                 for (int i = 0, limit = types.length; i < limit; i++) {
                     nodes.add(new NodeDependency<Object>(resolve(types[i], annotations[i]), traversal));
@@ -111,7 +130,7 @@ abstract class AbstractFactoryResolver extends AbstractResolver {
 
             public Object instance(final DependencyGraph.Traversal traversal) {
                 try {
-                    instance.bind(new RegistryWrapper(child));
+                    instance.bind(new RegistryWrapper(api, child));
                     return child.resolveComponent(api, saved, traversal).instance(traversal);
                 } finally {
                     for (final RestrictedContainer restricted : containers) {
@@ -128,24 +147,37 @@ abstract class AbstractFactoryResolver extends AbstractResolver {
 
     @SuppressWarnings("unchecked")
     private class RegistryWrapper implements Factory.Registry {
+        private final Class<?> api;
         private final SimpleContainer container;
 
-        public RegistryWrapper(final SimpleContainer container) {
+        public RegistryWrapper(final Class<?> api, final SimpleContainer container) {
+            this.api = api;
             this.container = container;
         }
 
         public <T> void bindComponent(final Class<T> implementation, final Class<? super T>... interfaces) throws ComponentContainer.BindingException {
-            container.bindComponent(Components.inspect(implementation, interfaces));
+            final Components.Interfaces inspect = Components.inspect(implementation, interfaces);
+
+            if (api.isAssignableFrom(implementation)) {
+                // TODO: container should not cache this one
+            }
+
+            container.bindComponent(inspect);
         }
 
         public <T> void bindInstance(final T instance, final Class<? super T>... interfaces) throws ComponentContainer.BindingException {
             assert instance != null;
             final Class<T> implementation = (Class<T>) instance.getClass();
+
+            if (api.isAssignableFrom(implementation)) {
+                // TODO: container should not cache this one
+            }
+
             container.bindInstance(instance, Components.inspect(implementation, interfaces));
         }
 
         public Factory.Registry makeChildContainer() {
-            return new RegistryWrapper(container.newChildContainer());
+            return new RegistryWrapper(api, container.newChildContainer());
         }
     }
 

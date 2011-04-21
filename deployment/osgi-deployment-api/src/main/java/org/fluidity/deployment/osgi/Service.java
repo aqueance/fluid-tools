@@ -22,20 +22,28 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import org.fluidity.composition.Internal;
+
 /**
- * Defines an OSGi service selector filter.
- *
- * @author Tibor Varga
+ * Annotates constructor parameters or instance fields, of a component provided by {@link ServiceTracker}, that require an OSGi service instance.
  */
+@Internal
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ ElementType.FIELD, ElementType.PARAMETER })
-public @interface Selector {
+@Target({ ElementType.PARAMETER, ElementType.FIELD })
+public @interface Service {
 
     /**
-     * Returns a valid OSGi filter as per 3.2.6 of the OSGi Service Platform Core Specification v4.2.
+     * Returns the service interface under which the required OSGi service is expected to have been registered.
      *
-     * @return a valid OSGi filter.
+     * @return the service interface under which the required OSGi service is expected to have been registered.
      */
-    String value();
+    Class<?> api();
+
+    /**
+     * Returns the filter that narrows down the list of possible service implementation candidates.
+     *
+     * @return the filter that narrows down the list of possible service implementation candidates.
+     */
+    String filter() default "";
 }

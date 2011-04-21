@@ -53,6 +53,10 @@ final class InstanceResolver extends AbstractResolver {
                 return api;
             }
 
+            public Annotation[] annotations() {
+                return null;
+            }
+
             public DependencyGraph.Node resolve(final DependencyGraph.Traversal traversal, final ContextDefinition context) {
                 return new DependencyGraph.Node.Constant(instance.getClass(), instance, context.create());
             }

@@ -16,10 +16,12 @@
 
 package org.fluidity.composition;
 
+import java.lang.annotation.Annotation;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.fluidity.composition.spi.ComponentResolutionObserver;
 import org.fluidity.composition.spi.DependencyPath;
@@ -62,15 +64,25 @@ final class CompositeObserver implements ComponentResolutionObserver {
         }
     }
 
+    public void resolving(final Class<?> api,
+                          final Class<?> declaringType,
+                          final Class<?> dependencyType,
+                          final Annotation[] typeAnnotations,
+                          final Annotation[] referenceAnnotations) {
+        for (final ComponentResolutionObserver observer : observers) {
+            observer.resolving(api, declaringType, dependencyType, typeAnnotations, referenceAnnotations);
+        }
+    }
+
     public void resolved(final DependencyPath path, final Class<?> type) {
         for (final ComponentResolutionObserver observer : observers) {
             observer.resolved(path, type);
         }
     }
 
-    public void instantiated(final DependencyPath path) {
+    public void instantiated(final DependencyPath path, final AtomicReference<?> reference) {
         for (final ComponentResolutionObserver observer : observers) {
-            observer.instantiated(path);
+            observer.instantiated(path, reference);
         }
     }
 

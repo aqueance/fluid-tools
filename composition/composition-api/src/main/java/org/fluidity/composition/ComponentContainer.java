@@ -149,6 +149,22 @@ public interface ComponentContainer {
     <T> T instantiate(Class<T> componentClass) throws ResolutionException;
 
     /**
+     * Returns a container that has the bindings of the receiver but gets the context of the given other container merged with its own.
+     *
+     * @param container the other container to merge the context of with that of the receiver.
+     *
+     * @return a new container with merged context.
+     */
+    ComponentContainer inheritContext(ComponentContainer container);
+
+    /**
+     * Returns the component context embedded in the receiver.
+     *
+     * @return the component context embedded in the receiver; may be <code>null</code>.
+     */
+    ComponentContext context();
+
+    /**
      * Component bindings.
      */
     interface Bindings {

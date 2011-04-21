@@ -1,6 +1,7 @@
 package org.fluidity.composition.spi;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
@@ -116,8 +117,8 @@ public interface Factory {
         <T> Dependency<T> resolve(Class<T> api);
 
         /**
-         * Returns a list of dependencies, each corresponding to the dependency injectable constructor of the supplied component class. For the algorithm on
-         * constructor resolution, see the <code>DependencyInjector.constructor()</code> method.
+         * Returns a list of dependencies, each corresponding to the parameters of the dependency injectable constructor of the supplied component class. For
+         * the algorithm on constructor resolution, see the <code>DependencyInjector.constructor()</code> method.
          *
          * @param type the component class.
          *
@@ -126,13 +127,23 @@ public interface Factory {
         Dependency<?>[] discover(Class<?> type);
 
         /**
-         * Returns a list of dependencies, each corresponding to the supplied constructor.
+         * Returns a list of dependencies, each corresponding to the parameters of the supplied constructor.
          *
          * @param constructor the constructor.
          *
-         * @return a list of dependencies corresponding to the constructor parameters.
+         * @return a list of dependencies corresponding to the parameters of the constructor parameters.
          */
         Dependency<?>[] discover(Constructor<?> constructor);
+
+
+        /**
+         * Returns a list of dependencies, each corresponding to the parameters of the supplied factory method.
+         *
+         * @param method the constructor.
+         *
+         * @return a list of dependencies corresponding to the parameters of the supplied factory method.
+         */
+        Dependency<?>[] discover(Method method);
     }
 
     /**

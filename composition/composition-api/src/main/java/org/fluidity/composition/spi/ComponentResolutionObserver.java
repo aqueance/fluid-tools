@@ -16,12 +16,26 @@
 
 package org.fluidity.composition.spi;
 
+import java.lang.annotation.Annotation;
+import java.util.concurrent.atomic.AtomicReference;
+
 /**
  * Observes graph node resolutions.
  *
  * @author Tibor Varga
  */
 public interface ComponentResolutionObserver {
+
+    /**
+     * Notifies the receiver that a dependency is being resolved.
+     *
+     * @param api                  the component interface being queried, which is the one the declaring type is bound against
+     * @param declaringType        the class having the dependency.
+     * @param dependencyType       the dependency type.
+     * @param typeAnnotations      the annotations of the declaring class.
+     * @param referenceAnnotations the annotations of the dependency reference.
+     */
+    void resolving(Class<?> api, Class<?> declaringType, Class<?> dependencyType, Annotation[] typeAnnotations, Annotation[] referenceAnnotations);
 
     /**
      * Invoked for each resolved graph node. The path and type are not final, they may change as circular references are handled. Elements of the path are
@@ -34,9 +48,11 @@ public interface ComponentResolutionObserver {
 
     /**
      * Invoked for each instantiated graph node. The path and type are final. Elements of the path are actual classes that will be or have been instantiated.
-     * The {@link DependencyPath#head(boolean)} returns the class just instantiated.
+     * The {@link DependencyPath#head()} returns details about the class just instantiated.
      *
-     * @param path the dependency path at which the given type has been instantiated. Does not yet include <code>type</code>.
+     * @param path      the dependency path at which the given type has been instantiated. Does not yet include <code>type</code>.
+     * @param reference a reference to the component that has just been instantiated. The receiver must not call any method on it. The reference will be set
+     *                  <em>after</em> this method returns to avoid the receiver wreaking havoc by calling the just instantiated component.
      */
-    void instantiated(DependencyPath path);
+    void instantiated(DependencyPath path, AtomicReference<?> reference);
 }

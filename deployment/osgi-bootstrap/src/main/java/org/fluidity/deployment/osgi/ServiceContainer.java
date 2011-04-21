@@ -18,8 +18,11 @@ package org.fluidity.deployment.osgi;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
+import java.util.Arrays;
+import java.util.HashSet;
 
 import org.fluidity.composition.ComponentContainer;
+import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.ContextDefinition;
 import org.fluidity.composition.Inject;
 import org.fluidity.composition.spi.PlatformContainer;
@@ -48,28 +51,27 @@ final class ServiceContainer implements PlatformContainer {
     }
 
     public boolean containsComponent(final Class<?> api, final ContextDefinition context) {
-        return service(api) != null;
+        return isService(api, serviceContext(api, context));
+    }
+
+    public <T> T getComponent(final Class<T> api, final ContextDefinition context) throws ComponentContainer.ResolutionException {
+        final ServiceReference reference = service(api, serviceContext(api, context));
+        return reference == null ? null : proxy(api, reference);
     }
 
     @SuppressWarnings("unchecked")
-    public <T> T getComponent(final Class<T> api, final ContextDefinition context) throws ComponentContainer.ResolutionException {
-        final ServiceReference reference = service(api);
-        return reference == null ? null : (T) bundle.getService(reference);
+    private <T> T proxy(final Class<T> api, final ServiceReference reference) {
+        return (T) bundle.getService(reference);
     }
 
     public boolean containsComponentGroup(final Class<?> api, final ContextDefinition context) {
-        try {
-            final ServiceReference[] references = services(api, context);
-            return references != null && references.length > 0;
-        } catch (final InvalidSyntaxException e) {
-            throw new RuntimeException(api.getName(), e);
-        }
+        return isService(api, serviceContext(api, context));
     }
 
     @SuppressWarnings("unchecked")
     public <T> T[] getComponentGroup(final Class<T> api, final ContextDefinition context) {
         try {
-            final ServiceReference[] references = services(api, context);
+            final ServiceReference[] references = services(api, serviceContext(api, context));
 
             if (references == null) {
                 return null;
@@ -78,7 +80,7 @@ final class ServiceContainer implements PlatformContainer {
 
                 for (int i = 0, limit = references.length; i < limit; i++) {
                     final ServiceReference reference = references[i];
-                    components[i] = (T) bundle.getService(reference);
+                    components[i] = proxy(api, reference);
                 }
 
                 return components;
@@ -88,29 +90,39 @@ final class ServiceContainer implements PlatformContainer {
         }
     }
 
-    private ServiceReference service(final Class<?> api) {
-        return lookup(api, null, bundle.getServiceReference(api.getName()))[0];
+    private ServiceReference service(final Class<?> api, final Service context) {
+        return isService(api, context) ? lookup(api, null, bundle.getServiceReference(api.getName()))[0] : null;
     }
 
-    private ServiceReference[] services(final Class<?> api, final ContextDefinition context) throws InvalidSyntaxException {
+    private ServiceReference[] services(final Class<?> api, final Service context) throws InvalidSyntaxException {
         final String filter = filter(context);
-        return lookup(api, filter, bundle.getServiceReferences(api.getName(), filter));
+        return isService(api, context) ? lookup(api, filter, bundle.getServiceReferences(api.getName(), filter)) : null;
+    }
+
+    @SuppressWarnings("unchecked")
+    private Service serviceContext(final Class<?> api, final ContextDefinition definition) {
+        final ComponentContext context = definition.reduce(new HashSet<Class<? extends Annotation>>(Arrays.asList(Service.class))).create();
+        final Service[] service = context.annotations(Service.class);
+        return service == null || service.length == 0 ? null : service[service.length - 1];
+    }
+
+    private boolean isService(final Class<?> api, final Service context) {
+        return api.isInterface() && context != null;
     }
 
     private ServiceReference[] lookup(final Class<?> api, final String filter, final ServiceReference... references) {
         final boolean found = references != null && references.length > 0 && references[0] != null;
         final boolean multiple = filter == null;
         log.info("Looking up OSGi service%s %s%s: %sfound",
-                 multiple ? "" : "s",
-                 api.getName(),
-                 multiple ? "" : String.format(" with filter '%s'", filter),
-                 found ? "" : "not ");
+                multiple ? "" : "s",
+                api.getName(),
+                multiple ? "" : String.format(" with filter '%s'", filter),
+                found ? "" : "not ");
         return references;
     }
 
-    private String filter(final ContextDefinition context) {
-        final Annotation[] selectors = context.defined().get(Selector.class);
-        return selectors != null && selectors.length > 0 ? ((Selector) selectors[selectors.length - 1]).value() : null;
+    private String filter(final Service context) {
+        return context != null ? context.filter() : null;
     }
 
     public void stop() {

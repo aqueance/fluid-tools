@@ -21,7 +21,9 @@ import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
+import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.ContextDefinition;
 import org.fluidity.composition.spi.PlatformContainer;
 import org.fluidity.foundation.logging.NoLogFactory;
@@ -38,7 +40,8 @@ import org.testng.annotations.Test;
 public class ServiceContainerTest extends MockGroupAbstractTest {
 
     private final BundleContext bundle = addControl(BundleContext.class);
-    private final ContextDefinition context = addControl(ContextDefinition.class);
+    private final ContextDefinition definition = addControl(ContextDefinition.class);
+    private final ComponentContext context = addControl(ComponentContext.class);
     private final PlatformContainer container = new ServiceContainer(bundle);
 
     private final ServiceReference service1 = addControl(ServiceReference.class);
@@ -48,8 +51,8 @@ public class ServiceContainerTest extends MockGroupAbstractTest {
     private final ComponentApi component2 = addControl(ComponentApi.class);
     private final ComponentApi component3 = addControl(ComponentApi.class);
 
-    private final Selector selector1 = ContextSites.class.getDeclaredField("field1").getAnnotation(Selector.class);
-    private final Selector selector2 = ContextSites.class.getDeclaredField("field2").getAnnotation(Selector.class);
+    private final Service selector1 = ContextSites.class.getDeclaredField("field1").getAnnotation(Service.class);
+    private final Service selector2 = ContextSites.class.getDeclaredField("field2").getAnnotation(Service.class);
 
     public ServiceContainerTest() throws Exception {
         final Field field = container.getClass().getDeclaredField("log");
@@ -59,89 +62,94 @@ public class ServiceContainerTest extends MockGroupAbstractTest {
 
     @Test
     public void testFailedComponentLookup() throws Exception {
-        EasyMock.expect(bundle.getServiceReference(ComponentApi.class.getName())).andReturn(null);
+        expectContext();
 
         replay();
-        assert !container.containsComponent(ComponentApi.class, context);
+        assert !container.containsComponent(ComponentApi.class, definition);
         verify();
 
         EasyMock.expect(bundle.getServiceReference(ComponentApi.class.getName())).andReturn(null);
+        expectContext(selector1);
 
         replay();
-        assert container.getComponent(ComponentApi.class, context) == null;
+        assert container.getComponent(ComponentApi.class, definition) == null;
         verify();
     }
 
     @Test
     public void testSuccessfulComponentLookup() throws Exception {
-        EasyMock.expect(bundle.getServiceReference(ComponentApi.class.getName())).andReturn(service1);
+        expectContext(selector1);
 
         replay();
-        assert container.containsComponent(ComponentApi.class, context);
+        assert container.containsComponent(ComponentApi.class, definition);
         verify();
 
         EasyMock.expect(bundle.getServiceReference(ComponentApi.class.getName())).andReturn(service1);
         EasyMock.expect(bundle.getService(service1)).andReturn(component1);
+        expectContext(selector1);
 
         replay();
-        assert container.getComponent(ComponentApi.class, context) == component1;
+        assert container.getComponent(ComponentApi.class, definition) == component1;
         verify();
     }
 
     @Test
     public void testFailedGroupLookup() throws Exception {
-        EasyMock.expect(bundle.getServiceReferences(ComponentApi.class.getName(), selector2.value())).andReturn(null);
-        EasyMock.expect(context.defined()).andReturn(selectors(selector1, selector2));
+        expectContext();
 
         replay();
-        assert !container.containsComponentGroup(ComponentApi.class, context);
+        assert !container.containsComponentGroup(ComponentApi.class, definition);
         verify();
 
-        EasyMock.expect(bundle.getServiceReferences(ComponentApi.class.getName(), selector1.value())).andReturn(null);
-        EasyMock.expect(context.defined()).andReturn(selectors(selector1));
+        EasyMock.expect(bundle.getServiceReferences(ComponentApi.class.getName(), selector1.filter())).andReturn(null);
+        expectContext(selector1);
 
         replay();
-        assert container.getComponentGroup(ComponentApi.class, context) == null;
+        assert container.getComponentGroup(ComponentApi.class, definition) == null;
         verify();
     }
 
     @Test
     public void testSuccessfulGroupLookup() throws Exception {
         final ServiceReference[] references = { service1, service2, service3 };
-        EasyMock.expect(bundle.getServiceReferences(ComponentApi.class.getName(), selector1.value())).andReturn(references);
-        EasyMock.expect(context.defined()).andReturn(selectors(selector1));
+        expectContext(selector1);
 
         replay();
-        assert container.containsComponentGroup(ComponentApi.class, context);
+        assert container.containsComponentGroup(ComponentApi.class, definition);
         verify();
 
-        EasyMock.expect(bundle.getServiceReferences(ComponentApi.class.getName(), selector2.value())).andReturn(references);
-        EasyMock.expect(context.defined()).andReturn(selectors(selector1, selector2));
+        EasyMock.expect(bundle.getServiceReferences(ComponentApi.class.getName(), selector2.filter())).andReturn(references);
+        expectContext(selector1, selector2);
         EasyMock.expect(bundle.getService(service1)).andReturn(component1);
         EasyMock.expect(bundle.getService(service2)).andReturn(component2);
         EasyMock.expect(bundle.getService(service3)).andReturn(component3);
 
         replay();
-        assert Arrays.equals(container.getComponentGroup(ComponentApi.class, context), new Object[] { component1, component2, component3 });
+        assert Arrays.equals(container.getComponentGroup(ComponentApi.class, definition), new Object[] { component1, component2, component3 });
         verify();
+    }
+
+    private void expectContext(final Service... selectors) {
+        EasyMock.expect(definition.reduce(EasyMock.<Set<Class<? extends Annotation>>>notNull())).andReturn(definition);
+        EasyMock.expect(definition.create()).andReturn(context);
+        EasyMock.expect(context.annotations(Service.class)).andReturn(selectors);
     }
 
     @SuppressWarnings("unchecked")
     private Map<Class<? extends Annotation>, Annotation[]> selectors(final Annotation... selectors) {
         final Map<Class<? extends Annotation>, Annotation[]> map = new HashMap<Class<? extends Annotation>, Annotation[]>();
-        map.put(Selector.class, selectors);
+        map.put(Service.class, selectors);
         return map;
     }
 
-    private static interface ComponentApi {
-    }
+    private static interface ComponentApi { }
 
     @SuppressWarnings("UnusedDeclaration")
     private static class ContextSites {
 
-        @Selector("selector1")
+        @Service(api = Object.class, filter = "selector1")
         private static final String field1 = null;
-        @Selector("selector2")
+        @Service(api = Object.class, filter = "selector2")
         private static final String field2 = null;
     }
 }

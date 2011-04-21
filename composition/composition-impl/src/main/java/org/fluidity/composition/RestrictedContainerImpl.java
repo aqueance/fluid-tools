@@ -16,21 +16,25 @@
 
 package org.fluidity.composition;
 
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.fluidity.composition.spi.ComponentResolutionObserver;
 
 /**
- * Wraps another container and denies access to it until {@link #enable()} is invoked.
- *
  * @author Tibor Varga
  */
-public final class RestrictedContainer implements ComponentContainer {
+final class RestrictedContainerImpl implements  RestrictedContainer {
 
-    private final AtomicReference<ComponentContainer> reference = new AtomicReference<ComponentContainer>(new NoContainer());
+    private final AtomicReference<ComponentContainer> reference
+            = new AtomicReference<ComponentContainer>((ComponentContainer) Proxy.newProxyInstance(getClass().getClassLoader(),
+                                                                                                  new Class<?>[] { ComponentContainer.class },
+                                                                                                  new AccessDenied()));
     private final ComponentContainer delegate;
 
-    RestrictedContainer(final ComponentContainer delegate) {
+    RestrictedContainerImpl(final ComponentContainer delegate) {
         this.delegate = delegate;
     }
 
@@ -62,41 +66,29 @@ public final class RestrictedContainer implements ComponentContainer {
         return reference.get().instantiate(componentClass);
     }
 
+    public ComponentContainer inheritContext(final ComponentContainer container) {
+        return reference.get().inheritContext(container);
+    }
+
+    public ComponentContext context() {
+        return reference.get().context();
+    }
+
     public void enable() {
         reference.set(delegate);
     }
 
-    private class NoContainer implements ComponentContainer {
+    private static class AccessDenied implements InvocationHandler {
         private RuntimeException denied() {
-            return new ResolutionException("No dynamic dependency allowed, use a ComponentFactory if you need such functionality");
+            return new ResolutionException("No dynamic dependencies allowed, use a ComponentFactory if you need such functionality");
         }
 
-        public ObservedComponentContainer observed(final ComponentResolutionObserver observer) {
-            throw denied();
-        }
-
-        public <T> T getComponent(final Class<T> api) throws ResolutionException {
-            throw denied();
-        }
-
-        public <T> T[] getComponentGroup(final Class<T> api) {
-            throw denied();
-        }
-
-        public OpenComponentContainer makeChildContainer() {
-            throw denied();
-        }
-
-        public <T> T getComponent(final Class<T> api, final Bindings bindings) throws ResolutionException {
-            throw denied();
-        }
-
-        public <T> T initialize(final T component) throws ResolutionException {
-            throw denied();
-        }
-
-        public <T> T instantiate(final Class<T> componentClass) throws ResolutionException {
-            throw denied();
+        public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
+            if (method.getDeclaringClass() == Object.class) {
+                return method.invoke(this, args);
+            } else {
+                throw denied();
+            }
         }
     }
 }

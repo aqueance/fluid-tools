@@ -48,7 +48,7 @@ final class ComponentCacheImpl implements ComponentCache {
                                        final Instantiation delegate,
                                        final Log log) {
         final boolean factory = Factory.class.isAssignableFrom(api);
-        final boolean note = !factory && log.isInfoEnabled();
+        final boolean report = !factory && log.isInfoEnabled();
 
         if (!cache.containsKey(context)) {
 
@@ -61,23 +61,23 @@ final class ComponentCacheImpl implements ComponentCache {
 
             cache.put(context, component);
 
-            if (note) {
-                log.info("%s: created %s@%x%s",
-                         source,
-                         component.getClass().getName(),
-                         System.identityHashCode(component),
-                         context.types().isEmpty() ? "" : String.format(" for %s", context));
-            }
-        } else if (note) {
-            final Object component = cache.get(context);
-            log.info("%s: reusing %s@%x%s",
+            log(report, "created", component, context, log, source);
+        } else {
+            log(report, "reusing", cache.get(context), context, log, source);
+        }
+
+        assert cache.containsKey(context) : String.format("Component %s not found in context %s", api, context);
+        return cache.get(context);
+    }
+
+    private void log(final boolean note, final String action, final Object component, final ComponentContext context, final Log log, final Object source) {
+        if (note) {
+            log.info("%s: %s %s@%x%s",
+                     action,
                      source,
                      component.getClass().getName(),
                      System.identityHashCode(component),
                      context.types().isEmpty() ? "" : String.format(" for %s", context));
         }
-
-        assert cache.containsKey(context) : String.format("Component %s not found in context %s", api, context);
-        return cache.get(context);
     }
 }
