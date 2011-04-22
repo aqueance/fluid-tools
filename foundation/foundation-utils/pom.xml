@@ -51,6 +51,12 @@ Lowest level utility classes that depend on absolutely no other module.
             <scope>test</scope>
         </dependency>
 
+        <dependency>
+            <groupId>org.apache.xbean</groupId>
+            <artifactId>xbean-classloader</artifactId>
+            <optional>true</optional>
+        </dependency>
+
     </dependencies>
 
     <profiles>

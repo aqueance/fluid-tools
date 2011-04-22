@@ -24,14 +24,14 @@ import java.util.Enumeration;
  * Handles jar files visible to the parent class loader. Classes found by the parent class loader are not able to refer to classes loaded by this class so if
  * you have a JAR file with nested JAR files in it, use the {@link JarJarClassLoader} instead of this class.
  */
-public class ParentJarClassLoader extends ClassLoader {
+public final class ParentJarClassLoader extends ClassLoader {
 
-    private final NestedJarClassLoaderImpl nested;
+    private final NestedJarClassLoader nested;
 
     public ParentJarClassLoader(final ClassLoader parent, final String... paths) throws IOException {
         super(parent);
 
-        this.nested = new NestedJarClassLoaderImpl(new NestedJarClassLoaderImpl.Caller() {
+        this.nested = new NestedJarClassLoader(new NestedJarClassLoader.Caller() {
             public Class<?> findClass(final String name) throws ClassNotFoundException {
                 return ParentJarClassLoader.super.findClass(name);
             }

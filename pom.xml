@@ -133,6 +133,14 @@
                 <version>${aether.version}</version>
             </dependency>
 
+            <dependency>
+
+                <!-- Offers URL class loader that can be destroyed after use -->
+                <groupId>org.apache.xbean</groupId>
+                <artifactId>xbean-classloader</artifactId>
+                <version>3.7</version>
+            </dependency>
+
         </dependencies>
     </dependencyManagement>
 

@@ -18,6 +18,9 @@ package org.fluidity.foundation;
 
 import java.io.InputStream;
 import java.net.URL;
+import java.util.UUID;
+
+import org.apache.xbean.classloader.JarFileClassLoader;
 
 /**
  * Finds a suitable class loader in various application containers (web, ejb, junit, testng, maven).
@@ -68,5 +71,27 @@ public final class ClassLoaders {
 
     public static InputStream readClassResource(final Class sourceClass) {
         return findClassLoader(sourceClass).getResourceAsStream(classResourceName(sourceClass));
+    }
+
+    public static JarFileClassLoaders jarFileClassLoaders() {
+        return JarFileClassLoaders.INSTANCE;
+    }
+
+    /**
+     * Isolates JarFileClassLoader, which is in an optional dependency of this Maven project.
+     */
+    public static class JarFileClassLoaders {
+        static JarFileClassLoaders INSTANCE = new JarFileClassLoaders();
+
+        private static final String[] EMPTY_STRING_ARRAY = new String[0];
+
+        public JarFileClassLoader create(final ClassLoader parent, final URL... urls) {
+            return new JarFileClassLoader(UUID.randomUUID().toString(),
+                                          urls,
+                                          parent == null ? ClassLoader.getSystemClassLoader() : parent, // pass null and even java.lang.Object goes missing...
+                                          true, // some idiot thought it was a good idea to create a class loader that fails to delegate to parent by default...
+                                          EMPTY_STRING_ARRAY,
+                                          EMPTY_STRING_ARRAY);
+        }
     }
 }

@@ -16,8 +16,6 @@
 
 package org.fluidity.foundation;
 
-import org.fluidity.foundation.jarjar.Handler;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.lang.ref.Reference;
@@ -38,6 +36,8 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 
+import org.fluidity.foundation.jarjar.Handler;
+
 /**
  * A class loader that looks into jar files inside a jar file, one level only. The implementation loads and caches in a memory sensitive cache that is
  * automatically purged by the garbage collector all yet unused byte codes from any nested jar that was used to load a class from. If a nested jar is larger
@@ -48,10 +48,10 @@ import java.util.jar.JarInputStream;
  *
  * @author Tibor Varga
  */
-public final class NestedJarClassLoaderImpl {
+public final class NestedJarClassLoader {
 
     /**
-     * Allows this the {@link NestedJarClassLoaderImpl} instance to call actual {@link ClassLoader} methods on the caller. See {@link JarJarClassLoader} for a
+     * Allows this the {@link NestedJarClassLoader} instance to call actual {@link ClassLoader} methods on the caller. See {@link JarJarClassLoader} for a
      * working example.
      */
     public static interface Caller {
@@ -117,7 +117,7 @@ public final class NestedJarClassLoaderImpl {
 
     private final Caller caller;
 
-    public NestedJarClassLoaderImpl(final Caller caller) throws IOException {
+    public NestedJarClassLoader(final Caller caller) throws IOException {
         this.caller = caller;
     }
 

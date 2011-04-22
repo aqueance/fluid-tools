@@ -26,12 +26,12 @@ import java.util.Enumeration;
  */
 public class JarJarClassLoader extends URLClassLoader {
 
-    private final NestedJarClassLoaderImpl nested;
+    private final NestedJarClassLoader nested;
 
     public JarJarClassLoader(final URL url, final ClassLoader parent, final String... paths) throws IOException {
         super(new URL[] { url }, parent);
 
-        this.nested = new NestedJarClassLoaderImpl(new NestedJarClassLoaderImpl.Caller() {
+        this.nested = new NestedJarClassLoader(new NestedJarClassLoader.Caller() {
             public Class<?> findClass(final String name) throws ClassNotFoundException {
                 return JarJarClassLoader.super.findClass(name);
             }

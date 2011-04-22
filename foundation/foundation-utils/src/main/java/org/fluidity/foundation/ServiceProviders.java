@@ -77,7 +77,7 @@ public final class ServiceProviders {
             return ServiceLoader.load(interfaceClass, classLoader).iterator();
         } catch (final NoClassDefFoundError e) {
 
-            // Java 5-
+            // Java 6-
             return Java5ServiceLocator.providers(interfaceClass, classLoader);
         }
     }

@@ -18,7 +18,6 @@ package org.fluidity.foundation;
 
 import java.lang.reflect.Method;
 import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -30,6 +29,7 @@ import org.fluidity.deployment.osgi.BundleBootstrap;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.project.MavenProject;
+import org.apache.xbean.classloader.JarFileClassLoader;
 
 /**
  * Used by the maven-standalone-jar plugin after it has copied all transitive dependencies of the host project to the project artifact to modify the JAR
@@ -121,6 +121,7 @@ public class BundleJarManifest implements JarManifest {
         }
 
         if (!dependencies.isEmpty()) {
+            JarFileClassLoader classLoader = null;
             try {
 
                 // create a class loader that sees the project's compile time dependencies
@@ -136,7 +137,7 @@ public class BundleJarManifest implements JarManifest {
                 addJarFile(urls, parent, Command.class);                        // add the jar where the command interface is found
 
                 // must not use our class loader as parent
-                final URLClassLoader classLoader = new URLClassLoader(urls.toArray(new URL[urls.size()]));
+                classLoader = ClassLoaders.jarFileClassLoaders().create(null, urls.toArray(new URL[urls.size()]));
 
                 // find the command
                 final Object command = classLoader.loadClass(BundleActivatorProcessor.class.getName()).newInstance();
@@ -153,6 +154,11 @@ public class BundleJarManifest implements JarManifest {
                 // that's OK
             } catch (final Exception e) {
                 throw new IllegalStateException(e);
+            } finally {
+                if (classLoader != null) {
+                    classLoader.destroy();
+                }
+
             }
         }
 

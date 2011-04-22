@@ -27,7 +27,6 @@ import java.io.PrintWriter;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -56,6 +55,7 @@ import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
+import org.apache.xbean.classloader.JarFileClassLoader;
 import org.codehaus.plexus.util.DirectoryScanner;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassReader;
@@ -152,14 +152,15 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
             assert false : e;
         }
 
-        final ClassLoader repository = new URLClassLoader(urls.toArray(new URL[urls.size()]));
-
+        final JarFileClassLoader repository = ClassLoaders.jarFileClassLoaders().create(null, urls.toArray(new URL[urls.size()]));
         try {
             processClasses(repository, classesDirectory, serviceProviderMap, componentMap, componentGroupMap);
         } catch (final IOException e) {
             throw new MojoExecutionException("Error processing service providers", e);
         } catch (final ClassNotFoundException e) {
             throw new MojoExecutionException("Error processing service providers", e);
+        } finally {
+            repository.destroy();
         }
 
         for (final Map.Entry<String, Map<String, Collection<String>>> entry : serviceProviderMap.entrySet()) {

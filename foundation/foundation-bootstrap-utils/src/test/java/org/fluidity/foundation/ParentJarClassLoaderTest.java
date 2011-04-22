@@ -18,20 +18,35 @@ package org.fluidity.foundation;
 
 import java.io.IOException;
 import java.net.URL;
-import java.net.URLClassLoader;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.xbean.classloader.JarFileClassLoader;
+import org.testng.annotations.AfterClass;
 
 /**
  * @author Tibor Varga
  */
 public class ParentJarClassLoaderTest extends NestedJarClassLoaderTest {
 
+    private final List<JarFileClassLoader> classLoaders = new ArrayList<JarFileClassLoader>();
+
     @Override
     protected ClassLoader createLoader(final URL root, final ClassLoader parent, final String... paths) throws IOException {
-        return new ParentJarClassLoader(new URLClassLoader(new URL[] { root }, parent), paths);
+        final JarFileClassLoader loader = ClassLoaders.jarFileClassLoaders().create(parent, root);
+        classLoaders.add(loader);
+        return new ParentJarClassLoader(loader, paths);
     }
 
     @Override
     protected boolean supportsRootClasses() {
         return false;
+    }
+
+    @AfterClass
+    public void unload() throws Exception {
+        for (final JarFileClassLoader loader : classLoaders) {
+            loader.destroy();
+        }
     }
 }
