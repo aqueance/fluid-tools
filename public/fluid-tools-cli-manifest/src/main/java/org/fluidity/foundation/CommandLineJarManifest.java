@@ -16,10 +16,6 @@
 
 package org.fluidity.foundation;
 
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.net.JarURLConnection;
-import java.net.URL;
 import java.util.Collection;
 import java.util.List;
 import java.util.jar.Attributes;
@@ -38,8 +34,6 @@ import org.apache.maven.project.MavenProject;
  */
 public class CommandLineJarManifest implements JarManifest {
 
-    private static final String ORIGINAL_MAIN_CLASS = "Original-Main-Class";
-
     public boolean needsCompileDependencies() {
         return false;
     }
@@ -51,8 +45,8 @@ public class CommandLineJarManifest implements JarManifest {
             throw new IllegalStateException(String.format("Manifest does not contain %s", Attributes.Name.MAIN_CLASS));
         }
 
-        attributes.putValue(ORIGINAL_MAIN_CLASS, mainClass);
-        attributes.put(Attributes.Name.MAIN_CLASS, getClass().getName());
+        attributes.putValue(JarJarLauncher.ORIGINAL_MAIN_CLASS, mainClass);
+        attributes.put(Attributes.Name.MAIN_CLASS, JarJarLauncher.class.getName());
 
         final StringBuilder dependencyList = new StringBuilder();
 
@@ -64,49 +58,9 @@ public class CommandLineJarManifest implements JarManifest {
             dependencyList.append(dependency);
         }
 
-        attributes.putValue(JarManifest.NESTED_DEPENDENCIES, dependencyList.toString());
+        attributes.putValue(JarJarLauncher.NESTED_DEPENDENCIES, dependencyList.toString());
 
         return true;
     }
 
-    public static void main(final String[] args)
-            throws IOException, ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-        final Class<?> main = CommandLineJarManifest.class;
-
-        final URL url = ClassLoaders.findClassResource(main);
-        final JarURLConnection jar = JarStreams.jarFile(url);
-
-        if (jar != null) {
-            final URL jarURL = jar.getJarFileURL();
-            final Attributes attributes = jar.getMainAttributes();
-
-            final String jarPath = jarURL.getFile();
-            final String mainClass = getMandatoryAttribute(jarPath, attributes, ORIGINAL_MAIN_CLASS);
-            final String dependencies = getMandatoryAttribute(jarPath, attributes, NESTED_DEPENDENCIES);
-
-            final JarJarClassLoader loader = new JarJarClassLoader(jarURL, ClassLoaders.findClassLoader(main), dependencies.split(" "));
-
-            final Thread thread = Thread.currentThread();
-            final ClassLoader saved = thread.getContextClassLoader();
-
-            thread.setContextClassLoader(loader);
-            try {
-                loader.loadClass(mainClass).getMethod("main", String[].class).invoke(null, new Object[] { args });
-            } finally {
-                thread.setContextClassLoader(saved);
-            }
-        } else {
-            throw new IllegalStateException(String.format("%s does not point to a jar file", url));
-        }
-    }
-
-    private static String getMandatoryAttribute(final String file, final Attributes attributes, final String name) {
-        final String mainClass = attributes.getValue(name);
-
-        if (mainClass == null) {
-            throw new IllegalStateException(String.format("%s is not a defined in the %s manifest", name, file));
-        }
-
-        return mainClass;
-    }
 }

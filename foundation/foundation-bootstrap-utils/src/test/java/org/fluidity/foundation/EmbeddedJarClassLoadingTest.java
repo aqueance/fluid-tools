@@ -16,28 +16,42 @@
 
 package org.fluidity.foundation;
 
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
-
 import java.io.IOException;
 import java.net.URL;
+import java.net.URLClassLoader;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.fluidity.foundation.jarjar.Handler;
+
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
+
 /**
  * @author Tibor Varga
  */
-public abstract class NestedJarClassLoaderTest {
+public class EmbeddedJarClassLoadingTest {
     private final String container = "samples.jar";
     private final URL root = getClass().getClassLoader().getResource(container);
 
     private ClassLoader loader;
 
-    protected abstract ClassLoader createLoader(URL root, ClassLoader parent, String... paths) throws IOException;
+    protected ClassLoader createLoader(URL root, ClassLoader parent, String... paths) throws IOException {
 
-    protected abstract boolean supportsRootClasses();
+        final List<URL> urls = new ArrayList<URL>();
+        urls.add(root);
+
+        for (final String path : paths) {
+            urls.add(Handler.formatURL(root, path));
+        }
+
+        return new URLClassLoader(urls.toArray(new URL[urls.size()]), parent);
+        // TODO: get rid of xbean-classloader
+//        return ClassLoaders.jarFileClassLoaders().create(parent, urls.toArray(new URL[urls.size()]));
+    }
 
     protected final ClassLoader loader() {
         return loader;
@@ -64,11 +78,11 @@ public abstract class NestedJarClassLoaderTest {
     public void testFindingOneResource() throws Exception {
         final URL url1 = loader.getResource("resource-1.txt");
         assert url1 != null;
-        assert url1.getProtocol().equals("jar");
+        assert new URL(url1.getFile()).getProtocol().equals("file") : url1;
 
         final URL url2 = loader.getResource("resource-2.txt");
         assert url2 != null;
-        assert url2.getProtocol().equals("jarjar");
+        assert new URL(url2.getFile()).getProtocol().equals("jarjar") : url2;
     }
 
     @Test
@@ -78,25 +92,23 @@ public abstract class NestedJarClassLoaderTest {
 
         final Set<String> protocols = new HashSet<String>();
         for (final URL url : resources) {
-            protocols.add(url.getProtocol());
+            protocols.add(new URL(url.getFile()).getProtocol());
         }
 
         assert protocols.size() == 2 : protocols;
-        assert protocols.contains("jar");
+        assert protocols.contains("file");
         assert protocols.contains("jarjar");
     }
 
     @Test
     public void testReferenceFromRootClass() throws Exception {
-        if (supportsRootClasses()) {
-            final Class<?> rootClass = loader().loadClass("org.fluidity.samples.Root");
-            final Object rootObject = rootClass.newInstance();
+        final Class<?> rootClass = loader().loadClass("org.fluidity.samples.Root");
+        final Object rootObject = rootClass.newInstance();
 
-            assert rootObject != null;
+        assert rootObject != null;
 
-            assert rootClass.getMethod("dependency1").invoke(rootObject) != null;
-            assert rootClass.getMethod("dependency2").invoke(rootObject) != null;
-            assert rootClass.getMethod("dependency3").invoke(rootObject) != null;
-        }
+        assert rootClass.getMethod("dependency1").invoke(rootObject) != null;
+        assert rootClass.getMethod("dependency2").invoke(rootObject) != null;
+        assert rootClass.getMethod("dependency3").invoke(rootObject) != null;
     }
 }

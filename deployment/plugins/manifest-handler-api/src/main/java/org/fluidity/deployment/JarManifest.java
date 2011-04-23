@@ -32,8 +32,6 @@ import org.apache.maven.project.MavenProject;
  */
 public interface JarManifest {
 
-    String NESTED_DEPENDENCIES = "Nested-Dependencies";
-
     /**
      * Tells if the last parameter of the {@link #processManifest(MavenProject, Attributes, List, Collection)} method needs compile time dependencies or
      * run-time ones.

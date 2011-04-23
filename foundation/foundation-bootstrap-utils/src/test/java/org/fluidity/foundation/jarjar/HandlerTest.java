@@ -31,23 +31,37 @@ public class HandlerTest {
     private final Handler handler = new Handler();
     private final String container = "level0.jar";
 
+    private String path(final String... elements) {
+        final StringBuilder builder = new StringBuilder();
+
+        for (final String element : elements) {
+            if (builder.length() > 0) {
+                builder.append(Handler.DELIMITER);
+            }
+
+            builder.append(element);
+        }
+
+        return builder.toString();
+    }
+
     @Test
     public void testHandler() throws Exception {
-        assertContent(container, "/level0.txt", "level 0");
-        assertContent(container, "/level1-1.jar!/level1.txt", "level 1");
-        assertContent(container, "/level1-2.jar!/level1.txt", "level 1");
-        assertContent(container, "/level1-1.jar!/level2.jar!/level2.txt", "level 2");
-        assertContent(container, "/level1-2.jar!/level2.jar!/level2.txt", "level 2");
+        assertContent(container, path("/level0.txt"), "level 0");
+        assertContent(container, path("/level1-1.jar", "level1.txt"), "level 1");
+        assertContent(container, path("/level1-2.jar", "level1.txt"), "level 1");
+        assertContent(container, path("/level1-1.jar", "level2.jar", "level2.txt"), "level 2");
+        assertContent(container, path("/level1-2.jar", "level2.jar", "level2.txt"), "level 2");
     }
 
     @Test
     public void testURL() throws Exception {
         final URL root = getClass().getClassLoader().getResource(container);
-        assertContent(root, "/level0.txt", "level 0");
-        assertContent(root, "/level1-1.jar!/level1.txt", "level 1");
-        assertContent(root, "/level1-2.jar!/level1.txt", "level 1");
-        assertContent(root, "/level1-1.jar!/level2.jar!/level2.txt", "level 2");
-        assertContent(root, "/level1-2.jar!/level2.jar!/level2.txt", "level 2");
+        assertContent(root, path("/level0.txt"), "level 0");
+        assertContent(root, path("/level1-1.jar", "level1.txt"), "level 1");
+        assertContent(root, path("/level1-2.jar", "level1.txt"), "level 1");
+        assertContent(root, path("/level1-1.jar", "level2.jar", "level2.txt"), "level 2");
+        assertContent(root, path("/level1-2.jar", "level2.jar", "level2.txt"), "level 2");
     }
 
     private void assertContent(final URL root, final String file, final String content) throws IOException {

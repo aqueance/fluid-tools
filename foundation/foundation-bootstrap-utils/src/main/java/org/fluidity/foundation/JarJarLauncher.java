@@ -16,12 +16,14 @@
 
 package org.fluidity.foundation;
 
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.net.JarURLConnection;
 import java.net.URL;
-import java.net.URLConnection;
+import java.net.URLClassLoader;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.jar.Attributes;
+
+import org.fluidity.foundation.jarjar.Handler;
 
 /**
  * Launches a main class from a jar file using a class loader that can load classes from jar files nested inside the main jar. Nested jar files must be located
@@ -35,15 +37,13 @@ public class JarJarLauncher {
     public static final String NESTED_DEPENDENCIES = "Nested-Dependencies";
     public static final String ORIGINAL_MAIN_CLASS = "Original-Main-Class";
 
-    public static void main(final String[] args) throws IOException, ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+    public static void main(final String[] args) throws Exception {
         final Class<?> main = JarJarLauncher.class;
 
         final URL url = ClassLoaders.findClassResource(main);
-        final URLConnection connection = url.openConnection();
+        final JarURLConnection jar = JarStreams.jarFile(url);
 
-        if (connection instanceof JarURLConnection) {
-            final JarURLConnection jar = (JarURLConnection) connection;
-
+        if (jar != null) {
             final URL jarURL = jar.getJarFileURL();
             final Attributes attributes = jar.getMainAttributes();
 
@@ -51,7 +51,16 @@ public class JarJarLauncher {
             final String mainClass = getMandatoryAttribute(jarPath, attributes, ORIGINAL_MAIN_CLASS);
             final String dependencies = getMandatoryAttribute(jarPath, attributes, NESTED_DEPENDENCIES);
 
-            final JarJarClassLoader loader = new JarJarClassLoader(jarURL, ClassLoaders.findClassLoader(main), dependencies.split(" "));
+            final List<URL> urls = new ArrayList<URL>();
+            urls.add(jarURL);
+
+            for (final String path : dependencies.split(" ")) {
+
+                // TODO: handle jars embedded in the embedded jar, recursively
+                urls.add(Handler.formatURL(jarURL, path));
+            }
+
+            final URLClassLoader loader = new URLClassLoader(urls.toArray(new URL[urls.size()]), ClassLoaders.findClassLoader(main));
 
             final Thread thread = Thread.currentThread();
             final ClassLoader saved = thread.getContextClassLoader();

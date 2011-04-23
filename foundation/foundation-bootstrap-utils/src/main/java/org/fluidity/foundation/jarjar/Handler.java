@@ -16,8 +16,6 @@
 
 package org.fluidity.foundation.jarjar;
 
-import org.fluidity.foundation.ClassLoaders;
-
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -27,9 +25,12 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLDecoder;
 import java.net.URLStreamHandler;
+import java.security.Permission;
 import java.util.Arrays;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
+
+import org.fluidity.foundation.ClassLoaders;
 
 /**
  * Handles resources inside JAR files inside JAR files, ad infinitum.
@@ -40,8 +41,9 @@ public class Handler extends URLStreamHandler {
 
     public static final String PROTOCOL;
 
+    static final String DELIMITER = "!:/";      // must not be the same used by the JAR handler
+
     private static final String PROTOCOL_HANDLERS_PROPERTY = "java.protocol.handler.pkgs";
-    private static final String DELIMITER = "!/";
 
     static {
         final String canonicalName = Handler.class.getName();
@@ -91,11 +93,13 @@ public class Handler extends URLStreamHandler {
         final StringBuilder specification = new StringBuilder(256);
         final URLConnection connection = root.openConnection();
 
+        // TODO: could root be a jarjar URL? what happens then?
+
         if (connection instanceof JarURLConnection) {
 
             // we have a JAR URL but we need the enclosed URL and the JAR file path relative to the URL separately
             final URL url = ((JarURLConnection) connection).getJarFileURL();
-            final String path = root.getPath().split(DELIMITER)[1];
+            final String path = root.getPath().split("!/")[1];      // parsing a JAR URL, not our own URL
 
             specification.append(PROTOCOL).append(':').append(url.toExternalForm());
             specification.append(DELIMITER).append(path);
@@ -116,20 +120,28 @@ public class Handler extends URLStreamHandler {
 
     public static class EmbeddedConnection extends URLConnection {
 
-        public EmbeddedConnection(final URL url) {
+        private final URLConnection root;
+
+        public EmbeddedConnection(final URL url) throws IOException {
             super(url);
+
+            // the host part of our root URL itself is an URL
+            this.root = new URL(URLDecoder.decode(getURL().getHost(), "UTF-8")).openConnection();
         }
 
         @Override
         public void connect() throws IOException {
-            // empty
+            root.connect();
+        }
+
+        @Override
+        public Permission getPermission() throws IOException {
+            return root.getPermission();
         }
 
         @Override
         public InputStream getInputStream() throws IOException {
-
-            // the host part of our URL itself is an URL
-            final JarInputStream container = new JarInputStream(new URL(URLDecoder.decode(getURL().getHost(), "UTF-8")).openStream());
+            final JarInputStream container = new JarInputStream(root.getInputStream());
 
             // each successive path is nested in the stream at the previous index
             final String[] paths = getURL().getPath().split(DELIMITER);
