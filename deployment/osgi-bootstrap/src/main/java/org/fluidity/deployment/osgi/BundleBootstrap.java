@@ -39,7 +39,6 @@ import org.fluidity.foundation.logging.Marker;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
-import org.osgi.framework.ServiceRegistration;
 
 /**
  * Bootstraps the dependency injection container in an OSGi bundle. Must be public with a zero-arg constructor for the OSGi container to be able to call.
@@ -102,49 +101,24 @@ public final class BundleBootstrap implements BundleActivator {
             }
         }, "deployments");
 
-        final Registration[] services = boundary.getComponentGroup(Registration.class);
-        final ServiceRegistration[] registrations = new ServiceRegistration[services == null ? 0 : services.length];
-
-        unwind.put(new Runnable() {
-            public void run() {
-                for (final ServiceRegistration registration : registrations) {
-                    registration.unregister();
-                }
-            }
-        }, "service registrations");
-
-        if (services != null) {
-            for (int i = 0, limit = services.length; i < limit; i++) {
-                final Registration service = services[i];
-                registrations[i] = context.registerService(serviceApi(service), service.service(), service.properties());
-            }
-        }
-
         deployments.load();
-
-        final EventSource[] sources = boundary.getComponentGroup(EventSource.class);
-        if (sources != null) {
-            unwind.put(new Runnable() {
-                public void run() {
-                    for (final EventSource source : sources) {
-                        // TODO
-                    }
-                }
-            }, "whiteboard");
-
-            for (final EventSource source : sources) {
-                // TODO
-            }
-        }
 
         activators = boundary.getComponent(Activators.class);
         activators.start();
+
+        final Whiteboard whiteboard = boundary.getComponent(Whiteboard.class);
+        unwind.put(new Runnable() {
+            public void run() {
+                whiteboard.stop();
+            }
+        }, "whiteboard");
 
         // these automatically register themselves with one or more ServiceTracker components and start listening on service registration
         boundary.getComponentGroup(ServiceTracker.Registration.class);
 
         final ClassDiscovery discovery = boundary.getComponent(ClassDiscovery.class);
 
+        // we need the managed classes, not instances of those classes, so we use class discovery instead of component group lookup
         final Class<ServiceTracker.Managed>[] managed = discovery.findComponentClasses(ServiceTracker.Managed.class, getClass().getClassLoader(), false);
         if (managed != null && managed.length > 0) {
             final ServiceTracker tracker = boundary.getComponent(ServiceTracker.class);
@@ -162,17 +136,6 @@ public final class BundleBootstrap implements BundleActivator {
             shutdown.stop(log);
             log = null;
         }
-    }
-
-    private String[] serviceApi(final Registration service) {
-        final Class<?>[] api = service.api();
-        final String[] names = new String[api.length];
-
-        for (int i = 0, limit = api.length; i < limit; i++) {
-            names[i] = api[i].getName();
-        }
-
-        return names;
     }
 
     @Component(automatic = false)

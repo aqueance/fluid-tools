@@ -40,10 +40,9 @@ public class EmbeddedJarClassLoadingTest {
     private ClassLoader loader;
 
     protected ClassLoader createLoader(URL root, ClassLoader parent, String... paths) throws IOException {
-
         final List<URL> urls = new ArrayList<URL>();
-        urls.add(root);
 
+        urls.add(root);
         for (final String path : paths) {
             urls.add(Handler.formatURL(root, path));
         }

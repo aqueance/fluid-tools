@@ -17,7 +17,6 @@
 package org.fluidity.deployment.osgi;
 
 import java.lang.annotation.Annotation;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
@@ -101,6 +100,7 @@ final class ServiceListenerFactoryImpl implements ServiceListenerFactory {
             try {
                 context.addServiceListener(listener, filter);
 
+                // TODO: how about listeners not bound to bundle life cycle? do they even make sense?
                 shutdown.add(type.getName(), new Runnable() {
                     public void run() {
                         try {
@@ -214,20 +214,30 @@ final class ServiceListenerFactoryImpl implements ServiceListenerFactory {
         }
 
         public void serviceChanged(final ServiceEvent event) {
+
+            // TODO: improve detection of service API
+            // TODO  !started & (modified | registered): for each dependency find a reference with given filter
+            // TODO    if all found, instantiate and start
+            // TODO  started & (modified | unregistered): for each dependency find a reference with given filter and service ID
+            // TODO    if not all found, stop and discard
+            // TODO      if modified, go to the '!started & (modified | registered)' part
+
             final ServiceReference reference = event.getServiceReference();
-            final String[] names = (String[]) reference.getProperty(Constants.OBJECTCLASS);
+            final String[] aliases = (String[]) reference.getProperty(Constants.OBJECTCLASS);
             final Long id = (Long) reference.getProperty(Constants.SERVICE_ID);
 
             final boolean started = callback.started();
 
             switch (event.getType()) {
+            case ServiceEvent.MODIFIED:
+                // fall through
             case ServiceEvent.REGISTERED:
                 if (!started) {
                     final Object service = context.getService(reference);
 
-                    for (final String name : names) {
-                        if (!identifiers.containsKey(name)) {
-                            identifiers.put(name, id);
+                    for (final String alias : aliases) {
+                        if (!identifiers.containsKey(alias)) {
+                            identifiers.put(alias, id);
                             services.put(id, service);
                         }
                     }
@@ -235,9 +245,9 @@ final class ServiceListenerFactoryImpl implements ServiceListenerFactory {
                     // got all dependencies?
                     if (services.size() == dependencies.size()) {
                         final OpenComponentContainer container = boundary.makeChildContainer();
-
                         final ComponentContainer.Registry registry = container.getRegistry();
-                        registry.bindComponent(type);
+
+                        registry.bindComponent(type, (Class<Object>) api);
                         for (final Class<?> dependency : dependencies.keySet()) {
                             registry.bindInstance(services.get(identifiers.get(dependency.getName())), (Class<Object>) dependency);
                         }
@@ -249,9 +259,7 @@ final class ServiceListenerFactoryImpl implements ServiceListenerFactory {
                 break;
 
             case ServiceEvent.UNREGISTERING:
-                final Collection<Long> ids = identifiers.values();
-                if (ids.contains(id)) {
-                    ids.remove(id);
+                if (identifiers.values().remove(id)) {
                     services.remove(id);
 
                     // any of the dependencies disappeared?

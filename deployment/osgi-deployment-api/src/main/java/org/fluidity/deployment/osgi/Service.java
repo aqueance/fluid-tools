@@ -22,7 +22,10 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import org.fluidity.composition.ComponentGroup;
 import org.fluidity.composition.Internal;
+
+import org.osgi.framework.BundleContext;
 
 /**
  * Annotates constructor parameters or instance fields, of a component provided by {@link ServiceTracker}, that require an OSGi service instance.
@@ -46,4 +49,20 @@ public @interface Service {
      * @return the filter that narrows down the list of possible service implementation candidates.
      */
     String filter() default "";
+
+    /**
+     * Denotes an OSGi service registration that will add services to the context when the host bundle is started.
+     *
+     * @author Tibor Varga
+     */
+    @ComponentGroup
+    interface Registration {
+
+        /**
+         * Perform the service registration.
+         *
+         * @param context the bundle context to register services to.
+         */
+        void perform(BundleContext context);
+    }
 }
