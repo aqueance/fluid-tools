@@ -127,8 +127,13 @@ public class BundleJarManifest implements JarManifest {
                 // create a class loader that sees the project's compile time dependencies
                 final List<URL> urls = new ArrayList<URL>();
 
+                final String skippedId = project.getArtifact().getId();
                 for (final Artifact dependency : dependencies) {
-                    urls.add(dependency.getFile().toURI().toURL());
+
+                    // we don't need the project artifact and opening it may cause Windows to lock the file and prevent the caller to overwrite it
+                    if (!skippedId.equals(dependency.getId())) {
+                        urls.add(dependency.getFile().toURI().toURL());
+                    }
                 }
 
                 final ClassLoader parent = getClass().getClassLoader();

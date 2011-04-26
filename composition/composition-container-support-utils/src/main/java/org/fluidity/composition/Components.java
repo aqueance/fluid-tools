@@ -228,7 +228,8 @@ public final class Components {
                             }
                         } else {
                             final Class<?> superClass = checked.getSuperclass();
-                            if (superClass != Object.class) {
+
+                            if (superClass != Object.class && superClass != null) {
                                 interfaces(actual, superClass, interfaceMap, path, true);
                             } else {
                                 interfaceMap.put(actual, groups(checked));

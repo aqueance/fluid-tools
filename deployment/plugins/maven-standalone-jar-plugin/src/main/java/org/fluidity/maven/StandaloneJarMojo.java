@@ -31,11 +31,13 @@ import java.util.Set;
 import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+import java.util.jar.JarInputStream;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
 
 import org.fluidity.deployment.JarManifest;
 import org.fluidity.deployment.maven.MavenSupport;
+import org.fluidity.foundation.JarStreams;
 import org.fluidity.foundation.ServiceProviders;
 import org.fluidity.foundation.Streams;
 
@@ -58,9 +60,7 @@ import org.sonatype.aether.repository.RemoteRepository;
  */
 public class StandaloneJarMojo extends AbstractMojo {
 
-    private static final String JAR_TYPE = "jar";
-    private static final String META_INF = "META-INF/";
-    private static final Set<String> DEPENDENCY_TYPES = Collections.singleton(JAR_TYPE);
+    private static final Set<String> DEPENDENCY_TYPES = Collections.singleton(MavenSupport.JAR_TYPE);
 
     /**
      * Instructs the plugin, when set, to create a new JAR with the given classifier and attach it to the project. When not set, the project's JAR artifact
@@ -163,7 +163,7 @@ public class StandaloneJarMojo extends AbstractMojo {
     private List<RemoteRepository> projectRepositories;
 
     public void execute() throws MojoExecutionException {
-        if (!JAR_TYPE.equals(packaging)) {
+        if (!MavenSupport.JAR_TYPE.equals(packaging)) {
             throw new MojoExecutionException("This is not a .jar project");
         } else if (!packageFile.exists()) {
             throw new MojoExecutionException(String.format("%s does not exist", packageFile));
@@ -177,7 +177,7 @@ public class StandaloneJarMojo extends AbstractMojo {
         for (final Iterator<Artifact> i = runtimeDependencies.iterator(); i.hasNext();) {
             final Artifact artifact = i.next();
 
-            if (!artifact.getType().equals(JAR_TYPE)) {
+            if (!artifact.getType().equals(MavenSupport.JAR_TYPE)) {
                 i.remove();
             }
         }
@@ -213,7 +213,7 @@ public class StandaloneJarMojo extends AbstractMojo {
                     throw new MojoExecutionException(String.format("Manifest contains %s", Attributes.Name.CLASS_PATH));
                 }
 
-                final String dependencyPath = META_INF.concat("dependencies/");
+                final String dependencyPath = MavenSupport.META_INF.concat("dependencies/");
                 final List<String> dependencyList = new ArrayList<String>();
 
                 for (final Artifact artifact : runtimeDependencies) {
@@ -277,10 +277,35 @@ public class StandaloneJarMojo extends AbstractMojo {
 
                 outputStream.putNextEntry(new JarEntry(dependencyPath));
 
+                final String projectId = project.getArtifact().getId();
+
                 // copy the dependencies, including the original project artifact
                 for (final Artifact artifact : runtimeDependencies) {
                     final File dependency = artifact.getFile();
-                    outputStream.putNextEntry(new JarEntry(dependencyPath.concat(dependency.getName())));
+
+                    final String entryName = dependencyPath.concat(dependency.getName());
+                    outputStream.putNextEntry(new JarEntry(entryName));
+
+                    if (artifact.getId().equals(projectId)) {
+
+                        // got to check if our project artifact is something we have created in a previous run
+                        // i.e., if it contains the project artifact we're about to copy
+                        int read = JarStreams.readEntries(dependency.toURI().toURL(), new JarStreams.JarEntryReader() {
+                            public boolean matches(final JarEntry entry) throws IOException {
+                                return entryName.equals(entry.getName());
+                            }
+
+                            public boolean read(final JarEntry entry, final JarInputStream stream) throws IOException {
+                                Streams.copy(stream, outputStream, buffer, false);
+                                return false;
+                            }
+                        });
+
+                        if (read > 0) {
+                            continue;
+                        }
+                    }
+
                     Streams.copy(new FileInputStream(dependency), outputStream, buffer, false);
                 }
             } finally {

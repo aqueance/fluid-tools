@@ -43,20 +43,23 @@ public final class JarStreams {
      * @param jar    the URL of the jar file.
      * @param reader the object that filters and reads the jar entries.
      *
+     * @return the number of entries read.
+     *
      * @throws java.io.IOException when something goes wrong reading the jar file.
      */
-    public static void readNestedEntries(final URL jar, final JarEntryReader reader) throws IOException {
+    public static int readNestedEntries(final URL jar, final JarEntryReader reader) throws IOException {
         final JarInputStream container = new JarInputStream(jar.openStream(), false);
 
+        int count = 0;
         try {
             JarEntry entry;
             while ((entry = container.getNextJarEntry()) != null) {
                 try {
                     if (!entry.isDirectory()) {
                         if (reader.matches(entry)) {
-                            final JarInputStream stream = new JarInputStream(container, false);
+                            ++count;
 
-                            if (!reader.read(entry, stream)) {
+                            if (!reader.read(entry, new JarInputStream(container, false))) {
                                 break;
                             }
                         }
@@ -76,6 +79,8 @@ public final class JarStreams {
                 // ignore
             }
         }
+
+        return count;
     }
 
     /**
@@ -84,18 +89,23 @@ public final class JarStreams {
      * @param jar    the URL of the jar file.
      * @param reader the object that reads the jar entries.
      *
+     * @return the number of entries read.
+     *
      * @throws java.io.IOException when something goes wrong reading the jar file.
      */
-    public static void readEntries(final URL jar, final JarEntryReader reader) throws IOException {
+    public static int readEntries(final URL jar, final JarEntryReader reader) throws IOException {
         assert jar != null;
         final JarInputStream container = new JarInputStream(jar.openStream(), false);
 
+        int count = 0;
         try {
             JarEntry entry;
             while ((entry = container.getNextJarEntry()) != null) {
                 try {
                     if (!entry.isDirectory()) {
                         if (reader.matches(entry)) {
+                            ++count;
+
                             if (!reader.read(entry, container)) {
                                 break;
                             }
@@ -116,6 +126,8 @@ public final class JarStreams {
                 // ignore
             }
         }
+
+        return count;
     }
 
     /**

@@ -62,6 +62,11 @@ import org.sonatype.aether.util.graph.PreorderNodeListGenerator;
  */
 public final class MavenSupport {
 
+    public static final String JAR_TYPE = "jar";
+    public static final String WAR_TYPE = "war";
+    public static final String META_INF = "META-INF/";
+    public static final String WEB_INF = "WEB-INF/";
+
     private static final String MANIFEST_MAVEN_GROUP_ID = "Maven-Group-Id";
     private static final String MANIFEST_MAVEN_ARTIFACT_ID = "Maven-Artifact-Id";
 

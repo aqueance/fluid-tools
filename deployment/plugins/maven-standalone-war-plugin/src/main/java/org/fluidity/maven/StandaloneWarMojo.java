@@ -70,8 +70,7 @@ import org.sonatype.aether.repository.RemoteRepository;
  */
 public class StandaloneWarMojo extends AbstractMojo {
 
-    private static final String WAR_TYPE = "war";
-    private static final Set<String> DEPENDENCY_TYPES = Collections.singleton("jar");
+    private static final Set<String> DEPENDENCY_TYPES = Collections.singleton(MavenSupport.JAR_TYPE);
 
     /**
      * Instructs the plugin, when set, to remove from the WEB-INF/lib directory all .jar files that the plugin puts in the WEB-INF/boot directory, effectively
@@ -181,7 +180,7 @@ public class StandaloneWarMojo extends AbstractMojo {
     private List<RemoteRepository> projectRepositories;
 
     public void execute() throws MojoExecutionException {
-        if (!WAR_TYPE.equals(packaging)) {
+        if (!MavenSupport.WAR_TYPE.equals(packaging)) {
             throw new MojoExecutionException("This is not a .war project");
         } else if (!packageFile.exists()) {
             throw new MojoExecutionException(String.format("%s does not exist", packageFile));
@@ -240,7 +239,7 @@ public class StandaloneWarMojo extends AbstractMojo {
                             if (!processedEntries.contains(entryName)) {
 
                                 // copy all entries except the META-INF directory
-                                if (!entryName.startsWith("META-INF")) {
+                                if (!entryName.startsWith(MavenSupport.META_INF)) {
                                     outputStream.putNextEntry(entry);
                                     Streams.copy(jarInput.getInputStream(entry), outputStream, buffer, false);
                                     processedEntries.add(entryName);
@@ -262,10 +261,12 @@ public class StandaloneWarMojo extends AbstractMojo {
 
                 final Set<String> bootLibraries = new HashSet<String>();
 
+                final String libDirectory = MavenSupport.WEB_INF.concat("lib");
                 for (final Artifact artifact : serverDependencies) {
-                    bootLibraries.add("WEB-INF/lib/" + new File(artifact.getFile().getName()));
+                    bootLibraries.add(String.format("%s/%s", libDirectory, artifact.getFile().getName()));
                 }
 
+                final String bootDirectory = MavenSupport.WEB_INF.concat("boot/");
                 final JarFile warInput = new JarFile(packageFile);
 
                 try {
@@ -291,13 +292,11 @@ public class StandaloneWarMojo extends AbstractMojo {
                                 manifestFound = true;
                             }
                         } else {
-                            if (!processedEntries.contains(entryName)) {
+                            if (!processedEntries.contains(entryName) && !entryName.startsWith(bootDirectory)) {
                                 if (!commandLineOnly || !bootLibraries.contains(entryName)) {
                                     outputStream.putNextEntry(entry);
                                     Streams.copy(warInput.getInputStream(entry), outputStream, buffer, false);
                                 }
-                            } else if (!entryName.endsWith("/")) {
-                                throw new MojoExecutionException(String.format("Duplicate entry: %s", entryName));
                             }
                         }
                     }
@@ -307,8 +306,6 @@ public class StandaloneWarMojo extends AbstractMojo {
                     }
 
                     if (!serverDependencies.isEmpty()) {
-                        final String bootDirectory = "WEB-INF/boot/";
-
                         outputStream.putNextEntry(new JarEntry(bootDirectory));
 
                         for (final Artifact artifact : serverDependencies) {

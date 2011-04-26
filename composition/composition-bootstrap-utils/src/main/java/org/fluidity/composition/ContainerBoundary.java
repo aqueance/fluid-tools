@@ -51,7 +51,7 @@ import org.fluidity.foundation.spi.LogFactory;
 public final class ContainerBoundary implements ComponentContainer {
 
     private static final Map<ClassLoader, OpenComponentContainer> populatedContainers = new WeakHashMap<ClassLoader, OpenComponentContainer>();
-    private static final Map<ClassLoader, Map> propertiesMap = new HashMap<ClassLoader, Map>();
+    private static final Map<ClassLoader, Map> propertiesMap = new WeakHashMap<ClassLoader, Map>();
     private static final Set<OpenComponentContainer> lockedContainers = new HashSet<OpenComponentContainer>();
     private static final Object stateLock = new Object();
 
