@@ -16,12 +16,16 @@
 
 package org.fluidity.deployment.osgi;
 
+import java.lang.ref.WeakReference;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
+import org.fluidity.composition.OpenComponentContainer;
 import org.fluidity.composition.spi.ComponentFactory;
 import org.fluidity.foundation.logging.Log;
 import org.fluidity.foundation.logging.Marker;
@@ -29,11 +33,6 @@ import org.fluidity.foundation.logging.Marker;
 import org.osgi.framework.BundleContext;
 
 /**
- * TODO: remove the factory
- * TODO: pass the container in #manage(...) [is it the actual vehicle to pass on the context?]
- * TODO: pass original container around when resolving dependencies?
- * TODO: get rid of the trackers set, use a singleton to maintain the list of listeners to terminate at bundle stop
- *
  * @author Tibor Varga
  */
 @Component(api = ServiceTracker.class)
@@ -60,6 +59,7 @@ final class ServiceTrackerFactory implements ComponentFactory {
         private final BundleContext context;
         private final ServiceListenerFactory factory;
         private final ComponentContainer container;
+        private final ServiceDependencyFactory dependencies;
         private final Log log;
 
         /**
@@ -72,18 +72,20 @@ final class ServiceTrackerFactory implements ComponentFactory {
         private ServiceTrackerImpl(final BundleContext context,
                                    final ServiceListenerFactory factory,
                                    final ComponentContainer container,
+                                   final ServiceDependencyFactory dependencies,
                                    final @Marker(ServiceTrackerImpl.class) Log log) {
             this.context = context;
             this.factory = factory;
             this.container = container;
+            this.dependencies = dependencies;
             this.log = log;
         }
 
-        public <T extends ServiceTracker.Managed> Dependency<T> manage(final Class<T> type) {
+        public <T extends ServiceTracker.Managed> Reference<T> manage(final Class<T> type) {
             return manage(type, container);
         }
 
-        public <T extends ServiceTracker.Managed> Dependency<T> manage(final Class<T> type, final ComponentContainer container) {
+        public <T extends ServiceTracker.Managed> Reference<T> manage(final Class<T> type, final ComponentContainer container) {
             final Component annotation = type.getAnnotation(Component.class);
 
             if (annotation == null) {
@@ -94,39 +96,58 @@ final class ServiceTrackerFactory implements ComponentFactory {
                 throw new ComponentContainer.ResolutionException("Class %s does not have @%s(automatic = false)", type, Component.class);
             }
 
-            if (!annotation.stateful()) {
-                throw new ComponentContainer.ResolutionException("Class %s does not have @%s(stateful = true)", type, Component.class);
-            }
+            final ComponentContainer contextual = container == this.container ? container : container.inheritContext(this.container);
+            final OpenComponentContainer child = contextual.makeChildContainer();
+            child.getRegistry().bindComponent(type, ServiceTracker.Managed.class);
 
-            final AtomicReference<T> component = new AtomicReference<T>();
+            final Map<Service, ServiceDependencyFactory.MutableReference> services = new HashMap<Service, ServiceDependencyFactory.MutableReference>();
+
+            @SuppressWarnings("unchecked")
+            final T component = (T) dependencies.instantiate(ServiceTracker.Managed.class, child, services);
+
+            // we keep a weak link to the component
+            final WeakReference<T> link = new WeakReference<T>(component);
+
+            // and maintain a reference that we control
+            final AtomicReference<WeakReference<T>> reference = new AtomicReference<WeakReference<T>>();
             final AtomicBoolean failed = new AtomicBoolean(false);
 
-            final ComponentContainer contextual = container == this.container ? container : container.inheritContext(this.container);
-            factory.create(Managed.class, type, contextual, context, new ServiceListenerFactory.Callback<T>() {
-                public boolean started() {
-                    return component.get() != null;
+            factory.create(type.getName(), context, services, new ServiceListenerFactory.Callback() {
+                public boolean valid() {
+                    return link.get() != null;
                 }
 
-                public void start(final T object) {
-                    assert object != null : type;
-                    component.set(object);
+                public boolean running() {
+                    return reference.get() != null;
+                }
+
+                public void resume() {
+                    reference.set(link);
 
                     try {
-                        object.start();
+                        final T component = link.get();
+
+                        if (component != null) {
+                            component.resume();
+                        }
                     } catch (final Exception e) {
                         failed.set(true);
-                        log.error(e, "Failed to start %s", type);
+                        log.error(e, "Failed to resume %s", type);
                     }
                 }
 
-                public void stop() {
+                public void suspend() {
                     if (!failed.get()) {
                         try {
-                            component.get().stop();
+                            final T component = link.get();
+
+                            if (component != null) {
+                                component.suspend();
+                            }
                         } catch (final Exception e) {
-                            log.error(e, "Error stopping %s", type);
+                            log.error(e, "Error suspending %s", type);
                         } finally {
-                            component.set(null);
+                            reference.set(null);
                         }
                     } else {
                         failed.set(false);
@@ -134,9 +155,9 @@ final class ServiceTrackerFactory implements ComponentFactory {
                 }
             });
 
-            return new Dependency<T>() {
+            return new Reference<T>() {
                 public T get() throws IllegalStateException {
-                    final T instance = component.get();
+                    final T instance = reference.get().get();
 
                     if (instance == null) {
                         throw new IllegalStateException(String.format("Component %s not available", type));

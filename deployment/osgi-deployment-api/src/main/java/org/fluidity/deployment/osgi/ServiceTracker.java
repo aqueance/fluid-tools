@@ -22,44 +22,35 @@ import org.fluidity.composition.ServiceProvider;
 
 /**
  * Allows an ordinary component to integrate to the OSGi service listener infrastructure. Because services in OSGi come and go, service tracking is implemented
- * to instantiate a new component when all of the services it depends on become available and to discard that component when any of its required dependencies
- * get unregistered.
+ * to update service references and notify a managed when all of the services it depends on become available or when any of its required dependencies get
+ * un-registered.
  * <p/>
- * Ordinary components can participate in this dance one of two ways:
- * <ul>
- * <li>by implementing {@link ServiceTracker.Registration} and depending on this interface:
+ * Ordinary components can participate in this dance by implementing {@link ServiceTracker.Registration} and depending on this interface:
  * <pre>
  * final class ServiceDependentActivation implements ServiceTracker.Registration {
  *
+ *     private final ServiceTracker.Reference<ServiceDependent> reference;
+ *
  *     public ServiceDependentActivation(final &#64;SomeContext ServiceTracker tracker) {
- *         tracker.manage(ServiceDependent.class);
+ *         this.reference = tracker.manage(ServiceDependent.class);
  *     }
+ *
+ *     ...
  * }
  *
  * &#64;Component(automatic = false)
  * &#64;Context(SomeContext.class)
  * final class ServiceDependent implements ServiceTracker.Managed {
  *
- *     public ServiceDependent(final &#64;Service(api = ServiceApi.class, filter = "...") ServiceApi service, ...) {
+ *     public ServiceDependent(final &#64;Service(api = ServiceApi.class, filter = "...") ServiceTracker.Dependency<ServiceApi> service, ...) {
  *         ...
  *     }
  * }
  * </pre>
- * This method allows context to be provided to the {@link Managed} component: the context present at the reference on the {@link ServiceTracker} dependency
- * will be passed on to the {@link Managed} component when it is instantiated.
- * </li>
- * <li>by implementing {@link ServiceTracker.Managed}:</li>
- * <pre>
- * final class ServiceDependent implements ServiceTracker.Managed {
- *
- *     public ServiceDependent(final &#64;Service(api = ServiceApi.class, filter = "...") ServiceApi service, ...) {
- *         ...
- *     }
- * }
- * </pre>
- * </ul>
- *
- * Note the presense of the <code>@Component(automatic = false)</code> annotation in the first case and the absence thereof in the second.
+ * This arrangement allows context to be provided to the {@link Managed} component: the context present at the reference on the {@link ServiceTracker}
+ * dependency will be passed on to the {@link Managed} component when it is instantiated.
+ * <p/>
+ * Note the presence of the <code>@Component(automatic = false)</code> annotation, which makes sure the managed component will not be automatically registered.
  *
  * @author Tibor Varga
  */
@@ -79,7 +70,8 @@ public interface ServiceTracker {
      * <p/>
      * The component must implement {@link Managed} and must be a component with {@link org.fluidity.composition.Component#automatic()} set to false.
      * <p/>
-     * The callback is invoked about the availability of the service tracked. No tracking will take place until this method is invoked. The method returns in a
+     * The callback is invoked about the availability of the service tracked. No tracking will take place until this method is invoked. The method returns in
+     * a
      * timely manner.
      *
      * @param type the component class the tracker should instantiate when all its service dependencies become available.
@@ -87,7 +79,7 @@ public interface ServiceTracker {
      * @return a reference to the component that will either return the currently available instance of the component or throw a
      *         {@link ComponentContainer.ResolutionException} when the component is not available.
      */
-    <T extends ServiceTracker.Managed> Dependency<T> manage(Class<T> type);
+    <T extends ServiceTracker.Managed> Reference<T> manage(Class<T> type);
 
     /**
      * Allows the caller to pass the container it wishes to resolve the dependencies of the {@link Managed} component. See {@link #manage(Class)} for other
@@ -98,10 +90,11 @@ public interface ServiceTracker {
      *
      * @return see {@link #manage(Class)}.
      */
-    <T extends ServiceTracker.Managed> Dependency<T> manage(Class<T> type, ComponentContainer container);
+    <T extends ServiceTracker.Managed> Reference<T> manage(Class<T> type, ComponentContainer container);
 
     /**
-     * Interface to be implemented by the components intended to be managed by a {@link ServiceTracker}.
+     * Interface to be implemented by the components intended to be managed by a {@link ServiceTracker}. {@link Managed} components start suspended and will get
+     * resumed when all OSGi service they depend on get registered. They will be then suspended when any of those services get unregistered.
      *
      * @author Tibor Varga
      */
@@ -110,15 +103,17 @@ public interface ServiceTracker {
 
         /**
          * Starts the component once it has been instantiated.
+         *
          * @throws Exception thrown at will
          */
-        void start() throws Exception;
+        void resume() throws Exception;
 
         /**
          * Stops the component before it is discarded.
+         *
          * @throws Exception thrown at will
          */
-        void stop() throws Exception;
+        void suspend() throws Exception;
     }
 
     /**
@@ -128,7 +123,7 @@ public interface ServiceTracker {
      *
      * @author Tibor Varga
      */
-    interface Dependency<T> {
+    interface Reference<T> {
 
         /**
          * Returns the current instance of the {@link Managed} component.
@@ -141,4 +136,25 @@ public interface ServiceTracker {
         T get() throws ComponentContainer.ResolutionException;
     }
 
+    /**
+     * Provides access to an OSGi service in a dynamic manner. See {@link org.fluidity.deployment.osgi.ServiceTracker} for details.
+     *
+     * @author Tibor Varga
+     */
+    interface Dependency<T> {
+
+        /**
+         * Tells if the service has been resolved.
+         *
+         * @return <code>true</code> if the service has been resolved, <code>false</code> otherwise.
+         */
+        boolean resolved();
+
+        /**
+         * Returns the resolved service instance or <code>null</code> if none has been resolved.
+         *
+         * @return the resolved service instance or <code>null</code> if none has been resolved.
+         */
+        T get();
+    }
 }

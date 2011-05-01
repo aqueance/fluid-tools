@@ -16,17 +16,16 @@
 
 package org.fluidity.deployment.osgi;
 
-import java.lang.annotation.Annotation;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.fluidity.composition.Component;
-import org.fluidity.composition.ComponentContainer;
-import org.fluidity.composition.OpenComponentContainer;
-import org.fluidity.composition.spi.ComponentResolutionObserver;
-import org.fluidity.composition.spi.DependencyPath;
 import org.fluidity.composition.spi.ShutdownTasks;
+import org.fluidity.foundation.logging.Log;
+import org.fluidity.foundation.logging.Marker;
+import org.fluidity.foundation.spi.LogFactory;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
@@ -42,25 +41,25 @@ import org.osgi.framework.ServiceReference;
 final class ServiceListenerFactoryImpl implements ServiceListenerFactory {
 
     private final ShutdownTasks shutdown;
+    private final LogFactory logFactory;
+    private final Log log;
 
-    public ServiceListenerFactoryImpl(final ShutdownTasks shutdown) {
+    public ServiceListenerFactoryImpl(final ShutdownTasks shutdown, final LogFactory logFactory, final @Marker(ServiceListenerFactoryImpl.class) Log log) {
         this.shutdown = shutdown;
+        this.logFactory = logFactory;
+        this.log = log;
     }
 
     @SuppressWarnings("unchecked")
-    public <T> void create(final Class<? super T> api,
-                           final Class<T> type,
-                           final ComponentContainer container,
-                           final BundleContext context,
-                           final Callback callback) {
-        final OpenComponentContainer child = container.makeChildContainer();
-        child.getRegistry().bindComponent(type, api);
+    public Handle create(final String name,
+                         final BundleContext context,
+                         final Map<Service, ServiceDependencyFactory.MutableReference> services,
+                         final Callback callback) {
+        final Set<Service> dependencies = services.keySet();
 
-        final DirectDependencies observer = new DirectDependencies(api);
-        child.observed(observer).resolveComponent(api);
-
-        final Map<Class<?>, String> dependencies = observer.dependencies();
         if (!dependencies.isEmpty()) {
+            final Listener listener = new Listener(name, context, services, logFactory.createLog(Listener.class), callback);
+
             final StringBuilder parsed = new StringBuilder();
 
             final boolean multiple = dependencies.size() > 1;
@@ -70,9 +69,9 @@ final class ServiceListenerFactoryImpl implements ServiceListenerFactory {
                 parsed.append("(|");
             }
 
-            for (final Map.Entry<Class<?>, String> entry : dependencies.entrySet()) {
-                final Class<?> dependency = entry.getKey();
-                final String filter = entry.getValue();
+            for (final Service service : dependencies) {
+                final Class<?> dependency = service.api();
+                final String filter = service.filter();
 
                 final boolean filtered = filter != null && filter.length() > 0;
 
@@ -95,94 +94,68 @@ final class ServiceListenerFactoryImpl implements ServiceListenerFactory {
 
             final String filter = parsed.toString();
 
-            final Listener listener = new Listener(api, type, context, dependencies, container, callback);
-
             try {
                 context.addServiceListener(listener, filter);
-
-                // TODO: how about listeners not bound to bundle life cycle? do they even make sense?
-                shutdown.add(type.getName(), new Runnable() {
-                    public void run() {
-                        try {
-                            context.removeServiceListener(listener);
-                        } finally {
-                            if (callback.started()) {
-                                callback.stop();
-                            }
-                        }
-                    }
-                });
-
-                // InvalidSyntaxException would have already been thrown if filter syntax were wrong
-                final ServiceReference[] references = context.getServiceReferences(null, filter);
-                if (references != null) {
-                    for (final ServiceReference reference : references) {
-                        listener.serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED, reference));
-                    }
-                }
             } catch (final InvalidSyntaxException e) {
                 throw new IllegalArgumentException(filter, e);
+            }
+
+            // tricky workflow to make sure the listener's handle is set before we call its servicesChanged() method, which refers to the handle
+            try {
+                return handle(context, callback, name, listener, filter);
+            } finally {
+                listener.servicesChanged(ServiceEvent.MODIFIED);
             }
         } else {
 
             // component has no service dependencies
-            callback.start(container.makeChildContainer().getComponent(type));
+            callback.resume();
+            log.info("%s resumed", name);
 
-            shutdown.add(type.getName(), new Runnable() {
-                public void run() {
-                    if (callback.started()) {
-                        callback.stop();
-                    }
-                }
-            });
+            return handle(context, callback, name, null, null);
         }
     }
 
-    /**
-     * @author Tibor Varga
-     */
-    private static class DirectDependencies implements ComponentResolutionObserver {
-        private final Map<Class<?>, String> dependencies = new HashMap<Class<?>, String>();
-        private final Class<?> api;
-
-        private DirectDependencies(final Class<?> api) {
-            this.api = api;
+    private Handle handle(final BundleContext context, final Callback callback, final String name, final Listener listener, final String filter) {
+        if (listener != null) {
+            log.info("Registering service listener with filter '%s' for %s", filter, name);
         }
 
-        public void resolving(final Class<?> api,
-                              final Class<?> declaringType,
-                              final Class<?> dependencyType,
-                              final Annotation[] typeAnnotations,
-                              final Annotation[] referenceAnnotations) {
-            final Service service = find(Service.class, referenceAnnotations);
-            if (api == this.api && service != null) {
-                dependencies.put(dependencyType, service.filter());
-            }
-        }
+        final Runnable command = new Runnable() {
+            final AtomicBoolean removed = new AtomicBoolean(false);
 
-        public void resolved(final DependencyPath path, final Class<?> type) {
-            // empty
-        }
+            public void run() {
+                if (!removed.get()) {
+                    try {
+                        if (listener != null) {
+                            context.removeServiceListener(listener);
+                            log.info("Unregistered service listener with filter '%s' for %s", filter, name);
+                        }
 
-        public void instantiated(final DependencyPath path, final AtomicReference<?> ignored) {
-            // empty
-        }
-
-        public Map<Class<?>, String> dependencies() {
-            return dependencies;
-        }
-
-        @SuppressWarnings("unchecked")
-        private <T extends Annotation> T find(final Class<T> type, final Annotation[] annotations) {
-            for (final Annotation annotation : annotations) {
-                if (type.isAssignableFrom(annotation.getClass())) {
-                    return (T) annotation;
+                        removed.set(true);
+                    } finally {
+                        if (callback.valid() && callback.running()) {
+                            callback.suspend();
+                            log.info("%s suspended", name);
+                        }
+                    }
                 }
             }
+        };
 
-            return null;
+        shutdown.add(name, command);
+
+        final Handle handle = new Handle() {
+            public void remove() {
+                command.run();
+            }
+        };
+
+        if (listener != null) {
+            listener.setHandle(handle);     // TODO: setters are ugly...
         }
 
+        return handle;
     }
 
     /**
@@ -190,90 +163,104 @@ final class ServiceListenerFactoryImpl implements ServiceListenerFactory {
      */
     @SuppressWarnings("unchecked")
     private static class Listener implements ServiceListener {
-        private final Map<String, Long> identifiers = new HashMap<String, Long>();
-        private final Map<Long, Object> services = new HashMap<Long, Object>();
-        private final Class<?> type;
-        private final Class<?> api;
-        private final BundleContext context;
-        private final Map<Class<?>, String> dependencies;
-        private final ComponentContainer boundary;
-        private final Callback callback;
 
-        public Listener(final Class<?> api,
-                        final Class<?> type,
+        private final Map<Service, ServiceReference> referenceMap = new HashMap<Service, ServiceReference>();
+
+        private final Map<Service, ServiceDependencyFactory.MutableReference> dependencyMap;
+        private final BundleContext context;
+        private final Callback callback;
+        private final Log log;
+        private final String name;
+
+        private Handle handle;
+
+        public Listener(final String name,
                         final BundleContext context,
-                        final Map<Class<?>, String> dependencies,
-                        final ComponentContainer boundary,
+                        final Map<Service, ServiceDependencyFactory.MutableReference> dependencyMap,
+                        final Log log,
                         final Callback callback) {
-            this.type = type;
+            this.name = name;
             this.context = context;
-            this.dependencies = dependencies;
-            this.boundary = boundary;
+            this.dependencyMap = dependencyMap;
             this.callback = callback;
-            this.api = api;
+            this.log = log;
         }
 
-        public void serviceChanged(final ServiceEvent event) {
+        public void setHandle(final Handle handle) {
+            assert handle != null;
+            assert this.handle == null;
+            this.handle = handle;
+        }
 
-            // TODO: improve detection of service API
-            // TODO  !started & (modified | registered): for each dependency find a reference with given filter
-            // TODO    if all found, instantiate and start
-            // TODO  started & (modified | unregistered): for each dependency find a reference with given filter and service ID
-            // TODO    if not all found, stop and discard
-            // TODO      if modified, go to the '!started & (modified | registered)' part
+        public void servicesChanged(final int eventType) {
+            if (!callback.valid()) {
+                if (handle != null) {
+                    handle.remove();
+                }
+            } else {
+                final boolean registered = eventType == ServiceEvent.REGISTERED;
+                final boolean modified = eventType == ServiceEvent.MODIFIED;
+                final boolean unregistering = eventType == ServiceEvent.UNREGISTERING;
 
-            final ServiceReference reference = event.getServiceReference();
-            final String[] aliases = (String[]) reference.getProperty(Constants.OBJECTCLASS);
-            final Long id = (Long) reference.getProperty(Constants.SERVICE_ID);
+                if (modified || unregistering) {
+                    for (Map.Entry<Service, ServiceDependencyFactory.MutableReference> entry : dependencyMap.entrySet()) {
+                        final Service service = entry.getKey();
+                        final ServiceReference[] references = references(service);
+                        final ServiceReference check = referenceMap.get(service);
 
-            final boolean started = callback.started();
+                        boolean found = check == null;      // no reference: we have found it...
 
-            switch (event.getType()) {
-            case ServiceEvent.MODIFIED:
-                // fall through
-            case ServiceEvent.REGISTERED:
-                if (!started) {
-                    final Object service = context.getService(reference);
-
-                    for (final String alias : aliases) {
-                        if (!identifiers.containsKey(alias)) {
-                            identifiers.put(alias, id);
-                            services.put(id, service);
-                        }
-                    }
-
-                    // got all dependencies?
-                    if (services.size() == dependencies.size()) {
-                        final OpenComponentContainer container = boundary.makeChildContainer();
-                        final ComponentContainer.Registry registry = container.getRegistry();
-
-                        registry.bindComponent(type, (Class<Object>) api);
-                        for (final Class<?> dependency : dependencies.keySet()) {
-                            registry.bindInstance(services.get(identifiers.get(dependency.getName())), (Class<Object>) dependency);
+                        for (int i = 0, limit = references.length; !found && i < limit; i++) {
+                            found = check == references[i];     // we assume that if the reference is unregistered it will not be returned by the context
                         }
 
-                        callback.start(container.getComponent(api));
+                        if (!found) {
+                            if (callback.running()) {
+                                callback.suspend();
+                                assert !callback.running();
+                                log.info("%s suspended", name);
+                            }
+
+                            entry.getValue().remove();
+                            context.ungetService(referenceMap.remove(service));
+                        }
                     }
                 }
 
-                break;
+                if (!callback.running() && (modified || registered)) {
+                    for (Map.Entry<Service, ServiceDependencyFactory.MutableReference> entry : dependencyMap.entrySet()) {
+                        final Service service = entry.getKey();
+                        final ServiceReference[] references = references(service);
 
-            case ServiceEvent.UNREGISTERING:
-                if (identifiers.values().remove(id)) {
-                    services.remove(id);
+                        for (int i = 0, limit = references.length; !referenceMap.containsKey(service) && i < limit; i++) {
+                            final ServiceReference reference = references[i];
+                            referenceMap.put(service, reference);
+                            entry.getValue().set(context.getService(reference));
+                        }
 
-                    // any of the dependencies disappeared?
-                    if (started && services.size() != dependencies.size()) {
-                        callback.stop();
+                        if (!callback.running() && dependencyMap.size() == referenceMap.size()) {
+                            callback.resume();
+                            assert callback.running();
+                            log.info("%s resumed", name);
+                        }
                     }
                 }
-
-                break;
-
-            default:
-                break;
             }
         }
 
+        public void serviceChanged(final ServiceEvent event) {
+            servicesChanged(event.getType());
+        }
+
+        private ServiceReference[] references(final Service service) {
+            final String filter = service.filter();
+
+            try {
+                final ServiceReference[] references = context.getServiceReferences(service.api().getName(), filter.length() == 0 ? null : filter);
+                return references == null ? new ServiceReference[0] : references;
+            } catch (final InvalidSyntaxException e) {
+                throw new IllegalStateException(filter, e);   // filter has already been used when the listener was created
+            }
+        }
     }
 }

@@ -16,9 +16,7 @@
 
 package org.fluidity.deployment.osgi;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 
@@ -32,6 +30,7 @@ import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceEvent;
 import org.osgi.framework.ServiceListener;
 import org.osgi.framework.ServiceReference;
+import org.osgi.framework.ServiceRegistration;
 
 /**
  * @author Tibor Varga
@@ -39,8 +38,8 @@ import org.osgi.framework.ServiceReference;
 @Component
 public class WhiteboardImpl implements Whiteboard {
 
-    private Set<ServiceListener> listeners = new HashSet<ServiceListener>();
-    private List<EventSource<?>> sources = new ArrayList<EventSource<?>>();
+    private Set<Handle> listeners = new HashSet<Handle>();
+
     private final BundleContext context;
 
     public WhiteboardImpl(final BundleContext context,
@@ -50,63 +49,80 @@ public class WhiteboardImpl implements Whiteboard {
 
         if (sources != null) {
             for (final EventSource<Object> source : sources) {
-                this.sources.add(source);
-
-                final Class<Object> type = source.consumerType();
-
-                final ServiceListener listener = new ServiceListener() {
-                    public void serviceChanged(final ServiceEvent event) {
-                        final ServiceReference reference = event.getServiceReference();
-
-                        switch (event.getType()) {
-                        case ServiceEvent.REGISTERED:
-                            source.consumerAdded(context.getService(reference), new RegistrationProperties() {
-                                public String[] keys() {
-                                    return reference.getPropertyKeys();
-                                }
-
-                                @SuppressWarnings("unchecked")
-                                public <T> T get(final String key, final Class<T> type) {
-                                    return (T) reference.getProperty(key);
-                                }
-                            });
-
-                            break;
-
-                        case ServiceEvent.UNREGISTERING:
-                            source.consumerRemoved(context.getService(reference));
-                            break;
-
-                        default:
-                            break;
-                        }
-                    }
-                };
-
-                try {
-                    context.addServiceListener(listener, String.format("(%s=%s)", Constants.OBJECTCLASS, type.getName()));
-
-                    for (final ServiceReference reference : context.getServiceReferences(type.getName(), null)) {
-                        listener.serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED, reference));
-                    }
-                } catch (final InvalidSyntaxException e) {
-                    assert false : e;
-                }
-
-
-                listeners.add(listener);
+                register(source);
             }
         }
 
         if (registrations != null) {
             for (final Service.Registration registration : registrations) {
-                registration.perform(context);
+                register(registration, registration.properties(), registration.types());
             }
         }
     }
 
-    public Handle register(final EventConsumer consumer, final Properties properties, final Class<?>... types) {
-        final org.osgi.framework.ServiceRegistration registration = context.registerService(serviceApi(types), consumer, properties);
+    public <T> Handle register(final EventSource<T> source) {
+        final Class<T> type = source.consumerType();
+
+        final ServiceListener listener = new ServiceListener() {
+            @SuppressWarnings("unchecked")
+            public void serviceChanged(final ServiceEvent event) {
+                final ServiceReference reference = event.getServiceReference();
+
+                switch (event.getType()) {
+                case ServiceEvent.REGISTERED:
+                    source.consumerAdded((T) context.getService(reference), new RegistrationProperties() {
+                        public String[] keys() {
+                            return reference.getPropertyKeys();
+                        }
+
+                        @SuppressWarnings("unchecked")
+                        public <T> T get(final String key, final Class<T> type) {
+                            return (T) reference.getProperty(key);
+                        }
+                    });
+
+                    break;
+
+                case ServiceEvent.UNREGISTERING:
+                    source.consumerRemoved((T) context.getService(reference));
+                    break;
+
+                default:
+                    break;
+                }
+            }
+        };
+
+        try {
+            context.addServiceListener(listener, String.format("(%s=%s)", Constants.OBJECTCLASS, type.getName()));
+
+            final ServiceReference[] references = context.getServiceReferences(type.getName(), null);
+            if (references != null) {
+                for (final ServiceReference reference : references) {
+                    listener.serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED, reference));
+                }
+            }
+        } catch (final InvalidSyntaxException e) {
+            assert false : e;
+        }
+
+        final Handle handle = new Handle() {
+            public void remove() {
+                if (listeners.contains(this)) {
+                    context.removeServiceListener(listener);
+                    source.stop();
+                    listeners.remove(this);
+                }
+            }
+        };
+
+        listeners.add(handle);
+
+        return handle;
+    }
+
+    public Handle register(final Service.Registration service, final Properties properties, final Class<?>... types) {
+        final ServiceRegistration registration = context.registerService(serviceApi(types), service, properties);
 
         return new Handle() {
             public void remove() {
@@ -116,12 +132,8 @@ public class WhiteboardImpl implements Whiteboard {
     }
 
     public void stop() {
-        for (final ServiceListener listener : listeners) {
-            context.removeServiceListener(listener);
-        }
-
-        for (final EventSource<?> source : sources) {
-            source.stop();
+        for (final Handle listener : new HashSet<Handle>(listeners)) {
+            listener.remove();
         }
     }
 
