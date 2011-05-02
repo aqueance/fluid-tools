@@ -409,8 +409,8 @@ public final class MavenSupport {
 
     private static class TransitiveDependencySelector implements DependencySelector {
 
-        private static final Set<String> RUNTIME_SCOPES = new HashSet<String>(Arrays.asList(JavaScopes.COMPILE, JavaScopes.RUNTIME));
-        private static final Set<String> COMPILE_SCOPES = new HashSet<String>(Arrays.asList(JavaScopes.COMPILE, JavaScopes.PROVIDED));
+        private static final Set<String> RUNTIME_SCOPES = new HashSet<String>(Arrays.asList(JavaScopes.COMPILE, JavaScopes.RUNTIME, JavaScopes.SYSTEM));
+        private static final Set<String> COMPILE_SCOPES = new HashSet<String>(Arrays.asList(JavaScopes.COMPILE, JavaScopes.PROVIDED, JavaScopes.SYSTEM));
 
         private final boolean compile;
         private final boolean optionals;
@@ -429,7 +429,19 @@ public final class MavenSupport {
         }
 
         public DependencySelector deriveChildSelector(final DependencyCollectionContext context) {
-            return this;
+            final Collection<org.sonatype.aether.graph.Exclusion> exclusions = context.getDependency().getExclusions();
+            final Set<String> excluded = new HashSet<String>(exclusions.size() + this.excluded.size());
+
+            excluded.addAll(this.excluded);
+
+            if (!exclusions.isEmpty()) {
+                for (org.sonatype.aether.graph.Exclusion exclusion : exclusions) {
+                    excluded.add(exclusion.getGroupId() + ':' + exclusion.getArtifactId());
+                }
+            }
+
+            // second level optionals and those excluded will not be selected
+            return optionals || !exclusions.isEmpty() ? new TransitiveDependencySelector(compile, false, excluded.toArray(new String[excluded.size()])) : this;
         }
     }
 }
