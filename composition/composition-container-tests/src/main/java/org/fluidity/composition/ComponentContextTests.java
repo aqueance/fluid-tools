@@ -25,8 +25,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.fluidity.composition.spi.ComponentFactory;
 import org.fluidity.composition.spi.ComponentVariantFactory;
+import org.fluidity.composition.spi.CustomComponentFactory;
 
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -348,7 +348,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
 
     @Component(api = SecondComponent.class)
     @Context(Setting2.class)
-    private static final class SecondFactory implements ComponentFactory {
+    private static final class SecondFactory implements CustomComponentFactory {
 
         public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
             final Dependency<?>[] args = dependencies.discover(SecondComponent.class);
@@ -369,7 +369,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
 
     @Component(api = ThirdComponent.class)
     @Context({ Setting1.class, Setting3.class })
-    private static final class ThirdFactory implements ComponentFactory {
+    private static final class ThirdFactory implements CustomComponentFactory {
 
         public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
             dependencies.discover(ThirdComponent.class);

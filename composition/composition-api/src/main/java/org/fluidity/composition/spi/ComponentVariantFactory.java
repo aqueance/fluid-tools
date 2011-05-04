@@ -17,8 +17,6 @@
 package org.fluidity.composition.spi;
 
 import org.fluidity.composition.ComponentContainer;
-import org.fluidity.composition.ComponentContext;
-import org.fluidity.composition.OpenComponentContainer;
 
 /**
  * A variant factory offers context dependent instance variants of an otherwise singleton component that itself can in some way be configured to adapt to
@@ -31,6 +29,4 @@ import org.fluidity.composition.OpenComponentContainer;
  *
  * @author Tibor Varga
  */
-public interface ComponentVariantFactory extends Factory {
-
-}
+public interface ComponentVariantFactory extends ComponentFactory { }

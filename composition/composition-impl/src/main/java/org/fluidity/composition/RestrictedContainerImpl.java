@@ -80,7 +80,7 @@ final class RestrictedContainerImpl implements  RestrictedContainer {
 
     private static class AccessDenied implements InvocationHandler {
         private RuntimeException denied() {
-            return new ResolutionException("No dynamic dependencies allowed, use a ComponentFactory if you need such functionality");
+            return new ResolutionException("No dynamic dependencies allowed, use a CustomComponentFactory if you need such functionality");
         }
 
         public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {

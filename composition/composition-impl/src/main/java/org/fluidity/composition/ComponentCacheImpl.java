@@ -19,7 +19,7 @@ package org.fluidity.composition;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.fluidity.composition.spi.Factory;
+import org.fluidity.composition.spi.ComponentFactory;
 import org.fluidity.foundation.logging.Log;
 import org.fluidity.foundation.spi.LogFactory;
 
@@ -47,7 +47,7 @@ final class ComponentCacheImpl implements ComponentCache {
                                        final Class<?> api,
                                        final Instantiation delegate,
                                        final Log log) {
-        final boolean factory = Factory.class.isAssignableFrom(api);
+        final boolean factory = ComponentFactory.class.isAssignableFrom(api);
         final boolean report = !factory && log.isInfoEnabled();
 
         if (!cache.containsKey(context)) {

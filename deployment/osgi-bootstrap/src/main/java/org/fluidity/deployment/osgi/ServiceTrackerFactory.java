@@ -26,7 +26,7 @@ import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.OpenComponentContainer;
-import org.fluidity.composition.spi.ComponentFactory;
+import org.fluidity.composition.spi.CustomComponentFactory;
 import org.fluidity.foundation.logging.Log;
 import org.fluidity.foundation.logging.Marker;
 
@@ -36,7 +36,7 @@ import org.osgi.framework.BundleContext;
  * @author Tibor Varga
  */
 @Component(api = ServiceTracker.class)
-final class ServiceTrackerFactory implements ComponentFactory {
+final class ServiceTrackerFactory implements CustomComponentFactory {
 
     public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
         dependencies.discover(ServiceTrackerImpl.class);

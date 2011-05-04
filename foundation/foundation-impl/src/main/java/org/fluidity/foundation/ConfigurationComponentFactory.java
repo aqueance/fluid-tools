@@ -27,7 +27,7 @@ import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.Context;
-import org.fluidity.composition.spi.ComponentFactory;
+import org.fluidity.composition.spi.CustomComponentFactory;
 import org.fluidity.foundation.configuration.Configuration;
 import org.fluidity.foundation.configuration.Properties;
 import org.fluidity.foundation.configuration.Setting;
@@ -45,7 +45,7 @@ import org.fluidity.foundation.spi.PropertyProvider;
  */
 @Component(api = Configuration.class)
 @Context(Properties.class)
-final class ConfigurationComponentFactory implements ComponentFactory {
+final class ConfigurationComponentFactory implements CustomComponentFactory {
 
     public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
         final Properties properties = context.annotation(Properties.class, Configuration.class);

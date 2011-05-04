@@ -23,7 +23,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.fluidity.composition.spi.ComponentFactory;
+import org.fluidity.composition.spi.CustomComponentFactory;
 
 import org.testng.annotations.Test;
 
@@ -359,7 +359,7 @@ public final class ComponentGroupTests extends AbstractContainerTests {
         }
     }
 
-    private static abstract class DynamicFilterFactory implements ComponentFactory {
+    private static abstract class DynamicFilterFactory implements CustomComponentFactory {
 
         private final Class<?> type;
 

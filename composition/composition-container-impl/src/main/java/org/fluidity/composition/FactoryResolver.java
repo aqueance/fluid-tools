@@ -19,11 +19,11 @@ package org.fluidity.composition;
 import java.lang.annotation.Annotation;
 import java.util.Set;
 
-import org.fluidity.composition.spi.ComponentFactory;
+import org.fluidity.composition.spi.CustomComponentFactory;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**
- * Component resolver for a {@link ComponentFactory} component.
+ * Component resolver for a {@link org.fluidity.composition.spi.CustomComponentFactory} component.
  *
  * @author Tibor Varga
  */
@@ -31,7 +31,7 @@ abstract class FactoryResolver extends AbstractFactoryResolver {
 
     public FactoryResolver(final int priority,
                            final Class<?> api,
-                           final Class<? extends ComponentFactory> factoryClass,
+                           final Class<? extends CustomComponentFactory> factoryClass,
                            final ComponentCache cache,
                            final LogFactory logs) {
         super(factoryClass, priority, api, cache, logs);

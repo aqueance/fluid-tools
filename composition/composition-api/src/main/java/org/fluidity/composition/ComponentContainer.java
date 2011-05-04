@@ -211,7 +211,7 @@ public interface ComponentContainer {
          * </ol>
          * <p/>
          * Two special cases must be handled by the receiver: when <code>implementation</code> is either a {@link
-         * org.fluidity.composition.spi.ComponentFactory}
+         * org.fluidity.composition.spi.CustomComponentFactory}
          * or a {@link org.fluidity.composition.spi.ComponentVariantFactory}. In the latter case, a total of two bindings must take place, one for the variant
          * factory and one for the component it creates variants of, and they can take place in any order. Irrespective of the order, the variant factory must
          * receive any component lookup for the target component.
@@ -230,7 +230,7 @@ public interface ComponentContainer {
          * party tools,
          * but you still want to make the instances available for components in the container to depend on.
          * <p/>
-         * The supplied component instance may be a {@link org.fluidity.composition.spi.ComponentFactory} or a {@link
+         * The supplied component instance may be a {@link org.fluidity.composition.spi.CustomComponentFactory} or a {@link
          * org.fluidity.composition.spi.ComponentVariantFactory} instance, in which case the receiver must support their respective functionality as described
          * in their documentation and at {@link #bindComponent(Class, Class[])}.
          *

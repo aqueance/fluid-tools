@@ -17,7 +17,7 @@
 package org.fluidity.composition;
 
 import org.fluidity.composition.spi.ComponentFactory;
-import org.fluidity.composition.spi.Factory;
+import org.fluidity.composition.spi.CustomComponentFactory;
 
 import org.easymock.EasyMock;
 import org.easymock.IAnswer;
@@ -31,8 +31,8 @@ import org.testng.annotations.Test;
 public final class ComponentFactoryTests extends AbstractContainerTests {
 
     @SuppressWarnings("unchecked")
-    private final ComponentFactory factory = addControl(ComponentFactory.class);
-    private final Factory.Instance instance = addControl(Factory.Instance.class);
+    private final CustomComponentFactory factory = addControl(CustomComponentFactory.class);
+    private final ComponentFactory.Instance instance = addControl(ComponentFactory.Instance.class);
 
     public ComponentFactoryTests(final ContainerFactory factory) {
         super(factory);
@@ -55,8 +55,8 @@ public final class ComponentFactoryTests extends AbstractContainerTests {
 
         registry.bindInstance(check);
 
-        EasyMock.expect(factory.resolve(EasyMock.<ComponentContext>notNull(), EasyMock.<Factory.Resolver>notNull())).andAnswer(new FactoryInvocation(Check.class, check, instance)).anyTimes();
-        instance.bind(EasyMock.<Factory.Registry>notNull());
+        EasyMock.expect(factory.resolve(EasyMock.<ComponentContext>notNull(), EasyMock.<ComponentFactory.Resolver>notNull())).andAnswer(new FactoryInvocation(Check.class, check, instance)).anyTimes();
+        instance.bind(EasyMock.<ComponentFactory.Registry>notNull());
         EasyMock.expectLastCall().anyTimes();
 
         replay();
@@ -76,8 +76,8 @@ public final class ComponentFactoryTests extends AbstractContainerTests {
         childRegistry.bindComponent(FactoryDependency.class);
         childRegistry.bindInstance(check);
 
-        EasyMock.expect(factory.resolve(EasyMock.<ComponentContext>notNull(), EasyMock.<Factory.Resolver>notNull())).andAnswer(new FactoryInvocation(Check.class, check, instance)).anyTimes();
-        instance.bind(EasyMock.<Factory.Registry>notNull());
+        EasyMock.expect(factory.resolve(EasyMock.<ComponentContext>notNull(), EasyMock.<ComponentFactory.Resolver>notNull())).andAnswer(new FactoryInvocation(Check.class, check, instance)).anyTimes();
+        instance.bind(EasyMock.<ComponentFactory.Registry>notNull());
         EasyMock.expectLastCall().anyTimes();
 
         replay();
@@ -95,8 +95,8 @@ public final class ComponentFactoryTests extends AbstractContainerTests {
 
         registry.bindInstance(check);
 
-        EasyMock.expect(factory.resolve(EasyMock.<ComponentContext>notNull(), EasyMock.<Factory.Resolver>notNull())).andReturn(instance).anyTimes();
-        instance.bind(EasyMock.<Factory.Registry>notNull());
+        EasyMock.expect(factory.resolve(EasyMock.<ComponentContext>notNull(), EasyMock.<ComponentFactory.Resolver>notNull())).andReturn(instance).anyTimes();
+        instance.bind(EasyMock.<ComponentFactory.Registry>notNull());
         EasyMock.expectLastCall().anyTimes();
 
         replay();
@@ -119,8 +119,8 @@ public final class ComponentFactoryTests extends AbstractContainerTests {
     }
 
     private void groupMemberChecks(final int factories) {
-        EasyMock.expect(factory.resolve(EasyMock.<ComponentContext>notNull(), EasyMock.<Factory.Resolver>notNull())).andReturn(instance).anyTimes();
-        instance.bind(EasyMock.<Factory.Registry>notNull());
+        EasyMock.expect(factory.resolve(EasyMock.<ComponentContext>notNull(), EasyMock.<ComponentFactory.Resolver>notNull())).andReturn(instance).anyTimes();
+        instance.bind(EasyMock.<ComponentFactory.Registry>notNull());
         EasyMock.expectLastCall().times(factories);
 
         replay();
@@ -159,9 +159,9 @@ public final class ComponentFactoryTests extends AbstractContainerTests {
     }
 
     @Component(api = DependentKey.class, automatic = false)
-    private static class DependentFactory implements ComponentFactory {
+    private static class DependentFactory implements CustomComponentFactory {
 
-        public static ComponentFactory delegate;
+        public static CustomComponentFactory delegate;
 
         public DependentFactory(final FactoryDependency dependency) {
             assert dependency != null;
@@ -195,9 +195,9 @@ public final class ComponentFactoryTests extends AbstractContainerTests {
     private static class GroupMember2 implements GroupMember2Api { }
 
     @Component(api = GroupMember1.class, automatic = false)
-    private static class GroupMember1Factory implements ComponentFactory {
+    private static class GroupMember1Factory implements CustomComponentFactory {
 
-        public static ComponentFactory delegate;
+        public static CustomComponentFactory delegate;
 
         public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
             assert delegate != null;
@@ -216,9 +216,9 @@ public final class ComponentFactoryTests extends AbstractContainerTests {
     }
 
     @Component(api = GroupMember2Api.class, automatic = false)
-    private static class GroupMember2Factory implements ComponentFactory {
+    private static class GroupMember2Factory implements CustomComponentFactory {
 
-        public static ComponentFactory delegate;
+        public static CustomComponentFactory delegate;
 
         public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
             assert delegate != null;
@@ -236,23 +236,23 @@ public final class ComponentFactoryTests extends AbstractContainerTests {
 
     }
 
-    private static class FactoryInvocation implements IAnswer<Factory.Instance> {
+    private static class FactoryInvocation implements IAnswer<ComponentFactory.Instance> {
 
         private final Class<?> checkKey;
         private final Object checkValue;
-        private final Factory.Instance instance;
+        private final ComponentFactory.Instance instance;
 
-        public FactoryInvocation(final Class<?> checkKey, final Object checkValue, final Factory.Instance instance) {
+        public FactoryInvocation(final Class<?> checkKey, final Object checkValue, final ComponentFactory.Instance instance) {
             this.checkKey = checkKey;
             this.checkValue = checkValue;
             this.instance = instance;
         }
 
-        public Factory.Instance answer() throws Throwable {
-            final Factory.Resolver resolver = (Factory.Resolver) EasyMock.getCurrentArguments()[1];
+        public ComponentFactory.Instance answer() throws Throwable {
+            final ComponentFactory.Resolver resolver = (ComponentFactory.Resolver) EasyMock.getCurrentArguments()[1];
             assert resolver != null : "Received no resolver";
 
-            final Factory.Dependency<?> dependency = resolver.resolve(checkKey);
+            final ComponentFactory.Dependency<?> dependency = resolver.resolve(checkKey);
             assert dependency != null && dependency.instance() == checkValue : "Container does not check up";
 
             return instance;
@@ -269,7 +269,7 @@ public final class ComponentFactoryTests extends AbstractContainerTests {
     }
 
     @Component(api = DynamicComponent1.class)
-    private static class DynamicFactory1 implements ComponentFactory {
+    private static class DynamicFactory1 implements CustomComponentFactory {
 
         public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
             final Dependency<?>[] args = dependencies.discover(DynamicComponent1.class);
@@ -298,7 +298,7 @@ public final class ComponentFactoryTests extends AbstractContainerTests {
     }
 
     @Component(api = DynamicComponent2.class)
-    private static class DynamicFactory2 implements ComponentFactory {
+    private static class DynamicFactory2 implements CustomComponentFactory {
 
         public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
             final Dependency<?>[] args = dependencies.discover(DynamicComponent1.class);

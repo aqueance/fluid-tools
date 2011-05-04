@@ -17,25 +17,25 @@
 package org.fluidity.composition;
 
 import org.fluidity.composition.spi.ComponentFactory;
-import org.fluidity.composition.spi.Factory;
+import org.fluidity.composition.spi.CustomComponentFactory;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**
- * Component mapping of a {@link ComponentFactory} instance.
+ * Component mapping of a {@link org.fluidity.composition.spi.CustomComponentFactory} instance.
  *
  * @author Tibor Varga
  */
 final class FactoryResolverInstance extends FactoryResolver {
 
-    private final ComponentFactory factory;
+    private final CustomComponentFactory factory;
 
-    public FactoryResolverInstance(final int priority, final Class<?> api, final ComponentFactory factory, final ComponentCache cache, final LogFactory logs) {
+    public FactoryResolverInstance(final int priority, final Class<?> api, final CustomComponentFactory factory, final ComponentCache cache, final LogFactory logs) {
         super(priority, api, factory.getClass(), cache, logs);
         this.factory = factory;
     }
 
     @Override
-    protected Factory factory(final SimpleContainer container, final DependencyGraph.Traversal traversal, final ContextDefinition definition) {
+    protected ComponentFactory factory(final SimpleContainer container, final DependencyGraph.Traversal traversal, final ContextDefinition definition) {
         return factory;
     }
 }

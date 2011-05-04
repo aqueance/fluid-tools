@@ -18,9 +18,9 @@ package org.fluidity.composition.types;
 
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
-import org.fluidity.composition.spi.ComponentFactory;
+import org.fluidity.composition.spi.CustomComponentFactory;
 
-public final class NoComponentFactory implements ComponentFactory {
+public final class NoComponentFactory implements CustomComponentFactory {
 
     public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
         throw new UnsupportedOperationException();

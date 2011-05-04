@@ -23,7 +23,7 @@ import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.Context;
-import org.fluidity.composition.spi.ComponentFactory;
+import org.fluidity.composition.spi.CustomComponentFactory;
 
 /**
  * Handles {@link org.fluidity.deployment.osgi.ServiceTracker.Dependency} dependencies. See {@link ServiceTracker} for details.
@@ -32,7 +32,7 @@ import org.fluidity.composition.spi.ComponentFactory;
  */
 @Component(api = ServiceTracker.Dependency.class)
 @Context(Service.class)
-final class ServiceDependencyFactory implements ComponentFactory {
+final class ServiceDependencyFactory implements CustomComponentFactory {
 
     private final ThreadLocal<Map<Service, MutableReference>> collector = new ThreadLocal<Map<Service, ServiceDependencyFactory.MutableReference>>();
 

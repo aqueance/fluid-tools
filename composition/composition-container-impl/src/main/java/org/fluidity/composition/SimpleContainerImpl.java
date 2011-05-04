@@ -28,10 +28,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.fluidity.composition.spi.ComponentFactory;
 import org.fluidity.composition.spi.ComponentMapping;
 import org.fluidity.composition.spi.ComponentResolutionObserver;
 import org.fluidity.composition.spi.ComponentVariantFactory;
+import org.fluidity.composition.spi.CustomComponentFactory;
 import org.fluidity.composition.spi.PlatformContainer;
 import org.fluidity.foundation.Strings;
 import org.fluidity.foundation.logging.Log;
@@ -205,7 +205,7 @@ final class SimpleContainerImpl implements ParentContainer {
             }
 
             public boolean isCustomFactory() {
-                return ComponentFactory.class.isAssignableFrom(implementation);
+                return CustomComponentFactory.class.isAssignableFrom(implementation);
             }
 
             public ComponentResolver component(final Class<?> api, final ComponentCache cache, final boolean resolvesFactory) {
@@ -218,7 +218,7 @@ final class SimpleContainerImpl implements ParentContainer {
             }
 
             public FactoryResolver factory(final Class<?> api, final ComponentCache cache) {
-                final Class<? extends ComponentFactory> factory = implementation.asSubclass(ComponentFactory.class);
+                final Class<? extends CustomComponentFactory> factory = implementation.asSubclass(CustomComponentFactory.class);
                 return new FactoryResolverClass(isFallback ? 0 : 1, api, factory, cache, logs);
             }
         });
@@ -245,7 +245,7 @@ final class SimpleContainerImpl implements ParentContainer {
             }
 
             public boolean isCustomFactory() {
-                return instance instanceof ComponentFactory;
+                return instance instanceof CustomComponentFactory;
             }
 
             public ComponentResolver component(final Class<?> api, final ComponentCache cache, final boolean resolvesFactory) {
@@ -259,7 +259,7 @@ final class SimpleContainerImpl implements ParentContainer {
 
             @SuppressWarnings("ConstantConditions")
             public FactoryResolver factory(final Class<?> api, final ComponentCache cache) {
-                return new FactoryResolverInstance(isFallback ? 0 : 1, api, (ComponentFactory) instance, cache, logs);
+                return new FactoryResolverInstance(isFallback ? 0 : 1, api, (CustomComponentFactory) instance, cache, logs);
             }
         });
     }

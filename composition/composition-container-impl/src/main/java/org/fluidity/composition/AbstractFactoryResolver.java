@@ -1,3 +1,19 @@
+/*
+ * Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.fluidity.composition;
 
 import java.lang.annotation.Annotation;
@@ -6,7 +22,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.fluidity.composition.spi.Factory;
+import org.fluidity.composition.spi.ComponentFactory;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**
@@ -14,9 +30,9 @@ import org.fluidity.foundation.spi.LogFactory;
  */
 abstract class AbstractFactoryResolver extends AbstractResolver {
 
-    private final Class<? extends Factory> factoryClass;
+    private final Class<? extends ComponentFactory> factoryClass;
 
-    public AbstractFactoryResolver(final Class<? extends Factory> factoryClass,
+    public AbstractFactoryResolver(final Class<? extends ComponentFactory> factoryClass,
                                    final int priority,
                                    final Class<?> api,
                                    final ComponentCache cache,
@@ -25,20 +41,20 @@ abstract class AbstractFactoryResolver extends AbstractResolver {
         this.factoryClass = factoryClass;
     }
 
-    protected final Class<? extends Factory> factoryClass() {
+    protected final Class<? extends ComponentFactory> factoryClass() {
         return factoryClass;
     }
 
     /**
-     * Returns the {@link org.fluidity.composition.spi.Factory} instance this is a mapping for.
+     * Returns the {@link org.fluidity.composition.spi.ComponentFactory} instance this is a mapping for.
      *
      * @param container  the container in which to resolve dependencies of the factory.
      * @param traversal  the current graph traversal.
      * @param definition the context in which the resolution takes place.
      *
-     * @return the {@link org.fluidity.composition.spi.Factory} instance this is a mapping for.
+     * @return the {@link org.fluidity.composition.spi.ComponentFactory} instance this is a mapping for.
      */
-    protected abstract Factory factory(final SimpleContainer container, final DependencyGraph.Traversal traversal, final ContextDefinition definition);
+    protected abstract ComponentFactory factory(final SimpleContainer container, final DependencyGraph.Traversal traversal, final ContextDefinition definition);
 
     /**
      * Invokes the factory and performs proper context housekeeping.
@@ -58,7 +74,7 @@ abstract class AbstractFactoryResolver extends AbstractResolver {
         final ContextDefinition collected = context.copy().reduce(null);
         final ComponentContext passed = reduced.create();
 
-        final Factory factory = factory(container, traversal, context);
+        final ComponentFactory factory = factory(container, traversal, context);
 
         final List<ContextDefinition> list = new ArrayList<ContextDefinition>();
         list.add(reduced);
@@ -66,8 +82,8 @@ abstract class AbstractFactoryResolver extends AbstractResolver {
         final DependencyInjector injector = container.services().dependencyInjector();
 
         final List<RestrictedContainer> containers = new ArrayList<RestrictedContainer>();
-        final Factory.Instance instance = factory.resolve(passed, new Factory.Resolver() {
-            public <T> Factory.Dependency<T> resolve(final Class<T> api) {
+        final ComponentFactory.Instance instance = factory.resolve(passed, new ComponentFactory.Resolver() {
+            public <T> ComponentFactory.Dependency<T> resolve(final Class<T> api) {
                 return new NodeDependency<T>(resolve(api, null), traversal);
             }
 
@@ -98,25 +114,25 @@ abstract class AbstractFactoryResolver extends AbstractResolver {
                 });
             }
 
-            public Factory.Dependency<?>[] discover(final Class<?> type) {
+            public ComponentFactory.Dependency<?>[] discover(final Class<?> type) {
                 return discover(injector.findConstructor(type));
             }
 
-            public Factory.Dependency<?>[] discover(final Constructor<?> constructor) {
+            public ComponentFactory.Dependency<?>[] discover(final Constructor<?> constructor) {
                 return discover(constructor.getParameterTypes(), constructor.getParameterAnnotations());
             }
 
-            public Factory.Dependency<?>[] discover(final Method method) {
+            public ComponentFactory.Dependency<?>[] discover(final Method method) {
                 return discover(method.getParameterTypes(), method.getParameterAnnotations());
             }
 
-            private Factory.Dependency<?>[] discover(final Class<?>[] types, final Annotation[][] annotations) {
-                final List<Factory.Dependency<?>> nodes = new ArrayList<Factory.Dependency<?>>();
+            private ComponentFactory.Dependency<?>[] discover(final Class<?>[] types, final Annotation[][] annotations) {
+                final List<ComponentFactory.Dependency<?>> nodes = new ArrayList<ComponentFactory.Dependency<?>>();
                 for (int i = 0, limit = types.length; i < limit; i++) {
                     nodes.add(new NodeDependency<Object>(resolve(types[i], annotations[i]), traversal));
                 }
 
-                return nodes.toArray(new Factory.Dependency<?>[nodes.size()]);
+                return nodes.toArray(new ComponentFactory.Dependency<?>[nodes.size()]);
             }
         });
 
@@ -146,7 +162,7 @@ abstract class AbstractFactoryResolver extends AbstractResolver {
     }
 
     @SuppressWarnings("unchecked")
-    private class RegistryWrapper implements Factory.Registry {
+    private class RegistryWrapper implements ComponentFactory.Registry {
         private final Class<?> api;
         private final SimpleContainer container;
 
@@ -176,12 +192,12 @@ abstract class AbstractFactoryResolver extends AbstractResolver {
             container.bindInstance(instance, Components.inspect(implementation, interfaces));
         }
 
-        public Factory.Registry makeChildContainer() {
+        public ComponentFactory.Registry makeChildContainer() {
             return new RegistryWrapper(api, container.newChildContainer());
         }
     }
 
-    private class NodeDependency<T> implements Factory.Dependency<T> {
+    private class NodeDependency<T> implements ComponentFactory.Dependency<T> {
         private final DependencyGraph.Node node;
         private final DependencyGraph.Traversal traversal;
 

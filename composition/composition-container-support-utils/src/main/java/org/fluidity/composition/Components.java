@@ -31,8 +31,8 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.fluidity.composition.spi.ComponentFactory;
 import org.fluidity.composition.spi.ComponentVariantFactory;
+import org.fluidity.composition.spi.CustomComponentFactory;
 
 /**
  * Component and component group interface related tools.
@@ -56,7 +56,7 @@ public final class Components {
     }
 
     @SuppressWarnings("unchecked")
-    private static Set<Class<?>> factories = new HashSet<Class<?>>(Arrays.asList(ComponentFactory.class, ComponentVariantFactory.class));
+    private static Set<Class<?>> factories = new HashSet<Class<?>>(Arrays.asList(CustomComponentFactory.class, ComponentVariantFactory.class));
 
     private Components() {
         throw new UnsupportedOperationException("No instance allowed");
@@ -69,12 +69,12 @@ public final class Components {
      * The rules for component interface discovery are described by the following recursive algorithm:
      * <ol>
      * <li>If the class has no @{@link Component} annotation, the algorithm returns the queried class, unless the class implements {@link
-     * org.fluidity.composition.spi.ComponentFactory} or {@link org.fluidity.composition.spi.ComponentVariantFactory}, in which case the algorithm flags an
+     * org.fluidity.composition.spi.CustomComponentFactory} or {@link org.fluidity.composition.spi.ComponentVariantFactory}, in which case the algorithm flags an
      * error.</li>
      * <li>If the class is annotated with @{@link Component} and the @{@link Component#api()} parameter is given, the algorithm ignores the annotated
      * class and repeats for each class specified therein. However, if any of these classes are themselves @{@link Component} classes with @{@link
      * Component#automatic()} not set to <code>false</code>, or if the class does not extend or implement all of those classes and interfaces or {@link
-     * org.fluidity.composition.spi.ComponentFactory} or {@link org.fluidity.composition.spi.ComponentVariantFactory}, the algorithm
+     * org.fluidity.composition.spi.CustomComponentFactory} or {@link org.fluidity.composition.spi.ComponentVariantFactory}, the algorithm
      * flags an error.</li>
      * <li>If the super class is annotated with @{@link Component} and its @{@link Component#automatic()} is not set to <code>false</code>, the algorithm flags
      * an error.</li>
@@ -90,7 +90,7 @@ public final class Components {
      * <ol>
      * <li>If the class is annotated with @{@link ComponentGroup} with a @{@link ComponentGroup#api()} parameter, the algorithm
      * returns the classes specified therein. However, if the class does not extend or implement all of those classes and interfaces or {@link
-     * org.fluidity.composition.spi.ComponentFactory} or {@link org.fluidity.composition.spi.ComponentVariantFactory}, the algorithm flags an error.</li>
+     * org.fluidity.composition.spi.CustomComponentFactory} or {@link org.fluidity.composition.spi.ComponentVariantFactory}, the algorithm flags an error.</li>
      * <li>If the class is annotated with @{@link ComponentGroup} with no @{@link ComponentGroup#api()} parameter, then
      * <ol>
      * <li>if the class is an interface, the algorithm returns the annotated class.</li>
@@ -105,7 +105,7 @@ public final class Components {
      * Once the above algorithms have completed, the following adjustments are made to the final result:
      * <ul>
      * <li>the component class or, in case of a {@link
-     * org.fluidity.composition.spi.ComponentFactory} or {@link org.fluidity.composition.spi.ComponentVariantFactory} implementation, the classes referenced in
+     * org.fluidity.composition.spi.CustomComponentFactory} or {@link org.fluidity.composition.spi.ComponentVariantFactory} implementation, the classes referenced in
      * its @{@link Component#api()} parameter, is/are added to the component interface list if component group interfaces have been identified for that class
      * or
      * those classes.</li>
@@ -334,7 +334,7 @@ public final class Components {
     }
 
     private static boolean isFactory(final Class<?> componentClass) {
-        return ComponentFactory.class.isAssignableFrom(componentClass) || ComponentVariantFactory.class.isAssignableFrom(componentClass);
+        return CustomComponentFactory.class.isAssignableFrom(componentClass) || ComponentVariantFactory.class.isAssignableFrom(componentClass);
     }
 
     /**

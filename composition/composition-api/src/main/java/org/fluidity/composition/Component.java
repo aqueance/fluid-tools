@@ -38,7 +38,7 @@ public @interface Component {
 
     /**
      * Returns the (interface) class to map the implementation class against. The property defaults to the list of interfaces the class directly implements or
-     * the class itself if it implements no interface. In case of {@link org.fluidity.composition.spi.ComponentFactory} and {@link
+     * the class itself if it implements no interface. In case of {@link org.fluidity.composition.spi.CustomComponentFactory} and {@link
      * org.fluidity.composition.spi.ComponentVariantFactory} components, the value applies to the component the factory creates, not the factory itself.
      *
      * @return an array of class objects; ignored for annotated fields.
