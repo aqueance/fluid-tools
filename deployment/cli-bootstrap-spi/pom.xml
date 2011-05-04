@@ -18,17 +18,17 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <parent>
-        <groupId>org.fluidity</groupId>
-        <artifactId>fluidity-root</artifactId>
+        <groupId>org.fluidity.deployment</groupId>
+        <artifactId>deployment-root</artifactId>
         <version>1.0.0-SNAPSHOT</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.fluidity.deployment</groupId>
-    <artifactId>deployment-root</artifactId>
+    <artifactId>cli-bootstrap-spi</artifactId>
     <version>1.0.0-SNAPSHOT</version>
-    <packaging>pom</packaging>
-    <name>Deployment Tools Modules</name>
+    <packaging>jar</packaging>
+    <name>Deployment: Deployer API</name>
 
     <licenses>
         <license>
@@ -38,18 +38,27 @@
         </license>
     </licenses>
 
-    <properties>
-        <osgi.specification.version>4.2.0</osgi.specification.version>
-    </properties>
+    <dependencies>
 
-    <modules>
-        <module>cli-bootstrap-spi</module>
-        <module>cli-bootstrap</module>
-        <module>war-bootstrap-spi</module>
-        <module>war-boundary-utils</module>
-        <module>osgi-bootstrap</module>
-        <module>osgi-bootstrap-spi</module>
-        <module>plugins</module>
-    </modules>
+        <dependency>
+            <groupId>${fluidity.composition.groupId}</groupId>
+            <artifactId>composition-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+    </dependencies>
+
+    <profiles>
+        <profile>
+            <id>sources</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-assembly-plugin</artifactId>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
 </project>

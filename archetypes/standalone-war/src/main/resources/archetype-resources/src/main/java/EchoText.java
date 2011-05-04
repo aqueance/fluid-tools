@@ -15,14 +15,8 @@ limitations under the License.
 *#
 package ${package};
 
-import java.io.IOException;
-
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import org.fluidity.foundation.logging.Log;
+import org.fluidity.foundation.logging.Marker;
 import org.fluidity.composition.Component;
 
 /*
@@ -41,29 +35,16 @@ import org.fluidity.composition.Component;
  * limitations under the License.
  */
 
-@Component(api = MyServlet.class)
-public class MyServlet extends HttpServlet {
+@Component
+final class EchoText implements ComponentApi.MessageSink {
+    private final Log log;
 
-    private final ComponentApi sink;
-
-    public MyServlet(final ComponentApi sink) {
-        this.sink = sink;
+    public EchoText(final @Marker(EchoText.class) Log log) {
+        this.log = log;
     }
 
-    public void init(final ServletConfig config) throws ServletException {
-        sink.sendText("--- Servlet initialized. Press Ctrl-C to terminate it.");
-    }
-    public void destroy() {
-        sink.sendText("--- Servlet destroyed.");
-    }
-
-    @Override
-    protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
-        sink.sendText("--- Servlet received a GET request");
-    }
-
-    @Override
-    protected void doPost(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
-        sink.sendText("--- Servlet received a POST request");
+    public boolean receiveText(String text) {
+        log.info(text);
+        return true;
     }
 }

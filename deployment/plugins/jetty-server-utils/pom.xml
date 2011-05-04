@@ -63,12 +63,6 @@ Common classes and components to control an embedded Jetty server.
         </dependency>
 
         <dependency>
-            <groupId>${fluidity.deployment.groupId}</groupId>
-            <artifactId>deployment-api</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-server</artifactId>
         </dependency>

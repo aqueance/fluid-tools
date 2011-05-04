@@ -22,23 +22,21 @@ import javax.servlet.ServletContextListener;
 import org.fluidity.composition.ContainerBoundary;
 
 /**
- * Boundary object for {@link AggregatingListenerDelegate}.
- *
- * @author Tibor Varga
+ * Delegates servlet listener callbacks to all those annotated with @{@link org.fluidity.composition.ComponentGroup}.
  */
 public final class AggregatingServletContextListener implements ServletContextListener {
 
-    private final ServletContextListener delegate;
-
-    public AggregatingServletContextListener() {
-        this.delegate = new ContainerBoundary().getComponent(AggregatingListenerDelegate.class);
-    }
+    private final ServletContextListener listeners[] = new ContainerBoundary().getComponentGroup(ServletContextListener.class);
 
     public void contextInitialized(final ServletContextEvent event) {
-        delegate.contextInitialized(event);
+        for (final ServletContextListener listener : listeners) {
+            listener.contextInitialized(event);
+        }
     }
 
     public void contextDestroyed(final ServletContextEvent event) {
-        delegate.contextDestroyed(event);
+        for (final ServletContextListener listener : listeners) {
+            listener.contextDestroyed(event);
+        }
     }
 }

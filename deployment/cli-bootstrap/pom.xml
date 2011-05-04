@@ -60,7 +60,7 @@
 
         <dependency>
             <groupId>${fluidity.deployment.groupId}</groupId>
-            <artifactId>deployment-api</artifactId>
+            <artifactId>cli-bootstrap-spi</artifactId>
             <version>${project.version}</version>
         </dependency>
 

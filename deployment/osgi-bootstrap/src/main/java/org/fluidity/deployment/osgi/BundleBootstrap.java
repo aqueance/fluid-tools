@@ -29,16 +29,12 @@ import org.fluidity.composition.ComponentGroup;
 import org.fluidity.composition.ContainerBoundary;
 import org.fluidity.composition.Inject;
 import org.fluidity.composition.Optional;
-import org.fluidity.composition.spi.PlatformContainer;
 import org.fluidity.composition.spi.ShutdownTasks;
-import org.fluidity.deployment.DeploymentBootstrap;
-import org.fluidity.deployment.DeploymentControl;
 import org.fluidity.foundation.logging.Log;
 import org.fluidity.foundation.logging.Marker;
 
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.BundleException;
 
 /**
  * Bootstraps the dependency injection container in an OSGi bundle. Must be public with a zero-arg constructor for the OSGi container to be able to call.
@@ -77,31 +73,10 @@ public final class BundleBootstrap implements BundleActivator {
             }
         });
 
-        final PlatformContainer platform = new ServiceContainer(context);
-
-        boundary.setPlatformContainer(platform);
         boundary.bindBootComponent(shutdown);
-        boundary.bindBootComponent(new BundleDeploymentControl(context));
         boundary.bindBootComponent(context, BundleContext.class);
 
-        boundary.initialize(platform);
         boundary.initialize(this);
-
-        unwind.put(new Runnable() {
-            public void run() {
-                platform.stop();
-            }
-        }, "platform");
-
-        final DeploymentBootstrap deployments = boundary.getComponent(DeploymentBootstrap.class);
-
-        unwind.put(new Runnable() {
-            public void run() {
-                deployments.unload();
-            }
-        }, "deployments");
-
-        deployments.load();
 
         activators = boundary.getComponent(Activators.class);
         activators.start();
@@ -135,31 +110,6 @@ public final class BundleBootstrap implements BundleActivator {
         } finally {
             shutdown.stop(log);
             log = null;
-        }
-    }
-
-    @Component(automatic = false)
-    private static class BundleDeploymentControl implements DeploymentControl {
-        private final BundleContext context;
-
-        public BundleDeploymentControl(final BundleContext context) {
-            this.context = context;
-        }
-
-        public void completed() {
-            // ok
-        }
-
-        public boolean isStandalone() {
-            return true;
-        }
-
-        public void stop() {
-            try {
-                context.getBundle().stop();
-            } catch (final BundleException e) {
-                throw new RuntimeException(e);
-            }
         }
     }
 

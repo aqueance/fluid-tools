@@ -58,12 +58,6 @@ containing application wrappers other than command line, web or enterprise appli
             <version>${project.version}</version>
         </dependency>
 
-        <dependency>
-            <groupId>${fluidity.deployment.groupId}</groupId>
-            <artifactId>deployment-impl</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
     </dependencies>
 
     <profiles>

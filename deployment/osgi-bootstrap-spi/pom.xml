@@ -18,17 +18,17 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <parent>
-        <groupId>org.fluidity</groupId>
-        <artifactId>public</artifactId>
+        <groupId>org.fluidity.deployment</groupId>
+        <artifactId>deployment-root</artifactId>
         <version>1.0.0-SNAPSHOT</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
-    <groupId>org.fluidity.public</groupId>
-    <artifactId>fluid-tools-component-api</artifactId>
+    <groupId>org.fluidity.deployment</groupId>
+    <artifactId>osgi-bootstrap-spi</artifactId>
     <version>1.0.0-SNAPSHOT</version>
-    <packaging>pom</packaging>
-    <name>Fluid Tools: Component API</name>
+    <packaging>jar</packaging>
+    <name>Deployment: OSGi Deployment API</name>
 
     <licenses>
         <license>
@@ -38,24 +38,7 @@
         </license>
     </licenses>
 
-    <description><![CDATA[
-This project is intended to be the Fluid Tools dependency in Maven projects
-not listing on any other Fluid Tools dependency.
-    ]]></description>
-
     <dependencies>
-
-        <dependency>
-            <groupId>${fluidity.foundation.groupId}</groupId>
-            <artifactId>foundation-api</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>${fluidity.foundation.groupId}</groupId>
-            <artifactId>foundation-utils</artifactId>
-            <version>${project.version}</version>
-        </dependency>
 
         <dependency>
             <groupId>${fluidity.composition.groupId}</groupId>
@@ -64,9 +47,10 @@ not listing on any other Fluid Tools dependency.
         </dependency>
 
         <dependency>
-            <groupId>${fluidity.deployment.groupId}</groupId>
-            <artifactId>cli-bootstrap-spi</artifactId>
-            <version>${project.version}</version>
+            <groupId>org.osgi</groupId>
+            <artifactId>org.osgi.core</artifactId>
+            <version>${osgi.specification.version}</version>
+            <scope>provided</scope>
         </dependency>
 
     </dependencies>
@@ -83,5 +67,21 @@ not listing on any other Fluid Tools dependency.
             </build>
         </profile>
     </profiles>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>${fluidity.plugin.groupId}</groupId>
+                <artifactId>maven-composition-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>process-annotations</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>

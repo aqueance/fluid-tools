@@ -18,15 +18,10 @@ package org.fluidity.deployment.cli;
 
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ContainerBoundary;
-import org.fluidity.composition.Optional;
-import org.fluidity.composition.spi.ShutdownTasks;
-import org.fluidity.deployment.DeploymentBootstrap;
-import org.fluidity.deployment.LaunchArguments;
 
 /**
- * A command line main class that bootstraps the application's dependency injection container, invokes {@link DeploymentBootstrap} if implemented to load and
- * control deployment units and invokes the application supplied main loop, a class implementing the {@link MainLoop} interface. Any component can access the
- * command line parameters by having a constructor with, among other dependencies, a {@link LaunchArguments} parameter.
+ * A command line main class that bootstraps the application's dependency injection container, invokes {@link Application#run()} to load and
+ * run the application supplied main loop.
  * <p/>
  * This class is public for its main method to be found by the Java launcher.
  *
@@ -35,29 +30,18 @@ import org.fluidity.deployment.LaunchArguments;
 @Component
 public final class CommandLineBootstrap {
 
-    private final MainLoop main;
+    private final Application application;
 
-    public CommandLineBootstrap(final @Optional DeploymentBootstrap bootstrap, final MainLoop main, final ShutdownTasks shutdown) throws Exception {
-        this.main = main;
-
-        if (bootstrap != null) {
-            shutdown.add("bootstrap", new Runnable() {
-                public void run() {
-                    bootstrap.unload();
-                }
-            });
-
-            bootstrap.load();
-        }
+    public CommandLineBootstrap(final Application application) throws Exception {
+        this.application = application;
     }
 
-    private void run() {
-        main.run();
+    private void run(final String[] args) {
+        application.run(args);
     }
 
     public static void main(final String[] args) throws Exception {
         final ContainerBoundary container = new ContainerBoundary();
-        container.setBindingProperty(LaunchArguments.ARGUMENTS_KEY, args);
-        container.getComponent(CommandLineBootstrap.class).run();
+        container.getComponent(CommandLineBootstrap.class).run(args);
     }
 }

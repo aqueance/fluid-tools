@@ -56,10 +56,7 @@ project:
     &lt;version>${fluid.tools.version}&lt;/version>
 &lt;/dependency>
 
-The plugin exports an org.fluidity.deployment.RuntimeControl component in the
-global ComponentContainer. That object can be used to programmatically stop
-the Jetty server started by this plugin. The server can also be stopped by
-pressing Ctrl-C.
+The server can also be stopped by pressing Ctrl-C.
 
 You can implement your own server bootstrap with the web container of your choice
 by providing an implementation to the org.fluidity.deployment.ServerBootstrap

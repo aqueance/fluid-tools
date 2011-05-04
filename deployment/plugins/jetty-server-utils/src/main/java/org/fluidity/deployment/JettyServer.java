@@ -18,8 +18,6 @@ package org.fluidity.deployment;
 
 import java.util.List;
 
-import org.fluidity.composition.ContainerBoundary;
-
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.server.handler.DefaultHandler;
@@ -39,7 +37,7 @@ public final class JettyServer {
         throw new UnsupportedOperationException("No instance allowed");
     }
 
-    public static void start(final int httpPort, final String[] args, final WebAppContext defaultContext, final List<WebAppContext> contextList) {
+    public static void start(final int httpPort, final WebAppContext defaultContext, final List<WebAppContext> contextList) {
         final ContextHandlerCollection contexts = new ContextHandlerCollection();
 
         final HandlerCollection handlers = new HandlerCollection();
@@ -51,14 +49,6 @@ public final class JettyServer {
         }
 
         final Server server = new Server();
-
-        final ContainerBoundary container = new ContainerBoundary();
-
-        if (args != null) {
-            container.setBindingProperty(LaunchArguments.ARGUMENTS_KEY, args);
-        }
-
-        JettyDeploymentControl.Bindings.set(container, server, false);
 
         if (httpPort > 0) {
             handlers.addHandler(new DefaultHandler());

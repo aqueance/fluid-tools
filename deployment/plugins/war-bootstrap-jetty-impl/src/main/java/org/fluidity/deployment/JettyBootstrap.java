@@ -39,7 +39,7 @@ public final class JettyBootstrap implements ServerBootstrap {
             contextList.add(deployWar(app, workDirectory, false));
         }
 
-        JettyServer.start(httpPort, args, defaultContext, contextList);
+        JettyServer.start(httpPort, defaultContext, contextList);
     }
 
     private WebAppContext deployWar(final File warFile, final File workDirectory, final boolean root) {
