@@ -180,7 +180,6 @@ public final class ComponentFactoryTests extends AbstractContainerTests {
                 }
             };
         }
-
     }
 
     @ComponentGroup
@@ -212,7 +211,6 @@ public final class ComponentFactoryTests extends AbstractContainerTests {
                 }
             };
         }
-
     }
 
     @Component(api = GroupMember2Api.class, automatic = false)
@@ -233,7 +231,6 @@ public final class ComponentFactoryTests extends AbstractContainerTests {
                 }
             };
         }
-
     }
 
     private static class FactoryInvocation implements IAnswer<ComponentFactory.Instance> {

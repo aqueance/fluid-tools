@@ -46,7 +46,6 @@ import org.testng.annotations.Test;
 public final class ComponentVariantTests extends AbstractContainerTests {
 
     private final ComponentVariantFactory variants = addControl(ComponentVariantFactory.class);
-    private final ComponentFactory.Instance instance = addControl(ComponentFactory.Instance.class);
 
     private CustomComponentFactory factory = addControl(CustomComponentFactory.class);
 
@@ -338,8 +337,6 @@ public final class ComponentVariantTests extends AbstractContainerTests {
         registry.bindComponent(ContextProvider1.class);
 
         EasyMock.expect(variants.resolve(EasyMock.<ComponentContext>notNull(), EasyMock.<ComponentFactory.Resolver>notNull())).andAnswer(new IAnswer<ComponentFactory.Instance>() {
-
-
             public ComponentFactory.Instance answer() throws Throwable {
                 final ComponentContext context = (ComponentContext) EasyMock.getCurrentArguments()[0];
                 assert !context.defines(Setting1.class) : Setting1.class;
@@ -459,7 +456,6 @@ public final class ComponentVariantTests extends AbstractContainerTests {
                 }
             };
         }
-
     }
 
     private static class GroupMember2 implements GroupApi {
@@ -524,7 +520,6 @@ public final class ComponentVariantTests extends AbstractContainerTests {
                 }
             };
         }
-
     }
 
     @Component(api = DependentKey.class, automatic = false)
@@ -544,7 +539,6 @@ public final class ComponentVariantTests extends AbstractContainerTests {
                 }
             };
         }
-
     }
 
     @Component(api = DependentKey.class, automatic = false)
@@ -570,7 +564,6 @@ public final class ComponentVariantTests extends AbstractContainerTests {
                 }
             };
         }
-
     }
 
     private static class ContextProvider {
@@ -729,7 +722,6 @@ public final class ComponentVariantTests extends AbstractContainerTests {
                 }
             };
         }
-
     }
 
     @Context(Setting1.class)
@@ -756,7 +748,6 @@ public final class ComponentVariantTests extends AbstractContainerTests {
                 }
             };
         }
-
     }
 
     @Setting1(ConfigurationProvider.CONTEXT)
