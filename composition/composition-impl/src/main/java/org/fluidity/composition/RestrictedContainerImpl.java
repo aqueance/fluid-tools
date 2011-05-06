@@ -54,6 +54,10 @@ final class RestrictedContainerImpl implements  RestrictedContainer {
         return reference.get().makeChildContainer();
     }
 
+    public OpenComponentContainer makeDomainContainer() {
+        return reference.get().makeDomainContainer();
+    }
+
     public <T> T getComponent(final Class<T> api, final Bindings bindings) throws ResolutionException {
         return reference.get().getComponent(api, bindings);
     }

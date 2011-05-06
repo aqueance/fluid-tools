@@ -18,6 +18,7 @@ package org.fluidity.composition;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.WeakHashMap;
 
 import org.fluidity.composition.spi.ComponentFactory;
 import org.fluidity.foundation.logging.Log;
@@ -28,17 +29,25 @@ import org.fluidity.foundation.spi.LogFactory;
  */
 final class ComponentCacheImpl implements ComponentCache {
 
-    private final Map<ComponentContext, Object> cache;
+    private final Map<Object, Map<ComponentContext, Object>> caches;
     private final Log log;
 
     public ComponentCacheImpl(final LogFactory logs, boolean singleton) {
-        this.cache = singleton ? new HashMap<ComponentContext, Object>() : null;
+        this.caches = singleton ? new WeakHashMap<Object, Map<ComponentContext, Object>>() : null;
         this.log = logs.createLog(getClass());
     }
 
-    public Object lookup(final Object source, final ComponentContext context, final Class<?> api, final Instantiation create) {
+    public Object lookup(final Object domain, final Object source, final ComponentContext context, final Class<?> api, final Instantiation create) {
         assert context != null : api;
-        return lookup(cache == null ? new HashMap<ComponentContext, Object>() : cache, source, context, api, create, log);
+        final boolean singleton = caches == null;
+
+        Map<ComponentContext, Object> cache = singleton ? new HashMap<ComponentContext, Object>() : caches.get(domain);
+
+        if (!singleton && !caches.containsKey(domain)) {
+            caches.put(domain, cache = new HashMap<ComponentContext, Object>());
+        }
+
+        return lookup(cache, source, context, api, create, log);
     }
 
     private synchronized Object lookup(final Map<ComponentContext, Object> cache,

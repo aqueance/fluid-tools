@@ -110,6 +110,15 @@ public interface ComponentContainer {
     OpenComponentContainer makeChildContainer();
 
     /**
+     * Creates another container whose components' dependencies will be satisfied from itself first, then from this container when the child could find no
+     * component to satisfy a dependency with, and any dependency not found in this container or its parent will be attempted to be satisfied from the returned
+     * child container.
+     *
+     * @return a container that defaults to this container for satisfying component dependencies.
+     */
+    OpenComponentContainer makeDomainContainer();
+
+    /**
      * Returns a component by interface or (super)class. This method is provided for factory objects (objects creating transient components) as a convenient
      * shortcut to acquire a child container, register component bindings in it and get the child container instantiate the requested component.
      *

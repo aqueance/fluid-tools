@@ -191,6 +191,10 @@ public final class ContainerBoundary implements ComponentContainer {
         return loadContainer(true).makeChildContainer();
     }
 
+    public OpenComponentContainer makeDomainContainer() {
+        return loadContainer(true).makeDomainContainer();
+    }
+
     /**
      * Delegates to the enclosed container.
      * <p/>

@@ -119,6 +119,10 @@ final class ComponentContainerShell extends EmptyComponentContainer {
         return new ComponentContainerShell(container, context, true, observer);
     }
 
+    public OpenComponentContainer makeDomainContainer() {
+        return new ComponentContainerShell(container, context, true, observer);     // TODO: domain container
+    }
+
     public void bindComponent(final Components.Interfaces interfaces) throws ComponentContainer.BindingException {
         container.bindComponent(interfaces);
     }
