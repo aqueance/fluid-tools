@@ -16,13 +16,6 @@
 
 package org.fluidity.tests;
 
-import org.easymock.EasyMock;
-import org.easymock.IMocksControl;
-import org.easymock.internal.matchers.Equals;
-import org.easymock.internal.matchers.NotNull;
-import org.easymock.internal.matchers.Same;
-import org.testng.annotations.BeforeMethod;
-
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -33,6 +26,13 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.easymock.EasyMock;
+import org.easymock.IMocksControl;
+import org.easymock.internal.matchers.Equals;
+import org.easymock.internal.matchers.NotNull;
+import org.easymock.internal.matchers.Same;
+import org.testng.annotations.AfterMethod;
+
 /**
  * Abstract test cases that facilitates the use of a {@link IMocksControl}.
  *
@@ -42,9 +42,9 @@ import java.util.Map;
 public abstract class MockGroupAbstractTest {
 
     private final ControlGroup globalGroup = new ControlGroup();
-    private ControlGroup localGroup;
+    private ControlGroup localGroup = new ControlGroup();
 
-    @BeforeMethod
+    @AfterMethod
     public void methodSetup() throws Exception {
         localGroup = new ControlGroup();
         reset();
