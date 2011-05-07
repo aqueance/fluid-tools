@@ -16,6 +16,8 @@
 
 package org.fluidity.composition;
 
+import java.util.Arrays;
+
 import org.testng.annotations.Test;
 
 /**
@@ -82,14 +84,50 @@ public final class DomainComponentTests extends AbstractContainerTests {
         domain.getRegistry().bindComponent(Head.class);
         domain.getRegistry().bindComponent(Dependency.class);
 
+        assert domain.getComponent(Root.class) != null;
+    }
+
+    @Test(expectedExceptions = ComponentContainer.ResolutionException.class, expectedExceptionsMessageRegExp = ".*Dependency.*")
+    public void testMissingDependency() throws Exception {
+        registry.bindComponent(Component.class);
+
+        final OpenComponentContainer domain = container.makeDomainContainer();
+
         try {
-            container.getComponent(Component.class);
+            domain.getComponent(Component.class);
+        } catch (final ComponentContainer.InstantiationException e) {
+            throw (Exception) e.getCause();
+        }
+    }
+
+    @Test
+    public void testComponentGroups() throws Exception {
+        registry.bindComponent(GroupMember1.class);
+
+        final OpenComponentContainer domain1 = container.makeDomainContainer();
+        domain1.getRegistry().bindComponent(Dependency.class);
+        domain1.getRegistry().bindComponent(GroupMember2.class);
+
+        final OpenComponentContainer domain2 = container.makeDomainContainer();
+        domain2.getRegistry().bindComponent(Dependency.class);
+        domain2.getRegistry().bindComponent(GroupMember3.class);
+
+        try {
+            container.getComponentGroup(GroupApi.class);
             assert false : "Should have thrown exception";
         } catch (final ComponentContainer.InstantiationException e) {
             // expected
         }
 
-        assert domain.getComponent(Root.class) != null;
+        final GroupApi[] members1 = domain1.getComponentGroup(GroupApi.class);
+        final GroupApi[] members2 = domain2.getComponentGroup(GroupApi.class);
+
+        assert members1 != null;
+        assert members2 != null;
+        assert !Arrays.equals(members1, members2);
+
+        assert Arrays.equals(members1, domain1.getComponentGroup(GroupApi.class));
+        assert Arrays.equals(members2, domain2.getComponentGroup(GroupApi.class));
     }
 
     private static class Root {
@@ -114,4 +152,28 @@ public final class DomainComponentTests extends AbstractContainerTests {
     }
 
     private static class Dependency { }
+
+    @ComponentGroup
+    public static interface GroupApi {}
+
+    public static class GroupMember1 implements GroupApi {
+
+        public GroupMember1(final Dependency dependency) {
+            assert dependency != null;
+        }
+    }
+
+    public static class GroupMember2 implements GroupApi {
+
+        public GroupMember2(final Dependency dependency) {
+            assert dependency != null;
+        }
+    }
+
+    public static class GroupMember3 implements GroupApi {
+
+        public GroupMember3(final Dependency dependency) {
+            assert dependency != null;
+        }
+    }
 }
