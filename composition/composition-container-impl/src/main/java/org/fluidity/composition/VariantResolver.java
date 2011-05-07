@@ -117,12 +117,12 @@ abstract class VariantResolver extends AbstractFactoryResolver {
         return true;
     }
 
-    public DependencyGraph.Node resolve(final DependencyGraph.Traversal traversal, final SimpleContainer container, final ContextDefinition context) {
-        final SimpleContainer child = container.newChildContainer();
+    public DependencyGraph.Node resolve(final ParentContainer domain, final DependencyGraph.Traversal traversal, final SimpleContainer container, final ContextDefinition context) {
+        final SimpleContainer child = container.newChildContainer(false);
 
         child.bindResolver(api, findDelegate());
 
-        return resolve(traversal, container, context, child);
+        return resolve(domain, traversal, container, context, child);
     }
 
     @Override

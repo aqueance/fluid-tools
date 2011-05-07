@@ -24,7 +24,7 @@ import org.fluidity.composition.spi.DependencyResolver;
  *
  * @author Tibor Varga
  */
-interface SimpleContainer extends DependencyResolver {
+interface SimpleContainer extends DependencyGraph {
 
     /**
      * Returns the container services provided by Fluid Tools.
@@ -43,9 +43,11 @@ interface SimpleContainer extends DependencyResolver {
     /**
      * Creates and returns a new container with the receiving container as its parent.
      *
+     * @param domain <code>true</code> if the new child will be a domain container, <code>false</code> otherwise.
+     *
      * @return a new container with the receiving container as its parent.
      */
-    SimpleContainer newChildContainer();
+    SimpleContainer newChildContainer(boolean domain);
 
     /**
      * Finds the component mapping for the given component interface.
@@ -60,6 +62,7 @@ interface SimpleContainer extends DependencyResolver {
     /**
      * Resolves a component using the given traversal in the given context.
      *
+     * @param domain    the domain container to resolve missing dependencies in.
      * @param ascend    tells whether to consult the parent on a missing resolver (<code>true</code>) or not (<code>false</code>).
      * @param api       the component interface.
      * @param context   the component context at the point of resolution.
@@ -67,7 +70,7 @@ interface SimpleContainer extends DependencyResolver {
      *
      * @return the resolved component or <code>null</code> if none could be resolved.
      */
-    Node resolveComponent(boolean ascend, Class<?> api, ContextDefinition context, Traversal traversal);
+    Node resolveComponent(ParentContainer domain, boolean ascend, Class<?> api, ContextDefinition context, Traversal traversal);
 
     /**
      * Binds a component mapping in the container
@@ -156,6 +159,15 @@ interface SimpleContainer extends DependencyResolver {
      * @return whatever the command returns.
      */
     <T> T observe(ComponentResolutionObserver observer, Observed<T> command);
+
+    /**
+     * Returns a {@link DependencyResolver} using the given domain container.
+     *
+     * @param domain the domain container.
+     *
+     * @return a {@link DependencyResolver} using the given domain container.
+     */
+    DependencyResolver dependencyResolver(ParentContainer domain);
 
     /**
      * A command that is executed while some resolution observer is active.

@@ -32,6 +32,7 @@ import org.fluidity.composition.spi.ComponentMapping;
 import org.fluidity.composition.spi.ComponentResolutionObserver;
 import org.fluidity.composition.spi.ComponentVariantFactory;
 import org.fluidity.composition.spi.CustomComponentFactory;
+import org.fluidity.composition.spi.DependencyResolver;
 import org.fluidity.composition.spi.PlatformContainer;
 import org.fluidity.foundation.Strings;
 import org.fluidity.foundation.logging.Log;
@@ -43,12 +44,13 @@ import org.fluidity.foundation.spi.LogFactory;
 final class SimpleContainerImpl implements ParentContainer {
 
     // allows traversal path to propagate between containers
-    private static final ThreadLocal<DependencyGraph.Traversal> traversal = new InheritableThreadLocal<DependencyGraph.Traversal>();
+    private static final ThreadLocal<Traversal> traversal = new InheritableThreadLocal<Traversal>();
 
     private final ContainerServices services;
     private final Log log;
 
     private final ParentContainer parent;
+    private final ParentContainer domain;
 
     private final Map<Class<?>, ComponentResolver> components = new HashMap<Class<?>, ComponentResolver>();
     private final Map<Class<?>, GroupResolver> groups = new HashMap<Class<?>, GroupResolver>();
@@ -57,11 +59,12 @@ final class SimpleContainerImpl implements ParentContainer {
     private final LogFactory logs;
 
     public SimpleContainerImpl(final ContainerServices services, final PlatformContainer platform) {
-        this(platform == null ? null : new SuperContainer(platform), services);
+        this(platform == null ? null : new SuperContainer(platform), null, services);
     }
 
-    private SimpleContainerImpl(final ParentContainer parent, final ContainerServices services) {
+    private SimpleContainerImpl(final ParentContainer parent, final ParentContainer domain, final ContainerServices services) {
         this.parent = parent;
+        this.domain = domain == null ? this : domain;
         this.services = services;
         this.log = this.services.logs().createLog(getClass());
         this.injector = this.services.dependencyInjector();
@@ -76,8 +79,8 @@ final class SimpleContainerImpl implements ParentContainer {
         return parent;
     }
 
-    public SimpleContainer newChildContainer() {
-        return new SimpleContainerImpl(this, services);
+    public SimpleContainer newChildContainer(final boolean domain) {
+        return new SimpleContainerImpl(this, domain ? null : this, services);
     }
 
     public ComponentResolver bindResolver(final Class<?> api, final ComponentResolver resolver) {
@@ -288,7 +291,7 @@ final class SimpleContainerImpl implements ParentContainer {
 
     public SimpleContainer linkComponent(final Components.Interfaces interfaces) throws ComponentContainer.BindingException {
         final LogFactory logs = this.logs;
-        final SimpleContainer child = newChildContainer();
+        final SimpleContainer child = newChildContainer(false);
 
         child.bindComponent(interfaces);
 
@@ -326,17 +329,43 @@ final class SimpleContainerImpl implements ParentContainer {
         }
     }
 
-    public Object initialize(final Object component, final ContextDefinition context, final ComponentResolutionObserver observer) {
-        return injector.fields(services.graphTraversal(), this, new InstanceMapping(component), context, component);
+    public DependencyResolver dependencyResolver(final ParentContainer domain) {
+        return new DependencyResolver() {
+            public ComponentMapping mapping(final Class<?> type, final ContextDefinition context) {
+                return SimpleContainerImpl.this.mapping(domain, type, context);
+            }
+
+            public ComponentContainer container(final ContextDefinition context) {
+                return SimpleContainerImpl.this.container(context);
+            }
+
+            public Node resolveGroup(final Class<?> api, final ContextDefinition context, final Traversal traversal, final Annotation[] annotations) {
+                return SimpleContainerImpl.this.resolveGroup(domain, api, context, traversal, annotations);
+            }
+
+            public Node resolveComponent(final Class<?> api, final ContextDefinition context, final Traversal traversal) {
+                return SimpleContainerImpl.this.resolveComponent(domain, true, api, context, traversal);
+            }
+
+            public Node resolveGroup(final Class<?> api, final ContextDefinition context, final Traversal traversal) {
+                return SimpleContainerImpl.this.resolveGroup(domain, api, context, traversal, null);
+            }
+        };
     }
 
-    public Node resolveComponent(final boolean ascend, final Class<?> api, final ContextDefinition context, final Traversal traversal) {
+    public Object initialize(final Object component, final ContextDefinition context, final ComponentResolutionObserver observer) {
+        return injector.fields(services.graphTraversal(), dependencyResolver(domain), new InstanceMapping(component), context, component);
+    }
+
+    public Node resolveComponent(final ParentContainer domain, final boolean ascend, final Class<?> api, final ContextDefinition context, final Traversal traversal) {
         final ComponentResolver resolver = components.get(api);
 
         if (resolver == null) {
-            return parent == null || !ascend ? null : parent.resolveComponent(api, context, traversal);
+            return !ascend ? null : parent == null
+                                    ? domain == null || domain == this ? null : domain.resolveComponent(null, false, api, context, traversal)
+                                    : parent.resolveComponent(domain, true, api, context, traversal);
         } else {
-            final Node node = resolver.resolve(traversal, SimpleContainerImpl.this, context);
+            final Node node = resolver.resolve(domain, traversal, SimpleContainerImpl.this, context);
 
             return new Node() {
                 public Class<?> type() {
@@ -367,7 +396,7 @@ final class SimpleContainerImpl implements ParentContainer {
     }
 
     public Node resolveComponent(final Class<?> api, final ContextDefinition context, final Traversal traversal) {
-        return resolveComponent(true, api, context, traversal);
+        return resolveComponent(domain, true, api, context, traversal);
     }
 
     public List<GroupResolver> groupResolvers(final Class<?> api) {
@@ -386,15 +415,17 @@ final class SimpleContainerImpl implements ParentContainer {
     }
 
     public Node resolveGroup(final Class<?> api, final ContextDefinition context, final Traversal traversal) {
-        return resolveGroup(api, context, traversal, null);
+        return resolveGroup(domain, api, context, traversal, null);
     }
 
-    public Node resolveGroup(final Class<?> api, final ContextDefinition context, final Traversal traversal, final Annotation[] annotations) {
+    public Node resolveGroup(final ParentContainer domain, final Class<?> api, final ContextDefinition context, final Traversal traversal, final Annotation[] annotations) {
         final GroupResolver group = groups.get(api);
         final Object empty = Array.newInstance(api, 0);
 
         if (group == null) {
-            return parent == null ? null : parent.resolveGroup(api, context, traversal, annotations);
+            return parent == null
+                   ? domain == null || domain == this ? null : domain.resolveGroup(null, api, context, traversal, annotations)
+                   : parent.resolveGroup(domain, api, context, traversal, annotations);
         } else {
             final Class<?> arrayApi = empty.getClass();
 
@@ -408,14 +439,14 @@ final class SimpleContainerImpl implements ParentContainer {
                 }
 
                 public Node resolve(final Traversal traversal, final ContextDefinition context) {
-                    return groupNode(api, resolveGroup(api, traversal, context), context);
+                    return groupNode(api, resolveGroup(domain, api, traversal, context), context);
                 }
             });
         }
     }
 
-    public List<GroupResolver.Node> resolveGroup(final Class<?> api, final Traversal traversal, final ContextDefinition context) {
-        final List<GroupResolver.Node> enclosing = parent == null ? null : parent.resolveGroup(api, traversal, context);
+    public List<GroupResolver.Node> resolveGroup(final ParentContainer domain, final Class<?> api, final Traversal traversal, final ContextDefinition context) {
+        final List<GroupResolver.Node> enclosing = parent == null ? null : parent.resolveGroup(domain, api, traversal, context);
         final GroupResolver group = groups.get(api);
 
         if (group == null) {
@@ -427,7 +458,7 @@ final class SimpleContainerImpl implements ParentContainer {
                 list.addAll(enclosing);
             }
 
-            list.add(group.resolve(traversal, this, context));
+            list.add(group.resolve(domain, traversal, this, context));
 
             return list;
         }
@@ -458,9 +489,11 @@ final class SimpleContainerImpl implements ParentContainer {
         };
     }
 
-    public ComponentMapping mapping(final Class<?> type, final ContextDefinition context) {
+    public ComponentMapping mapping(final ParentContainer domain, final Class<?> type, final ContextDefinition context) {
         final ComponentResolver resolver = resolver(type, true);
-        return resolver == null && parent != null ? parent.mapping(type, context) : resolver;
+        return resolver == null
+               ? parent != null ? parent.mapping(domain, type, context) : domain != null && domain != this ? domain.mapping(null, type, context) : resolver
+               : resolver;
     }
 
     public ComponentContainer container(final ContextDefinition context) {
@@ -594,7 +627,7 @@ final class SimpleContainerImpl implements ParentContainer {
             };
         }
 
-        public List<GroupResolver.Node> resolveGroup(final Class<?> api, final Traversal traversal, final ContextDefinition context) {
+        public List<GroupResolver.Node> resolveGroup(final ParentContainer domain, final Class<?> api, final Traversal traversal, final ContextDefinition context) {
             return !platform.containsComponentGroup(api, context) ? null : Collections.<GroupResolver.Node>singletonList(new GroupResolver.Node() {
                 public Collection<?> instance(final Traversal traversal) {
                     return Arrays.asList(platform.getComponentGroup(api, context));
@@ -602,7 +635,11 @@ final class SimpleContainerImpl implements ParentContainer {
             });
         }
 
-        public Node resolveGroup(final Class<?> api, final ContextDefinition context, final Traversal traversal, final Annotation[] annotations) {
+        public Node resolveGroup(final ParentContainer domain,
+                                 final Class<?> api,
+                                 final ContextDefinition context,
+                                 final Traversal traversal,
+                                 final Annotation[] annotations) {
             return resolveGroup(api, context, traversal);
         }
 
@@ -610,7 +647,7 @@ final class SimpleContainerImpl implements ParentContainer {
             return emptyList;
         }
 
-        public ComponentMapping mapping(final Class<?> type, final ContextDefinition context) {
+        public ComponentMapping mapping(final ParentContainer domain, final Class<?> type, final ContextDefinition context) {
             return platform.containsComponent(type, context) ? emptyMapping : null;
         }
 
@@ -626,7 +663,7 @@ final class SimpleContainerImpl implements ParentContainer {
             return platform.id();
         }
 
-        public Node resolveComponent(final boolean ascend, final Class<?> api, final ContextDefinition context, final Traversal traversal) {
+        public Node resolveComponent(final ParentContainer domain, final boolean ascend, final Class<?> api, final ContextDefinition context, final Traversal traversal) {
             throw new UnsupportedOperationException();
         }
 
@@ -638,7 +675,7 @@ final class SimpleContainerImpl implements ParentContainer {
             throw new UnsupportedOperationException();
         }
 
-        public SimpleContainer newChildContainer() {
+        public SimpleContainer newChildContainer(final boolean domain) {
             throw new UnsupportedOperationException();
         }
 
@@ -666,7 +703,7 @@ final class SimpleContainerImpl implements ParentContainer {
             throw new UnsupportedOperationException();
         }
 
-        public ComponentContainer container(final ContextDefinition context) {
+        public DependencyResolver dependencyResolver(final ParentContainer domain) {
             throw new UnsupportedOperationException();
         }
     }

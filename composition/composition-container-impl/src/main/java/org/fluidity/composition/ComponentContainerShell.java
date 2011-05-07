@@ -34,20 +34,21 @@ final class ComponentContainerShell extends EmptyComponentContainer {
     private final ComponentResolutionObserver observer;
 
     public ComponentContainerShell(final ContainerServices services, final PlatformContainer platform) {
-        this(new SimpleContainerImpl(services, platform), services.emptyContext(), false, null);
+        this(new SimpleContainerImpl(services, platform), services.emptyContext(), false, false, null);
     }
 
     public ComponentContainerShell(final SimpleContainer container, final ContextDefinition context, final boolean child) {
-        this(container, context, child, null);
+        this(container, context, child, false, null);
     }
 
     public ComponentContainerShell(final SimpleContainer container,
                                    final ContextDefinition context,
                                    final boolean child,
+                                   final boolean domain,
                                    final ComponentResolutionObserver observer) {
         assert container != null;
         assert context != null;
-        this.container = child ? container.newChildContainer() : container;
+        this.container = child ? container.newChildContainer(domain) : container;
         this.context = context.copy();
         this.observer = observer;
     }
@@ -107,7 +108,7 @@ final class ComponentContainerShell extends EmptyComponentContainer {
                 copy.expand(context.annotations(type));
             }
 
-            return new ComponentContainerShell(this.container, copy, false, observer);
+            return new ComponentContainerShell(this.container, copy, false, false, observer);
         }
     }
 
@@ -116,11 +117,11 @@ final class ComponentContainerShell extends EmptyComponentContainer {
     }
 
     public OpenComponentContainer makeChildContainer() {
-        return new ComponentContainerShell(container, context, true, observer);
+        return new ComponentContainerShell(container, context, true, false, observer);
     }
 
     public OpenComponentContainer makeDomainContainer() {
-        return new ComponentContainerShell(container, context, true, observer);     // TODO: domain container
+        return new ComponentContainerShell(container, context, true, true, observer);
     }
 
     public void bindComponent(final Components.Interfaces interfaces) throws ComponentContainer.BindingException {
@@ -132,11 +133,11 @@ final class ComponentContainerShell extends EmptyComponentContainer {
     }
 
     public OpenComponentContainer makeChildContainer(final Components.Interfaces interfaces) throws ComponentContainer.BindingException {
-        return new ComponentContainerShell(container.linkComponent(interfaces), context, false, observer);
+        return new ComponentContainerShell(container.linkComponent(interfaces), context, false, false, observer);
     }
 
     public ObservedComponentContainer observed(final ComponentResolutionObserver observer) {
-        return observer == null ? this : new ComponentContainerShell(container, context, false, CompositeObserver.combine(this.observer, observer));
+        return observer == null ? this : new ComponentContainerShell(container, context, false, false, CompositeObserver.combine(this.observer, observer));
     }
 
     @Override

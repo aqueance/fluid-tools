@@ -86,7 +86,7 @@ final class GroupResolver {
         Collection<?> instance(DependencyGraph.Traversal traversal);
     }
 
-    public Node resolve(final DependencyGraph.Traversal traversal, final SimpleContainer container, final ContextDefinition context) {
+    public Node resolve(final ParentContainer domain, final DependencyGraph.Traversal traversal, final SimpleContainer container, final ContextDefinition context) {
         final List<DependencyGraph.Node> nodes = new ArrayList<DependencyGraph.Node>();
 
         final List<ContextDefinition> consumed = new ArrayList<ContextDefinition>();
@@ -94,7 +94,7 @@ final class GroupResolver {
             final ContextDefinition copy = context.copy();
 
             final ComponentResolver resolver = container.resolver(member, false);
-            nodes.add(container.resolveComponent(false, member, copy.reduce(resolver.acceptedContext()), traversal));
+            nodes.add(container.resolveComponent(domain, false, member, copy.reduce(resolver.acceptedContext()), traversal));
 
             consumed.add(copy);
         }

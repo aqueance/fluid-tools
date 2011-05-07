@@ -58,7 +58,7 @@ final class ConstructingResolver extends AbstractResolver {
         return ignoreContext ? null : AbstractResolver.acceptedContext(componentClass);
     }
 
-    public DependencyGraph.Node resolve(final DependencyGraph.Traversal traversal, final SimpleContainer container, final ContextDefinition context) {
+    public DependencyGraph.Node resolve(final ParentContainer domain, final DependencyGraph.Traversal traversal, final SimpleContainer container, final ContextDefinition context) {
         return traversal.follow(container, context, new DependencyGraph.Node.Reference() {
             public Class<?> api() {
                 return api;
@@ -69,7 +69,7 @@ final class ConstructingResolver extends AbstractResolver {
             }
 
             public DependencyGraph.Node resolve(final DependencyGraph.Traversal traversal, final ContextDefinition context) {
-                return cachingNode(injector.constructor(traversal, container, ConstructingResolver.this, context, constructor), container);
+                return cachingNode(domain, injector.constructor(traversal, container.dependencyResolver(domain), ConstructingResolver.this, context, constructor), container);
             }
         });
     }

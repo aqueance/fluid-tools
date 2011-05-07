@@ -59,6 +59,7 @@ abstract class AbstractFactoryResolver extends AbstractResolver {
     /**
      * Invokes the factory and performs proper context housekeeping.
      *
+     * @param domain    the domain container.
      * @param traversal the current dependency traversal.
      * @param container the original container.
      * @param context   the current component context.
@@ -66,7 +67,8 @@ abstract class AbstractFactoryResolver extends AbstractResolver {
      *
      * @return the graph node for the component.
      */
-    protected final DependencyGraph.Node resolve(final DependencyGraph.Traversal traversal,
+    protected final DependencyGraph.Node resolve(final ParentContainer domain,
+                                                 final DependencyGraph.Traversal traversal,
                                                  final SimpleContainer container,
                                                  final ContextDefinition context,
                                                  final SimpleContainer child) {
@@ -139,7 +141,7 @@ abstract class AbstractFactoryResolver extends AbstractResolver {
         final ContextDefinition saved = context.collect(list).copy();
         final ComponentContext actual = saved.create();
 
-        return cachingNode(new DependencyGraph.Node() {
+        return cachingNode(domain, new DependencyGraph.Node() {
             public Class<?> type() {
                 return api;
             }
@@ -193,7 +195,7 @@ abstract class AbstractFactoryResolver extends AbstractResolver {
         }
 
         public ComponentFactory.Registry makeChildContainer() {
-            return new RegistryWrapper(api, container.newChildContainer());
+            return new RegistryWrapper(api, container.newChildContainer(false));
         }
     }
 

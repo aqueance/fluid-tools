@@ -47,7 +47,7 @@ final class InstanceResolver extends AbstractResolver {
         return true;
     }
 
-    public DependencyGraph.Node resolve(final DependencyGraph.Traversal traversal, final SimpleContainer container, final ContextDefinition context) {
+    public DependencyGraph.Node resolve(final ParentContainer domain, final DependencyGraph.Traversal traversal, final SimpleContainer container, final ContextDefinition context) {
         return traversal.follow(container, context, new DependencyGraph.Node.Reference() {
             public Class<?> api() {
                 return api;
