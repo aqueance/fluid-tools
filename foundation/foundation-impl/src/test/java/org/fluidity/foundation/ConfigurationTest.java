@@ -38,7 +38,7 @@ import org.testng.annotations.Test;
  */
 public class ConfigurationTest extends MockGroupAbstractTest {
 
-    private PropertyProvider propertyProvider = addControl(PropertyProvider.class);
+    private PropertyProvider propertyProvider = mock(PropertyProvider.class);
 
     private final ComponentContainer container = new ContainerBoundary();
 

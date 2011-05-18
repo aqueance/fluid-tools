@@ -39,17 +39,17 @@ import org.testng.annotations.Test;
  */
 public class ContainerBoundaryTest extends MockGroupAbstractTest {
 
-    private final PlatformContainer platform = addControl(PlatformContainer.class);
-    private final BootstrapServices providers = addControl(BootstrapServices.class);
-    private final ContainerBootstrap bootstrap = addControl(ContainerBootstrap.class);
-    private final ContainerProvider provider = addControl(ContainerProvider.class);
-    private final OpenComponentContainer container = addControl(OpenComponentContainer.class);
-    private final OpenComponentContainer.Registry registry = addControl(OpenComponentContainer.Registry.class);
+    private final PlatformContainer platform = mock(PlatformContainer.class);
+    private final BootstrapServices providers = mock(BootstrapServices.class);
+    private final ContainerBootstrap bootstrap = mock(ContainerBootstrap.class);
+    private final ContainerProvider provider = mock(ContainerProvider.class);
+    private final OpenComponentContainer container = mock(OpenComponentContainer.class);
+    private final OpenComponentContainer.Registry registry = mock(OpenComponentContainer.Registry.class);
 
-    private final ContainerServicesFactory servicesFactory = addControl(ContainerServicesFactory.class);
-    private final ContainerServices services = addControl(ContainerServices.class);
+    private final ContainerServicesFactory servicesFactory = mock(ContainerServicesFactory.class);
+    private final ContainerServices services = mock(ContainerServices.class);
 
-    private final DependencyGraph.Traversal.Strategy strategy = addControl(DependencyGraph.Traversal.Strategy.class);
+    private final DependencyGraph.Traversal.Strategy strategy = mock(DependencyGraph.Traversal.Strategy.class);
     private final LogFactory logs = new NoLogFactory();
 
     private void setupDependencies(final ClassLoader classLoader, final boolean assign) {

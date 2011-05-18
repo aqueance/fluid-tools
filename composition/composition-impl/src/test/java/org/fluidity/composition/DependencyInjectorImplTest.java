@@ -38,10 +38,10 @@ import org.testng.annotations.Test;
  */
 public class DependencyInjectorImplTest extends MockGroupAbstractTest {
 
-    private final DependencyGraph.Traversal traversal = addControl(DependencyGraph.Traversal.class);
-    private final DependencyResolver resolver = addControl(DependencyResolver.class);
-    private final ContextDefinition context = addControl(ContextDefinition.class);
-    private final ComponentContainer container = addControl(ComponentContainer.class);
+    private final DependencyGraph.Traversal traversal = mock(DependencyGraph.Traversal.class);
+    private final DependencyResolver resolver = mock(DependencyResolver.class);
+    private final ContextDefinition context = mock(ContextDefinition.class);
+    private final ComponentContainer container = mock(ComponentContainer.class);
 
     private final DependencyInjector injector = new DependencyInjectorImpl();
 
@@ -130,7 +130,7 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
                                                         final ComponentContext createdContext,
                                                         final Annotation[] containerAnnotations,
                                                         final Object component) {
-        final ContextDefinition copy = addLocalControl(ContextDefinition.class);
+        final ContextDefinition copy = localMock(ContextDefinition.class);
 
         EasyMock.expect(context.copy()).andReturn(copy);
 
@@ -164,7 +164,7 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
                 EasyMock.expect(mapping.annotations()).andReturn(containerAnnotations).anyTimes();
                 EasyMock.expect(resolver.container(copy)).andReturn(container);
             } else {
-                final ComponentMapping mapping = addLocalControl(ComponentMapping.class);
+                final ComponentMapping mapping = localMock(ComponentMapping.class);
 
                 EasyMock.expect(resolver.mapping(dependencyType, copy)).andReturn(mapping);
                 EasyMock.expect(mapping.acceptedContext()).andReturn(acceptedContext);
@@ -250,7 +250,7 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
 
         final Constructor<ConstructorInjected> constructor = ConstructorInjected.class.getDeclaredConstructor(Dependency.class, Service[].class);
         setupCollection(context, setupConstructorResolution(ConstructorInjected.class, constructor, null, null, dependency, services));
-        EasyMock.expect(context.create()).andReturn(addLocalControl(ComponentContext.class));
+        EasyMock.expect(context.create()).andReturn(localMock(ComponentContext.class));
 
         ConstructorInjected.expectedGroupSize = services.length;
 
@@ -265,7 +265,7 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
     public void handlesSpecialDependencies() throws Exception {
         final SpecialDependent component = new SpecialDependent();
 
-        final ComponentContext created = addLocalControl(ComponentContext.class);
+        final ComponentContext created = localMock(ComponentContext.class);
 
         setupCollection(context,
                         setupFieldResolution(component.getClass(), "container", container, null, null),
@@ -293,7 +293,7 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
     public void neverInjectsNullForGroup() throws Exception {
         final Constructor<MissingGroupConsumer> constructor = MissingGroupConsumer.class.getDeclaredConstructor(MissingService[].class);
         setupCollection(context, setupConstructorResolution(MissingGroupConsumer.class, constructor, null, null, (Object) null));
-        EasyMock.expect(context.create()).andReturn(addLocalControl(ComponentContext.class));
+        EasyMock.expect(context.create()).andReturn(localMock(ComponentContext.class));
 
         expectCallbacks();
 

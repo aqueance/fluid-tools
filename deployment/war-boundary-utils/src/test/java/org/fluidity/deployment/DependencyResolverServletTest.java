@@ -30,11 +30,11 @@ import org.testng.annotations.Test;
  */
 public class DependencyResolverServletTest extends MockGroupAbstractTest {
 
-    private final Servlet servlet = addControl(Servlet.class);
-    private final ServletConfig config = addControl(ServletConfig.class);
-    private final DependencyResolver resolver = addControl(DependencyResolver.class);
-    private final ServletRequest request = addControl(ServletRequest.class);
-    private final ServletResponse response = addControl(ServletResponse.class);
+    private final Servlet servlet = mock(Servlet.class);
+    private final ServletConfig config = mock(ServletConfig.class);
+    private final DependencyResolver resolver = mock(DependencyResolver.class);
+    private final ServletRequest request = mock(ServletRequest.class);
+    private final ServletResponse response = mock(ServletResponse.class);
 
     @SuppressWarnings("StringEquality")
     @Test

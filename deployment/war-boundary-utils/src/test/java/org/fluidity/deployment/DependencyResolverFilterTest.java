@@ -31,12 +31,12 @@ import org.testng.annotations.Test;
  */
 public class DependencyResolverFilterTest extends MockGroupAbstractTest {
 
-    private final Filter filter = addControl(Filter.class);
-    private final FilterConfig config = addControl(FilterConfig.class);
-    private final DependencyResolver resolver = addControl(DependencyResolver.class);
-    private final ServletRequest request = addControl(ServletRequest.class);
-    private final ServletResponse response = addControl(ServletResponse.class);
-    private final FilterChain chain = addControl(FilterChain.class);
+    private final Filter filter = mock(Filter.class);
+    private final FilterConfig config = mock(FilterConfig.class);
+    private final DependencyResolver resolver = mock(DependencyResolver.class);
+    private final ServletRequest request = mock(ServletRequest.class);
+    private final ServletResponse response = mock(ServletResponse.class);
+    private final FilterChain chain = mock(FilterChain.class);
 
     @Test
     public void delegateAcquisition() throws Exception {

@@ -52,7 +52,7 @@ public class StringsTests extends MockGroupAbstractTest {
 
     @Test
     public void nakedAnnotation() throws Exception {
-        final Documented annotation = addLocalNiceControl(Documented.class);
+        final Documented annotation = localNiceMock(Documented.class);
 
         replay();
         final String string = Strings.simpleNotation(annotation);
@@ -63,7 +63,7 @@ public class StringsTests extends MockGroupAbstractTest {
 
     @Test
     public void plainValueAnnotation() throws Exception {
-        final Retention annotation = addLocalNiceControl(Retention.class);
+        final Retention annotation = localNiceMock(Retention.class);
         EasyMock.expect(annotation.value()).andReturn(RetentionPolicy.RUNTIME);
 
         replay();
@@ -75,7 +75,7 @@ public class StringsTests extends MockGroupAbstractTest {
 
     @Test
     public void arrayValueAnnotation() throws Exception {
-        final Target annotation = addLocalNiceControl(Target.class);
+        final Target annotation = localNiceMock(Target.class);
 
         final ElementType[] value = { ElementType.FIELD, ElementType.METHOD };
 
@@ -90,7 +90,7 @@ public class StringsTests extends MockGroupAbstractTest {
 
     @Test
     public void multiValueAnnotation() throws Exception {
-        final MultiValued annotation = addLocalNiceControl(MultiValued.class);
+        final MultiValued annotation = localNiceMock(MultiValued.class);
 
         final int id = 1234;
         final String[] list = { "abcd", "efgh", "ijkl" };
@@ -107,7 +107,7 @@ public class StringsTests extends MockGroupAbstractTest {
 
     @Test
     public void defaultValueAnnotation() throws Exception {
-        final MultiValued annotation = addLocalNiceControl(MultiValued.class);
+        final MultiValued annotation = localNiceMock(MultiValued.class);
 
         final int id = -1;
         final String[] list = { };

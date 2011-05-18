@@ -44,16 +44,16 @@ public final class ContainerBootstrapImplTest extends MockGroupAbstractTest {
 
     private final LogFactory logs = new NoLogFactory();
 
-    private final ContainerBootstrap.Callback callback = addControl(ContainerBootstrap.Callback.class);
-    private final PlatformContainer platform = addControl(PlatformContainer.class);
-    private final ContainerProvider provider = addControl(ContainerProvider.class);
-    private final ContainerServices services = addControl(ContainerServices.class);
-    private final ClassDiscovery discovery = addControl(ClassDiscovery.class);
-    private final ShutdownTasks shutdown = addControl(ShutdownTasks.class);
-    private final OpenComponentContainer container = addControl(OpenComponentContainer.class);
-    private final OpenComponentContainer parent = addControl(OpenComponentContainer.class);
-    private final ComponentContainer.Registry registry = addControl(ComponentContainer.Registry.class);
-    private final PackageBindings bindings = addControl(PackageBindings.class);
+    private final ContainerBootstrap.Callback callback = mock(ContainerBootstrap.Callback.class);
+    private final PlatformContainer platform = mock(PlatformContainer.class);
+    private final ContainerProvider provider = mock(ContainerProvider.class);
+    private final ContainerServices services = mock(ContainerServices.class);
+    private final ClassDiscovery discovery = mock(ClassDiscovery.class);
+    private final ShutdownTasks shutdown = mock(ShutdownTasks.class);
+    private final OpenComponentContainer container = mock(OpenComponentContainer.class);
+    private final OpenComponentContainer parent = mock(OpenComponentContainer.class);
+    private final ComponentContainer.Registry registry = mock(ComponentContainer.Registry.class);
+    private final PackageBindings bindings = mock(PackageBindings.class);
 
     private ContainerBootstrap bootstrap;
 

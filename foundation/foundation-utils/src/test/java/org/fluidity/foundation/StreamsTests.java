@@ -62,7 +62,7 @@ public class StreamsTests extends MockGroupAbstractTest {
 
     @Test
     public void testClosing() throws Exception {
-        final Closeable closeable = addLocalControl(Closeable.class);
+        final Closeable closeable = localMock(Closeable.class);
 
         final OutputStream output = new OutputStream() {
             @Override

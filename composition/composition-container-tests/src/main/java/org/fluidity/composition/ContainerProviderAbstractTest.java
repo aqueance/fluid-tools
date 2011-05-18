@@ -42,14 +42,14 @@ public abstract class ContainerProviderAbstractTest extends MockGroupAbstractTes
 
     private final LogFactory logs = new NoLogFactory();
 
-    private final ContainerServices services = addControl(ContainerServices.class);
-    private final ClassDiscovery classDiscovery = addControl(ClassDiscovery.class);
-    private final DependencyGraph.Traversal traversal = addControl(DependencyGraph.Traversal.class);
-    private final DependencyGraph.Node node = addControl(DependencyGraph.Node.class);
-    private final DependencyInjector injector = addControl(DependencyInjector.class);
-    private final ComponentCache componentCache = addControl(ComponentCache.class);
-    private final ContextDefinition context = addControl(ContextDefinition.class);
-    private final ContextDefinition copy = addControl(ContextDefinition.class);
+    private final ContainerServices services = mock(ContainerServices.class);
+    private final ClassDiscovery classDiscovery = mock(ClassDiscovery.class);
+    private final DependencyGraph.Traversal traversal = mock(DependencyGraph.Traversal.class);
+    private final DependencyGraph.Node node = mock(DependencyGraph.Node.class);
+    private final DependencyInjector injector = mock(DependencyInjector.class);
+    private final ComponentCache componentCache = mock(ComponentCache.class);
+    private final ContextDefinition context = mock(ContextDefinition.class);
+    private final ContextDefinition copy = mock(ContextDefinition.class);
 
     private final Map<String, String> map = new HashMap<String, String>();
 
@@ -83,7 +83,7 @@ public abstract class ContainerProviderAbstractTest extends MockGroupAbstractTes
 
     @Test
     public void createsPlatformContainer() throws Exception {
-        final PlatformContainer platform = addLocalControl(PlatformContainer.class);
+        final PlatformContainer platform = localMock(PlatformContainer.class);
 
         EasyMock.expect(context.copy()).andReturn(copy);
 

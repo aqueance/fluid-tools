@@ -45,9 +45,9 @@ import org.testng.annotations.Test;
 @SuppressWarnings("unchecked")
 public final class ComponentVariantTests extends AbstractContainerTests {
 
-    private final ComponentVariantFactory variants = addControl(ComponentVariantFactory.class);
+    private final ComponentVariantFactory variants = mock(ComponentVariantFactory.class);
 
-    private CustomComponentFactory factory = addControl(CustomComponentFactory.class);
+    private CustomComponentFactory factory = mock(CustomComponentFactory.class);
 
     public ComponentVariantTests(final ContainerFactory factory) {
         super(factory);

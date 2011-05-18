@@ -58,8 +58,8 @@ public abstract class MockGroupAbstractTest {
      * @param <T>            the interface class.
      * @return the mock object for the interface.
      */
-    protected final <T> T addControl(final Class<T> interfaceClass) {
-        return globalGroup.addControl(interfaceClass);
+    protected final <T> T mock(final Class<T> interfaceClass) {
+        return globalGroup.mock(interfaceClass);
     }
 
     /**
@@ -70,8 +70,8 @@ public abstract class MockGroupAbstractTest {
      * @param <T>            the interface class.
      * @return the mock object for the interface.
      */
-    protected final <T> T addNiceControl(final Class<T> interfaceClass) {
-        return globalGroup.addNiceControl(interfaceClass);
+    protected final <T> T niceMock(final Class<T> interfaceClass) {
+        return globalGroup.niceMock(interfaceClass);
     }
 
     /**
@@ -82,8 +82,8 @@ public abstract class MockGroupAbstractTest {
      * @param <T>            the interface class.
      * @return the mock object for the interface.
      */
-    protected final <T> T addStrictControl(final Class<T> interfaceClass) {
-        return globalGroup.addStrictControl(interfaceClass);
+    protected final <T> T strictMock(final Class<T> interfaceClass) {
+        return globalGroup.strictMock(interfaceClass);
     }
 
     /**
@@ -94,8 +94,8 @@ public abstract class MockGroupAbstractTest {
      * @param <T>            the interface class.
      * @return the mock object for the interface.
      */
-    protected final <T> T addLocalControl(final Class<T> interfaceClass) {
-        return globalGroup.addControl(interfaceClass);
+    protected final <T> T localMock(final Class<T> interfaceClass) {
+        return globalGroup.mock(interfaceClass);
     }
 
     /**
@@ -106,8 +106,8 @@ public abstract class MockGroupAbstractTest {
      * @param <T>            the interface class.
      * @return the mock object for the interface.
      */
-    protected final <T> T addLocalNiceControl(final Class<T> interfaceClass) {
-        return globalGroup.addNiceControl(interfaceClass);
+    protected final <T> T localNiceMock(final Class<T> interfaceClass) {
+        return globalGroup.niceMock(interfaceClass);
     }
 
     /**
@@ -118,8 +118,8 @@ public abstract class MockGroupAbstractTest {
      * @param <T>            the interface class.
      * @return the mock object for the interface.
      */
-    protected final <T> T addLocalStrictControl(final Class<T> interfaceClass) {
-        return globalGroup.addStrictControl(interfaceClass);
+    protected final <T> T localStrictMock(final Class<T> interfaceClass) {
+        return globalGroup.strictMock(interfaceClass);
     }
 
     /**
@@ -136,8 +136,8 @@ public abstract class MockGroupAbstractTest {
      * @return the mock object for the interface.
      */
     @SuppressWarnings("unchecked")
-    public final <T> T addControls(final Class<T> mainInterface, final Class<?>... otherInterfaces) {
-        return globalGroup.addControls(mainInterface, otherInterfaces);
+    public final <T> T mockAll(final Class<T> mainInterface, final Class<?>... otherInterfaces) {
+        return globalGroup.mockAll(mainInterface, otherInterfaces);
     }
 
     /**
@@ -155,13 +155,13 @@ public abstract class MockGroupAbstractTest {
      * @return the mock object for the interface.
      */
     @SuppressWarnings("unchecked")
-    public final <T> T addLocalControls(final Class<T> mainInterface, final Class<?>... otherInterfaces) {
-        return globalGroup.addControls(mainInterface, otherInterfaces);
+    public final <T> T localMockAll(final Class<T> mainInterface, final Class<?>... otherInterfaces) {
+        return globalGroup.mockAll(mainInterface, otherInterfaces);
     }
 
     /**
-     * Calls {@link IMocksControl#replay()} on all mock objects added to the test. Mock objects are added by calling {@link #addControl(Class)}, {@link
-     * #addNiceControl(Class)}, {@link #addStrictControl(Class)} and {@link #addControls(Class, Class[])}.
+     * Calls {@link IMocksControl#replay()} on all mock objects added to the test. Mock objects are added by calling {@link #mock(Class)}, {@link
+     * #niceMock(Class)}, {@link #strictMock(Class)} and {@link #mockAll(Class, Class[])}.
      */
     protected final void replay() {
         globalGroup.replay();
@@ -169,8 +169,8 @@ public abstract class MockGroupAbstractTest {
     }
 
     /**
-     * Calls {@link IMocksControl#verify()} on all mock objects added to the test. Mock objects are added by calling {@link #addControl(Class)}, {@link
-     * #addNiceControl(Class)}, {@link #addStrictControl(Class)} and {@link #addControls(Class, Class[])}.
+     * Calls {@link IMocksControl#verify()} on all mock objects added to the test. Mock objects are added by calling {@link #mock(Class)}, {@link
+     * #niceMock(Class)}, {@link #strictMock(Class)} and {@link #mockAll(Class, Class[])}.
      */
     protected final void verify() {
         globalGroup.verify();
@@ -178,8 +178,8 @@ public abstract class MockGroupAbstractTest {
     }
 
     /**
-     * Calls {@link IMocksControl#reset()} on all mock objects added to the test. Mock objects are added by calling {@link #addControl(Class)}, {@link
-     * #addNiceControl(Class)}, {@link #addStrictControl(Class)} and {@link #addControls(Class, Class[])}.
+     * Calls {@link IMocksControl#reset()} on all mock objects added to the test. Mock objects are added by calling {@link #mock(Class)}, {@link
+     * #niceMock(Class)}, {@link #strictMock(Class)} and {@link #mockAll(Class, Class[])}.
      */
     protected final void reset() {
         globalGroup.reset();
@@ -250,7 +250,7 @@ public abstract class MockGroupAbstractTest {
          * @param <T>            the interface class.
          * @return the mock object for the interface.
          */
-        protected final <T> T addControl(final Class<T> interfaceClass) {
+        protected final <T> T mock(final Class<T> interfaceClass) {
             return group.createMock(interfaceClass);
         }
 
@@ -262,7 +262,7 @@ public abstract class MockGroupAbstractTest {
          * @param <T>            the interface class.
          * @return the mock object for the interface.
          */
-        protected final <T> T addNiceControl(final Class<T> interfaceClass) {
+        protected final <T> T niceMock(final Class<T> interfaceClass) {
             return niceGroup.createMock(interfaceClass);
         }
 
@@ -274,7 +274,7 @@ public abstract class MockGroupAbstractTest {
          * @param <T>            the interface class.
          * @return the mock object for the interface.
          */
-        protected final <T> T addStrictControl(final Class<T> interfaceClass) {
+        protected final <T> T strictMock(final Class<T> interfaceClass) {
             return strictGroup.createMock(interfaceClass);
         }
 
@@ -293,9 +293,9 @@ public abstract class MockGroupAbstractTest {
          * @return the mock object for the interface.
          */
         @SuppressWarnings("unchecked")
-        public final <T> T addControls(final Class<T> mainInterface, final Class<?>... otherInterfaces) {
+        public final <T> T mockAll(final Class<T> mainInterface, final Class<?>... otherInterfaces) {
             if (otherInterfaces.length == 0) {
-                return addControl(mainInterface);
+                return mock(mainInterface);
             } else {
                 final Class<?> interfaces[] = new Class<?>[otherInterfaces.length + 1];
 
@@ -306,7 +306,7 @@ public abstract class MockGroupAbstractTest {
 
                 for (Class<?> api : interfaces) {
                     assert !proxyMap.containsKey(api) : api;
-                    proxyMap.put(api, addControl(api));
+                    proxyMap.put(api, mock(api));
                 }
 
                 return (T) Proxy.newProxyInstance(mainInterface.getClassLoader(), interfaces, new InvocationHandler() {
@@ -335,8 +335,8 @@ public abstract class MockGroupAbstractTest {
         }
 
         /**
-         * Calls {@link IMocksControl#replay()} on all mock objects added to the test. Mock objects are added by calling {@link #addControl(Class)}, {@link
-         * #addNiceControl(Class)}, {@link #addStrictControl(Class)} and {@link #addControls(Class, Class[])}.
+         * Calls {@link IMocksControl#replay()} on all mock objects added to the test. Mock objects are added by calling {@link #mock(Class)}, {@link
+         * #niceMock(Class)}, {@link #strictMock(Class)} and {@link #mockAll(Class, Class[])}.
          */
         protected final void replay() {
             for (final IMocksControl group : groups) {
@@ -345,8 +345,8 @@ public abstract class MockGroupAbstractTest {
         }
 
         /**
-         * Calls {@link IMocksControl#verify()} on all mock objects added to the test. Mock objects are added by calling {@link #addControl(Class)}, {@link
-         * #addNiceControl(Class)}, {@link #addStrictControl(Class)} and {@link #addControls(Class, Class[])}.
+         * Calls {@link IMocksControl#verify()} on all mock objects added to the test. Mock objects are added by calling {@link #mock(Class)}, {@link
+         * #niceMock(Class)}, {@link #strictMock(Class)} and {@link #mockAll(Class, Class[])}.
          */
         protected final void verify() {
             for (final IMocksControl group : groups) {
@@ -363,8 +363,8 @@ public abstract class MockGroupAbstractTest {
         }
 
         /**
-         * Calls {@link IMocksControl#reset()} on all mock objects added to the test. Mock objects are added by calling {@link #addControl(Class)}, {@link
-         * #addNiceControl(Class)}, {@link #addStrictControl(Class)} and {@link #addControls(Class, Class[])}.
+         * Calls {@link IMocksControl#reset()} on all mock objects added to the test. Mock objects are added by calling {@link #mock(Class)}, {@link
+         * #niceMock(Class)}, {@link #strictMock(Class)} and {@link #mockAll(Class, Class[])}.
          */
         protected final void reset() {
             for (final IMocksControl group : groups) {

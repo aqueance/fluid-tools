@@ -40,28 +40,28 @@ import org.testng.annotations.Test;
 @SuppressWarnings("unchecked")
 public class WhiteboardImplTest extends MockGroupAbstractTest {
 
-    private final BundleContext context = addControl(BundleContext.class);
-    private final ComponentContainer container = addControl(ComponentContainer.class);
-    private final OpenComponentContainer child = addControl(OpenComponentContainer.class);
-    private final ComponentContainer.Registry registry = addControl(ComponentContainer.Registry.class);
+    private final BundleContext context = mock(BundleContext.class);
+    private final ComponentContainer container = mock(ComponentContainer.class);
+    private final OpenComponentContainer child = mock(OpenComponentContainer.class);
+    private final ComponentContainer.Registry registry = mock(ComponentContainer.Registry.class);
     private final LogFactory logs = new NoLogFactory();
 
-    private final ServiceInterface1 service1 = addControl(ServiceInterface1.class);
-    private final ServiceInterface2 service2 = addControl(ServiceInterface2.class);
+    private final ServiceInterface1 service1 = mock(ServiceInterface1.class);
+    private final ServiceInterface2 service2 = mock(ServiceInterface2.class);
 
-    private final ServiceRegistration registration = addControl(ServiceRegistration.class);
+    private final ServiceRegistration registration = mock(ServiceRegistration.class);
 
-    private final ServiceReference reference1 = addControl(ServiceReference.class);
-    private final ServiceReference reference2 = addControl(ServiceReference.class);
+    private final ServiceReference reference1 = mock(ServiceReference.class);
+    private final ServiceReference reference2 = mock(ServiceReference.class);
 
-    private final Startable startable = addControl(Startable.class);
-    private final Whiteboard.Stoppable stoppable = addControl(Whiteboard.Stoppable.class);
+    private final Startable startable = mock(Startable.class);
+    private final Whiteboard.Stoppable stoppable = mock(Whiteboard.Stoppable.class);
 
-    private final Consumer consumer1 = addControl(Consumer.class);
-    private final Consumer consumer2 = addControl(Consumer.class);
+    private final Consumer consumer1 = mock(Consumer.class);
+    private final Consumer consumer2 = mock(Consumer.class);
 
     @SuppressWarnings("unchecked")
-    private final Whiteboard.EventSource<Consumer> source = addControl(Whiteboard.EventSource.class);
+    private final Whiteboard.EventSource<Consumer> source = mock(Whiteboard.EventSource.class);
 
     @Test
     public void testServiceRegistration() throws Exception {

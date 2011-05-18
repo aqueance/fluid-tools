@@ -16,11 +16,12 @@
 
 package org.fluidity.deployment;
 
-import org.easymock.EasyMock;
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.OpenComponentContainer;
 import org.fluidity.tests.MockGroupAbstractTest;
+
+import org.easymock.EasyMock;
 import org.testng.annotations.Test;
 
 /**
@@ -30,12 +31,12 @@ public class DependencyResolverImplTest extends MockGroupAbstractTest {
 
     private static OpenComponentContainer container;
 
-    private final ComponentContainer.Registry registry = addControl(ComponentContainer.Registry.class);
+    private final ComponentContainer.Registry registry = mock(ComponentContainer.Registry.class);
 
     private DependencyResolverImpl resolver = new DependencyResolverImpl();
 
     public DependencyResolverImplTest() {
-        container = addControl(OpenComponentContainer.class);
+        container = mock(OpenComponentContainer.class);
     }
 
     @Test

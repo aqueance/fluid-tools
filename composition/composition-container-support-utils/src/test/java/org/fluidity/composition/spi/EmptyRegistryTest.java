@@ -33,8 +33,8 @@ import org.testng.annotations.Test;
 @SuppressWarnings("unchecked")
 public class EmptyRegistryTest extends MockGroupAbstractTest {
 
-    private final ComponentRegistry mock = addControl(ComponentRegistry.class);
-    private final OpenComponentContainer container = addControl(OpenComponentContainer.class);
+    private final ComponentRegistry mock = mock(ComponentRegistry.class);
+    private final OpenComponentContainer container = mock(OpenComponentContainer.class);
     private final ComponentContainer.Registry registry = new EmptyRegistry(mock);
 
     @Test

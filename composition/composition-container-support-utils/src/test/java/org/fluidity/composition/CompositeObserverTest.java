@@ -31,10 +31,10 @@ import org.testng.annotations.Test;
  */
 public class CompositeObserverTest extends MockGroupAbstractTest {
 
-    private final ComponentResolutionObserver observer1 = addControl(ComponentResolutionObserver.class);
-    private final ComponentResolutionObserver observer2 = addControl(ComponentResolutionObserver.class);
-    private final ComponentResolutionObserver observer3 = addControl(ComponentResolutionObserver.class);
-    private final DependencyPath path = addControl(DependencyPath.class);
+    private final ComponentResolutionObserver observer1 = mock(ComponentResolutionObserver.class);
+    private final ComponentResolutionObserver observer2 = mock(ComponentResolutionObserver.class);
+    private final ComponentResolutionObserver observer3 = mock(ComponentResolutionObserver.class);
+    private final DependencyPath path = mock(DependencyPath.class);
     private final Object component = new Object();
 
     @Test
