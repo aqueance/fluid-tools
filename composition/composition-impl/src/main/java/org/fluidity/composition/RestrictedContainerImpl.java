@@ -74,14 +74,6 @@ final class RestrictedContainerImpl implements  RestrictedContainer {
         return reference.get().instantiate(componentClass);
     }
 
-    public ComponentContainer inheritContext(final ComponentContainer container) {
-        return reference.get().inheritContext(container);
-    }
-
-    public ComponentContext context() {
-        return reference.get().context();
-    }
-
     public void enable() {
         reference.set(delegate);
     }

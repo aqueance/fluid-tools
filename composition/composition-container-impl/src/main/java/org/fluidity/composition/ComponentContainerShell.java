@@ -16,7 +16,6 @@
 
 package org.fluidity.composition;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 
 import org.fluidity.composition.spi.ComponentResolutionObserver;
@@ -99,26 +98,6 @@ final class ComponentContainerShell extends EmptyComponentContainer {
 
     public Object invoke(final Object component, final Method method) throws ResolutionException {
         return container.invoke(component, method, context.copy());
-    }
-
-    public ComponentContainer inheritContext(final ComponentContainer container) {
-        final ComponentContext context = container.context();
-
-        if (context == null) {
-            return this;
-        } else {
-            final ContextDefinition copy = this.context.copy();
-
-            for (final Class<? extends Annotation> type : context.types()) {
-                copy.expand(context.annotations(type));
-            }
-
-            return new ComponentContainerShell(this.container, copy, false, false, observer);
-        }
-    }
-
-    public ComponentContext context() {
-        return context.create();
     }
 
     public OpenComponentContainer makeChildContainer() {

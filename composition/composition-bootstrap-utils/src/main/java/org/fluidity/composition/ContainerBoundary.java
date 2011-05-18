@@ -213,14 +213,6 @@ public final class ContainerBoundary implements ComponentContainer {
         return loadContainer(true).instantiate(componentClass);
     }
 
-    public ComponentContainer inheritContext(final ComponentContainer container) {
-        return loadContainer(true).inheritContext(container);
-    }
-
-    public ComponentContext context() {
-        return null;
-    }
-
     public <T> T[] getComponentGroup(final Class<T> api) {
         return loadContainer(true).getComponentGroup(api);
     }

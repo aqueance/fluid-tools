@@ -17,10 +17,8 @@
 package org.fluidity.deployment.osgi;
 
 import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.ListIterator;
 
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentGroup;
@@ -41,10 +39,6 @@ import org.osgi.framework.BundleContext;
  */
 public final class BundleBootstrap implements BundleActivator {
 
-    @Inject
-    @Marker(BundleBootstrap.class)
-    private Log log;
-
     private final BundleShutdownTasks shutdown = new BundleShutdownTasks();
     private Activators activators;
     private Whiteboard whiteboard;
@@ -58,7 +52,7 @@ public final class BundleBootstrap implements BundleActivator {
         boundary.bindBootComponent(shutdown);
         boundary.bindBootComponent(context, BundleContext.class);
 
-        boundary.initialize(this);
+        boundary.initialize(shutdown);
 
         whiteboard = boundary.getComponent(Whiteboard.class);
 
@@ -69,28 +63,28 @@ public final class BundleBootstrap implements BundleActivator {
     public void stop(final BundleContext context) throws Exception {
         activators.stop();
         whiteboard.stop();
-        shutdown.stop(log);
-        log = null;
+        shutdown.stop();
     }
 
     @Component(automatic = false)
     private static class BundleShutdownTasks implements ShutdownTasks {
-        private final Map<Runnable, String> tasks = new LinkedHashMap<Runnable, String>();
+        private final List<Runnable> tasks = new ArrayList<Runnable>();
 
-        public void add(final String name, final Runnable command) {
-            tasks.put(command, name);
+        @Inject
+        @Marker(BundleShutdownTasks.class)
+        private Log log;
+
+        public void add(final Runnable command) {
+            tasks.add(command);
         }
 
-        public void stop(final Log log) {
-            for (final Iterator<Map.Entry<Runnable, String>> list = tasks.entrySet().iterator(); list.hasNext();) {
-                final Map.Entry<Runnable, String> entry = list.next();
-
+        public void stop() {
+            for (final ListIterator<Runnable> iterator = tasks.listIterator(tasks.size()); iterator.hasPrevious();) {
+                final Runnable task = iterator.previous();
                 try {
-                    entry.getKey().run();
+                    task.run();
                 } catch (final Exception e) {
-                    log.warning(e, "Shutting down %s", entry.getValue());
-                } finally {
-                    list.remove();
+                    log.error(e, task.getClass().getName());
                 }
             }
         }

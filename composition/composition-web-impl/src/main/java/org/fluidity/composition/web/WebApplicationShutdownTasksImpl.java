@@ -16,9 +16,9 @@
 
 package org.fluidity.composition.web;
 
-import java.util.HashMap;
-import java.util.Map;
-
+import java.util.ArrayList;
+import java.util.List;
+import java.util.ListIterator;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
@@ -41,16 +41,15 @@ import org.fluidity.foundation.logging.Marker;
 @ComponentGroup(api = ServletContextListener.class)
 final class WebApplicationShutdownTasksImpl implements ShutdownTasks, ServletContextListener {
 
-    private static final Map<String, Runnable> tasks = new HashMap<String, Runnable>();
-
+    private final List<Runnable> tasks = new ArrayList<Runnable>();
     private final Log log;
 
     public WebApplicationShutdownTasksImpl(final @Marker(WebApplicationShutdownTasksImpl.class) Log log) {
         this.log = log;
     }
 
-    public void add(final String name, final Runnable command) {
-        tasks.put(name, command);
+    public void add(final Runnable command) {
+        tasks.add(command);
     }
 
     public void contextInitialized(final ServletContextEvent event) {
@@ -58,11 +57,12 @@ final class WebApplicationShutdownTasksImpl implements ShutdownTasks, ServletCon
     }
 
     public void contextDestroyed(final ServletContextEvent event) {
-        for (final Map.Entry<String, Runnable> entry : tasks.entrySet()) {
+        for (final ListIterator<Runnable> iterator = tasks.listIterator(tasks.size()); iterator.hasPrevious();) {
+            final Runnable task = iterator.previous();
             try {
-                entry.getValue().run();
+                task.run();
             } catch (final Exception e) {
-                log.error(e, "Running shutdown task %s", entry.getKey());
+                log.error(e, task.getClass().getName());
             }
         }
     }

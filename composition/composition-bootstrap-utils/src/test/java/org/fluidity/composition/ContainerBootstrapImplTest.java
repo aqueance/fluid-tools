@@ -127,14 +127,14 @@ public final class ContainerBootstrapImplTest extends MockGroupAbstractTest {
         EasyMock.expect(container.getComponent(ShutdownTasks.class)).andReturn(shutdown);
         EasyMock.expect(container.getComponent(EasyMock.<Class<?>>anyObject())).andReturn(object);
 
-        shutdown.add(EasyMock.<String>notNull(), EasyMock.<Runnable>anyObject());
+        shutdown.add(EasyMock.<Runnable>anyObject());
         EasyMock.expectLastCall().andAnswer(new IAnswer<Object>() {
             public Object answer() throws Throwable {
                 Object[] args = EasyMock.getCurrentArguments();
                 assert list.equals(watched);
 
                 // invoke the shutdown command to test de-registration
-                ((Runnable) args[1]).run();
+                ((Runnable) args[0]).run();
 
                 // check that all components have been shut down
                 assert list.isEmpty();

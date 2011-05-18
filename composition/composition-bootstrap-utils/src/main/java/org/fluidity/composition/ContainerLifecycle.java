@@ -78,7 +78,7 @@ final class ContainerLifecycle {
                 throw new RuntimeException(String.format("%s requires a %s component to function", container, ShutdownTasks.class.getName()));
             }
 
-            shutdown.add("container-shutdown", new Runnable() {
+            shutdown.add(new Runnable() {
                 public void run() {
                     shutdown(log);
                 }

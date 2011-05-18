@@ -16,8 +16,14 @@
 
 package org.fluidity.composition.cli;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.ListIterator;
+
 import org.fluidity.composition.Component;
 import org.fluidity.composition.spi.ShutdownTasks;
+import org.fluidity.foundation.logging.Log;
+import org.fluidity.foundation.logging.Marker;
 
 /**
  * Uses the {@link Runtime} object to add shutdown tasks to. The caller must make sure it has enough privileges to add a runtime shutdown hook.
@@ -27,7 +33,28 @@ import org.fluidity.composition.spi.ShutdownTasks;
 @Component
 final class RuntimeShutdownTasksImpl implements ShutdownTasks {
 
-    public void add(final String name, final Runnable command) {
-        Runtime.getRuntime().addShutdownHook(new Thread(command, name));
+    private final List<Runnable> tasks = new ArrayList<Runnable>();
+
+    public RuntimeShutdownTasksImpl(final @Marker(RuntimeShutdownTasksImpl.class) Log log) {
+        Runtime.getRuntime().addShutdownHook(new Thread("Container shutdown") {
+            @Override
+            public void run() {
+                for (final ListIterator<Runnable> iterator = tasks.listIterator(tasks.size()); iterator.hasPrevious(); ) {
+                    final Runnable task = iterator.previous();
+
+                    try {
+                        task.run();
+                    } catch (final Exception e) {
+                        log.error(e, task.getClass().getName());
+                    } finally {
+                        iterator.remove();
+                    }
+                }
+            }
+        });
+    }
+
+    public void add(final Runnable command) {
+        tasks.add(command);
     }
 }

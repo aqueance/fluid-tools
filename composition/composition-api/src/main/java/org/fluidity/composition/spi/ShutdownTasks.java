@@ -28,8 +28,7 @@ public interface ShutdownTasks {
      * Adds a task to be run when the application is shut down. Concrete implementations are needed for the various application types, i.e. command line, web,
      * etc.
      *
-     * @param name    is the name of the thread to add to the shutdown hook, in case a thread is required.
      * @param command is the command to run prior application shutdown.
      */
-    void add(String name, Runnable command);
+    void add(Runnable command);
 }
