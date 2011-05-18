@@ -51,14 +51,14 @@ final class ContainerBootstrapImpl implements ContainerBootstrap {
             container = parent.makeChildContainer();
         }
 
-        log.info("Created new %s%s", container, (classLoader == null ? "" : String.format(" for class loader %s", classLoader)));
+        log.debug("Created new %s%s", container, (classLoader == null ? "" : String.format(" for class loader %s", classLoader)));
 
         /*
          * Find instances of classes implementing the PackageBindings interface.
          */
         final Class<PackageBindings>[] classes = discovery.findComponentClasses(PackageBindings.class, classLoader, parent != null);
 
-        log.info("Found %s binding set(s) for %s", classes.length, container);
+        log.debug("Found %s binding set(s) for %s", classes.length, container);
 
         /*
          * Let the container provider instantiate them using an actual container to resolve inter-binding dependencies.
@@ -76,7 +76,7 @@ final class ContainerBootstrapImpl implements ContainerBootstrap {
          * Process each package component set.
          */
         for (final PackageBindings bindings : assemblies) {
-            log.info("Processing %s in %s", bindings.getClass().getName(), container);
+            log.debug("Processing %s in %s", bindings.getClass().getName(), container);
             bindings.bindComponents(registry);
         }
 

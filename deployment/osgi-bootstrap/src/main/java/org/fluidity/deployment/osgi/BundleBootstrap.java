@@ -55,6 +55,7 @@ public final class BundleBootstrap implements BundleActivator {
         boundary.initialize(shutdown);
 
         whiteboard = boundary.getComponent(Whiteboard.class);
+        whiteboard.start();
 
         activators = boundary.getComponent(Activators.class);
         activators.start();

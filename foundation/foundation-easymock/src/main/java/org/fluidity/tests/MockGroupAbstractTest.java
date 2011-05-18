@@ -45,7 +45,7 @@ public abstract class MockGroupAbstractTest {
     private ControlGroup localGroup = new ControlGroup();
 
     @AfterMethod
-    public void methodSetup() throws Exception {
+    public void methodDone() throws Exception {
         localGroup = new ControlGroup();
         reset();
     }

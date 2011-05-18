@@ -54,6 +54,11 @@ public class WhiteboardImpl implements Whiteboard {
     private final BundleContext context;
     private final ComponentContainer container;
 
+    final Whiteboard.EventSource<?>[] sources;
+    final Whiteboard.Component[] components;
+    final Whiteboard.Registration[] registrations;
+    private Log listenerLog;
+
     public WhiteboardImpl(final BundleContext context,
                           final ComponentContainer container,
                           final LogFactory logs,
@@ -64,24 +69,32 @@ public class WhiteboardImpl implements Whiteboard {
         this.container = container;
         this.log = logs.createLog(WhiteboardImpl.class);
 
+        this.sources = sources == null ? new EventSource<?>[0] : sources;
+        this.components = components == null ? new Component[0] : components;
+        this.registrations = registrations == null ? new Registration[0] : registrations;
+
+        this.listenerLog = logs.createLog(ServiceChangeListener.class);
+    }
+
+    public void start() {
         if (sources != null) {
             for (final EventSource<?> source : sources) {
                 final Stoppable stoppable = register(source);
                 cleanup(stoppable);
-                resolveDependencies(source, logs);
+                resolveDependencies(source, listenerLog);
             }
         }
 
         if (registrations != null) {
             for (final Registration registration : registrations) {
                 cleanup(register(registration, registration.properties(), registration.types()));
-                resolveDependencies(registration, logs);
+                resolveDependencies(registration, listenerLog);
             }
         }
 
         if (components != null) {
             for (final Whiteboard.Component component : components) {
-                resolveDependencies(component, logs);
+                resolveDependencies(component, listenerLog);
             }
         }
     }
@@ -90,7 +103,11 @@ public class WhiteboardImpl implements Whiteboard {
         final Stoppable wrapper = new Stoppable() {
             public void stop() {
                 if (cleanup.remove(this)) {
-                    stoppable.stop();
+                    try {
+                        stoppable.stop();
+                    } catch (final Exception e) {
+                        log.error(e, "Stopping %s", stoppable);
+                    }
                 }
             }
         };
@@ -170,7 +187,7 @@ public class WhiteboardImpl implements Whiteboard {
         };
     }
 
-    private void resolveDependencies(final Object component, final LogFactory logs) {
+    private void resolveDependencies(final Object component, final Log listenerLog) {
         final Class<?> type = component.getClass();
 
         Method start = null;
@@ -218,7 +235,7 @@ public class WhiteboardImpl implements Whiteboard {
             }
         } else {
             final ServiceSpecification[] dependencies = serviceTypes.values().toArray(new ServiceSpecification[serviceTypes.size()]);
-            final ServiceChangeListener listener = new ServiceChangeListener(type.getName(), container, dependencies, context, logs.createLog(ServiceChangeListener.class), component, start);
+            final ServiceChangeListener listener = new ServiceChangeListener(type.getName(), container, dependencies, context, listenerLog, component, start);
 
             final StringBuilder parsed = new StringBuilder();
             final boolean multiple = dependencies.length > 1;
@@ -369,9 +386,9 @@ public class WhiteboardImpl implements Whiteboard {
 
                 try {
                     stoppable = (Stoppable) child.invoke(component, start);
-                    log.info(String.format("%s started", name));
+                    log.info("%s started", name);
                 } catch (final Exception e) {
-                    log.error(String.format("starting %s", name), e);
+                    log.error(e, "starting %s", name);
                 }
             }
 
@@ -384,7 +401,7 @@ public class WhiteboardImpl implements Whiteboard {
                     }
                 }
 
-                log.info(String.format("%s is waiting for services: %s", name, services));
+                log.info("%s is waiting for services: %s", name, services);
             }
         }
 
@@ -392,9 +409,9 @@ public class WhiteboardImpl implements Whiteboard {
             if (stoppable != null) {
                 try {
                     stoppable.stop();
-                    log.info(String.format("%s stopped", name));
+                    log.info("%s stopped", name);
                 } catch (final Exception e) {
-                    log.error(String.format("stopping %s", name), e);
+                    log.error(e, "stopping %s", name);
                 } finally {
                     stoppable = null;
                 }

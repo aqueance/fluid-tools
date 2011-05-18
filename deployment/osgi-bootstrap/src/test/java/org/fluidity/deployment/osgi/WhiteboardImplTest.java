@@ -84,8 +84,10 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
         // no dependencies, domain container is created and asked to invoke the start() method
         EasyMock.expect(container.invoke(service, Service1.class.getMethod("start"))).andReturn(stoppable);
 
-        replay();
         final Whiteboard whiteboard = new WhiteboardImpl(context, container, logs, null, null, new Whiteboard.Registration[] { service });
+
+        replay();
+        whiteboard.start();
         verify();
 
         // un-registering the service
@@ -113,9 +115,10 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
 
         final ListenerSpec spec = expectListenerRegistration();
 
-        replay();
         final Whiteboard whiteboard = new WhiteboardImpl(context, container, logs, null, new Whiteboard.Component[] { dependent }, null);
 
+        replay();
+        whiteboard.start();
         verify();
 
         final String filter1 = String.format("(|(%1$s=%2$s)(%1$s=%3$s))", Constants.OBJECTCLASS, ServiceInterface1.class.getName(), ServiceInterface2.class.getName());
@@ -226,8 +229,10 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
 
         EasyMock.expect(context.getService(reference1)).andReturn(service1);
 
-        replay();
         final Whiteboard whiteboard = new WhiteboardImpl(context, container, logs, null, new Whiteboard.Component[] { dependent }, null);
+
+        replay();
+        whiteboard.start();
         verify();
 
         final String filter1 = String.format("(|(%1$s=%2$s)(%1$s=%3$s))", Constants.OBJECTCLASS, ServiceInterface1.class.getName(), ServiceInterface2.class.getName());
@@ -318,8 +323,10 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
         registry.bindInstance(service2, ServiceInterface2.class);
         EasyMock.expect(child.invoke(dependent, ServiceDependent2.class.getMethod("start", ServiceInterface1.class, ServiceInterface2.class))).andReturn(stoppable);
 
-        replay();
         final Whiteboard whiteboard = new WhiteboardImpl(context, container, logs, null, new Whiteboard.Component[] { dependent }, null);
+
+        replay();
+        whiteboard.start();
         verify();
 
         final String filter1 = String.format("(|(&(%1$s=%2$s)%4$s)(&(%1$s=%3$s)%5$s))", Constants.OBJECTCLASS, ServiceInterface1.class.getName(), ServiceInterface2.class.getName(), selector1, selector2);
@@ -356,8 +363,10 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
 
         EasyMock.expect(container.invoke(source, Source.class.getMethod("start"))).andReturn(stoppable);
 
-        replay();
         final Whiteboard whiteboard = new WhiteboardImpl(context, container, logs, new Whiteboard.EventSource<?>[] { source }, null, null);
+
+        replay();
+        whiteboard.start();
         verify();
 
         assert spec.filter().equals(String.format("(%s=%s)", Constants.OBJECTCLASS, Consumer.class.getName()));
@@ -454,8 +463,10 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
 
         EasyMock.expect(container.invoke(source, Source.class.getMethod("start"))).andReturn(stoppable);
 
-        replay();
         final Whiteboard whiteboard = new WhiteboardImpl(context, container, logs, new Whiteboard.EventSource<?>[] { source }, null, null);
+
+        replay();
+        whiteboard.start();
         verify();
 
         assert spec.filter().equals(String.format("(%s=%s)", Constants.OBJECTCLASS, Consumer.class.getName()));

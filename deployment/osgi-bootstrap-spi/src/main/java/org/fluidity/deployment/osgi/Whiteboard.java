@@ -25,11 +25,43 @@ import java.util.Properties;
 import org.fluidity.composition.ComponentGroup;
 
 /**
- * TODO: documentation...
+ * Sugar coating over the OSGi service registry: allows components to
+ * <ul>
+ * <li>declare dependencies on OSGi services and
+ * <ul>
+ * <li>get started when all those services become available</li>
+ * <li>get stopped when any of those services become unavailable</li>
+ * </ul>
+ * </li>
+ * <li>register OSGi services</li>
+ * <li>get notified when OSGi services become available and unavailable</li>
+ * </ul>
+ *
+ * <b>Depending on OSGi Services</b>
+ *
+ * {@link Whiteboard.Component}s must have a @{link Start} annotated method that returns a {@link Stoppable} object. Parameters of that method annotated with
+ * @{@link Service} are OSGi services while parameters not so annotated are ordinary dependencies. When all of the declared OSGi services become available,
+ * the method is invoked to start the component. The method returns a {@link Stoppable} object which will be invoked when any of the declared OSGi services
+ * becomes unavailable.
+ *
+ * <b>Registering OSGi Services</b>
+ *
+ * {@link Whiteboard.Registration} components are {@link Whiteboard.Component}s that are registered as OSGi services when all OSGi services they depend on
+ * become available and get unregistered when any of those become unavailable.
+ *
+ * <b>Notification about OSGi Service Registration and Unregistration</b>
+ *
+ * {@link Whiteboard.EventSource} components are {@link Whiteboard.Component}s that receive notifications about OSGi service registration and unregistration
+ * events when they are running.
  *
  * @author Tibor Varga
  */
 public interface Whiteboard {
+
+    /**
+     * Starts the whiteboard.
+     */
+    void start();
 
     /**
      * Stops the whiteboard.
@@ -118,7 +150,9 @@ public interface Whiteboard {
 
         /**
          * Stops the receiver.
+         *
+         * @throws Exception if anything goes wrong.
          */
-        void stop();
+        void stop() throws Exception;
     }
 }

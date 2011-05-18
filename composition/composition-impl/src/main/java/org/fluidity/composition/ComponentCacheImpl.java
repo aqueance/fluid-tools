@@ -81,12 +81,12 @@ final class ComponentCacheImpl implements ComponentCache {
 
     private void log(final boolean note, final String action, final Object component, final ComponentContext context, final Log log, final Object source) {
         if (note) {
-            log.info("%s: %s %s@%x%s",
-                     action,
-                     source,
-                     component.getClass().getName(),
-                     System.identityHashCode(component),
-                     context.types().isEmpty() ? "" : String.format(" for %s", context));
+            log.debug("%s: %s %s@%x%s",
+                      source,
+                      action,
+                      component.getClass().getName(),
+                      System.identityHashCode(component),
+                      context.types().isEmpty() ? "" : String.format(" for %s", context));
         }
     }
 }

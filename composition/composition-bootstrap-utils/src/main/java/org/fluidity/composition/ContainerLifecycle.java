@@ -53,7 +53,7 @@ final class ContainerLifecycle {
         final boolean init = shouldInitialize.compareAndSet(true, false);
         if (init) {
 
-            log.info("Initializing %s", container);
+            log.debug("Initializing %s", container);
 
             /*
              * Perform post-registration initialization.
@@ -111,7 +111,7 @@ final class ContainerLifecycle {
                 callback.containerShutdown(container);
             }
 
-            log.info("%s shut down", container);
+            log.debug("%s shut down", container);
         }
     }
 }

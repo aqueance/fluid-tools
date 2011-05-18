@@ -201,7 +201,12 @@ final class SimpleContainerImpl implements ParentContainer {
         final boolean isStateful = componentSpec != null && componentSpec.stateful();
         final boolean isFallback = componentSpec != null && !componentSpec.primary();
 
-        log.info("%s: binding %s to %s (%s, %s)", this, implementation, print(interfaces), isStateful ? "stateful" : "stateless", isFallback ? "fallback" : "primary");
+        log.debug("%s: binding %s to %s (%s, %s)",
+                  this,
+                  implementation,
+                  print(interfaces),
+                  isStateful ? "stateful" : "stateless",
+                  isFallback ? "fallback" : "primary");
 
         bindResolvers(implementation, interfaces.api, isStateful, new ContentResolvers() {
             public boolean isVariantFactory() {
@@ -241,7 +246,7 @@ final class SimpleContainerImpl implements ParentContainer {
                              ? ('\'' + String.valueOf(instance) + '\'')
                              : ("instance of " + Strings.arrayNotation(implementation));
 
-        log.info("%s: binding %s to %s (%s)", this, value, print(interfaces), isFallback ? "fallback" : "primary");
+        log.debug("%s: binding %s to %s (%s)", this, value, print(interfaces), isFallback ? "fallback" : "primary");
 
         bindResolvers(implementation, interfaces.api, false, new ContentResolvers() {
             public boolean isVariantFactory() {

@@ -62,7 +62,7 @@ final class ClassDiscoveryImpl implements ClassDiscovery {
     @SuppressWarnings({ "unchecked", "SuspiciousToArrayCall" })
     private <T> Class<T>[] findComponentClasses(final String type, final Class<T> api, final ClassLoader cl, final boolean strict) {
         final ClassLoader classLoader = cl == null ? ClassLoaders.findClassLoader(api) : cl;
-        log.info("Loading '%s' type service provider files for %s using class loader %s", type, api, classLoader);
+        log.debug("Loading '%s' type service provider files for %s using class loader %s", type, api, classLoader);
 
         final Collection<Class<T>> componentList = Exceptions.wrap(new Exceptions.Command<Collection<Class<T>>>() {
             public Collection<Class<T>> run() throws Exception {
@@ -76,7 +76,7 @@ final class ClassDiscoveryImpl implements ClassDiscovery {
                     if (!loaded.contains(url)) {
                         loaded.add(url);
 
-                        log.info("Loading %s", url);
+                        log.debug("Loading %s", url);
 
                         final Collection<Class<T>> localList = new LinkedHashSet<Class<T>>();
                         final BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream(), "UTF-8"));
@@ -96,7 +96,7 @@ final class ClassDiscoveryImpl implements ClassDiscovery {
                                             final Class<T> componentClass = (Class<T>) rawClass;
 
                                             if (Modifier.isAbstract(componentClass.getModifiers())) {
-                                                log.info("Ignoring abstract service provider %s", componentClass);
+                                                log.debug("Ignoring abstract service provider %s", componentClass);
                                             } else {
                                                 if (componentList.contains(componentClass)) {
                                                     log.error("Multiple export of %s", componentClass);
@@ -104,7 +104,7 @@ final class ClassDiscoveryImpl implements ClassDiscovery {
                                                     if (localList.contains(componentClass)) {
                                                         log.error("Duplicate %s", componentClass);
                                                     } else {
-                                                        log.info("Found %s", componentClass);
+                                                        log.debug("Found %s", componentClass);
                                                         localList.add(componentClass);
                                                     }
                                                 }
