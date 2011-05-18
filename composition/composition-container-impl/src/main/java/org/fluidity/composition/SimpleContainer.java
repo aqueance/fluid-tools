@@ -16,6 +16,8 @@
 
 package org.fluidity.composition;
 
+import java.lang.reflect.Method;
+
 import org.fluidity.composition.spi.ComponentResolutionObserver;
 import org.fluidity.composition.spi.DependencyResolver;
 
@@ -132,6 +134,20 @@ interface SimpleContainer extends DependencyGraph {
      *          when dependency resolution fails.
      */
     Object initialize(Object component, ContextDefinition context, ComponentResolutionObserver observer) throws ComponentContainer.ResolutionException;
+
+    /**
+     * Injects the parameters of the given method and invokes it on the given interface.
+     *
+     * @param component the component instance.
+     * @param method    the method to inject and invoke.
+     * @param context   the base context to resolve the component's dependencies in.
+     *
+     * @return the component instance.
+     *
+     * @throws ComponentContainer.ResolutionException
+     *          when dependency resolution fails.
+     */
+    Object invoke(Object component, Method method, final ContextDefinition context);
 
     /**
      * Returns a textual identifier for the container.

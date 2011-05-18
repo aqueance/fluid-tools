@@ -16,6 +16,7 @@
 
 package org.fluidity.composition;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -202,6 +203,10 @@ public final class ContainerBoundary implements ComponentContainer {
      */
     public <T> T initialize(final T component) {
         return loadContainer(true).initialize(component);
+    }
+
+    public Object invoke(final Object component, final Method method) throws ResolutionException {
+        return loadContainer(true).invoke(component, method);
     }
 
     public <T> T instantiate(final Class<T> componentClass) throws ResolutionException {

@@ -19,6 +19,8 @@ package org.fluidity.composition;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.IdentityHashMap;
@@ -38,11 +40,11 @@ import org.fluidity.foundation.Strings;
  */
 final class DependencyInjectorImpl implements DependencyInjector {
 
-    public <T> T fields(final DependencyGraph.Traversal traversal,
+    public <T> T fields(final T instance,
+                        final DependencyGraph.Traversal traversal,
                         final DependencyResolver container,
                         final ComponentMapping mapping,
-                        final ContextDefinition context,
-                        final T instance) {
+                        final ContextDefinition context) {
         assert container != null;
 
         if (instance != null) {
@@ -57,6 +59,59 @@ final class DependencyInjectorImpl implements DependencyInjector {
         }
 
         return instance;
+    }
+
+    public Object invoke(final Object component,
+                         final Method method,
+                         final DependencyGraph.Traversal traversal,
+                         final DependencyResolver container,
+                         final ComponentMapping mapping,
+                         final ContextDefinition context) throws ComponentContainer.ResolutionException {
+        assert method != null;
+        assert container != null;
+
+        final Class<?> componentClass = method.getDeclaringClass();
+        final Annotation[][] annotations = method.getParameterAnnotations();
+        final Class[] types = method.getParameterTypes();
+        final Object[] parameters = new Object[types.length];
+
+        for (int i = 0, length = types.length; i < length; ++i) {
+            final int index = i;
+            injectDependency(false, traversal, container, mapping, context.copy(), componentClass, new Dependency() {
+
+                public Class<?> type() {
+                    return types[index];
+                }
+
+                @SuppressWarnings("unchecked")
+                public <T extends Annotation> T annotation(final Class<T> annotationClass) {
+                    for (final Annotation annotation : annotations()) {
+                        if (annotationClass.isAssignableFrom(annotation.getClass())) {
+                            return (T) annotation;
+                        }
+                    }
+
+                    return null;
+                }
+
+                public Annotation[] annotations() {
+                    return annotations[index];
+                }
+
+                public void set(final DependencyGraph.Node node) {
+                    parameters[index] = node.instance(traversal);
+                }
+            });
+        }
+
+        try {
+            method.setAccessible(true);
+            return method.invoke(component, parameters);
+        } catch (final IllegalAccessException e) {
+            throw new ComponentContainer.ResolutionException(e, "Invoking %s", method);
+        } catch (final InvocationTargetException e) {
+            throw new ComponentContainer.ResolutionException(e.getCause(), "Invoking %s", method);
+        }
     }
 
     public Constructor<?> findConstructor(final Class<?> componentClass) throws ComponentContainer.ResolutionException {
@@ -173,7 +228,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
 
         for (int i = 0, length = types.length; i < length; ++i) {
             final int index = i;
-            consumed.add(injectDependency(traversal, container, mapping, context.copy(), componentClass, new Dependency() {
+            consumed.add(injectDependency(true, traversal, container, mapping, context.copy(), componentClass, new Dependency() {
 
                 public Class<?> type() {
                     return types[index];
@@ -303,7 +358,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
 
         processFields(declaringType, new FieldCommand() {
             public void process(final Field field) {
-                consumed.add(injectDependency(traversal, container, mapping, context.copy(), declaringType, new Dependency() {
+                consumed.add(injectDependency(false, traversal, container, mapping, context.copy(), declaringType, new Dependency() {
 
                     public Class<?> type() {
                         return field.getType();
@@ -327,7 +382,8 @@ final class DependencyInjectorImpl implements DependencyInjector {
         return consumed;
     }
 
-    private ContextDefinition injectDependency(final DependencyGraph.Traversal traversal,
+    private ContextDefinition injectDependency(final boolean resolving,
+                                               final DependencyGraph.Traversal traversal,
                                                final DependencyResolver container,
                                                final ComponentMapping mapping,
                                                final ContextDefinition context,
@@ -341,7 +397,9 @@ final class DependencyInjectorImpl implements DependencyInjector {
         final Annotation[] typeContext = neverNull(mapping.annotations());
         final Annotation[] dependencyContext = neverNull(dependency.annotations());
 
-        traversal.resolving(declaringType, dependencyType, typeContext, dependencyContext);
+        if (resolving) {
+            traversal.resolving(declaringType, dependencyType, typeContext, dependencyContext);
+        }
 
         final Annotation[] definitions = new Annotation[typeContext.length + dependencyContext.length];
         System.arraycopy(typeContext, 0, definitions, 0, typeContext.length);

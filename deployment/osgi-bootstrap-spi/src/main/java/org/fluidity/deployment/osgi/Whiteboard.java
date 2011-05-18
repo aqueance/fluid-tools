@@ -16,72 +16,83 @@
 
 package org.fluidity.deployment.osgi;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 import java.util.Properties;
 
 import org.fluidity.composition.ComponentGroup;
 
 /**
- * Groups entities related to the Whiteboard pattern as well as general OSGi service registration. There are two distinct patterns related to in OSGi service
- * interaction: an event source expecting its event consumers as OSGi services and ordinary OSGi services.
- * <p/>
- * The former is what is known as the Whiteboard pattern with event consumers being ordinary services while the latter is ordinary service registration itself.
- * <p/>
- * Due to these similarities, these two concepts have been merged into this component. There are four ways to use this component:
- * <ul>
- * <li>Implement {@link Whiteboard.EventSource}: all implementations are automatically loaded and registered when the bundle starts.</li>
- * <li>Implement {@link Whiteboard.EventConsumer} or its super interface {@link Service.Registration}: all implementations are automatically loaded and
- * registered when the bundle starts.</li>
- * <li>Depend on {@link Whiteboard} and call its {@link #register(Whiteboard.EventSource)} method to explicitly add an event source and call {@link
- * Whiteboard.Handle#remove()} on the returned object to remove it.</li>
- * <li>Depend on {@link Whiteboard} and call its {@link #register(Service.Registration, Properties, Class[])} method to explicitly add an event consumer
- * or ordinary service and call {@link Whiteboard.Handle#remove()} on the returned object to remove it.</li>
- * </ul>
+ * TODO: documentation...
  *
  * @author Tibor Varga
  */
 public interface Whiteboard {
 
     /**
-     * Registers a new event source to the whiteboard.
-     *
-     * @param source the event source to register.
-     *
-     * @return a handle that can be used to programmatically remove the event source from the whiteboard. When the owning bundle stops, all whiteboard
-     *         registrations will be removed automatically.
-     */
-    <T> Handle register(EventSource<T> source);
-
-    /**
-     * Registers a new event consumer to the whiteboard.
-     *
-     *
-     * @param consumer   the consumer to register.
-     * @param properties the registration properties.
-     * @param types      the interfaces against which to register the consumer.
-     *
-     * @return a handle that can be used to programmatically remove the event consumer from the whiteboard. When the owning bundle stops, all whiteboard
-     *         registrations will be removed automatically.
-     */
-    Handle register(Service.Registration consumer, Properties properties, Class<?>... types);
-
-    /**
-     * Called by the framework to free resources held by the whiteboard when the owning bundle is stopped.
+     * Stops the whiteboard.
      */
     void stop();
 
     /**
-     * An event source that wish to receive notification about event consumer registration as per the Whiteboard pattern.
+     * Annotates a method of a {@link Whiteboard.Component} class that resumes the component, i.e., starts the component when all its dependencies become
+     * available. The method's return type must be {@link Stoppable}. The returned {@link Stoppable} object, if any,
+     * will be invoked to stop the component when
+     * any of its components become unavailable.
+     */
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target(ElementType.METHOD)
+    public static @interface Start { }
+
+    /**
+     * Denotes a whiteboard component. Whiteboard components mark one of their methods @{@link Start}. That method may have two kinds of arguments: OSGi service
+     * interfaces annotated with {@link Service} and ordinary types denoting dependency injected components. When all OSGi services become dependencies become
+     * available, the method is called to start the receiver. The method's return type must be {@link Stoppable} and the return value of the method is invoked
+     * to stop the component if any of the services become unavailable.
+     */
+    @ComponentGroup
+    interface Component { }
+
+    /**
+     * Denotes an OSGi service that will be registered when the host bundle is started. A service registration is also a whiteboard {@link Component} and the
+     * start / stop logic described therein equally applies.
+     *
+     * @author Tibor Varga
+     */
+    @ComponentGroup
+    interface Registration<T> {
+
+        /**
+         * Returns the list of classes this service is to be registered as.
+         *
+         * @return the list of classes this service is to be registered as.
+         */
+        Class<? super T>[] types();
+
+        /**
+         * Returns the registration properties for this service, if any.
+         *
+         * @return the registration properties for this service; may be <code>null</code>.
+         */
+        Properties properties();
+    }
+
+    /**
+     * An event source that wishes to receive notification about event client registration as per the Whiteboard pattern. An event source is also a whiteboard
+     * {@link Component} and the start / stop logic described therein equally applies.
      */
     @ComponentGroup
     interface EventSource<T> {
 
         /**
-         * Returns the class event consumers are expected to register as. Service registrations against the name of the returned class will be only recognized
+         * Returns the class event consumers are expected to register as. Service registrations only against the name of the returned class will be recognized
          * as event consumer registration.
          *
          * @return the class event consumers are expected to register as.
          */
-        Class<T> consumerType();
+        Class<T> clientType();
 
         /**
          * Notifies the event source that a new consumer has been added.
@@ -89,59 +100,25 @@ public interface Whiteboard {
          * @param consumer   the consumer.
          * @param properties the consumer registration properties.
          */
-        void consumerAdded(T consumer, RegistrationProperties properties);
+        void clientAdded(T consumer, Properties properties);
 
         /**
          * Notifies the event source that a consumer has been removed.
          *
          * @param consumer the consumer that has been removed.
          */
-        void consumerRemoved(T consumer);
+        void clientRemoved(T consumer);
+    }
+
+    /**
+     * Allows an item managed by the whiteboard to be explicitly removed from the whiteboard. This is also done automatically when the owning bundle is
+     * stopped.
+     */
+    interface Stoppable {
 
         /**
-         * Stops the event source.
+         * Stops the receiver.
          */
         void stop();
-    }
-
-    /**
-     * Event consumers are ordinary services to be added to a Whiteboard.
-     */
-    interface EventConsumer extends Service.Registration { }
-
-    /**
-     * Provides access to the registration properties when a service has been resolved.
-     */
-    interface RegistrationProperties {
-
-        /**
-         * Returns the registration property keys.
-         *
-         * @return the registration property keys.
-         */
-        String[] keys();
-
-        /**
-         * Returns the value of the given registration property.
-         *
-         * @param key  the property key.
-         * @param type the type of the property value.
-         * @param <T>  the type of the property value.
-         *
-         * @return the value of the given registration property.
-         */
-        <T> T get(String key, Class<T> type);
-    }
-
-    /**
-     * Allows an event consumer or event source to be explicitly removed from the whiteboard. This is also done automatically when the owning bundle is stopped.
-     */
-    interface Handle {
-
-        /**
-         * Remove the event consumer or event source the registration of which returned this handle. See {@link Whiteboard#register(org.fluidity.deployment.o
-                  * sgi.Service.Registration, java.util.Properties, Class} or {@link Whiteboard#register(Whiteboard.EventSource)}.
-         */
-        void remove();
     }
 }

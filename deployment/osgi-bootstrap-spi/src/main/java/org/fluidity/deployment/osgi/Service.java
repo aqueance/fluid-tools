@@ -21,16 +21,14 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import java.util.Properties;
-
-import org.fluidity.composition.ComponentGroup;
 
 /**
- * Annotates constructor parameters or instance fields, of a component provided by {@link ServiceTracker}, that require an OSGi service instance.
+ * Annotates method parameters of a {@link Whiteboard} component that require an OSGi service instance. See {@link Whiteboard} for details on whiteboard
+ * components.
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ ElementType.PARAMETER, ElementType.FIELD })
+@Target(ElementType.PARAMETER)
 public @interface Service {
 
     /**
@@ -38,7 +36,7 @@ public @interface Service {
      *
      * @return the service interface under which the required OSGi service is expected to have been registered.
      */
-    Class<?> api();
+    Class<?> api() default Object.class;
 
     /**
      * Returns the filter that narrows down the list of possible service implementation candidates.
@@ -46,27 +44,4 @@ public @interface Service {
      * @return the filter that narrows down the list of possible service implementation candidates.
      */
     String filter() default "";
-
-    /**
-     * Denotes an OSGi service that will be registered when the host bundle is started. See {@link Whiteboard}.
-     *
-     * @author Tibor Varga
-     */
-    @ComponentGroup
-    interface Registration<T> {
-
-        /**
-         * Returns the service registration properties to use when registering this service.
-         *
-         * @return the service registration properties.
-         */
-        Properties properties();
-
-        /**
-         * Returns the list of classes this service is to be registered against the name of.
-         *
-         * @return the list of classes this service is to be registered against the name of.
-         */
-        Class<? super T> types();
-    }
 }

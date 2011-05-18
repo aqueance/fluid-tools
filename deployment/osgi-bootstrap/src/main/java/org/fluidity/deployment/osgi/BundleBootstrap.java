@@ -20,10 +20,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.Map;
 
-import org.fluidity.composition.ClassDiscovery;
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentGroup;
 import org.fluidity.composition.ContainerBoundary;
@@ -49,6 +47,7 @@ public final class BundleBootstrap implements BundleActivator {
 
     private final BundleShutdownTasks shutdown = new BundleShutdownTasks();
     private Activators activators;
+    private Whiteboard whiteboard;
 
     @SuppressWarnings("unchecked")
     public void start(final BundleContext context) throws Exception {
@@ -56,61 +55,22 @@ public final class BundleBootstrap implements BundleActivator {
 
         final ContainerBoundary boundary = new ContainerBoundary();
 
-        final Map<Runnable, String> unwind = new LinkedHashMap<Runnable, String>();
-
-        shutdown.add("bundle", new Runnable() {
-            public void run() {
-                final ArrayList<Runnable> list = new ArrayList<Runnable>(unwind.keySet());
-                for (final ListIterator<Runnable> commands = list.listIterator(list.size()); commands.hasPrevious();) {
-                    final Runnable command = commands.previous();
-
-                    try {
-                        command.run();
-                    } catch (final Exception e) {
-                        log.warning(e, "Shutting down %s", unwind.get(command));
-                    }
-                }
-            }
-        });
-
         boundary.bindBootComponent(shutdown);
         boundary.bindBootComponent(context, BundleContext.class);
 
         boundary.initialize(this);
 
+        whiteboard = boundary.getComponent(Whiteboard.class);
+
         activators = boundary.getComponent(Activators.class);
         activators.start();
-
-        final Whiteboard whiteboard = boundary.getComponent(Whiteboard.class);
-        unwind.put(new Runnable() {
-            public void run() {
-                whiteboard.stop();
-            }
-        }, "whiteboard");
-
-        // these automatically register themselves with one or more ServiceTracker components and start listening on service registration
-        boundary.getComponentGroup(ServiceTracker.Registration.class);
-
-        final ClassDiscovery discovery = boundary.getComponent(ClassDiscovery.class);
-
-        // we need the managed classes, not instances of those classes, so we use class discovery instead of component group lookup
-        final Class<ServiceTracker.Managed>[] managed = discovery.findComponentClasses(ServiceTracker.Managed.class, getClass().getClassLoader(), false);
-        if (managed != null && managed.length > 0) {
-            final ServiceTracker tracker = boundary.getComponent(ServiceTracker.class);
-
-            for (final Class<ServiceTracker.Managed> type : managed) {
-                tracker.manage(type);
-            }
-        }
     }
 
     public void stop(final BundleContext context) throws Exception {
-        try {
-            activators.stop();
-        } finally {
-            shutdown.stop(log);
-            log = null;
-        }
+        activators.stop();
+        whiteboard.stop();
+        shutdown.stop(log);
+        log = null;
     }
 
     @Component(automatic = false)

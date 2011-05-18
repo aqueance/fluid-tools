@@ -17,6 +17,7 @@
 package org.fluidity.composition;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
 
 import org.fluidity.composition.spi.ComponentResolutionObserver;
 import org.fluidity.composition.spi.EmptyComponentContainer;
@@ -94,6 +95,10 @@ final class ComponentContainerShell extends EmptyComponentContainer {
     @SuppressWarnings("unchecked")
     public <T> T initialize(final T component) {
         return (T) container.initialize(component, context.copy(), null);
+    }
+
+    public Object invoke(final Object component, final Method method) throws ResolutionException {
+        return container.invoke(component, method, context.copy());
     }
 
     public ComponentContainer inheritContext(final ComponentContainer container) {

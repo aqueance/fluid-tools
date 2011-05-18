@@ -17,6 +17,7 @@
 package org.fluidity.composition;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 
 import org.fluidity.composition.spi.ComponentMapping;
 import org.fluidity.composition.spi.DependencyResolver;
@@ -48,15 +49,35 @@ public interface DependencyInjector {
     /**
      * Sets all {@link Inject} annotated fields of the receiver.
      *
+     * @param instance  the object to set the fields of.     @return the received instances.
      * @param traversal the graph traversal to use.
      * @param container the container that can resolve dependencies
      * @param mapping   the mapping that triggered the dependency resolution.
      * @param context   the instantiation context of the object being constructed.
-     * @param instance  the object to set the fields of.     @return the received instances.
      *
      * @return the received instance.
      */
-    <T> T fields(DependencyGraph.Traversal traversal, DependencyResolver container, ComponentMapping mapping, ContextDefinition context, T instance);
+    <T> T fields(T instance, DependencyGraph.Traversal traversal, DependencyResolver container, ComponentMapping mapping, ContextDefinition context);
+
+    /**
+     * Sets all parameters of the given method and invokes the method on the given component.
+     *
+     * @param component the object to set the fields of.
+     * @param method    the method to invoke.
+     * @param traversal the graph traversal to use.
+     * @param container the container that can resolve dependencies
+     * @param mapping   the mapping that triggered the dependency resolution.
+     * @param context   the instantiation context of the object being constructed.
+     *
+     * @return the received instance.
+     * @throws org.fluidity.composition.ComponentContainer.ResolutionException thrown when the search yields no or multiple constructors.
+     */
+    Object invoke(Object component,
+                  Method method,
+                  DependencyGraph.Traversal traversal,
+                  DependencyResolver container,
+                  ComponentMapping mapping,
+                  ContextDefinition context) throws ComponentContainer.ResolutionException;
 
     /**
      * Find the injectable constructor of the given class.
@@ -72,12 +93,14 @@ public interface DependencyInjector {
      * @param componentClass the component class to find the injectable constructor of.
      *
      * @return the injectable constructor of the given class.
+     *
      * @throws org.fluidity.composition.ComponentContainer.ResolutionException thrown when the search yields no or multiple constructors.
      */
     Constructor<?> findConstructor(Class<?> componentClass) throws ComponentContainer.ResolutionException;
 
     /**
-     * Handles the special dependencies, e.g., {@link ComponentContext}, {@link ComponentContainer}, {@link org.fluidity.composition.spi.DependencyPath}, etc.
+     * Handles the special dependencies, e.g., {@link ComponentContext}, {@link ComponentContainer}, {@link org.fluidity.composition.spi.DependencyPath},
+     * etc.
      *
      * @param api        the component interface to resolve.
      * @param resolution callback methods for the various dependency types.

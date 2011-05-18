@@ -18,6 +18,7 @@ package org.fluidity.composition;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -354,7 +355,11 @@ final class SimpleContainerImpl implements ParentContainer {
     }
 
     public Object initialize(final Object component, final ContextDefinition context, final ComponentResolutionObserver observer) {
-        return injector.fields(services.graphTraversal(), dependencyResolver(domain), new InstanceMapping(component), context, component);
+        return injector.fields(component, services.graphTraversal(), dependencyResolver(domain), new InstanceMapping(component), context);
+    }
+
+    public Object invoke(final Object component, final Method method, final ContextDefinition context) {
+        return injector.invoke(component, method, services.graphTraversal(), dependencyResolver(domain), new InstanceMapping(component), context);
     }
 
     public Node resolveComponent(final ParentContainer domain, final boolean ascend, final Class<?> api, final ContextDefinition context, final Traversal traversal) {
@@ -696,6 +701,10 @@ final class SimpleContainerImpl implements ParentContainer {
         }
 
         public Object initialize(final Object component, final ContextDefinition context, final ComponentResolutionObserver observer) throws ComponentContainer.ResolutionException {
+            throw new UnsupportedOperationException();
+        }
+
+        public Object invoke(final Object component, final Method method, final ContextDefinition copy) {
             throw new UnsupportedOperationException();
         }
 

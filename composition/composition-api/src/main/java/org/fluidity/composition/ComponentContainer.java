@@ -145,6 +145,19 @@ public interface ComponentContainer {
     <T> T initialize(T component) throws ResolutionException;
 
     /**
+     * Invoke the given method of the given object. Parameters of the method will be dependency injected.
+     *
+     * @param component the method to invoke on.
+     * @param method    is the method that needs injection of dependencies.
+     *
+     * @return the field injected object - the same that was passed as the method parameter.
+     *
+     * @throws ComponentContainer.ResolutionException
+     *          when dependency resolution fails
+     */
+    Object invoke(Object component, Method method) throws ResolutionException;
+
+    /**
      * Instantiates the given class as a component. No caching takes place, a new instance is created at every invocation. This is method is intended
      * for use by boundary objects.
      *
@@ -278,7 +291,7 @@ public interface ComponentContainer {
      */
     class ContainerException extends RuntimeException {
 
-        public ContainerException(final Exception cause, final String format, final Object... data) {
+        public ContainerException(final Throwable cause, final String format, final Object... data) {
             super(String.format(format, data), cause);
         }
 
@@ -302,7 +315,7 @@ public interface ComponentContainer {
      */
     class ResolutionException extends ContainerException {
 
-        public ResolutionException(final Exception e, final String format, final Object... data) {
+        public ResolutionException(final Throwable e, final String format, final Object... data) {
             super(e, format, data);
         }
 

@@ -19,6 +19,7 @@ package org.fluidity.composition;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -69,7 +70,8 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
 
         return setupDependencyResolution(componentType,
                                          field.getType(),
-                                         field.getAnnotations(), createdContext,
+                                         field.getAnnotations(),
+                                         createdContext,
                                          containerAnnotations,
                                          component);
     }
@@ -85,11 +87,36 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
 
         final Class<?>[] parameterTypes = constructor.getParameterTypes();
         final Annotation[][] annotations = constructor.getParameterAnnotations();
-        for (int i = 0, parameterTypesLength = parameterTypes.length; i < parameterTypesLength; i++) {
+        for (int i = 0, limit = parameterTypes.length; i < limit; i++) {
             final Class<?> dependencyType = parameterTypes[i];
             copies.add(setupDependencyResolution(componentType,
                                                  dependencyType,
-                                                 annotations[i], createdContext,
+                                                 annotations[i],
+                                                 createdContext,
+                                                 containerAnnotations,
+                                                 components[i]));
+        }
+
+        return copies.toArray(new ContextDefinition[copies.size()]);
+    }
+
+    private ContextDefinition[] setupMethodResolution(final Class<?> componentType,
+                                                           final Method method,
+                                                           final ComponentContext createdContext,
+                                                           final Annotation[] containerAnnotations,
+                                                           final Object... components) throws Exception {
+        assert method != null : String.format("%s(?)", componentType.getClass());
+
+        final List<ContextDefinition> copies = new ArrayList<ContextDefinition>();
+
+        final Class<?>[] parameterTypes = method.getParameterTypes();
+        final Annotation[][] annotations = method.getParameterAnnotations();
+        for (int i = 0, limit = parameterTypes.length; i < limit; i++) {
+            final Class<?> dependencyType = parameterTypes[i];
+            copies.add(setupDependencyResolution(componentType,
+                                                 dependencyType,
+                                                 annotations[i],
+                                                 createdContext,
                                                  containerAnnotations,
                                                  components[i]));
         }
@@ -171,7 +198,7 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
         expectCallbacks();
 
         replay();
-        assert component == injector.fields(traversal, resolver, mapping, context, component);
+        assert component == injector.fields(component, traversal, resolver, mapping, context);
         verify();
 
         assert component.dependency == dependency : component.dependency;
@@ -193,7 +220,7 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
         expectCallbacks();
 
         replay();
-        assert component == injector.fields(traversal, resolver, mapping, context, component);
+        assert component == injector.fields(component, traversal, resolver, mapping, context);
         verify();
     }
 
@@ -206,7 +233,7 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
         expectCallbacks();
 
         replay();
-        assert component == injector.fields(traversal, resolver, mapping, context, component);
+        assert component == injector.fields(component, traversal, resolver, mapping, context);
         verify();
 
         assert component.dependency == null : component.dependency;
@@ -247,7 +274,7 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
         expectCallbacks();
 
         replay();
-        assert component == injector.fields(traversal, resolver, mapping, context, component);
+        assert component == injector.fields(component, traversal, resolver, mapping, context);
         verify();
 
         assert component.context == created : component.context;
@@ -273,6 +300,24 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
         replay();
         assert injector.constructor(traversal, resolver, mapping, context, constructor) != null;
         verify();
+    }
+
+    @Test
+    public void testInvokesMethod() throws Exception {
+        final MethodInjected component = new MethodInjected();
+
+        final Method method = MethodInjected.class.getDeclaredMethod("inject", Dependency.class, Service[].class);
+        final DependencyImpl dependency = new DependencyImpl();
+        final Service[] services = new Service[0];
+
+        setupMethodResolution(MissingGroupConsumer.class, method, null, null, dependency, services);
+
+        replay();
+        assert "value".equals(injector.invoke(component, method, traversal, resolver, mapping, context));
+        verify();
+
+        assert component.dependency == dependency;
+        assert component.services == services;
     }
 
     private void expectCallbacks() {
@@ -322,26 +367,16 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
         }
     }
 
-    public static interface Dependency {
+    public static interface Dependency { }
 
-    }
-
-    public static class DependencyImpl implements Dependency {
-
-    }
+    public static class DependencyImpl implements Dependency { }
 
     @ComponentGroup
-    public static interface Service {
+    public static interface Service { }
 
-    }
+    public static class ServiceImpl1 implements Service { }
 
-    public static class ServiceImpl1 implements Service {
-
-    }
-
-    public static class ServiceImpl2 implements Service {
-
-    }
+    public static class ServiceImpl2 implements Service { }
 
     public static class SpecialDependent {
 
@@ -353,7 +388,17 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
     }
 
     @ComponentGroup
-    public static interface MissingService {
+    public static interface MissingService { }
 
+    public static class MethodInjected {
+
+        public Dependency dependency;
+        public Service[] services;
+
+        private String inject(final Dependency dependency, final @ComponentGroup Service[] services) {
+            this.dependency = dependency;
+            this.services = services;
+            return "value";
+        }
     }
 }
