@@ -22,17 +22,17 @@ import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.Context;
 import org.fluidity.composition.spi.CustomComponentFactory;
 import org.fluidity.foundation.logging.Log;
-import org.fluidity.foundation.logging.Marker;
+import org.fluidity.foundation.logging.Source;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**
- * Creates {@link Log} objects for the marker specified by a {@link org.fluidity.foundation.logging.Marker} annotation, using the user provided implementation
+ * Creates {@link Log} objects for the marker specified by a {@link org.fluidity.foundation.logging.Source} annotation, using the user provided implementation
  * of the {@link LogFactory} interface.
  *
  * @author Tibor Varga
  */
 @Component(api = Log.class)
-@Context(Marker.class)
+@Context(Source.class)
 final class LogComponentFactory implements CustomComponentFactory {
 
     private final LogFactory factory;
@@ -44,7 +44,7 @@ final class LogComponentFactory implements CustomComponentFactory {
     public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
         return new Instance() {
             public void bind(final Registry registry) throws ComponentContainer.BindingException {
-                final Marker marker = context.annotation(Marker.class, Log.class);
+                final Source marker = context.annotation(Source.class, Log.class);
                 registry.bindInstance(factory.createLog(marker.value()), Log.class);
             }
         };

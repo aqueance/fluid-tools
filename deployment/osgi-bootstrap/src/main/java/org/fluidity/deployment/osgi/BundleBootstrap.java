@@ -27,7 +27,7 @@ import org.fluidity.composition.Inject;
 import org.fluidity.composition.Optional;
 import org.fluidity.composition.spi.ShutdownTasks;
 import org.fluidity.foundation.logging.Log;
-import org.fluidity.foundation.logging.Marker;
+import org.fluidity.foundation.logging.Source;
 
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
@@ -71,7 +71,7 @@ public final class BundleBootstrap implements BundleActivator {
         private final List<Runnable> tasks = new ArrayList<Runnable>();
 
         @Inject
-        @Marker(BundleShutdownTasks.class)
+        @Source(BundleShutdownTasks.class)
         private Log log;
 
         public void add(final Runnable command) {
@@ -98,7 +98,7 @@ public final class BundleBootstrap implements BundleActivator {
         private final Log log;
 
         private Activators(final BundleContext context,
-                           final @Marker(Activators.class) Log log,
+                           final @Source(Activators.class) Log log,
                            final @Optional BundleActivator single,
                            final @Optional @ComponentGroup BundleActivator[] multiple) {
             this.context = context;

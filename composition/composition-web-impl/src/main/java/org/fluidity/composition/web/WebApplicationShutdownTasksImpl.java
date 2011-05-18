@@ -26,7 +26,7 @@ import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentGroup;
 import org.fluidity.composition.spi.ShutdownTasks;
 import org.fluidity.foundation.logging.Log;
-import org.fluidity.foundation.logging.Marker;
+import org.fluidity.foundation.logging.Source;
 
 /**
  * Implements the component shutdown mechanism for web applications. The implementation requires either to be explicitly registered as a
@@ -44,7 +44,7 @@ final class WebApplicationShutdownTasksImpl implements ShutdownTasks, ServletCon
     private final List<Runnable> tasks = new ArrayList<Runnable>();
     private final Log log;
 
-    public WebApplicationShutdownTasksImpl(final @Marker(WebApplicationShutdownTasksImpl.class) Log log) {
+    public WebApplicationShutdownTasksImpl(final @Source(WebApplicationShutdownTasksImpl.class) Log log) {
         this.log = log;
     }
 
