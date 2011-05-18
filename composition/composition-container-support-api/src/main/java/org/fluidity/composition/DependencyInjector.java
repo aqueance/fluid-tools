@@ -99,8 +99,7 @@ public interface DependencyInjector {
     Constructor<?> findConstructor(Class<?> componentClass) throws ComponentContainer.ResolutionException;
 
     /**
-     * Handles the special dependencies, e.g., {@link ComponentContext}, {@link ComponentContainer}, {@link org.fluidity.composition.spi.DependencyPath},
-     * etc.
+     * Handles the special dependencies, e.g., {@link ComponentContext}, {@link ComponentContainer}, {@link org.fluidity.composition.spi.DependencyPath}, etc.
      *
      * @param api        the component interface to resolve.
      * @param resolution callback methods for the various dependency types.

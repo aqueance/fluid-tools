@@ -47,11 +47,11 @@ import org.fluidity.foundation.Strings;
  * methods are invoked from the {@link org.fluidity.composition.spi.PackageBindings#bindComponents(ComponentContainer.Registry)} method of your binding
  * implementation.
  * <ul>
- * <li>To simply register a component implementation for its component interfaces, use {@link ComponentContainer.Registry#bindComponent(Class, Class[])}. This is
- * exactly what the Maven plugin uses for a @{@link Component} annotated class with no @{@link Component#automatic()} setting so if this method is all you need
- * then you should simply use the plugin instead of creating your own binding class.</li>
- * <li>To register an already instantiated component implementation for a component interface, use {@link ComponentContainer.Registry#bindInstance(Object, Class[])}. If
- * the implementation is annotated with @{@link Component} then its @{@link Component#automatic()} setting must be set to
+ * <li>To simply register a component implementation for its component interfaces, use {@link ComponentContainer.Registry#bindComponent(Class, Class[])}. This
+ * is exactly what the Maven plugin uses for a @{@link Component} annotated class with no @{@link Component#automatic()} setting so if this method is all you
+ * need then you should simply use the plugin instead of creating your own binding class.</li>
+ * <li>To register an already instantiated component implementation for a component interface, use {@link ComponentContainer.Registry#bindInstance(Object,
+ * Class[])}. If the implementation is annotated with @{@link Component} then its @{@link Component#automatic()} setting must be set to
  * <code>false</code>.</li>
  * <li>To register a component implementation when some or all of its dependencies are not accessible in the same container, use {@link
  * ComponentContainer.Registry#makeChildContainer(Class, Class[])} method and use the returned container's {@link OpenComponentContainer#getRegistry()} method
@@ -65,9 +65,7 @@ public interface ComponentContainer {
 
     /**
      * Returns a new container that calls the given dependency path traversal strategy and observer whenever a dependency is resolved while resolving a
-     * component via this
-     * container.
-     *
+     * component via this container.
      *
      * @param observer the observer to call, may be <code>null</code>.
      *
@@ -83,8 +81,7 @@ public interface ComponentContainer {
      *
      * @return the component bound against the give class or <code>null</code> when none was found.
      *
-     * @throws ComponentContainer.ResolutionException
-     *          when dependency resolution fails
+     * @throws ResolutionException when dependency resolution fails
      */
     <T> T getComponent(Class<T> api) throws ResolutionException;
 
@@ -127,8 +124,7 @@ public interface ComponentContainer {
      *
      * @return the component bound against the give class or <code>null</code> when none was found.
      *
-     * @throws ComponentContainer.ResolutionException
-     *          when dependency resolution fails
+     * @throws ResolutionException when dependency resolution fails
      */
     <T> T getComponent(Class<T> api, Bindings bindings) throws ResolutionException;
 
@@ -139,8 +135,7 @@ public interface ComponentContainer {
      *
      * @return the field injected object - the same that was passed as the method parameter.
      *
-     * @throws ComponentContainer.ResolutionException
-     *          when dependency resolution fails
+     * @throws ResolutionException when dependency resolution fails
      */
     <T> T initialize(T component) throws ResolutionException;
 
@@ -152,8 +147,7 @@ public interface ComponentContainer {
      *
      * @return the field injected object - the same that was passed as the method parameter.
      *
-     * @throws ComponentContainer.ResolutionException
-     *          when dependency resolution fails
+     * @throws ResolutionException when dependency resolution fails
      */
     Object invoke(Object component, Method method) throws ResolutionException;
 
@@ -165,8 +159,7 @@ public interface ComponentContainer {
      *
      * @return the new component.
      *
-     * @throws ComponentContainer.ResolutionException
-     *          when dependency resolution fails
+     * @throws ResolutionException when dependency resolution fails
      */
     <T> T instantiate(Class<T> componentClass) throws ResolutionException;
 
@@ -225,10 +218,18 @@ public interface ComponentContainer {
          * @param implementation the component class.
          * @param interfaces     the interfaces against which to bind the component; preferably an interface class.
          *
-         * @throws ComponentContainer.BindingException
-         *          when the binding cannot be performed
+         * @throws BindingException when the binding cannot be performed
          */
         <T> void bindComponent(Class<T> implementation, Class<? super T>... interfaces) throws BindingException;
+
+        /**
+         * Binds a list of components to their component interfaces.
+         *
+         * @param implementations the list of components to bind.
+         *
+         * @throws BindingException when the binding cannot be performed
+         */
+        void bindComponents(Class<?>... implementations) throws BindingException;
 
         /**
          * Binds a component instance to its interface. In most case you should use the other registration methods that accept a class rather then

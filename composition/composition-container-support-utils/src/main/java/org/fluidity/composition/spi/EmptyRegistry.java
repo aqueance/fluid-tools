@@ -41,6 +41,13 @@ final class EmptyRegistry implements ComponentContainer.Registry {
     }
 
     @SuppressWarnings("unchecked")
+    public void bindComponents(final Class<?>... implementations) throws ComponentContainer.BindingException {
+        for (final Class<?> implementation : implementations) {
+            delegate.bindComponent(Components.inspect(implementation));
+        }
+    }
+
+    @SuppressWarnings("unchecked")
     public final <T> void bindInstance(final T instance, final Class<? super T>... interfaces) throws ComponentContainer.BindingException {
         assert instance != null;
         final Class<T> implementation = (Class<T>) instance.getClass();
