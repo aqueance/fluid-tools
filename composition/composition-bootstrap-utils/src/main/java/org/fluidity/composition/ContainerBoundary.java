@@ -75,8 +75,7 @@ public final class ContainerBoundary implements ComponentContainer {
     };
 
     /**
-     * The component that can discover the above dependencies for us. The point is to have one single dependency for unit tests to override. This class is
-     * not
+     * The component that can discover the above dependencies for us. The point is to have one single dependency for unit tests to override. This class is not
      * dependency injected and so it is important to keep its dependencies down to a minimum.
      */
     private BootstrapServices services;
@@ -266,7 +265,7 @@ public final class ContainerBoundary implements ComponentContainer {
         }
 
         // top down: going in reverse order because the container for a given class loader has to use as its parent the container for the parent class loader
-        for (final ListIterator<ClassLoader> i = classLoaders.listIterator(classLoaders.size()); i.hasPrevious();) {
+        for (final ListIterator<ClassLoader> i = classLoaders.listIterator(classLoaders.size()); i.hasPrevious(); ) {
             final ClassLoader loader = i.previous();
 
             if (!populatedContainers.containsKey(loader)) {
@@ -356,7 +355,7 @@ public final class ContainerBoundary implements ComponentContainer {
             if (initialized != null) {
 
                 // initialize containers top down
-                for (final ListIterator<OpenComponentContainer> iterator = containers.listIterator(containers.size()); iterator.hasPrevious();) {
+                for (final ListIterator<OpenComponentContainer> iterator = containers.listIterator(containers.size()); iterator.hasPrevious(); ) {
                     final OpenComponentContainer container = iterator.previous();
 
                     containerBootstrap.initializeContainer(container, containerServices);
