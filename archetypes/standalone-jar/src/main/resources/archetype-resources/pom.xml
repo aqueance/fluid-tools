@@ -41,14 +41,14 @@ limitations under the License.
 
         <dependency>
             <groupId>org.fluidity.public</groupId>
-            <artifactId>fluid-tools-slf4j-logging</artifactId>
+            <artifactId>fluid-tools-commons-logging</artifactId>
             <version>${symbol_dollar}{fluid.tools.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-simple</artifactId>
-            <version>1.6.1</version>
+            <groupId>commons-logging</groupId>
+            <artifactId>commons-logging</artifactId>
+            <version>1.1.1</version>
         </dependency>
 
     </dependencies>
