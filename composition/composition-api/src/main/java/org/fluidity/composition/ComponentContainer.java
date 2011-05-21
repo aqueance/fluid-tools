@@ -223,15 +223,6 @@ public interface ComponentContainer {
         <T> void bindComponent(Class<T> implementation, Class<? super T>... interfaces) throws BindingException;
 
         /**
-         * Binds a list of components to their component interfaces.
-         *
-         * @param implementations the list of components to bind.
-         *
-         * @throws BindingException when the binding cannot be performed
-         */
-        void bindComponents(Class<?>... implementations) throws BindingException;
-
-        /**
          * Binds a component instance to its interface. In most case you should use the other registration methods that accept a class rather then
          * instantiating the component yourself. Use this method when you have no control over the instantiation of a class, such as those performed by third
          * party tools,

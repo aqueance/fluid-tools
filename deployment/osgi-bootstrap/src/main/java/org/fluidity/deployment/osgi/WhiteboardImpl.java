@@ -254,8 +254,11 @@ public class WhiteboardImpl implements Whiteboard {
             final ComponentContainer.Registry registry = child.getRegistry();
 
             for (final Components.Interfaces interfaces : cluster) {
+                registry.bindComponent(interfaces.implementation);
+            }
+
+            for (final Components.Interfaces interfaces : cluster) {
                 final Class<?> type = interfaces.implementation;
-                registry.bindComponent(type);
 
                 final Item component = (Item) child.getComponent(type);
                 final String name = component.getClass().getName();
@@ -432,8 +435,7 @@ public class WhiteboardImpl implements Whiteboard {
                 }
 
                 for (final Components.Interfaces interfaces : cluster) {
-                    final Class<?> type = interfaces.implementation;
-                    registry.bindComponent(type);
+                    registry.bindComponent(interfaces.implementation);
                 }
 
                 for (final Components.Interfaces interfaces : cluster) {
