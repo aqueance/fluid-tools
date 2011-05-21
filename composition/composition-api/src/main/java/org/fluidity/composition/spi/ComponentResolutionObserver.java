@@ -20,7 +20,7 @@ import java.lang.annotation.Annotation;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * Observes graph node resolutions.
+ * Observes component dependency resolutions.
  *
  * @author Tibor Varga
  */
@@ -51,8 +51,8 @@ public interface ComponentResolutionObserver {
      * The {@link DependencyPath#head()} returns details about the class just instantiated.
      *
      * @param path      the dependency path at which the given type has been instantiated. Does not yet include <code>type</code>.
-     * @param reference a reference to the component that has just been instantiated. The receiver must not call any method on it. The reference will be set
-     *                  <em>after</em> this method returns to avoid the receiver wreaking havoc by calling the just instantiated component.
+     * @param reference a reference to the component that has just been instantiated. The reference will be set <em>after</em> this method returns to prevent
+     *                  the receiver from wreaking havoc by accessing the just instantiated component.
      */
     void instantiated(DependencyPath path, AtomicReference<?> reference);
 }
