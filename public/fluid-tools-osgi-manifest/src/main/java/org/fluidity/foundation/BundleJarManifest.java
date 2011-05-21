@@ -23,6 +23,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.jar.Attributes;
 
+import org.fluidity.composition.ComponentGroup;
 import org.fluidity.composition.ContainerBoundary;
 import org.fluidity.deployment.JarManifest;
 import org.fluidity.deployment.osgi.BundleBootstrap;
@@ -200,7 +201,7 @@ public class BundleJarManifest implements JarManifest {
         final String activator = attributes.getValue(BUNDLE_ACTIVATOR);
 
         if (activator != null) {
-            throw new IllegalStateException(String.format("Bundle activator is already set in the POM: add @Component to %s and let the composition plugin do its work", activator));
+            throw new IllegalStateException(String.format("Bundle activator is already set: add @%s to %s and make sure the composition plugin is active in this project", ComponentGroup.class, activator));
         }
 
         return true;

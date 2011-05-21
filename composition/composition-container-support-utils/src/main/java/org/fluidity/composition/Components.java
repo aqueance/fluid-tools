@@ -31,6 +31,7 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.fluidity.composition.spi.ComponentFactory;
 import org.fluidity.composition.spi.ComponentVariantFactory;
 import org.fluidity.composition.spi.CustomComponentFactory;
 
@@ -54,9 +55,6 @@ public final class Components {
         assert Arrays.asList(ComponentGroup.class.getAnnotation(Target.class).value()).contains(ElementType.TYPE);
         assert ComponentGroup.class.isAnnotationPresent(Inherited.class);
     }
-
-    @SuppressWarnings("unchecked")
-    private static Set<Class<?>> factories = new HashSet<Class<?>>(Arrays.asList(CustomComponentFactory.class, ComponentVariantFactory.class));
 
     private Components() {
         throw new UnsupportedOperationException("No instance allowed");
@@ -161,7 +159,7 @@ public final class Components {
         for (final Map.Entry<Class<?>, Set<Class<?>>> entry : interfaceMap.entrySet()) {
             final Class<?> type = entry.getKey();
 
-            if (factories.contains(type)) {
+            if (ComponentFactory.class.isAssignableFrom(type)) {
                 throw new ComponentContainer.BindingException("Component interface for %s is the factory interface itself: %s", componentClass, type);
             }
 
@@ -347,11 +345,14 @@ public final class Components {
         public final Class<?> implementation;
         public final Specification[] api;
 
+        private final int hash;
+
         Interfaces(final Class<?> implementation, final boolean ignored, final boolean fallback, final Specification[] interfaces) {
             this.ignored = ignored;
             this.fallback = fallback;
             this.implementation = implementation;
             this.api = interfaces == null ? new Specification[0] : interfaces;
+            this.hash = calculateHash();
         }
 
         @Override
@@ -370,6 +371,10 @@ public final class Components {
 
         @Override
         public int hashCode() {
+            return hash;
+        }
+
+        private int calculateHash() {
             int result = (ignored ? 1 : 0);
             result = 31 * result + (fallback ? 1 : 0);
             result = 31 * result + implementation.hashCode();

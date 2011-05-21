@@ -48,6 +48,12 @@
 
         <dependency>
             <groupId>${fluidity.composition.groupId}</groupId>
+            <artifactId>composition-container-support-utils</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>${fluidity.composition.groupId}</groupId>
             <artifactId>composition-bootstrap-utils</artifactId>
             <version>${project.version}</version>
         </dependency>
