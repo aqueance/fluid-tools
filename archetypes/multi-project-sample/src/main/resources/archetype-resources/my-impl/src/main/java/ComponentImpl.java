@@ -12,9 +12,23 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-*#package ${package};
+*##set( $symbol_pound = '#' )#*
+*##set( $symbol_dollar = '$' )#*
+*##set( $symbol_escape = '\' )#*
+*#package ${packageInPathFormat};
 
-public interface EchoText {
+import org.fluidity.composition.Component;
 
-    boolean receiveText(String text);
+@Component
+final class ComponentImpl implements ComponentApi {
+
+    private final MessageSink dependency;
+
+    public ComponentImpl(final MessageSink dependency) {
+        this.dependency = dependency;
+    }
+
+    public boolean sendText(final String text) {
+        return dependency.receiveText(text);
+    }
 }

@@ -14,30 +14,47 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 *#
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <artifactId>${rootArtifactId}</artifactId>
+        <groupId>${groupId}</groupId>
+        <version>${version}</version>
+    </parent>
     <groupId>${groupId}</groupId>
     <artifactId>${artifactId}</artifactId>
     <version>${version}</version>
-    <packaging>war</packaging>
+    <packaging>jar</packaging>
 
-    <name>${projectName}</name>
+    <name>My Command Line Application</name>
 
 #set( $symbol_dollar = '$' )
     <dependencies>
 
         <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>servlet-api</artifactId>
-            <version>2.4</version>
-            <scope>provided</scope>
+            <groupId>myproject</groupId>
+            <artifactId>my-impl</artifactId>
+            <version>${symbol_dollar}{project.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.fluidity.public</groupId>
-            <artifactId>fluid-tools-web-application</artifactId>
+            <artifactId>fluid-tools-cli-application</artifactId>
             <version>${symbol_dollar}{fluid.tools.version}</version>
             <type>pom</type>
+        </dependency>
+
+        <dependency>
+            <groupId>org.fluidity.public</groupId>
+            <artifactId>fluid-tools-commons-logging</artifactId>
+            <version>${symbol_dollar}{fluid.tools.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>commons-logging</groupId>
+            <artifactId>commons-logging</artifactId>
+            <version>1.1.1</version>
         </dependency>
 
     </dependencies>
@@ -48,7 +65,7 @@ limitations under the License.
             <plugin>
                 <groupId>org.fluidity.maven</groupId>
                 <artifactId>maven-composition-plugin</artifactId>
-                <version>${symbol_dollar}{fluid.tools.version}</version>
+                <version>${fluid.tools.version}</version>
                 <executions>
                     <execution>
                         <goals>
@@ -58,16 +75,25 @@ limitations under the License.
                 </executions>
             </plugin>
 
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>2.3.1</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+
+                            <!-- Use can use your own main class of course, unless you want component deployment -->
+                            <mainClass>org.fluidity.deployment.cli.CommandLineBootstrap</mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
 
             <plugin>
                 <groupId>org.fluidity.maven</groupId>
-                <artifactId>maven-standalone-war-plugin</artifactId>
+                <artifactId>maven-standalone-jar-plugin</artifactId>
                 <version>${symbol_dollar}{fluid.tools.version}</version>
-<!--
-                <configuration>
-                    <commandLineOnly>true</commandLineOnly>
-                </configuration>
--->
                 <executions>
                     <execution>
                         <goals>
@@ -78,21 +104,9 @@ limitations under the License.
                 <dependencies>
 
                     <dependency>
-                        <groupId>org.fluidity.deployment</groupId>
-                        <artifactId>war-bootstrap-jetty-impl</artifactId>
-                        <version>${symbol_dollar}{fluid.tools.version}</version>
-                    </dependency>
-
-                    <dependency>
                         <groupId>org.fluidity.public</groupId>
-                        <artifactId>fluid-tools-commons-logging</artifactId>
+                        <artifactId>fluid-tools-cli-manifest</artifactId>
                         <version>${symbol_dollar}{fluid.tools.version}</version>
-                    </dependency>
-
-                    <dependency>
-                        <groupId>commons-logging</groupId>
-                        <artifactId>commons-logging</artifactId>
-                        <version>1.1.1</version>
                     </dependency>
 
                 </dependencies>

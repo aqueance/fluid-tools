@@ -12,7 +12,10 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-*#package ${package};
+*##set( $symbol_pound = '#' )#*
+*##set( $symbol_dollar = '$' )#*
+*##set( $symbol_escape = '\' )#*
+*#package ${packageInPathFormat};
 
 import java.io.IOException;
 
@@ -27,26 +30,26 @@ import org.fluidity.composition.Component;
 @Component(api = MyServlet.class)
 public class MyServlet extends HttpServlet {
 
-    private final EchoText sink;
+    private final ComponentApi sink;
 
-    public MyServlet(final EchoText sink) {
+    public MyServlet(final ComponentApi sink) {
         this.sink = sink;
     }
 
     public void init(final ServletConfig config) throws ServletException {
-        sink.receiveText("--- Servlet initialized. Press Ctrl-C to terminate it.");
+        sink.sendText("--- Servlet initialized. Press Ctrl-C to terminate it.");
     }
     public void destroy() {
-        sink.receiveText("--- Servlet destroyed.");
+        sink.sendText("--- Servlet destroyed.");
     }
 
     @Override
     protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
-        sink.receiveText("--- Servlet received a GET request");
+        sink.sendText("--- Servlet received a GET request");
     }
 
     @Override
     protected void doPost(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
-        sink.receiveText("--- Servlet received a POST request");
+        sink.sendText("--- Servlet received a POST request");
     }
 }

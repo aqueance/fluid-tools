@@ -15,21 +15,37 @@ limitations under the License.
 *##set( $symbol_pound = '#' )#*
 *##set( $symbol_dollar = '$' )#*
 *##set( $symbol_escape = '\' )#*
-*#package ${package};
+*#package ${packageInPathFormat};
 
+import org.fluidity.foundation.logging.Log;
+import org.fluidity.foundation.logging.Source;
 import org.fluidity.composition.Component;
 import org.fluidity.deployment.cli.Application;
 
 @Component
 final class MyApplication implements Application {
 
-    private final EchoText sink;
+    private final ComponentApi sink;
 
-    public MyApplication(final EchoText sink) {
+    public MyApplication(final ComponentApi sink) {
         this.sink = sink;
     }
 
     public void run(final String[] args) {
-        sink.receiveText("--- Hello from the main application!");
+        sink.sendText("--- Hello from the main application!");
+    }
+
+    @Component
+    private static class EchoText implements ComponentApi.MessageSink {
+        private final Log log;
+
+        public EchoText(final @Source(EchoText.class) Log log) {
+            this.log = log;
+        }
+
+        public boolean receiveText(String text) {
+            log.info(text);
+            return true;
+        }
     }
 }

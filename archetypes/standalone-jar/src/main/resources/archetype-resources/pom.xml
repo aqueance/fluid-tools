@@ -27,12 +27,6 @@ limitations under the License.
     <dependencies>
 
         <dependency>
-            <groupId>${groupId}</groupId>
-            <artifactId>${implArtifactId}</artifactId>
-            <version>${symbol_dollar}{project.version}</version>
-        </dependency>
-
-        <dependency>
             <groupId>org.fluidity.public</groupId>
             <artifactId>fluid-tools-cli-application</artifactId>
             <version>${symbol_dollar}{fluid.tools.version}</version>
