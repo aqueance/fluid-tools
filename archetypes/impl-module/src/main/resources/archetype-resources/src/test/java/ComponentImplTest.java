@@ -12,11 +12,10 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-*#
-#set( $symbol_pound = '#' )
-#set( $symbol_dollar = '$' )
-#set( $symbol_escape = '\' )
-package ${package};
+*##set( $symbol_pound = '#' )#*
+*##set( $symbol_dollar = '$' )#*
+*##set( $symbol_escape = '\' )#*
+*#package ${package};
 
 import org.easymock.EasyMock;
 import org.fluidity.tests.MockGroupAbstractTest;
@@ -27,7 +26,7 @@ public final class ComponentImplTest extends MockGroupAbstractTest {
 
     private final ComponentApi.MessageSink dependency = mock(ComponentApi.MessageSink.class);
 
-    private final ComponentApi testee = new ComponentImpl(dependency);
+    private final ComponentApi subject = new ComponentImpl(dependency);
 
     @Test
     public void sendsText() throws Exception {
@@ -39,8 +38,8 @@ public final class ComponentImplTest extends MockGroupAbstractTest {
 
         replay();
 
-        Assert.assertTrue(testee.sendText(accepted));
-        Assert.assertFalse(testee.sendText(rejected));
+        Assert.assertTrue(subject.sendText(accepted));
+        Assert.assertFalse(subject.sendText(rejected));
 
         verify();
     }

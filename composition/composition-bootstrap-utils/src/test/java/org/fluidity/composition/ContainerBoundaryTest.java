@@ -86,12 +86,12 @@ public class ContainerBoundaryTest extends MockGroupAbstractTest {
             boundary.setBindingProperty(entry.getKey(), entry.getValue());
         }
 
-        // make testee receive its dependencies from the top-level class loader
+        // make subject receive its dependencies from the top-level class loader
         setupDependencies(classLoader, true);
 
         final ContainerBootstrap.Callback callback[] = new ContainerBootstrap.Callback[1];
 
-        // give testee a container for that class loader
+        // give subject a container for that class loader
         EasyMock.expect(bootstrap.populateContainer(EasyMock.same(services),
                                                     EasyMock.same(provider),
                                                     EasyMock.<Properties>notNull(),
@@ -151,21 +151,21 @@ public class ContainerBoundaryTest extends MockGroupAbstractTest {
             classLoaders.add(cl);
         }
 
-        // make testee receive no dependency for all class loaders except ours
+        // make subject receive no dependency for all class loaders except ours
         for (final ListIterator<ClassLoader> i = classLoaders.listIterator(classLoaders.size()); i.hasPrevious();) {
             ClassLoader cl = i.previous();
 
-            // make testee receive its dependencies from the top-level class loader
+            // make subject receive its dependencies from the top-level class loader
             setupDependencies(cl, false);
         }
 
-        // make testee receive its dependencies from our class loader
-        // make testee receive its dependencies from the top-level class loader
+        // make subject receive its dependencies from our class loader
+        // make subject receive its dependencies from the top-level class loader
         setupDependencies(getClass().getClassLoader(), true);
 
         final ContainerBootstrap.Callback callback[] = new ContainerBootstrap.Callback[1];
 
-        // give testee a container for our class loader
+        // give subject a container for our class loader
         EasyMock.expect(bootstrap.populateContainer(EasyMock.same(services),
                                                     EasyMock.same(provider),
                                                     EasyMock.<Properties>notNull(),
@@ -227,7 +227,7 @@ public class ContainerBoundaryTest extends MockGroupAbstractTest {
         // find the top level class loader
         final ClassLoader classLoader = classLoaders.get(classLoaders.size() - 1);
 
-        // make testee receive its dependencies from the top-level class loader
+        // make subject receive its dependencies from the top-level class loader
         setupDependencies(classLoader, true);
 
         // go through the whole class loader ancestry
@@ -237,7 +237,7 @@ public class ContainerBoundaryTest extends MockGroupAbstractTest {
 
             final ContainerBootstrap.Callback callback[] = new ContainerBootstrap.Callback[1];
 
-            // make testee receive a container (the same) at each level
+            // make subject receive a container (the same) at each level
             EasyMock.expect(bootstrap.populateContainer(EasyMock.same(services),
                                                         EasyMock.same(provider),
                                                         EasyMock.<Properties>notNull(),
@@ -302,12 +302,12 @@ public class ContainerBoundaryTest extends MockGroupAbstractTest {
         final ContainerBoundary boundary = new ContainerBoundary(classLoader);
         boundary.reset(providers);
 
-        // make testee receive its dependencies from the top-level class loader
+        // make subject receive its dependencies from the top-level class loader
         setupDependencies(classLoader, true);
 
         final ContainerBootstrap.Callback callback[] = new ContainerBootstrap.Callback[1];
 
-        // give testee a container for that class loader
+        // give subject a container for that class loader
         EasyMock.expect(bootstrap.populateContainer(EasyMock.same(services),
                                                     EasyMock.same(provider),
                                                     EasyMock.<Properties>notNull(),

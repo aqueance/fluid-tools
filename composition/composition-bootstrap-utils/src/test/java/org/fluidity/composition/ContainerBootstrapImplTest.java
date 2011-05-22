@@ -189,7 +189,7 @@ public final class ContainerBootstrapImplTest extends MockGroupAbstractTest {
         DependentPackageBindingsImpl.bindings = bindings;
         ++watched;
 
-        // we're passing a parent to testee is expected to as for a child container
+        // we're passing a parent to subject is expected to as for a child container
         EasyMock.expect(parent.makeChildContainer()).andReturn(container);
         EasyMock.expect(parent.getComponent(EasyMock.<Class<?>>anyObject())).andReturn(null);
         EasyMock.expect(discovery.findComponentClasses(PackageBindings.class, null, true)).andReturn(assemblies);
@@ -217,7 +217,7 @@ public final class ContainerBootstrapImplTest extends MockGroupAbstractTest {
     @Test
     public void standaloneComponentAssembly() throws Exception {
 
-        // we're not passing a container so testee is expected to create one
+        // we're not passing a container so subject is expected to create one
         EasyMock.expect(provider.newContainer(services, platform)).andReturn(container);
         EasyMock.expect(container.getRegistry()).andReturn(registry);
 
@@ -250,7 +250,7 @@ public final class ContainerBootstrapImplTest extends MockGroupAbstractTest {
     @Test
     public void bindingProperties() throws Exception {
 
-        // we're passing a parent to testee is expected to as for a child container
+        // we're passing a parent to subject is expected to as for a child container
         EasyMock.expect(parent.makeChildContainer()).andReturn(container);
         EasyMock.expect(parent.getComponent(EasyMock.<Class<?>>anyObject())).andReturn(null);
         EasyMock.expect(discovery.findComponentClasses(PackageBindings.class, null, true)).andReturn(new Class[0]);
