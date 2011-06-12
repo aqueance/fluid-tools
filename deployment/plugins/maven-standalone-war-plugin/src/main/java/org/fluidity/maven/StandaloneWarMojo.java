@@ -67,6 +67,7 @@ import org.sonatype.aether.repository.RemoteRepository;
  * @author Tibor Varga
  * @goal package
  * @phase package
+ * @threadSafe
  */
 public class StandaloneWarMojo extends AbstractMojo {
 
