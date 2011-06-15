@@ -58,7 +58,7 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
 
     private final ServiceInterface1 service1 = mock(ServiceInterface1.class);
     private final ServiceInterface2 service2 = mock(ServiceInterface2.class);
-    private final Whiteboard.Item item = mock(Whiteboard.Item.class);
+    private final Whiteboard.Managed item = mock(Whiteboard.Managed.class);
 
     private final ServiceRegistration registration = mock(ServiceRegistration.class);
 
@@ -68,11 +68,14 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
     private final Consumer consumer1 = mock(Consumer.class);
     private final Consumer consumer2 = mock(Consumer.class);
 
-    private final Whiteboard.Item component1 = mock(Whiteboard.Item.class);
-    private final Whiteboard.Item component2 = mock(Whiteboard.Item.class);
-    private final Whiteboard.Item component3 = mock(Whiteboard.Item.class);
-    private final Whiteboard.Item component4 = mock(Whiteboard.Item.class);
-    private final Whiteboard.Item component5 = mock(Whiteboard.Item.class);
+    private final Whiteboard.Managed component1 = mock(Whiteboard.Managed.class);
+    private final Whiteboard.Managed component2 = mock(Whiteboard.Managed.class);
+    private final Whiteboard.Managed component3 = mock(Whiteboard.Managed.class);
+    private final Whiteboard.Managed component4 = mock(Whiteboard.Managed.class);
+    private final Whiteboard.Managed component5 = mock(Whiteboard.Managed.class);
+
+    private final Whiteboard.Listener listener1 = mock(Whiteboard.Listener.class);
+    private final Whiteboard.Listener listener2 = mock(Whiteboard.Listener.class);
 
     @SuppressWarnings("unchecked")
     private final Whiteboard.EventSource<Consumer> source = mock(Whiteboard.EventSource.class);
@@ -89,6 +92,11 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
         Cluster2Component1.delegate = component3;
         Cluster2Component2.delegate = component4;
         Cluster3Component1.delegate = component5;
+    }
+
+    private void noListener() {
+        EasyMock.expect(listener1.types()).andReturn(new Class[0]).anyTimes();
+        EasyMock.expect(listener2.types()).andReturn(new Class[0]).anyTimes();
     }
 
     @Test
@@ -123,6 +131,13 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
                                                 EasyMock.same(properties)))
                 .andReturn(registration);
 
+
+        final ListenerState listenerState1 = new ListenerState(this.listener1, Service1.class);
+        final ListenerState listenerState2 = new ListenerState(this.listener2, Service1.class);
+
+        listenerState1.starting(true);
+        listenerState2.starting(true);
+
         replay();
         whiteboard.start();
         verify();
@@ -130,6 +145,9 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
         // un-registering the service
         registration.unregister();
         Service1.delegate.stop();
+
+        listenerState1.stopping(true);
+        listenerState2.stopping(true);
 
         replay();
         whiteboard.stop();
@@ -187,6 +205,8 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
         EasyMock.expect(child.getComponent(componentClass)).andReturn(dependent);
         ServiceDependent1.delegate.start();
 
+        noListener();
+
         replay();
         spec.listener().serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED, reference2));
         verify();
@@ -198,6 +218,8 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
         EasyMock.expect(context.ungetService(reference1)).andReturn(false);
 
         ServiceDependent1.delegate.stop();
+
+        noListener();
 
         replay();
         spec.listener().serviceChanged(new ServiceEvent(ServiceEvent.UNREGISTERING, reference2));
@@ -217,6 +239,8 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
         EasyMock.expect(child.getComponent(componentClass)).andReturn(dependent);
         ServiceDependent1.delegate.start();
 
+        noListener();
+
         replay();
         spec.listener().serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED, reference1));
         verify();
@@ -228,6 +252,8 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
         EasyMock.expect(context.ungetService(reference2)).andReturn(false);
 
         ServiceDependent1.delegate.stop();
+
+        noListener();
 
         replay();
         spec.listener().serviceChanged(new ServiceEvent(ServiceEvent.UNREGISTERING, reference2));
@@ -294,6 +320,8 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
         EasyMock.expect(child.getComponent(componentClass)).andReturn(dependent);
         ServiceDependent1.delegate.start();
 
+        noListener();
+
         replay();
         spec.listener().serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED, reference2));
         verify();
@@ -305,6 +333,8 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
         EasyMock.expect(context.ungetService(reference1)).andReturn(false);
 
         ServiceDependent1.delegate.stop();
+
+        noListener();
 
         replay();
         spec.listener().serviceChanged(new ServiceEvent(ServiceEvent.UNREGISTERING, reference2));
@@ -322,7 +352,10 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
         registry.bindInstance(service2, ServiceInterface2.class);
         registry.bindComponent(componentClass);
         EasyMock.expect(child.getComponent(componentClass)).andReturn(dependent);
+
         ServiceDependent1.delegate.start();
+
+        noListener();
 
         replay();
         spec.listener().serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED, reference1));
@@ -332,6 +365,8 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
         context.removeServiceListener(spec.listener());
 
         ServiceDependent1.delegate.stop();
+
+        noListener();
 
         replay();
         whiteboard.stop();
@@ -373,6 +408,8 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
         EasyMock.expect(child.getComponent(componentClass)).andReturn(dependent);
         ServiceDependent2.delegate.start();
 
+        noListener();
+
         replay();
         whiteboard.start();
         verify();
@@ -383,6 +420,8 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
         context.removeServiceListener(spec.listener());
 
         ServiceDependent2.delegate.stop();
+
+        noListener();
 
         replay();
         whiteboard.stop();
@@ -414,6 +453,8 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
         registry.bindComponent(componentClass);
         EasyMock.expect(child.getComponent(componentClass)).andReturn(source);
         Source.delegate.start();
+
+        noListener();
 
         replay();
         whiteboard.start();
@@ -486,6 +527,8 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
         context.removeServiceListener(spec.listener());
         Source.delegate.stop();
 
+        noListener();
+
         replay();
         whiteboard.stop();
         verify();
@@ -520,6 +563,8 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
         registry.bindComponent(componentClass);
         EasyMock.expect(child.getComponent(componentClass)).andReturn(source);
         Source.delegate.start();
+
+        noListener();
 
         replay();
         whiteboard.start();
@@ -559,6 +604,8 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
         // removing the event source
         context.removeServiceListener(spec.listener());
         Source.delegate.stop();
+
+        noListener();
 
         replay();
         whiteboard.stop();
@@ -638,6 +685,12 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
         Cluster2Component1.delegate.start();
         Cluster2Component2.delegate.start();
 
+        final ListenerState listenerState1 = new ListenerState(this.listener1, Cluster2Component1.class);
+        final ListenerState listenerState2 = new ListenerState(this.listener2, Cluster2Component2.class);
+
+        listenerState1.starting(true);
+        listenerState2.starting(true);
+
         replay();
         for (final ListenerSpec listener : service1Listeners) {
             listener.listener().serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED, reference1));
@@ -673,6 +726,9 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
         Cluster1Component1.delegate.start();
         Cluster1Component2.delegate.start();
 
+        listenerState1.starting(false);
+        listenerState2.starting(false);
+
         replay();
         for (final ListenerSpec listener : service2Listeners) {
             listener.listener().serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED, reference2));
@@ -689,6 +745,9 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
         Cluster1Component2.delegate.stop();
         Cluster2Component1.delegate.stop();
         Cluster2Component2.delegate.stop();
+
+        listenerState1.stopping(true);
+        listenerState2.stopping(true);
 
         replay();
         for (final ListenerSpec listener : service1Listeners) {
@@ -728,6 +787,9 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
         Cluster1Component1.delegate.start();
         Cluster1Component2.delegate.start();
 
+        listenerState1.starting(true);
+        listenerState2.starting(true);
+
         replay();
         for (final ListenerSpec listener : service1Listeners) {
             listener.listener().serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED, reference1));
@@ -744,6 +806,9 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
         Cluster1Component2.delegate.stop();
         Cluster3Component1.delegate.stop();
 
+        listenerState1.stopping(false);
+        listenerState2.stopping(false);
+
         replay();
         for (final ListenerSpec listener : service2Listeners) {
             listener.listener().serviceChanged(new ServiceEvent(ServiceEvent.UNREGISTERING, reference2));
@@ -758,6 +823,9 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
 
         Cluster2Component1.delegate.stop();
         Cluster2Component2.delegate.stop();
+
+        listenerState1.stopping(true);
+        listenerState2.stopping(true);
 
         replay();
         for (final ListenerSpec listener : service1Listeners) {
@@ -780,6 +848,9 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
 
         Cluster3Component1.delegate.start();
 
+        listenerState1.starting(false);
+        listenerState2.starting(false);
+
         replay();
         for (final ListenerSpec listener : service2Listeners) {
             listener.listener().serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED, reference2));
@@ -790,7 +861,11 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
         context.removeServiceListener(listener1.listener());
         context.removeServiceListener(listener2.listener());
         context.removeServiceListener(listener3.listener());
+
         Cluster3Component1.delegate.stop();
+
+        listenerState1.stopping(false);
+        listenerState2.stopping(false);
 
         replay();
         whiteboard.stop();
@@ -817,10 +892,10 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
     }
 
     private Whiteboard discover(final Class... types) {
-        EasyMock.expect(discovery.findComponentClasses(Whiteboard.Item.class, WhiteboardImpl.class.getClassLoader(), false)).andReturn(types);
+        EasyMock.expect(discovery.findComponentClasses(Whiteboard.Managed.class, WhiteboardImpl.class.getClassLoader(), false)).andReturn(types);
 
         replay();
-        final Whiteboard whiteboard = new WhiteboardImpl(context, container, logs, injector, discovery);
+        final Whiteboard whiteboard = new WhiteboardImpl(context, container, logs, injector, discovery, listener1, listener2);
         verify();
 
         return whiteboard;
@@ -877,6 +952,48 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
         }
     }
 
+    private static class ListenerState {
+
+        private final Whiteboard.Listener listener;
+        private final Class<?> type;
+
+        private Whiteboard.Managed component;
+
+        public ListenerState(final Whiteboard.Listener listener, final Class<?> type) {
+            this.listener = listener;
+            this.type = type;
+        }
+
+        public void starting(final boolean invoked) {
+            EasyMock.expect(listener.types()).andReturn(new Class[] { type }).anyTimes();
+
+            if (invoked) {
+                listener.started(EasyMock.same(type), EasyMock.<Whiteboard.Managed>notNull());
+                EasyMock.expectLastCall().andAnswer(new IAnswer<Void>() {
+                    public Void answer() throws Throwable {
+                        component = (Whiteboard.Managed) EasyMock.getCurrentArguments()[1];
+                        return null;
+                    }
+                });
+            }
+        }
+
+        public void stopping(final boolean invoked) {
+            EasyMock.expect(listener.types()).andReturn(new Class[] { type }).anyTimes();
+
+            if (invoked) {
+                listener.stopping(EasyMock.same(type), EasyMock.<Whiteboard.Managed>notNull());
+                EasyMock.expectLastCall().andAnswer(new IAnswer<Void>() {
+                    public Void answer() throws Throwable {
+                        assert component == EasyMock.getCurrentArguments()[1];
+                        component = null;
+                        return null;
+                    }
+                });
+            }
+        }
+    }
+
     public static interface ServiceInterface1 extends Whiteboard.Registration { }
 
     public static interface ServiceInterface2 extends Whiteboard.Registration { }
@@ -923,9 +1040,9 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
         }
     }
 
-    public static final class ServiceDependent1 implements Whiteboard.Item {
+    public static final class ServiceDependent1 implements Whiteboard.Managed {
 
-        private static Whiteboard.Item delegate;
+        private static Whiteboard.Managed delegate;
 
         public ServiceDependent1(final @Service ServiceInterface1 service1, final @Service ServiceInterface2 service2) {
             assert service1 != null;
@@ -941,9 +1058,9 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
         }
     }
 
-    public static final class ServiceDependent2 implements Whiteboard.Item {
+    public static final class ServiceDependent2 implements Whiteboard.Managed {
 
-        private static Whiteboard.Item delegate;
+        private static Whiteboard.Managed delegate;
 
         public ServiceDependent2(final @Service(filter = "filter-1") ServiceInterface1 service1, final @Service(filter = "filter-2") ServiceInterface2 service2) {
             assert service1 != null;
@@ -959,7 +1076,7 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
         }
     }
 
-    public static interface Consumer extends Whiteboard.Item { }
+    public static interface Consumer extends Whiteboard.Managed { }
 
     public static class Source implements Whiteboard.EventSource<Consumer> {
 
@@ -987,9 +1104,9 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
     }
 
     @SuppressWarnings("UnusedParameters")
-    public static class Cluster1Component1 implements Whiteboard.Item {
+    public static class Cluster1Component1 implements Whiteboard.Managed {
 
-        private static Whiteboard.Item delegate;
+        private static Whiteboard.Managed delegate;
 
         public Cluster1Component1(final @Service ServiceInterface1 service1, final Cluster1Component2 dependency) {
             // empty
@@ -1005,9 +1122,9 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
     }
 
     @SuppressWarnings("UnusedParameters")
-    public static class Cluster1Component2 implements Whiteboard.Item {
+    public static class Cluster1Component2 implements Whiteboard.Managed {
 
-        private static Whiteboard.Item delegate;
+        private static Whiteboard.Managed delegate;
 
         public Cluster1Component2(final @Service ServiceInterface2 service2) {
             // empty
@@ -1023,9 +1140,9 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
     }
 
     @SuppressWarnings("UnusedParameters")
-    public static class Cluster2Component1 implements Whiteboard.Item {
+    public static class Cluster2Component1 implements Whiteboard.Managed {
 
-        private static Whiteboard.Item delegate;
+        private static Whiteboard.Managed delegate;
 
         public Cluster2Component1(final Cluster2Component2 dependency) {
             // empty
@@ -1041,9 +1158,9 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
     }
 
     @SuppressWarnings("UnusedParameters")
-    public static class Cluster2Component2 implements Whiteboard.Item {
+    public static class Cluster2Component2 implements Whiteboard.Managed {
 
-        private static Whiteboard.Item delegate;
+        private static Whiteboard.Managed delegate;
 
         public Cluster2Component2(final @Service ServiceInterface1 service1) {
             // empty
@@ -1059,9 +1176,9 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
     }
 
     @SuppressWarnings("UnusedParameters")
-    public static class Cluster3Component1 implements Whiteboard.Item {
+    public static class Cluster3Component1 implements Whiteboard.Managed {
 
-        private static Whiteboard.Item delegate;
+        private static Whiteboard.Managed delegate;
 
         public Cluster3Component1(final @Service ServiceInterface2 service2) {
         }

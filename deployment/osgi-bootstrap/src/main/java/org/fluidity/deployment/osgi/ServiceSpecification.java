@@ -71,4 +71,9 @@ class ServiceSpecification {
         result = 31 * result + (filter != null ? filter.hashCode() : 0);
         return result;
     }
+
+    @Override
+    public String toString() {
+        return filter == null || filter.isEmpty() ? api.toString() : String.format("%s '%s'", api, filter);
+    }
 }

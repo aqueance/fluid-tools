@@ -22,11 +22,13 @@ import org.fluidity.composition.ComponentGroup;
 @ComponentGroup
 public interface SimpleServiceProvider { }
 
+interface ExtendedServiceProvider extends SimpleServiceProvider { }
+
 @Component
 class SimpleServiceConsumer {
 
     SimpleServiceConsumer(final @ComponentGroup SimpleServiceProvider[] providers) {
-        assert providers.length == 4 : providers.length;
+        assert providers.length == 7 : providers.length;
     }
 }
 
@@ -40,3 +42,9 @@ class SimpleServiceProvider4 implements SimpleServiceProvider { }
 
 @Component(automatic = false)
 class SimpleServiceProvider5 implements SimpleServiceProvider { }
+
+class SimpleServiceProvider6 extends SimpleServiceProvider1 { }
+
+class SimpleServiceProvider7 extends SimpleServiceProvider6 { }
+
+class SimpleServiceProvider8 implements ExtendedServiceProvider { }

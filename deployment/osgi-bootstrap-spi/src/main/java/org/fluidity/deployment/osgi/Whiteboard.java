@@ -18,10 +18,11 @@ package org.fluidity.deployment.osgi;
 
 import java.util.Properties;
 
+import org.fluidity.composition.ComponentGroup;
 import org.fluidity.composition.ServiceProvider;
 
 /**
- * Sugar coating over the OSGi service registry: allows components to
+ * Sugar coating over the OSGi service registry: allows whiteboard managed components to
  * <ul>
  * <li>declare dependencies on OSGi services and
  * <ul>
@@ -29,33 +30,33 @@ import org.fluidity.composition.ServiceProvider;
  * <li>get stopped and discarded when any of those services become unavailable</li>
  * </ul>
  * </li>
- * <li>register OSGi services</li>
+ * <li>get registered as OSGi service</li>
  * <li>get notified when OSGi services become available and unavailable</li>
  * </ul>
  * <p/>
  * <b>Depending on OSGi Services</b>
  * <p/>
- * The {@link org.fluidity.deployment.osgi.Whiteboard.Item}'s constructor parameters annotated with @{@link Service} are dependencies to OSGi services while parameters not so
- * annotated are ordinary dependencies. When all of the OSGi services depended on become available, the component is instantiated and its {@link #start()}
- * method is invoked to start the component. The {@link #stop()} method of the component will be invoked when any of those OSGi services becomes unavailable.
+ * The {@link Managed} component's constructor parameters annotated with @{@link Service} are dependencies to OSGi services while parameters not so annotated
+ * are ordinary dependencies. When all of the OSGi services depended on become available, the component is instantiated and its {@link #start()} method is
+ * invoked to start the component. The {@link #stop()} method of the component will be invoked when any of those OSGi services becomes unavailable and then
+ * the component instance is discarded.
  * <p/>
- * <b>Registering OSGi Services</b>
+ * <b>Getting registered as OSGi Service</b>
  * <p/>
- * {@link Whiteboard.Registration} components are {@link org.fluidity.deployment.osgi.Whiteboard.Item}s that are registered as OSGi services when all OSGi services they depend on
- * become available and get unregistered when any of those become unavailable.
+ * {@link Registration} components are {@link Managed} components that are registered as OSGi services when all OSGi services they depend on become available
+ * and get unregistered when any of those become unavailable.
  * <p/>
  * <b>Notification about OSGi Service Registration Events</b>
  * <p/>
- * {@link Whiteboard.EventSource} components are {@link org.fluidity.deployment.osgi.Whiteboard.Item}s that receive notifications about OSGi service registration and unregistration
- * events.
+ * {@link EventSource} components are {@link Managed} components that receive notifications about OSGi service registration and unregistration events.
  * <p/>
  * The same whiteboard component may at the same time be a registered OSGi service and may receive notifications about OSGi service registration events by
  * implementing both {@link Registration} and {@link EventSource}.
  * <p/>
- * The whiteboard loads and manages all {@link org.fluidity.deployment.osgi.Whiteboard.Item}s visible to its class loader, which is the OSGi bundle class loader. Components with
- * direct dependencies - i.e., those without the @{@link Service} annotation - to one another are grouped and their combined set of @{@link Service}
- * dependencies are consulted to determine when to instantiated or stop and discard all components in the group. Independent component groups are instantiated
- * and discarded independently.
+ * The whiteboard loads and manages all {@link org.fluidity.deployment.osgi.Whiteboard.Managed} components visible to its class loader, which is the OSGi
+ * bundle class loader. Components with direct dependencies - i.e., those without the @{@link Service} annotation - to one another are grouped and their
+ * combined set of @{@link Service} dependencies are consulted to determine when to instantiated or discard all components in the group. Independent component
+ * groups are instantiated and discarded independently.
  *
  * @author Tibor Varga
  */
@@ -71,13 +72,37 @@ public interface Whiteboard {
      */
     void stop();
 
+    @ComponentGroup
+    interface Listener {
+
+        Class<?>[] types();
+
+        /**
+         * Notifies the receiver that the given whiteboard managed components have been started and are ready to be used. The objects are proxies and the
+         * supplied array contains only those components that registered only against interfaces.
+         *
+         * @param type      the component type as listed by {@link #types()} an instance of which has just been started.
+         * @param component the component that has just been started.
+         */
+        void started(Class<?> type, Object component);
+
+        /**
+         * Notifies the receiver that the whiteboard managed components for the given service types have been stopped and are no longer usable.
+         *
+         * @param type      the component type as listed by {@link #types()} the current instance of which is about to be stopped.
+         * @param component the component that is about to be stopped.
+         */
+        void stopping(Class<?> type, Object component);
+    }
+
     /**
-     * Denotes a whiteboard component. Whiteboard components may have two kinds of arguments: OSGi service interfaces annotated with {@link Service} and
-     * ordinary types denoting dependency injected components. When all OSGi services become dependencies become available, the component is instantiated. The
-     * {@link #stop()} method of the component is invoked to stop the component if any of the services become unavailable.
+     * A whiteboard managed component that will be discovered and added to the whiteboard. Whiteboard managed components may have two kinds of dependencies:
+     * OSGi service interfaces annotated with @{@link Service} and ordinary types denoting dependency injected components. When all OSGi services dependencies
+     * become available, the component is instantiated and its {@link #start()} method is invoked. The {@link #stop()} method of the component is invoked to
+     * stop the component if any of the services become unavailable and then the instance is discarded.
      */
     @ServiceProvider(type = "whiteboard")
-    interface Item extends Stoppable {
+    interface Managed extends Stoppable {
 
         /**
          * Starts the receiver.
@@ -88,20 +113,19 @@ public interface Whiteboard {
     }
 
     /**
-     * Denotes an OSGi service that will be registered when the host bundle is started. A service registration is also a whiteboard {@link org.fluidity.deplo
-          * yment.osgi.Whiteboard.Item} and the
+     * Denotes an OSGi service that will be registered when the host bundle is started. A service registration is also a whiteboard {@link Managed} and the
      * start / stop logic described therein equally applies.
      *
      * @author Tibor Varga
      */
-    interface Registration<T> extends Item {
+    interface Registration extends Managed {
 
         /**
          * Returns the list of classes this service is to be registered as.
          *
          * @return the list of classes this service is to be registered as.
          */
-        Class<? super T>[] types();
+        Class<?>[] types();
 
         /**
          * Returns the registration properties for this service, if any.
@@ -112,10 +136,11 @@ public interface Whiteboard {
     }
 
     /**
-     * An event source that wishes to receive notification about event client registration as per the Whiteboard pattern. An event source is also a whiteboard
-     * {@link org.fluidity.deployment.osgi.Whiteboard.Item} and the start / stop logic described therein equally applies.
+     * An event source that wishes to receive notification about event consumer registration as per the Whiteboard pattern. An event source is also a
+     * whiteboard
+     * {@link org.fluidity.deployment.osgi.Whiteboard.Managed} and the start / stop logic described therein equally applies.
      */
-    interface EventSource<T> extends Item {
+    interface EventSource<T> extends Managed {
 
         /**
          * Returns the class event consumers are expected to register as. Service registrations only against the name of the returned class will be recognized

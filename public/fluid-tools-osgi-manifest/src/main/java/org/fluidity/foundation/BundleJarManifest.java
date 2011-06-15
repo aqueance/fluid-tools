@@ -54,8 +54,8 @@ public class BundleJarManifest implements JarManifest {
 
     private final Method run = Methods.get(Command.class, new Methods.Invoker<Command>() {
         @SuppressWarnings("unchecked")
-        public void invoke(final Command dummy) {
-            dummy.run(null);
+        public void invoke(final Command capture) {
+            capture.run(null);
         }
     });
 

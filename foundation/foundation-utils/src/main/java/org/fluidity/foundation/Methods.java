@@ -64,7 +64,7 @@ public final class Methods {
 
     public static interface Invoker<T> {
 
-        void invoke(T dummy);
+        void invoke(T capture);
     }
 
     private static class Capture extends UnsupportedOperationException {

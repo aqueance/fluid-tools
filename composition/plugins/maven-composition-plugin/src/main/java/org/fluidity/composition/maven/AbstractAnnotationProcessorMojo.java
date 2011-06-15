@@ -89,8 +89,8 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
 
     protected AbstractAnnotationProcessorMojo() {
         implementedMethod = Methods.get(PackageBindings.class, new Methods.Invoker<PackageBindings>() {
-            public void invoke(final PackageBindings dummy) {
-                dummy.bindComponents(null);
+            public void invoke(final PackageBindings capture) {
+                capture.bindComponents(null);
             }
         });
 
@@ -100,8 +100,8 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
 
         invokedMethod = Methods.get(ComponentContainer.Registry.class, new Methods.Invoker<ComponentContainer.Registry>() {
             @SuppressWarnings("unchecked")
-            public void invoke(final ComponentContainer.Registry dummy) {
-                dummy.bindComponent(null);
+            public void invoke(final ComponentContainer.Registry capture) {
+                capture.bindComponent(null);
             }
         });
 
@@ -250,8 +250,7 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
-    private void generateBindingClass(final String className, final Set<String> bindings, final File classesDirectory)
-            throws MojoExecutionException {
+    private void generateBindingClass(final String className, final Set<String> bindings, final File classesDirectory) throws MojoExecutionException {
         final ClassWriter generator = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
         generator.visit(V1_5, ACC_FINAL | ACC_PUBLIC, ClassReaders.internalName(className), null, EMPTY_BINDINGS_CLASS_NAME, null);
 
@@ -272,9 +271,7 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
             final String implementedDesc = Type.getMethodDescriptor(implementedMethod);
             final String invokedDesc = Type.getMethodDescriptor(invokedMethod);
 
-            final MethodVisitor method = generator.visitMethod(ACC_PUBLIC, implementedMethod.getName(), implementedDesc,
-                                                               null,
-                                                               null);
+            final MethodVisitor method = generator.visitMethod(ACC_PUBLIC, implementedMethod.getName(), implementedDesc, null, null);
             method.visitCode();
 
             for (final String implementationName : bindings) {
@@ -336,7 +333,7 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
         }
     }
 
-    @SuppressWarnings("ResultOfMethodCallIgnored")
+    @SuppressWarnings({ "ResultOfMethodCallIgnored", "MismatchedQueryAndUpdateOfCollection" })
     private void processClasses(final ClassLoader loader,
                                 final File classesDirectory,
                                 final Map<String, Map<String, Collection<String>>> serviceProviderMap,
@@ -378,72 +375,81 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
 
                 final ClassFlags flags = new ClassFlags();
 
-                final ClassVisitor annotations = new EmptyVisitor() {
-                    private final Type serviceProviderType = Type.getType(ServiceProvider.class);
-                    private final Type componentType = Type.getType(Component.class);
-                    private final Type componentGroupType = Type.getType(ComponentGroup.class);
+                final AnnotationsFactory annotations = new AnnotationsFactory() {
+                    public ClassVisitor visitor(final ClassReader reader) {
+                        return new EmptyVisitor() {
+                            private final Type serviceProviderType = Type.getType(ServiceProvider.class);
+                            private final Type componentType = Type.getType(Component.class);
+                            private final Type componentGroupType = Type.getType(ComponentGroup.class);
 
-                    private final String name = ClassReaders.internalName(className);
-                    private boolean original;
+                            private final String name = ClassReaders.internalName(className);
+                            private boolean original;
 
-                    @Override
-                    public void visit(final int version, final int access, final String name, final String signature, final String superName, final String[] interfaces) {
-                        original = this.name.equals(name);
-                        super.visit(version, access, name, signature, superName, interfaces);
-                    }
+                            @Override
+                            public void visit(final int version,
+                                              final int access,
+                                              final String name,
+                                              final String signature,
+                                              final String superName,
+                                              final String[] interfaces) {
+                                original = this.name.equals(name);
+                                super.visit(version, access, name, signature, superName, interfaces);
+                            }
 
-                    @Override
-                    public FieldVisitor visitField(final int access, final String name, final String desc, final String signature, final Object value) {
-                        if ((access & Opcodes.ACC_SYNTHETIC) != 0) {
-                            flags.dependent = name.startsWith("this$");
-                        }
-
-                        return super.visitField(access, name, desc, signature, value);
-                    }
-
-                    @Override
-                    public AnnotationVisitor visitAnnotation(final String desc, final boolean visible) {
-                        final Type type = Type.getType(desc);
-                        if (serviceProviderType.equals(type)) {
-                            return new ServiceProviderProcessor(repository, classData, new ProcessorCallback<ServiceProviderProcessor>() {
-                                public void complete(final ServiceProviderProcessor processor) {
-                                    final String type = processor.type();
-                                    Set<String> list = serviceProviderApis.get(type);
-
-                                    if (list == null) {
-                                        serviceProviderApis.put(type, list = new HashSet<String>());
-                                    }
-
-                                    list.addAll(processor.apiSet());
-
-                                    if (processor.isDefaultType()) {
-                                        publicApis.addAll(list);
-                                    }
+                            @Override
+                            public FieldVisitor visitField(final int access, final String name, final String desc, final String signature, final Object value) {
+                                if ((access & Opcodes.ACC_SYNTHETIC) != 0) {
+                                    flags.dependent = name.startsWith("this$");
                                 }
-                            });
-                        } else if (componentType.equals(type)) {
-                            return new ComponentProcessor(new ProcessorCallback<ComponentProcessor>() {
-                                public void complete(final ComponentProcessor processor) {
-                                    flags.ignored = original && !processor.isAutomatic();
-                                    flags.component = !ClassReaders.isAbstract(classData) && !ClassReaders.isInterface(classData);
+
+                                return super.visitField(access, name, desc, signature, value);
+                            }
+
+                            @Override
+                            public AnnotationVisitor visitAnnotation(final String desc, final boolean visible) {
+                                final Type type = Type.getType(desc);
+                                if (serviceProviderType.equals(type)) {
+                                    return new ServiceProviderProcessor(repository, reader, new ProcessorCallback<ServiceProviderProcessor>() {
+                                        public void complete(final ServiceProviderProcessor processor) {
+                                            final String type = processor.type();
+                                            Set<String> list = serviceProviderApis.get(type);
+
+                                            if (list == null) {
+                                                serviceProviderApis.put(type, list = new HashSet<String>());
+                                            }
+
+                                            list.addAll(processor.apiSet());
+
+                                            if (processor.isDefaultType()) {
+                                                publicApis.addAll(list);
+                                            }
+                                        }
+                                    });
+                                } else if (componentType.equals(type)) {
+                                    return new ComponentProcessor(new ProcessorCallback<ComponentProcessor>() {
+                                        public void complete(final ComponentProcessor processor) {
+                                            flags.ignored = original && !processor.isAutomatic();
+                                            flags.component = !ClassReaders.isAbstract(classData) && !ClassReaders.isInterface(classData);
+                                        }
+                                    });
+                                } else if (componentGroupType.equals(type)) {
+                                    return new ComponentProcessor(new ProcessorCallback<ComponentProcessor>() {
+                                        public void complete(final ComponentProcessor processor) {
+                                            flags.group = !flags.dependent;
+                                        }
+                                    });
+                                } else {
+                                    return null;
                                 }
-                            });
-                        } else if (componentGroupType.equals(type)) {
-                            return new ComponentProcessor(new ProcessorCallback<ComponentProcessor>() {
-                                public void complete(final ComponentProcessor processor) {
-                                    flags.group = !flags.dependent;
-                                }
-                            });
-                        } else {
-                            return null;
-                        }
+                            }
+                        };
                     }
                 };
 
                 final ClassProcessor processor = new ClassProcessor() {
                     public boolean run(final ClassReader classData) throws IOException, MojoExecutionException {
                         try {
-                            classData.accept(annotations, ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES | ClassReader.SKIP_CODE);
+                            classData.accept(annotations.visitor(classData), ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES | ClassReader.SKIP_CODE);
 
                             // components and service providers are always concrete classes that can be instantiated on their own
                             final boolean instantiable = !ClassReaders.isAbstract(classData);
@@ -470,23 +476,23 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
                         if (flags.group) {
                             addBinding(bindingClassName, ClassReaders.externalName(classData), providerMap, componentGroupMap);
                         }
+                    }
 
-                        if (!flags.dependent) {
-                            for (final Map.Entry<String, Set<String>> entry : serviceProviderApis.entrySet()) {
-                                final Set<String> providerNames = entry.getValue();
-                                if (!providerNames.isEmpty()) {
-                                    addServiceProviders(className, providerNames, providerMap(entry.getKey(), serviceProviderMap));
+                    if (!flags.dependent) {
+                        for (final Map.Entry<String, Set<String>> entry : serviceProviderApis.entrySet()) {
+                            final Set<String> providerNames = entry.getValue();
+                            if (!providerNames.isEmpty()) {
+                                addServiceProviders(className, providerNames, providerMap(entry.getKey(), serviceProviderMap));
+                            }
+
+                            for (final String api : providerNames) {
+                                Set<String> providers = serviceProviders.get(api);
+
+                                if (providers == null) {
+                                    serviceProviders.put(api, providers = new HashSet<String>());
                                 }
 
-                                for (final String api : providerNames) {
-                                    Set<String> providers = serviceProviders.get(api);
-
-                                    if (providers == null) {
-                                        serviceProviders.put(api, providers = new HashSet<String>());
-                                    }
-
-                                    providers.add(className);
-                                }
+                                providers.add(className);
                             }
                         }
                     }
@@ -566,6 +572,7 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
         }
     }
 
+    @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
     private void addBinding(final String bindingName,
                             final String componentClass,
                             final Map<String, Collection<String>> serviceProviderMap,
@@ -617,6 +624,11 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
         }
 
         return answer.toString();
+    }
+
+    interface AnnotationsFactory {
+
+        ClassVisitor visitor(ClassReader reader);
     }
 
     public static interface ClassProcessor {

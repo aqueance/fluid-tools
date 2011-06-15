@@ -23,7 +23,19 @@ public interface JdkServiceProvider {
 
 }
 
+interface ExtendedJdkServiceProvider extends JdkServiceProvider {
+
+}
+
 class JdkServiceProviderImpl implements JdkServiceProvider {
+
+}
+
+class ExtendedJdkServiceProviderImpl1 extends JdkServiceProviderImpl {
+
+}
+
+class ExtendedJdkServiceProviderImpl2 implements ExtendedJdkServiceProvider {
 
 }
 

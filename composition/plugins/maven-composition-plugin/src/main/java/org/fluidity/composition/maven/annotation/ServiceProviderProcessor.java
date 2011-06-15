@@ -38,6 +38,16 @@ import org.objectweb.asm.commons.EmptyVisitor;
  */
 public final class ServiceProviderProcessor extends EmptyVisitor {
 
+    private static final String defaultType;
+
+    static {
+        defaultType = (String) Methods.get(ServiceProvider.class, new Methods.Invoker<ServiceProvider>() {
+            public void invoke(final ServiceProvider capture) {
+                capture.type();
+            }
+        }).getDefaultValue();
+    }
+
     private static final String ATR_API = "api";
     private static final String ATR_TYPE = "type";
 
@@ -46,7 +56,6 @@ public final class ServiceProviderProcessor extends EmptyVisitor {
 
     private final ClassReader classData;
     private final Set<String> apiSet = new HashSet<String>();
-    private final String defaultType;
     private String type;
 
     public ServiceProviderProcessor(final ClassRepository repository, final ClassReader classData, final ProcessorCallback<ServiceProviderProcessor> callback) {
@@ -54,13 +63,7 @@ public final class ServiceProviderProcessor extends EmptyVisitor {
         this.classData = classData;
         this.callback = callback;
 
-        this.defaultType = (String) Methods.get(ServiceProvider.class, new Methods.Invoker<ServiceProvider>() {
-            public void invoke(final ServiceProvider dummy) {
-                dummy.type();
-            }
-        }).getDefaultValue();
-
-        this.type = this.defaultType;
+        this.type = defaultType;
         assert type != null;
     }
 

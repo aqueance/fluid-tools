@@ -16,6 +16,8 @@
 
 package org.fluidity.maven;
 
+import java.util.List;
+
 import org.fluidity.composition.ContainerBoundary;
 import org.fluidity.foundation.ServiceProviders;
 
@@ -50,8 +52,8 @@ public class ComponentRegistrationTest {
 
     @Test
     public void testJdkServiceProviders() throws Exception {
-        jdkProvider(JdkServiceProvider.class);
-        jdkProvider(UnwittingJdkServiceProvider.class);
+        jdkProvider(JdkServiceProvider.class, 3);
+        jdkProvider(UnwittingJdkServiceProvider.class, 1);
     }
 
     @Test
@@ -61,10 +63,13 @@ public class ComponentRegistrationTest {
         assert inner.getLocal() != null : String.format("Local class not instantiated");
     }
 
-    private void jdkProvider(final Class<?> providerInterface) {
-        final Object instance = ServiceProviders.findInstance(providerInterface, getClass().getClassLoader());
-        assert instance != null : providerInterface;
-        assert providerInterface.isAssignableFrom(instance.getClass()) : providerInterface;
+    private void jdkProvider(final Class<?> providerInterface, final int count) {
+        final List<?> instances = ServiceProviders.findInstances(providerInterface, getClass().getClassLoader());
+        assert instances.size() == count : instances.size();
+        for (final Object instance : instances) {
+            assert instance != null : providerInterface;
+            assert providerInterface.isAssignableFrom(instance.getClass()) : providerInterface;
+        }
     }
 
     private <T> void component(final Class<T> componentInterface, final Class<? extends T> componentClass) {

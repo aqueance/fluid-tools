@@ -48,8 +48,8 @@ final class ClassDiscoveryImpl implements ClassDiscovery {
     public ClassDiscoveryImpl(final LogFactory logs) {
         this.log = logs.createLog(getClass());
         this.defaultType = (String) Methods.get(ServiceProvider.class, new Methods.Invoker<ServiceProvider>() {
-            public void invoke(final ServiceProvider dummy) {
-                dummy.type();
+            public void invoke(final ServiceProvider capture) {
+                capture.type();
             }
         }).getDefaultValue();
     }

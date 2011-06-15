@@ -34,6 +34,7 @@ import java.util.Set;
 import org.fluidity.composition.ClassDiscovery;
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
+import org.fluidity.composition.ComponentGroup;
 import org.fluidity.composition.Components;
 import org.fluidity.composition.DependencyInjector;
 import org.fluidity.composition.OpenComponentContainer;
@@ -54,14 +55,16 @@ import org.osgi.framework.ServiceRegistration;
 @Component
 public class WhiteboardImpl implements Whiteboard {
 
-    private Set<Stoppable> cleanup = new HashSet<Stoppable>();
+    private final Set<Stoppable> cleanup = new HashSet<Stoppable>();
+    private final Map<Managed, Set<Class<?>>> clusters = new HashMap<Managed, Set<Class<?>>>();
 
     private final Log log;
     private final BundleContext context;
     private final ComponentContainer container;
     private final DependencyInjector injector;
 
-    private final Class<Item>[] items;
+    private final Class<Managed>[] items;
+    private final Listener[] listeners;
 
     private Log listenerLog;
 
@@ -69,29 +72,31 @@ public class WhiteboardImpl implements Whiteboard {
                           final ComponentContainer container,
                           final LogFactory logs,
                           final DependencyInjector injector,
-                          final ClassDiscovery discovery) {
+                          final ClassDiscovery discovery,
+                          final @ComponentGroup Listener... listeners) {
         this.context = context;
         this.container = container;
         this.injector = injector;
         this.log = logs.createLog(WhiteboardImpl.class);
 
-        this.items = discovery.findComponentClasses(Item.class, getClass().getClassLoader(), false);
+        this.items = discovery.findComponentClasses(Managed.class, getClass().getClassLoader(), false);
+        this.listeners = listeners;
 
         this.listenerLog = logs.createLog(ServiceChangeListener.class);
     }
 
     private static class Dependencies {
         public final Collection<ServiceSpecification> services = new HashSet<ServiceSpecification>();
-        public final Collection<Class<Item>> components = new HashSet<Class<Item>>();
+        public final Collection<Class<Managed>> components = new HashSet<Class<Managed>>();
     }
 
     @SuppressWarnings( { "unchecked", "SuspiciousMethodCalls" })
     public void start() {
-        final Map<Class<Item>, Collection<Components.Interfaces>> clusters = new HashMap<Class<Item>, Collection<Components.Interfaces>>();
+        final Map<Class<Managed>, Collection<Components.Interfaces>> clusters = new HashMap<Class<Managed>, Collection<Components.Interfaces>>();
         final Collection<Components.Interfaces> interfaces = new HashSet<Components.Interfaces>();
 
-        for (final Class<Item> type : items) {
-            final Components.Interfaces inspection = Components.inspect(type);
+        for (final Class<Managed> type : items) {
+            final Components.Interfaces inspection = inspect(type);
             assert inspection.implementation == type : type;
             interfaces.add(inspection);
             clusters.put(type, new HashSet<Components.Interfaces>(Collections.singleton(inspection)));
@@ -99,13 +104,13 @@ public class WhiteboardImpl implements Whiteboard {
 
         final Map<Class<?>, Dependencies> dependenciesMap = new HashMap<Class<?>, Dependencies>();
 
-        final Collection<Class<Item>> classes = new HashSet<Class<Item>>(Arrays.asList(items));
-        for (final Class<Item> type : items) {
+        final Collection<Class<Managed>> classes = new HashSet<Class<Managed>>(Arrays.asList(items));
+        for (final Class<Managed> type : items) {
             final Dependencies dependencies = findDependencies(type, classes);
 
             dependenciesMap.put(type, dependencies);
 
-            for (final Class<Item> dependency : dependencies.components) {
+            for (final Class<Managed> dependency : dependencies.components) {
                 for (final Components.Interfaces inspection : interfaces) {
                     for (final Components.Specification specification : inspection.api) {
                         if (specification.api == dependency) {
@@ -133,7 +138,22 @@ public class WhiteboardImpl implements Whiteboard {
     }
 
     @SuppressWarnings("unchecked")
-    private Dependencies findDependencies(final Class<Item> type, final Collection<?> components) {
+    private Components.Interfaces inspect(final Class<Managed> type) {
+        final Component componentAnnotation = type.getAnnotation(Component.class);
+        if (componentAnnotation != null && componentAnnotation.automatic()) {
+            throw new IllegalStateException(String.format("Whiteboard managed component %s may not have @%s(automatic = true)", type, Component.class));
+        } else if (componentAnnotation == null && type.isAnnotationPresent(ComponentGroup.class)) {
+            throw new IllegalStateException(String.format("Whiteboard managed component %s may not have @%s without @%s(automatic = false)",
+                                                          type,
+                                                          ComponentGroup.class,
+                                                          Component.class));
+        } else {
+            return Components.inspect(type);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private Dependencies findDependencies(final Class<Managed> type, final Collection<?> components) {
         final Dependencies dependencies = new Dependencies();
 
         final Constructor<?> constructor = injector.findConstructor(type);
@@ -156,7 +176,7 @@ public class WhiteboardImpl implements Whiteboard {
             }
 
             if (!isService && components.contains(parameterType)) {
-                dependencies.components.add((Class<Item>) parameterType);
+                dependencies.components.add((Class<Managed>) parameterType);
             }
         }
 
@@ -178,11 +198,27 @@ public class WhiteboardImpl implements Whiteboard {
     }
 
     public void stop() {
+        for (final Iterator<Map.Entry<Managed, Set<Class<?>>>> iterator = clusters.entrySet().iterator(); iterator.hasNext(); ) {
+            final Map.Entry<Managed, Set<Class<?>>> entry = iterator.next();
+            final Managed component = entry.getKey();
+            final Set<Class<?>> types = entry.getValue();
+
+            for (final Listener listener : listeners) {
+                for (final Class<?> type : listener.types()) {
+                    if (types.contains(type)) {
+                        listener.stopping(type, component);
+                    }
+                }
+            }
+
+            iterator.remove();
+        }
+
         for (final Stoppable stoppable : new HashSet<Stoppable>(cleanup)) {
             try {
                 stoppable.stop();
             } catch (final Exception e) {
-                log.error(e, "Stopping a whiteboard item");
+                log.error(e, "Stopping a whiteboard managed component");
             }
         }
     }
@@ -194,24 +230,29 @@ public class WhiteboardImpl implements Whiteboard {
             @SuppressWarnings("unchecked")
             public void serviceChanged(final ServiceEvent event) {
                 final ServiceReference reference = event.getServiceReference();
+                final T service = (T) context.getService(reference);
 
                 switch (event.getType()) {
                 case ServiceEvent.REGISTERED:
                     final Properties properties = new Properties();
 
                     for (final String key : reference.getPropertyKeys()) {
-                        properties.setProperty(key, (String) reference.getProperty(key));
+                        final Object property = reference.getProperty(key);
+                        properties.setProperty(key, property.getClass().isArray() ? Arrays.toString((Object[]) property) : String.valueOf(property));
                     }
 
-                    source.clientAdded((T) context.getService(reference), properties);
+                    source.clientAdded(service, properties);
+                    log.info("%s (%s) added to %s", service.getClass(), properties, source.getClass());
 
                     break;
 
                 case ServiceEvent.UNREGISTERING:
-                    source.clientRemoved((T) context.getService(reference));
+                    source.clientRemoved(service);
+                    log.info("%s removed from %s", service.getClass(), source.getClass());
                     break;
 
                 default:
+                    context.ungetService(reference);
                     break;
                 }
             }
@@ -238,38 +279,35 @@ public class WhiteboardImpl implements Whiteboard {
     }
 
     private void register(final Registration service, final Properties properties, final Class<?>... types) {
-        final ServiceRegistration registration = context.registerService(serviceApi(types), service, properties);
+        final String[] classes = serviceApi(types);
+
+        final String serviceMessage = registrationMessage(classes, properties);
+        log.info("Registering %s", serviceMessage);
+
+        final ServiceRegistration registration = context.registerService(classes, service, properties);
 
         cleanup(service.getClass().getName(), new Stoppable() {
             public void stop() {
                 registration.unregister();
+                log.info("Unregistered %s", serviceMessage);
             }
         });
+    }
+
+    private String registrationMessage(final String[] types, final Properties properties) {
+        final String propertyLog = properties == null ? "no properties" : String.format("properties %s", properties);
+        return String.format("Registering services %s with %s", Arrays.toString(types), propertyLog);
     }
 
     @SuppressWarnings("unchecked")
     private void resolveDependencies(final Collection<Components.Interfaces> cluster, final Collection<ServiceSpecification> services, final Log listenerLog) {
         if (services.isEmpty()) {
             final OpenComponentContainer child = container.makeChildContainer();
-            final ComponentContainer.Registry registry = child.getRegistry();
 
-            for (final Components.Interfaces interfaces : cluster) {
-                registry.bindComponent(interfaces.implementation);
-            }
+            clusters.putAll(start(cluster, child, child.getRegistry()));
 
-            for (final Components.Interfaces interfaces : cluster) {
-                final Class<?> type = interfaces.implementation;
-
-                final Item component = (Item) child.getComponent(type);
-                final String name = component.getClass().getName();
-
-                try {
-                    start(name, component);
-                } catch (final Exception e) {
-                    log.error(e, "starting %s", name);
-                }
-
-                cleanup(type.getName(), component);
+            for (final Managed managed : clusters.keySet()) {
+                cleanup(managed.getClass().getName(), managed);
             }
         } else {
             final ServiceSpecification[] dependencies = services.toArray(new ServiceSpecification[services.size()]);
@@ -289,8 +327,10 @@ public class WhiteboardImpl implements Whiteboard {
         }
     }
 
-    private void start(final String name, final Item component) throws Exception {
+    private void start(final String name, final Managed component) throws Exception {
         component.start();
+
+        log.info("%s started", name);
 
         if (component instanceof EventSource) {
             register((EventSource<?>) component);
@@ -300,8 +340,58 @@ public class WhiteboardImpl implements Whiteboard {
             final Registration registration = (Registration) component;
             register(registration, registration.properties(), registration.types());
         }
+    }
 
-        log.info("%s started", name);
+    @SuppressWarnings( { "unchecked", "MismatchedQueryAndUpdateOfCollection" })
+    Map<Managed, Set<Class<?>>> start(final Collection<Components.Interfaces> cluster,
+                                      final OpenComponentContainer child,
+                                      final ComponentContainer.Registry registry) {
+        for (final Components.Interfaces interfaces : cluster) {
+            registry.bindComponent(interfaces.implementation);
+        }
+
+        final Map<Managed, Set<Class<?>>> components = new HashMap<Managed, Set<Class<?>>>();
+
+        for (final Components.Interfaces interfaces : cluster) {
+            for (final Components.Specification specification : interfaces.api) {
+                final Managed component = (Managed) child.getComponent(specification.api);
+
+                Set<Class<?>> api = components.get(component);
+
+                if (api == null) {
+                    components.put(component, api = new HashSet<Class<?>>());
+                }
+
+                api.add(specification.api);
+            }
+        }
+
+        for (final Iterator<Managed> iterator = components.keySet().iterator(); iterator.hasNext(); ) {
+            final Managed component = iterator.next();
+            final String name = component.getClass().getName();
+
+            try {
+                start(component.getClass().getName(), component);
+            } catch (final Exception e) {
+                iterator.remove();
+                log.error(e, "starting %s", name);
+            }
+        }
+
+        for (final Map.Entry<Managed, Set<Class<?>>> entry : components.entrySet()) {
+            final Managed component = entry.getKey();
+            final Set<Class<?>> types = entry.getValue();
+
+            for (final Listener listener : listeners) {
+                for (final Class<?> type : listener.types()) {
+                    if (types.contains(type)) {
+                        listener.started(type, component);
+                    }
+                }
+            }
+        }
+
+        return components;
     }
 
     private String serviceFilter(final ServiceSpecification[] dependencies) {
@@ -349,7 +439,6 @@ public class WhiteboardImpl implements Whiteboard {
         return names;
     }
 
-    @SuppressWarnings("unchecked")
     private class ServiceChangeListener implements ServiceListener, Stoppable {
 
         private final Map<ServiceSpecification, ServiceReference> referenceMap = new HashMap<ServiceSpecification, ServiceReference>();
@@ -360,7 +449,9 @@ public class WhiteboardImpl implements Whiteboard {
         private final Log log;
 
         private final String name;
-        private final Map<Item, Object> components = new IdentityHashMap<Item, Object>();
+        private final Map<Managed, Set<Class<?>>> components = new IdentityHashMap<Managed, Set<Class<?>>>();
+
+        private boolean stopping;
 
         public ServiceChangeListener(final ComponentContainer container,
                                      final Collection<Components.Interfaces> cluster,
@@ -386,6 +477,7 @@ public class WhiteboardImpl implements Whiteboard {
             }
         }
 
+        @SuppressWarnings("unchecked")
         public void servicesChanged(final int eventType) {
             final boolean registered = eventType == ServiceEvent.REGISTERED;
             final boolean modified = eventType == ServiceEvent.MODIFIED;
@@ -434,27 +526,7 @@ public class WhiteboardImpl implements Whiteboard {
                     registry.bindInstance(entry.getValue(), (Class<Object>) entry.getKey().api);
                 }
 
-                for (final Components.Interfaces interfaces : cluster) {
-                    registry.bindComponent(interfaces.implementation);
-                }
-
-                for (final Components.Interfaces interfaces : cluster) {
-                    for (final Components.Specification specification : interfaces.api) {
-                        components.put((Item) child.getComponent(specification.api), null);
-                    }
-                }
-
-                for (final Iterator<Item> iterator = components.keySet().iterator(); iterator.hasNext(); ) {
-                    final Item component = iterator.next();
-                    final String name = component.getClass().getName();
-
-                    try {
-                        start(component.getClass().getName(), component);
-                    } catch (final Exception e) {
-                        iterator.remove();
-                        log.error(e, "starting %s", name);
-                    }
-                }
+                components.putAll(start(cluster, child, registry));
             }
 
             if (log.isInfoEnabled() && dependencyMap.size() != referenceMap.size()) {
@@ -466,13 +538,28 @@ public class WhiteboardImpl implements Whiteboard {
                     }
                 }
 
-                log.info("%s %s waiting for services: %s", name, components.size() > 1 ? "are" : "is", services);
+                if (!stopping) {
+                    log.info("%s %s waiting for services: %s", name, components.size() > 1 ? "are" : "is", services);
+                }
             }
         }
 
         private void suspend() {
-            for (final Iterator<Item> iterator = components.keySet().iterator(); iterator.hasNext(); ) {
-                final Item component = iterator.next();
+            for (final Map.Entry<Managed, Set<Class<?>>> entry : components.entrySet()) {
+                final Managed component = entry.getKey();
+                final Set<Class<?>> types = entry.getValue();
+
+                for (final Listener listener : listeners) {
+                    for (final Class<?> type : listener.types()) {
+                        if (types.contains(type)) {
+                            listener.stopping(type, component);
+                        }
+                    }
+                }
+            }
+
+            for (final Iterator<Managed> iterator = components.keySet().iterator(); iterator.hasNext(); ) {
+                final Managed component = iterator.next();
                 try {
                     component.stop();
                     log.info("%s stopped", name);
@@ -492,8 +579,7 @@ public class WhiteboardImpl implements Whiteboard {
             final String filter = service.filter;
 
             try {
-                final ServiceReference[] references = context.getServiceReferences(service.api.getName(),
-                                                                                   filter == null || filter.length() == 0 ? null : filter);
+                final ServiceReference[] references = context.getServiceReferences(service.api.getName(), filter == null || filter.length() == 0 ? null : filter);
                 return references == null ? new ServiceReference[0] : references;
             } catch (final InvalidSyntaxException e) {
                 throw new IllegalStateException(filter, e);   // filter has already been used when the listener was created
@@ -502,6 +588,7 @@ public class WhiteboardImpl implements Whiteboard {
 
         public void stop() {
             context.removeServiceListener(this);
+            stopping = true;
             suspend();
         }
     }

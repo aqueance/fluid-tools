@@ -25,9 +25,8 @@ import java.lang.annotation.Target;
 
 /**
  * Declares that the annotated class, or implementing classes of the annotated interface, are service providers in the <a
- * href="http://download.oracle.com/javase/1.5.0/docs/guide/jar/jar.html#Service Provider">JAR File Specification</a>'s sense. When used on a field or
- * constructor parameter of array type, the annotation declares that the array argument must contain an instance of each implementation of the service provider
- * that is the component type of the array.
+ * href="http://download.oracle.com/javase/1.5.0/docs/guide/jar/jar.html#Service Provider">JAR File Specification</a>'s sense. Such classes can then be
+ * discovered in any given class loader by the {@link ClassDiscovery} component.
  * <p/>
  * The org.fluidity.maven:maven-composition-plugin Maven plugin will create the appropriate service provider descriptor file.
  *
@@ -52,7 +51,7 @@ public @interface ServiceProvider {
      * Returns the what type of service provider the annotated class is. JDK uses the default value, "services", which adds requirements to the class such as
      * for the class to be public and to have a public zero-argument constructor.
      * <p/>
-     * The default type is understood by {@link java.util.ServiceLoader} while other types may be used via {@link ClassDiscovery}.
+     * The default type is understood by {@link java.util.ServiceLoader} while all types can be discovered via {@link ClassDiscovery}.
      *
      * @return the service provider type.
      */
