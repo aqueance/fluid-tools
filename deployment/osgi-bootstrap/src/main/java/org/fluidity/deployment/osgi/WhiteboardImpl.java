@@ -90,7 +90,7 @@ public class WhiteboardImpl implements Whiteboard {
         public final Collection<Class<Managed>> components = new HashSet<Class<Managed>>();
     }
 
-    @SuppressWarnings( { "unchecked", "SuspiciousMethodCalls" })
+    @SuppressWarnings({ "unchecked", "SuspiciousMethodCalls" })
     public void start() {
         final Map<Class<Managed>, Collection<Components.Interfaces>> clusters = new HashMap<Class<Managed>, Collection<Components.Interfaces>>();
         final Collection<Components.Interfaces> interfaces = new HashSet<Components.Interfaces>();
@@ -281,7 +281,9 @@ public class WhiteboardImpl implements Whiteboard {
     private void register(final Registration service, final Properties properties, final Class<?>... types) {
         final String[] classes = serviceApi(types);
 
-        final String serviceMessage = registrationMessage(classes, properties);
+        final String propertyMessage = properties == null ? "no properties" : String.format("properties %s", properties);
+        final String serviceMessage = String.format("service for API %s with %s", Arrays.toString(classes), propertyMessage);
+
         log.info("Registering %s", serviceMessage);
 
         final ServiceRegistration registration = context.registerService(classes, service, properties);
@@ -292,11 +294,6 @@ public class WhiteboardImpl implements Whiteboard {
                 log.info("Unregistered %s", serviceMessage);
             }
         });
-    }
-
-    private String registrationMessage(final String[] types, final Properties properties) {
-        final String propertyLog = properties == null ? "no properties" : String.format("properties %s", properties);
-        return String.format("Registering services %s with %s", Arrays.toString(types), propertyLog);
     }
 
     @SuppressWarnings("unchecked")
@@ -342,7 +339,7 @@ public class WhiteboardImpl implements Whiteboard {
         }
     }
 
-    @SuppressWarnings( { "unchecked", "MismatchedQueryAndUpdateOfCollection" })
+    @SuppressWarnings({ "unchecked", "MismatchedQueryAndUpdateOfCollection" })
     Map<Managed, Set<Class<?>>> start(final Collection<Components.Interfaces> cluster,
                                       final OpenComponentContainer child,
                                       final ComponentContainer.Registry registry) {
