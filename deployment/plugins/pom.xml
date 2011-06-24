@@ -39,7 +39,7 @@
     </licenses>
 
     <properties>
-        <jetty.version>8.0.0.M2</jetty.version>
+        <jetty.version>8.0.0.M3</jetty.version>
     </properties>
 
     <modules>
