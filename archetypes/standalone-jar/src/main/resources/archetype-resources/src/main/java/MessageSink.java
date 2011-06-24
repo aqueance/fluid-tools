@@ -14,20 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 *#package ${package};
 
-import org.fluidity.foundation.logging.Log;
-import org.fluidity.foundation.logging.Source;
-import org.fluidity.composition.Component;
+public interface MessageSink {
 
-@Component
-final class EchoTextImpl implements EchoText {
-    private final Log log;
-
-    public EchoTextImpl(final @Source(EchoTextImpl.class) Log log) {
-        this.log = log;
-    }
-
-    public boolean receiveText(String text) {
-        log.info(text);
-        return true;
-    }
+    boolean receiveText(String text);
 }

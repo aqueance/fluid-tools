@@ -29,6 +29,7 @@ limitations under the License.
 
     <properties>
         <fluid.tools.version>${project.version}</fluid.tools.version>
+        <osgi.import.core>org.osgi.framework;version=1.4</osgi.import.core>
     </properties>
 
     <distributionManagement>
@@ -89,6 +90,11 @@ limitations under the License.
                     <configuration>
                         <useFile>false</useFile>
                     </configuration>
+                </plugin>
+
+                <plugin>
+                  <artifactId>maven-jar-plugin</artifactId>
+                  <version>2.3.1</version>
                 </plugin>
 
                 <plugin>

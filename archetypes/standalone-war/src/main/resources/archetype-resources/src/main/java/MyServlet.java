@@ -27,9 +27,9 @@ import org.fluidity.composition.Component;
 @Component(api = MyServlet.class)
 public class MyServlet extends HttpServlet {
 
-    private final EchoText sink;
+    private final MessageSink sink;
 
-    public MyServlet(final EchoText sink) {
+    public MyServlet(final MessageSink sink) {
         this.sink = sink;
     }
 

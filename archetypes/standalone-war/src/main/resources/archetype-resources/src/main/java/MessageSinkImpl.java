@@ -12,20 +12,17 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-*##set( $symbol_pound = '#' )#*
-*##set( $symbol_dollar = '$' )#*
-*##set( $symbol_escape = '\' )#*
-*#package ${packageInPathFormat};
+*#package ${package};
 
 import org.fluidity.foundation.logging.Log;
 import org.fluidity.foundation.logging.Source;
 import org.fluidity.composition.Component;
 
 @Component
-final class EchoText implements ComponentApi.MessageSink {
+final class MessageSinkImpl implements MessageSink {
     private final Log log;
 
-    public EchoText(final @Source(EchoText.class) Log log) {
+    public MessageSinkImpl(final @Source(MessageSinkImpl.class) Log log) {
         this.log = log;
     }
 

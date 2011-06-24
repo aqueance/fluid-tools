@@ -36,10 +36,10 @@ final class MyApplication implements Application {
     }
 
     @Component
-    private static class EchoText implements ComponentApi.MessageSink {
+    private static class MessageSinkImpl implements ComponentApi.MessageSink {
         private final Log log;
 
-        public EchoText(final @Source(EchoText.class) Log log) {
+        public MessageSinkImpl(final @Source(MessageSinkImpl.class) Log log) {
             this.log = log;
         }
 

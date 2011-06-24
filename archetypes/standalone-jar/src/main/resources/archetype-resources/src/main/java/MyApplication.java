@@ -23,9 +23,9 @@ import org.fluidity.deployment.cli.Application;
 @Component
 final class MyApplication implements Application {
 
-    private final EchoText sink;
+    private final MessageSink sink;
 
-    public MyApplication(final EchoText sink) {
+    public MyApplication(final MessageSink sink) {
         this.sink = sink;
     }
 

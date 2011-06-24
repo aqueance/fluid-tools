@@ -12,9 +12,25 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-*#package ${package};
+*##set( $symbol_pound = '#' )#*
+*##set( $symbol_dollar = '$' )#*
+*##set( $symbol_escape = '\' )#*
+*#package ${packageInPathFormat};
 
-public interface EchoText {
+import org.fluidity.foundation.logging.Log;
+import org.fluidity.foundation.logging.Source;
+import org.fluidity.composition.Component;
 
-    boolean receiveText(String text);
+@Component
+final class MessageSinkImpl implements ComponentApi.MessageSink {
+    private final Log log;
+
+    public MessageSinkImpl(final @Source(MessageSinkImpl.class) Log log) {
+        this.log = log;
+    }
+
+    public boolean receiveText(String text) {
+        log.info(text);
+        return true;
+    }
 }
