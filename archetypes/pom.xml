@@ -46,6 +46,7 @@
         <module>standalone-jar</module>
         <module>standalone-war</module>
         <module>multi-project-sample</module>
+        <module>osgi-bundle</module>
     </modules>
 
     <build>
@@ -54,6 +55,11 @@
             <resource>
                 <directory>src/main/resources</directory>
                 <filtering>false</filtering>
+            </resource>
+            <resource>
+                <directory>src/licenses</directory>
+                <filtering>true</filtering>
+                <targetPath>META-INF</targetPath>
             </resource>
         </resources>
 

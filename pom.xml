@@ -48,6 +48,9 @@
 
         <maven.api.version>3.0.3</maven.api.version>
         <aether.version>1.11</aether.version>
+
+        <maven.build.timestamp.format>yyyy</maven.build.timestamp.format>
+        <today.year>${maven.build.timestamp}</today.year>
     </properties>
 
     <licenses>
