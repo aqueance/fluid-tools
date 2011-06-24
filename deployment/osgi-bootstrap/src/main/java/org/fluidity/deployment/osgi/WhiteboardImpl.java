@@ -64,7 +64,7 @@ public class WhiteboardImpl implements Whiteboard {
     private final DependencyInjector injector;
 
     private final Class<Managed>[] items;
-    private final Listener[] listeners;
+    private final Observer[] listeners;
 
     private Log listenerLog;
 
@@ -73,7 +73,7 @@ public class WhiteboardImpl implements Whiteboard {
                           final LogFactory logs,
                           final DependencyInjector injector,
                           final ClassDiscovery discovery,
-                          final @ComponentGroup Listener... listeners) {
+                          final @ComponentGroup Observer... listeners) {
         this.context = context;
         this.container = container;
         this.injector = injector;
@@ -203,7 +203,7 @@ public class WhiteboardImpl implements Whiteboard {
             final Managed component = entry.getKey();
             final Set<Class<?>> types = entry.getValue();
 
-            for (final Listener listener : listeners) {
+            for (final Observer listener : listeners) {
                 for (final Class<?> type : listener.types()) {
                     if (types.contains(type)) {
                         listener.stopping(type, component);
@@ -278,8 +278,9 @@ public class WhiteboardImpl implements Whiteboard {
         });
     }
 
-    private void register(final Registration service, final Properties properties, final Class<?>... types) {
-        final String[] classes = serviceApi(types);
+    private void register(final Registration service) {
+        final Properties properties = service.properties();
+        final String[] classes = serviceApi(service.types());
 
         final String propertyMessage = properties == null ? "no properties" : String.format("properties %s", properties);
         final String serviceMessage = String.format("service for API %s with %s", Arrays.toString(classes), propertyMessage);
@@ -334,8 +335,7 @@ public class WhiteboardImpl implements Whiteboard {
         }
 
         if (component instanceof Registration) {
-            final Registration registration = (Registration) component;
-            register(registration, registration.properties(), registration.types());
+            register((Registration) component);
         }
     }
 
@@ -379,7 +379,7 @@ public class WhiteboardImpl implements Whiteboard {
             final Managed component = entry.getKey();
             final Set<Class<?>> types = entry.getValue();
 
-            for (final Listener listener : listeners) {
+            for (final Observer listener : listeners) {
                 for (final Class<?> type : listener.types()) {
                     if (types.contains(type)) {
                         listener.started(type, component);
@@ -447,8 +447,6 @@ public class WhiteboardImpl implements Whiteboard {
 
         private final String name;
         private final Map<Managed, Set<Class<?>>> components = new IdentityHashMap<Managed, Set<Class<?>>>();
-
-        private boolean stopping;
 
         public ServiceChangeListener(final ComponentContainer container,
                                      final Collection<Components.Interfaces> cluster,
@@ -535,9 +533,7 @@ public class WhiteboardImpl implements Whiteboard {
                     }
                 }
 
-                if (!stopping) {
-                    log.info("%s %s waiting for services: %s", name, components.size() > 1 ? "are" : "is", services);
-                }
+                log.info("%s %s waiting for services: %s", name, components.size() > 1 ? "are" : "is", services);
             }
         }
 
@@ -546,7 +542,7 @@ public class WhiteboardImpl implements Whiteboard {
                 final Managed component = entry.getKey();
                 final Set<Class<?>> types = entry.getValue();
 
-                for (final Listener listener : listeners) {
+                for (final Observer listener : listeners) {
                     for (final Class<?> type : listener.types()) {
                         if (types.contains(type)) {
                             listener.stopping(type, component);
@@ -585,7 +581,6 @@ public class WhiteboardImpl implements Whiteboard {
 
         public void stop() {
             context.removeServiceListener(this);
-            stopping = true;
             suspend();
         }
     }

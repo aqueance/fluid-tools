@@ -73,7 +73,7 @@ public interface Whiteboard {
     void stop();
 
     @ComponentGroup
-    interface Listener {
+    interface Observer {
 
         Class<?>[] types();
 

@@ -74,8 +74,8 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
     private final Whiteboard.Managed component4 = mock(Whiteboard.Managed.class);
     private final Whiteboard.Managed component5 = mock(Whiteboard.Managed.class);
 
-    private final Whiteboard.Listener listener1 = mock(Whiteboard.Listener.class);
-    private final Whiteboard.Listener listener2 = mock(Whiteboard.Listener.class);
+    private final Whiteboard.Observer observer1 = mock(Whiteboard.Observer.class);
+    private final Whiteboard.Observer observer2 = mock(Whiteboard.Observer.class);
 
     @SuppressWarnings("unchecked")
     private final Whiteboard.EventSource<Consumer> source = mock(Whiteboard.EventSource.class);
@@ -95,8 +95,8 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
     }
 
     private void noListener() {
-        EasyMock.expect(listener1.types()).andReturn(new Class[0]).anyTimes();
-        EasyMock.expect(listener2.types()).andReturn(new Class[0]).anyTimes();
+        EasyMock.expect(observer1.types()).andReturn(new Class[0]).anyTimes();
+        EasyMock.expect(observer2.types()).andReturn(new Class[0]).anyTimes();
     }
 
     @Test
@@ -132,8 +132,8 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
                 .andReturn(registration);
 
 
-        final ListenerState listenerState1 = new ListenerState(this.listener1, Service1.class);
-        final ListenerState listenerState2 = new ListenerState(this.listener2, Service1.class);
+        final ListenerState listenerState1 = new ListenerState(this.observer1, Service1.class);
+        final ListenerState listenerState2 = new ListenerState(this.observer2, Service1.class);
 
         listenerState1.starting(true);
         listenerState2.starting(true);
@@ -685,8 +685,8 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
         Cluster2Component1.delegate.start();
         Cluster2Component2.delegate.start();
 
-        final ListenerState listenerState1 = new ListenerState(this.listener1, Cluster2Component1.class);
-        final ListenerState listenerState2 = new ListenerState(this.listener2, Cluster2Component2.class);
+        final ListenerState listenerState1 = new ListenerState(this.observer1, Cluster2Component1.class);
+        final ListenerState listenerState2 = new ListenerState(this.observer2, Cluster2Component2.class);
 
         listenerState1.starting(true);
         listenerState2.starting(true);
@@ -895,7 +895,7 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
         EasyMock.expect(discovery.findComponentClasses(Whiteboard.Managed.class, WhiteboardImpl.class.getClassLoader(), false)).andReturn(types);
 
         replay();
-        final Whiteboard whiteboard = new WhiteboardImpl(context, container, logs, injector, discovery, listener1, listener2);
+        final Whiteboard whiteboard = new WhiteboardImpl(context, container, logs, injector, discovery, observer1, observer2);
         verify();
 
         return whiteboard;
@@ -954,12 +954,12 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
 
     private static class ListenerState {
 
-        private final Whiteboard.Listener listener;
+        private final Whiteboard.Observer listener;
         private final Class<?> type;
 
         private Whiteboard.Managed component;
 
-        public ListenerState(final Whiteboard.Listener listener, final Class<?> type) {
+        public ListenerState(final Whiteboard.Observer listener, final Class<?> type) {
             this.listener = listener;
             this.type = type;
         }
