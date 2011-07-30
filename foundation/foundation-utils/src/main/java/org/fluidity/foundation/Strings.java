@@ -20,7 +20,6 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
 import java.util.Arrays;
 import java.util.Comparator;
 
@@ -61,7 +60,7 @@ public final class Strings {
      * <ul>
      * <li><code>@MyAnnotation</code>: "@MyAnnotation"</li>
      * <li><code>@MyAnnotation(1000)</code>: "@MyAnnotation(1000)"</li>
-     * <li><code>@MyAnnotation(id = 1000, code = "abcd")</code>: "@MyAnnotation(id=1000,code=\"1000\")"</li>
+     * <li><code>@MyAnnotation(id = 1000, code = "abcd")</code>: "@MyAnnotation(id=1000,code=\"abcd\")"</li>
      * <li><code>@MyAnnotation({ 1, 2, 3 })</code>: "@MyAnnotation({1,2,3})"</li>
      * </ul>
      *
@@ -72,20 +71,19 @@ public final class Strings {
      * @return the Java-like notation for the given annotation.
      */
     public static String simpleNotation(final Annotation annotation) {
-        StringBuilder builder = new StringBuilder();
+        final StringBuilder output = new StringBuilder();
         final Class<? extends Annotation> annotationClass = annotation.getClass();
 
         @SuppressWarnings("unchecked")
-        final Class<? extends Annotation> type = Proxy.isProxyClass(annotationClass) ? (Class<Annotation>) annotationClass.getInterfaces()[0] : annotationClass;
+        final Class<? extends Annotation> type = Proxies.api(annotationClass);
 
-        builder.append('@').append(type.getSimpleName());
+        output.append('@').append(type.getSimpleName());
 
-        final StringBuilder output = new StringBuilder();
-
+        final StringBuilder builder = new StringBuilder();
         final Method[] methods = type.getDeclaredMethods();
         try {
             if (methods.length == 1 && methods[0].getName().equals("value")) {
-                appendValue(output, methods[0].invoke(annotation));
+                appendValue(builder, methods[0].invoke(annotation));
             } else {
                 Arrays.sort(methods, new Comparator<Method>() {
                     public int compare(final Method method1, final Method method2) {
@@ -94,8 +92,8 @@ public final class Strings {
                 });
 
                 for (final Method method : methods) {
-                    if (output.length() > 0) {
-                        output.append(", ");
+                    if (builder.length() > 0) {
+                        builder.append(", ");
                     }
 
                     final StringBuilder parameter = new StringBuilder();
@@ -106,11 +104,12 @@ public final class Strings {
 
                     final Object fallback = method.getDefaultValue();
                     final Class<?> parameterType = method.getReturnType();
+
                     if (fallback != null && (parameterType.isArray() ? Arrays.equals((Object[]) fallback, (Object[]) value) : fallback.equals(value))) {
                         parameter.insert(0, '[').append(']');
                     }
 
-                    output.append(parameter);
+                    builder.append(parameter);
                 }
             }
         } catch (final IllegalAccessException e) {
@@ -119,14 +118,14 @@ public final class Strings {
             assert false : e;
         }
 
-        if (output.length() > 0) {
-            builder.append('(').append(output).append(')');
+        if (builder.length() > 0) {
+            output.append('(').append(builder).append(')');
         }
 
-        return builder.toString();
+        return output.toString();
     }
 
-    public static void appendValue(final StringBuilder output, final Object value) {
+    private static void appendValue(final StringBuilder output, final Object value) {
         if (value instanceof Class) {
             output.append(((Class) value).getSimpleName()).append(".class");
         } else {
@@ -138,7 +137,7 @@ public final class Strings {
         final StringBuilder output = new StringBuilder();
 
         for (int i = 0, length = Array.getLength(value); i < length; ++i) {
-            if (output.length() > 0) {
+            if (i > 0) {
                 output.append(',');
             }
 

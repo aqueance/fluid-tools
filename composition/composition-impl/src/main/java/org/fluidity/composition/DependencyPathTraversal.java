@@ -34,6 +34,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.fluidity.composition.spi.ComponentResolutionObserver;
 import org.fluidity.composition.spi.DependencyPath;
 import org.fluidity.foundation.Exceptions;
+import org.fluidity.foundation.Proxies;
 import org.fluidity.foundation.Strings;
 
 /**
@@ -204,7 +205,7 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
             if (api.isInterface()) {
                 return Exceptions.wrap(new Exceptions.Command<Object>() {
                     public Object run() throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
-                        return Proxy.newProxyInstance(api.getClassLoader(), new Class<?>[] { api }, new InvocationHandler() {
+                        return Proxies.create(api, new InvocationHandler() {
                             private volatile Object delegate;
                             private Set<Method> methods = new HashSet<Method>();
 

@@ -30,10 +30,10 @@ package org.fluidity.composition;
 public interface ClassDiscovery {
 
     /**
-     * Finds all classes in the class path that have been registered according the standard service discovery specification.
+     * Finds all classes in the class path that have been registered according to the standard service discovery specification.
      *
-     * @param api         is the interface all discovered classes should implement.
-     * @param classLoader is the class loader to use to find components.
+     * @param api         the interface all discovered classes should implement.
+     * @param classLoader the class loader to use to find components.
      * @param strict      specifies whether the component may be loaded by only the given class loader (<code>true</code>) or any of its parent class loaders
      *                    (<code>false</code>).
      *

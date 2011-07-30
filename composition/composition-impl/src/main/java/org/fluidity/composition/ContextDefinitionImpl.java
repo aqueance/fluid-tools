@@ -17,7 +17,6 @@
 package org.fluidity.composition;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Proxy;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -25,6 +24,8 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+
+import org.fluidity.foundation.Proxies;
 
 /**
  * @author Tibor Varga
@@ -49,7 +50,7 @@ final class ContextDefinitionImpl implements ContextDefinition {
     public ContextDefinition expand(final Annotation[] definition) {
         if (definition != null) {
             for (final Annotation value : definition) {
-                final Class<? extends Annotation> type = annotationType(value.getClass());
+                final Class<? extends Annotation> type = Proxies.api(value.getClass());
 
                 if (!type.isAnnotationPresent(Internal.class)) {
                     if (defined.containsKey(type)) {
@@ -129,7 +130,7 @@ final class ContextDefinitionImpl implements ContextDefinition {
         for (final Map.Entry<Class<? extends Annotation>, Annotation[]> entry : in.entrySet()) {
             final Class<? extends Annotation> key = entry.getKey();
 
-            final Class<? extends Annotation> type = annotationType(key);
+            final Class<? extends Annotation> type = Proxies.api(key);
             out.put(type, entry.getValue().clone());
         }
     }
@@ -139,11 +140,6 @@ final class ContextDefinitionImpl implements ContextDefinition {
         list.addAll(Arrays.asList(present));
         list.addAll(Arrays.asList(addition));
         return list.toArray(new Annotation[list.size()]);
-    }
-
-    @SuppressWarnings("unchecked")
-    private Class<? extends Annotation> annotationType(Class<? extends Annotation> key) {
-        return Proxy.isProxyClass(key) ? (Class<? extends Annotation>) key.getInterfaces()[0] : key;
     }
 
     @Override

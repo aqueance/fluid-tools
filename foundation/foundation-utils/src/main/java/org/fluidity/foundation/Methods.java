@@ -18,7 +18,6 @@ package org.fluidity.foundation;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
 
 /**
  * Convenience methods on methods.
@@ -50,24 +49,33 @@ public final class Methods {
     @SuppressWarnings("unchecked")
     public static <T> Method get(final Class<T> type, final Invoker<T> invoker) {
         try {
-            invoker.invoke((T) Proxy.newProxyInstance(type.getClassLoader(), new Class<?>[] { type }, new InvocationHandler() {
+            invoker.invoke(Proxies.create(type, new InvocationHandler() {
                 public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
                     throw new Capture(method);
                 }
             }));
 
-            throw new IllegalStateException("Method not called or exceptions blocked");
+            throw new IllegalStateException("Desired method not called or errors blocked");
         } catch (final Capture e) {
             return e.method;
         }
     }
 
+    /**
+     * Allows the caller of {@link Methods#get(Class, Invoker)} to find a method without referring to it by name.
+     */
     public static interface Invoker<T> {
 
+        /**
+         * Invokes the method that the caller of {@link Methods#get(Class, Invoker)} intends to find.
+         *
+         * @param capture a dummy implementation of the interface owning the method being sought. The implementation must call on the supplied
+         *                object the one method it is looking for via {@link Methods#get(Class, Invoker)}.
+         */
         void invoke(T capture);
     }
 
-    private static class Capture extends UnsupportedOperationException {
+    private static class Capture extends Error {
 
         public final Method method;
 
