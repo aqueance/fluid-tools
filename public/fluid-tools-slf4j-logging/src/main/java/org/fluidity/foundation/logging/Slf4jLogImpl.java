@@ -26,8 +26,8 @@ final class Slf4jLogImpl implements Log {
 
     private final Logger log;
 
-    public Slf4jLogImpl(final Class<?> marker) {
-        this.log = LoggerFactory.getLogger(marker);
+    public Slf4jLogImpl(final Class<?> source) {
+        this.log = LoggerFactory.getLogger(source);
     }
 
     public boolean isTraceEnabled() {

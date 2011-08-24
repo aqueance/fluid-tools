@@ -23,7 +23,6 @@ import java.util.ListIterator;
 import org.fluidity.composition.Component;
 import org.fluidity.composition.spi.ShutdownTasks;
 import org.fluidity.foundation.logging.Log;
-import org.fluidity.foundation.logging.Source;
 
 /**
  * Uses the {@link Runtime} object to add shutdown tasks to. The caller must make sure it has enough privileges to add a runtime shutdown hook.
@@ -35,7 +34,7 @@ final class RuntimeShutdownTasksImpl implements ShutdownTasks {
 
     private final List<Runnable> tasks = new ArrayList<Runnable>();
 
-    public RuntimeShutdownTasksImpl(final @Source(RuntimeShutdownTasksImpl.class) Log log) {
+    public RuntimeShutdownTasksImpl(final @Log.Source(RuntimeShutdownTasksImpl.class) Log log) {
         Runtime.getRuntime().addShutdownHook(new Thread("Container shutdown") {
             @Override
             public void run() {
