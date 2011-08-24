@@ -203,7 +203,8 @@ public final class Components {
                         interfaceMap.put(actual, groups(checked));
                     }
                 } else if (automatic && reference) {
-                    throw new ComponentContainer.BindingException("Class %s referred to is itself an automatically bound component", checked);
+                    throw new ComponentContainer.BindingException("Class referred to by %s, %s, is also an automatically bound component", actual.getName(),
+                                                                  checked.getName());
                 } else if (automatic && (Modifier.isAbstract(checked.getModifiers()) || checked.isInterface())) {
                     throw new ComponentContainer.BindingException("Class %s is abstract", checked);
                 } else {
@@ -212,7 +213,7 @@ public final class Components {
                     if (interfaces != null && interfaces.length > 0) {
                         for (final Class<?> api : interfaces) {
                             if (!factory && !api.isAssignableFrom(checked)) {
-                                throw new ComponentContainer.BindingException("Class %s refers to incompatible component interface %s", checked, api);
+                                throw new ComponentContainer.BindingException("Class %s refers to incompatible component interface %s", checked.getName(), api.getName());
                             }
 
                             interfaces(api, api, interfaceMap, path, true);

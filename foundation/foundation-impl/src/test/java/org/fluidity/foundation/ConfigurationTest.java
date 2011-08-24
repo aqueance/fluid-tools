@@ -29,7 +29,7 @@ import org.fluidity.foundation.spi.PropertyProvider;
 import org.fluidity.tests.MockGroupAbstractTest;
 
 import org.easymock.EasyMock;
-import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 /**
@@ -41,8 +41,8 @@ public class ConfigurationTest extends MockGroupAbstractTest {
 
     private final ComponentContainer container = new ContainerBoundary();
 
-    @BeforeClass
-    public void setupClass() throws Exception {
+    @BeforeMethod
+    public void setupTest() throws Exception {
         TestPropertyProvider.delegate = propertyProvider;
     }
 
@@ -66,8 +66,7 @@ public class ConfigurationTest extends MockGroupAbstractTest {
 
     @Test
     public void staticConfiguration() throws Exception {
-
-        // must read up all properties defined for Settings interface methods.
+        convertedProperties();
         properties(1, null, null, null, "value1", "value2", 5678);
         properties(0, "context1.context2.context3", null, null, null, null, null);
         properties(0, "context1.context2", null, null, null, null, null);
@@ -87,7 +86,7 @@ public class ConfigurationTest extends MockGroupAbstractTest {
 
     @Test
     public void dynamicConfiguration() throws Exception {
-
+        convertedProperties();
         properties(1, null, null, null, "value1", "value2", null);
         properties(0, "context1.context2.context3", null, null, null, null, null);
         properties(0, "context1.context2", null, null, null, null, null);
@@ -108,6 +107,7 @@ public class ConfigurationTest extends MockGroupAbstractTest {
         configured.checkSettings(null, "default", "value1", "value2", 1234);
         verify();
 
+        convertedProperties();
         properties(1, null, "value1", "value2", "value3", "value4", 5678);
         properties(0, "context1.context2.context3", null, null, null, null, null);
         properties(0, "context1.context2", null, null, null, null, null);
@@ -126,7 +126,7 @@ public class ConfigurationTest extends MockGroupAbstractTest {
 
     @Test
     public void contextConfiguration() throws Exception {
-
+        convertedProperties();
         properties(0, null, null, null, null, null, null);
         properties(1, "context1.context2.context3", null, null, null, "value2", 5678);
         properties(0, "context1.context2", null, null, null, null, null);
@@ -162,6 +162,47 @@ public class ConfigurationTest extends MockGroupAbstractTest {
         verify();
     }
 
+    @Test
+    public void defaultConversion() throws Exception {
+        TestPropertyProvider.delegate = new EmptyPropertyProvider();
+
+        assert container.getComponent(MultiTypeConfigured1.class) != null : MultiTypeConfigured1.class;
+    }
+
+    @Test
+    public void propertyConversion() throws Exception {
+        properties(0, null, null, null, null, null, 5678);
+        properties(0, "context1.context2.context3", null, null, null, null, null);
+        properties(0, "context1.context2", null, null, null, null, null);
+        properties(0, "context1", null, null, null, null, null);
+
+        EasyMock.expect(propertyProvider.property("boolean")).andReturn(1);
+        EasyMock.expect(propertyProvider.property("Boolean")).andReturn("1.1");
+        EasyMock.expect(propertyProvider.property("byte")).andReturn(true);
+        EasyMock.expect(propertyProvider.property("Byte")).andReturn(1.1);
+        EasyMock.expect(propertyProvider.property("short")).andReturn("1.1");
+        EasyMock.expect(propertyProvider.property("Short")).andReturn("true");
+        EasyMock.expect(propertyProvider.property("int")).andReturn(null);
+        EasyMock.expect(propertyProvider.property("Integer")).andReturn(null);
+        EasyMock.expect(propertyProvider.property("long")).andReturn(null);
+        EasyMock.expect(propertyProvider.property("Long")).andReturn(null);
+        EasyMock.expect(propertyProvider.property("float")).andReturn(1);
+        EasyMock.expect(propertyProvider.property("Float")).andReturn("1.25");      // must be exact
+        EasyMock.expect(propertyProvider.property("double")).andReturn("1");
+        EasyMock.expect(propertyProvider.property("Double")).andReturn("true");
+        EasyMock.expect(propertyProvider.property("class")).andReturn(null);
+        EasyMock.expect(propertyProvider.property("enum")).andReturn(null);
+
+        replay();
+
+        // force reloading the properties
+        TestPropertyProvider.reload();
+
+        assert container.getComponent(MultiTypeConfigured2.class) != null : MultiTypeConfigured2.class;
+
+        verify();
+    }
+
     private void properties(final int times,
                             final String context,
                             final Object missing1,
@@ -178,6 +219,25 @@ public class ConfigurationTest extends MockGroupAbstractTest {
         EasyMock.expect(propertyProvider.property(prefix.concat("valid.key3"))).andReturn(value3).times(times, Integer.MAX_VALUE);
     }
 
+    private void convertedProperties() {
+        EasyMock.expect(propertyProvider.property("boolean")).andReturn(null).times(0, Integer.MAX_VALUE);
+        EasyMock.expect(propertyProvider.property("Boolean")).andReturn(null).times(0, Integer.MAX_VALUE);
+        EasyMock.expect(propertyProvider.property("byte")).andReturn(null).times(0, Integer.MAX_VALUE);
+        EasyMock.expect(propertyProvider.property("Byte")).andReturn(null).times(0, Integer.MAX_VALUE);
+        EasyMock.expect(propertyProvider.property("short")).andReturn(null).times(0, Integer.MAX_VALUE);
+        EasyMock.expect(propertyProvider.property("Short")).andReturn(null).times(0, Integer.MAX_VALUE);
+        EasyMock.expect(propertyProvider.property("int")).andReturn(null).times(0, Integer.MAX_VALUE);
+        EasyMock.expect(propertyProvider.property("Integer")).andReturn(null).times(0, Integer.MAX_VALUE);
+        EasyMock.expect(propertyProvider.property("long")).andReturn(null).times(0, Integer.MAX_VALUE);
+        EasyMock.expect(propertyProvider.property("Long")).andReturn(null).times(0, Integer.MAX_VALUE);
+        EasyMock.expect(propertyProvider.property("float")).andReturn(null).times(0, Integer.MAX_VALUE);
+        EasyMock.expect(propertyProvider.property("Float")).andReturn(null).times(0, Integer.MAX_VALUE);
+        EasyMock.expect(propertyProvider.property("double")).andReturn(null).times(0, Integer.MAX_VALUE);
+        EasyMock.expect(propertyProvider.property("Double")).andReturn(null).times(0, Integer.MAX_VALUE);
+        EasyMock.expect(propertyProvider.property("class")).andReturn(null).times(0, Integer.MAX_VALUE);
+        EasyMock.expect(propertyProvider.property("enum")).andReturn(null).times(0, Integer.MAX_VALUE);
+    }
+
     public static interface MultiTypeSettings {
 
         @Setting(key = "boolean", undefined = "true")
@@ -186,40 +246,40 @@ public class ConfigurationTest extends MockGroupAbstractTest {
         @Setting(key = "Boolean", undefined = "true")
         Boolean BooleanValue();
 
-        @Setting(key = "int", undefined = "123")
+        @Setting(key = "byte", undefined = "123")
         byte byteValue();
 
-        @Setting(key = "int", undefined = "-123")
+        @Setting(key = "Byte", undefined = "-123")
         Byte ByteValue();
 
-        @Setting(key = "int", undefined = "1234")
+        @Setting(key = "short", undefined = "1234")
         short shortValue();
 
-        @Setting(key = "int", undefined = "-1234")
+        @Setting(key = "Short", undefined = "-1234")
         Short ShortValue();
 
         @Setting(key = "int", undefined = "12345")
         int intValue();
 
-        @Setting(key = "int", undefined = "-12345")
+        @Setting(key = "Integer", undefined = "-12345")
         Integer IntegerValue();
 
-        @Setting(key = "int", undefined = "123456")
+        @Setting(key = "long", undefined = "123456")
         long longValue();
 
-        @Setting(key = "int", undefined = "-123456")
+        @Setting(key = "Long", undefined = "-123456")
         Long LongValue();
 
         @Setting(key = "float", undefined = "123456.25")
         float floatValue();
 
-        @Setting(key = "float", undefined = "-123456.25")
+        @Setting(key = "Float", undefined = "-123456.25")
         Float FloatValue();
 
-        @Setting(key = "float", undefined = "1234567.25")
+        @Setting(key = "double", undefined = "1234567.25")
         double doubleValue();
 
-        @Setting(key = "float", undefined = "-1234567.25")
+        @Setting(key = "Double", undefined = "-1234567.25")
         Double DoubleValue();
 
         @Setting(key = "class", undefined = "java.lang.Object")
@@ -231,14 +291,6 @@ public class ConfigurationTest extends MockGroupAbstractTest {
 
     public static enum EnumType {
         SAMPLE
-    }
-
-    @Test
-    public void typeCasts() throws Exception {
-        TestPropertyProvider.delegate = new EmptyPropertyProvider();
-
-        final MultTypeConfigured component = container.getComponent(MultTypeConfigured.class);
-        assert component != null : MultTypeConfigured.class;
     }
 
     static void assertValue(final Object value, final Object expected) {
@@ -365,28 +417,54 @@ public class ConfigurationTest extends MockGroupAbstractTest {
     }
 
     @Component
-    public static class MultTypeConfigured {
+    public static class MultiTypeConfigured1 {
 
-        public MultTypeConfigured(final @Configuration.Definition(MultiTypeSettings.class) Configuration<MultiTypeSettings> settings) {
+        public MultiTypeConfigured1(final @Configuration.Definition(MultiTypeSettings.class) Configuration<MultiTypeSettings> settings) {
             final MultiTypeSettings configuration = settings.snapshot();
             assert configuration != null;
 
             assert configuration.booleanValue();
             assert configuration.BooleanValue();
-            assert configuration.byteValue() == 123;
-            assert configuration.ByteValue() == -123;
-            assert configuration.shortValue() == 1234;
-            assert configuration.ShortValue() == -1234;
-            assert configuration.intValue() == 12345;
-            assert configuration.IntegerValue() == -12345;
-            assert configuration.longValue() == 123456;
-            assert configuration.LongValue() == -123456;
-            assert configuration.floatValue() == 123456.25;
-            assert configuration.FloatValue() == -123456.25;
-            assert configuration.doubleValue() == 1234567.25;
-            assert configuration.DoubleValue() == -1234567.25;
-            assert configuration.classValue() == Object.class;
-            assert configuration.enumValue() == EnumType.SAMPLE;
+            assert configuration.byteValue() == 123 : configuration.byteValue();
+            assert configuration.ByteValue() == -123 : configuration.ByteValue();
+            assert configuration.shortValue() == 1234 : configuration.shortValue();
+            assert configuration.ShortValue() == -1234 : configuration.ShortValue();
+            assert configuration.intValue() == 12345 : configuration.intValue();
+            assert configuration.IntegerValue() == -12345 : configuration.IntegerValue();
+            assert configuration.longValue() == 123456 : configuration.longValue();
+            assert configuration.LongValue() == -123456 : configuration.LongValue();
+            assert configuration.floatValue() == 123456.25 : configuration.floatValue();
+            assert configuration.FloatValue() == -123456.25 : configuration.FloatValue();
+            assert configuration.doubleValue() == 1234567.25 : configuration.doubleValue();
+            assert configuration.DoubleValue() == -1234567.25 : configuration.DoubleValue();
+            assert configuration.classValue() == Object.class : configuration.classValue();
+            assert configuration.enumValue() == EnumType.SAMPLE : configuration.enumValue();
+        }
+    }
+
+    @Component
+    public static class MultiTypeConfigured2 {
+
+        public MultiTypeConfigured2(final @Configuration.Definition(MultiTypeSettings.class) Configuration<MultiTypeSettings> settings) {
+            final MultiTypeSettings configuration = settings.snapshot();
+            assert configuration != null;
+
+            assert configuration.booleanValue();
+            assert configuration.BooleanValue();
+            assert configuration.byteValue() == 1 : configuration.byteValue();
+            assert configuration.ByteValue() == 1 : configuration.ByteValue();
+            assert configuration.shortValue() == 1 : configuration.shortValue();
+            assert configuration.ShortValue() == 1 : configuration.ShortValue();
+            assert configuration.intValue() == 12345 : configuration.intValue();
+            assert configuration.IntegerValue() == -12345 : configuration.IntegerValue();
+            assert configuration.longValue() == 123456 : configuration.longValue();
+            assert configuration.LongValue() == -123456 : configuration.LongValue();
+            assert configuration.floatValue() == 1 : configuration.floatValue();
+            assert configuration.FloatValue() == 1.25 : configuration.FloatValue();
+            assert configuration.doubleValue() == 1 : configuration.doubleValue();
+            assert configuration.DoubleValue() == 1 : configuration.DoubleValue();
+            assert configuration.classValue() == Object.class : configuration.classValue();
+            assert configuration.enumValue() == EnumType.SAMPLE : configuration.enumValue();
         }
     }
 }

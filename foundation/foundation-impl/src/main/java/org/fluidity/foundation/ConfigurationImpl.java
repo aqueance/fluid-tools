@@ -70,7 +70,7 @@ final class ConfigurationImpl<T> implements Configuration<T> {
                     }
 
                     final String undefined = setting.undefined();
-                    properties.put(method, value == null ? convert(undefined.length() == 0 ? null : undefined, method.getReturnType()) : value);
+                    properties.put(method, convert(value == null ? undefined.length() == 0 ? null : undefined : value, method.getReturnType()));
                 }
 
                 configuration.set((T) Proxy.newProxyInstance(loader, interfaces, new InvocationHandler() {
@@ -85,42 +85,99 @@ final class ConfigurationImpl<T> implements Configuration<T> {
                 }));
             }
 
-            // TODO: convert any type to all others that make sense
-            // TODO: convert the return value of the property provider as well
-
-            @SuppressWarnings("unchecked")
-            private Object convert(final String value, final Class<?> type) {
+            private Object convert(final Object value, final Class<?> target) {
                 if (value == null) {
                     return null;
-                } else if (type.isAssignableFrom(value.getClass())) {
+                } else if (target.isAssignableFrom(value.getClass())) {
                     return value;
-                } else if (type == String.class) {
+                } else if (target == String.class) {
                     return String.valueOf(value);
-                } else if (type == Boolean.TYPE || type == Boolean.class) {
-                    return Boolean.valueOf(value);
-                } else if (type == Byte.TYPE || type == Byte.class) {
-                    return Byte.valueOf(value);
-                } else if (type == Short.TYPE || type == Short.class) {
-                    return Short.valueOf(value);
-                } else if (type == Integer.TYPE || type == Integer.class) {
-                    return Integer.valueOf(value);
-                } else if (type == Long.TYPE || type == Long.class) {
-                    return Long.valueOf(value);
-                } else if (type == Float.TYPE || type == Float.class) {
-                    return Float.valueOf(value);
-                } else if (type == Double.TYPE || type == Double.class) {
-                    return Double.valueOf(value);
-                } else if (Enum.class.isAssignableFrom(type)) {
-                    return Enum.valueOf((Class<Enum>) type, value);
-                } else if (type == Class.class) {
-                    try {
-                        return settingsApi.getClassLoader().loadClass(value);
-                    } catch (final ClassNotFoundException e) {
-                        throw new IllegalArgumentException(e);
-                    }
-                } else {
-                    throw new IllegalArgumentException(String.format("Cannot convert %s to type %s", value, type));
+                } else if (value instanceof String) {
+                    return stringToObject(target, (String) value);
+                } else if (value instanceof Number) {
+                    return numberToPrimitive(target, (Number) value);
+                } else if (value instanceof Boolean) {
+                    return booleanToNumber(target, (byte) (((Boolean) value) ? 1 : 0));
                 }
+
+                throw new IllegalArgumentException(String.format("Cannot convert %s to type %s", value, target));
+            }
+
+            @SuppressWarnings("unchecked")
+            private Object stringToObject(final Class<?> target, final String text) {
+                try {
+                    return numberToPrimitive(target, Double.valueOf(text));
+                } catch (final NumberFormatException ignore) {
+                    if (String.valueOf(true).equals(text)) {
+                        return booleanToNumber(target, (byte) 1);
+                    } else if (String.valueOf(false).equals(text)) {
+                        return booleanToNumber(target, (byte) 0);
+                    } else if (target == Boolean.TYPE || target == Boolean.class) {
+                        return Boolean.valueOf(text);
+                    } else if (target == Byte.TYPE || target == Byte.class) {
+                        return Double.valueOf(text).byteValue();
+                    } else if (target == Short.TYPE || target == Short.class) {
+                        return Double.valueOf(text).shortValue();
+                    } else if (target == Integer.TYPE || target == Integer.class) {
+                        return Double.valueOf(text).intValue();
+                    } else if (target == Long.TYPE || target == Long.class) {
+                        return Double.valueOf(text).longValue();
+                    } else if (target == Float.TYPE || target == Float.class) {
+                        return Double.valueOf(text).floatValue();
+                    } else if (target == Double.TYPE || target == Double.class) {
+                        return Double.valueOf(text);
+                    } else if (Enum.class.isAssignableFrom(target)) {
+                        return Enum.valueOf((Class<Enum>) target, text);
+                    } else if (target == Class.class) {
+                        try {
+                            return settingsApi.getClassLoader().loadClass(text);
+                        } catch (final ClassNotFoundException e) {
+                            throw new IllegalArgumentException(e);
+                        }
+                    }
+
+                    throw new IllegalArgumentException(String.format("Cannot convert %s to type %s", text, target));
+                }
+            }
+
+            private Object numberToPrimitive(final Class<?> target, final Number number) {
+                if (target == Boolean.TYPE || target == Boolean.class) {
+                    return number.doubleValue() != 0d;
+                } else if (target == Byte.TYPE || target == Byte.class) {
+                    return number.byteValue();
+                } else if (target == Short.TYPE || target == Short.class) {
+                    return number.shortValue();
+                } else if (target == Integer.TYPE || target == Integer.class) {
+                    return number.intValue();
+                } else if (target == Long.TYPE || target == Long.class) {
+                    return number.longValue();
+                } else if (target == Float.TYPE || target == Float.class) {
+                    return number.floatValue();
+                } else if (target == Double.TYPE || target == Double.class) {
+                    return number.doubleValue();
+                }
+
+                throw new IllegalArgumentException(String.format("Cannot convert %s to type %s", number, target));
+            }
+
+            private Object booleanToNumber(final Class<?> target, final byte flag) {
+                if (target == Boolean.TYPE || target == Boolean.class) {
+                    return flag != 0;
+                } else if (target == Byte.TYPE || target == Byte.class) {
+                    return flag;
+                } else if (target == Short.TYPE || target == Short.class) {
+                    return (short) flag;
+                } else if (target == Integer.TYPE || target == Integer.class) {
+                    return (int) flag;
+                } else if (target == Long.TYPE || target == Long.class) {
+                    return (long) flag;
+                } else if (target == Float.TYPE || target == Float.class) {
+                    return (float) flag;
+                } else if (target == Double.TYPE || target == Double.class) {
+                    return (double) flag;
+                }
+
+                throw new IllegalArgumentException(String.format("Cannot convert %s to type %s", flag, target));
             }
         };
 
