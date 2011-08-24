@@ -23,6 +23,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
@@ -71,7 +72,8 @@ final class DependencyInjectorImpl implements DependencyInjector {
         assert container != null;
 
         final Class<?> componentClass = method.getDeclaringClass();
-        final Annotation[][] annotations = method.getParameterAnnotations();
+        final Annotation[] methodAnnotations = method.getAnnotations();
+        final Annotation[][] parameterAnnotations = method.getParameterAnnotations();
         final Class[] types = method.getParameterTypes();
         final Object[] parameters = new Object[types.length];
 
@@ -95,7 +97,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
                 }
 
                 public Annotation[] annotations() {
-                    return annotations[index];
+                    return parameterAnnotations(methodAnnotations, parameterAnnotations[index]);
                 }
 
                 public void set(final DependencyGraph.Node node) {
@@ -222,7 +224,8 @@ final class DependencyInjectorImpl implements DependencyInjector {
         final List<ContextDefinition> consumed = new ArrayList<ContextDefinition>();
 
         final Class<?> componentClass = constructor.getDeclaringClass();
-        final Annotation[][] annotations = constructor.getParameterAnnotations();
+        final Annotation[] constructorAnnotations = neverNull(constructor.getAnnotations());
+        final Annotation[][] parameterAnnotations = constructor.getParameterAnnotations();
         final Class[] types = constructor.getParameterTypes();
         final DependencyGraph.Node[] arguments = new DependencyGraph.Node[types.length];
 
@@ -246,8 +249,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
                 }
 
                 public Annotation[] annotations() {
-                    // TODO: return constructor annotations and then parameter annotations
-                    return annotations[index];
+                    return parameterAnnotations(constructorAnnotations, parameterAnnotations[index]);
                 }
 
                 public void set(final DependencyGraph.Node node) {
@@ -288,6 +290,13 @@ final class DependencyInjectorImpl implements DependencyInjector {
                 return componentContext;
             }
         };
+    }
+
+    private Annotation[] parameterAnnotations(final Annotation[] method, final Annotation[] params) {
+        final Annotation[] annotations = neverNull(params);
+        final Annotation[] all = Arrays.copyOf(method, method.length + annotations.length);
+        System.arraycopy(annotations, 0, all, method.length, annotations.length);
+        return all;
     }
 
     private void enableContainers(final List<RestrictedContainer> containers) {

@@ -19,7 +19,10 @@ package org.fluidity.foundation;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -39,7 +42,7 @@ final class ConfigurationImpl<T> implements Configuration<T> {
     public ConfigurationImpl(final PropertyProvider provider, final ComponentContext context) {
         final Definition definition = context.annotation(Definition.class, getClass());
 
-        final String prefix = propertyContext(context);
+        final String[] prefixes = propertyContexts(context);
 
         @SuppressWarnings("unchecked")
         final Class<T> settingsApi = (Class<T>) definition.value();
@@ -57,8 +60,11 @@ final class ConfigurationImpl<T> implements Configuration<T> {
                     final Setting setting = method.getAnnotation(Setting.class);
                     assert setting != null : String.format("No @%s specified for method %s", Setting.class.getName(), method);
 
-                    final String property = prefix.concat(setting.key());
-                    final Object value = provider.property(property);
+                    Object value = null;
+
+                    for (int i = 0, limit = prefixes.length; value == null && i < limit; i++) {
+                        value = provider.property(prefixes[i].concat(setting.key()));
+                    }
 
                     properties.put(method, value == null ? convert(setting.undefined(), method.getReturnType()) : value);
                 }
@@ -116,17 +122,23 @@ final class ConfigurationImpl<T> implements Configuration<T> {
         }
     }
 
-    private String propertyContext(final ComponentContext context) {
+    private String[] propertyContexts(final ComponentContext context) {
         final Context[] annotations = context.annotations(Context.class);
+        final List<String> list = new ArrayList<String>((annotations == null ? 0 : annotations.length) + 1);
+
         final StringBuilder prefix = new StringBuilder();
+        list.add(prefix.toString());
 
         if (annotations != null) {
             for (final Context next : annotations) {
                 prefix.append(next.value()).append('.');
+                list.add(prefix.toString());
             }
         }
 
-        return prefix.toString();
+        Collections.reverse(list);
+
+        return list.toArray(new String[list.size()]);
     }
 
     public T snapshot() {

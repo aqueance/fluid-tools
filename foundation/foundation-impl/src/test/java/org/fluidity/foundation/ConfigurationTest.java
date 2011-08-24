@@ -65,7 +65,9 @@ public class ConfigurationTest extends MockGroupAbstractTest {
 
         // must read up all properties defined for Settings interface methods.
         properties(1, null, null, null, "value1", "value2");
-        properties(0, "context1.context2", null, null, "value1", "value2");
+        properties(0, "context1.context2.context3", null, null, null, null);
+        properties(0, "context1.context2", null, null, null, null);
+        properties(0, "context1", null, null, null, null);
 
         replay();
 
@@ -83,7 +85,9 @@ public class ConfigurationTest extends MockGroupAbstractTest {
     public void dynamicConfiguration() throws Exception {
 
         properties(1, null, null, null, "value1", "value2");
-        properties(0, "context1.context2", null, null, "value1", "value2");
+        properties(0, "context1.context2.context3", null, null, null, null);
+        properties(0, "context1.context2", null, null, null, null);
+        properties(0, "context1", null, null, null, null);
 
         replay();
 
@@ -101,7 +105,9 @@ public class ConfigurationTest extends MockGroupAbstractTest {
         verify();
 
         properties(1, null, "value1", "value2", "value3", "value4");
-        properties(0, "context1.context2", null, null, "value1", "value2");
+        properties(0, "context1.context2.context3", null, null, null, null);
+        properties(0, "context1.context2", null, null, null, null);
+        properties(0, "context1", null, null, null, null);
 
         // invoke the property change listeners
         replay();
@@ -117,8 +123,10 @@ public class ConfigurationTest extends MockGroupAbstractTest {
     @Test
     public void contextConfiguration() throws Exception {
 
-        properties(0, null, null, null, "value1", "value2");
-        properties(1, "context1.context2", null, null, "value1", "value2");
+        properties(0, null, null, null, null, null);
+        properties(1, "context1.context2.context3", null, null, null, "value2");
+        properties(0, "context1.context2", null, null, null, null);
+        properties(0, "context1", null, null, "value1", null);
 
         replay();
 
@@ -131,8 +139,6 @@ public class ConfigurationTest extends MockGroupAbstractTest {
 
         verify();
     }
-
-    // TODO: context fallback (context1.context2.xxx falls back if not defined to context1.xxx and then to xxx)
 
     private void properties(final int times, final String context, final Object missing1, final Object missing2, final String value1, final String value2) {
         final String prefix = context == null ? "" : context.concat(".");
@@ -266,7 +272,8 @@ public class ConfigurationTest extends MockGroupAbstractTest {
 
         private final Settings configuration;
 
-        public ContextConfigured(final @Configuration.Definition(Settings.class) @Configuration.Context("context2") Configuration<Settings> settings) {
+        @Configuration.Context("context2")
+        public ContextConfigured(final @Configuration.Definition(Settings.class) @Configuration.Context("context3") Configuration<Settings> settings) {
             configuration = settings.snapshot();
             assert configuration != null;
         }
