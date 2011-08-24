@@ -43,6 +43,8 @@ final class LogComponentFactory implements CustomComponentFactory {
 
     public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
         return new Instance() {
+
+            @SuppressWarnings("unchecked")
             public void bind(final Registry registry) throws ComponentContainer.BindingException {
                 final Source marker = context.annotation(Source.class, Log.class);
                 registry.bindInstance(factory.createLog(marker.value()), Log.class);

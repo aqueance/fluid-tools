@@ -246,6 +246,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
                 }
 
                 public Annotation[] annotations() {
+                    // TODO: return constructor annotations and then parameter annotations
                     return annotations[index];
                 }
 
