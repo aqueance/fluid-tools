@@ -29,6 +29,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.Context;
+import org.fluidity.composition.Optional;
 import org.fluidity.foundation.configuration.Configuration;
 import org.fluidity.foundation.configuration.Setting;
 import org.fluidity.foundation.spi.PropertyProvider;
@@ -39,7 +40,7 @@ final class ConfigurationImpl<T> implements Configuration<T> {
 
     private final AtomicReference<T> configuration = new AtomicReference<T>();
 
-    public ConfigurationImpl(final PropertyProvider provider, final ComponentContext context) {
+    public ConfigurationImpl(final @Optional PropertyProvider provider, final ComponentContext context) {
         final Definition definition = context.annotation(Definition.class, getClass());
 
         final String[] prefixes = propertyContexts(context);
@@ -62,11 +63,14 @@ final class ConfigurationImpl<T> implements Configuration<T> {
 
                     Object value = null;
 
-                    for (int i = 0, limit = prefixes.length; value == null && i < limit; i++) {
-                        value = provider.property(prefixes[i].concat(setting.key()));
+                    if (provider != null) {
+                        for (int i = 0, limit = prefixes.length; value == null && i < limit; i++) {
+                            value = provider.property(prefixes[i].concat(setting.key()));
+                        }
                     }
 
-                    properties.put(method, value == null ? convert(setting.undefined(), method.getReturnType()) : value);
+                    final String undefined = setting.undefined();
+                    properties.put(method, value == null ? convert(undefined.length() == 0 ? null : undefined, method.getReturnType()) : value);
                 }
 
                 configuration.set((T) Proxy.newProxyInstance(loader, interfaces, new InvocationHandler() {
@@ -81,12 +85,17 @@ final class ConfigurationImpl<T> implements Configuration<T> {
                 }));
             }
 
+            // TODO: convert any type to all others that make sense
+            // TODO: convert the return value of the property provider as well
+
             @SuppressWarnings("unchecked")
             private Object convert(final String value, final Class<?> type) {
-                if (value == null || value.length() == 0) {
+                if (value == null) {
                     return null;
-                } else if (type == String.class) {
+                } else if (type.isAssignableFrom(value.getClass())) {
                     return value;
+                } else if (type == String.class) {
+                    return String.valueOf(value);
                 } else if (type == Boolean.TYPE || type == Boolean.class) {
                     return Boolean.valueOf(value);
                 } else if (type == Byte.TYPE || type == Byte.class) {
@@ -115,7 +124,9 @@ final class ConfigurationImpl<T> implements Configuration<T> {
             }
         };
 
-        provider.addChangeListener(listener);
+        if (provider != null) {
+            provider.addChangeListener(listener);
+        }
 
         if (configuration.get() == null) {
             listener.propertiesChanged(provider);

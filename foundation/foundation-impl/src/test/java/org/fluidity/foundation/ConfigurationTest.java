@@ -21,6 +21,7 @@ import java.util.List;
 
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
+import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.ContainerBoundary;
 import org.fluidity.foundation.configuration.Configuration;
 import org.fluidity.foundation.configuration.Setting;
@@ -58,16 +59,19 @@ public class ConfigurationTest extends MockGroupAbstractTest {
 
         @Setting(key = "valid.key2", undefined = "default")
         String validValue2();
+
+        @Setting(key = "valid.key3", undefined = "1234")
+        int validValue3();
     }
 
     @Test
     public void staticConfiguration() throws Exception {
 
         // must read up all properties defined for Settings interface methods.
-        properties(1, null, null, null, "value1", "value2");
-        properties(0, "context1.context2.context3", null, null, null, null);
-        properties(0, "context1.context2", null, null, null, null);
-        properties(0, "context1", null, null, null, null);
+        properties(1, null, null, null, "value1", "value2", 5678);
+        properties(0, "context1.context2.context3", null, null, null, null, null);
+        properties(0, "context1.context2", null, null, null, null, null);
+        properties(0, "context1", null, null, null, null, null);
 
         replay();
 
@@ -76,7 +80,7 @@ public class ConfigurationTest extends MockGroupAbstractTest {
 
         final Configured configured = container.getComponent(StaticConfigured.class);
         assert configured != null;
-        configured.checkSettings(null, "default", "value1", "value2");
+        configured.checkSettings(null, "default", "value1", "value2", 5678);
 
         verify();
     }
@@ -84,10 +88,10 @@ public class ConfigurationTest extends MockGroupAbstractTest {
     @Test
     public void dynamicConfiguration() throws Exception {
 
-        properties(1, null, null, null, "value1", "value2");
-        properties(0, "context1.context2.context3", null, null, null, null);
-        properties(0, "context1.context2", null, null, null, null);
-        properties(0, "context1", null, null, null, null);
+        properties(1, null, null, null, "value1", "value2", null);
+        properties(0, "context1.context2.context3", null, null, null, null, null);
+        properties(0, "context1.context2", null, null, null, null, null);
+        properties(0, "context1", null, null, null, null, null);
 
         replay();
 
@@ -101,13 +105,13 @@ public class ConfigurationTest extends MockGroupAbstractTest {
 
         // properties must be cached, no reading should take place
         replay();
-        configured.checkSettings(null, "default", "value1", "value2");
+        configured.checkSettings(null, "default", "value1", "value2", 1234);
         verify();
 
-        properties(1, null, "value1", "value2", "value3", "value4");
-        properties(0, "context1.context2.context3", null, null, null, null);
-        properties(0, "context1.context2", null, null, null, null);
-        properties(0, "context1", null, null, null, null);
+        properties(1, null, "value1", "value2", "value3", "value4", 5678);
+        properties(0, "context1.context2.context3", null, null, null, null, null);
+        properties(0, "context1.context2", null, null, null, null, null);
+        properties(0, "context1", null, null, null, null, null);
 
         // invoke the property change listeners
         replay();
@@ -116,17 +120,17 @@ public class ConfigurationTest extends MockGroupAbstractTest {
 
         // properties must be cached, no reading should take place
         replay();
-        configured.checkSettings("value1", "value2", "value3", "value4");
+        configured.checkSettings("value1", "value2", "value3", "value4", 5678);
         verify();
     }
 
     @Test
     public void contextConfiguration() throws Exception {
 
-        properties(0, null, null, null, null, null);
-        properties(1, "context1.context2.context3", null, null, null, "value2");
-        properties(0, "context1.context2", null, null, null, null);
-        properties(0, "context1", null, null, "value1", null);
+        properties(0, null, null, null, null, null, null);
+        properties(1, "context1.context2.context3", null, null, null, "value2", 5678);
+        properties(0, "context1.context2", null, null, null, null, null);
+        properties(0, "context1", null, null, "value1", null, null);
 
         replay();
 
@@ -135,18 +139,43 @@ public class ConfigurationTest extends MockGroupAbstractTest {
 
         final Configured configured = container.getComponent(ContextConfigured.class);
         assert configured != null;
-        configured.checkSettings(null, "default", "value1", "value2");
+        configured.checkSettings(null, "default", "value1", "value2", 5678);
 
         verify();
     }
 
-    private void properties(final int times, final String context, final Object missing1, final Object missing2, final String value1, final String value2) {
+    @Test
+    @SuppressWarnings("unchecked")
+    public void noConfiguration() throws Exception {
+        final ComponentContext context = localMock(ComponentContext.class);
+        final Configuration.Definition definition = localMock(Configuration.Definition.class);
+
+        EasyMock.expect(context.annotation(EasyMock.same(Configuration.Definition.class), EasyMock.<Class>notNull())).andReturn(definition);
+        EasyMock.expect(definition.value()).andReturn((Class) Settings.class);
+        EasyMock.expect(context.annotations(Configuration.Context.class)).andReturn(null);
+
+        replay();
+
+        final Configured configured = new StaticConfigured(new ConfigurationImpl<Settings>(null, context));
+        configured.checkSettings(null, "default", null, "default", 1234);
+
+        verify();
+    }
+
+    private void properties(final int times,
+                            final String context,
+                            final Object missing1,
+                            final Object missing2,
+                            final String value1,
+                            final String value2,
+                            final Integer value3) {
         final String prefix = context == null ? "" : context.concat(".");
 
         EasyMock.expect(propertyProvider.property(prefix.concat("missing.key1"))).andReturn(missing1).times(times, Integer.MAX_VALUE);
         EasyMock.expect(propertyProvider.property(prefix.concat("missing.key2"))).andReturn(missing2).times(times, Integer.MAX_VALUE);
         EasyMock.expect(propertyProvider.property(prefix.concat("valid.key1"))).andReturn(value1).times(times, Integer.MAX_VALUE);
         EasyMock.expect(propertyProvider.property(prefix.concat("valid.key2"))).andReturn(value2).times(times, Integer.MAX_VALUE);
+        EasyMock.expect(propertyProvider.property(prefix.concat("valid.key3"))).andReturn(value3).times(times, Integer.MAX_VALUE);
     }
 
     public static interface MultiTypeSettings {
@@ -212,7 +241,7 @@ public class ConfigurationTest extends MockGroupAbstractTest {
         assert component != null : MultTypeConfigured.class;
     }
 
-    static void assertValue(final String value, final String expected) {
+    static void assertValue(final Object value, final Object expected) {
         if (expected == null) {
             assert value == null : String.format("Expected null, got >%s<", value);
         } else {
@@ -223,7 +252,12 @@ public class ConfigurationTest extends MockGroupAbstractTest {
     // just for convenience
     private static abstract class Configured {
 
-        protected void checkSettings(final Settings configuration, final String missing1, final String missing2, final String valid1, final String valid2) {
+        protected void checkSettings(final Settings configuration,
+                                     final String missing1,
+                                     final String missing2,
+                                     final String valid1,
+                                     final String valid2,
+                                     final int valid3) {
             assert configuration != null;
 
             assertValue(configuration.missingValue1(), missing1);
@@ -231,9 +265,10 @@ public class ConfigurationTest extends MockGroupAbstractTest {
 
             assertValue(configuration.validValue1(), valid1);
             assertValue(configuration.validValue2(), valid2);
+            assertValue(configuration.validValue3(), valid3);
         }
 
-        public abstract void checkSettings(final String missing1, final String missing2, final String valid1, final String valid2);
+        public abstract void checkSettings(final String missing1, final String missing2, final String valid1, final String valid2, final int valid3);
     }
 
     @Component
@@ -246,8 +281,8 @@ public class ConfigurationTest extends MockGroupAbstractTest {
             assert configuration != null;
         }
 
-        public void checkSettings(final String missing1, final String missing2, final String valid1, final String valid2) {
-            checkSettings(configuration, missing1, missing2, valid1, valid2);
+        public void checkSettings(final String missing1, final String missing2, final String valid1, final String valid2, final int valid3) {
+            checkSettings(configuration, missing1, missing2, valid1, valid2, valid3);
         }
 
     }
@@ -260,8 +295,8 @@ public class ConfigurationTest extends MockGroupAbstractTest {
         public DynamicConfigured(final @Configuration.Definition(Settings.class) Configuration<Settings> settings) {
             this.settings = settings;
         }
-        public void checkSettings(final String missing1, final String missing2, final String valid1, final String valid2) {
-            checkSettings(settings.snapshot(), missing1, missing2, valid1, valid2);
+        public void checkSettings(final String missing1, final String missing2, final String valid1, final String valid2, final int valid3) {
+            checkSettings(settings.snapshot(), missing1, missing2, valid1, valid2, valid3);
         }
 
     }
@@ -278,8 +313,8 @@ public class ConfigurationTest extends MockGroupAbstractTest {
             assert configuration != null;
         }
 
-        public void checkSettings(final String missing1, final String missing2, final String valid1, final String valid2) {
-            checkSettings(configuration, missing1, missing2, valid1, valid2);
+        public void checkSettings(final String missing1, final String missing2, final String valid1, final String valid2, final int valid3) {
+            checkSettings(configuration, missing1, missing2, valid1, valid2, valid3);
         }
     }
 
