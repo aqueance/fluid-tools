@@ -21,7 +21,6 @@ import java.util.List;
 
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
-import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.ContainerBoundary;
 import org.fluidity.foundation.configuration.Configuration;
 import org.fluidity.foundation.configuration.Setting;
@@ -67,6 +66,7 @@ public class ConfigurationTest extends MockGroupAbstractTest {
     @Test
     public void staticConfiguration() throws Exception {
         convertedProperties();
+        providedProperties();
         properties(1, null, null, null, "value1", "value2", 5678);
         properties(0, "context1.context2.context3", null, null, null, null, null);
         properties(0, "context1.context2", null, null, null, null, null);
@@ -87,6 +87,7 @@ public class ConfigurationTest extends MockGroupAbstractTest {
     @Test
     public void dynamicConfiguration() throws Exception {
         convertedProperties();
+        providedProperties();
         properties(1, null, null, null, "value1", "value2", null);
         properties(0, "context1.context2.context3", null, null, null, null, null);
         properties(0, "context1.context2", null, null, null, null, null);
@@ -108,6 +109,7 @@ public class ConfigurationTest extends MockGroupAbstractTest {
         verify();
 
         convertedProperties();
+        providedProperties();
         properties(1, null, "value1", "value2", "value3", "value4", 5678);
         properties(0, "context1.context2.context3", null, null, null, null, null);
         properties(0, "context1.context2", null, null, null, null, null);
@@ -127,6 +129,7 @@ public class ConfigurationTest extends MockGroupAbstractTest {
     @Test
     public void contextConfiguration() throws Exception {
         convertedProperties();
+        providedProperties();
         properties(0, null, null, null, null, null, null);
         properties(1, "context1.context2.context3", null, null, null, "value2", 5678);
         properties(0, "context1.context2", null, null, null, null, null);
@@ -147,19 +150,66 @@ public class ConfigurationTest extends MockGroupAbstractTest {
     @Test
     @SuppressWarnings("unchecked")
     public void noConfiguration() throws Exception {
-        final ComponentContext context = localMock(ComponentContext.class);
         final Configuration.Definition definition = localMock(Configuration.Definition.class);
 
-        EasyMock.expect(context.annotation(EasyMock.same(Configuration.Definition.class), EasyMock.<Class>notNull())).andReturn(definition);
         EasyMock.expect(definition.value()).andReturn((Class) Settings.class);
-        EasyMock.expect(context.annotations(Configuration.Context.class)).andReturn(null);
+
+        replay();
+        final Configuration<Settings> configuration = new ConfigurationFactory.ConfigurationImpl<Settings>(definition, null, null, null);
+        verify();
+
+        final Configured configured = new StaticConfigured(configuration);
+        configured.checkSettings(null, "default", null, "default", 1234);
+    }
+
+    @Test
+    public void overriddenConfiguration() throws Exception {
+        convertedProperties();
+        properties(0, null, null, null, null, null, 0);
+        properties(0, "context1.context2.context3", null, null, null, null, null);
+        properties(0, "context1.context2", null, null, null, null, null);
+        properties(0, "context1", null, null, null, null, null);
+
+        EasyMock.expect(propertyProvider.property("property")).andReturn("property");
+        EasyMock.expect(propertyProvider.property("provided")).andReturn(null);
+        EasyMock.expect(propertyProvider.property("undefined")).andReturn(null);
 
         replay();
 
-        final Configured configured = new StaticConfigured(new ConfigurationImpl<Settings>(null, context));
-        configured.checkSettings(null, "default", null, "default", 1234);
+        // force reloading the properties
+        TestPropertyProvider.reload();
+
+        final ProvidedSettingsConfigured configured = container.getComponent(ProvidedSettingsConfigured.class);
+        assert configured != null;
 
         verify();
+
+        final ProvidedSettings settings = configured.settings;
+        assert "property".equals(settings.property()) : settings.property();
+        assert "provided".equals(settings.provided()) : settings.provided();
+        assert "undefined".equals(settings.undefined()) : settings.undefined();
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void providedConfiguration() throws Exception {
+        final Configuration.Definition definition = localMock(Configuration.Definition.class);
+
+        EasyMock.expect(definition.value()).andReturn((Class) ProvidedSettings.class);
+
+        replay();
+
+        final Configuration<ProvidedSettings> configuration = new ConfigurationFactory.ConfigurationImpl<ProvidedSettings>(definition,
+                                                                                                                           null,
+                                                                                                                           new ProvidedSettingsImpl(),
+                                                                                                                           null);
+
+        verify();
+
+        final ProvidedSettings settings = new ProvidedSettingsConfigured(configuration).settings;
+        assert "provided".equals(settings.property()) : settings.property();
+        assert "provided".equals(settings.provided()) : settings.provided();
+        assert "undefined".equals(settings.undefined()) : settings.undefined();
     }
 
     @Test
@@ -171,6 +221,7 @@ public class ConfigurationTest extends MockGroupAbstractTest {
 
     @Test
     public void propertyConversion() throws Exception {
+        providedProperties();
         properties(0, null, null, null, null, null, 5678);
         properties(0, "context1.context2.context3", null, null, null, null, null);
         properties(0, "context1.context2", null, null, null, null, null);
@@ -236,6 +287,12 @@ public class ConfigurationTest extends MockGroupAbstractTest {
         EasyMock.expect(propertyProvider.property("Double")).andReturn(null).times(0, Integer.MAX_VALUE);
         EasyMock.expect(propertyProvider.property("class")).andReturn(null).times(0, Integer.MAX_VALUE);
         EasyMock.expect(propertyProvider.property("enum")).andReturn(null).times(0, Integer.MAX_VALUE);
+    }
+
+    private void providedProperties() {
+        EasyMock.expect(propertyProvider.property("property")).andReturn(null).times(0, Integer.MAX_VALUE);
+        EasyMock.expect(propertyProvider.property("provided")).andReturn(null).times(0, Integer.MAX_VALUE);
+        EasyMock.expect(propertyProvider.property("undefined")).andReturn(null).times(0, Integer.MAX_VALUE);
     }
 
     public static interface MultiTypeSettings {
@@ -347,6 +404,7 @@ public class ConfigurationTest extends MockGroupAbstractTest {
         public DynamicConfigured(final @Configuration.Definition(Settings.class) Configuration<Settings> settings) {
             this.settings = settings;
         }
+
         public void checkSettings(final String missing1, final String missing2, final String valid1, final String valid2, final int valid3) {
             checkSettings(settings.snapshot(), missing1, missing2, valid1, valid2, valid3);
         }
@@ -467,4 +525,43 @@ public class ConfigurationTest extends MockGroupAbstractTest {
             assert configuration.enumValue() == EnumType.SAMPLE : configuration.enumValue();
         }
     }
+
+    public interface ProvidedSettings {
+
+        @Setting(key = "property", undefined = "undefined")
+        String property();
+
+        @Setting(key = "undefined", undefined = "undefined")
+        String undefined();
+
+        @Setting(key = "provided", undefined = "undefined")
+        String provided();
+    }
+
+    @Component
+    public static class ProvidedSettingsImpl implements ProvidedSettings {
+
+        public String property() {
+            return "provided";
+        }
+
+        public String undefined() {
+            return null;
+        }
+
+        public String provided() {
+            return "provided";
+        }
+    }
+
+    @Component
+    public static class ProvidedSettingsConfigured {
+
+        public final ProvidedSettings settings;
+
+        public ProvidedSettingsConfigured(@Configuration.Definition(ProvidedSettings.class) Configuration<ProvidedSettings> configuration) {
+            this.settings = configuration.snapshot();
+        }
+    }
+
 }

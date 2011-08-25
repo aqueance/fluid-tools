@@ -22,6 +22,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import org.fluidity.foundation.spi.PropertyProvider;
+
 /**
  * Represents some configuration. A configuration is a group of settings consumed by some entity. The generic type of this interface is the interface defining
  * the methods that query those settings.
@@ -38,11 +40,12 @@ import java.lang.annotation.Target;
  * }
  * </pre>
  * <p/>
- * A settings interface like the above must have all of its methods annotated by the @{@link Setting} annotation. The keys specified are relative to the
- * concatenation of each @{@link Configuration.Context} annotation in the instantiation path of the configured component.
+ * A settings interface like the above must have all of its methods annotated by the @{@link Setting} annotation, all methods must have a built in and non-void
+ * and non-array return type and they may not have arguments. The keys specified are relative to the concatenation of each @{@link Configuration.Context}
+ * annotation in the instantiation path of the configured component.
  * <p/>
- * Using the above and a suitable, <code>@Component</code> annotated implementation of {@link org.fluidity.foundation.spi.PropertyProvider} in the class path,
- * a component can now declare a dependency to a configuration, either static or dynamic, like so:
+ * Using the above and a suitable, <code>@Component</code> annotated implementation of {@link PropertyProvider} in the class path,
+ * a component can now declare a dependency to a configuration like so:
  * <pre>
  *  &#64;Component
  *  &#64;Context(Configuration.Context.class)
@@ -62,15 +65,30 @@ import java.lang.annotation.Target;
  * }
  * </pre>
  * <p/>
- * The value offered by the above is that you do not need to implement the <code>MySettings</code> interface, it will be done for you automatically. You only
- * need to have an {@link org.fluidity.foundation.spi.PropertyProvider} component available in the dependency injection container.
+ * The snapshot of the configuration settings above works with an optional <code>PropertyProvider</code> and an optional implementation of the settings
+ * interface itself, which in the above example was <code>MySettings</code>.
+ * <p/>
+ * The value returned by the configuration snapshot is computed as follows:
+ * <ol>
+ * <li>If a <code>PropertyProvider</code> component is found, it is queried for the property key specified in the method's {@link Setting} annotation, with all
+ * contextual prefixes added. If the result is not <code>null</code>, it is returned.</li>
+ * <li>If a component was found for the settings interface, the method invoked on the snapshot is forwarded to it. If the result is not <code>null</code>, it is
+ * returned.</li>
+ * <li>The {@link Setting#undefined()} parameter is checked. If it is not empty, it is returned, otherwise <code>null</code> is returned for non primitive
+ * types and the default value is returned for primitive types.</li>
+ * </ol>
+ * <p/>
+ * The snapshot returned by {@link #snapshot()} is a consistent snapshot of the properties computed as per above even if the underlying
+ * <code>PropertyProvider</code> supports run-time configuration updates. Calling the <code>snapshot()</code> method later may thus reflect a different, but
+ * static and consistent, set of properties.
  *
  * @author Tibor Varga
  */
 public interface Configuration<T> {
 
     /**
-     * Returns an object implementing the settings interface.
+     * Returns an object implementing the settings interface. The configuration settings returned by the methods of the returned object are consistent and will
+     * not reflect later changes to the underlying configuration settings.
      *
      * @return an object implementing the settings interface.
      */
