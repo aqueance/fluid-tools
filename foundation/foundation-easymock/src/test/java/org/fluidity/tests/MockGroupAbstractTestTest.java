@@ -44,7 +44,7 @@ public class MockGroupAbstractTestTest extends MockGroupAbstractTest {
         assert expected.equals(actual3) : String.format("%s != %s", expected, actual3);
     }
 
-    public static interface VarargsComponent {
+    public interface VarargsComponent {
 
         String method(final String prefix, final String... values);
     }

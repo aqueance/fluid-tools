@@ -335,11 +335,11 @@ public final class BasicResolutionTests extends AbstractContainerTests {
         }
     }
 
-    private static interface Interface1 { }
+    private interface Interface1 { }
 
-    private static interface Interface2 { }
+    private interface Interface2 { }
 
-    private static interface Interface3 { }
+    private interface Interface3 { }
 
     @Component(automatic = false)
     private static class MultipleInterfaces implements Interface1, Interface2, Interface3 {}

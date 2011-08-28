@@ -64,7 +64,7 @@ public final class Methods {
     /**
      * Allows the caller of {@link Methods#get(Class, Invoker)} to find a method without referring to it by name.
      */
-    public static interface Invoker<T> {
+    public interface Invoker<T> {
 
         /**
          * Invokes the method that the caller of {@link Methods#get(Class, Invoker)} intends to find.

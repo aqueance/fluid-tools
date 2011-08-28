@@ -21,12 +21,29 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Annotates a setting query method to specify what property to query and, optionally, what default value to return if the property is not defined.
  * <p/>
  * This annotation is to be used on interface methods that will be used in conjunction with either a {@link Configuration}
  * component.
+ * <p/>
+ * This annotation also specify how to handle query methods with array and parameterized {@link Set}, {@link List} or {@link Map} return types. The
+ * implementation understands JSON encoded arrays and maps, without the top level grouping characters, '[]' and '{}' included, and can convert such property
+ * values to arrays, lists, sets and maps, nested in any complexity, as long as the parameterized return type of the annotated method provides adequate
+ * information as to the expected type of any item encoded in the property value. The grouping and delimiter characters in the encoded property value are
+ * configurable, they aren't required to convey whether the item is a map or array since that information is already encoded in the return type of the
+ * annotated method.
+ * <p/>
+ * For instance, with a method return value <code>Map&lt;List&lt;String>, long[]></code>, the following property values would be valid:
+ * <ul>
+ * <li>""</li>
+ * <li>"[a, b]: [1, 2, 3]"</li>
+ * <li>"[a, b]: [1, 2, 3], c: 4, [d, e, f]: "</li>
+ * </ul>
  *
  * @author Tibor Varga
  */
@@ -48,4 +65,22 @@ public @interface Setting {
      * @return the default value for the property.
      */
     String undefined() default "";
+
+    /**
+     * For array or collection valued properties, this parameter defines the characters delimiting the items. The value is ignored for non collection type
+     * properties. If not specified, it defaults to ",:".
+     *
+     * @return the list of characters that delimit items of an array, collection or map valued property.
+     */
+    String list() default ",:";
+
+    /**
+     * For map or multidimensional collection valued properties, this string specifies the character pairs that enclose elements of one dimension. If not specified, it defaults to "[]{}".
+     * <p/>
+     * For instance, <code>@Setting(key = "..." list = ',' grouping="()")</code> with property value "(1, 2, 3), (4, 5, 6), (7, 8, 9)" results in a
+     * 2-dimensional array that is equivalent to the following Java array initializer:  <code>{ {1, 2, 3}, {4, 5, 6}, {7, 8, 9} }</code>.
+     *
+     * @return the grouping characters that surround collection elements.
+     */
+    String grouping() default "[]{}";
 }

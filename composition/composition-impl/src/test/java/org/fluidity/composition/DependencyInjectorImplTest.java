@@ -367,12 +367,12 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
         }
     }
 
-    public static interface Dependency { }
+    public interface Dependency { }
 
     public static class DependencyImpl implements Dependency { }
 
     @ComponentGroup
-    public static interface Service { }
+    public interface Service { }
 
     public static class ServiceImpl1 implements Service { }
 
@@ -388,7 +388,7 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
     }
 
     @ComponentGroup
-    public static interface MissingService { }
+    public interface MissingService { }
 
     public static class MethodInjected {
 

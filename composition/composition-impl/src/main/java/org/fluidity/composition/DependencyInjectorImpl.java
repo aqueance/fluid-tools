@@ -334,7 +334,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
         return values;
     }
 
-    private static interface FieldCommand {
+    private interface FieldCommand {
 
         void process(Field field);
     }
@@ -490,7 +490,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
     /**
      * Internal interface describing a dependency of a component.
      */
-    private static interface Dependency {
+    private interface Dependency {
 
         /**
          * Returns the type by which the dependency is referred to.

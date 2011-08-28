@@ -217,8 +217,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
     }
 
     @ComponentGroup
-    public static interface GroupApi {
-    }
+    public interface GroupApi {}
 
     private static class GroupMember1 implements GroupApi {}
 
@@ -423,29 +422,29 @@ public final class ComponentContextTests extends AbstractContainerTests {
         assert actual.equals(got) : String.format("Expected %s, got %s", got, actual);
     }
 
-    private static interface ContextAware {
+    private interface ContextAware {
 
         String setting();
 
-        public static interface Settings {
+        public interface Settings {
 
             String setting();
         }
     }
 
-    private static interface ContextAwareComponent1 extends ContextAware {
+    private interface ContextAwareComponent1 extends ContextAware {
 
     }
 
-    private static interface ContextAwareComponent2 extends ContextAware {
+    private interface ContextAwareComponent2 extends ContextAware {
 
     }
 
-    private static interface OrdinaryComponent1 extends ContextAware {
+    private interface OrdinaryComponent1 extends ContextAware {
 
     }
 
-    private static interface OrdinaryComponent2 extends ContextAware {
+    private interface OrdinaryComponent2 extends ContextAware {
 
     }
 

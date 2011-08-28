@@ -169,7 +169,7 @@ public class ClassDiscoveryImplTest extends MockGroupAbstractTest {
         rootDir.delete();
     }
 
-    public static interface Interface {
+    public interface Interface {
 
         // empty
     }

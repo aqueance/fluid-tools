@@ -81,7 +81,7 @@ final class GroupResolver {
         return observer;
     }
 
-    public static interface Node {
+    public interface Node {
 
         Collection<?> instance(DependencyGraph.Traversal traversal);
     }

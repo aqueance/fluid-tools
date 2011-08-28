@@ -567,8 +567,11 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
 
         for (final String api : descendant.getInterfaces()) {
             final ClassReader interfaceClass = repository.reader(api);
-            processClass(interfaceClass, processor);
-            processAncestry(processor, interfaceClass, repository);
+
+            if (interfaceClass != null) {
+                processClass(interfaceClass, processor);
+                processAncestry(processor, interfaceClass, repository);
+            }
         }
     }
 
@@ -631,7 +634,7 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
         ClassVisitor visitor(ClassReader reader);
     }
 
-    public static interface ClassProcessor {
+    public interface ClassProcessor {
 
         boolean run(ClassReader classData) throws IOException, MojoExecutionException;
     }

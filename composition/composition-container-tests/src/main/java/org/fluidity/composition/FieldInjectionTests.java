@@ -93,9 +93,7 @@ public final class FieldInjectionTests extends AbstractContainerTests {
         }
     }
 
-    public static interface SelfDependent {
-
-    }
+    public interface SelfDependent {}
 
     /**
      * A class that has a field dependency to itself.

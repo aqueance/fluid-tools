@@ -237,7 +237,7 @@ public class BundleJarManifest implements JarManifest {
         return partCount;
     }
 
-    private static interface Metadata {
+    private interface Metadata {
 
         String get();
     }

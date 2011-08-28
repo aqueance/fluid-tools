@@ -76,37 +76,37 @@ public class EmptyRegistryTest extends MockGroupAbstractTest {
         verify();
     }
 
-    private static interface Interface1 {
+    private interface Interface1 {
 
     }
 
-    private static interface Interface2 {
+    private interface Interface2 {
 
     }
 
-    private static interface Interface3 {
-
-    }
-
-    @ComponentGroup
-    private static interface GroupInterface1 {
+    private interface Interface3 {
 
     }
 
     @ComponentGroup
-    private static interface GroupInterface2 {
+    private interface GroupInterface1 {
 
     }
 
-    private static interface GroupInterface3 extends Interface2 {
+    @ComponentGroup
+    private interface GroupInterface2 {
 
     }
 
-    private static interface InheritingInterface1 extends GroupInterface1 {
+    private interface GroupInterface3 extends Interface2 {
 
     }
 
-    private static interface InheritingInterface2 extends GroupInterface2 {
+    private interface InheritingInterface1 extends GroupInterface1 {
+
+    }
+
+    private interface InheritingInterface2 extends GroupInterface2 {
 
     }
 

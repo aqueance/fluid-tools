@@ -62,7 +62,7 @@ public abstract class AbstractContainerTests extends MockGroupAbstractTest {
         assert Value.instanceCount == originalCount + 1 : String.format("Expected only 1 Key object, got %d", Value.instanceCount - originalCount);
     }
 
-    public static interface Key {
+    public interface Key {
 
         String key();
     }
@@ -99,7 +99,7 @@ public abstract class AbstractContainerTests extends MockGroupAbstractTest {
         }
     }
 
-    public static interface DependentKey {
+    public interface DependentKey {
 
         ComponentContext context();
     }

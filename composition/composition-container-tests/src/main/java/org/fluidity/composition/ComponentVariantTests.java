@@ -439,8 +439,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
     }
 
     @ComponentGroup
-    public static interface GroupApi {
-    }
+    public interface GroupApi {}
 
     private static class GroupMember1 implements GroupApi {}
 
@@ -688,11 +687,9 @@ public final class ComponentVariantTests extends AbstractContainerTests {
     }
 
     @Component(automatic = false)
-    public static class ContextOblivious {
+    public static class ContextOblivious {}
 
-    }
-
-    public static interface ConfiguredComponent {
+    public interface ConfiguredComponent {
 
         Configuration configuration();
     }

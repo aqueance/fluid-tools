@@ -136,7 +136,7 @@ public final class CircularReferencesTests extends AbstractContainerTests {
         component.ping();
     }
 
-    private static interface Pingable {
+    private interface Pingable {
 
         void ping();
     }
@@ -155,11 +155,11 @@ public final class CircularReferencesTests extends AbstractContainerTests {
         }
     }
 
-    private static interface Circular2Dependent1 extends Pingable {
+    private interface Circular2Dependent1 extends Pingable {
 
     }
 
-    private static interface Circular2Dependent2 extends Pingable {
+    private interface Circular2Dependent2 extends Pingable {
 
     }
 
@@ -179,15 +179,15 @@ public final class CircularReferencesTests extends AbstractContainerTests {
         }
     }
 
-    private static interface Circular3Dependent1 extends Pingable {
+    private interface Circular3Dependent1 extends Pingable {
 
     }
 
-    private static interface Circular3Dependent2 extends Pingable {
+    private interface Circular3Dependent2 extends Pingable {
 
     }
 
-    private static interface Circular3Dependent3 extends Pingable {
+    private interface Circular3Dependent3 extends Pingable {
 
     }
 
@@ -272,7 +272,7 @@ public final class CircularReferencesTests extends AbstractContainerTests {
     }
 
     @Component(automatic = false)
-    private static interface Circular3IntermediateDependent3 extends Pingable {
+    private interface Circular3IntermediateDependent3 extends Pingable {
 
     }
 
@@ -285,13 +285,13 @@ public final class CircularReferencesTests extends AbstractContainerTests {
     }
 
     @Component(automatic = false)
-    private static interface CircularConstructor1 extends Pingable {}
+    private interface CircularConstructor1 extends Pingable {}
 
     @Component(automatic = false)
-    private static interface CircularConstructor2 extends Pingable {}
+    private interface CircularConstructor2 extends Pingable {}
 
     @Component(automatic = false)
-    private static interface CircularConstructor3 extends Pingable {}
+    private interface CircularConstructor3 extends Pingable {}
 
     // this will be instantiated once
     @Component(automatic = false)

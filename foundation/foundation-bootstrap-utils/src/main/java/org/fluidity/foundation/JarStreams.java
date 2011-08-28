@@ -199,7 +199,7 @@ public final class JarStreams {
     /**
      * Filters and reads entries in a jar file.
      */
-    public static interface JarEntryReader {
+    public interface JarEntryReader {
 
         /**
          * Tells if the {@link #read(JarEntry, JarInputStream)} method should be invoked with the given entry.

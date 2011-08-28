@@ -68,7 +68,7 @@ public abstract class Exceptions {
     /**
      * The command to run and wrap the exceptions thrown therefrom.
      */
-    public static interface Command<T> {
+    public interface Command<T> {
 
         /**
          * Code to run and wrap the exceptions therefrom.

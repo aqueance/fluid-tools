@@ -225,9 +225,7 @@ public final class ComponentGroupTests extends AbstractContainerTests {
     }
 
     @ComponentGroup
-    public static interface Filter {
-
-    }
+    public interface Filter {}
 
     @Component(automatic = false)
     public static class Processor {
@@ -407,9 +405,9 @@ public final class ComponentGroupTests extends AbstractContainerTests {
         private DynamicFilter3(final OrderedFilter2 dependency) { }
     }
 
-    private static interface GroupApi { }
+    private interface GroupApi { }
 
-    private static interface ComponentApi { }
+    private interface ComponentApi { }
 
     @Component(automatic = false)
     @ComponentGroup(api = GroupApi.class)

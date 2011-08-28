@@ -154,7 +154,7 @@ public final class DomainComponentTests extends AbstractContainerTests {
     private static class Dependency { }
 
     @ComponentGroup
-    public static interface GroupApi {}
+    public interface GroupApi {}
 
     public static class GroupMember1 implements GroupApi {
 

@@ -183,9 +183,9 @@ public final class ComponentFactoryTests extends AbstractContainerTests {
     }
 
     @ComponentGroup
-    private static interface GroupApi { }
+    private interface GroupApi { }
 
-    private static interface GroupMember2Api extends GroupApi { }
+    private interface GroupMember2Api extends GroupApi { }
 
     @Component(automatic = false)
     private static class GroupMember1 implements GroupApi { }

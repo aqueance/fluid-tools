@@ -932,7 +932,7 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
         return spec;
     }
 
-    private static interface ListenerSpec {
+    private interface ListenerSpec {
 
         ServiceListener listener();
 
@@ -994,9 +994,9 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
         }
     }
 
-    public static interface ServiceInterface1 extends Whiteboard.Registration { }
+    public interface ServiceInterface1 extends Whiteboard.Registration { }
 
-    public static interface ServiceInterface2 extends Whiteboard.Registration { }
+    public interface ServiceInterface2 extends Whiteboard.Registration { }
 
     public static final class Service1 implements ServiceInterface1 {
 
@@ -1076,7 +1076,7 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
         }
     }
 
-    public static interface Consumer extends Whiteboard.Managed { }
+    public interface Consumer extends Whiteboard.Managed { }
 
     public static class Source implements Whiteboard.EventSource<Consumer> {
 
