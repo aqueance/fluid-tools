@@ -29,8 +29,8 @@ import java.util.Set;
 
 import org.fluidity.foundation.ClassLoaders;
 import org.fluidity.foundation.Exceptions;
+import org.fluidity.foundation.Log;
 import org.fluidity.foundation.Methods;
-import org.fluidity.foundation.logging.Log;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**

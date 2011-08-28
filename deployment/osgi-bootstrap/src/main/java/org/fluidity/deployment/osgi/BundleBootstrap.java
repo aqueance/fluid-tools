@@ -26,7 +26,7 @@ import org.fluidity.composition.ContainerBoundary;
 import org.fluidity.composition.Inject;
 import org.fluidity.composition.Optional;
 import org.fluidity.composition.spi.ShutdownTasks;
-import org.fluidity.foundation.logging.Log;
+import org.fluidity.foundation.Log;
 
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;

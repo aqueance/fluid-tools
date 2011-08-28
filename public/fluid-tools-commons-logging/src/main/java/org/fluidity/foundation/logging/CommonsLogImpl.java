@@ -16,6 +16,8 @@
 
 package org.fluidity.foundation.logging;
 
+import org.fluidity.foundation.Log;
+
 import org.apache.commons.logging.LogFactory;
 
 /**

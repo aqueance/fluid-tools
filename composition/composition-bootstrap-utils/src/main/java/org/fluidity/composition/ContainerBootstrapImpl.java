@@ -22,7 +22,7 @@ import java.util.Map;
 import org.fluidity.composition.spi.ContainerProvider;
 import org.fluidity.composition.spi.PackageBindings;
 import org.fluidity.composition.spi.PlatformContainer;
-import org.fluidity.foundation.logging.Log;
+import org.fluidity.foundation.Log;
 
 /**
  * Bootstraps the component container. This class is exported via the standard service provider discovery mechanism described in the <a

@@ -16,6 +16,8 @@
 
 package org.fluidity.foundation.logging;
 
+import org.fluidity.foundation.Log;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -24,7 +24,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.fluidity.composition.spi.PackageBindings;
 import org.fluidity.composition.spi.ShutdownTasks;
-import org.fluidity.foundation.logging.Log;
+import org.fluidity.foundation.Log;
 
 /**
  * Invokes bindings at application start-up and shut-down in the order of registration at start-up and in reverse order at shut-down. Both of these operations

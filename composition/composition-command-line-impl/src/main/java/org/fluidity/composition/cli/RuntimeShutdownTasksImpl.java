@@ -22,7 +22,7 @@ import java.util.ListIterator;
 
 import org.fluidity.composition.Component;
 import org.fluidity.composition.spi.ShutdownTasks;
-import org.fluidity.foundation.logging.Log;
+import org.fluidity.foundation.Log;
 
 /**
  * Uses the {@link Runtime} object to add shutdown tasks to. The caller must make sure it has enough privileges to add a runtime shutdown hook.

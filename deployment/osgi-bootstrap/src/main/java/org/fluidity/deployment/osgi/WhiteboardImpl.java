@@ -38,7 +38,7 @@ import org.fluidity.composition.ComponentGroup;
 import org.fluidity.composition.Components;
 import org.fluidity.composition.DependencyInjector;
 import org.fluidity.composition.OpenComponentContainer;
-import org.fluidity.foundation.logging.Log;
+import org.fluidity.foundation.Log;
 import org.fluidity.foundation.spi.LogFactory;
 
 import org.osgi.framework.BundleContext;

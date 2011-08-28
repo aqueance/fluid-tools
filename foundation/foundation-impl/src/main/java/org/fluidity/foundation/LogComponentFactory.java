@@ -21,7 +21,6 @@ import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.Context;
 import org.fluidity.composition.spi.CustomComponentFactory;
-import org.fluidity.foundation.logging.Log;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**

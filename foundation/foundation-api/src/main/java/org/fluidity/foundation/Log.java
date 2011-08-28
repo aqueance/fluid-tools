@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.fluidity.foundation.logging;
+package org.fluidity.foundation;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;

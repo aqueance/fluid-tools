@@ -22,8 +22,6 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import org.fluidity.foundation.logging.Log;
-
 /**
  * Logs to the standard output. All log levels are enabled.
  *

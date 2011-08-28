@@ -38,7 +38,6 @@ import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.Context;
 import org.fluidity.composition.Optional;
 import org.fluidity.composition.spi.CustomComponentFactory;
-import org.fluidity.foundation.configuration.Configuration;
 import org.fluidity.foundation.spi.PropertyProvider;
 
 @Component(api = Configuration.class)

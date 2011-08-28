@@ -35,8 +35,8 @@ import org.fluidity.composition.spi.ComponentVariantFactory;
 import org.fluidity.composition.spi.CustomComponentFactory;
 import org.fluidity.composition.spi.DependencyResolver;
 import org.fluidity.composition.spi.PlatformContainer;
+import org.fluidity.foundation.Log;
 import org.fluidity.foundation.Strings;
-import org.fluidity.foundation.logging.Log;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**

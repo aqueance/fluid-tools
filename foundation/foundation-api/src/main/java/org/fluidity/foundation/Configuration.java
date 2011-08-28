@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.fluidity.foundation.configuration;
+package org.fluidity.foundation;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -97,9 +97,7 @@ public interface Configuration<T> {
     /**
      * Annotates a setting query method to specify what property to query and, optionally, what default value to return if the property is not defined.
      * <p/>
-     * This annotation is to be used on interface methods that will be used in conjunction with either a {@link
-     * org.fluidity.foundation.configuration.Configuration}
-     * component.
+     * This annotation is to be used on interface methods that will be used in conjunction with either a {@link Configuration} component.
      * <p/>
      * This annotation also specify how to handle query methods with array and parameterized {@link java.util.Set}, {@link java.util.List} or {@link
      * java.util.Map} return types. The implementation understands JSON encoded arrays and maps, without the top level grouping characters, '[]' and '{}'

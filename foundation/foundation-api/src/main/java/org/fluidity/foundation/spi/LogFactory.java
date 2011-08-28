@@ -16,7 +16,7 @@
 
 package org.fluidity.foundation.spi;
 
-import org.fluidity.foundation.logging.Log;
+import org.fluidity.foundation.Log;
 
 /**
  * This is a service provider interface for Fluid Tools. For use in client code, see to the documentation of the {@link Log} class.

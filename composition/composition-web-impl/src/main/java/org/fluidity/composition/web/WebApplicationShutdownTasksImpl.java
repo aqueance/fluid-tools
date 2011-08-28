@@ -25,7 +25,7 @@ import javax.servlet.ServletContextListener;
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentGroup;
 import org.fluidity.composition.spi.ShutdownTasks;
-import org.fluidity.foundation.logging.Log;
+import org.fluidity.foundation.Log;
 
 /**
  * Implements the component shutdown mechanism for web applications. The implementation requires either to be explicitly registered as a
