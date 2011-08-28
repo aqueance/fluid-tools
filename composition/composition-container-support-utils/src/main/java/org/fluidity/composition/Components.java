@@ -67,13 +67,12 @@ public final class Components {
      * The rules for component interface discovery are described by the following recursive algorithm:
      * <ol>
      * <li>If the class has no @{@link Component} annotation, the algorithm returns the queried class, unless the class implements {@link
-     * org.fluidity.composition.spi.CustomComponentFactory} or {@link org.fluidity.composition.spi.ComponentVariantFactory}, in which case the algorithm flags an
-     * error.</li>
+     * org.fluidity.composition.spi.CustomComponentFactory} or {@link org.fluidity.composition.spi.ComponentVariantFactory}, in which case the algorithm flags
+     * an error.</li>
      * <li>If the class is annotated with @{@link Component} and the @{@link Component#api()} parameter is given, the algorithm ignores the annotated
      * class and repeats for each class specified therein. However, if any of these classes are themselves @{@link Component} classes with @{@link
      * Component#automatic()} not set to <code>false</code>, or if the class does not extend or implement all of those classes and interfaces or {@link
-     * org.fluidity.composition.spi.CustomComponentFactory} or {@link org.fluidity.composition.spi.ComponentVariantFactory}, the algorithm
-     * flags an error.</li>
+     * org.fluidity.composition.spi.CustomComponentFactory} or {@link org.fluidity.composition.spi.ComponentVariantFactory}, the algorithm flags an error.</li>
      * <li>If the super class is annotated with @{@link Component} and its @{@link Component#automatic()} is not set to <code>false</code>, the algorithm flags
      * an error.</li>
      * <li>If the class implements no interfaces directly and its super class is {@link Object} then the algorithm returns the annotated class.</li>
@@ -103,10 +102,9 @@ public final class Components {
      * Once the above algorithms have completed, the following adjustments are made to the final result:
      * <ul>
      * <li>the component class or, in case of a {@link
-     * org.fluidity.composition.spi.CustomComponentFactory} or {@link org.fluidity.composition.spi.ComponentVariantFactory} implementation, the classes referenced in
-     * its @{@link Component#api()} parameter, is/are added to the component interface list if component group interfaces have been identified for that class
-     * or
-     * those classes.</li>
+     * org.fluidity.composition.spi.CustomComponentFactory} or {@link org.fluidity.composition.spi.ComponentVariantFactory} implementation, the classes
+     * referenced in its @{@link Component#api()} parameter, is/are added to the component interface list if component group interfaces have been identified for
+     * that class or those classes.</li>
      * </ul>
      *
      * @param componentClass the component class to inspect.

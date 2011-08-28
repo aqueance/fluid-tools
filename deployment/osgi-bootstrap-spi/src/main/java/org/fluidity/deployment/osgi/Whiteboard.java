@@ -53,10 +53,10 @@ import org.fluidity.composition.ServiceProvider;
  * The same whiteboard component may at the same time be a registered OSGi service and may receive notifications about OSGi service registration events by
  * implementing both {@link Registration} and {@link EventSource}.
  * <p/>
- * The whiteboard loads and manages all {@link org.fluidity.deployment.osgi.Whiteboard.Managed} components visible to its class loader, which is the OSGi
- * bundle class loader. Components with direct dependencies - i.e., those without the @{@link Service} annotation - to one another are grouped and their
- * combined set of @{@link Service} dependencies are consulted to determine when to instantiated or discard all components in the group. Independent component
- * groups are instantiated and discarded independently.
+ * The whiteboard loads and manages all {@link Whiteboard.Managed} components visible to its class loader, which is the OSGi bundle class loader. Components
+ * with direct dependencies - i.e., those without the @{@link Service} annotation - to one another are grouped and their combined set of @{@link Service}
+ * dependencies are consulted to determine when to instantiated or discard all components in the group. Independent component groups are instantiated and
+ * discarded independently.
  *
  * @author Tibor Varga
  */
@@ -137,8 +137,7 @@ public interface Whiteboard {
 
     /**
      * An event source that wishes to receive notification about event consumer registration as per the Whiteboard pattern. An event source is also a
-     * whiteboard
-     * {@link org.fluidity.deployment.osgi.Whiteboard.Managed} and the start / stop logic described therein equally applies.
+     * whiteboard {@link Whiteboard.Managed} and the start / stop logic described therein equally applies.
      */
     interface EventSource<T> extends Managed {
 

@@ -39,7 +39,6 @@ import org.fluidity.composition.Context;
 import org.fluidity.composition.Optional;
 import org.fluidity.composition.spi.CustomComponentFactory;
 import org.fluidity.foundation.configuration.Configuration;
-import org.fluidity.foundation.configuration.Setting;
 import org.fluidity.foundation.spi.PropertyProvider;
 
 @Component(api = Configuration.class)
@@ -101,8 +100,8 @@ final class ConfigurationFactory implements CustomComponentFactory {
                     final Map<Method, Object> properties = new HashMap<Method, Object>();
 
                     for (final Method method : api.getMethods()) {
-                        final Setting setting = method.getAnnotation(Setting.class);
-                        assert setting != null : String.format("No @%s specified for method %s", Setting.class.getName(), method);
+                        final Property setting = method.getAnnotation(Property.class);
+                        assert setting != null : String.format("No @%s specified for method %s", Property.class.getName(), method);
 
                         Object value = null;
 

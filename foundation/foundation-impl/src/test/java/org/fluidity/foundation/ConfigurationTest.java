@@ -26,7 +26,6 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.fluidity.foundation.configuration.Configuration;
-import org.fluidity.foundation.configuration.Setting;
 import org.fluidity.foundation.spi.PropertyProvider;
 import org.fluidity.tests.MockGroupAbstractTest;
 
@@ -61,19 +60,19 @@ public class ConfigurationTest extends MockGroupAbstractTest {
 
     public interface Settings {
 
-        @Setting(key = "missing.key1")
+        @Configuration.Property(key = "missing.key1")
         String missingValue1();
 
-        @Setting(key = "missing.key2", undefined = "default")
+        @Configuration.Property(key = "missing.key2", undefined = "default")
         String missingValue2();
 
-        @Setting(key = "valid.key1")
+        @Configuration.Property(key = "valid.key1")
         String validValue1();
 
-        @Setting(key = "valid.key2", undefined = "default")
+        @Configuration.Property(key = "valid.key2", undefined = "default")
         String validValue2();
 
-        @Setting(key = "valid.key3", undefined = "1234")
+        @Configuration.Property(key = "valid.key3", undefined = "1234")
         int validValue3();
     }
 
@@ -163,13 +162,13 @@ public class ConfigurationTest extends MockGroupAbstractTest {
 
     public interface ProvidedSettings {
 
-        @Setting(key = "property", undefined = "undefined")
+        @Configuration.Property(key = "property", undefined = "undefined")
         String property();
 
-        @Setting(key = "undefined", undefined = "undefined")
+        @Configuration.Property(key = "undefined", undefined = "undefined")
         String undefined();
 
-        @Setting(key = "provided", undefined = "undefined")
+        @Configuration.Property(key = "provided", undefined = "undefined")
         String provided();
     }
 
@@ -206,43 +205,43 @@ public class ConfigurationTest extends MockGroupAbstractTest {
 
     public interface CollectionSettings {
 
-        @Setting(key = "integers", list = ",")
+        @Configuration.Property(key = "integers", list = ",")
         int[] integers();
 
-        @Setting(key = "integers.empty", list = ",")
+        @Configuration.Property(key = "integers.empty", list = ",")
         int[] empty_integers();
 
-        @Setting(key = "integers.none", list = ",")
+        @Configuration.Property(key = "integers.none", list = ",")
         int[] no_integers();
 
-        @Setting(key = "flags", list = "|")
+        @Configuration.Property(key = "flags", list = "|")
         boolean[] flags();
 
-        @Setting(key = "flags.empty", list = "|")
+        @Configuration.Property(key = "flags.empty", list = "|")
         boolean[] empty_flags();
 
-        @Setting(key = "flags.none", list = "|")
+        @Configuration.Property(key = "flags.none", list = "|")
         boolean[] no_flags();
 
-        @Setting(key = "strings", list = ":")
+        @Configuration.Property(key = "strings", list = ":")
         List<String> strings();
 
-        @Setting(key = "strings.empty", list = ":")
+        @Configuration.Property(key = "strings.empty", list = ":")
         List<String> empty_strings();
 
-        @Setting(key = "strings.none", list = ":")
+        @Configuration.Property(key = "strings.none", list = ":")
         List<String> no_strings();
 
-        @Setting(key = "numbers", list = ",:", grouping = "<>")
+        @Configuration.Property(key = "numbers", list = ",:", grouping = "<>")
         Map<String, Integer> numbers();
 
-        @Setting(key = "numbers.empty", list = ":")
+        @Configuration.Property(key = "numbers.empty", list = ":")
         Map<String, Integer> empty_numbers();
 
-        @Setting(key = "numbers.none", list = ":")
+        @Configuration.Property(key = "numbers.none", list = ":")
         Map<String, Integer> no_numbers();
 
-        @Setting(key = "insane", list = ",:")
+        @Configuration.Property(key = "insane", list = ",:")
         Map<List<Integer>, Map<String, List<long[]>>> insane();
     }
 
@@ -314,52 +313,52 @@ public class ConfigurationTest extends MockGroupAbstractTest {
 
     public interface MultiTypeSettings {
 
-        @Setting(key = "boolean", undefined = "true")
+        @Configuration.Property(key = "boolean", undefined = "true")
         boolean booleanValue();
 
-        @Setting(key = "Boolean", undefined = "true")
+        @Configuration.Property(key = "Boolean", undefined = "true")
         Boolean BooleanValue();
 
-        @Setting(key = "byte", undefined = "123")
+        @Configuration.Property(key = "byte", undefined = "123")
         byte byteValue();
 
-        @Setting(key = "Byte", undefined = "-123")
+        @Configuration.Property(key = "Byte", undefined = "-123")
         Byte ByteValue();
 
-        @Setting(key = "short", undefined = "1234")
+        @Configuration.Property(key = "short", undefined = "1234")
         short shortValue();
 
-        @Setting(key = "Short", undefined = "-1234")
+        @Configuration.Property(key = "Short", undefined = "-1234")
         Short ShortValue();
 
-        @Setting(key = "int", undefined = "12345")
+        @Configuration.Property(key = "int", undefined = "12345")
         int intValue();
 
-        @Setting(key = "Integer", undefined = "-12345")
+        @Configuration.Property(key = "Integer", undefined = "-12345")
         Integer IntegerValue();
 
-        @Setting(key = "long", undefined = "123456")
+        @Configuration.Property(key = "long", undefined = "123456")
         long longValue();
 
-        @Setting(key = "Long", undefined = "-123456")
+        @Configuration.Property(key = "Long", undefined = "-123456")
         Long LongValue();
 
-        @Setting(key = "float", undefined = "123456.25")
+        @Configuration.Property(key = "float", undefined = "123456.25")
         float floatValue();
 
-        @Setting(key = "Float", undefined = "-123456.25")
+        @Configuration.Property(key = "Float", undefined = "-123456.25")
         Float FloatValue();
 
-        @Setting(key = "double", undefined = "1234567.25")
+        @Configuration.Property(key = "double", undefined = "1234567.25")
         double doubleValue();
 
-        @Setting(key = "Double", undefined = "-1234567.25")
+        @Configuration.Property(key = "Double", undefined = "-1234567.25")
         Double DoubleValue();
 
-        @Setting(key = "class", undefined = "java.lang.Object")
+        @Configuration.Property(key = "class", undefined = "java.lang.Object")
         Class classValue();
 
-        @Setting(key = "enum", undefined = "SAMPLE")
+        @Configuration.Property(key = "enum", undefined = "SAMPLE")
         EnumType enumValue();
     }
 

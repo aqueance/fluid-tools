@@ -34,8 +34,8 @@ import org.fluidity.foundation.logging.Log;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**
- * The component is instantiated by {@link org.fluidity.composition.ProductionServices} and picked up at container bootstrap to be made available as a
- * component. This implementation assumes class loaders adhere to the contract of delegating to parent first and only if that fails trying to resolve classes.
+ * The component is instantiated by {@link ProductionServices} and picked up at container bootstrap to be made available as a component. This implementation
+ * assumes class loaders adhere to the contract of delegating to parent first and only if that fails trying to resolve classes.
  *
  * @author Tibor Varga
  */
