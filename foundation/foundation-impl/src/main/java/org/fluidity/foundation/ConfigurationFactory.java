@@ -24,7 +24,6 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -41,7 +40,7 @@ import org.fluidity.composition.spi.CustomComponentFactory;
 import org.fluidity.foundation.spi.PropertyProvider;
 
 @Component(api = Configuration.class)
-@Context( { Configuration.Definition.class, Configuration.Context.class })
+@Context({ Configuration.Definition.class, Configuration.Context.class })
 final class ConfigurationFactory implements CustomComponentFactory {
     public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
         final Configuration.Definition definition = context.annotation(Configuration.Definition.class, Configuration.class);
@@ -70,7 +69,8 @@ final class ConfigurationFactory implements CustomComponentFactory {
     @Component(automatic = false)
     static final class ConfigurationImpl<T> implements Configuration<T> {
 
-        private final AtomicReference<T> configuration = new AtomicReference<T>();
+        private final PropertyProvider provider;
+        private final T configuration;
 
         /**
          * Constructs a new configuration object.
@@ -80,80 +80,63 @@ final class ConfigurationFactory implements CustomComponentFactory {
          * @param defaults   when present, used as the provider of default values for properties missing from <code>provider</code>.
          * @param context    used to find the property prefix to apply to properties queried from the <code>provider</code>.
          */
+        @SuppressWarnings("unchecked")
         public ConfigurationImpl(final Definition definition,
                                  final @Optional PropertyProvider provider,
                                  final @Optional T defaults,
                                  final @Optional Context... context) {
+            this.provider = provider;
+
             final String[] prefixes = propertyContexts(context);
 
-            @SuppressWarnings("unchecked")
             final Class<T> api = (Class<T>) definition.value();
 
             final ClassLoader loader = api.getClassLoader();
             final Class[] interfaces = { api };
 
-            final PropertyProvider.PropertyChangeListener listener = new PropertyProvider.PropertyChangeListener() {
-
-                @SuppressWarnings("unchecked")
-                public void propertiesChanged(final PropertyProvider provider) {
-                    final Map<Method, Object> properties = new HashMap<Method, Object>();
-
-                    for (final Method method : api.getMethods()) {
-                        final Property setting = method.getAnnotation(Property.class);
-                        assert setting != null : String.format("No @%s specified for method %s", Property.class.getName(), method);
-
-                        Object value = null;
-
-                        if (provider != null) {
-                            for (int i = 0, limit = prefixes.length; value == null && i < limit; i++) {
-                                value = provider.property(prefixes[i].concat(setting.key()));
-                            }
-                        }
-
-                        final Object property;
-
-                        final Class<?> returnType = method.getReturnType();
-                        final Type genericType = method.getGenericReturnType();
-
-                        if (value == null) {
-                            final Object fallback = defaults == null ? null : Exceptions.wrap(new Exceptions.Command<Object>() {
-                                public Object run() throws Exception {
-                                    return method.invoke(defaults);
-                                }
-                            });
-
-                            final String undefined = setting.undefined();
-
-                            property = fallback == null
-                                       ? convert(undefined.length() == 0 ? null : undefined, returnType, genericType, setting.list(), setting.grouping(), loader)
-                                       : convert(fallback, returnType, genericType, setting.list(), setting.grouping(), loader);
-                        } else {
-                            property = convert(value, returnType, genericType, setting.list(), setting.grouping(), loader);
-                        }
-
-                        properties.put(method, property);
+            configuration = (T) Proxy.newProxyInstance(loader, interfaces, new InvocationHandler() {
+                public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
+                    if (method.getDeclaringClass() == Object.class) {
+                        return Proxies.inherited(method, args, this);
                     }
 
-                    configuration.set((T) Proxy.newProxyInstance(loader, interfaces, new InvocationHandler() {
-                        public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
-                            if (method.getDeclaringClass() == Object.class) {
-                                return method.invoke(this, args);
-                            }
+                    assert method.getDeclaringClass().isAssignableFrom(api) : method;
 
-                            assert method.getDeclaringClass().isAssignableFrom(api) : method;
-                            return properties.get(method);
+                    final Property setting = method.getAnnotation(Property.class);
+                    assert setting != null : String.format("No @%s specified for method %s", Property.class.getName(), method);
+
+                    Object value = null;
+
+                    if (provider != null) {
+                        for (int i = 0, limit = prefixes.length; value == null && i < limit; i++) {
+                            value = provider.property(prefixes[i].concat(String.format(setting.key(), args)));
                         }
-                    }));
+                    }
+
+                    final Object property;
+
+                    final Class<?> returnType = method.getReturnType();
+                    final Type genericType = method.getGenericReturnType();
+
+                    if (value == null) {
+                        final Object fallback = defaults == null ? null : Exceptions.wrap(new Exceptions.Command<Object>() {
+                            public Object run() throws Exception {
+                                return method.invoke(defaults, args);
+                            }
+                        });
+
+                        final String undefined = String.format(setting.undefined(), args);
+
+                        property = fallback == null
+                                   ? convert(undefined.length() == 0 ? null : undefined, returnType, genericType, setting.list(), setting.grouping(), loader)
+                                   : convert(fallback, returnType, genericType, setting.list(), setting.grouping(), loader);
+                    } else {
+                        property = convert(value, returnType, genericType, setting.list(), setting.grouping(), loader);
+                    }
+
+                    return property;
                 }
-            };
-
-            if (provider != null) {
-                provider.addChangeListener(listener);
-            }
-
-            if (configuration.get() == null) {
-                listener.propertiesChanged(provider);
-            }
+            });
         }
 
         Object convert(final Object value, final Class<?> target, final Type generic, final String delimiter, final String groupers, final ClassLoader loader) {
@@ -453,8 +436,24 @@ final class ConfigurationFactory implements CustomComponentFactory {
             return list.toArray(new String[list.size()]);
         }
 
-        public T snapshot() {
-            return configuration.get();
+        public T settings() {
+            return configuration;
+        }
+
+        public <R> R query(final Query<T, R> query) {
+            if (provider == null) {
+                return query.read(configuration);
+            } else {
+                final AtomicReference<R> value = new AtomicReference<R>();
+
+                provider.properties(new Runnable() {
+                    public void run() {
+                        value.set(query.read(configuration));
+                    }
+                });
+
+                return value.get();
+            }
         }
     }
 }

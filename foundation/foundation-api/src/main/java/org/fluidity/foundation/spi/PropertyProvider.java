@@ -34,23 +34,11 @@ public interface PropertyProvider {
     Object property(String key);
 
     /**
-     * Registers an object to call when properties change. The receiver must accept multiple listeners and invoke each when properties change. The listener will
-     * reload all properties used by it so it should not be notified for each property change individually.
+     * Runs the given command to read properties and if supported, guarantees that no property update takes place while the command executes. If properties are
+     * read from a database, this method must open an isolated transaction before running the given command and then close the transaction afterwards. Other
+     * implementation may use locking to prevent changes to the properties while this method executes.
      *
-     * @param listener an object to call when properties change.
+     * @param reader the command that reads properties and expects no changes in the property values while doing so.
      */
-    void addChangeListener(PropertyChangeListener listener);
-
-    /**
-     * Callback interface to get notified of changes to the property set of this provider.
-     */
-    interface PropertyChangeListener {
-
-        /**
-         * Notifies the receiver that the set of properties have changed.
-         *
-         * @param provider the provider whose properties have changed.
-         */
-        void propertiesChanged(PropertyProvider provider);
-    }
+    void properties(Runnable reader);
 }

@@ -35,6 +35,7 @@ public abstract class Exceptions {
      * @return whatever the command returns.
      */
     public static <T> T wrap(final String context, final Command<T> command) {
+        // TODO: support any combination of these additive exceptions
         try {
             try {
                 try {

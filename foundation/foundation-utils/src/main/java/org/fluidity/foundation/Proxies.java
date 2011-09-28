@@ -17,6 +17,8 @@
 package org.fluidity.foundation;
 
 import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 
 /**
@@ -51,5 +53,31 @@ public final class Proxies {
      */
     public static <T> Class<T> api(final Class<T> type) {
         return Proxy.isProxyClass(type) ? (Class<T>) type.getInterfaces()[0] : type;
+    }
+
+    /**
+     * Invokes the methods inherited from {@link Object}. This method replaces any proxy instance in the argument list with its invocation handler.
+     *
+     * @param method the method to invoke.
+     * @param args   the arguments to the method.
+     * @param caller the object to invoke the method on.
+     *
+     * @return the result of the method invocation.
+     *
+     * @throws IllegalAccessException    thrown by the nested method invocation.
+     * @throws InvocationTargetException thrown by the nested method invocation.
+     */
+    public static Object inherited(final Method method, final Object[] args, final InvocationHandler caller) throws IllegalAccessException, InvocationTargetException {
+        assert method.getDeclaringClass() == Object.class : method;
+
+        for (int i = 0, limit = args.length; i < limit; i++) {
+            final Object argument = args[i];
+
+            if (argument != null && Proxy.isProxyClass(argument.getClass())) {
+                args[i] = Proxy.getInvocationHandler(argument);
+            }
+        }
+
+        return method.invoke(caller, args);
     }
 }

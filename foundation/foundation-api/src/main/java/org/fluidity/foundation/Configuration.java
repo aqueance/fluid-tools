@@ -25,7 +25,9 @@ import java.lang.annotation.Target;
 import org.fluidity.foundation.spi.PropertyProvider;
 
 /**
- * Represents some configuration. A configuration is a group of settings consumed by some entity. The generic type of this interface is the interface defining
+ * Represents some configuration.
+ * <h2>Usage</h2>
+ * A configuration is a group of settings consumed by some entity. The type parameter of this interface is the interface defining
  * the methods that query those settings.
  * <p/>
  * For instance:
@@ -35,15 +37,18 @@ import org.fluidity.foundation.spi.PropertyProvider;
  *   &#64;Configuration.Property(key = "property.1", undefined = "default value 1")
  *   String property1();
  *
- *   &#64;Configuration.Property(key = "property.2", undefined = "default value 2")
- *   String property2();
+ *   &#64;Configuration.Property(key = "property.%d.value", undefined = "default value %d")
+ *   String property2(int item);
  * }
  * </pre>
  * <p/>
- * A settings interface like the above must have all of its methods annotated by the @{@link Configuration.Property} annotation, all methods must have a built
- * in and non-void and non-array return type and they may not have arguments. The keys specified are relative to the concatenation of each @{@link
- * Configuration.Context} annotation in the instantiation path of the configured component.
+ * <h3>Settings Query Methods</h3>
+ * A settings interface like the above must have all of its methods annotated by the @{@link Configuration.Property} annotation, all methods must have a
+ * supported return type and they may have any number of arguments. The given {@link Configuration.Property#key()}s are understood to be relative to the
+ * concatenation of each @{@link Configuration.Context} annotation in the instantiation path of the configured component.
  * <p/>
+ * Query methods may have parameters that provide values to placeholders in the property key, as in the method definition for {@code property2} above.
+ * <h3>Property Provider</h3>
  * Using the above and a suitable, <code>@Component</code> annotated implementation of {@link PropertyProvider} in the class path,
  * a component can now declare a dependency to a configuration like so:
  * <pre>
@@ -65,6 +70,7 @@ import org.fluidity.foundation.spi.PropertyProvider;
  * }
  * </pre>
  * <p/>
+ * <h3>Property Values</h3>
  * The snapshot of the configuration settings above works with an optional <code>PropertyProvider</code> and an optional implementation of the settings
  * interface itself, which in the above example was <code>MySettings</code>.
  * <p/>
@@ -78,9 +84,20 @@ import org.fluidity.foundation.spi.PropertyProvider;
  * primitive types and the default value is returned for primitive types.</li>
  * </ol>
  * <p/>
- * The snapshot returned by {@link #snapshot()} is a consistent snapshot of the properties computed as per above even if the underlying
+ * The snapshot returned by {@link #settings()} is a consistent snapshot of the properties computed as per above even if the underlying
  * <code>PropertyProvider</code> supports run-time configuration updates. Calling the <code>snapshot()</code> method later may thus reflect a different, but
  * static and consistent, set of properties.
+ * <h2>Supported Return Types</h2>
+ * <ul>
+ * <li>{@code String}</li>
+ * <li>Primitive Java type, such as {@code int}</li>
+ * <li>Boxed primitive Java type, such as {@code Long}</li>
+ * <li>{@link Enum} type</li>
+ * <li>Array of any supported type</li>
+ * <li>{@link java.util.List} of any supported type</li>
+ * <li>{@link java.util.Set} of any supported type</li>
+ * <li>{@link java.util.Map} of any supported type from any supported type</li>
+ * </ul>
  *
  * @author Tibor Varga
  */
@@ -92,7 +109,37 @@ public interface Configuration<T> {
      *
      * @return an object implementing the settings interface.
      */
-    T snapshot();
+    T settings();
+
+    /**
+     * Provides access to an object that implements the settings interface. The configuration settings returned by the methods of the provided object are
+     * consistent and will not reflect changes to the underlying configuration settings while the method executes.
+     *
+     * @param query the object to supply the settings implementation to.
+     *
+     * @return whatever the supplied {@code query} returns.
+     */
+    <R> R query(Query<T, R> query);
+
+    /**
+     * Groups property queries. Properties read in the {@link #read(Object)} method will be consistent in that no property change will take place
+     * during the execution of that method. Subject to {@link PropertyProvider} support.
+     *
+     * @param <T> the settings interface type.
+     * @param <R> the return type of the {@code read} method.
+     */
+    interface Query<T, R> {
+
+        /**
+         * Allows access to the settings. If the underlying {@link PropertyProvider} supports it, properties will not be updated dynamically while this method
+         * executes.
+         *
+         * @param settings an object implementing the settings interface.
+         *
+         * @return whatever the caller wants {@link Configuration#query(Configuration.Query)} to return.
+         */
+        R read(T settings);
+    }
 
     /**
      * Annotates a setting query method to specify what property to query and, optionally, what default value to return if the property is not defined.
@@ -104,7 +151,7 @@ public interface Configuration<T> {
      * included, and can convert such property values to arrays, lists, sets and maps, nested in any complexity, as long as the parameterized return type of
      * the
      * annotated method provides adequate information as to the expected type of any item encoded in the property value. The grouping and delimiter characters
-     * in the encoded property value are configurable, they aren't required to convey whether the item is a map or array since that information is already
+     * in the encoded property value are configurable, they aren't required to tell whether the item is a map or array since that information is already
      * encoded in the return type of the annotated method.
      * <p/>
      * For instance, with a method return value <code>Map&lt;List&lt;String>, long[]></code>, the following property values would be valid:

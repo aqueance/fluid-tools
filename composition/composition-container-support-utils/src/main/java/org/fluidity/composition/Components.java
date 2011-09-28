@@ -129,7 +129,7 @@ public final class Components {
                     throw new ComponentContainer.BindingException("Class %s refers to incompatible component interface %s", componentClass, api);
                 }
 
-                interfaces(api, api, map, path, true);
+                interfaces(api, api, map, path, false);
                 filter(componentClass, interfaceMap, map);
             }
         } else {

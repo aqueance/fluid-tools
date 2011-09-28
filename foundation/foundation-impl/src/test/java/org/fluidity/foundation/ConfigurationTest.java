@@ -23,13 +23,12 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicReference;
 
 import org.fluidity.foundation.spi.PropertyProvider;
 import org.fluidity.tests.MockGroupAbstractTest;
 
 import org.easymock.EasyMock;
-import org.easymock.IAnswer;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 /**
@@ -37,24 +36,23 @@ import org.testng.annotations.Test;
  */
 public class ConfigurationTest extends MockGroupAbstractTest {
 
-    private final PropertyProvider provider = mock(PropertyProvider.class);
     private final Configuration.Definition definition = mock(Configuration.Definition.class);
 
+    private final PropertyProvider provider = new PropertyProvider() {
+        private final PropertyProvider mock = mock(PropertyProvider.class);
+
+        public Object property(final String key) {
+            return mock.property(key);
+        }
+
+        public void properties(final Runnable reader) {
+            reader.run();
+        }
+    };
+
     @SuppressWarnings("unchecked")
-    private AtomicReference<PropertyProvider.PropertyChangeListener> configure(final Class settingsType) {
+    private void configure(final Class settingsType) {
         EasyMock.expect(definition.value()).andReturn(settingsType);
-
-        final AtomicReference<PropertyProvider.PropertyChangeListener> listener = new AtomicReference<PropertyProvider.PropertyChangeListener>();
-
-        provider.addChangeListener(EasyMock.<PropertyProvider.PropertyChangeListener>notNull());
-        EasyMock.expectLastCall().andAnswer(new IAnswer<Void>() {
-            public Void answer() throws Throwable {
-                listener.set((PropertyProvider.PropertyChangeListener) EasyMock.getCurrentArguments()[0]);
-                return null;
-            }
-        });
-
-        return listener;
     }
 
     public interface Settings {
@@ -76,49 +74,6 @@ public class ConfigurationTest extends MockGroupAbstractTest {
     }
 
     @Test
-    public void staticConfiguration() throws Exception {
-        properties(provider, true, null, null, null, "value1", "value2", 5678);
-
-        configure(Settings.class);
-
-        replay();
-        final Settings settings = new ConfigurationFactory.ConfigurationImpl<Settings>(definition, provider, null, (Configuration.Context[]) null).snapshot();
-        verify();
-
-        // properties must be cached, no reading should take place
-        replay();
-        checkSettings(settings, null, "default", "value1", "value2", 5678);
-        verify();
-    }
-
-    @Test
-    public void dynamicConfiguration() throws Exception {
-        properties(provider, true, null, null, null, "value1", "value2", null);
-
-        final AtomicReference<PropertyProvider.PropertyChangeListener> listener = configure(Settings.class);
-
-        replay();
-        final Configuration<Settings> configuration = new ConfigurationFactory.ConfigurationImpl<Settings>(definition, provider, null, (Configuration.Context[]) null);
-        verify();
-
-        // properties must be cached, no reading should take place
-        replay();
-        checkSettings(configuration.snapshot(), null, "default", "value1", "value2", 1234);
-        verify();
-
-        properties(provider, true, null, "value1", "value2", "value3", "value4", 5678);
-
-        replay();
-        listener.get().propertiesChanged(provider);
-        verify();
-
-        // properties must be cached, no reading should take place
-        replay();
-        checkSettings(configuration.snapshot(), "value1", "value2", "value3", "value4", 5678);
-        verify();
-    }
-
-    @Test
     public void contextConfiguration() throws Exception {
         properties(provider, false, null, null, null, null, null, null);
         properties(provider, true, "context1.context2.context3", null, null, null, "value2", 5678);
@@ -136,12 +91,13 @@ public class ConfigurationTest extends MockGroupAbstractTest {
         configure(Settings.class);
 
         replay();
-        final Settings settings = new ConfigurationFactory.ConfigurationImpl<Settings>(definition, provider, null, context1, context2, context3).snapshot();
-        verify();
-
-        // properties must be cached, no reading should take place
-        replay();
-        checkSettings(settings, null, "default", "value1", "value2", 5678);
+        new ConfigurationFactory.ConfigurationImpl<Settings>(definition, provider, null, context1, context2, context3)
+                .query(new Configuration.Query<Settings, Void>() {
+                    public Void read(final Settings settings) {
+                        checkSettings(settings, null, "default", "value1", "value2", 5678);
+                        return null;
+                    }
+                });
         verify();
     }
 
@@ -151,11 +107,13 @@ public class ConfigurationTest extends MockGroupAbstractTest {
         EasyMock.expect(definition.value()).andReturn((Class) Settings.class);
 
         replay();
-        final Settings settings = new ConfigurationFactory.ConfigurationImpl<Settings>(definition, null, null, (Configuration.Context[]) null).snapshot();
-        verify();
-
-        replay();
-        checkSettings(settings, null, "default", null, "default", 1234);
+        new ConfigurationFactory.ConfigurationImpl<Settings>(definition, null, null, (Configuration.Context[]) null)
+                .query(new Configuration.Query<Settings, Void>() {
+                    public Void read(final Settings settings) {
+                        checkSettings(settings, null, "default", null, "default", 1234);
+                        return null;
+                    }
+                });
         verify();
     }
 
@@ -180,12 +138,17 @@ public class ConfigurationTest extends MockGroupAbstractTest {
         EasyMock.expect(provider.property("undefined")).andReturn(null);
 
         replay();
-        final ProvidedSettings settings = new ConfigurationFactory.ConfigurationImpl<ProvidedSettings>(definition, provider, new ProvidedSettingsImpl(), (Configuration.Context[]) null).snapshot();
-        verify();
+        new ConfigurationFactory.ConfigurationImpl<ProvidedSettings>(definition, provider, new ProvidedSettingsImpl(), (Configuration.Context[]) null)
+                .query(new Configuration.Query<ProvidedSettings, Void>() {
+                    public Void read(final ProvidedSettings settings) {
+                        assert "property".equals(settings.property()) : settings.property();
+                        assert "provided".equals(settings.provided()) : settings.provided();
+                        assert "undefined".equals(settings.undefined()) : settings.undefined();
 
-        assert "property".equals(settings.property()) : settings.property();
-        assert "provided".equals(settings.provided()) : settings.provided();
-        assert "undefined".equals(settings.undefined()) : settings.undefined();
+                        return null;
+                    }
+                });
+        verify();
     }
 
     @Test
@@ -194,12 +157,17 @@ public class ConfigurationTest extends MockGroupAbstractTest {
         EasyMock.expect(definition.value()).andReturn((Class) ProvidedSettings.class);
 
         replay();
-        final ProvidedSettings settings = new ConfigurationFactory.ConfigurationImpl<ProvidedSettings>(definition, null, new ProvidedSettingsImpl(), (Configuration.Context[]) null).snapshot();
-        verify();
+        new ConfigurationFactory.ConfigurationImpl<ProvidedSettings>(definition, null, new ProvidedSettingsImpl(), (Configuration.Context[]) null)
+                .query(new Configuration.Query<ProvidedSettings, Void>() {
+                    public Void read(final ProvidedSettings settings) {
+                        assert "provided".equals(settings.property()) : settings.property();
+                        assert "provided".equals(settings.provided()) : settings.provided();
+                        assert "undefined".equals(settings.undefined()) : settings.undefined();
 
-        assert "provided".equals(settings.property()) : settings.property();
-        assert "provided".equals(settings.provided()) : settings.provided();
-        assert "undefined".equals(settings.undefined()) : settings.undefined();
+                        return null;
+                    }
+                });
+        verify();
     }
 
     public interface CollectionSettings {
@@ -264,48 +232,53 @@ public class ConfigurationTest extends MockGroupAbstractTest {
         EasyMock.expect(provider.property("insane")).andReturn("[1,2]: {a: [[1, 1], [1, 2], [1, 3]], b: [[2, 1], [2, 2]], c: [[3, 1]]}, [3,4]: {d: []}, [5,6]: [], [7,8]: {e: [[5, 1], [5, 2]]}");
 
         replay();
-        final CollectionSettings settings = new ConfigurationFactory.ConfigurationImpl<CollectionSettings>(definition, provider, null, (Configuration.Context[]) null).snapshot();
+        new ConfigurationFactory.ConfigurationImpl<CollectionSettings>(definition, provider, null, (Configuration.Context[]) null)
+                .query(new Configuration.Query<CollectionSettings, Void>() {
+                    public Void read(final CollectionSettings settings) {
+                        assert Arrays.equals(settings.integers(), new int[] { 1, 2, 3 }) : Arrays.toString(settings.integers());
+                        assert Arrays.equals(settings.empty_integers(), new int[0]) : Arrays.toString(settings.empty_integers());
+                        assert settings.no_integers() == null : Arrays.toString(settings.no_integers());
+
+                        assert Arrays.equals(settings.flags(), new boolean[] { true, false }) : Arrays.toString(settings.flags());
+                        assert Arrays.equals(settings.empty_flags(), new boolean[0]) : Arrays.toString(settings.empty_flags());
+                        assert settings.no_flags() == null : Arrays.toString(settings.no_flags());
+
+                        assert settings.strings().equals(Arrays.asList("good", "bad")) : settings.strings();
+                        assert settings.empty_strings().isEmpty() : settings.empty_strings();
+                        assert settings.no_strings() == null : settings.no_strings();
+
+                        final Map<String, Integer> map = new HashMap<String, Integer>();
+                        map.put("key1", 12);
+                        map.put("key2", 34);
+
+                        assert settings.numbers().equals(map) : settings.numbers();
+                        assert settings.empty_numbers().isEmpty() : settings.empty_numbers();
+                        assert settings.no_numbers() == null : settings.no_numbers();
+
+                        final Map<List<Integer>, Map<String, List<long[]>>> insane = new HashMap<List<Integer>, Map<String, List<long[]>>>();
+
+                        final HashMap<String, List<long[]>> value1 = new HashMap<String, List<long[]>>();
+                        value1.put("a", Arrays.asList(new long[][] { { 1L, 1L }, { 1L, 2L }, { 1L, 3L } }));
+                        value1.put("b", Arrays.asList(new long[][] { { 2L, 1L }, { 2L, 2L } }));
+                        value1.put("c", Arrays.asList(new long[][] { { 3L, 1L } }));
+                        insane.put(Arrays.asList(1, 2), value1);
+
+                        final HashMap<String, List<long[]>> value2 = new HashMap<String, List<long[]>>();
+                        value2.put("d", new ArrayList<long[]>());
+                        insane.put(Arrays.asList(3, 4), value2);
+
+                        insane.put(Arrays.asList(5, 6), new HashMap<String, List<long[]>>());
+
+                        final HashMap<String, List<long[]>> value3 = new HashMap<String, List<long[]>>();
+                        value3.put("e", Arrays.asList(new long[][] { { 5L, 1L }, { 5L, 2L } }));
+                        insane.put(Arrays.asList(7, 8), value3);
+
+                        collectionCheck(settings.insane(), insane);
+
+                        return null;
+                    }
+                });
         verify();
-
-        assert Arrays.equals(settings.integers(), new int[] { 1, 2, 3 }) : Arrays.toString(settings.integers());
-        assert Arrays.equals(settings.empty_integers(), new int[0]) : Arrays.toString(settings.empty_integers());
-        assert settings.no_integers() == null : Arrays.toString(settings.no_integers());
-
-        assert Arrays.equals(settings.flags(), new boolean[] { true, false }) : Arrays.toString(settings.flags());
-        assert Arrays.equals(settings.empty_flags(), new boolean[0]) : Arrays.toString(settings.empty_flags());
-        assert settings.no_flags() == null : Arrays.toString(settings.no_flags());
-
-        assert settings.strings().equals(Arrays.asList("good", "bad")) : settings.strings();
-        assert settings.empty_strings().isEmpty() : settings.empty_strings();
-        assert settings.no_strings() == null : settings.no_strings();
-
-        final Map<String, Integer> map = new HashMap<String, Integer>();
-        map.put("key1", 12);
-        map.put("key2", 34);
-
-        assert settings.numbers().equals(map) : settings.numbers();
-        assert settings.empty_numbers().isEmpty() : settings.empty_numbers();
-        assert settings.no_numbers() == null : settings.no_numbers();
-
-        final Map<List<Integer>, Map<String, List<long[]>>> insane = new HashMap<List<Integer>, Map<String, List<long[]>>>();
-
-        final HashMap<String, List<long[]>> value1 = new HashMap<String, List<long[]>>();
-        value1.put("a", Arrays.asList(new long[][] { { 1L, 1L }, { 1L, 2L }, { 1L, 3L } }));
-        value1.put("b", Arrays.asList(new long[][] { { 2L, 1L }, { 2L, 2L } }));
-        value1.put("c", Arrays.asList(new long[][] { { 3L, 1L } }));
-        insane.put(Arrays.asList(1, 2), value1);
-
-        final HashMap<String, List<long[]>> value2 = new HashMap<String, List<long[]>>();
-        value2.put("d", new ArrayList<long[]>());
-        insane.put(Arrays.asList(3, 4), value2);
-
-        insane.put(Arrays.asList(5, 6), new HashMap<String, List<long[]>>());
-
-        final HashMap<String, List<long[]>> value3 = new HashMap<String, List<long[]>>();
-        value3.put("e", Arrays.asList(new long[][] { { 5L, 1L }, { 5L, 2L } }));
-        insane.put(Arrays.asList(7, 8), value3);
-
-        collectionCheck(settings.insane(), insane);
     }
 
     // TODO: test collection syntax errors
@@ -367,25 +340,29 @@ public class ConfigurationTest extends MockGroupAbstractTest {
         EasyMock.expect(definition.value()).andReturn((Class) MultiTypeSettings.class);
 
         replay();
-        final MultiTypeSettings settings = new ConfigurationFactory.ConfigurationImpl<MultiTypeSettings>(definition, null, null, (Configuration.Context[]) null).snapshot();
+        new ConfigurationFactory.ConfigurationImpl<MultiTypeSettings>(definition, null, null, (Configuration.Context[]) null)
+                .query(new Configuration.Query<MultiTypeSettings, Void>() {
+                    public Void read(final MultiTypeSettings settings) {
+                        assert settings.booleanValue();
+                        assert settings.BooleanValue();
+                        assert settings.byteValue() == (byte) 123 : settings.byteValue();
+                        assert settings.ByteValue() == (byte) -123 : settings.ByteValue();
+                        assert settings.shortValue() == (short) 1234 : settings.shortValue();
+                        assert settings.ShortValue() == (short) -1234 : settings.ShortValue();
+                        assert settings.intValue() == 12345 : settings.intValue();
+                        assert settings.IntegerValue() == -12345 : settings.IntegerValue();
+                        assert settings.longValue() == 123456l : settings.longValue();
+                        assert settings.LongValue() == -123456l : settings.LongValue();
+                        assert settings.floatValue() == 123456.25f : settings.floatValue();
+                        assert settings.FloatValue() == -123456.25f : settings.FloatValue();
+                        assert settings.doubleValue() == 1234567.25 : settings.doubleValue();
+                        assert settings.DoubleValue() == -1234567.25 : settings.DoubleValue();
+                        assert settings.classValue() == Object.class : settings.classValue();
+                        assert settings.enumValue() == EnumType.SAMPLE : settings.enumValue();
+                        return null;
+                    }
+                });
         verify();
-
-        assert settings.booleanValue();
-        assert settings.BooleanValue();
-        assert settings.byteValue() == (byte) 123 : settings.byteValue();
-        assert settings.ByteValue() == (byte) -123 : settings.ByteValue();
-        assert settings.shortValue() == (short) 1234 : settings.shortValue();
-        assert settings.ShortValue() == (short) -1234 : settings.ShortValue();
-        assert settings.intValue() == 12345 : settings.intValue();
-        assert settings.IntegerValue() == -12345 : settings.IntegerValue();
-        assert settings.longValue() == 123456l : settings.longValue();
-        assert settings.LongValue() == -123456l : settings.LongValue();
-        assert settings.floatValue() == 123456.25f : settings.floatValue();
-        assert settings.FloatValue() == -123456.25f : settings.FloatValue();
-        assert settings.doubleValue() == 1234567.25 : settings.doubleValue();
-        assert settings.DoubleValue() == -1234567.25 : settings.DoubleValue();
-        assert settings.classValue() == Object.class : settings.classValue();
-        assert settings.enumValue() == EnumType.SAMPLE : settings.enumValue();
     }
 
     @Test
@@ -410,25 +387,85 @@ public class ConfigurationTest extends MockGroupAbstractTest {
         EasyMock.expect(provider.property("enum")).andReturn(null);
 
         replay();
-        final MultiTypeSettings settings = new ConfigurationFactory.ConfigurationImpl<MultiTypeSettings>(definition, provider, null, (Configuration.Context[]) null).snapshot();
-        verify();
+        new ConfigurationFactory.ConfigurationImpl<MultiTypeSettings>(definition, provider, null, (Configuration.Context[]) null)
+                .query(new Configuration.Query<MultiTypeSettings, Void>() {
+                    public Void read(final MultiTypeSettings settings) {
+                        assert settings.booleanValue();
+                        assert settings.BooleanValue();
+                        assert settings.byteValue() == (byte) 1 : settings.byteValue();
+                        assert settings.ByteValue() == (byte) 1 : settings.ByteValue();
+                        assert settings.shortValue() == (short) 1 : settings.shortValue();
+                        assert settings.ShortValue() == (short) 1 : settings.ShortValue();
+                        assert settings.intValue() == 12345 : settings.intValue();
+                        assert settings.IntegerValue() == -12345 : settings.IntegerValue();
+                        assert settings.longValue() == 123456l : settings.longValue();
+                        assert settings.LongValue() == -123456l : settings.LongValue();
+                        assert settings.floatValue() == 1f : settings.floatValue();
+                        assert settings.FloatValue() == 1.25f : settings.FloatValue();
+                        assert settings.doubleValue() == 1d : settings.doubleValue();
+                        assert settings.DoubleValue() == 1d : settings.DoubleValue();
+                        assert settings.classValue() == Object.class : settings.classValue();
+                        assert settings.enumValue() == EnumType.SAMPLE : settings.enumValue();
 
-        assert settings.booleanValue();
-        assert settings.BooleanValue();
-        assert settings.byteValue() == (byte) 1 : settings.byteValue();
-        assert settings.ByteValue() == (byte) 1 : settings.ByteValue();
-        assert settings.shortValue() == (short) 1 : settings.shortValue();
-        assert settings.ShortValue() == (short) 1 : settings.ShortValue();
-        assert settings.intValue() == 12345 : settings.intValue();
-        assert settings.IntegerValue() == -12345 : settings.IntegerValue();
-        assert settings.longValue() == 123456l : settings.longValue();
-        assert settings.LongValue() == -123456l : settings.LongValue();
-        assert settings.floatValue() == 1f : settings.floatValue();
-        assert settings.FloatValue() == 1.25f : settings.FloatValue();
-        assert settings.doubleValue() == 1d : settings.doubleValue();
-        assert settings.DoubleValue() == 1d : settings.DoubleValue();
-        assert settings.classValue() == Object.class : settings.classValue();
-        assert settings.enumValue() == EnumType.SAMPLE : settings.enumValue();
+                        return null;
+                    }
+                });
+        verify();
+    }
+
+    interface SubstitutedSettings {
+
+        @Configuration.Property(key = "property.%s")
+        String property1(String arg0);
+
+        @Configuration.Property(key = "property.%s.%s", undefined = "value.%s.%s")
+        String property2(String arg0, String arg1);
+    }
+
+    @DataProvider(name = "substitution-params")
+    public Object[][] substitutionParams() {
+        return new Object[][] {
+                new Object[] {true},
+                new Object[] {false},
+        };
+    }
+
+    @Test(dataProvider = "substitution-params")
+    public void testPropertyNameSubstitution(boolean useDefaults) throws Exception {
+        configure(SubstitutedSettings.class);
+
+        EasyMock.expect(provider.property("property.abcd")).andReturn("value11");
+        EasyMock.expect(provider.property("property.efgh")).andReturn("value12");
+        EasyMock.expect(provider.property("property.abcd.efgh")).andReturn("value21");
+        EasyMock.expect(provider.property("property.efgh.ijkl")).andReturn("value22");
+
+        EasyMock.expect(provider.property("property.a.b")).andReturn(null);
+
+        final SubstitutedSettings defaults;
+
+        if (useDefaults) {
+            defaults = localMock(SubstitutedSettings.class);
+            EasyMock.expect(defaults.property2("a", "b")).andReturn("value.a.b");
+        } else {
+            defaults = null;
+        }
+
+        replay();
+        new ConfigurationFactory.ConfigurationImpl<SubstitutedSettings>(definition, provider, defaults, (Configuration.Context[]) null)
+                .query(new Configuration.Query<SubstitutedSettings, Void>() {
+                    public Void read(final SubstitutedSettings settings) {
+                        assert "value11".equals(settings.property1("abcd")) : settings.property1("abcd");
+                        assert "value12".equals(settings.property1("efgh")) : settings.property1("efgh");
+                        assert "value21".equals(settings.property2("abcd", "efgh")) : settings.property2("abcd", "efgh");
+                        assert "value22".equals(settings.property2("efgh", "ijkl")) : settings.property2("efgh", "ijkl");
+
+                        final String missing = settings.property2("a", "b");
+                        assert "value.a.b".equals(missing) : missing;
+
+                        return null;
+                    }
+                });
+        verify();
     }
 
     void collectionCheck(final Object expected, final Object actual) {
@@ -521,5 +558,4 @@ public class ConfigurationTest extends MockGroupAbstractTest {
             return "provided";
         }
     }
-
 }
