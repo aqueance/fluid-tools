@@ -41,8 +41,7 @@ import org.fluidity.foundation.spi.PropertyProvider;
  *   String property2(int item);
  * }
  * </pre>
- * <p/>
- * <h3>Settings Query Methods</h3>
+ * <h3>Query Methods</h3>
  * A settings interface like the above must have all of its methods annotated by the @{@link Configuration.Property} annotation, all methods must have a
  * supported return type and they may have any number of arguments. The given {@link Configuration.Property#key()}s are understood to be relative to the
  * concatenation of each @{@link Configuration.Context} annotation in the instantiation path of the configured component.
@@ -83,10 +82,6 @@ import org.fluidity.foundation.spi.PropertyProvider;
  * <li>The {@link Configuration.Property#undefined()} parameter is checked. If it is not empty, it is returned, otherwise <code>null</code> is returned for non
  * primitive types and the default value is returned for primitive types.</li>
  * </ol>
- * <p/>
- * The snapshot returned by {@link #settings()} is a consistent snapshot of the properties computed as per above even if the underlying
- * <code>PropertyProvider</code> supports run-time configuration updates. Calling the <code>snapshot()</code> method later may thus reflect a different, but
- * static and consistent, set of properties.
  * <h2>Supported Return Types</h2>
  * <ul>
  * <li>{@code String}</li>
@@ -96,7 +91,7 @@ import org.fluidity.foundation.spi.PropertyProvider;
  * <li>Array of any supported type</li>
  * <li>{@link java.util.List} of any supported type</li>
  * <li>{@link java.util.Set} of any supported type</li>
- * <li>{@link java.util.Map} of any supported type from any supported type</li>
+ * <li>{@link java.util.Map} of any supported types</li>
  * </ul>
  *
  * @author Tibor Varga
@@ -104,8 +99,7 @@ import org.fluidity.foundation.spi.PropertyProvider;
 public interface Configuration<T> {
 
     /**
-     * Returns an object implementing the settings interface. The configuration settings returned by the methods of the returned object are consistent and will
-     * not reflect later changes to the underlying configuration settings.
+     * Returns an object implementing the settings interface.
      *
      * @return an object implementing the settings interface.
      */
