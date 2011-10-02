@@ -53,11 +53,6 @@ public class ConfigurationTest extends MockGroupAbstractTest {
     };
 
     @SuppressWarnings("unchecked")
-    private <T> void configure(final Class<T> settingsType) {
-        EasyMock.expect(definition.value()).andReturn((Class) settingsType);
-    }
-
-    @SuppressWarnings("unchecked")
     private <T> Configuration<T> configure(final Class<T> settingsType, final PropertyProvider provider, final T defaults, Configuration.Context... contexts) {
         EasyMock.expect(definition.value()).andReturn((Class) settingsType);
 
@@ -116,16 +111,15 @@ public class ConfigurationTest extends MockGroupAbstractTest {
     @Test
     @SuppressWarnings("unchecked")
     public void noConfiguration() throws Exception {
-        EasyMock.expect(definition.value()).andReturn((Class) Settings.class);
+        final Configuration<Settings> configuration = configure(Settings.class, null, null);
 
         replay();
-        new ConfigurationFactory.ConfigurationImpl<Settings>(definition, null, null, (Configuration.Context[]) null)
-                .query(new Configuration.Query<Settings, Void>() {
-                    public Void read(final Settings settings) {
-                        checkSettings(settings, null, "default", null, "default", 1234);
-                        return null;
-                    }
-                });
+        configuration.query(new Configuration.Query<Settings, Void>() {
+            public Void read(final Settings settings) {
+                checkSettings(settings, null, "default", null, "default", 1234);
+                return null;
+            }
+        });
         verify();
     }
 
@@ -165,19 +159,18 @@ public class ConfigurationTest extends MockGroupAbstractTest {
     @Test
     @SuppressWarnings("unchecked")
     public void providedConfiguration() throws Exception {
-        EasyMock.expect(definition.value()).andReturn((Class) ProvidedSettings.class);
+        final Configuration<ProvidedSettings> configuration = configure(ProvidedSettings.class, null, new ProvidedSettingsImpl());
 
         replay();
-        new ConfigurationFactory.ConfigurationImpl<ProvidedSettings>(definition, null, new ProvidedSettingsImpl(), (Configuration.Context[]) null)
-                .query(new Configuration.Query<ProvidedSettings, Void>() {
-                    public Void read(final ProvidedSettings settings) {
-                        assert "provided".equals(settings.property()) : settings.property();
-                        assert "provided".equals(settings.provided()) : settings.provided();
-                        assert "undefined".equals(settings.undefined()) : settings.undefined();
+        configuration.query(new Configuration.Query<ProvidedSettings, Void>() {
+            public Void read(final ProvidedSettings settings) {
+                assert "provided".equals(settings.property()) : settings.property();
+                assert "provided".equals(settings.provided()) : settings.provided();
+                assert "undefined".equals(settings.undefined()) : settings.undefined();
 
-                        return null;
-                    }
-                });
+                return null;
+            }
+        });
         verify();
     }
 
@@ -347,31 +340,30 @@ public class ConfigurationTest extends MockGroupAbstractTest {
     @Test
     @SuppressWarnings("unchecked")
     public void defaultConversion() throws Exception {
-        EasyMock.expect(definition.value()).andReturn((Class) MultiTypeSettings.class);
+        final Configuration<MultiTypeSettings> configuration = configure(MultiTypeSettings.class, null, null);
 
         replay();
-        new ConfigurationFactory.ConfigurationImpl<MultiTypeSettings>(definition, null, null, (Configuration.Context[]) null)
-                .query(new Configuration.Query<MultiTypeSettings, Void>() {
-                    public Void read(final MultiTypeSettings settings) {
-                        assert settings.booleanValue();
-                        assert settings.BooleanValue();
-                        assert settings.byteValue() == (byte) 123 : settings.byteValue();
-                        assert settings.ByteValue() == (byte) -123 : settings.ByteValue();
-                        assert settings.shortValue() == (short) 1234 : settings.shortValue();
-                        assert settings.ShortValue() == (short) -1234 : settings.ShortValue();
-                        assert settings.intValue() == 12345 : settings.intValue();
-                        assert settings.IntegerValue() == -12345 : settings.IntegerValue();
-                        assert settings.longValue() == 123456l : settings.longValue();
-                        assert settings.LongValue() == -123456l : settings.LongValue();
-                        assert settings.floatValue() == 123456.25f : settings.floatValue();
-                        assert settings.FloatValue() == -123456.25f : settings.FloatValue();
-                        assert settings.doubleValue() == 1234567.25 : settings.doubleValue();
-                        assert settings.DoubleValue() == -1234567.25 : settings.DoubleValue();
-                        assert settings.classValue() == Object.class : settings.classValue();
-                        assert settings.enumValue() == EnumType.SAMPLE : settings.enumValue();
-                        return null;
-                    }
-                });
+        configuration.query(new Configuration.Query<MultiTypeSettings, Void>() {
+            public Void read(final MultiTypeSettings settings) {
+                assert settings.booleanValue();
+                assert settings.BooleanValue();
+                assert settings.byteValue() == (byte) 123 : settings.byteValue();
+                assert settings.ByteValue() == (byte) -123 : settings.ByteValue();
+                assert settings.shortValue() == (short) 1234 : settings.shortValue();
+                assert settings.ShortValue() == (short) -1234 : settings.ShortValue();
+                assert settings.intValue() == 12345 : settings.intValue();
+                assert settings.IntegerValue() == -12345 : settings.IntegerValue();
+                assert settings.longValue() == 123456l : settings.longValue();
+                assert settings.LongValue() == -123456l : settings.LongValue();
+                assert settings.floatValue() == 123456.25f : settings.floatValue();
+                assert settings.FloatValue() == -123456.25f : settings.FloatValue();
+                assert settings.doubleValue() == 1234567.25 : settings.doubleValue();
+                assert settings.DoubleValue() == -1234567.25 : settings.DoubleValue();
+                assert settings.classValue() == Object.class : settings.classValue();
+                assert settings.enumValue() == EnumType.SAMPLE : settings.enumValue();
+                return null;
+            }
+        });
         verify();
     }
 
