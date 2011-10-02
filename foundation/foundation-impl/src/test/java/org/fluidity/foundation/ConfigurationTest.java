@@ -716,7 +716,6 @@ public class ConfigurationTest extends MockGroupAbstractTest {
 
     static void checkObjects(final Object expected, final Object actual) {
         assert expected.equals(actual) : String.format("Expected %s, got %s", expected, actual);
-        assert actual.equals(expected) : String.format("Expected %s, got %s", expected, actual); // exercise the equals() and hashCode() methods of the actual objects, too
     }
 
     private void collectionCheck(final Object expected, final Object actual) {

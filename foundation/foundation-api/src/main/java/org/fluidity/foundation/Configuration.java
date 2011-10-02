@@ -97,21 +97,20 @@ import org.fluidity.foundation.spi.PropertyProvider;
  * <li>Any combination of the above</li>
  * </ul>
  * <h3>Custom Types</h3>
- * Because of the consistency guarantee by the {@link Query#read(T)} method, instances of the custom types will contain pre-fetched values for all
- * @<code>Configuration.Property</code> annotated fields or methods. This has two consequences:
+ * Both interfaces with query methods and class with fields are supported by the settings implementations. There are a few key difference between the two and
+ * you need to choose the one that fits your use of the property data.
+ * <p/>
+ * The implementation for a custom interface:
  * <ul>
- * <li>custom types read in the {@link Query#read(T)} method
- *   <ul>
- *   <li>may <em>not</em> have method parameters</li>
- *   <li><em>will</em> have their {@link Object#equals(Object)} and {@link Object#hashCode()} method implemented to take all annotated fields or methods into account</li>
- *   </ul>
- * </li>
- * <li>custom types read from the settings implementation returned by the {@link #settings()} method
- *   <ul>
- *   <li><em>may</em> have method parameters</li>
- *   <li>will <em>not</em> have their {@link Object#equals(Object)} and {@link Object#hashCode()} method implemented</li>
- *   </ul>
- * </li>
+ * <li>allows method parameters to vary the property consulted when returning a value for a method,</li>
+ * <li>provides only object identity implementation for the {@link Object#equals(Object)} method,</li>
+ * <li>may return a different value at different times if accessed outside the {@link Query#read(T)} method.</li>
+ * </ul>
+ * In contrast, your custom class:
+ * <ul>
+ * <li>provides no means to vary at run-time the property value assigned to a given field,</li>
+ * <li>may provide whatever equality in its {@link Object#equals(Object)} method,</li>
+ * <li>will have the same property value in its fields regardless of when they are accessed until you change those values.</li>
  * </ul>
  *
  * @author Tibor Varga

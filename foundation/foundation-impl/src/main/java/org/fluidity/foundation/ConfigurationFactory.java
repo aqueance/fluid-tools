@@ -18,7 +18,6 @@ package org.fluidity.foundation;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.lang.reflect.Type;
@@ -72,8 +71,7 @@ final class ConfigurationFactory implements CustomComponentFactory {
     static final class ConfigurationImpl<T> implements Configuration<T> {
 
         private final PropertyProvider provider;
-        private final T consistent;
-        private final T dynamic;
+        private final T configuration;
 
         /**
          * Constructs a new configuration object.
@@ -95,23 +93,22 @@ final class ConfigurationFactory implements CustomComponentFactory {
             final ClassLoader loader = api.getClassLoader();
             final Class[] interfaces = { api };
 
-            consistent = (T) Proxy.newProxyInstance(loader, interfaces, new PropertyLoader<T>(api, prefixes, defaults, provider, loader, true));
-            dynamic = (T) Proxy.newProxyInstance(loader, interfaces, new PropertyLoader<T>(api, prefixes, defaults, provider, loader, false));
+            configuration = (T) Proxy.newProxyInstance(loader, interfaces, new PropertyLoader<T>(api, prefixes, defaults, provider, loader));
         }
 
         public T settings() {
-            return dynamic;
+            return configuration;
         }
 
         public <R> R query(final Query<T, R> query) {
             if (provider == null) {
-                return query.read(dynamic);
+                return query.read(configuration);
             } else {
                 final AtomicReference<R> value = new AtomicReference<R>();
 
                 provider.properties(new Runnable() {
                     public void run() {
-                        value.set(query.read(consistent));
+                        value.set(query.read(configuration));
                     }
                 });
 
@@ -137,21 +134,18 @@ final class ConfigurationFactory implements CustomComponentFactory {
             return list.toArray(new String[list.size()]);
         }
 
-        private static class PropertyLoader<T> implements InvocationHandler {
-            private final Class<T> api;
+        private static class PropertyLoader<T> extends Proxies.MethodInvocations {
             private final String[] prefixes;
             private final T defaults;
             private final PropertyProvider provider;
             private final ClassLoader loader;
-            private final boolean consistent;
 
-            public PropertyLoader(final Class<T> api, final String[] prefixes, final T defaults, final PropertyProvider provider, final ClassLoader loader, final boolean consistent) {
-                this.api = api;
+            public PropertyLoader(final Class<T> api, final String[] prefixes, final T defaults, final PropertyProvider provider, final ClassLoader loader) {
+                super(api);
                 this.prefixes = prefixes;
                 this.defaults = defaults;
                 this.provider = provider;
                 this.loader = loader;
-                this.consistent = consistent;
             }
 
             public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
@@ -159,7 +153,7 @@ final class ConfigurationFactory implements CustomComponentFactory {
                     return Proxies.inherited(method, args, this);
                 }
 
-                assert method.getDeclaringClass().isAssignableFrom(api) : method;
+                assert method.getDeclaringClass().isAssignableFrom(api()) : method;
 
                 final Property setting = method.getAnnotation(Property.class);
                 assert setting != null : String.format("No @%s specified for method %s", Property.class.getName(), method);
@@ -315,129 +309,10 @@ final class ConfigurationFactory implements CustomComponentFactory {
 
             private Object composite(final Class<?> type, final String suffix) throws IllegalAccessException, InstantiationException {
                 if (type.isInterface()) {
-                    if (consistent) {
-                        final Map<Method, Object> cache = new LinkedHashMap<Method, Object>();
-
-                        for (final Method method : type.getMethods()) {
-                            final Property setting = method.getAnnotation(Property.class);
-
-                            if (method.getParameterTypes().length > 0) {
-                                throw new IllegalArgumentException(String.format("Method %s may not have parameters", method));
-                            }
-
-                            if (setting == null) {
-                                throw new IllegalArgumentException(String.format("Method %s is not @%s annotated", method, Property.class));
-                            }
-
-                            cache.put(method, property(setting.split(),
-                                                       setting.grouping(),
-                                                       setting.ids(),
-                                                       setting.list(),
-                                                       setting.undefined(),
-                                                       method.getReturnType(),
-                                                       method.getGenericReturnType(),
-                                                       prefixes,
-                                                       String.format("%s.%s", suffix, setting.key()),
-                                                       null,
-                                                       null,
-                                                       null));
-                        }
-
-                        /*
-                         * Implements the Object.hashCode() and Object.equals() methods.
-                         */
-                        class Item {
-
-                            @Override
-                            public int hashCode() {
-                                int result = 1;
-
-                                for (final Object item : cache.values()) {
-                                    result = item == null ? result : 31 * result + item.hashCode();
-                                }
-
-                                return result;
-                            }
-
-                            @Override
-                            public boolean equals(final Object that) {
-                                if (this == that) {
-                                    return true;
-                                }
-
-                                if (that == null) {
-                                    return false;
-                                }
-
-                                if (!type.isAssignableFrom(that.getClass())) {
-                                    return false;
-                                }
-
-                                boolean result = true;
-
-                                for (final Map.Entry<Method, Object> entry : cache.entrySet()) {
-                                    final Method method = entry.getKey();
-
-                                    final Object value1 = cache.get(method);
-                                    final Object value2 = Exceptions.wrap(new Exceptions.Command<Object>() {
-                                        public Object run() throws Exception {
-                                            return method.invoke(that);
-                                        }
-                                    });
-
-                                    result &= value1 == null ? value2 == null : value1.equals(value2);
-                                }
-
-                                return result;
-                            }
-
-                            @Override
-                            public String toString() {
-                                return String.format("%s@%x", type.getSimpleName(), hashCode());
-                            }
-                        }
-
-                        final Item item = new Item();
-
-                        return Proxies.create(type, new InvocationHandler() {
+                        return Proxies.create(type, new Proxies.MethodInvocations(type) {
                             public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
                                 if (method.getDeclaringClass() == Object.class) {
-                                    return method.invoke(item, args);
-                                } else {
-                                    return cache.get(method);
-                                }
-                            }
-                        });
-                    } else {
-
-                        /*
-                         * Implements the Object.hashCode() and Object.equals() methods.
-                         */
-                        class Item {
-
-                            @Override
-                            public int hashCode() {
-                                return System.identityHashCode(this);
-                            }
-
-                            @Override
-                            @SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
-                            public boolean equals(final Object that) {
-                                return this == that;
-                            }
-
-                            @Override
-                            public String toString() {
-                                return String.format("%s@%x", type.getSimpleName(), hashCode());
-                            }
-                        }
-
-                        final Item item = new Item();
-
-                        return Proxies.create(type, new InvocationHandler() {
-                            public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
-                                if (method.getDeclaringClass() == Object.class) {
-                                    return method.invoke(item, args);
+                                    return Proxies.inherited(method, args, this);
                                 } else {
                                     final Property setting = method.getAnnotation(Property.class);
 
@@ -460,7 +335,6 @@ final class ConfigurationFactory implements CustomComponentFactory {
                                 }
                             }
                         });
-                    }
                 } else {
                     final Object instance = type.newInstance();
 

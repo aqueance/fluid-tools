@@ -69,15 +69,30 @@ public final class Proxies {
      */
     public static Object inherited(final Method method, final Object[] args, final InvocationHandler caller) throws IllegalAccessException, InvocationTargetException {
         assert method.getDeclaringClass() == Object.class : method;
+        assert caller instanceof MethodInvocations : caller;
+        return method.invoke(caller, args);
+    }
 
-        for (int i = 0, limit = args.length; i < limit; i++) {
-            final Object argument = args[i];
+    public static abstract class MethodInvocations implements InvocationHandler {
 
-            if (argument != null && Proxy.isProxyClass(argument.getClass())) {
-                args[i] = Proxy.getInvocationHandler(argument);
-            }
+        private final Class<?> api;
+
+        protected MethodInvocations(final Class<?> api) {
+            this.api = api;
         }
 
-        return method.invoke(caller, args);
+        protected final Class<?> api() {
+            return api;
+        }
+
+        @Override
+        public boolean equals(final Object obj) {
+            return super.equals(obj != null && Proxy.isProxyClass(obj.getClass()) ? Proxy.getInvocationHandler(obj) : obj);
+        }
+
+        @Override
+        public String toString() {
+            return String.format("%s@%d", api.getSimpleName(), hashCode());
+        }
     }
 }
