@@ -30,7 +30,7 @@ public final class Generics {
     }
 
     /**
-     * Returns the raw type, i.e., the class, corresponding to this generic type.
+     * Returns the raw type, i.e., the class, corresponding to the given generic type.
      *
      * @param type the generic type.
      *
@@ -82,6 +82,8 @@ public final class Generics {
     public static Type arrayComponentType(final Type type) {
         if (type instanceof GenericArrayType) {
             return ((GenericArrayType) type).getGenericComponentType();
+        } else if (type instanceof Class && ((Class) type).isArray()) {
+            return ((Class) type).getComponentType();
         }
 
         return null;

@@ -21,8 +21,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.fluidity.foundation.spi.PropertyProvider;
 import org.fluidity.tests.MockGroupAbstractTest;
@@ -51,8 +53,19 @@ public class ConfigurationTest extends MockGroupAbstractTest {
     };
 
     @SuppressWarnings("unchecked")
-    private void configure(final Class settingsType) {
-        EasyMock.expect(definition.value()).andReturn(settingsType);
+    private <T> void configure(final Class<T> settingsType) {
+        EasyMock.expect(definition.value()).andReturn((Class) settingsType);
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T> Configuration<T> configure(final Class<T> settingsType, final PropertyProvider provider, final T defaults, Configuration.Context... contexts) {
+        EasyMock.expect(definition.value()).andReturn((Class) settingsType);
+
+        replay();
+        final Configuration<T> configuration = new ConfigurationFactory.ConfigurationImpl<T>(definition, provider, defaults, contexts);
+        verify();
+
+        return configuration;
     }
 
     public interface Settings {
@@ -75,11 +88,6 @@ public class ConfigurationTest extends MockGroupAbstractTest {
 
     @Test
     public void contextConfiguration() throws Exception {
-        properties(provider, false, null, null, null, null, null, null);
-        properties(provider, true, "context1.context2.context3", null, null, null, "value2", 5678);
-        properties(provider, false, "context1.context2", null, null, null, null, null);
-        properties(provider, false, "context1", null, null, "value1", null, null);
-
         final Configuration.Context context1 = localMock(Configuration.Context.class);
         final Configuration.Context context2 = localMock(Configuration.Context.class);
         final Configuration.Context context3 = localMock(Configuration.Context.class);
@@ -88,16 +96,20 @@ public class ConfigurationTest extends MockGroupAbstractTest {
         EasyMock.expect(context2.value()).andReturn("context2");
         EasyMock.expect(context3.value()).andReturn("context3");
 
-        configure(Settings.class);
+        final Configuration<Settings> configuration = configure(Settings.class, provider, null, context1, context2, context3);
+
+        properties(provider, false, null, null, null, null, null, null);
+        properties(provider, true, "context1.context2.context3", null, null, null, "value2", 5678);
+        properties(provider, false, "context1.context2", null, null, null, null, null);
+        properties(provider, false, "context1", null, null, "value1", null, null);
 
         replay();
-        new ConfigurationFactory.ConfigurationImpl<Settings>(definition, provider, null, context1, context2, context3)
-                .query(new Configuration.Query<Settings, Void>() {
-                    public Void read(final Settings settings) {
-                        checkSettings(settings, null, "default", "value1", "value2", 5678);
-                        return null;
-                    }
-                });
+        configuration.query(new Configuration.Query<Settings, Void>() {
+            public Void read(final Settings settings) {
+                checkSettings(settings, null, "default", "value1", "value2", 5678);
+                return null;
+            }
+        });
         verify();
     }
 
@@ -131,23 +143,22 @@ public class ConfigurationTest extends MockGroupAbstractTest {
 
     @Test
     public void overriddenConfiguration() throws Exception {
-        configure(ProvidedSettings.class);
+        final Configuration<ProvidedSettings> configuration = configure(ProvidedSettings.class, provider, new ProvidedSettingsImpl());
 
         EasyMock.expect(provider.property("property")).andReturn("property");
         EasyMock.expect(provider.property("provided")).andReturn(null);
         EasyMock.expect(provider.property("undefined")).andReturn(null);
 
         replay();
-        new ConfigurationFactory.ConfigurationImpl<ProvidedSettings>(definition, provider, new ProvidedSettingsImpl(), (Configuration.Context[]) null)
-                .query(new Configuration.Query<ProvidedSettings, Void>() {
-                    public Void read(final ProvidedSettings settings) {
-                        assert "property".equals(settings.property()) : settings.property();
-                        assert "provided".equals(settings.provided()) : settings.provided();
-                        assert "undefined".equals(settings.undefined()) : settings.undefined();
+        configuration.query(new Configuration.Query<ProvidedSettings, Void>() {
+            public Void read(final ProvidedSettings settings) {
+                assert "property".equals(settings.property()) : settings.property();
+                assert "provided".equals(settings.provided()) : settings.provided();
+                assert "undefined".equals(settings.undefined()) : settings.undefined();
 
-                        return null;
-                    }
-                });
+                return null;
+            }
+        });
         verify();
     }
 
@@ -172,49 +183,49 @@ public class ConfigurationTest extends MockGroupAbstractTest {
 
     public interface CollectionSettings {
 
-        @Configuration.Property(key = "integers", list = ",")
+        @Configuration.Property(key = "integers", split = ",")
         int[] integers();
 
-        @Configuration.Property(key = "integers.empty", list = ",")
+        @Configuration.Property(key = "integers.empty", split = ",")
         int[] empty_integers();
 
-        @Configuration.Property(key = "integers.none", list = ",")
+        @Configuration.Property(key = "integers.none", split = ",")
         int[] no_integers();
 
-        @Configuration.Property(key = "flags", list = "|")
+        @Configuration.Property(key = "flags", split = "|")
         boolean[] flags();
 
-        @Configuration.Property(key = "flags.empty", list = "|")
+        @Configuration.Property(key = "flags.empty", split = "|")
         boolean[] empty_flags();
 
-        @Configuration.Property(key = "flags.none", list = "|")
+        @Configuration.Property(key = "flags.none", split = "|")
         boolean[] no_flags();
 
-        @Configuration.Property(key = "strings", list = ":")
+        @Configuration.Property(key = "strings", split = ":")
         List<String> strings();
 
-        @Configuration.Property(key = "strings.empty", list = ":")
+        @Configuration.Property(key = "strings.empty", split = ":")
         List<String> empty_strings();
 
-        @Configuration.Property(key = "strings.none", list = ":")
+        @Configuration.Property(key = "strings.none", split = ":")
         List<String> no_strings();
 
-        @Configuration.Property(key = "numbers", list = ",:", grouping = "<>")
+        @Configuration.Property(key = "numbers", split = ",:", grouping = "<>")
         Map<String, Integer> numbers();
 
-        @Configuration.Property(key = "numbers.empty", list = ":")
+        @Configuration.Property(key = "numbers.empty", split = ":")
         Map<String, Integer> empty_numbers();
 
-        @Configuration.Property(key = "numbers.none", list = ":")
+        @Configuration.Property(key = "numbers.none", split = ":")
         Map<String, Integer> no_numbers();
 
-        @Configuration.Property(key = "insane", list = ",:")
+        @Configuration.Property(key = "insane", split = ",:")
         Map<List<Integer>, Map<String, List<long[]>>> insane();
     }
 
     @Test
     public void collectionConfiguration() throws Exception {
-        configure(CollectionSettings.class);
+        final Configuration<CollectionSettings> configuration = configure(CollectionSettings.class, provider, null);
 
         EasyMock.expect(provider.property("integers")).andReturn("1, 2, 3");
         EasyMock.expect(provider.property("integers.empty")).andReturn("");
@@ -232,52 +243,51 @@ public class ConfigurationTest extends MockGroupAbstractTest {
         EasyMock.expect(provider.property("insane")).andReturn("[1,2]: {a: [[1, 1], [1, 2], [1, 3]], b: [[2, 1], [2, 2]], c: [[3, 1]]}, [3,4]: {d: []}, [5,6]: [], [7,8]: {e: [[5, 1], [5, 2]]}");
 
         replay();
-        new ConfigurationFactory.ConfigurationImpl<CollectionSettings>(definition, provider, null, (Configuration.Context[]) null)
-                .query(new Configuration.Query<CollectionSettings, Void>() {
-                    public Void read(final CollectionSettings settings) {
-                        assert Arrays.equals(settings.integers(), new int[] { 1, 2, 3 }) : Arrays.toString(settings.integers());
-                        assert Arrays.equals(settings.empty_integers(), new int[0]) : Arrays.toString(settings.empty_integers());
-                        assert settings.no_integers() == null : Arrays.toString(settings.no_integers());
+        configuration.query(new Configuration.Query<CollectionSettings, Void>() {
+            public Void read(final CollectionSettings settings) {
+                assert Arrays.equals(settings.integers(), new int[] { 1, 2, 3 }) : Arrays.toString(settings.integers());
+                assert Arrays.equals(settings.empty_integers(), new int[0]) : Arrays.toString(settings.empty_integers());
+                assert settings.no_integers() == null : Arrays.toString(settings.no_integers());
 
-                        assert Arrays.equals(settings.flags(), new boolean[] { true, false }) : Arrays.toString(settings.flags());
-                        assert Arrays.equals(settings.empty_flags(), new boolean[0]) : Arrays.toString(settings.empty_flags());
-                        assert settings.no_flags() == null : Arrays.toString(settings.no_flags());
+                assert Arrays.equals(settings.flags(), new boolean[] { true, false }) : Arrays.toString(settings.flags());
+                assert Arrays.equals(settings.empty_flags(), new boolean[0]) : Arrays.toString(settings.empty_flags());
+                assert settings.no_flags() == null : Arrays.toString(settings.no_flags());
 
-                        assert settings.strings().equals(Arrays.asList("good", "bad")) : settings.strings();
-                        assert settings.empty_strings().isEmpty() : settings.empty_strings();
-                        assert settings.no_strings() == null : settings.no_strings();
+                assert settings.strings().equals(Arrays.asList("good", "bad")) : settings.strings();
+                assert settings.empty_strings().isEmpty() : settings.empty_strings();
+                assert settings.no_strings() == null : settings.no_strings();
 
-                        final Map<String, Integer> map = new HashMap<String, Integer>();
-                        map.put("key1", 12);
-                        map.put("key2", 34);
+                final Map<String, Integer> map = new HashMap<String, Integer>();
+                map.put("key1", 12);
+                map.put("key2", 34);
 
-                        assert settings.numbers().equals(map) : settings.numbers();
-                        assert settings.empty_numbers().isEmpty() : settings.empty_numbers();
-                        assert settings.no_numbers() == null : settings.no_numbers();
+                assert settings.numbers().equals(map) : settings.numbers();
+                assert settings.empty_numbers().isEmpty() : settings.empty_numbers();
+                assert settings.no_numbers() == null : settings.no_numbers();
 
-                        final Map<List<Integer>, Map<String, List<long[]>>> insane = new HashMap<List<Integer>, Map<String, List<long[]>>>();
+                final Map<List<Integer>, Map<String, List<long[]>>> insane = new HashMap<List<Integer>, Map<String, List<long[]>>>();
 
-                        final HashMap<String, List<long[]>> value1 = new HashMap<String, List<long[]>>();
-                        value1.put("a", Arrays.asList(new long[][] { { 1L, 1L }, { 1L, 2L }, { 1L, 3L } }));
-                        value1.put("b", Arrays.asList(new long[][] { { 2L, 1L }, { 2L, 2L } }));
-                        value1.put("c", Arrays.asList(new long[][] { { 3L, 1L } }));
-                        insane.put(Arrays.asList(1, 2), value1);
+                final HashMap<String, List<long[]>> value1 = new HashMap<String, List<long[]>>();
+                value1.put("a", Arrays.asList(new long[][] { { 1L, 1L }, { 1L, 2L }, { 1L, 3L } }));
+                value1.put("b", Arrays.asList(new long[][] { { 2L, 1L }, { 2L, 2L } }));
+                value1.put("c", Arrays.asList(new long[][] { { 3L, 1L } }));
+                insane.put(Arrays.asList(1, 2), value1);
 
-                        final HashMap<String, List<long[]>> value2 = new HashMap<String, List<long[]>>();
-                        value2.put("d", new ArrayList<long[]>());
-                        insane.put(Arrays.asList(3, 4), value2);
+                final HashMap<String, List<long[]>> value2 = new HashMap<String, List<long[]>>();
+                value2.put("d", new ArrayList<long[]>());
+                insane.put(Arrays.asList(3, 4), value2);
 
-                        insane.put(Arrays.asList(5, 6), new HashMap<String, List<long[]>>());
+                insane.put(Arrays.asList(5, 6), new HashMap<String, List<long[]>>());
 
-                        final HashMap<String, List<long[]>> value3 = new HashMap<String, List<long[]>>();
-                        value3.put("e", Arrays.asList(new long[][] { { 5L, 1L }, { 5L, 2L } }));
-                        insane.put(Arrays.asList(7, 8), value3);
+                final HashMap<String, List<long[]>> value3 = new HashMap<String, List<long[]>>();
+                value3.put("e", Arrays.asList(new long[][] { { 5L, 1L }, { 5L, 2L } }));
+                insane.put(Arrays.asList(7, 8), value3);
 
-                        collectionCheck(settings.insane(), insane);
+                collectionCheck(settings.insane(), insane);
 
-                        return null;
-                    }
-                });
+                return null;
+            }
+        });
         verify();
     }
 
@@ -367,7 +377,7 @@ public class ConfigurationTest extends MockGroupAbstractTest {
 
     @Test
     public void propertyConversion() throws Exception {
-        configure(MultiTypeSettings.class);
+        final Configuration<MultiTypeSettings> configuration = configure(MultiTypeSettings.class, provider, null);
 
         EasyMock.expect(provider.property("boolean")).andReturn(1);
         EasyMock.expect(provider.property("Boolean")).andReturn("1.1");
@@ -387,29 +397,28 @@ public class ConfigurationTest extends MockGroupAbstractTest {
         EasyMock.expect(provider.property("enum")).andReturn(null);
 
         replay();
-        new ConfigurationFactory.ConfigurationImpl<MultiTypeSettings>(definition, provider, null, (Configuration.Context[]) null)
-                .query(new Configuration.Query<MultiTypeSettings, Void>() {
-                    public Void read(final MultiTypeSettings settings) {
-                        assert settings.booleanValue();
-                        assert settings.BooleanValue();
-                        assert settings.byteValue() == (byte) 1 : settings.byteValue();
-                        assert settings.ByteValue() == (byte) 1 : settings.ByteValue();
-                        assert settings.shortValue() == (short) 1 : settings.shortValue();
-                        assert settings.ShortValue() == (short) 1 : settings.ShortValue();
-                        assert settings.intValue() == 12345 : settings.intValue();
-                        assert settings.IntegerValue() == -12345 : settings.IntegerValue();
-                        assert settings.longValue() == 123456l : settings.longValue();
-                        assert settings.LongValue() == -123456l : settings.LongValue();
-                        assert settings.floatValue() == 1f : settings.floatValue();
-                        assert settings.FloatValue() == 1.25f : settings.FloatValue();
-                        assert settings.doubleValue() == 1d : settings.doubleValue();
-                        assert settings.DoubleValue() == 1d : settings.DoubleValue();
-                        assert settings.classValue() == Object.class : settings.classValue();
-                        assert settings.enumValue() == EnumType.SAMPLE : settings.enumValue();
+        configuration.query(new Configuration.Query<MultiTypeSettings, Void>() {
+            public Void read(final MultiTypeSettings settings) {
+                assert settings.booleanValue();
+                assert settings.BooleanValue();
+                assert settings.byteValue() == (byte) 1 : settings.byteValue();
+                assert settings.ByteValue() == (byte) 1 : settings.ByteValue();
+                assert settings.shortValue() == (short) 1 : settings.shortValue();
+                assert settings.ShortValue() == (short) 1 : settings.ShortValue();
+                assert settings.intValue() == 12345 : settings.intValue();
+                assert settings.IntegerValue() == -12345 : settings.IntegerValue();
+                assert settings.longValue() == 123456l : settings.longValue();
+                assert settings.LongValue() == -123456l : settings.LongValue();
+                assert settings.floatValue() == 1f : settings.floatValue();
+                assert settings.FloatValue() == 1.25f : settings.FloatValue();
+                assert settings.doubleValue() == 1d : settings.doubleValue();
+                assert settings.DoubleValue() == 1d : settings.DoubleValue();
+                assert settings.classValue() == Object.class : settings.classValue();
+                assert settings.enumValue() == EnumType.SAMPLE : settings.enumValue();
 
-                        return null;
-                    }
-                });
+                return null;
+            }
+        });
         verify();
     }
 
@@ -432,7 +441,19 @@ public class ConfigurationTest extends MockGroupAbstractTest {
 
     @Test(dataProvider = "substitution-params")
     public void testPropertyNameSubstitution(boolean useDefaults) throws Exception {
-        configure(SubstitutedSettings.class);
+        final SubstitutedSettings defaults;
+
+        if (useDefaults) {
+            defaults = localMock(SubstitutedSettings.class);
+        } else {
+            defaults = null;
+        }
+
+        final Configuration<SubstitutedSettings> configuration = configure(SubstitutedSettings.class, provider, defaults);
+
+        if (useDefaults) {
+            EasyMock.expect(defaults.property2("a", "b")).andReturn("value.a.b");
+        }
 
         EasyMock.expect(provider.property("property.abcd")).andReturn("value11");
         EasyMock.expect(provider.property("property.efgh")).andReturn("value12");
@@ -441,34 +462,274 @@ public class ConfigurationTest extends MockGroupAbstractTest {
 
         EasyMock.expect(provider.property("property.a.b")).andReturn(null);
 
-        final SubstitutedSettings defaults;
-
-        if (useDefaults) {
-            defaults = localMock(SubstitutedSettings.class);
-            EasyMock.expect(defaults.property2("a", "b")).andReturn("value.a.b");
-        } else {
-            defaults = null;
-        }
-
         replay();
-        new ConfigurationFactory.ConfigurationImpl<SubstitutedSettings>(definition, provider, defaults, (Configuration.Context[]) null)
-                .query(new Configuration.Query<SubstitutedSettings, Void>() {
-                    public Void read(final SubstitutedSettings settings) {
-                        assert "value11".equals(settings.property1("abcd")) : settings.property1("abcd");
-                        assert "value12".equals(settings.property1("efgh")) : settings.property1("efgh");
-                        assert "value21".equals(settings.property2("abcd", "efgh")) : settings.property2("abcd", "efgh");
-                        assert "value22".equals(settings.property2("efgh", "ijkl")) : settings.property2("efgh", "ijkl");
+        configuration.query(new Configuration.Query<SubstitutedSettings, Void>() {
+            public Void read(final SubstitutedSettings settings) {
+                assert "value11".equals(settings.property1("abcd")) : settings.property1("abcd");
+                assert "value12".equals(settings.property1("efgh")) : settings.property1("efgh");
+                assert "value21".equals(settings.property2("abcd", "efgh")) : settings.property2("abcd", "efgh");
+                assert "value22".equals(settings.property2("efgh", "ijkl")) : settings.property2("efgh", "ijkl");
 
-                        final String missing = settings.property2("a", "b");
-                        assert "value.a.b".equals(missing) : missing;
+                final String missing = settings.property2("a", "b");
+                assert "value.a.b".equals(missing) : missing;
 
-                        return null;
-                    }
-                });
+                return null;
+            }
+        });
         verify();
     }
 
-    void collectionCheck(final Object expected, final Object actual) {
+    interface CustomSettings {
+
+        @Configuration.Property(key = "nested")
+        Nested nestedType();
+
+        @Configuration.Property(key = "custom")
+        Custom customType();
+
+        @Configuration.Property(key = "interface")
+        Interface interfaceType();
+
+        @Configuration.Property(key = "dynamic")
+        Dynamic dynamic();
+
+        class Nested {
+
+            @Configuration.Property(key = "number")
+            public int number;
+
+            public Nested() { }
+
+            public Nested(final int number) {
+                this.number = number;
+            }
+        }
+
+        class Custom {
+
+            @Configuration.Property(key = "nested")
+            public Nested nested;
+
+            public Custom() { }
+
+            public Custom(final Nested nested) {
+                this.nested = nested;
+            }
+        }
+
+        interface Interface {
+
+            @Configuration.Property(key = "number")
+            int number();
+        }
+
+        interface Dynamic {
+
+            @Configuration.Property(key = "number.%d.%s")
+            int number(int parameter, String argument);
+        }
+    }
+
+    @Test
+    public void testCustomTypes() throws Exception {
+        final Configuration<CustomSettings> configuration = configure(CustomSettings.class, provider, null);
+
+        // nestedType()
+        EasyMock.expect(provider.property("nested.number")).andReturn("1234");
+
+        replay();
+        configuration.query(new Configuration.Query<CustomSettings, Void>() {
+            public Void read(final CustomSettings settings) {
+                final int number = settings.nestedType().number;
+                assert number == 1234 : number;
+                return null;
+            }
+        });
+        verify();
+    }
+
+    @Test
+    public void testDynamicCustomTypes() throws Exception {
+        final CustomSettings settings = configure(CustomSettings.class, provider, null).settings();
+
+        // nestedType()
+        EasyMock.expect(provider.property("dynamic.number.1.a")).andReturn("1234");
+        EasyMock.expect(provider.property("dynamic.number.2.b")).andReturn("5678");
+
+        replay();
+        final int number1 = settings.dynamic().number(1, "a");
+        final int number2 = settings.dynamic().number(2, "b");
+        verify();
+
+        assert number1 == 1234 : number1;
+        assert number2 == 5678 : number2;
+    }
+
+    @Test
+    public void testNestedCustomTypes() throws Exception {
+        final Configuration<CustomSettings> configuration = configure(CustomSettings.class, provider, null);
+
+        // nestedType()
+        EasyMock.expect(provider.property("custom.nested.number")).andReturn("1234");
+
+        replay();
+        configuration.query(new Configuration.Query<CustomSettings, Void>() {
+            public Void read(final CustomSettings settings) {
+                final int number = settings.customType().nested.number;
+                assert number == 1234 : number;
+                return null;
+            }
+        });
+        verify();
+    }
+
+    interface ListSettings {
+
+        @Configuration.Property(key = "text", ids ="ids", list="text.value.%%s.string", split = ":")
+        List<String> textList();
+
+        @Configuration.Property(key = "text", ids ="ids")
+        Set<String> textSet();
+
+        @Configuration.Property(key = "item", ids ="ids")
+        Item1[] itemList();
+
+        @Configuration.Property(key = "item", ids ="ids")
+        Map<Integer, Item2> itemMap();
+
+        @Configuration.Property(key = "map", ids ="ids")
+        Map<String, String>[] stringMaps();
+
+        final class Item1 {
+
+            @Configuration.Property(key = "number")
+            public int number;
+
+            @Configuration.Property(key = "text")
+            public String text;
+
+            public Item1() {
+                // required
+            }
+
+            public Item1(final int number, final String text) {
+                this.number = number;
+                this.text = text;
+            }
+
+            @Override
+            public boolean equals(final Object o) {
+                if (this == o) {
+                    return true;
+                }
+
+                if (o == null || getClass() != o.getClass()) {
+                    return false;
+                }
+
+                final Item1 that = (Item1) o;
+                return number == that.number && text.equals(that.text);
+            }
+
+            @Override
+            public int hashCode() {
+                int result = number;
+                result = 31 * result + text.hashCode();
+                return result;
+            }
+
+            @Override
+            public String toString() {
+                return String.format("number: %d, text: %s", number, text);
+            }
+        }
+
+        interface Item2 {
+
+            @Configuration.Property(key = "number")
+            public int number();
+
+            @Configuration.Property(key = "text")
+            public String text();
+        }
+    }
+
+    @Test
+    public void testListSetting() throws Exception {
+        final Configuration<ListSettings> configuration = configure(ListSettings.class, provider, null);
+
+        // textList()
+        EasyMock.expect(provider.property("text.ids")).andReturn("1:2");
+        EasyMock.expect(provider.property("text.value.1.string")).andReturn("value11");
+        EasyMock.expect(provider.property("text.value.2.string")).andReturn("value12");
+
+        // textSet()
+        EasyMock.expect(provider.property("text.ids")).andReturn("1, 2");
+        EasyMock.expect(provider.property("text.1")).andReturn("value21");
+        EasyMock.expect(provider.property("text.2")).andReturn("value22");
+
+        // itemList()
+        EasyMock.expect(provider.property("item.ids")).andReturn("1, 2");
+        EasyMock.expect(provider.property("item.1.number")).andReturn("12");
+        EasyMock.expect(provider.property("item.1.text")).andReturn("23");
+        EasyMock.expect(provider.property("item.2.number")).andReturn("34");
+        EasyMock.expect(provider.property("item.2.text")).andReturn("45");
+
+        // itemMap()
+        EasyMock.expect(provider.property("item.ids")).andReturn("1, 2");
+        EasyMock.expect(provider.property("item.1.number")).andReturn("12");
+        EasyMock.expect(provider.property("item.1.text")).andReturn("23");
+        EasyMock.expect(provider.property("item.2.number")).andReturn("34");
+        EasyMock.expect(provider.property("item.2.text")).andReturn("45");
+
+        // stringMaps()
+        EasyMock.expect(provider.property("map.ids")).andReturn("1, 2");
+        EasyMock.expect(provider.property("map.1")).andReturn("a: 1, b: 2");
+        EasyMock.expect(provider.property("map.2")).andReturn("c: 3, d: 4");
+
+        replay();
+        configuration.query(new Configuration.Query<ListSettings, Void>() {
+            public Void read(final ListSettings settings) {
+                checkObjects(Arrays.asList("value11", "value12"), settings.textList());
+                checkObjects(new HashSet<String>(Arrays.asList("value21", "value22")), settings.textSet());
+                checkArrays(new ListSettings.Item1[] { new ListSettings.Item1(12, "23"), new ListSettings.Item1(34, "45") }, settings.itemList());
+
+                final Map<Integer, ListSettings.Item2> itemMap = new HashMap<Integer, ListSettings.Item2>();
+                itemMap.put(1, new MyItem2(12, "23"));
+                itemMap.put(2, new MyItem2(34, "45"));
+
+                checkObjects(itemMap, settings.itemMap());
+
+                @SuppressWarnings({ "unchecked" })
+                final Map<String, String>[] stringMaps = new Map[] { new HashMap(), new HashMap() };
+                stringMaps[0].put("a", "1");
+                stringMaps[0].put("b", "2");
+                stringMaps[1].put("c", "3");
+                stringMaps[1].put("d", "4");
+
+                checkArrays(stringMaps, settings.stringMaps());
+
+                return null;
+            }
+        });
+        verify();
+    }
+
+    private void checkArrays(final Object expected, final Object actual) {
+        final int length = Array.getLength(actual);
+        assert Array.getLength(expected) == length : String.format("Expected %d, got %d", Array.getLength(expected), length);
+
+        for (int i = 0; i < length; ++i) {
+            checkObjects(Array.get(expected, i), Array.get(actual, i));
+        }
+    }
+
+    static void checkObjects(final Object expected, final Object actual) {
+        assert expected.equals(actual) : String.format("Expected %s, got %s", expected, actual);
+        assert actual.equals(expected) : String.format("Expected %s, got %s", expected, actual); // exercise the equals() and hashCode() methods of the actual objects, too
+    }
+
+    private void collectionCheck(final Object expected, final Object actual) {
         if (expected instanceof Map) {
             assert actual instanceof Map : actual;
 
@@ -556,6 +817,46 @@ public class ConfigurationTest extends MockGroupAbstractTest {
 
         public String provided() {
             return "provided";
+        }
+    }
+
+    private static class MyItem2 implements ListSettings.Item2 {
+
+        private final int number;
+        private final String text;
+
+        public MyItem2(final int number, final String text) {
+            this.number = number;
+            this.text = text;
+        }
+
+        public int number() {
+            return number;
+        }
+
+        public String text() {
+            return text;
+        }
+
+        @Override
+        public boolean equals(final Object o) {
+            if (this == o) {
+                return true;
+            }
+
+            if (!(o instanceof ListSettings.Item2)) {
+                return false;
+            }
+
+            final ListSettings.Item2 that = (ListSettings.Item2) o;
+            return number == that.number() && text.equals(that.text());
+        }
+
+        @Override
+        public int hashCode() {
+            int result = number;
+            result = 31 * result + text.hashCode();
+            return result;
         }
     }
 }

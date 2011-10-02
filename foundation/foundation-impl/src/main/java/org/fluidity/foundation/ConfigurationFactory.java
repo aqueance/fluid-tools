@@ -17,6 +17,7 @@
 package org.fluidity.foundation;
 
 import java.lang.reflect.Array;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -24,6 +25,7 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -70,7 +72,8 @@ final class ConfigurationFactory implements CustomComponentFactory {
     static final class ConfigurationImpl<T> implements Configuration<T> {
 
         private final PropertyProvider provider;
-        private final T configuration;
+        private final T consistent;
+        private final T dynamic;
 
         /**
          * Constructs a new configuration object.
@@ -88,334 +91,32 @@ final class ConfigurationFactory implements CustomComponentFactory {
             this.provider = provider;
 
             final String[] prefixes = propertyContexts(context);
-
             final Class<T> api = (Class<T>) definition.value();
-
             final ClassLoader loader = api.getClassLoader();
             final Class[] interfaces = { api };
 
-            configuration = (T) Proxy.newProxyInstance(loader, interfaces, new InvocationHandler() {
-                public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
-                    if (method.getDeclaringClass() == Object.class) {
-                        return Proxies.inherited(method, args, this);
-                    }
-
-                    assert method.getDeclaringClass().isAssignableFrom(api) : method;
-
-                    final Property setting = method.getAnnotation(Property.class);
-                    assert setting != null : String.format("No @%s specified for method %s", Property.class.getName(), method);
-
-                    Object value = null;
-
-                    if (provider != null) {
-                        for (int i = 0, limit = prefixes.length; value == null && i < limit; i++) {
-                            value = provider.property(prefixes[i].concat(String.format(setting.key(), args)));
-                        }
-                    }
-
-                    final Object property;
-
-                    final Class<?> returnType = method.getReturnType();
-                    final Type genericType = method.getGenericReturnType();
-
-                    if (value == null) {
-                        final Object fallback = defaults == null ? null : Exceptions.wrap(new Exceptions.Command<Object>() {
-                            public Object run() throws Exception {
-                                return method.invoke(defaults, args);
-                            }
-                        });
-
-                        final String undefined = String.format(setting.undefined(), args);
-
-                        property = fallback == null
-                                   ? convert(undefined.length() == 0 ? null : undefined, returnType, genericType, setting.list(), setting.grouping(), loader)
-                                   : convert(fallback, returnType, genericType, setting.list(), setting.grouping(), loader);
-                    } else {
-                        property = convert(value, returnType, genericType, setting.list(), setting.grouping(), loader);
-                    }
-
-                    return property;
-                }
-            });
+            consistent = (T) Proxy.newProxyInstance(loader, interfaces, new PropertyLoader<T>(api, prefixes, defaults, provider, loader, true));
+            dynamic = (T) Proxy.newProxyInstance(loader, interfaces, new PropertyLoader<T>(api, prefixes, defaults, provider, loader, false));
         }
 
-        Object convert(final Object value, final Class<?> target, final Type generic, final String delimiter, final String groupers, final ClassLoader loader) {
-            if (value == null) {
-                return null;
-            } else if (target.isAssignableFrom(value.getClass())) {
-                return value;
-            } else if (target.isArray()) {
-                return arrayValue(value, target, generic, delimiter, groupers, loader);
-            } else if (Collection.class.isAssignableFrom(target)) {
-                return collectionValue(value, target, generic, delimiter, groupers, loader);
-            } else if (Map.class.isAssignableFrom(target)) {
-                return mapValue(value, generic, delimiter, groupers, loader);
-            } else if (target == String.class) {
-                return String.valueOf(value);
-            } else if (value instanceof String) {
-                return stringToObject(target, (String) value, loader);
-            } else if (value instanceof Number) {
-                return numberToPrimitive(target, (Number) value);
-            } else if (value instanceof Boolean) {
-                return booleanToNumber(target, (byte) (((Boolean) value) ? 1 : 0));
-            }
-
-            throw new IllegalArgumentException(String.format("Cannot convert %s to type %s", value, Strings.arrayNotation(target)));
+        public T settings() {
+            return dynamic;
         }
 
-        Object arrayValue(final Object value, final Class<?> target, final Type generic, final String delimiter, final String groupers, final ClassLoader loader) {
-            final Class<?> componentType = target.getComponentType();
-            final List list = collectionValue(new ArrayList(), value, componentType, Generics.arrayComponentType(generic), delimiter, groupers, loader);
-
-            final Object array = Array.newInstance(componentType, list.size());
-
-            int i = 0;
-            for (final Object element : list) {
-                Array.set(array, i++, element);
-            }
-
-            return array;
-        }
-
-        @SuppressWarnings("unchecked")
-        <T extends Collection> T collectionValue(final T collection, final Object value, final Class<?> componentType, final Type generic, final String delimiter, final String groupers, final ClassLoader loader) {
-            if (value instanceof String) {
-                for (final String item : split((String) value, delimiter, groupers)) {
-                    collection.add(convert(item, componentType, generic, delimiter, groupers, loader));
-                }
-            } else if (value.getClass().isArray()) {
-                for (int i = 0, limit = Array.getLength(value); i < limit; ++i) {
-                    collection.add(convert(Array.get(value, i), componentType, generic, delimiter, groupers, loader));
-                }
-            } else if (value instanceof Collection) {
-                for (final Object item : (Collection) value) {
-                    collection.add(convert(item, componentType, generic, delimiter, groupers, loader));
-                }
+        public <R> R query(final Query<T, R> query) {
+            if (provider == null) {
+                return query.read(dynamic);
             } else {
-                throw new IllegalArgumentException(String.format("Cannot convert %s to type %s collection", value, Strings.arrayNotation(componentType)));
-            }
+                final AtomicReference<R> value = new AtomicReference<R>();
 
-            return collection;
-        }
-
-        @SuppressWarnings("unchecked")
-        Object collectionValue(final Object value, final Class<?> target, final Type generic, final String delimiter, final String groupers, final ClassLoader loader) {
-            final Collection collection;
-
-            if (target == Set.class) {
-                collection = new LinkedHashSet();
-            } else if (target == List.class) {
-                collection = new ArrayList();
-            } else {
-                throw new IllegalArgumentException(String.format("Collection type %s not supported (it is neither Set, List nor Map)", Strings.arrayNotation(target)));
-            }
-
-            final Type parameterType = Generics.typeParameter(generic, 0);
-
-            if (value instanceof String) {
-                for (final String item : split((String) value, delimiter, groupers)) {
-                    collection.add(convert(item, Generics.rawType(parameterType), parameterType, delimiter, groupers, loader));
-                }
-            } else if (value.getClass().isArray()) {
-                for (int i = 0, limit = Array.getLength(value); i < limit; ++i) {
-                    collection.add(convert(Array.get(value, i), Generics.rawType(parameterType), parameterType, delimiter, groupers, loader));
-                }
-            } else if (value instanceof Collection) {
-                for (final Object item : (Collection) value) {
-                    collection.add(convert(item, Generics.rawType(parameterType), parameterType, delimiter, groupers, loader));
-                }
-            } else {
-                throw new IllegalArgumentException(String.format("Cannot convert %s to type %s<%s>", value, target, Strings.arrayNotation(Generics.rawType(parameterType))));
-            }
-
-            return collection;
-        }
-
-        @SuppressWarnings("unchecked")
-        Object mapValue(final Object value, final Type generic, final String delimiter, final String groupers, final ClassLoader loader) {
-            final Type keyType = Generics.typeParameter(generic, 0);
-            final Type valueType = Generics.typeParameter(generic, 1);
-
-            final Map map = new LinkedHashMap();
-
-            if (value instanceof String) {
-                final AtomicReference<String> key = new AtomicReference<String>();
-
-                final List<String> pairs = split((String) value, delimiter, groupers);
-
-                if (pairs.size() % 2 != 0) {
-                    throw new IllegalArgumentException(String.format("Missing a value for one of the keys in %s", value));
-                }
-
-                for (final String item : pairs) {
-                    if (!key.compareAndSet(null, item)) {
-                        map.put(convert(key.get(), Generics.rawType(keyType), keyType, delimiter, groupers, loader),
-                                convert(item, Generics.rawType(valueType), valueType, delimiter, groupers, loader));
-
-                        key.set(null);
+                provider.properties(new Runnable() {
+                    public void run() {
+                        value.set(query.read(consistent));
                     }
-                }
+                });
+
+                return value.get();
             }
-
-            return map;
-        }
-
-        enum SplitState {
-            REGULAR, GROUPED
-        }
-
-        /*
-         * Parses a piece of text into a list of tokens. Tokens are delimited by delimiters. Tokens inside matching grouping characters are taken as
-         * one
-         * token. Delimiters and grouping characters may be escaped by the '\' character.
-         */
-        List<String> split(final String text, final String delimiters, final String grouping) {
-            final StringBuilder nesting = new StringBuilder();
-            boolean escaped = false;
-            SplitState state = SplitState.REGULAR;
-
-            final List<String> list = new ArrayList<String>();
-            final StringBuilder collected = new StringBuilder();
-
-            for (int i = 0, limit = text.length(); i < limit; ++i) {
-                final char c = text.charAt(i);
-
-                switch (c) {
-                case '\\':
-                    if (escaped) {
-                        collected.append(c);
-                    }
-
-                    escaped = !escaped;
-                    break;
-
-                default:
-                    if (escaped) {
-                        collected.append(c);
-                    } else {
-                        final int group = grouping.indexOf(c);
-                        final int level = nesting.length();
-
-                        if (group > -1) {
-                            if (group % 2 == 0) {   // group start
-                                nesting.append(c);
-
-                                if (level > 0) {
-                                    collected.append(c);
-                                }
-                            } else if (level > 0) {
-                                if (group - 1 == grouping.indexOf(nesting.charAt(level - 1))) { // group end character: does it match?
-                                    nesting.setLength(level - 1);
-
-                                    if (level > 1) {    // last level, which is current level + 1
-                                        collected.append(c);
-                                    } else {
-                                        state = SplitState.GROUPED;
-                                    }
-                                } else {
-                                    collected.append(c);
-                                }
-                            }
-                        } else if (level == 0 && delimiters.indexOf(c) > -1) {
-                            append(list, collected, state);
-                            state = SplitState.REGULAR;
-                        } else {
-                            collected.append(c);
-                        }
-                    }
-                }
-            }
-
-            append(list, collected, state);
-
-            return list;
-        }
-
-        void append(final List<String> list, final StringBuilder collected, final SplitState state) {
-            final String piece = collected.toString().trim();
-
-            if (state == SplitState.GROUPED || !piece.isEmpty()) {
-                list.add(piece);
-            }
-
-            collected.setLength(0);
-        }
-
-        @SuppressWarnings("unchecked")
-        Object stringToObject(final Class<?> target, final String text, final ClassLoader classLoader) {
-            try {
-                return numberToPrimitive(target, Double.valueOf(text));
-            } catch (final NumberFormatException ignore) {
-                if (String.valueOf(true).equals(text)) {
-                    return booleanToNumber(target, (byte) 1);
-                } else if (String.valueOf(false).equals(text)) {
-                    return booleanToNumber(target, (byte) 0);
-                } else if (target == Boolean.TYPE || target == Boolean.class) {
-                    return Boolean.valueOf(text);
-                } else if (target == Byte.TYPE || target == Byte.class) {
-                    return Double.valueOf(text).byteValue();
-                } else if (target == Short.TYPE || target == Short.class) {
-                    return Double.valueOf(text).shortValue();
-                } else if (target == Integer.TYPE || target == Integer.class) {
-                    return Double.valueOf(text).intValue();
-                } else if (target == Long.TYPE || target == Long.class) {
-                    return Double.valueOf(text).longValue();
-                } else if (target == Float.TYPE || target == Float.class) {
-                    return Double.valueOf(text).floatValue();
-                } else if (target == Double.TYPE || target == Double.class) {
-                    return Double.valueOf(text);
-                } else if (Enum.class.isAssignableFrom(target)) {
-                    return Enum.valueOf((Class<Enum>) target, text);
-                } else if (target == Class.class) {
-                    try {
-                        return classLoader.loadClass(text);
-                    } catch (final ClassNotFoundException e) {
-                        throw new IllegalArgumentException(e);
-                    }
-                }
-
-                throw new IllegalArgumentException(String.format("Cannot convert %s to type %s", text, Strings.arrayNotation(target)));
-            }
-        }
-
-        Object numberToPrimitive(final Class<?> target, final Number number) {
-            if (target == Boolean.TYPE || target == Boolean.class) {
-                return number.doubleValue() != 0d;
-            } else if (target == Byte.TYPE || target == Byte.class) {
-                return number.byteValue();
-            } else if (target == Short.TYPE || target == Short.class) {
-                return number.shortValue();
-            } else if (target == Integer.TYPE || target == Integer.class) {
-                return number.intValue();
-            } else if (target == Long.TYPE || target == Long.class) {
-                return number.longValue();
-            } else if (target == Float.TYPE || target == Float.class) {
-                return number.floatValue();
-            } else if (target == Double.TYPE || target == Double.class) {
-                return number.doubleValue();
-            }
-
-            throw new IllegalArgumentException(String.format("Cannot convert %s to type %s", number, Strings.arrayNotation(target)));
-        }
-
-        Object booleanToNumber(final Class<?> target, final byte flag) {
-            if (target == Boolean.TYPE || target == Boolean.class) {
-                return flag != 0;
-            } else if (target == Byte.TYPE || target == Byte.class) {
-                return flag;
-            } else if (target == Short.TYPE || target == Short.class) {
-                return (short) flag;
-            } else if (target == Integer.TYPE || target == Integer.class) {
-                return (int) flag;
-            } else if (target == Long.TYPE || target == Long.class) {
-                return (long) flag;
-            } else if (target == Float.TYPE || target == Float.class) {
-                return (float) flag;
-            } else if (target == Double.TYPE || target == Double.class) {
-                return (double) flag;
-            }
-
-            throw new IllegalArgumentException(String.format("Cannot convert %s to type %s", flag, Strings.arrayNotation(target)));
         }
 
         String[] propertyContexts(final Context[] annotations) {
@@ -436,23 +137,634 @@ final class ConfigurationFactory implements CustomComponentFactory {
             return list.toArray(new String[list.size()]);
         }
 
-        public T settings() {
-            return configuration;
-        }
+        private static class PropertyLoader<T> implements InvocationHandler {
+            private final Class<T> api;
+            private final String[] prefixes;
+            private final T defaults;
+            private final PropertyProvider provider;
+            private final ClassLoader loader;
+            private final boolean consistent;
 
-        public <R> R query(final Query<T, R> query) {
-            if (provider == null) {
-                return query.read(configuration);
-            } else {
-                final AtomicReference<R> value = new AtomicReference<R>();
+            public PropertyLoader(final Class<T> api, final String[] prefixes, final T defaults, final PropertyProvider provider, final ClassLoader loader, final boolean consistent) {
+                this.api = api;
+                this.prefixes = prefixes;
+                this.defaults = defaults;
+                this.provider = provider;
+                this.loader = loader;
+                this.consistent = consistent;
+            }
 
-                provider.properties(new Runnable() {
-                    public void run() {
-                        value.set(query.read(configuration));
+            public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
+                if (method.getDeclaringClass() == Object.class) {
+                    return Proxies.inherited(method, args, this);
+                }
+
+                assert method.getDeclaringClass().isAssignableFrom(api) : method;
+
+                final Property setting = method.getAnnotation(Property.class);
+                assert setting != null : String.format("No @%s specified for method %s", Property.class.getName(), method);
+
+                final Class<?> type = method.getReturnType();
+                final Type genericType = method.getGenericReturnType();
+
+                return property(setting.split(),
+                                setting.grouping(),
+                                String.format(setting.ids(), args),
+                                String.format(setting.list(), args),
+                                String.format(setting.undefined(), args),
+                                type,
+                                genericType,
+                                prefixes,
+                                String.format(setting.key(), args),
+                                defaults,
+                                method,
+                                args);
+            }
+
+            private Object property(final String split,
+                                    final String grouping,
+                                    final String ids,
+                                    final String list,
+                                    final String undefined,
+                                    final Class<?> type,
+                                    final Type genericType,
+                                    final String[] prefixes,
+                                    final String suffix,
+                                    final T defaults,
+                                    final Method method,
+                                    final Object[] args) {
+                if (ids == null || ids.isEmpty()) {
+                    Object value = null;
+
+                    if (isComposite(type)) {
+                        try {
+                            return composite(type, suffix);
+                        } catch (final Exception e) {
+                            throw new IllegalArgumentException(String.format("Could not create objects of type %s", Strings.arrayNotation(type)), e);
+                        }
+                    } else {
+                        if (provider != null) {
+                            for (int i = 0, limit = prefixes.length; value == null && i < limit; i++) {
+                                value = provider.property(prefixes[i].concat(suffix));
+                            }
+                        }
+
+                        final Object property;
+
+                        if (value == null) {
+                            final Object fallback = defaults == null ? null : Exceptions.wrap(new Exceptions.Command<Object>() {
+                                public Object run() throws Exception {
+                                    assert method != null;
+                                    return method.invoke(defaults, args);
+                                }
+                            });
+
+                            property = fallback == null
+                                       ? convert(undefined.length() == 0 ? null : undefined, type, genericType, split, grouping, suffix, loader)
+                                       : convert(fallback, type, genericType, split, grouping, suffix, loader);
+                        } else {
+                            property = convert(value, type, genericType, split, grouping, suffix, loader);
+                        }
+
+                        return property;
                     }
-                });
+                } else {
+                    final String[] identifiers = (String[]) property(split,
+                                                                     grouping,
+                                                                     null,
+                                                                     null,
+                                                                     undefined,
+                                                                     String[].class,
+                                                                     null,
+                                                                     prefixes,
+                                                                     String.format("%s.%s", suffix, ids),
+                                                                     defaults,
+                                                                     null,
+                                                                     null);
 
-                return value.get();
+                    if (identifiers != null) {
+                        final Map<String, Object> instances = new LinkedHashMap<String, Object>();
+                        final String format = list == null || list.isEmpty() ? suffix.concat(".%s") : list;
+                        final Type itemType;
+
+                        if (Collection.class.isAssignableFrom(type)) {
+                            itemType = Generics.typeParameter(genericType, 0);
+                        } else if (Map.class.isAssignableFrom(type)) {
+                            itemType = Generics.typeParameter(genericType, 1);
+                        } else if (type.isArray()) {
+                            itemType = Generics.arrayComponentType(genericType);
+                        } else {
+                            throw new IllegalArgumentException(String.format("Type %s is neither an array, nor a collection nor a map", Strings.arrayNotation(type)));
+                        }
+
+                        for (final String id : identifiers) {
+                            final Object value = property(split,
+                                                          grouping,
+                                                          null,
+                                                          null,
+                                                          null,
+                                                          Generics.rawType(itemType),
+                                                          itemType,
+                                                          prefixes,
+                                                          String.format(format, id), null, null,
+                                                          null);
+
+                            if (value != null) {
+                                instances.put(id, value);
+                            }
+                        }
+
+                        if (List.class.isAssignableFrom(type)) {
+                            return new ArrayList<Object>(instances.values());
+                        } else if (Set.class.isAssignableFrom(type)) {
+                            return new HashSet<Object>(instances.values());
+                        } else if (Map.class.isAssignableFrom(type)) {
+                            final Map<Object, Object> map = new LinkedHashMap<Object, Object>();
+
+                            final Type keyType = Generics.typeParameter(genericType, 0);
+                            for (final Map.Entry<String, Object> entry: instances.entrySet()) {
+                                map.put(convert(entry.getKey(), Generics.rawType(keyType), keyType, null, null, null, loader), entry.getValue());
+                            }
+
+                            return map;
+                        } else if (type.isArray()) {
+                            final Object array = Array.newInstance(Generics.rawType(itemType), instances.size());
+
+                            int i = 0;
+                            for (final Object instance : instances.values()) {
+                                Array.set(array, i++, instance);
+                            }
+
+                            return array;
+                        } else {
+                            throw new IllegalArgumentException(String.format("Type %s is neither an array, nor a collection nor a map", Strings.arrayNotation(type)));
+                        }
+                    } else {
+                        return null;
+                    }
+                }
+            }
+
+            private boolean isComposite(final Class<?> type) {
+                final boolean array = type.isArray();
+                final boolean primitive = type.isPrimitive();
+                final String name = type.getName();
+                final boolean enumeration = Enum.class.isAssignableFrom(type);
+                return !array && !primitive && !enumeration && !name.startsWith("java.");
+            }
+
+            private Object composite(final Class<?> type, final String suffix) throws IllegalAccessException, InstantiationException {
+                if (type.isInterface()) {
+                    if (consistent) {
+                        final Map<Method, Object> cache = new LinkedHashMap<Method, Object>();
+
+                        for (final Method method : type.getMethods()) {
+                            final Property setting = method.getAnnotation(Property.class);
+
+                            if (method.getParameterTypes().length > 0) {
+                                throw new IllegalArgumentException(String.format("Method %s may not have parameters", method));
+                            }
+
+                            if (setting == null) {
+                                throw new IllegalArgumentException(String.format("Method %s is not @%s annotated", method, Property.class));
+                            }
+
+                            cache.put(method, property(setting.split(),
+                                                       setting.grouping(),
+                                                       setting.ids(),
+                                                       setting.list(),
+                                                       setting.undefined(),
+                                                       method.getReturnType(),
+                                                       method.getGenericReturnType(),
+                                                       prefixes,
+                                                       String.format("%s.%s", suffix, setting.key()),
+                                                       null,
+                                                       null,
+                                                       null));
+                        }
+
+                        /*
+                         * Implements the Object.hashCode() and Object.equals() methods.
+                         */
+                        class Item {
+
+                            @Override
+                            public int hashCode() {
+                                int result = 1;
+
+                                for (final Object item : cache.values()) {
+                                    result = item == null ? result : 31 * result + item.hashCode();
+                                }
+
+                                return result;
+                            }
+
+                            @Override
+                            public boolean equals(final Object that) {
+                                if (this == that) {
+                                    return true;
+                                }
+
+                                if (that == null) {
+                                    return false;
+                                }
+
+                                if (!type.isAssignableFrom(that.getClass())) {
+                                    return false;
+                                }
+
+                                boolean result = true;
+
+                                for (final Map.Entry<Method, Object> entry : cache.entrySet()) {
+                                    final Method method = entry.getKey();
+
+                                    final Object value1 = cache.get(method);
+                                    final Object value2 = Exceptions.wrap(new Exceptions.Command<Object>() {
+                                        public Object run() throws Exception {
+                                            return method.invoke(that);
+                                        }
+                                    });
+
+                                    result &= value1 == null ? value2 == null : value1.equals(value2);
+                                }
+
+                                return result;
+                            }
+
+                            @Override
+                            public String toString() {
+                                return String.format("%s@%x", type.getSimpleName(), hashCode());
+                            }
+                        }
+
+                        final Item item = new Item();
+
+                        return Proxies.create(type, new InvocationHandler() {
+                            public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
+                                if (method.getDeclaringClass() == Object.class) {
+                                    return method.invoke(item, args);
+                                } else {
+                                    return cache.get(method);
+                                }
+                            }
+                        });
+                    } else {
+
+                        /*
+                         * Implements the Object.hashCode() and Object.equals() methods.
+                         */
+                        class Item {
+
+                            @Override
+                            public int hashCode() {
+                                return System.identityHashCode(this);
+                            }
+
+                            @Override
+                            @SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
+                            public boolean equals(final Object that) {
+                                return this == that;
+                            }
+
+                            @Override
+                            public String toString() {
+                                return String.format("%s@%x", type.getSimpleName(), hashCode());
+                            }
+                        }
+
+                        final Item item = new Item();
+
+                        return Proxies.create(type, new InvocationHandler() {
+                            public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
+                                if (method.getDeclaringClass() == Object.class) {
+                                    return method.invoke(item, args);
+                                } else {
+                                    final Property setting = method.getAnnotation(Property.class);
+
+                                    if (setting == null) {
+                                        throw new IllegalArgumentException(String.format("Method %s is not @%s annotated", method, Property.class));
+                                    }
+
+                                    return property(setting.split(),
+                                                    setting.grouping(),
+                                                    String.format(setting.ids(), args),
+                                                    String.format(setting.list(), args),
+                                                    String.format(setting.undefined(), args),
+                                                    method.getReturnType(),
+                                                    method.getGenericReturnType(),
+                                                    prefixes,
+                                                    String.format("%s.%s", suffix, String.format(setting.key(), args)),
+                                                    null,
+                                                    null,
+                                                    null);
+                                }
+                            }
+                        });
+                    }
+                } else {
+                    final Object instance = type.newInstance();
+
+                    for (final Field field : type.getFields()) {
+                        final Property setting = field.getAnnotation(Property.class);
+
+                        if (setting != null) {
+                            field.setAccessible(true);
+                            field.set(instance, property(setting.split(),
+                                                         setting.grouping(),
+                                                         setting.ids(),
+                                                         setting.list(),
+                                                         setting.undefined(),
+                                                         field.getType(),
+                                                         field.getGenericType(),
+                                                         prefixes,
+                                                         String.format("%s.%s", suffix, setting.key()),
+                                                         null,
+                                                         null,
+                                                         null));
+                        }
+                    }
+
+                    return instance;
+                }
+            }
+
+            Object convert(final Object value, final Class<?> target, final Type generic, final String delimiter, final String groupers, final String suffix, final ClassLoader loader) {
+                if (value == null) {
+                    return null;
+                } else if (target.isAssignableFrom(value.getClass())) {
+                    return value;
+                } else if (target.isArray()) {
+                    return arrayValue(value, target, generic, delimiter, groupers, suffix, loader);
+                } else if (Collection.class.isAssignableFrom(target)) {
+                    return collectionValue(value, target, generic, delimiter, groupers, suffix, loader);
+                } else if (Map.class.isAssignableFrom(target)) {
+                    return mapValue(value, generic, delimiter, groupers, suffix, loader);
+                } else if (target == String.class) {
+                    return String.valueOf(value);
+                } else if (value instanceof String) {
+                    return stringToObject(target, (String) value, loader);
+                } else if (value instanceof Number) {
+                    return numberToPrimitive(target, (Number) value);
+                } else if (value instanceof Boolean) {
+                    return booleanToNumber(target, (byte) (((Boolean) value) ? 1 : 0));
+                }
+
+                throw new IllegalArgumentException(String.format("Cannot convert %s to type %s", value, Strings.arrayNotation(target)));
+            }
+
+            Object arrayValue(final Object value, final Class<?> target, final Type generic, final String delimiter, final String groupers, final String suffix, final ClassLoader loader) {
+                final Class<?> componentType = target.getComponentType();
+                final List list = collectionValue(new ArrayList(), value, componentType, Generics.arrayComponentType(generic), delimiter, groupers, suffix, loader);
+
+                final Object array = Array.newInstance(componentType, list.size());
+
+                int i = 0;
+                for (final Object element : list) {
+                    Array.set(array, i++, element);
+                }
+
+                return array;
+            }
+
+            @SuppressWarnings("unchecked")
+            <T extends Collection> T collectionValue(final T collection, final Object value, final Class<?> componentType, final Type generic, final String delimiter, final String groupers, final String suffix, final ClassLoader loader) {
+                if (value instanceof String) {
+                    for (final String item : split((String) value, delimiter, groupers)) {
+                        collection.add(convert(item, componentType, generic, delimiter, groupers, suffix, loader));
+                    }
+                } else if (value.getClass().isArray()) {
+                    for (int i = 0, limit = Array.getLength(value); i < limit; ++i) {
+                        collection.add(convert(Array.get(value, i), componentType, generic, delimiter, groupers, suffix, loader));
+                    }
+                } else if (value instanceof Collection) {
+                    for (final Object item : (Collection) value) {
+                        collection.add(convert(item, componentType, generic, delimiter, groupers, suffix, loader));
+                    }
+                } else {
+                    throw new IllegalArgumentException(String.format("Cannot convert %s to type %s collection", value, Strings.arrayNotation(componentType)));
+                }
+
+                return collection;
+            }
+
+            @SuppressWarnings("unchecked")
+            Object collectionValue(final Object value, final Class<?> target, final Type generic, final String delimiter, final String groupers, final String suffix, final ClassLoader loader) {
+                final Collection collection;
+
+                if (target == Set.class) {
+                    collection = new LinkedHashSet();
+                } else if (target == List.class) {
+                    collection = new ArrayList();
+                } else {
+                    throw new IllegalArgumentException(String.format("Collection type %s not supported (it is neither Set, List nor Map)", Strings.arrayNotation(target)));
+                }
+
+                final Type parameterType = Generics.typeParameter(generic, 0);
+
+                if (value instanceof String) {
+                    for (final String item : split((String) value, delimiter, groupers)) {
+                        collection.add(convert(item, Generics.rawType(parameterType), parameterType, delimiter, groupers, suffix, loader));
+                    }
+                } else if (value.getClass().isArray()) {
+                    for (int i = 0, limit = Array.getLength(value); i < limit; ++i) {
+                        collection.add(convert(Array.get(value, i), Generics.rawType(parameterType), parameterType, delimiter, groupers, suffix, loader));
+                    }
+                } else if (value instanceof Collection) {
+                    for (final Object item : (Collection) value) {
+                        collection.add(convert(item, Generics.rawType(parameterType), parameterType, delimiter, groupers, suffix, loader));
+                    }
+                } else {
+                    throw new IllegalArgumentException(String.format("Cannot convert %s to type %s<%s>", value, target, Strings.arrayNotation(Generics.rawType(parameterType))));
+                }
+
+                return collection;
+            }
+
+            @SuppressWarnings("unchecked")
+            Object mapValue(final Object value, final Type generic, final String delimiter, final String groupers, final String suffix, final ClassLoader loader) {
+                final Type keyType = Generics.typeParameter(generic, 0);
+                final Type valueType = Generics.typeParameter(generic, 1);
+
+                final Map map = new LinkedHashMap();
+
+                if (value instanceof String) {
+                    final AtomicReference<String> key = new AtomicReference<String>();
+
+                    final List<String> pairs = split((String) value, delimiter, groupers);
+
+                    if (pairs.size() % 2 != 0) {
+                        throw new IllegalArgumentException(String.format("Missing a value for one of the keys in %s", value));
+                    }
+
+                    for (final String item : pairs) {
+                        if (!key.compareAndSet(null, item)) {
+                            map.put(convert(key.get(), Generics.rawType(keyType), keyType, delimiter, groupers, suffix, loader),
+                                    convert(item, Generics.rawType(valueType), valueType, delimiter, groupers, suffix, loader));
+
+                            key.set(null);
+                        }
+                    }
+                }
+
+                return map;
+            }
+
+            enum SplitState {
+                REGULAR, GROUPED
+            }
+
+            /*
+             * Parses a piece of text into a list of tokens. Tokens are delimited by delimiters. Tokens inside matching grouping characters are taken as
+             * one
+             * token. Delimiters and grouping characters may be escaped by the '\' character.
+             */
+            List<String> split(final String text, final String delimiters, final String grouping) {
+                final StringBuilder nesting = new StringBuilder();
+                boolean escaped = false;
+                SplitState state = SplitState.REGULAR;
+
+                final List<String> list = new ArrayList<String>();
+                final StringBuilder collected = new StringBuilder();
+
+                for (int i = 0, limit = text.length(); i < limit; ++i) {
+                    final char c = text.charAt(i);
+
+                    switch (c) {
+                    case '\\':
+                        if (escaped) {
+                            collected.append(c);
+                        }
+
+                        escaped = !escaped;
+                        break;
+
+                    default:
+                        if (escaped) {
+                            collected.append(c);
+                        } else {
+                            final int group = grouping.indexOf(c);
+                            final int level = nesting.length();
+
+                            if (group > -1) {
+                                if (group % 2 == 0) {   // group start
+                                    nesting.append(c);
+
+                                    if (level > 0) {
+                                        collected.append(c);
+                                    }
+                                } else if (level > 0) {
+                                    if (group - 1 == grouping.indexOf(nesting.charAt(level - 1))) { // group end character: does it match?
+                                        nesting.setLength(level - 1);
+
+                                        if (level > 1) {    // last level, which is current level + 1
+                                            collected.append(c);
+                                        } else {
+                                            state = SplitState.GROUPED;
+                                        }
+                                    } else {
+                                        collected.append(c);
+                                    }
+                                }
+                            } else if (level == 0 && delimiters.indexOf(c) > -1) {
+                                append(list, collected, state);
+                                state = SplitState.REGULAR;
+                            } else {
+                                collected.append(c);
+                            }
+                        }
+                    }
+                }
+
+                append(list, collected, state);
+
+                return list;
+            }
+
+            void append(final List<String> list, final StringBuilder collected, final SplitState state) {
+                final String piece = collected.toString().trim();
+
+                if (state == SplitState.GROUPED || !piece.isEmpty()) {
+                    list.add(piece);
+                }
+
+                collected.setLength(0);
+            }
+
+            @SuppressWarnings("unchecked")
+            Object stringToObject(final Class<?> target, final String text, final ClassLoader loader) {
+                try {
+                    return numberToPrimitive(target, Double.valueOf(text));
+                } catch (final NumberFormatException ignore) {
+                    if (String.valueOf(true).equals(text)) {
+                        return booleanToNumber(target, (byte) 1);
+                    } else if (String.valueOf(false).equals(text)) {
+                        return booleanToNumber(target, (byte) 0);
+                    } else if (target == Boolean.TYPE || target == Boolean.class) {
+                        return Boolean.valueOf(text);
+                    } else if (target == Byte.TYPE || target == Byte.class) {
+                        return Double.valueOf(text).byteValue();
+                    } else if (target == Short.TYPE || target == Short.class) {
+                        return Double.valueOf(text).shortValue();
+                    } else if (target == Integer.TYPE || target == Integer.class) {
+                        return Double.valueOf(text).intValue();
+                    } else if (target == Long.TYPE || target == Long.class) {
+                        return Double.valueOf(text).longValue();
+                    } else if (target == Float.TYPE || target == Float.class) {
+                        return Double.valueOf(text).floatValue();
+                    } else if (target == Double.TYPE || target == Double.class) {
+                        return Double.valueOf(text);
+                    } else if (Enum.class.isAssignableFrom(target)) {
+                        return Enum.valueOf((Class<Enum>) target, text);
+                    } else if (target == Class.class) {
+                        try {
+                            return loader.loadClass(text);
+                        } catch (final ClassNotFoundException e) {
+                            throw new IllegalArgumentException(e);
+                        }
+                    }
+
+                    throw new IllegalArgumentException(String.format("Cannot convert %s to type %s", text, Strings.arrayNotation(target)));
+                }
+            }
+
+            Object numberToPrimitive(final Class<?> target, final Number number) {
+                if (target == Boolean.TYPE || target == Boolean.class) {
+                    return number.doubleValue() != 0d;
+                } else if (target == Byte.TYPE || target == Byte.class) {
+                    return number.byteValue();
+                } else if (target == Short.TYPE || target == Short.class) {
+                    return number.shortValue();
+                } else if (target == Integer.TYPE || target == Integer.class) {
+                    return number.intValue();
+                } else if (target == Long.TYPE || target == Long.class) {
+                    return number.longValue();
+                } else if (target == Float.TYPE || target == Float.class) {
+                    return number.floatValue();
+                } else if (target == Double.TYPE || target == Double.class) {
+                    return number.doubleValue();
+                }
+
+                throw new IllegalArgumentException(String.format("Cannot convert %s to type %s", number, Strings.arrayNotation(target)));
+            }
+
+            Object booleanToNumber(final Class<?> target, final byte flag) {
+                if (target == Boolean.TYPE || target == Boolean.class) {
+                    return flag != 0;
+                } else if (target == Byte.TYPE || target == Byte.class) {
+                    return flag;
+                } else if (target == Short.TYPE || target == Short.class) {
+                    return (short) flag;
+                } else if (target == Integer.TYPE || target == Integer.class) {
+                    return (int) flag;
+                } else if (target == Long.TYPE || target == Long.class) {
+                    return (long) flag;
+                } else if (target == Float.TYPE || target == Float.class) {
+                    return (float) flag;
+                } else if (target == Double.TYPE || target == Double.class) {
+                    return (double) flag;
+                }
+
+                throw new IllegalArgumentException(String.format("Cannot convert %s to type %s", flag, Strings.arrayNotation(target)));
             }
         }
     }

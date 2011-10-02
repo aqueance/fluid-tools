@@ -92,6 +92,26 @@ import org.fluidity.foundation.spi.PropertyProvider;
  * <li>{@link java.util.List} of any supported type</li>
  * <li>{@link java.util.Set} of any supported type</li>
  * <li>{@link java.util.Map} of any supported types</li>
+ * <li>Any accessible interface with methods annotated with @<code>Configuration.Property</code></li>
+ * <li>Any accessible class with fields annotated with @<code>Configuration.Property</code></li>
+ * <li>Any combination of the above</li>
+ * </ul>
+ * <h3>Custom Types</h3>
+ * Because of the consistency guarantee by the {@link Query#read(T)} method, instances of the custom types will contain pre-fetched values for all
+ * @<code>Configuration.Property</code> annotated fields or methods. This has two consequences:
+ * <ul>
+ * <li>custom types read in the {@link Query#read(T)} method
+ *   <ul>
+ *   <li>may <em>not</em> have method parameters</li>
+ *   <li><em>will</em> have their {@link Object#equals(Object)} and {@link Object#hashCode()} method implemented to take all annotated fields or methods into account</li>
+ *   </ul>
+ * </li>
+ * <li>custom types read from the settings implementation returned by the {@link #settings()} method
+ *   <ul>
+ *   <li><em>may</em> have method parameters</li>
+ *   <li>will <em>not</em> have their {@link Object#equals(Object)} and {@link Object#hashCode()} method implemented</li>
+ *   </ul>
+ * </li>
  * </ul>
  *
  * @author Tibor Varga
@@ -99,7 +119,8 @@ import org.fluidity.foundation.spi.PropertyProvider;
 public interface Configuration<T> {
 
     /**
-     * Returns an object implementing the settings interface.
+     * Returns an object implementing the settings interface. Methods of the returned settings implementation go straight to the underlying {@link
+     * PropertyProvider}, if any, to resolve property values and thus may return different values at different times.
      *
      * @return an object implementing the settings interface.
      */
@@ -116,8 +137,9 @@ public interface Configuration<T> {
     <R> R query(Query<T, R> query);
 
     /**
-     * Groups property queries. Properties read in the {@link #read(Object)} method will be consistent in that no property change will take place
-     * during the execution of that method. Subject to {@link PropertyProvider} support.
+     * Groups property queries. Properties read in the {@link #read(T)} method will be consistent in that no property change will take place
+     * during the execution of that method. Subject to {@link PropertyProvider} support. However, stashing the <code>read</code> method parameter and invoking
+     * its methods outside the <code>read</code> method will not have the same effect.
      *
      * @param <T> the settings interface type.
      * @param <R> the return type of the {@code read} method.
@@ -126,7 +148,8 @@ public interface Configuration<T> {
 
         /**
          * Allows access to the settings. If the underlying {@link PropertyProvider} supports it, properties will not be updated dynamically while this method
-         * executes.
+         * executes. However, stashing the <code>read</code> method parameter and invoking its methods outside the <code>read</code> method will not have the
+         * same guarantee.
          *
          * @param settings an object implementing the settings interface.
          *
@@ -159,7 +182,7 @@ public interface Configuration<T> {
      */
     @Documented
     @Retention(RetentionPolicy.RUNTIME)
-    @Target(ElementType.METHOD)
+    @Target({ ElementType.METHOD, ElementType.FIELD })
     @interface Property {
 
         /**
@@ -182,18 +205,63 @@ public interface Configuration<T> {
          *
          * @return the list of characters that delimit items of an array, collection or map valued property.
          */
-        String list() default ",:";
+        String split() default ",:";
 
         /**
          * For map or multidimensional collection valued properties, this string specifies the character pairs that enclose elements of one dimension. If not
          * specified, it defaults to "[]{}".
          * <p/>
-         * For instance, <code>@Configuration.Property(key = "..." list = ',' grouping="()")</code> with property value "(1, 2, 3), (4, 5, 6), (7, 8, 9)"
+         * For instance, <code>@Configuration.Property(key = "..." split = ',' grouping="()")</code> with property value "(1, 2, 3), (4, 5, 6), (7, 8, 9)"
          * results in a 2-dimensional array that is equivalent to the following Java array initializer:  <code>{ {1, 2, 3}, {4, 5, 6}, {7, 8, 9} }</code>.
          *
          * @return the grouping characters that surround collection elements.
          */
         String grouping() default "[]{}";
+
+        /**
+         * Returns the property key that defines a list of other items. This is attribute is useful in cases where one property defines a list that defines
+         * a list of other properties whose values should be returned as an array, collection, or map. For instance, let's consider the following properties:
+         * <pre>
+         * item.ids=1,2,3
+         * item.1=item1
+         * item.2=item1
+         * item.3=item1
+         * </pre>
+         * In the above case, you would need the following method to read the list of items as an array of <code>String</code> objects:
+         * <pre>
+         * interface Settings {
+         *     ...
+         *     &#64;Configuration.Property(key = "items", ids="ids")
+         *     String[] items();
+         *     ...
+         * }
+         * </pre>
+         *
+         * @return the property key that defines a list of other items.
+         */
+        String ids() default "";
+
+        /**
+         * Works in conjunction with {@link #ids()} to override the prefix for the individual items. For instance, let's consider the following properties:
+         * <pre>
+         * item.ids=1,2,3
+         * item.1.value=item1
+         * item.2.value=item1
+         * item.3.value=item1
+         * </pre>
+         * In the above case, you would need the following method to read the list of items as an array of <code>String</code> objects:
+         * <pre>
+         * interface Settings {
+         *     ...
+         *     &#64;Configuration.Property(key = "items", ids="ids", list="item.%s.value")
+         *     String[] items();
+         *     ...
+         * }
+         * </pre>
+         *
+         * @return the prefix for individual items in a list; defaults to {@link #key()}.<code>concat(".%s")</code>.
+         */
+        String list() default "";
     }
 
     /**
