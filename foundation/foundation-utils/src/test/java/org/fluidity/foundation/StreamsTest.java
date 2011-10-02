@@ -29,7 +29,7 @@ import org.testng.annotations.Test;
 /**
  * @author Tibor Varga
  */
-public class StreamsTests extends MockGroupAbstractTest {
+public class StreamsTest extends MockGroupAbstractTest {
 
     @Test
     public void testCopying() throws Exception {
@@ -48,7 +48,7 @@ public class StreamsTests extends MockGroupAbstractTest {
         final String[] input = "Hello World!".split("\\b");
 
         final ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        final StringBuffer format = new StringBuffer();
+        final StringBuilder format = new StringBuilder();
 
         for (final String text : input) {
             format.append("%s");

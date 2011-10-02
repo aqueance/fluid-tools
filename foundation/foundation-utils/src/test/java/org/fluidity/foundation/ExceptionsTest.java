@@ -21,7 +21,7 @@ import org.testng.annotations.Test;
 /**
  * @author Tibor Varga
  */
-public class ExceptionsTests {
+public class ExceptionsTest {
 
     @Test
     public void testReturning() throws Exception {

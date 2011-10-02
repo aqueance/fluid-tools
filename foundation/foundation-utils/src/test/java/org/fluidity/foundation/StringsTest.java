@@ -30,7 +30,7 @@ import org.testng.annotations.Test;
 /**
  * @author Tibor Varga
  */
-public class StringsTests extends MockGroupAbstractTest {
+public class StringsTest extends MockGroupAbstractTest {
 
     @Test
     public void ordinaryType() throws Exception {

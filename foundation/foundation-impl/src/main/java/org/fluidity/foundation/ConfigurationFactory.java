@@ -18,8 +18,8 @@ package org.fluidity.foundation;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -90,10 +90,8 @@ final class ConfigurationFactory implements CustomComponentFactory {
 
             final String[] prefixes = propertyContexts(context);
             final Class<T> api = (Class<T>) definition.value();
-            final ClassLoader loader = api.getClassLoader();
-            final Class[] interfaces = { api };
 
-            configuration = (T) Proxy.newProxyInstance(loader, interfaces, new PropertyLoader<T>(api, prefixes, defaults, provider, loader));
+            configuration = Proxies.create(api, new PropertyLoader<T>(api, prefixes, defaults, provider));
         }
 
         public T settings() {
@@ -134,26 +132,23 @@ final class ConfigurationFactory implements CustomComponentFactory {
             return list.toArray(new String[list.size()]);
         }
 
-        private static class PropertyLoader<T> extends Proxies.MethodInvocations {
+        private static class PropertyLoader<T> implements InvocationHandler {
+            private final Class<T> api;
             private final String[] prefixes;
             private final T defaults;
             private final PropertyProvider provider;
             private final ClassLoader loader;
 
-            public PropertyLoader(final Class<T> api, final String[] prefixes, final T defaults, final PropertyProvider provider, final ClassLoader loader) {
-                super(api);
+            public PropertyLoader(final Class<T> api, final String[] prefixes, final T defaults, final PropertyProvider provider) {
+                this.api = api;
                 this.prefixes = prefixes;
                 this.defaults = defaults;
                 this.provider = provider;
-                this.loader = loader;
+                this.loader = api.getClassLoader();
             }
 
             public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
-                if (method.getDeclaringClass() == Object.class) {
-                    return Proxies.inherited(method, args, this);
-                }
-
-                assert method.getDeclaringClass().isAssignableFrom(api()) : method;
+                assert method.getDeclaringClass().isAssignableFrom(api) : method;
 
                 final Property setting = method.getAnnotation(Property.class);
                 assert setting != null : String.format("No @%s specified for method %s", Property.class.getName(), method);
@@ -309,30 +304,26 @@ final class ConfigurationFactory implements CustomComponentFactory {
 
             private Object composite(final Class<?> type, final String suffix) throws IllegalAccessException, InstantiationException {
                 if (type.isInterface()) {
-                        return Proxies.create(type, new Proxies.MethodInvocations(type) {
+                        return Proxies.create(type, new InvocationHandler() {
                             public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
-                                if (method.getDeclaringClass() == Object.class) {
-                                    return Proxies.inherited(method, args, this);
-                                } else {
-                                    final Property setting = method.getAnnotation(Property.class);
+                                final Property setting = method.getAnnotation(Property.class);
 
-                                    if (setting == null) {
-                                        throw new IllegalArgumentException(String.format("Method %s is not @%s annotated", method, Property.class));
-                                    }
-
-                                    return property(setting.split(),
-                                                    setting.grouping(),
-                                                    String.format(setting.ids(), args),
-                                                    String.format(setting.list(), args),
-                                                    String.format(setting.undefined(), args),
-                                                    method.getReturnType(),
-                                                    method.getGenericReturnType(),
-                                                    prefixes,
-                                                    String.format("%s.%s", suffix, String.format(setting.key(), args)),
-                                                    null,
-                                                    null,
-                                                    null);
+                                if (setting == null) {
+                                    throw new IllegalArgumentException(String.format("Method %s is not @%s annotated", method, Property.class));
                                 }
+
+                                return property(setting.split(),
+                                                setting.grouping(),
+                                                String.format(setting.ids(), args),
+                                                String.format(setting.list(), args),
+                                                String.format(setting.undefined(), args),
+                                                method.getReturnType(),
+                                                method.getGenericReturnType(),
+                                                prefixes,
+                                                String.format("%s.%s", suffix, String.format(setting.key(), args)),
+                                                null,
+                                                null,
+                                                null);
                             }
                         });
                 } else {

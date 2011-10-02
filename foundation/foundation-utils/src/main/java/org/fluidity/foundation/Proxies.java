@@ -17,19 +17,33 @@
 package org.fluidity.foundation;
 
 import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Convenience utilities concerning proxies.
  */
-@SuppressWarnings("unchecked")
 public final class Proxies {
 
     private Proxies() {
         throw new UnsupportedOperationException("No instance allowed");
     }
+
+    private static ObjectIdentity DEFAULT_IDENTITY = new ObjectIdentity<Object>() {
+        public int hashCode(final Object instance) {
+            return System.identityHashCode(instance);
+        }
+
+        public boolean equals(final Object other, final Object instance) {
+            return instance == other;
+        }
+
+        public String toString(final Object instance) {
+            return String.format("%s@%d", Proxies.api(instance.getClass()).getSimpleName(), instance.hashCode());
+        }
+    };
+
 
     /**
      * Creates a new proxy for the given interface using the given invocation handler. The class loader of the interface will be used to load the proxy class.
@@ -39,8 +53,27 @@ public final class Proxies {
      *
      * @return a proxy implementing the given interface.
      */
+    @SuppressWarnings("unchecked")
     public static <T> T create(final Class<T> type, final InvocationHandler handler) {
-        return (T) Proxy.newProxyInstance(type.getClassLoader(), new Class<?>[] { type }, handler);
+        return create(type, (ObjectIdentity<T>) DEFAULT_IDENTITY, handler);
+    }
+
+    /**
+     * Creates a new proxy for the given interface using the given invocation handler. The class loader of the interface will be used to load the proxy class.
+     *
+     * @param type     the interface to implement with a proxy.
+     * @param identity the object that computes object identity for the returned proxy.
+     * @param handler  the handler that implements the interface's methods.
+     *
+     * @return a proxy implementing the given interface.
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> T create(final Class<T> type, final ObjectIdentity<T> identity, final InvocationHandler handler) {
+        final AtomicReference<T> proxy = new AtomicReference<T>();
+
+        proxy.set((T) Proxy.newProxyInstance(type.getClassLoader(), new Class<?>[] { type }, new MethodInvocations(handler, proxy, identity)));
+
+        return proxy.get();
     }
 
     /**
@@ -51,48 +84,93 @@ public final class Proxies {
      *
      * @return the first interface implemented by the supplied class if it is a {@link Proxy}, otherwise the supplied class itself.
      */
+    @SuppressWarnings("unchecked")
     public static <T> Class<T> api(final Class<T> type) {
         return Proxy.isProxyClass(type) ? (Class<T>) type.getInterfaces()[0] : type;
     }
 
     /**
-     * Invokes the methods inherited from {@link Object}. This method replaces any proxy instance in the argument list with its invocation handler.
+     * Returns the original <code>InvocationHandler</code> passed to {@link #create(Class, InvocationHandler)}.
      *
-     * @param method the method to invoke.
-     * @param args   the arguments to the method.
-     * @param caller the object to invoke the method on.
+     * @param proxy the proxy returned by {@link #create(Class, InvocationHandler)}.
      *
-     * @return the result of the method invocation.
-     *
-     * @throws IllegalAccessException    thrown by the nested method invocation.
-     * @throws InvocationTargetException thrown by the nested method invocation.
+     * @return the original <code>InvocationHandler</code> passed to {@link #create(Class, InvocationHandler)}.
      */
-    public static Object inherited(final Method method, final Object[] args, final InvocationHandler caller) throws IllegalAccessException, InvocationTargetException {
-        assert method.getDeclaringClass() == Object.class : method;
-        assert caller instanceof MethodInvocations : caller;
-        return method.invoke(caller, args);
+    public static InvocationHandler invocationHandler(final Object proxy) {
+        final InvocationHandler invocations = Proxy.getInvocationHandler(proxy);
+        return invocations instanceof MethodInvocations ? ((MethodInvocations) invocations).handler : invocations;
     }
 
-    public static abstract class MethodInvocations implements InvocationHandler {
+    /**
+     * Provides object identity to some proxy.
+     *
+     * @param <T> the interface the proxy stands for.
+     */
+    public interface ObjectIdentity<T> {
 
-        private final Class<?> api;
+        /**
+         * Computes the hash code for the given instance.
+         *
+         * @param instance the instance.
+         *
+         * @return the hash code for the given instance.
+         */
+        int hashCode(T instance);
 
-        protected MethodInvocations(final Class<?> api) {
-            this.api = api;
+        /**
+         * Returns whether the given objects are equal.
+         *
+         * @param other    the other object
+         * @param instance the implementation object.
+         *
+         * @return <code>true</code> if the two objects are equal.
+         */
+        boolean equals(Object other, T instance);
+
+        /**
+         * Returns the string representation of the given instance.
+         *
+         * @param instance the instance.
+         *
+         * @return the string representation of the given instance.
+         */
+        String toString(T instance);
+    }
+
+    private static final class MethodInvocations<T> implements InvocationHandler {
+
+        private final ObjectIdentity<T> identity;
+        private final InvocationHandler handler;
+        private final AtomicReference<T> proxy;
+
+        protected MethodInvocations(final InvocationHandler handler, final AtomicReference<T> proxy, final ObjectIdentity<T> identity) {
+            this.handler = handler;
+            this.proxy = proxy;
+            this.identity = identity;
         }
 
-        protected final Class<?> api() {
-            return api;
+        public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
+            if (method.getDeclaringClass() == Object.class) {
+                return method.invoke(this, args);
+            } else {
+                return handler.invoke(proxy, method, args);
+            }
         }
 
         @Override
+        public int hashCode() {
+            return identity.hashCode(proxy.get());
+        }
+
+        @Override
+        @SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
         public boolean equals(final Object obj) {
-            return super.equals(obj != null && Proxy.isProxyClass(obj.getClass()) ? Proxy.getInvocationHandler(obj) : obj);
+            return identity.equals(obj, proxy.get());
         }
 
         @Override
         public String toString() {
-            return String.format("%s@%d", api.getSimpleName(), hashCode());
+            return identity.toString(proxy.get());
         }
     }
 }
