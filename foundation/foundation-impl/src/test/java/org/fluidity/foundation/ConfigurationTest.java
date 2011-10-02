@@ -36,6 +36,7 @@ import org.testng.annotations.Test;
 /**
  * @author Tibor Varga
  */
+@SuppressWarnings("UnusedDeclaration")
 public class ConfigurationTest extends MockGroupAbstractTest {
 
     private final Configuration.Definition definition = mock(Configuration.Definition.class);
@@ -109,7 +110,6 @@ public class ConfigurationTest extends MockGroupAbstractTest {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     public void noConfiguration() throws Exception {
         final Configuration<Settings> configuration = configure(Settings.class, null, null);
 
@@ -157,7 +157,6 @@ public class ConfigurationTest extends MockGroupAbstractTest {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     public void providedConfiguration() throws Exception {
         final Configuration<ProvidedSettings> configuration = configure(ProvidedSettings.class, null, new ProvidedSettingsImpl());
 
@@ -338,7 +337,6 @@ public class ConfigurationTest extends MockGroupAbstractTest {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     public void defaultConversion() throws Exception {
         final Configuration<MultiTypeSettings> configuration = configure(MultiTypeSettings.class, null, null);
 
