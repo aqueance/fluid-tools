@@ -16,12 +16,17 @@
 
 package org.fluidity.deployment.osgi;
 
+import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
@@ -39,6 +44,7 @@ import org.fluidity.composition.Components;
 import org.fluidity.composition.DependencyInjector;
 import org.fluidity.composition.OpenComponentContainer;
 import org.fluidity.foundation.Log;
+import org.fluidity.foundation.Proxies;
 import org.fluidity.foundation.spi.LogFactory;
 
 import org.osgi.framework.BundleContext;
@@ -506,7 +512,7 @@ public class WhiteboardImpl implements Whiteboard {
                     for (int i = 0, limit = references.length; !referenceMap.containsKey(service) && i < limit; i++) {
                         final ServiceReference reference = references[i];
                         referenceMap.put(service, reference);
-                        dependencyMap.put(service, context.getService(reference));
+                        dependencyMap.put(service, Proxies.create(service.api, new ServiceInvocation(context.getService(reference))));
                     }
                 }
             }
@@ -582,6 +588,52 @@ public class WhiteboardImpl implements Whiteboard {
         public void stop() {
             context.removeServiceListener(this);
             suspend();
+        }
+    }
+
+    private static class ServiceInvocation implements InvocationHandler {
+        private final ClassLoader tunnel;
+        private final Object implementation;
+
+        public ServiceInvocation(final Object implementation) {
+            this.implementation = implementation;
+            this.tunnel = new DelegatingClassLoader(implementation);
+        }
+
+        public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
+            final Thread thread = Thread.currentThread();
+            final ClassLoader saved = thread.getContextClassLoader();
+
+            thread.setContextClassLoader(tunnel);
+            try {
+                return method.invoke(implementation, args);
+            } finally {
+                thread.setContextClassLoader(saved);
+            }
+        }
+    }
+
+    private static class DelegatingClassLoader extends ClassLoader {
+
+        private final ClassLoader delegate;
+
+        public DelegatingClassLoader(final Object object) {
+            super(object.getClass().getClassLoader());
+            this.delegate = getClass().getClassLoader();
+        }
+        @Override
+        protected Class<?> findClass(final String name) throws ClassNotFoundException {
+          return delegate.loadClass(name);
+        }
+
+        @Override
+        protected Enumeration<URL> findResources(final String name) throws IOException {
+          return delegate.getResources(name);
+        }
+
+        @Override
+        protected URL findResource(final String name) {
+          return delegate.getResource(name);
         }
     }
 }

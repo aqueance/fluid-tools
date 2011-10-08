@@ -17,11 +17,13 @@
 package org.fluidity.deployment.osgi;
 
 import java.lang.reflect.Constructor;
+import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.fluidity.composition.ClassDiscovery;
 import org.fluidity.composition.ComponentContainer;
@@ -199,8 +201,8 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
 
         EasyMock.expect(container.makeChildContainer()).andReturn(child);
         EasyMock.expect(child.getRegistry()).andReturn(registry);
-        registry.bindInstance(service1, ServiceInterface1.class);
-        registry.bindInstance(service2, ServiceInterface2.class);
+        registry.bindInstance(EasyMock.<ServiceInterface1>notNull(), EasyMock.same(ServiceInterface1.class));
+        registry.bindInstance(EasyMock.<ServiceInterface2>notNull(), EasyMock.same(ServiceInterface2.class));
         registry.bindComponent(componentClass);
         EasyMock.expect(child.getComponent(componentClass)).andReturn(dependent);
         ServiceDependent1.delegate.start();
@@ -233,8 +235,8 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
 
         EasyMock.expect(container.makeChildContainer()).andReturn(child);
         EasyMock.expect(child.getRegistry()).andReturn(registry);
-        registry.bindInstance(service1, ServiceInterface1.class);
-        registry.bindInstance(service2, ServiceInterface2.class);
+        registry.bindInstance(EasyMock.<ServiceInterface1>notNull(), EasyMock.same(ServiceInterface1.class));
+        registry.bindInstance(EasyMock.<ServiceInterface2>notNull(), EasyMock.same(ServiceInterface2.class));
         registry.bindComponent(componentClass);
         EasyMock.expect(child.getComponent(componentClass)).andReturn(dependent);
         ServiceDependent1.delegate.start();
@@ -314,8 +316,8 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
 
         EasyMock.expect(container.makeChildContainer()).andReturn(child);
         EasyMock.expect(child.getRegistry()).andReturn(registry);
-        registry.bindInstance(service1, ServiceInterface1.class);
-        registry.bindInstance(service2, ServiceInterface2.class);
+        registry.bindInstance(EasyMock.<ServiceInterface1>notNull(), EasyMock.same(ServiceInterface1.class));
+        registry.bindInstance(EasyMock.<ServiceInterface2>notNull(), EasyMock.same(ServiceInterface2.class));
         registry.bindComponent(componentClass);
         EasyMock.expect(child.getComponent(componentClass)).andReturn(dependent);
         ServiceDependent1.delegate.start();
@@ -348,8 +350,8 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
 
         EasyMock.expect(container.makeChildContainer()).andReturn(child);
         EasyMock.expect(child.getRegistry()).andReturn(registry);
-        registry.bindInstance(service1, ServiceInterface1.class);
-        registry.bindInstance(service2, ServiceInterface2.class);
+        registry.bindInstance(EasyMock.<ServiceInterface1>notNull(), EasyMock.same(ServiceInterface1.class));
+        registry.bindInstance(EasyMock.<ServiceInterface2>notNull(), EasyMock.same(ServiceInterface2.class));
         registry.bindComponent(componentClass);
         EasyMock.expect(child.getComponent(componentClass)).andReturn(dependent);
 
@@ -402,8 +404,8 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
 
         EasyMock.expect(container.makeChildContainer()).andReturn(child);
         EasyMock.expect(child.getRegistry()).andReturn(registry);
-        registry.bindInstance(service1, ServiceInterface1.class);
-        registry.bindInstance(service2, ServiceInterface2.class);
+        registry.bindInstance(EasyMock.<ServiceInterface1>notNull(), EasyMock.same(ServiceInterface1.class));
+        registry.bindInstance(EasyMock.<ServiceInterface2>notNull(), EasyMock.same(ServiceInterface2.class));
         registry.bindComponent(componentClass);
         EasyMock.expect(child.getComponent(componentClass)).andReturn(dependent);
         ServiceDependent2.delegate.start();
@@ -676,7 +678,7 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
         // instantiate clusters that require service 1 only
         EasyMock.expect(container.makeChildContainer()).andReturn(child);
         EasyMock.expect(child.getRegistry()).andReturn(registry);
-        registry.bindInstance(service1, ServiceInterface1.class);
+        registry.bindInstance(EasyMock.<ServiceInterface1>notNull(), EasyMock.same(ServiceInterface1.class));
         registry.bindComponent(Cluster2Component1.class);
         registry.bindComponent(Cluster2Component2.class);
         EasyMock.expect(child.getComponent(Cluster2Component2.class)).andReturn(cluster2Component2);
@@ -707,7 +709,7 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
         // instantiate clusters that require service 2 only
         EasyMock.expect(container.makeChildContainer()).andReturn(child);
         EasyMock.expect(child.getRegistry()).andReturn(registry);
-        registry.bindInstance(service2, ServiceInterface2.class);
+        registry.bindInstance(EasyMock.<ServiceInterface2>notNull(), EasyMock.same(ServiceInterface2.class));
         registry.bindComponent(Cluster3Component1.class);
         EasyMock.expect(child.getComponent(Cluster3Component1.class)).andReturn(cluster3Component1);
 
@@ -716,8 +718,8 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
         // instantiate clusters that require both services
         EasyMock.expect(container.makeChildContainer()).andReturn(child);
         EasyMock.expect(child.getRegistry()).andReturn(registry);
-        registry.bindInstance(service1, ServiceInterface1.class);
-        registry.bindInstance(service2, ServiceInterface2.class);
+        registry.bindInstance(EasyMock.<ServiceInterface1>notNull(), EasyMock.same(ServiceInterface1.class));
+        registry.bindInstance(EasyMock.<ServiceInterface2>notNull(), EasyMock.same(ServiceInterface2.class));
         registry.bindComponent(Cluster1Component1.class);
         registry.bindComponent(Cluster1Component2.class);
         EasyMock.expect(child.getComponent(Cluster1Component2.class)).andReturn(cluster1Component2);
@@ -765,7 +767,7 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
         // instantiate clusters that require service 1 only
         EasyMock.expect(container.makeChildContainer()).andReturn(child);
         EasyMock.expect(child.getRegistry()).andReturn(registry);
-        registry.bindInstance(service1, ServiceInterface1.class);
+        registry.bindInstance(EasyMock.<ServiceInterface1>notNull(), EasyMock.same(ServiceInterface1.class));
         registry.bindComponent(Cluster2Component1.class);
         registry.bindComponent(Cluster2Component2.class);
         EasyMock.expect(child.getComponent(Cluster2Component2.class)).andReturn(cluster2Component2);
@@ -777,8 +779,8 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
         // instantiate clusters that require both services
         EasyMock.expect(container.makeChildContainer()).andReturn(child);
         EasyMock.expect(child.getRegistry()).andReturn(registry);
-        registry.bindInstance(service1, ServiceInterface1.class);
-        registry.bindInstance(service2, ServiceInterface2.class);
+        registry.bindInstance(EasyMock.<ServiceInterface1>notNull(), EasyMock.same(ServiceInterface1.class));
+        registry.bindInstance(EasyMock.<ServiceInterface2>notNull(), EasyMock.same(ServiceInterface2.class));
         registry.bindComponent(Cluster1Component1.class);
         registry.bindComponent(Cluster1Component2.class);
         EasyMock.expect(child.getComponent(Cluster1Component2.class)).andReturn(cluster1Component2);
@@ -842,7 +844,7 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
         // instantiate clusters that require service 2 only
         EasyMock.expect(container.makeChildContainer()).andReturn(child);
         EasyMock.expect(child.getRegistry()).andReturn(registry);
-        registry.bindInstance(service2, ServiceInterface2.class);
+        registry.bindInstance(EasyMock.<ServiceInterface2>notNull(), EasyMock.same(ServiceInterface2.class));
         registry.bindComponent(Cluster3Component1.class);
         EasyMock.expect(child.getComponent(Cluster3Component1.class)).andReturn(cluster3Component1);
 
@@ -876,6 +878,115 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
         replay();
         whiteboard.stop();
         verify();
+    }
+
+    @Test
+    public void testClassLoading() throws Exception {
+        final IsolatedClassLoader bundle1 = new IsolatedClassLoader("service", WhiteboardImplTest.class, Whiteboard.class, ListenerSpecImpl.class, ServiceProvider.class);
+        final IsolatedClassLoader bundle2 = new IsolatedClassLoader("client", WhiteboardImplTest.class, Whiteboard.class, ListenerSpecImpl.class, ServiceProvider.class);
+
+        final Class<?> providerClass = bundle1.loadClass(ServiceProviderImpl.class.getName());
+        final Class<?> consumerClass = bundle2.loadClass(ServiceConsumerImpl.class.getName());
+
+        EasyMock.expect(discovery.findComponentClasses(EasyMock.same(Whiteboard.Managed.class), EasyMock.<ClassLoader>notNull(), EasyMock.eq(false)))
+                .andReturn(new Class[] { providerClass });
+
+        replay();
+        final Whiteboard whiteboard1 = (Whiteboard) bundle1.loadClass(WhiteboardImpl.class.getName())
+                                                                                     .getConstructor(BundleContext.class,
+                                                                                                     ComponentContainer.class,
+                                                                                                     LogFactory.class,
+                                                                                                     DependencyInjector.class,
+                                                                                                     ClassDiscovery.class,
+                                                                                                     Whiteboard.Observer[].class)
+                                                                                     .newInstance(context,
+                                                                                                  container,
+                                                                                                  logs,
+                                                                                                  injector,
+                                                                                                  discovery,
+                                                                                                  new Whiteboard.Observer[0]);
+        verify();
+
+        EasyMock.expect(discovery.findComponentClasses(EasyMock.same(Whiteboard.Managed.class), EasyMock.<ClassLoader>notNull(), EasyMock.eq(false)))
+                .andReturn(new Class[] { consumerClass });
+
+        replay();
+        final Whiteboard whiteboard2 = (Whiteboard) bundle2.loadClass(WhiteboardImpl.class.getName())
+                                                                                     .getConstructor(BundleContext.class,
+                                                                                                     ComponentContainer.class,
+                                                                                                     LogFactory.class,
+                                                                                                     DependencyInjector.class,
+                                                                                                     ClassDiscovery.class,
+                                                                                                     Whiteboard.Observer[].class)
+                                                                                     .newInstance(context,
+                                                                                                  container,
+                                                                                                  logs,
+                                                                                                  injector,
+                                                                                                  discovery,
+                                                                                                  new Whiteboard.Observer[0]);
+        verify();
+
+        assert whiteboard1.getClass() != whiteboard2.getClass();
+
+        EasyMock.expect(injector.findConstructor(providerClass)).andReturn((Constructor) providerClass.getDeclaredConstructor());
+        EasyMock.expect(container.makeChildContainer()).andReturn(child);
+        EasyMock.expect(child.getRegistry()).andReturn(registry);
+        registry.bindComponent(providerClass);
+
+        final ServiceProvider provider = (ServiceProvider) providerClass.newInstance();
+        EasyMock.expect(child.getComponent(providerClass)).andReturn(provider);
+
+        EasyMock.expect(context.registerService(EasyMock.aryEq(new String[] { ServiceProvider.class.getName() }),
+                                                EasyMock.same(provider),
+                                                EasyMock.<Dictionary>isNull()))
+                .andReturn(registration);
+
+        replay();
+        whiteboard1.start();
+        verify();
+
+        final Constructor<?> constructor = consumerClass.getDeclaredConstructor(ServiceProvider.class);
+        EasyMock.expect(injector.findConstructor(consumerClass)).andReturn((Constructor) constructor);
+
+        context.addServiceListener(EasyMock.<ServiceListener>notNull(), EasyMock.<String>notNull());
+
+        EasyMock.expect(context.getServiceReferences(ServiceProvider.class.getName(), null)).andReturn(new ServiceReference[] { reference1 }).anyTimes();
+        EasyMock.expect(context.getService(reference1)).andReturn(provider);
+
+        EasyMock.expect(container.makeChildContainer()).andReturn(child);
+        EasyMock.expect(child.getRegistry()).andReturn(registry);
+
+        registry.bindInstance(EasyMock.<ServiceProvider>notNull(), EasyMock.same(ServiceProvider.class));
+
+        final AtomicReference<ServiceProvider> proxy = new AtomicReference<ServiceProvider>();
+        final AtomicReference<ServiceConsumer> consumer = new AtomicReference<ServiceConsumer>();
+
+        EasyMock.expectLastCall().andAnswer(new IAnswer<Object>() {
+            public Object answer() throws Throwable {
+                proxy.set((ServiceProvider) EasyMock.getCurrentArguments()[0]);
+                consumer.set((ServiceConsumer) constructor.newInstance(proxy.get()));
+                return null;
+            }
+        });
+
+        registry.bindComponent(consumerClass);
+
+        EasyMock.expect(child.getComponent(consumerClass)).andAnswer(new IAnswer<Object>() {
+            public Object answer() throws Throwable {
+                return consumer.get();
+            }
+        });
+
+        replay();
+        whiteboard2.start();
+        verify();
+
+
+        replay();
+        final String name = consumer.get().call();
+        verify();
+
+        assert bundle2.name().equals(name) : name;
     }
 
     private Set<ListenerSpec> filterListeners(final Class<?> type, final ListenerSpec... listeners) {
@@ -1181,6 +1292,7 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
         private static Whiteboard.Managed delegate;
 
         public Cluster3Component1(final @Service ServiceInterface2 service2) {
+            // empty
         }
 
         public void start() throws Exception {

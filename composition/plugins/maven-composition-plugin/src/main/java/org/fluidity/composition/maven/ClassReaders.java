@@ -36,7 +36,7 @@ import org.objectweb.asm.Type;
 /**
  * Class related convenience methods.
  */
-public final class ClassReaders implements Opcodes{
+public final class ClassReaders implements Opcodes {
 
     public static final String CONSTRUCTOR_METHOD_NAME = "<init>";
 

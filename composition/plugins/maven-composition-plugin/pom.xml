@@ -38,10 +38,6 @@
         </license>
     </licenses>
 
-    <properties>
-        <asm.version>3.3.1</asm.version>
-    </properties>
-
     <description><![CDATA[
 This plugin scans class files for annotations that instruct it to generate
 service provider descriptor files as per the JAR file specification:
