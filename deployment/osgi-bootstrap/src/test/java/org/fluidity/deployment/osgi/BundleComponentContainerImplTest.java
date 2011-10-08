@@ -48,7 +48,7 @@ import org.testng.annotations.Test;
  * @author Tibor Varga
  */
 @SuppressWarnings("unchecked")
-public class WhiteboardImplTest extends MockGroupAbstractTest {
+public class BundleComponentContainerImplTest extends MockGroupAbstractTest {
 
     private final BundleContext context = mock(BundleContext.class);
     private final ComponentContainer container = mock(ComponentContainer.class);
@@ -60,7 +60,7 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
 
     private final ServiceInterface1 service1 = mock(ServiceInterface1.class);
     private final ServiceInterface2 service2 = mock(ServiceInterface2.class);
-    private final Whiteboard.Managed item = mock(Whiteboard.Managed.class);
+    private final BundleComponentContainer.Managed item = mock(BundleComponentContainer.Managed.class);
 
     private final ServiceRegistration registration = mock(ServiceRegistration.class);
 
@@ -70,17 +70,17 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
     private final Consumer consumer1 = mock(Consumer.class);
     private final Consumer consumer2 = mock(Consumer.class);
 
-    private final Whiteboard.Managed component1 = mock(Whiteboard.Managed.class);
-    private final Whiteboard.Managed component2 = mock(Whiteboard.Managed.class);
-    private final Whiteboard.Managed component3 = mock(Whiteboard.Managed.class);
-    private final Whiteboard.Managed component4 = mock(Whiteboard.Managed.class);
-    private final Whiteboard.Managed component5 = mock(Whiteboard.Managed.class);
+    private final BundleComponentContainer.Managed component1 = mock(BundleComponentContainer.Managed.class);
+    private final BundleComponentContainer.Managed component2 = mock(BundleComponentContainer.Managed.class);
+    private final BundleComponentContainer.Managed component3 = mock(BundleComponentContainer.Managed.class);
+    private final BundleComponentContainer.Managed component4 = mock(BundleComponentContainer.Managed.class);
+    private final BundleComponentContainer.Managed component5 = mock(BundleComponentContainer.Managed.class);
 
-    private final Whiteboard.Observer observer1 = mock(Whiteboard.Observer.class);
-    private final Whiteboard.Observer observer2 = mock(Whiteboard.Observer.class);
+    private final BundleComponentContainer.Observer observer1 = mock(BundleComponentContainer.Observer.class);
+    private final BundleComponentContainer.Observer observer2 = mock(BundleComponentContainer.Observer.class);
 
     @SuppressWarnings("unchecked")
-    private final Whiteboard.EventSource<Consumer> source = mock(Whiteboard.EventSource.class);
+    private final BundleComponentContainer.Registration.Listener<Consumer> source = mock(BundleComponentContainer.Registration.Listener.class);
 
     @BeforeMethod
     public void setup() throws Exception {
@@ -106,7 +106,7 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
         final Class<Service1> componentClass = Service1.class;
         final Class<ServiceInterface1> serviceInterface = ServiceInterface1.class;
 
-        final Whiteboard whiteboard = discover(componentClass);
+        final BundleComponentContainer services = discover(componentClass);
 
         EasyMock.expect(injector.findConstructor(componentClass)).andReturn((Constructor) componentClass.getConstructor());
 
@@ -141,7 +141,7 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
         listenerState2.starting(true);
 
         replay();
-        whiteboard.start();
+        services.start();
         verify();
 
         // un-registering the service
@@ -152,20 +152,20 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
         listenerState2.stopping(true);
 
         replay();
-        whiteboard.stop();
+        services.stop();
         verify();
 
         // no more action at second invocation
 
         replay();
-        whiteboard.stop();
+        services.stop();
         verify();
     }
 
     @Test
     public void testServiceListener1() throws Exception {
         final Class<ServiceDependent1> componentClass = ServiceDependent1.class;
-        final Whiteboard whiteboard = discover(componentClass);
+        final BundleComponentContainer services = discover(componentClass);
 
         EasyMock.expect(injector.findConstructor(componentClass)).andReturn((Constructor) componentClass.getConstructor(ServiceInterface1.class, ServiceInterface2.class));
 
@@ -178,7 +178,7 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
         final ServiceDependent1 dependent = new ServiceDependent1(service1, service2);
 
         replay();
-        whiteboard.start();
+        services.start();
         verify();
 
         checkFilter(spec, new ServiceSpecification(ServiceInterface1.class), new ServiceSpecification(ServiceInterface2.class));
@@ -275,20 +275,20 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
         context.removeServiceListener(spec.listener());
 
         replay();
-        whiteboard.stop();
+        services.stop();
         verify();
 
         // no more action at second invocation
 
         replay();
-        whiteboard.stop();
+        services.stop();
         verify();
     }
 
     @Test
     public void testServiceListener2() throws Exception {
         final Class<ServiceDependent1> componentClass = ServiceDependent1.class;
-        final Whiteboard whiteboard = discover(componentClass);
+        final BundleComponentContainer services = discover(componentClass);
 
         EasyMock.expect(injector.findConstructor(componentClass)).andReturn((Constructor) componentClass.getConstructor(ServiceInterface1.class, ServiceInterface2.class));
 
@@ -303,7 +303,7 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
         final ServiceDependent1 dependent = new ServiceDependent1(service1, service2);
 
         replay();
-        whiteboard.start();
+        services.start();
         verify();
 
         checkFilter(spec, new ServiceSpecification(ServiceInterface1.class), new ServiceSpecification(ServiceInterface2.class));
@@ -371,20 +371,20 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
         noListener();
 
         replay();
-        whiteboard.stop();
+        services.stop();
         verify();
 
         // no more action at second invocation
 
         replay();
-        whiteboard.stop();
+        services.stop();
         verify();
     }
 
     @Test
     public void testServiceListener3() throws Exception {
         final Class<ServiceDependent2> componentClass = ServiceDependent2.class;
-        final Whiteboard whiteboard = discover(componentClass);
+        final BundleComponentContainer services = discover(componentClass);
 
         EasyMock.expect(injector.findConstructor(componentClass)).andReturn((Constructor) componentClass.getConstructor(ServiceInterface1.class, ServiceInterface2.class));
 
@@ -413,7 +413,7 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
         noListener();
 
         replay();
-        whiteboard.start();
+        services.start();
         verify();
 
         checkFilter(spec, new ServiceSpecification(ServiceInterface1.class, selector1), new ServiceSpecification(ServiceInterface2.class, selector2));
@@ -426,20 +426,20 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
         noListener();
 
         replay();
-        whiteboard.stop();
+        services.stop();
         verify();
 
         // no more action at second invocation
 
         replay();
-        whiteboard.stop();
+        services.stop();
         verify();
     }
 
     @Test
     public void testEventSourcesAndConsumers1() throws Exception {
         final Class<Source> componentClass = Source.class;
-        final Whiteboard whiteboard = discover(componentClass);
+        final BundleComponentContainer services = discover(componentClass);
 
         EasyMock.expect(injector.findConstructor(componentClass)).andReturn((Constructor) componentClass.getConstructor());
         final Source source = new Source();
@@ -459,7 +459,7 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
         noListener();
 
         replay();
-        whiteboard.start();
+        services.start();
         verify();
 
         assert spec.filter().equals(String.format("(%s=%s)", Constants.OBJECTCLASS, Consumer.class.getName()));
@@ -532,20 +532,20 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
         noListener();
 
         replay();
-        whiteboard.stop();
+        services.stop();
         verify();
 
         // no more action at second invocation
 
         replay();
-        whiteboard.stop();
+        services.stop();
         verify();
     }
 
     @Test
     public void testEventSourcesAndConsumers2() throws Exception {
         final Class<Source> componentClass = Source.class;
-        final Whiteboard whiteboard = discover(componentClass);
+        final BundleComponentContainer services = discover(componentClass);
 
         EasyMock.expect(injector.findConstructor(componentClass)).andReturn((Constructor) componentClass.getConstructor());
         final Source source = new Source();
@@ -569,7 +569,7 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
         noListener();
 
         replay();
-        whiteboard.start();
+        services.start();
         verify();
 
         assert spec.filter().equals(String.format("(%s=%s)", Constants.OBJECTCLASS, Consumer.class.getName()));
@@ -610,23 +610,23 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
         noListener();
 
         replay();
-        whiteboard.stop();
+        services.stop();
         verify();
 
         // no more action at second invocation
 
         replay();
-        whiteboard.stop();
+        services.stop();
         verify();
     }
 
     @Test
     public void testComponentClusters() throws Exception {
-        final Whiteboard whiteboard = discover(Cluster1Component1.class,
-                                               Cluster1Component2.class,
-                                               Cluster2Component1.class,
-                                               Cluster2Component2.class,
-                                               Cluster3Component1.class);
+        final BundleComponentContainer services = discover(Cluster1Component1.class,
+                                                           Cluster1Component2.class,
+                                                           Cluster2Component1.class,
+                                                           Cluster2Component2.class,
+                                                           Cluster3Component1.class);
 
         EasyMock.expect(injector.findConstructor(Cluster1Component1.class))
                 .andReturn((Constructor) Cluster1Component1.class.getConstructor(ServiceInterface1.class, Cluster1Component2.class));
@@ -659,7 +659,7 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
         EasyMock.expect(context.getServiceReferences(ServiceInterface2.class.getName(), null)).andReturn(null).anyTimes();
 
         replay();
-        whiteboard.start();
+        services.start();
         verify();
 
         final Map<Class<?>, Set<ListenerSpec>> listenerMap = new HashMap<Class<?>, Set<ListenerSpec>>();
@@ -870,63 +870,63 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
         listenerState2.stopping(false);
 
         replay();
-        whiteboard.stop();
+        services.stop();
         verify();
 
         // no more action at second invocation
 
         replay();
-        whiteboard.stop();
+        services.stop();
         verify();
     }
 
     @Test
     public void testClassLoading() throws Exception {
-        final IsolatedClassLoader bundle1 = new IsolatedClassLoader("service", WhiteboardImplTest.class, Whiteboard.class, ListenerSpecImpl.class, ServiceProvider.class);
-        final IsolatedClassLoader bundle2 = new IsolatedClassLoader("client", WhiteboardImplTest.class, Whiteboard.class, ListenerSpecImpl.class, ServiceProvider.class);
+        final IsolatedClassLoader bundle1 = new IsolatedClassLoader("service", BundleComponentContainerImplTest.class, BundleComponentContainer.class, ListenerSpecImpl.class, ServiceProvider.class);
+        final IsolatedClassLoader bundle2 = new IsolatedClassLoader("client", BundleComponentContainerImplTest.class, BundleComponentContainer.class, ListenerSpecImpl.class, ServiceProvider.class);
 
         final Class<?> providerClass = bundle1.loadClass(ServiceProviderImpl.class.getName());
         final Class<?> consumerClass = bundle2.loadClass(ServiceConsumerImpl.class.getName());
 
-        EasyMock.expect(discovery.findComponentClasses(EasyMock.same(Whiteboard.Managed.class), EasyMock.<ClassLoader>notNull(), EasyMock.eq(false)))
+        EasyMock.expect(discovery.findComponentClasses(EasyMock.same(BundleComponentContainer.Managed.class), EasyMock.<ClassLoader>notNull(), EasyMock.eq(false)))
                 .andReturn(new Class[] { providerClass });
 
         replay();
-        final Whiteboard whiteboard1 = (Whiteboard) bundle1.loadClass(WhiteboardImpl.class.getName())
+        final BundleComponentContainer services1 = (BundleComponentContainer) bundle1.loadClass(BundleComponentContainerImpl.class.getName())
                                                                                      .getConstructor(BundleContext.class,
                                                                                                      ComponentContainer.class,
                                                                                                      LogFactory.class,
                                                                                                      DependencyInjector.class,
                                                                                                      ClassDiscovery.class,
-                                                                                                     Whiteboard.Observer[].class)
+                                                                                                     BundleComponentContainer.Observer[].class)
                                                                                      .newInstance(context,
                                                                                                   container,
                                                                                                   logs,
                                                                                                   injector,
                                                                                                   discovery,
-                                                                                                  new Whiteboard.Observer[0]);
+                                                                                                  new BundleComponentContainer.Observer[0]);
         verify();
 
-        EasyMock.expect(discovery.findComponentClasses(EasyMock.same(Whiteboard.Managed.class), EasyMock.<ClassLoader>notNull(), EasyMock.eq(false)))
+        EasyMock.expect(discovery.findComponentClasses(EasyMock.same(BundleComponentContainer.Managed.class), EasyMock.<ClassLoader>notNull(), EasyMock.eq(false)))
                 .andReturn(new Class[] { consumerClass });
 
         replay();
-        final Whiteboard whiteboard2 = (Whiteboard) bundle2.loadClass(WhiteboardImpl.class.getName())
+        final BundleComponentContainer services2 = (BundleComponentContainer) bundle2.loadClass(BundleComponentContainerImpl.class.getName())
                                                                                      .getConstructor(BundleContext.class,
                                                                                                      ComponentContainer.class,
                                                                                                      LogFactory.class,
                                                                                                      DependencyInjector.class,
                                                                                                      ClassDiscovery.class,
-                                                                                                     Whiteboard.Observer[].class)
+                                                                                                     BundleComponentContainer.Observer[].class)
                                                                                      .newInstance(context,
                                                                                                   container,
                                                                                                   logs,
                                                                                                   injector,
                                                                                                   discovery,
-                                                                                                  new Whiteboard.Observer[0]);
+                                                                                                  new BundleComponentContainer.Observer[0]);
         verify();
 
-        assert whiteboard1.getClass() != whiteboard2.getClass();
+        assert services1.getClass() != services2.getClass();
 
         EasyMock.expect(injector.findConstructor(providerClass)).andReturn((Constructor) providerClass.getDeclaredConstructor());
         EasyMock.expect(container.makeChildContainer()).andReturn(child);
@@ -942,7 +942,7 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
                 .andReturn(registration);
 
         replay();
-        whiteboard1.start();
+        services1.start();
         verify();
 
         final Constructor<?> constructor = consumerClass.getDeclaredConstructor(ServiceProvider.class);
@@ -978,7 +978,7 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
         });
 
         replay();
-        whiteboard2.start();
+        services2.start();
         verify();
 
 
@@ -1002,14 +1002,14 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
         return list;
     }
 
-    private Whiteboard discover(final Class... types) {
-        EasyMock.expect(discovery.findComponentClasses(Whiteboard.Managed.class, WhiteboardImpl.class.getClassLoader(), false)).andReturn(types);
+    private BundleComponentContainer discover(final Class... types) {
+        EasyMock.expect(discovery.findComponentClasses(BundleComponentContainer.Managed.class, BundleComponentContainerImpl.class.getClassLoader(), false)).andReturn(types);
 
         replay();
-        final Whiteboard whiteboard = new WhiteboardImpl(context, container, logs, injector, discovery, observer1, observer2);
+        final BundleComponentContainer services = new BundleComponentContainerImpl(context, container, logs, injector, discovery, observer1, observer2);
         verify();
 
-        return whiteboard;
+        return services;
     }
 
     private void checkFilter(final ListenerSpec listener, final ServiceSpecification... specifications) {
@@ -1065,12 +1065,12 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
 
     private static class ListenerState {
 
-        private final Whiteboard.Observer listener;
+        private final BundleComponentContainer.Observer listener;
         private final Class<?> type;
 
-        private Whiteboard.Managed component;
+        private BundleComponentContainer.Managed component;
 
-        public ListenerState(final Whiteboard.Observer listener, final Class<?> type) {
+        public ListenerState(final BundleComponentContainer.Observer listener, final Class<?> type) {
             this.listener = listener;
             this.type = type;
         }
@@ -1079,10 +1079,10 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
             EasyMock.expect(listener.types()).andReturn(new Class[] { type }).anyTimes();
 
             if (invoked) {
-                listener.started(EasyMock.same(type), EasyMock.<Whiteboard.Managed>notNull());
+                listener.started(EasyMock.same(type), EasyMock.<BundleComponentContainer.Managed>notNull());
                 EasyMock.expectLastCall().andAnswer(new IAnswer<Void>() {
                     public Void answer() throws Throwable {
-                        component = (Whiteboard.Managed) EasyMock.getCurrentArguments()[1];
+                        component = (BundleComponentContainer.Managed) EasyMock.getCurrentArguments()[1];
                         return null;
                     }
                 });
@@ -1093,7 +1093,7 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
             EasyMock.expect(listener.types()).andReturn(new Class[] { type }).anyTimes();
 
             if (invoked) {
-                listener.stopping(EasyMock.same(type), EasyMock.<Whiteboard.Managed>notNull());
+                listener.stopping(EasyMock.same(type), EasyMock.<BundleComponentContainer.Managed>notNull());
                 EasyMock.expectLastCall().andAnswer(new IAnswer<Void>() {
                     public Void answer() throws Throwable {
                         assert component == EasyMock.getCurrentArguments()[1];
@@ -1105,9 +1105,9 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
         }
     }
 
-    public interface ServiceInterface1 extends Whiteboard.Registration { }
+    public interface ServiceInterface1 extends BundleComponentContainer.Registration { }
 
-    public interface ServiceInterface2 extends Whiteboard.Registration { }
+    public interface ServiceInterface2 extends BundleComponentContainer.Registration { }
 
     public static final class Service1 implements ServiceInterface1 {
 
@@ -1151,9 +1151,9 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
         }
     }
 
-    public static final class ServiceDependent1 implements Whiteboard.Managed {
+    public static final class ServiceDependent1 implements BundleComponentContainer.Managed {
 
-        private static Whiteboard.Managed delegate;
+        private static BundleComponentContainer.Managed delegate;
 
         public ServiceDependent1(final @Service ServiceInterface1 service1, final @Service ServiceInterface2 service2) {
             assert service1 != null;
@@ -1169,9 +1169,9 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
         }
     }
 
-    public static final class ServiceDependent2 implements Whiteboard.Managed {
+    public static final class ServiceDependent2 implements BundleComponentContainer.Managed {
 
-        private static Whiteboard.Managed delegate;
+        private static BundleComponentContainer.Managed delegate;
 
         public ServiceDependent2(final @Service(filter = "filter-1") ServiceInterface1 service1, final @Service(filter = "filter-2") ServiceInterface2 service2) {
             assert service1 != null;
@@ -1187,22 +1187,22 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
         }
     }
 
-    public interface Consumer extends Whiteboard.Managed { }
+    public interface Consumer extends BundleComponentContainer.Managed { }
 
-    public static class Source implements Whiteboard.EventSource<Consumer> {
+    public static class Source implements BundleComponentContainer.Registration.Listener<Consumer> {
 
-        private static Whiteboard.EventSource<Consumer> delegate;
+        private static BundleComponentContainer.Registration.Listener<Consumer> delegate;
 
         public Class<Consumer> clientType() {
             return delegate.clientType();
         }
 
-        public void clientAdded(final Consumer consumer, final Properties properties) {
-            delegate.clientAdded(consumer, properties);
+        public void clientAdded(final Consumer component, final Properties properties) {
+            delegate.clientAdded(component, properties);
         }
 
-        public void clientRemoved(final Consumer consumer) {
-            delegate.clientRemoved(consumer);
+        public void clientRemoved(final Consumer component) {
+            delegate.clientRemoved(component);
         }
 
         public void start() throws Exception {
@@ -1215,9 +1215,9 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
     }
 
     @SuppressWarnings("UnusedParameters")
-    public static class Cluster1Component1 implements Whiteboard.Managed {
+    public static class Cluster1Component1 implements BundleComponentContainer.Managed {
 
-        private static Whiteboard.Managed delegate;
+        private static BundleComponentContainer.Managed delegate;
 
         public Cluster1Component1(final @Service ServiceInterface1 service1, final Cluster1Component2 dependency) {
             // empty
@@ -1233,9 +1233,9 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
     }
 
     @SuppressWarnings("UnusedParameters")
-    public static class Cluster1Component2 implements Whiteboard.Managed {
+    public static class Cluster1Component2 implements BundleComponentContainer.Managed {
 
-        private static Whiteboard.Managed delegate;
+        private static BundleComponentContainer.Managed delegate;
 
         public Cluster1Component2(final @Service ServiceInterface2 service2) {
             // empty
@@ -1251,9 +1251,9 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
     }
 
     @SuppressWarnings("UnusedParameters")
-    public static class Cluster2Component1 implements Whiteboard.Managed {
+    public static class Cluster2Component1 implements BundleComponentContainer.Managed {
 
-        private static Whiteboard.Managed delegate;
+        private static BundleComponentContainer.Managed delegate;
 
         public Cluster2Component1(final Cluster2Component2 dependency) {
             // empty
@@ -1269,9 +1269,9 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
     }
 
     @SuppressWarnings("UnusedParameters")
-    public static class Cluster2Component2 implements Whiteboard.Managed {
+    public static class Cluster2Component2 implements BundleComponentContainer.Managed {
 
-        private static Whiteboard.Managed delegate;
+        private static BundleComponentContainer.Managed delegate;
 
         public Cluster2Component2(final @Service ServiceInterface1 service1) {
             // empty
@@ -1287,9 +1287,9 @@ public class WhiteboardImplTest extends MockGroupAbstractTest {
     }
 
     @SuppressWarnings("UnusedParameters")
-    public static class Cluster3Component1 implements Whiteboard.Managed {
+    public static class Cluster3Component1 implements BundleComponentContainer.Managed {
 
-        private static Whiteboard.Managed delegate;
+        private static BundleComponentContainer.Managed delegate;
 
         public Cluster3Component1(final @Service ServiceInterface2 service2) {
             // empty

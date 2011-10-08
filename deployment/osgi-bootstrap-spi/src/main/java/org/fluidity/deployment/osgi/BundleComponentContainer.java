@@ -22,7 +22,7 @@ import org.fluidity.composition.ComponentGroup;
 import org.fluidity.composition.ServiceProvider;
 
 /**
- * Sugar coating over the OSGi service registry: allows whiteboard managed components to
+ * Sugar coating over the OSGi service registry: allows managed components to
  * <ul>
  * <li>declare dependencies on OSGi services and
  * <ul>
@@ -48,38 +48,43 @@ import org.fluidity.composition.ServiceProvider;
  * <p/>
  * <b>Notification about OSGi Service Registration Events</b>
  * <p/>
- * {@link EventSource} components are {@link Managed} components that receive notifications about OSGi service registration and un-registration events.
+ * {@link org.fluidity.deployment.osgi.BundleComponentContainer.Registration.Listener} components are {@link Managed} components that receive notifications about OSGi service registration and un-registration events.
  * <p/>
- * The same whiteboard component may at the same time be a registered OSGi service and may receive notifications about OSGi service registration events by
- * implementing both {@link Registration} and {@link EventSource}.
+ * A managed component may at the same time be a registered OSGi service and may receive notifications about OSGi service registration events by implementing
+ * both {@link Registration} and {@link org.fluidity.deployment.osgi.BundleComponentContainer.Registration.Listener}.
  * <p/>
- * The whiteboard loads and manages all {@link Whiteboard.Managed} components visible to its class loader, which is the OSGi bundle class loader. Components
+ * This container loads and manages all {@link BundleComponentContainer.Managed} components visible to its class loader, which is the OSGi bundle class loader. Components
  * with direct dependencies - i.e., those without the @{@link Service} annotation - to one another are grouped and their combined set of @{@link Service}
  * dependencies are consulted to determine when to instantiate or discard all components in the group. Independent component groups are instantiated and
  * discarded independently.
  *
  * @author Tibor Varga
  */
-public interface Whiteboard {
+public interface BundleComponentContainer {
 
     /**
-     * Starts the whiteboard.
+     * Starts the container.
      */
     void start();
 
     /**
-     * Stops the whiteboard.
+     * Stops the container.
      */
     void stop();
 
     @ComponentGroup
     interface Observer {
 
+        /**
+         * Returns the service interfaces this object will be notified about.
+         *
+         * @return the service interfaces this object will be notified about.
+         */
         Class<?>[] types();
 
         /**
-         * Notifies the receiver that the given whiteboard managed components have been started and are ready to be used. The objects are proxies and the
-         * supplied array contains only those components that registered only against interfaces.
+         * Notifies the receiver that the given managed components have been started and are ready to be used. The objects are proxies and the supplied array
+         * contains only those components that registered only against interfaces.
          *
          * @param type      the component type as listed by {@link #types()} an instance of which has just been started.
          * @param component the component that has just been started.
@@ -87,7 +92,7 @@ public interface Whiteboard {
         void started(Class<?> type, Object component);
 
         /**
-         * Notifies the receiver that the whiteboard managed components for the given service types have been stopped and are no longer usable.
+         * Notifies the receiver that the managed components for the given service types have been stopped and are no longer usable.
          *
          * @param type      the component type as listed by {@link #types()} the current instance of which is about to be stopped.
          * @param component the component that is about to be stopped.
@@ -96,12 +101,12 @@ public interface Whiteboard {
     }
 
     /**
-     * A whiteboard managed component that will be discovered and added to the whiteboard. Whiteboard managed components may have two kinds of dependencies:
-     * OSGi service interfaces annotated with @{@link Service} and ordinary types denoting dependency injected components. When all OSGi services dependencies
-     * become available, the component is instantiated and its {@link #start()} method is invoked. The {@link #stop()} method of the component is invoked to
-     * stop the component if any of the services become unavailable and then the instance is discarded.
+     * A managed component that will be discovered and added to the container. Managed components may have two kinds of dependencies: OSGi service interfaces
+     * annotated with @{@link Service} and ordinary types denoting dependency injected components. When all OSGi services dependencies become available, the
+     * component is instantiated and its {@link #start()} method is invoked. The {@link #stop()} method of the component is invoked to stop the component if any
+     * of the services become unavailable and then the instance is discarded.
      */
-    @ServiceProvider(type = "whiteboard")
+    @ServiceProvider(type = "bundle-components")
     interface Managed extends Stoppable {
 
         /**
@@ -113,7 +118,7 @@ public interface Whiteboard {
     }
 
     /**
-     * Denotes an OSGi service that will be registered when the host bundle is started. A service registration is also a whiteboard {@link Managed} and the
+     * Denotes an OSGi service that will be registered when the host bundle is started. A service registration is also a {@link Managed} component and the
      * start / stop logic described therein equally applies.
      *
      * @author Tibor Varga
@@ -133,41 +138,40 @@ public interface Whiteboard {
          * @return the registration properties for this service; may be <code>null</code>.
          */
         Properties properties();
+
+        /**
+         * An event source that wishes to receive notification about event consumer registration as per the Whiteboard pattern. An event source is a
+         * {@link org.fluidity.deployment.osgi.BundleComponentContainer.Managed} component and the start / stop logic described therein equally applies.
+         */
+        interface Listener<T> extends Managed {
+
+            /**
+             * Returns the class event consumers are expected to register as. Service registrations only against the name of the returned class will be recognized
+             * as event consumer registration.
+             *
+             * @return the class event consumers are expected to register as.
+             */
+            Class<T> clientType();
+
+            /**
+             * Notifies the event source that a new component has been added.
+             *
+             * @param component   the component.
+             * @param properties the component registration properties.
+             */
+            void clientAdded(T component, Properties properties);
+
+            /**
+             * Notifies the event source that a component has been removed.
+             *
+             * @param component the component that has been removed.
+             */
+            void clientRemoved(T component);
+        }
     }
 
     /**
-     * An event source that wishes to receive notification about event consumer registration as per the Whiteboard pattern. An event source is also a
-     * whiteboard {@link Whiteboard.Managed} and the start / stop logic described therein equally applies.
-     */
-    interface EventSource<T> extends Managed {
-
-        /**
-         * Returns the class event consumers are expected to register as. Service registrations only against the name of the returned class will be recognized
-         * as event consumer registration.
-         *
-         * @return the class event consumers are expected to register as.
-         */
-        Class<T> clientType();
-
-        /**
-         * Notifies the event source that a new consumer has been added.
-         *
-         * @param consumer   the consumer.
-         * @param properties the consumer registration properties.
-         */
-        void clientAdded(T consumer, Properties properties);
-
-        /**
-         * Notifies the event source that a consumer has been removed.
-         *
-         * @param consumer the consumer that has been removed.
-         */
-        void clientRemoved(T consumer);
-    }
-
-    /**
-     * Allows an item managed by the whiteboard to be explicitly removed from the whiteboard. This is also done automatically when the owning bundle is
-     * stopped.
+     * Allows an item managed by the container to be explicitly removed from the container. This is also done automatically when the owning bundle is stopped.
      */
     interface Stoppable {
 

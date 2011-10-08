@@ -17,12 +17,28 @@ limitations under the License.
 *##set( $symbol_escape = '\' )#*
 *#package ${package}.impl;
 
-import org.fluidity.deployment.osgi.Whiteboard;
+import org.fluidity.deployment.osgi.BundleComponentContainer;
 
 import ${package}.MessageSink;
 import ${package}.MessageSource;
 
-final class Observer implements Whiteboard.Observer {
+/*
+ * Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+final class Observer implements BundleComponentContainer.Observer {
 
     private boolean sinkStarted;
     private boolean sourceStarted;
@@ -44,7 +60,7 @@ final class Observer implements Whiteboard.Observer {
         }
 
         if (sinkStarted && sourceStarted) {
-            source.sendText("whiteboard observer: ready");
+            source.sendText("service observer: ready");
         }
     }
 
@@ -52,7 +68,7 @@ final class Observer implements Whiteboard.Observer {
         assert sinkStarted || sourceStarted : type;
 
         if (sinkStarted && sourceStarted) {
-            source.sendText("whiteboard observer: not ready");
+            source.sendText("service observer: not ready");
             source = null;
         }
 

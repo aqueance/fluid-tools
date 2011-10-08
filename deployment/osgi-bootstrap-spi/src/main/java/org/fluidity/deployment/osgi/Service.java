@@ -23,8 +23,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Annotates method parameters of a {@link Whiteboard} component that require an OSGi service instance. See {@link Whiteboard} for details on whiteboard
- * components.
+ * Annotates method parameters of a {@link BundleComponentContainer.Managed} component that require an OSGi service instance. See
+ * {@link BundleComponentContainer} for details on managed components.
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)

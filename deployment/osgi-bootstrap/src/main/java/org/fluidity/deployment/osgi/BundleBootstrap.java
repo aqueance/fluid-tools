@@ -40,7 +40,7 @@ public final class BundleBootstrap implements BundleActivator {
 
     private final BundleShutdownTasks shutdown = new BundleShutdownTasks();
     private Activators activators;
-    private Whiteboard whiteboard;
+    private BundleComponentContainer container;
 
     @SuppressWarnings("unchecked")
     public void start(final BundleContext context) throws Exception {
@@ -53,8 +53,8 @@ public final class BundleBootstrap implements BundleActivator {
 
         boundary.initialize(shutdown);
 
-        whiteboard = boundary.getComponent(Whiteboard.class);
-        whiteboard.start();
+        container = boundary.getComponent(BundleComponentContainer.class);
+        container.start();
 
         activators = boundary.getComponent(Activators.class);
         activators.start();
@@ -62,7 +62,7 @@ public final class BundleBootstrap implements BundleActivator {
 
     public void stop(final BundleContext context) throws Exception {
         activators.stop();
-        whiteboard.stop();
+        container.stop();
         shutdown.stop();
     }
 

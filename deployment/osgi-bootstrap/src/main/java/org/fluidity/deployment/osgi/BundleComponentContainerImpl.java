@@ -59,7 +59,7 @@ import org.osgi.framework.ServiceRegistration;
  * @author Tibor Varga
  */
 @Component
-public class WhiteboardImpl implements Whiteboard {
+public class BundleComponentContainerImpl implements BundleComponentContainer {
 
     private final Set<Stoppable> cleanup = new HashSet<Stoppable>();
     private final Map<Managed, Set<Class<?>>> clusters = new HashMap<Managed, Set<Class<?>>>();
@@ -74,16 +74,16 @@ public class WhiteboardImpl implements Whiteboard {
 
     private Log listenerLog;
 
-    public WhiteboardImpl(final BundleContext context,
-                          final ComponentContainer container,
-                          final LogFactory logs,
-                          final DependencyInjector injector,
-                          final ClassDiscovery discovery,
-                          final @ComponentGroup Observer... listeners) {
+    public BundleComponentContainerImpl(final BundleContext context,
+                                        final ComponentContainer container,
+                                        final LogFactory logs,
+                                        final DependencyInjector injector,
+                                        final ClassDiscovery discovery,
+                                        final @ComponentGroup Observer... listeners) {
         this.context = context;
         this.container = container;
         this.injector = injector;
-        this.log = logs.createLog(WhiteboardImpl.class);
+        this.log = logs.createLog(BundleComponentContainerImpl.class);
 
         this.items = discovery.findComponentClasses(Managed.class, getClass().getClassLoader(), false);
         this.listeners = listeners;
@@ -147,9 +147,9 @@ public class WhiteboardImpl implements Whiteboard {
     private Components.Interfaces inspect(final Class<Managed> type) {
         final Component componentAnnotation = type.getAnnotation(Component.class);
         if (componentAnnotation != null && componentAnnotation.automatic()) {
-            throw new IllegalStateException(String.format("Whiteboard managed component %s may not have @%s(automatic = true)", type, Component.class));
+            throw new IllegalStateException(String.format("Managed component %s may not have @%s(automatic = true)", type, Component.class));
         } else if (componentAnnotation == null && type.isAnnotationPresent(ComponentGroup.class)) {
-            throw new IllegalStateException(String.format("Whiteboard managed component %s may not have @%s without @%s(automatic = false)",
+            throw new IllegalStateException(String.format("Managed component %s may not have @%s without @%s(automatic = false)",
                                                           type,
                                                           ComponentGroup.class,
                                                           Component.class));
@@ -224,12 +224,12 @@ public class WhiteboardImpl implements Whiteboard {
             try {
                 stoppable.stop();
             } catch (final Exception e) {
-                log.error(e, "Stopping a whiteboard managed component");
+                log.error(e, "Stopping a managed component");
             }
         }
     }
 
-    private <T> void register(final EventSource<T> source) {
+    private <T> void register(final Registration.Listener<T> source) {
         final Class<T> type = source.clientType();
 
         final ServiceListener listener = new ServiceListener() {
@@ -336,8 +336,8 @@ public class WhiteboardImpl implements Whiteboard {
 
         log.info("%s started", name);
 
-        if (component instanceof EventSource) {
-            register((EventSource<?>) component);
+        if (component instanceof Registration.Listener) {
+            register((Registration.Listener<?>) component);
         }
 
         if (component instanceof Registration) {
@@ -492,7 +492,7 @@ public class WhiteboardImpl implements Whiteboard {
                     boolean found = check == null;      // no reference: we have found it...
 
                     for (int i = 0, limit = references.length; !found && i < limit; i++) {
-                        found = check == references[i];     // TODO: we only assume that if the reference is unregistered it will not be returned by the context
+                        found = check == references[i];     // TODO: we assume that if the reference is unregistered it will not be returned by the context
                     }
 
                     if (!found) {

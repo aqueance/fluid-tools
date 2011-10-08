@@ -45,15 +45,21 @@ final class Slf4jLogImpl implements Log {
     }
 
     public void trace(final String message, final Object... args) {
-        log.trace(String.format(message, args));
+        if (log.isTraceEnabled()) {
+            log.trace(String.format(message, args));
+        }
     }
 
     public void debug(final String message, final Object... args) {
-        log.debug(String.format(message, args));
+        if (log.isDebugEnabled()) {
+            log.debug(String.format(message, args));
+        }
     }
 
     public void info(final String message, final Object... args) {
-        log.info(String.format(message, args));
+        if (log.isInfoEnabled()) {
+            log.info(String.format(message, args));
+        }
     }
 
     public void warning(final String message, final Object... args) {
@@ -65,15 +71,21 @@ final class Slf4jLogImpl implements Log {
     }
 
     public void trace(final Throwable exception, final String message, final Object... args) {
-        log.trace(String.format(message, args), exception);
+        if (log.isTraceEnabled()) {
+            log.trace(String.format(message, args), exception);
+        }
     }
 
     public void debug(final Throwable exception, final String message, final Object... args) {
-        log.debug(String.format(message, args), exception);
+        if (log.isDebugEnabled()) {
+            log.debug(String.format(message, args), exception);
+        }
     }
 
     public void info(final Throwable exception, final String message, final Object... args) {
-        log.info(String.format(message, args), exception);
+        if (log.isInfoEnabled()) {
+            log.info(String.format(message, args), exception);
+        }
     }
 
     public void warning(final Throwable exception, final String message, final Object... args) {

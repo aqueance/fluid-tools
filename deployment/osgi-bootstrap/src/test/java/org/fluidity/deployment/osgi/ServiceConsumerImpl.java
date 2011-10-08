@@ -18,9 +18,9 @@ package org.fluidity.deployment.osgi;
 
 /**
  * An OSGi service consumer that passes to a service the name of a class not visible to the service and expects the service to instantiate the class. This is
- * used to verify the whiteboard's ability to make services able to load classes visible only to the calling bundle.
+ * used to verify the container's ability to make services able to load classes visible only to the calling bundle.
  */
-public final class ServiceConsumerImpl implements ServiceConsumer, Whiteboard.Managed {
+public final class ServiceConsumerImpl implements ServiceConsumer, BundleComponentContainer.Managed {
 
     private final ServiceProvider provider;
 

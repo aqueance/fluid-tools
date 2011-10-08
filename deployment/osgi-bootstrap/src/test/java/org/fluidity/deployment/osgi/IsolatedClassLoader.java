@@ -40,7 +40,7 @@ public class IsolatedClassLoader extends ClassLoader {
     private final String name;
 
     public IsolatedClassLoader(final String name, final Class... shared) {
-        super(WhiteboardImplTest.class.getClassLoader());
+        super(BundleComponentContainerImplTest.class.getClassLoader());
 
         this.name = name;
 

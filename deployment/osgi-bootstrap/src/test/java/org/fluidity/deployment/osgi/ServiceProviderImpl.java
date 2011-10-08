@@ -20,7 +20,7 @@ import java.util.Properties;
 
 import org.fluidity.foundation.ClassLoaders;
 
-public final class ServiceProviderImpl implements ServiceProvider, Whiteboard.Registration {
+public final class ServiceProviderImpl implements ServiceProvider, BundleComponentContainer.Registration {
 
     public Class<?>[] types() {
         return new Class<?>[] { ServiceProvider.class };
