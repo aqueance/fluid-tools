@@ -706,9 +706,7 @@ public class BundleComponentContainerImplTest extends MockGroupAbstractTest {
         listenerState1.starting(true);
         listenerState2.starting(true);
 
-        for (final ListenerSpec ignored : service1Listeners) {
-            EasyMock.expect(border.imported(ServiceInterface1.class, service1)).andReturn(wrappedService1);
-        }
+        expectWrapping(service1Listeners, ServiceInterface1.class, service1, wrappedService1);
 
         replay();
         for (final ListenerSpec listener : service1Listeners) {
@@ -748,9 +746,7 @@ public class BundleComponentContainerImplTest extends MockGroupAbstractTest {
         listenerState1.starting(false);
         listenerState2.starting(false);
 
-        for (final ListenerSpec ignored : service2Listeners) {
-            EasyMock.expect(border.imported(ServiceInterface2.class, service2)).andReturn(wrappedService2);
-        }
+        expectWrapping(service2Listeners, ServiceInterface2.class, service2, wrappedService2);
 
         replay();
         for (final ListenerSpec listener : service2Listeners) {
@@ -813,9 +809,7 @@ public class BundleComponentContainerImplTest extends MockGroupAbstractTest {
         listenerState1.starting(true);
         listenerState2.starting(true);
 
-        for (final ListenerSpec ignored : service1Listeners) {
-            EasyMock.expect(border.imported(ServiceInterface1.class, service1)).andReturn(wrappedService1);
-        }
+        expectWrapping(service1Listeners, ServiceInterface1.class, service1, wrappedService1);
 
         replay();
         for (final ListenerSpec listener : service1Listeners) {
@@ -878,9 +872,7 @@ public class BundleComponentContainerImplTest extends MockGroupAbstractTest {
         listenerState1.starting(false);
         listenerState2.starting(false);
 
-        for (final ListenerSpec ignored : service2Listeners) {
-            EasyMock.expect(border.imported(ServiceInterface2.class, service2)).andReturn(wrappedService2);
-        }
+        expectWrapping(service2Listeners, ServiceInterface2.class, service2, wrappedService2);
 
         replay();
         for (final ListenerSpec listener : service2Listeners) {
@@ -907,6 +899,13 @@ public class BundleComponentContainerImplTest extends MockGroupAbstractTest {
         replay();
         services.stop();
         verify();
+    }
+
+    @SuppressWarnings("UnusedDeclaration")
+    private <T> void expectWrapping(final Set<ListenerSpec> list, final Class<T> type, final T service, final T wrapped) {
+        for (final ListenerSpec ignored : list) {
+            EasyMock.expect(border.imported(type, service)).andReturn(wrapped);
+        }
     }
 
     @Test
