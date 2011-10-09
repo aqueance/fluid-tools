@@ -30,12 +30,12 @@ public interface ComponentFactory {
 
     /**
      * The factory in this method simply lets the caller know what dependencies the created component will have in the given context. Actual component
-     * instantiation does not take place in this method. The  {@link Instance#bind(Registry)} method of the returned object will be invoked, at the right time,
-     * to actually bind the created component, and its local, internal dependencies to a registry. Actual instantiation should, when possible at all, left to
-     * the caller of that method. If a factory absolutely has to instantiate the component on account of, for instance, having to call an external factory,
+     * instantiation does not take place in this method. The {@link Instance#bind(Registry)} method of the returned object will be invoked, at the right time,
+     * to actually bind the created component, and its local, internal dependencies to a registry. Actual instantiation should, when possible at all, be left to
+     * the caller of that method. If a factory absolutely has to instantiate the component on account of, for instance, having to call an external factory, then
      * that instantiation must not take place in this method but in {@link Instance#bind(Registry)}.
      * <p/>
-     * The following boilerplate demonstrate the basic pattern of the implementation:
+     * The following boilerplate demonstrates the basic pattern of the implementation:
      * <pre>
      * public Instance resolve(final Resolver dependencies, final ComponentContext context) throws ComponentContainer.ResolutionException {
      *     dependencies.discover(CreatedComponent.class);
@@ -48,7 +48,7 @@ public interface ComponentFactory {
      * }
      * </pre>
      * <p/>
-     * The following boilerplate demonstrate the pattern of the implementation in case it has to call the component's constructor:
+     * The following boilerplate demonstrates the pattern of the implementation in case it has to call the component's constructor:
      * <pre>
      * public Instance resolve(final Resolver dependencies, final ComponentContext context) throws ComponentContainer.ResolutionException {
      *     final Dependency<?>[] parameters = dependencies.discover(CreatedComponent.class);
@@ -61,7 +61,7 @@ public interface ComponentFactory {
      * }
      * </pre>
      * <p/>
-     * The following boilerplate demonstrate the pattern of the implementation in case it has to call some external factory:
+     * The following boilerplate demonstrates the pattern of the implementation in case it has to call some external factory:
      * <pre>
      * public Instance resolve(final Resolver dependencies, final ComponentContext context) throws ComponentContainer.ResolutionException {
      *     final Dependency<Dependency1> dependency1 = dependencies.resolve(Dependency1.class);
@@ -103,7 +103,8 @@ public interface ComponentFactory {
     }
 
     /**
-     * Represents a resolved dependency of the component being created by the {@link ComponentFactory} in its {@link ComponentFactory#resolve(ComponentContext, Resolver)} method.
+     * Represents a resolved dependency of the component being created by the {@link ComponentFactory} in its {@link ComponentFactory#resolve(ComponentContext,
+     * Resolver)} method.
      *
      * @param <T> the type of the dependency.
      */

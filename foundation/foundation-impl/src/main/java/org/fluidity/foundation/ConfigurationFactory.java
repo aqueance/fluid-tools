@@ -43,6 +43,7 @@ import org.fluidity.foundation.spi.PropertyProvider;
 @Component(api = Configuration.class)
 @Context({ Configuration.Definition.class, Configuration.Context.class })
 final class ConfigurationFactory implements CustomComponentFactory {
+
     public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
         final Configuration.Definition definition = context.annotation(Configuration.Definition.class, Configuration.class);
         final Configuration.Context[] contexts = context.annotations(Configuration.Context.class);
@@ -114,7 +115,7 @@ final class ConfigurationFactory implements CustomComponentFactory {
             }
         }
 
-        String[] propertyContexts(final Context[] annotations) {
+        private String[] propertyContexts(final Context[] annotations) {
             final List<String> list = new ArrayList<String>((annotations == null ? 0 : annotations.length) + 1);
 
             final StringBuilder prefix = new StringBuilder();
@@ -295,11 +296,7 @@ final class ConfigurationFactory implements CustomComponentFactory {
             }
 
             private boolean isComposite(final Class<?> type) {
-                final boolean array = type.isArray();
-                final boolean primitive = type.isPrimitive();
-                final String name = type.getName();
-                final boolean enumeration = Enum.class.isAssignableFrom(type);
-                return !array && !primitive && !enumeration && !name.startsWith("java.");
+                return !type.isArray() && !type.isPrimitive() && !Enum.class.isAssignableFrom(type) && !type.getName().startsWith("java.");
             }
 
             private Object composite(final Class<?> type, final String suffix) throws IllegalAccessException, InstantiationException {

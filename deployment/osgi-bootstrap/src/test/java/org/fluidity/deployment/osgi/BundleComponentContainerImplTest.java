@@ -56,7 +56,7 @@ public class BundleComponentContainerImplTest extends MockGroupAbstractTest {
     private final ComponentContainer.Registry registry = mock(ComponentContainer.Registry.class);
     private final ClassDiscovery discovery = mock(ClassDiscovery.class);
     private final DependencyInjector injector = mock(DependencyInjector.class);
-    private final BundleBorder border = mock(BundleBorder.class);
+    private final BundleBoundary border = mock(BundleBoundary.class);
 
     private final LogFactory logs = new NoLogFactory();
 
@@ -999,13 +999,13 @@ public class BundleComponentContainerImplTest extends MockGroupAbstractTest {
                                                                                           ComponentContainer.class,
                                                                                           LogFactory.class,
                                                                                           DependencyInjector.class,
-                                                                                          BundleBorder.class,
+                                                                                          BundleBoundary.class,
                                                                                           ClassDiscovery.class,
                                                                                           BundleComponentContainer.Observer[].class);
 
         containers.setAccessible(true);
 
-        final Constructor<?> borders = loader.loadClass(BundleBorderImpl.class.getName()).getDeclaredConstructor();
+        final Constructor<?> borders = loader.loadClass(BundleBoundaryImpl.class.getName()).getDeclaredConstructor();
         borders.setAccessible(true);
 
         return (BundleComponentContainer) containers.newInstance(context,

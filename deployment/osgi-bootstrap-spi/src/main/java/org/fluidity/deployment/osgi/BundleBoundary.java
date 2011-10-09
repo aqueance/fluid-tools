@@ -27,7 +27,7 @@ package org.fluidity.deployment.osgi;
  *
  * @author Tibor Varga
  */
-public interface BundleBorder {
+public interface BundleBoundary {
 
     /**
      * Wraps the given object from another bundle to allow it to find classes in this bundle.

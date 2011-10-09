@@ -29,7 +29,7 @@ import org.fluidity.foundation.Proxies;
  * @author Tibor Varga
  */
 @Component
-final class BundleBorderImpl implements BundleBorder {
+final class BundleBoundaryImpl implements BundleBoundary {
 
     public <T> T imported(final Class<T> type, final T remote) {
         return tunnel(type, remote, this);

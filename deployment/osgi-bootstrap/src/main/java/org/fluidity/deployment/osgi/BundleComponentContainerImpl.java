@@ -62,7 +62,7 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
     private final BundleContext context;
     private final ComponentContainer container;
     private final DependencyInjector injector;
-    private final BundleBorder border;
+    private final BundleBoundary border;
 
     private final Class<Managed>[] items;
     private final Observer[] listeners;
@@ -73,7 +73,7 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
                                         final ComponentContainer container,
                                         final LogFactory logs,
                                         final DependencyInjector injector,
-                                        final BundleBorder border,
+                                        final BundleBoundary border,
                                         final ClassDiscovery discovery,
                                         final @ComponentGroup Observer... listeners) {
         this.context = context;

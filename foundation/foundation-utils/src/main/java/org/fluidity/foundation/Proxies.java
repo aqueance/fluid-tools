@@ -40,7 +40,7 @@ public final class Proxies {
         }
 
         public String toString(final Object instance) {
-            return String.format("%s@%d", Proxies.api(instance.getClass()).getSimpleName(), instance.hashCode());
+            return String.format("%s@%x", Proxies.api(instance.getClass()).getSimpleName(), instance.hashCode());
         }
     };
 
@@ -70,9 +70,7 @@ public final class Proxies {
     @SuppressWarnings("unchecked")
     public static <T> T create(final Class<T> type, final ObjectIdentity<T> identity, final InvocationHandler handler) {
         final AtomicReference<T> proxy = new AtomicReference<T>();
-
         proxy.set((T) Proxy.newProxyInstance(type.getClassLoader(), new Class<?>[] { type }, new MethodInvocations(handler, proxy, identity)));
-
         return proxy.get();
     }
 
@@ -137,6 +135,9 @@ public final class Proxies {
         String toString(T instance);
     }
 
+    /**
+     * Handles Object methods, i.e., {@link Object#hashCode()}, {@link Object#equals(Object)}, and {@link Object#toString()}.
+     */
     private static final class MethodInvocations<T> implements InvocationHandler {
 
         private final ObjectIdentity<T> identity;
