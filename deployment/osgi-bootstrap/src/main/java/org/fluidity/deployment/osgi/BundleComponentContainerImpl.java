@@ -16,17 +16,12 @@
 
 package org.fluidity.deployment.osgi;
 
-import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
@@ -44,7 +39,6 @@ import org.fluidity.composition.Components;
 import org.fluidity.composition.DependencyInjector;
 import org.fluidity.composition.OpenComponentContainer;
 import org.fluidity.foundation.Log;
-import org.fluidity.foundation.Proxies;
 import org.fluidity.foundation.spi.LogFactory;
 
 import org.osgi.framework.BundleContext;
@@ -59,7 +53,7 @@ import org.osgi.framework.ServiceRegistration;
  * @author Tibor Varga
  */
 @Component
-public class BundleComponentContainerImpl implements BundleComponentContainer {
+final class BundleComponentContainerImpl implements BundleComponentContainer {
 
     private final Set<Stoppable> cleanup = new HashSet<Stoppable>();
     private final Map<Managed, Set<Class<?>>> clusters = new HashMap<Managed, Set<Class<?>>>();
@@ -68,21 +62,24 @@ public class BundleComponentContainerImpl implements BundleComponentContainer {
     private final BundleContext context;
     private final ComponentContainer container;
     private final DependencyInjector injector;
+    private final BundleBorder border;
 
     private final Class<Managed>[] items;
     private final Observer[] listeners;
 
-    private Log listenerLog;
+    private final Log listenerLog;
 
     public BundleComponentContainerImpl(final BundleContext context,
                                         final ComponentContainer container,
                                         final LogFactory logs,
                                         final DependencyInjector injector,
+                                        final BundleBorder border,
                                         final ClassDiscovery discovery,
                                         final @ComponentGroup Observer... listeners) {
         this.context = context;
         this.container = container;
         this.injector = injector;
+        this.border = border;
         this.log = logs.createLog(BundleComponentContainerImpl.class);
 
         this.items = discovery.findComponentClasses(Managed.class, getClass().getClassLoader(), false);
@@ -512,7 +509,7 @@ public class BundleComponentContainerImpl implements BundleComponentContainer {
                     for (int i = 0, limit = references.length; !referenceMap.containsKey(service) && i < limit; i++) {
                         final ServiceReference reference = references[i];
                         referenceMap.put(service, reference);
-                        dependencyMap.put(service, Proxies.create(service.api, new ServiceInvocation(context.getService(reference))));
+                        dependencyMap.put(service, border.imported((Class) service.api, context.getService(reference)));
                     }
                 }
             }
@@ -591,49 +588,4 @@ public class BundleComponentContainerImpl implements BundleComponentContainer {
         }
     }
 
-    private static class ServiceInvocation implements InvocationHandler {
-        private final ClassLoader tunnel;
-        private final Object implementation;
-
-        public ServiceInvocation(final Object implementation) {
-            this.implementation = implementation;
-            this.tunnel = new DelegatingClassLoader(implementation);
-        }
-
-        public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
-            final Thread thread = Thread.currentThread();
-            final ClassLoader saved = thread.getContextClassLoader();
-
-            thread.setContextClassLoader(tunnel);
-            try {
-                return method.invoke(implementation, args);
-            } finally {
-                thread.setContextClassLoader(saved);
-            }
-        }
-    }
-
-    private static class DelegatingClassLoader extends ClassLoader {
-
-        private final ClassLoader delegate;
-
-        public DelegatingClassLoader(final Object object) {
-            super(object.getClass().getClassLoader());
-            this.delegate = getClass().getClassLoader();
-        }
-        @Override
-        protected Class<?> findClass(final String name) throws ClassNotFoundException {
-          return delegate.loadClass(name);
-        }
-
-        @Override
-        protected Enumeration<URL> findResources(final String name) throws IOException {
-          return delegate.getResources(name);
-        }
-
-        @Override
-        protected URL findResource(final String name) {
-          return delegate.getResource(name);
-        }
-    }
 }
