@@ -41,7 +41,7 @@ final class BundleBoundaryImpl implements BundleBoundary {
 
     private <T> T tunnel(final Class<T> type, final T remote, final Object local) {
         final ClassLoader remoteCL = remote.getClass().getClassLoader();
-        final ClassLoader localCL = local.getClass().getClassLoader();
+        final ClassLoader localCL = (local instanceof Class ? (Class) local : local.getClass()).getClassLoader();
 
         return remoteCL == localCL ? remote : Proxies.create(type, new ServiceInvocation(remote, new DelegatingClassLoader(remoteCL, localCL)));
     }
@@ -87,7 +87,7 @@ final class BundleBoundaryImpl implements BundleBoundary {
 
         public DelegatingClassLoader(final ClassLoader remote, final ClassLoader local) {
             super(remote);
-            this.caller = local;
+            this.caller = local == null ? getSystemClassLoader() : local;
         }
 
         @Override

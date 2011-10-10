@@ -17,13 +17,11 @@
 package org.fluidity.deployment.osgi;
 
 import java.lang.reflect.Constructor;
-import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicReference;
 
 import org.fluidity.composition.ClassDiscovery;
 import org.fluidity.composition.ComponentContainer;
@@ -906,115 +904,6 @@ public class BundleComponentContainerImplTest extends MockGroupAbstractTest {
         for (final ListenerSpec ignored : list) {
             EasyMock.expect(border.imported(type, service)).andReturn(wrapped);
         }
-    }
-
-    @Test
-    public void testClassLoading() throws Exception {
-        final IsolatedClassLoader bundle1 = new IsolatedClassLoader("service", BundleComponentContainerImplTest.class, BundleComponentContainer.class, ListenerSpecImpl.class, ServiceProvider.class);
-        final IsolatedClassLoader bundle2 = new IsolatedClassLoader("client", BundleComponentContainerImplTest.class, BundleComponentContainer.class, ListenerSpecImpl.class, ServiceProvider.class);
-
-        final Class<?> providerClass = bundle1.loadClass(ServiceProviderImpl.class.getName());
-        final Class<?> consumerClass = bundle2.loadClass(ServiceConsumerImpl.class.getName());
-
-        EasyMock.expect(discovery.findComponentClasses(EasyMock.same(BundleComponentContainer.Managed.class), EasyMock.<ClassLoader>notNull(), EasyMock.eq(false)))
-                .andReturn(new Class[] { providerClass });
-
-        replay();
-        final BundleComponentContainer services1 = loadContainer(bundle1);
-        verify();
-
-        EasyMock.expect(discovery.findComponentClasses(EasyMock.same(BundleComponentContainer.Managed.class), EasyMock.<ClassLoader>notNull(), EasyMock.eq(false)))
-                .andReturn(new Class[] { consumerClass });
-
-        replay();
-        final BundleComponentContainer services2 = loadContainer(bundle2);
-        verify();
-
-        assert services1.getClass() != services2.getClass();
-
-        EasyMock.expect(injector.findConstructor(providerClass)).andReturn((Constructor) providerClass.getDeclaredConstructor());
-        EasyMock.expect(container.makeChildContainer()).andReturn(child);
-        EasyMock.expect(child.getRegistry()).andReturn(registry);
-        registry.bindComponent(providerClass);
-
-        final ServiceProvider provider = (ServiceProvider) providerClass.newInstance();
-        EasyMock.expect(child.getComponent(providerClass)).andReturn(provider);
-
-        EasyMock.expect(context.registerService(EasyMock.aryEq(new String[] { ServiceProvider.class.getName() }),
-                                                EasyMock.same(provider),
-                                                EasyMock.<Dictionary>isNull()))
-                .andReturn(registration);
-
-        replay();
-        services1.start();
-        verify();
-
-        final Constructor<?> constructor = consumerClass.getDeclaredConstructor(ServiceProvider.class);
-        EasyMock.expect(injector.findConstructor(consumerClass)).andReturn((Constructor) constructor);
-
-        context.addServiceListener(EasyMock.<ServiceListener>notNull(), EasyMock.<String>notNull());
-
-        EasyMock.expect(context.getServiceReferences(ServiceProvider.class.getName(), null)).andReturn(new ServiceReference[] { reference1 }).anyTimes();
-        EasyMock.expect(context.getService(reference1)).andReturn(provider);
-
-        EasyMock.expect(container.makeChildContainer()).andReturn(child);
-        EasyMock.expect(child.getRegistry()).andReturn(registry);
-
-        registry.bindInstance(EasyMock.<ServiceProvider>notNull(), EasyMock.same(ServiceProvider.class));
-
-        final AtomicReference<ServiceProvider> proxy = new AtomicReference<ServiceProvider>();
-        final AtomicReference<ServiceConsumer> consumer = new AtomicReference<ServiceConsumer>();
-
-        EasyMock.expectLastCall().andAnswer(new IAnswer<Object>() {
-            public Object answer() throws Throwable {
-                proxy.set((ServiceProvider) EasyMock.getCurrentArguments()[0]);
-                consumer.set((ServiceConsumer) constructor.newInstance(proxy.get()));
-                return null;
-            }
-        });
-
-        registry.bindComponent(consumerClass);
-
-        EasyMock.expect(child.getComponent(consumerClass)).andAnswer(new IAnswer<Object>() {
-            public Object answer() throws Throwable {
-                return consumer.get();
-            }
-        });
-
-        replay();
-        services2.start();
-        verify();
-
-
-        replay();
-        final String name = consumer.get().call();
-        verify();
-
-        assert bundle2.name().equals(name) : name;
-    }
-
-    private BundleComponentContainer loadContainer(final ClassLoader loader) throws Exception {
-        final String containerClass = BundleComponentContainerImpl.class.getName();
-        final Constructor<?> containers = loader.loadClass(containerClass).getConstructor(BundleContext.class,
-                                                                                          ComponentContainer.class,
-                                                                                          LogFactory.class,
-                                                                                          DependencyInjector.class,
-                                                                                          BundleBoundary.class,
-                                                                                          ClassDiscovery.class,
-                                                                                          BundleComponentContainer.Observer[].class);
-
-        containers.setAccessible(true);
-
-        final Constructor<?> borders = loader.loadClass(BundleBoundaryImpl.class.getName()).getDeclaredConstructor();
-        borders.setAccessible(true);
-
-        return (BundleComponentContainer) containers.newInstance(context,
-                                                                 container,
-                                                                 logs,
-                                                                 injector,
-                                                                 borders.newInstance(),
-                                                                 discovery,
-                                                                 new BundleComponentContainer.Observer[0]);
     }
 
     private Set<ListenerSpec> filterListeners(final Class<?> type, final ListenerSpec... listeners) {
