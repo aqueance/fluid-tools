@@ -39,14 +39,18 @@ public class CommandLineJarManifest implements JarManifest {
     }
 
     public boolean processManifest(final MavenProject project, final Attributes attributes, final List<String> paths, final Collection<Artifact> dependencies) {
-        final String mainClass = attributes.getValue(Attributes.Name.MAIN_CLASS);
+        final String originalMainClass = attributes.getValue(JarJarLauncher.ORIGINAL_MAIN_CLASS);
 
-        if (mainClass == null) {
-            throw new IllegalStateException(String.format("Manifest does not contain %s", Attributes.Name.MAIN_CLASS));
+        if (originalMainClass == null) {
+            final String mainClass = attributes.getValue(Attributes.Name.MAIN_CLASS);
+
+            if (mainClass == null) {
+                throw new IllegalStateException(String.format("Manifest does not contain %s", Attributes.Name.MAIN_CLASS));
+            }
+
+            attributes.putValue(JarJarLauncher.ORIGINAL_MAIN_CLASS, mainClass);
+            attributes.put(Attributes.Name.MAIN_CLASS, JarJarLauncher.class.getName());
         }
-
-        attributes.putValue(JarJarLauncher.ORIGINAL_MAIN_CLASS, mainClass);
-        attributes.put(Attributes.Name.MAIN_CLASS, JarJarLauncher.class.getName());
 
         final StringBuilder dependencyList = new StringBuilder();
 
@@ -62,5 +66,4 @@ public class CommandLineJarManifest implements JarManifest {
 
         return true;
     }
-
 }

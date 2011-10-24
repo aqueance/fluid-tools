@@ -39,7 +39,7 @@ import org.testng.annotations.Test;
 @SuppressWarnings("UnusedDeclaration")
 public class ConfigurationTest extends MockGroupAbstractTest {
 
-    private final Configuration.Definition definition = mock(Configuration.Definition.class);
+    private final Configuration.Interface definition = mock(Configuration.Interface.class);
 
     private final PropertyProvider provider = new PropertyProvider() {
         private final PropertyProvider mock = mock(PropertyProvider.class);

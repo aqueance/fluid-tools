@@ -41,11 +41,11 @@ import org.fluidity.composition.spi.CustomComponentFactory;
 import org.fluidity.foundation.spi.PropertyProvider;
 
 @Component(api = Configuration.class)
-@Context({ Configuration.Definition.class, Configuration.Context.class })
+@Context({ Configuration.Interface.class, Configuration.Context.class })
 final class ConfigurationFactory implements CustomComponentFactory {
 
     public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
-        final Configuration.Definition definition = context.annotation(Configuration.Definition.class, Configuration.class);
+        final Configuration.Interface definition = context.annotation(Configuration.Interface.class, Configuration.class);
         final Configuration.Context[] contexts = context.annotations(Configuration.Context.class);
         final Dependency<?> dependency = dependencies.resolve(definition.value());
 
@@ -62,7 +62,7 @@ final class ConfigurationFactory implements CustomComponentFactory {
                     registry.bindInstance(contexts, Configuration.Context[].class);
                 }
 
-                registry.bindInstance(definition, Configuration.Definition.class);
+                registry.bindInstance(definition, Configuration.Interface.class);
                 registry.bindComponent(ConfigurationImpl.class);
             }
         };
@@ -83,7 +83,7 @@ final class ConfigurationFactory implements CustomComponentFactory {
          * @param context    used to find the property prefix to apply to properties queried from the <code>provider</code>.
          */
         @SuppressWarnings("unchecked")
-        public ConfigurationImpl(final Definition definition,
+        public ConfigurationImpl(final Interface definition,
                                  final @Optional PropertyProvider provider,
                                  final @Optional T defaults,
                                  final @Optional Context... context) {

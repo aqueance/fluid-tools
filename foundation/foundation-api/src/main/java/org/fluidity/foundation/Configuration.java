@@ -59,7 +59,7 @@ import org.fluidity.foundation.spi.PropertyProvider;
  *      private final String property1;
  *      private final String property2;
  *
- *      public Configured(final &#64;Configuration.Definition(MySettings.class) Configuration&lt;MySettings> settings) {
+ *      public Configured(final &#64;Configuration.Interface(MySettings.class) Configuration&lt;MySettings> settings) {
  *          final MySettings configuration = settings.snapshot();
  *          assert configuration != null;
  *
@@ -271,10 +271,10 @@ public interface Configuration<T> {
     @Documented
     @Retention(RetentionPolicy.RUNTIME)
     @Target({ ElementType.PARAMETER, ElementType.FIELD })
-    @interface Definition {
+    @interface Interface {
 
         /**
-         * Defines the interface defining the configuration methods used by the class employing this annotation.
+         * Returns the interface that defines the configuration methods used by the class employing this annotation.
          *
          * @return a class object.
          */
