@@ -21,7 +21,7 @@ limitations under the License.
     <version>${version}</version>
     <packaging>pom</packaging>
 
-    <name>My Project</name>
+    <name>${projectName}</name>
 
     <prerequisites>
         <maven>2.0.9</maven> <!-- scope "import" appeared in 2.0.9 -->
