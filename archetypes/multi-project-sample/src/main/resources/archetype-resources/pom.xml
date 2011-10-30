@@ -28,7 +28,7 @@ limitations under the License.
     </prerequisites>
 
     <properties>
-        <fluid.tools.version>1.0.0-SNAPSHOT</fluid.tools.version>
+        <fluid.tools.version>1.0.0.S1</fluid.tools.version>
     </properties>
 
     <distributionManagement>

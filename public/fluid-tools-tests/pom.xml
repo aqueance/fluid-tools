@@ -20,13 +20,13 @@
     <parent>
         <groupId>org.fluidity</groupId>
         <artifactId>public</artifactId>
-        <version>1.0.0-SNAPSHOT</version>
+        <version>1.0.0.S1</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.fluidity.public</groupId>
     <artifactId>fluid-tools-tests</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0.0.S1</version>
     <packaging>pom</packaging>
     <name>Fluid Tools: Testing Support</name>
 

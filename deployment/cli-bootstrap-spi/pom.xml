@@ -20,13 +20,13 @@
     <parent>
         <groupId>org.fluidity.deployment</groupId>
         <artifactId>deployment-root</artifactId>
-        <version>1.0.0-SNAPSHOT</version>
+        <version>1.0.0.S1</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.fluidity.deployment</groupId>
     <artifactId>cli-bootstrap-spi</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0.0.S1</version>
     <packaging>jar</packaging>
     <name>Deployment: CLI Bootstrap SPI</name>
 
