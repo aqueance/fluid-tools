@@ -24,10 +24,7 @@ import java.lang.reflect.Type;
 /**
  * Utility methods to access generic type information.
  */
-public final class Generics {
-    private Generics() {
-        throw new UnsupportedOperationException("No instance allowed");
-    }
+public final class Generics extends Utilities {
 
     /**
      * Returns the raw type, i.e., the class, corresponding to the given generic type.

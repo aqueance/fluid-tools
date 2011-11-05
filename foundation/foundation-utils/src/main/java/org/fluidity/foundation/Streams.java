@@ -25,11 +25,7 @@ import java.io.OutputStream;
  *
  * @author Tibor Varga
  */
-public final class Streams {
-
-    private Streams() {
-        throw new UnsupportedOperationException("No instance allowed");
-    }
+public final class Streams extends Utilities {
 
     /**
      * Fully copies the contents of one stream into another. The input stream is closed afterwards.

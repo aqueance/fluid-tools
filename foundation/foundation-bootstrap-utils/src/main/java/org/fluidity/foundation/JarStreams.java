@@ -31,11 +31,7 @@ import java.util.jar.Manifest;
 /**
  * Convenience methods to traverse jar streams
  */
-public final class JarStreams {
-
-    private JarStreams() {
-        throw new UnsupportedOperationException("No instance allowed");
-    }
+public final class JarStreams extends Utilities {
 
     /**
      * Allows the caller to search for and read entries in a jar file.

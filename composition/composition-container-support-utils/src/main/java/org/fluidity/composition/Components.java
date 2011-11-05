@@ -34,13 +34,14 @@ import java.util.Set;
 import org.fluidity.composition.spi.ComponentFactory;
 import org.fluidity.composition.spi.ComponentVariantFactory;
 import org.fluidity.composition.spi.CustomComponentFactory;
+import org.fluidity.foundation.Utilities;
 
 /**
  * Component and component group interface related tools.
  *
  * @author Tibor Varga
  */
-public final class Components {
+public final class Components extends Utilities {
 
     static {
         assert Component.class.isAnnotationPresent(Retention.class);
@@ -54,10 +55,6 @@ public final class Components {
         assert ComponentGroup.class.isAnnotationPresent(Target.class);
         assert Arrays.asList(ComponentGroup.class.getAnnotation(Target.class).value()).contains(ElementType.TYPE);
         assert ComponentGroup.class.isAnnotationPresent(Inherited.class);
-    }
-
-    private Components() {
-        throw new UnsupportedOperationException("No instance allowed");
     }
 
     /**

@@ -24,11 +24,7 @@ import java.util.concurrent.atomic.AtomicReference;
 /**
  * Convenience utilities concerning proxies.
  */
-public final class Proxies {
-
-    private Proxies() {
-        throw new UnsupportedOperationException("No instance allowed");
-    }
+public final class Proxies extends Utilities {
 
     private static ObjectIdentity DEFAULT_IDENTITY = new ObjectIdentity<Object>() {
         public int hashCode(final Object instance) {

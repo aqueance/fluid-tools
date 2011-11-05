@@ -33,6 +33,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.fluidity.composition.spi.ComponentResolutionObserver;
 import org.fluidity.composition.spi.DependencyPath;
+import org.fluidity.foundation.Deferred;
 import org.fluidity.foundation.Exceptions;
 import org.fluidity.foundation.Proxies;
 import org.fluidity.foundation.Strings;
@@ -203,47 +204,36 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
 
         public Object instance(final DependencyGraph.Traversal traversal) {
             if (api.isInterface()) {
+                final Deferred.Reference<Object> delegate = Deferred.defer(new Deferred.Factory<Object>() {
+                    public Object create() {
+                        if (repeat == null || repeat.node == null) {
+                            throw circularity(ProxyNode.this);
+                        } else {
+                            assert repeat.node != ProxyNode.this : api;
+                            return repeat.node.instance(traversal);
+                        }
+                    }
+                });
+
                 return Exceptions.wrap(new Exceptions.Command<Object>() {
                     public Object run() throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
                         return Proxies.create(api, new InvocationHandler() {
-                            private volatile Object delegate;
                             private Set<Method> methods = new HashSet<Method>();
 
                             public Object invoke(final Object proxy, final Method method, final Object[] arguments) throws Throwable {
                                 if (!methods.add(method)) {
-                                    throw new ComponentContainer.CircularInvocationException(delegate, methods);
+                                    throw new ComponentContainer.CircularInvocationException(delegate.get(), methods);
                                 } else {
                                     try {
                                         return Exceptions.wrap(new Exceptions.Command<Object>() {
                                             public Object run() throws Exception {
-                                                return method.invoke(delegate(), arguments);
+                                                return method.invoke(delegate.get(), arguments);
                                             }
                                         });
                                     } finally {
                                         methods.remove(method);
                                     }
                                 }
-                            }
-
-                            Object delegate() {
-                                Object cache = delegate;
-
-                                if (delegate == null) {
-                                    synchronized (this) {
-                                        cache = delegate;
-
-                                        if (cache == null) {
-                                            if (repeat == null || repeat.node == null) {
-                                                throw circularity(ProxyNode.this);
-                                            } else {
-                                                assert repeat.node != ProxyNode.this : api;
-                                                delegate = cache = repeat.node.instance(traversal);
-                                            }
-                                        }
-                                    }
-                                }
-
-                                return cache;
                             }
                         });
                     }

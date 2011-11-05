@@ -28,11 +28,7 @@ import java.util.Comparator;
  *
  * @author Tibor Varga
  */
-public final class Strings {
-
-    private Strings() {
-        throw new UnsupportedOperationException("No instance allowed");
-    }
+public final class Strings extends Utilities {
 
     /**
      * Adds "[]" to the class name once for each step in the depth of the array. For instance:

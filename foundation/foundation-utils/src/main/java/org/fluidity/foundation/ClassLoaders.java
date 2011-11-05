@@ -33,13 +33,9 @@ import org.apache.xbean.classloader.JarFileClassLoader;
  *
  * @author Tibor Varga
  */
-public final class ClassLoaders {
+public final class ClassLoaders extends Utilities {
 
     public static final String CLASS_SUFFIX = ".class";
-
-    private ClassLoaders() {
-        throw new UnsupportedOperationException("No instance allowed");
-    }
 
     public static ClassLoader findClassLoader(final Class sourceClass) {
         ClassLoader result = Thread.currentThread().getContextClassLoader();

@@ -23,15 +23,12 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import org.fluidity.foundation.Strings;
+import org.fluidity.foundation.Utilities;
 
 /**
  * Convenience methods on maps of arrays of annotations.
  */
-final class AnnotationMaps {
-
-    public AnnotationMaps() {
-        throw new UnsupportedOperationException("No instance allowed");
-    }
+final class AnnotationMaps extends Utilities {
 
     public static boolean equal(Map<Class<? extends Annotation>, Annotation[]> map1, Map<Class<? extends Annotation>, Annotation[]> map2) {
         if (map1 == map2) {

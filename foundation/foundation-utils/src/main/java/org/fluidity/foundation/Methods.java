@@ -24,11 +24,7 @@ import java.lang.reflect.Method;
  *
  * @author Tibor Varga
  */
-public final class Methods {
-
-    private Methods() {
-        throw new UnsupportedOperationException("No instance allowed");
-    }
+public final class Methods extends Utilities {
 
     /**
      * Finds a method object in a refactoring friendly way. Let's say you need to find the {@link java.io.Closeable#close()} method at run-time. Here's how you

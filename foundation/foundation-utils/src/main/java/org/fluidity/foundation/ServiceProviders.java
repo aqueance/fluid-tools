@@ -31,11 +31,7 @@ import sun.misc.ServiceConfigurationError;
  *
  * @author Tibor Varga
  */
-public final class ServiceProviders {
-
-    private ServiceProviders() {
-        throw new UnsupportedOperationException("No instance allowed");
-    }
+public final class ServiceProviders extends Utilities {
 
     /**
      * Returns the first service provider implementation for the given interface.

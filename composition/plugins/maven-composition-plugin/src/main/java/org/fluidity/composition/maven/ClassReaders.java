@@ -24,6 +24,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.fluidity.foundation.ClassLoaders;
+import org.fluidity.foundation.Utilities;
 
 import org.apache.maven.plugin.MojoExecutionException;
 import org.objectweb.asm.ClassAdapter;
@@ -36,13 +37,9 @@ import org.objectweb.asm.Type;
 /**
  * Class related convenience methods.
  */
-public final class ClassReaders implements Opcodes {
+public final class ClassReaders extends Utilities implements Opcodes {
 
     public static final String CONSTRUCTOR_METHOD_NAME = "<init>";
-
-    public ClassReaders() {
-        throw new UnsupportedOperationException("No instance allowed");
-    }
 
     public static boolean isInterface(final ClassReader data) {
         return (data.getAccess() & ACC_INTERFACE) != 0;

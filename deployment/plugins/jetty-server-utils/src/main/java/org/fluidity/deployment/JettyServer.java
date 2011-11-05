@@ -18,6 +18,8 @@ package org.fluidity.deployment;
 
 import java.util.List;
 
+import org.fluidity.foundation.Utilities;
+
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.server.handler.DefaultHandler;
@@ -31,11 +33,7 @@ import org.eclipse.jetty.webapp.WebAppContext;
  *
  * @author Tibor Varga
  */
-public final class JettyServer {
-
-    private JettyServer() {
-        throw new UnsupportedOperationException("No instance allowed");
-    }
+public final class JettyServer extends Utilities {
 
     public static void start(final int httpPort, final WebAppContext defaultContext, final List<WebAppContext> contextList) {
         final ContextHandlerCollection contexts = new ContextHandlerCollection();

@@ -28,6 +28,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.fluidity.foundation.JarStreams;
+import org.fluidity.foundation.Utilities;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.DefaultArtifact;
@@ -60,7 +61,7 @@ import org.sonatype.aether.util.graph.PreorderNodeListGenerator;
  *
  * @author Tibor Vara
  */
-public final class MavenSupport {
+public final class MavenSupport extends Utilities {
 
     public static final String JAR_TYPE = "jar";
     public static final String WAR_TYPE = "war";
@@ -69,10 +70,6 @@ public final class MavenSupport {
 
     private static final String MANIFEST_MAVEN_GROUP_ID = "Maven-Group-Id";
     private static final String MANIFEST_MAVEN_ARTIFACT_ID = "Maven-Artifact-Id";
-
-    private MavenSupport() {
-        throw new UnsupportedOperationException("No instance allowed");
-    }
 
     /**
      * Returns the transitive dependencies of the given dependency of the given root artifact.
