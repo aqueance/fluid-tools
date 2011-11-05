@@ -18,7 +18,6 @@ package org.fluidity.composition;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
@@ -34,7 +33,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.fluidity.composition.spi.ComponentResolutionObserver;
 import org.fluidity.composition.spi.DependencyPath;
 import org.fluidity.foundation.Deferred;
-import org.fluidity.foundation.Exceptions;
 import org.fluidity.foundation.Proxies;
 import org.fluidity.foundation.Strings;
 
@@ -215,27 +213,19 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
                     }
                 });
 
-                return Exceptions.wrap(new Exceptions.Command<Object>() {
-                    public Object run() throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
-                        return Proxies.create(api, new InvocationHandler() {
-                            private Set<Method> methods = new HashSet<Method>();
+                return Proxies.create(api, new InvocationHandler() {
+                    private Set<Method> methods = new HashSet<Method>();
 
-                            public Object invoke(final Object proxy, final Method method, final Object[] arguments) throws Throwable {
-                                if (!methods.add(method)) {
-                                    throw new ComponentContainer.CircularInvocationException(delegate.get(), methods);
-                                } else {
-                                    try {
-                                        return Exceptions.wrap(new Exceptions.Command<Object>() {
-                                            public Object run() throws Exception {
-                                                return method.invoke(delegate.get(), arguments);
-                                            }
-                                        });
-                                    } finally {
-                                        methods.remove(method);
-                                    }
-                                }
+                    public Object invoke(final Object proxy, final Method method, final Object[] arguments) throws Throwable {
+                        if (!methods.add(method)) {
+                            throw new ComponentContainer.CircularInvocationException(delegate.get(), methods);
+                        } else {
+                            try {
+                                return method.invoke(delegate.get(), arguments);
+                            } finally {
+                                methods.remove(method);
                             }
-                        });
+                        }
                     }
                 });
             } else {

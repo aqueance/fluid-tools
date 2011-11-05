@@ -84,9 +84,9 @@ public abstract class Exceptions {
          * @return whatever the caller of the {@link Exceptions#wrap(Exceptions.Command)} or {@link Exceptions#wrap(String, Exceptions.Command)} wishes to
          *         receive.
          *
-         * @throws Exception to turn to {@link RuntimeException} if necessary.
+         * @throws Throwable to turn to {@link RuntimeException} if necessary.
          */
-        T run() throws Exception;
+        T run() throws Throwable;
     }
 
     /**
@@ -128,10 +128,10 @@ public abstract class Exceptions {
          *
          * @return returns itself if the wrapped exception is not of the given type.
          *
-         * @throws T the wrapped exception if it is of the given type.
+         * @throws T the wrapped exception if its class is assignable to the given type.
          */
         @SuppressWarnings("unchecked")
-        public <T extends Exception> Wrapper rethrow(final Class<T> accept) throws T {
+        public <T extends Throwable> Wrapper rethrow(final Class<T> accept) throws T {
             final Throwable cause = getCause();
             assert cause != null : this;
 

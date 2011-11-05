@@ -132,7 +132,8 @@ public final class Proxies extends Utilities {
     }
 
     /**
-     * Handles Object methods, i.e., {@link Object#hashCode()}, {@link Object#equals(Object)}, and {@link Object#toString()}.
+     * Handles Object methods, i.e., {@link Object#hashCode()}, {@link Object#equals(Object)}, and {@link Object#toString()}. Exceptions wrapped in {@code
+     * InvocationTargetException}, {@code UndeclaredThrowableException} and {@code RuntimeException} are unwrapped and re-thrown.
      */
     private static final class MethodInvocations<T> implements InvocationHandler {
 
@@ -146,11 +147,24 @@ public final class Proxies extends Utilities {
             this.identity = identity;
         }
 
+        @SuppressWarnings("unchecked")
         public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
-            if (method.getDeclaringClass() == Object.class) {
-                return method.invoke(this, args);
-            } else {
-                return handler.invoke(proxy, method, args);
+            try {
+                return Exceptions.wrap(new Exceptions.Command<Object>() {
+                    public Object run() throws Throwable {
+                        if (method.getDeclaringClass() == Object.class) {
+                            return method.invoke(MethodInvocations.this, args);
+                        } else {
+                            return handler.invoke(proxy, method, args);
+                        }
+                    }
+                });
+            } catch (final Exceptions.Wrapper e) {
+                for (final Class<Throwable> type : (Class<Throwable>[]) method.getExceptionTypes()) {
+                    e.rethrow(type);
+                }
+
+                throw e.rethrow(Throwable.class);
             }
         }
 

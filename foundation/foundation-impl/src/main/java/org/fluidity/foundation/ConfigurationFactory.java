@@ -182,7 +182,7 @@ final class ConfigurationFactory implements CustomComponentFactory {
                                     final String suffix,
                                     final T defaults,
                                     final Method method,
-                                    final Object[] args) {
+                                    final Object[] args) throws Exception {
                 if (ids == null || ids.isEmpty()) {
                     Object value = null;
 
@@ -199,24 +199,12 @@ final class ConfigurationFactory implements CustomComponentFactory {
                             }
                         }
 
-                        final Object property;
-
                         if (value == null) {
-                            final Object fallback = defaults == null ? null : Exceptions.wrap(new Exceptions.Command<Object>() {
-                                public Object run() throws Exception {
-                                    assert method != null;
-                                    return method.invoke(defaults, args);
-                                }
-                            });
-
-                            property = fallback == null
-                                       ? convert(undefined.length() == 0 ? null : undefined, type, genericType, split, grouping, suffix, loader)
-                                       : convert(fallback, type, genericType, split, grouping, suffix, loader);
-                        } else {
-                            property = convert(value, type, genericType, split, grouping, suffix, loader);
+                            final Object fallback = defaults == null ? null : method.invoke(defaults, args);
+                            value = fallback == null ? (undefined.length() == 0 ? null : undefined) : fallback;
                         }
 
-                        return property;
+                        return convert(value, type, genericType, split, grouping, suffix, loader);
                     }
                 } else {
                     final String[] identifiers = (String[]) property(split,
@@ -299,7 +287,7 @@ final class ConfigurationFactory implements CustomComponentFactory {
                 return !type.isArray() && !type.isPrimitive() && !Enum.class.isAssignableFrom(type) && !type.getName().startsWith("java.");
             }
 
-            private Object composite(final Class<?> type, final String suffix) throws IllegalAccessException, InstantiationException {
+            private Object composite(final Class<?> type, final String suffix) throws Exception {
                 if (type.isInterface()) {
                         return Proxies.create(type, new InvocationHandler() {
                             public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
