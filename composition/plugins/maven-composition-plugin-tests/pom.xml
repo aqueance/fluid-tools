@@ -20,13 +20,13 @@
     <parent>
         <artifactId>composition-plugins-root</artifactId>
         <groupId>org.fluidity.maven</groupId>
-        <version>1.0.0.S1</version>
+        <version>1.0.0-SNAPSHOT</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.fluidity.maven</groupId>
     <artifactId>maven-composition-plugin-tests</artifactId>
-    <version>1.0.0.S1</version>
+    <version>1.0.0-SNAPSHOT</version>
 
     <!-- we configure the build cycle ourselves: see the build/plugins section -->
     <packaging>pom</packaging>

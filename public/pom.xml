@@ -20,13 +20,13 @@
     <parent>
         <groupId>org.fluidity</groupId>
         <artifactId>fluidity-root</artifactId>
-        <version>1.0.0.S1</version>
+        <version>1.0.0-SNAPSHOT</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.fluidity</groupId>
     <artifactId>public</artifactId>
-    <version>1.0.0.S1</version>
+    <version>1.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Fluid Tools: Export Modules</name>
 

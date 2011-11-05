@@ -20,13 +20,13 @@
     <parent>
         <groupId>org.fluidity.maven</groupId>
         <artifactId>maven-archetypes</artifactId>
-        <version>1.0.0.S1</version>
+        <version>1.0.0-SNAPSHOT</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.fluidity.maven</groupId>
     <artifactId>fluidity-archetype-standalone-war</artifactId>
-    <version>1.0.0.S1</version>
+    <version>1.0.0-SNAPSHOT</version>
     <packaging>maven-archetype</packaging>
     <name>Archetype: Executable WAR</name>
 
