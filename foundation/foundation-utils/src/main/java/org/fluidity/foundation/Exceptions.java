@@ -35,16 +35,11 @@ public abstract class Exceptions {
      * @return whatever the command returns.
      */
     public static <T> T wrap(final String context, final Command<T> command) {
-        // TODO: support any combination of these additive exceptions
         try {
             try {
-                try {
-                    return command.run();
-                } catch (final UndeclaredThrowableException e) {
-                    throw e.getCause();
-                }
-            } catch (final InvocationTargetException e) {
-                throw e.getCause();
+                return command.run();
+            } catch (final Exception e) {
+                throw unwrap(e);
             }
         } catch (final RuntimeException e) {
             throw e;
@@ -64,6 +59,18 @@ public abstract class Exceptions {
      */
     public static <T> T wrap(final Command<T> command) {
         return wrap(null, command);
+    }
+
+    private static Throwable unwrap(final Exception error) {
+        Throwable cause = error;
+
+        for (Class type = cause.getClass();
+             cause.getCause() != null && (cause instanceof UndeclaredThrowableException || cause instanceof InvocationTargetException || type == RuntimeException.class);
+             cause = cause.getCause(), type = cause.getClass()) {
+            // empty
+        }
+
+        return cause;
     }
 
     /**

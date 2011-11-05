@@ -16,6 +16,9 @@
 
 package org.fluidity.foundation;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.UndeclaredThrowableException;
+
 import org.testng.annotations.Test;
 
 /**
@@ -79,6 +82,25 @@ public class ExceptionsTest {
 
             // should receive the original exception
             assert e == original : e;
+        }
+    }
+
+    @Test
+    public void testUnwrapping() throws Exception {
+        final Exception original = new Exception();
+
+        try {
+            Exceptions.wrap(new Exceptions.Command<Object>() {
+                public Object run() throws Exception {
+                    throw new UndeclaredThrowableException(new InvocationTargetException(new RuntimeException(new InvocationTargetException(new UndeclaredThrowableException(original)))));
+                }
+            });
+        } catch (final Exceptions.Wrapper e) {
+            try {
+                e.rethrow(Exception.class);
+            } catch (final Exception thrown) {
+                assert thrown == original : thrown;
+            }
         }
     }
 }
