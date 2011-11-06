@@ -18,37 +18,27 @@ package org.fluidity.foundation;
 
 /**
  * Lazy loading utilities.
+ *
+ * @author Tibor Varga
  */
 public class Deferred extends Utilities {
 
     /**
      * Returns a deferred reference to some object. The object is returned by the given factory's {@link Factory#create()} method, which will be invoked the
      * first time the reference's {@link Reference#get()} method is invoked and then its return value will be cached for use in subsequent invocations.
+     * <p/>
+     * This reference implements the double-check locking logic with volatile acquire/release semantics to lazy create the referenced object. If the factory
+     * returns <code>null</code> instead of an object then the <code>null</code> value will be cached and returned in subsequent queries by the returned
+     * reference.
+     * <p/>
+     * Note: the returned object will maintain a strong reference to the provided factory until the first time its {@link Reference#get()} method is invoked.
      *
      * @param factory the factory to create the referred to object.
      *
      * @return a deferred reference to the object created by the given factory.
      */
-    public static <T> Reference<T> defer(final Factory<T> factory) {
-        return new Reference<T>() {
-            private volatile T delegate;
-
-            public final T get() {
-                T cache = delegate;
-
-                if (delegate == null) {
-                    synchronized (this) {
-                        cache = delegate;
-
-                        if (cache == null) {
-                            delegate = cache = factory.create();
-                        }
-                    }
-                }
-
-                return cache;
-            }
-        };
+    public static <T> Reference<T> reference(final Factory<T> factory) {
+        return new ReferenceImpl<T>(factory);
     }
 
     /**
@@ -72,8 +62,38 @@ public class Deferred extends Utilities {
         /**
          * Returns the referred to object after creating it if necessary.
          *
-         * @return the referred to objcet.
+         * @return the referred to object.
          */
         T get();
+    }
+
+    /**
+     * Double-check locking implementation.
+     */
+    private static class ReferenceImpl<T> implements Reference<T> {
+        private Factory<T> factory;
+        private volatile T delegate;
+
+        public ReferenceImpl(final Factory<T> factory) {
+            assert factory != null;
+            this.factory = factory;
+        }
+
+        public final T get() {
+            T cache = delegate;
+
+            if (factory != null && delegate == null) {
+                synchronized (this) {
+                    cache = delegate;
+
+                    if (cache == null) {
+                        delegate = cache = factory.create();
+                        factory = null;
+                    }
+                }
+            }
+
+            return cache;
+        }
     }
 }

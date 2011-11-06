@@ -202,7 +202,7 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
 
         public Object instance(final DependencyGraph.Traversal traversal) {
             if (api.isInterface()) {
-                final Deferred.Reference<Object> delegate = Deferred.defer(new Deferred.Factory<Object>() {
+                final Deferred.Reference<Object> delegate = Deferred.reference(new Deferred.Factory<Object>() {
                     public Object create() {
                         if (repeat == null || repeat.node == null) {
                             throw circularity(ProxyNode.this);
