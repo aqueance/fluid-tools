@@ -30,6 +30,7 @@ import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.ComponentGroup;
 import org.fluidity.composition.Inject;
+import org.fluidity.composition.OpenComponentContainer;
 import org.fluidity.composition.spi.ComponentVariantFactory;
 import org.fluidity.composition.spi.CustomComponentFactory;
 
@@ -358,7 +359,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
             final Dependency<?>[] args = dependencies.discover(SecondComponent.class);
 
             return new Instance() {
-                public void bind(final Registry registry) throws ComponentContainer.BindingException {
+                public void bind(final Registry registry) throws OpenComponentContainer.BindingException {
 
                     // direct instantiation to bypass the container when instantiating ThirdComponent
                     registry.bindInstance(new SecondComponent((ThirdComponent) args[0].instance(),
@@ -379,7 +380,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
             dependencies.discover(ThirdComponent.class);
 
             return new Instance() {
-                public void bind(final Registry registry) throws ComponentContainer.BindingException {
+                public void bind(final Registry registry) throws OpenComponentContainer.BindingException {
 
                     // direct instantiation to bypass the container
                     registry.bindInstance(new ThirdComponent(context));
@@ -583,7 +584,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
 
         public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
             return new Instance() {
-                public void bind(final Registry registry) throws ComponentContainer.BindingException {
+                public void bind(final Registry registry) throws OpenComponentContainer.BindingException {
                     registry.bindInstance(new ContextAware.Settings() {
                         public String setting() {
                             final Setting1 setting = context.annotation(Setting1.class, null);
@@ -603,7 +604,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
 
         public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
             return new Instance() {
-                public void bind(final Registry registry) throws ComponentContainer.BindingException {
+                public void bind(final Registry registry) throws OpenComponentContainer.BindingException {
                     registry.bindInstance(new ContextAware.Settings() {
                         public String setting() {
                             final Setting2 setting = context.annotation(Setting2.class, null);
@@ -623,7 +624,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
 
         public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
             return new Instance() {
-                public void bind(final Registry registry) throws ComponentContainer.BindingException {
+                public void bind(final Registry registry) throws OpenComponentContainer.BindingException {
                     registry.bindInstance(new ContextAware.Settings() {
                         public String setting() {
                             final Setting1 setting = context.annotation(Setting1.class, null);
@@ -643,7 +644,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
 
         public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
             return new Instance() {
-                public void bind(final Registry registry) throws ComponentContainer.BindingException {
+                public void bind(final Registry registry) throws OpenComponentContainer.BindingException {
                     registry.bindInstance(new ContextAware.Settings() {
                         public String setting() {
                             final Setting2 setting = context.annotation(Setting2.class, null);

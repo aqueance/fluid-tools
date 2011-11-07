@@ -55,7 +55,7 @@ abstract class AbstractResolver implements ComponentResolver {
         final int check = resolver.priority();
 
         if (check == priority) {
-            throw new ComponentContainer.BindingException("Component %s already bound", api);
+            throw new OpenComponentContainer.BindingException("Component %s already bound", api);
         } else {
             return check < priority;
         }

@@ -36,10 +36,10 @@ import org.fluidity.composition.ServiceProvider;
  * <p/>
  * <b>Depending on OSGi Services</b>
  * <p/>
- * The {@link Managed} component's constructor parameters annotated with @{@link Service} are dependencies to OSGi services while parameters not so annotated
- * are ordinary dependencies. When all of the OSGi services depended on become available, the component is instantiated and its {@link #start()} method is
- * invoked to start the component. The {@link #stop()} method of the component will be invoked when any of those OSGi services becomes unavailable and then
- * the component instance is discarded.
+ * The {@link Managed} component's constructor parameters annotated with {@link Service @Service} are dependencies to OSGi services while parameters not so
+ * annotated are ordinary dependencies. When all of the OSGi services depended on become available, the component is instantiated and its {@link #start()}
+ * method is invoked to start the component. The {@link #stop()} method of the component will be invoked when any of those OSGi services becomes unavailable and
+ * then the component instance is discarded.
  * <p/>
  * <b>Getting registered as OSGi Service</b>
  * <p/>
@@ -55,9 +55,9 @@ import org.fluidity.composition.ServiceProvider;
  * both {@link Registration} and {@link Registration.Listener}.
  * <p/>
  * This container loads and manages all {@link Managed} components visible to its class loader, which is the OSGi bundle class loader. Components
- * with direct dependencies - i.e., those without the @{@link Service} annotation - to one another are grouped and their combined set of @{@link Service}
- * dependencies are consulted to determine when to instantiate or discard all components in the group. Independent component groups are instantiated and
- * discarded independently.
+ * with direct dependencies - i.e., those without the {@link Service @Service} annotation - to one another are grouped and their combined set of {@link Service
+ * @Service} dependencies are consulted to determine when to instantiate or discard all components in the group. Independent component groups are instantiated
+ * and discarded independently.
  *
  * @author Tibor Varga
  */
@@ -103,9 +103,9 @@ public interface BundleComponentContainer {
 
     /**
      * A managed component that will be discovered and added to the container. Managed components may have two kinds of dependencies: OSGi service interfaces
-     * annotated with @{@link Service} and ordinary types denoting dependency injected components. When all OSGi services dependencies become available, the
-     * component is instantiated and its {@link #start()} method is invoked. The {@link #stop()} method of the component is invoked to stop the component if any
-     * of the services become unavailable and then the instance is discarded.
+     * annotated with {@link Service @Service} and ordinary types denoting dependency injected components. When all OSGi services dependencies become available,
+     * the component is instantiated and its {@link #start()} method is invoked. The {@link #stop()} method of the component is invoked to stop the component if
+     * any of the services become unavailable and then the instance is discarded.
      */
     @ServiceProvider(type = "bundle-components")
     interface Managed extends Stoppable {

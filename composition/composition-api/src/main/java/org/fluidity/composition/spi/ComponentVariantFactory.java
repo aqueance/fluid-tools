@@ -17,7 +17,7 @@
 package org.fluidity.composition.spi;
 
 import org.fluidity.composition.Component;
-import org.fluidity.composition.ComponentContainer;
+import org.fluidity.composition.OpenComponentContainer;
 
 /**
  * A variant factory offers context dependent instance variants of an otherwise singleton component that itself can in some way be configured to adapt to
@@ -25,7 +25,7 @@ import org.fluidity.composition.ComponentContainer;
  * <p/>
  * A <code>ComponentVariantFactory</code> works in conjunction with an otherwise singleton component independently registered in a dependency injection
  * container accessible to the factory with a binding that allows new instances to be created, i.e., the component has not been bound by {@link
- * ComponentContainer.Registry#bindInstance(Object, Class[])}.
+ * OpenComponentContainer.Registry#bindInstance(Object, Class[])}.
  *
  * @author Tibor Varga
  */

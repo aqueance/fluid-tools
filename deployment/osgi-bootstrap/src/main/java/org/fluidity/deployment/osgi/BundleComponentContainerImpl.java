@@ -345,7 +345,7 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
     @SuppressWarnings({ "unchecked", "MismatchedQueryAndUpdateOfCollection" })
     Map<Managed, Set<Class<?>>> start(final Collection<Components.Interfaces> cluster,
                                       final OpenComponentContainer child,
-                                      final ComponentContainer.Registry registry) {
+                                      final OpenComponentContainer.Registry registry) {
         for (final Components.Interfaces interfaces : cluster) {
             registry.bindComponent(interfaces.implementation);
         }
@@ -518,7 +518,7 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
                 assert components.isEmpty();
 
                 final OpenComponentContainer child = container.makeChildContainer();
-                final ComponentContainer.Registry registry = child.getRegistry();
+                final OpenComponentContainer.Registry registry = child.getRegistry();
 
                 for (final Map.Entry<ServiceSpecification, Object> entry : dependencyMap.entrySet()) {
                     registry.bindInstance(entry.getValue(), (Class<Object>) entry.getKey().api);

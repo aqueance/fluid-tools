@@ -33,7 +33,7 @@ interface ContainerBootstrap {
      * Finds all package component bindings and invokes them to add their bindings and initializes components after all components have been bound.
      * <p/>
      * The idea is to find all {@link org.fluidity.composition.spi.PackageBindings} objects and invoke their {@link
-     * org.fluidity.composition.spi.PackageBindings#bindComponents(org.fluidity.composition.ComponentContainer.Registry)} method.
+     * org.fluidity.composition.spi.PackageBindings#bindComponents(OpenComponentContainer.Registry)} method.
      *
      * @param services    provides basic services for containers
      * @param provider    is the provider of actual dependency injection containers and related functionality.
@@ -59,8 +59,8 @@ interface ContainerBootstrap {
      * to call the {@link org.fluidity.composition.spi.PackageBindings#shutdownComponents(ComponentContainer)} method on the bindings, in reverse order.
      *
      * @param container the container, returned by the {@link #populateContainer(ContainerServices, org.fluidity.composition.spi.ContainerProvider,
-     *                  java.util.Map, OpenComponentContainer, ClassLoader, org.fluidity.composition.spi.PlatformContainer,
-     *                  org.fluidity.composition.ContainerBootstrap.Callback)} method, to initialize.
+     *                  java.util.Map, OpenComponentContainer, ClassLoader, org.fluidity.composition.spi.PlatformContainer, ContainerBootstrap.Callback)}
+     *                  method, to initialize.
      * @param services  provides basic services for containers
      */
     void initializeContainer(OpenComponentContainer container, ContainerServices services);

@@ -64,37 +64,37 @@ import org.testng.annotations.Test;
 @SuppressWarnings("unchecked")
 public class ComponentsTest {
 
-    @Test(expectedExceptions = ComponentContainer.BindingException.class, expectedExceptionsMessageRegExp = ".*abstract.*")
+    @Test(expectedExceptions = OpenComponentContainer.BindingException.class, expectedExceptionsMessageRegExp = ".*abstract.*")
     public void abstractClass() throws Exception {
         Components.inspect(AbstractComponent.class);
     }
 
-    @Test(expectedExceptions = ComponentContainer.BindingException.class, expectedExceptionsMessageRegExp = ".*missing.*")
+    @Test(expectedExceptions = OpenComponentContainer.BindingException.class, expectedExceptionsMessageRegExp = ".*missing.*")
     public void bareComponentFactory() throws Exception {
         Components.inspect(NoComponentFactory.class);
     }
 
-    @Test(expectedExceptions = ComponentContainer.BindingException.class, expectedExceptionsMessageRegExp = ".*missing.*")
+    @Test(expectedExceptions = OpenComponentContainer.BindingException.class, expectedExceptionsMessageRegExp = ".*missing.*")
     public void bareVariantFactory() throws Exception {
         Components.inspect(NoVariantFactory.class);
     }
 
-    @Test(expectedExceptions = ComponentContainer.BindingException.class, expectedExceptionsMessageRegExp = ".*bound.*")
+    @Test(expectedExceptions = OpenComponentContainer.BindingException.class, expectedExceptionsMessageRegExp = ".*bound.*")
     public void overridingComponent() throws Exception {
         Components.inspect(OverridingComponent.class);
     }
 
-    @Test(expectedExceptions = ComponentContainer.BindingException.class, expectedExceptionsMessageRegExp = ".*bound.*")
+    @Test(expectedExceptions = OpenComponentContainer.BindingException.class, expectedExceptionsMessageRegExp = ".*bound.*")
     public void overridingSubComponent() throws Exception {
         Components.inspect(OverridingSubComponent.class);
     }
 
-    @Test(expectedExceptions = ComponentContainer.BindingException.class, expectedExceptionsMessageRegExp = ".*incompatible.*")
+    @Test(expectedExceptions = OpenComponentContainer.BindingException.class, expectedExceptionsMessageRegExp = ".*incompatible.*")
     public void noComponent() throws Exception {
         Components.inspect(NoComponent.class);
     }
 
-    @Test(expectedExceptions = ComponentContainer.BindingException.class, expectedExceptionsMessageRegExp = ".*incompatible.*")
+    @Test(expectedExceptions = OpenComponentContainer.BindingException.class, expectedExceptionsMessageRegExp = ".*incompatible.*")
     public void noGroupMember() throws Exception {
         Components.inspect(NoGroupMember.class);
     }

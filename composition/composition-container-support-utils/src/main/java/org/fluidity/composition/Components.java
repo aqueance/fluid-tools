@@ -43,14 +43,14 @@ import org.fluidity.foundation.Utilities;
  * The rules for discovering the component interfaces are described by the following recursive algorithm:
  * <ol>
  * <li>If the class has no {@link Component @Component} annotation, the algorithm returns the <u>class itself</u>, unless the class implements {@link
- * org.fluidity.composition.spi.ComponentFactory}, in which case the algorithm terminates with an {@link ComponentContainer.BindingException error}.</li>
+ * org.fluidity.composition.spi.ComponentFactory}, in which case the algorithm terminates with an {@link OpenComponentContainer.BindingException error}.</li>
  * <li>If the class is annotated with <code>@Component</code> and the <code>@Component(api = ...)</code> parameter is given with a non-empty array, the
  * algorithm ignores the annotated class and repeats for each class specified <code>@Component(api = {...})</code>. However, if any of these classes are
  * themselves <code>@Component</code> annotated classes with no <code>@Component(automatic = false)</code>, or if the class does not extend or implement either
  * all of the listed classes and interfaces or <code>ComponentFactory</code>, the algorithm terminates with an
- * {@link ComponentContainer.BindingException error}.</li>
+ * {@link OpenComponentContainer.BindingException error}.</li>
  * <li>If the super class is annotated with <code>@Component</code> but with no <code>@Component(automatic = false)</code>, the algorithm terminates with an
- * {@link ComponentContainer.BindingException error}.</li>
+ * {@link OpenComponentContainer.BindingException error}.</li>
  * <li>If the class implements no interfaces directly and its super class is <code>Object</code> then the algorithm returns the <u>annotated class</u>.</li>
  * <li>If the class implements no interfaces directly and its super class is not <code>Object</code> then the annotated class is ignored and this algorithm
  * repeats for the super class.</li>
@@ -68,7 +68,7 @@ import org.fluidity.foundation.Utilities;
  * <ol>
  * <li>If the class is annotated with {@link ComponentGroup @ComponentGroup} with a non-empty <code>@ComponentGroup(api = ...)</code> parameter, the
  * algorithm returns <ul>the classes specified</ul> therein. However, if the class does not extend or implement either all of those classes and interfaces or
- * <code>ComponentFactory</code>, the algorithm terminates with an {@link ComponentContainer.BindingException error}.</li>
+ * <code>ComponentFactory</code>, the algorithm terminates with an {@link OpenComponentContainer.BindingException error}.</li>
  * <li>If the class is annotated with <code>@ComponentGroup</code> with no <code>@ComponentGroup(api = ...)</code> parameter, then
  * <ol>
  * <li>if the class is an interface, the algorithm returns <u>the annotated class</u>.</li>
@@ -117,10 +117,10 @@ public final class Components extends Utilities {
      *
      * @return an object listing all component interfaces and the set of component group interfaces for each.
      *
-     * @throws org.fluidity.composition.ComponentContainer.BindingException
+     * @throws OpenComponentContainer.BindingException
      *          thrown when an error condition is identified during inspection.
      */
-    public static <T> Interfaces inspect(final Class<T> componentClass, final Class<? super T>... restrictions) throws ComponentContainer.BindingException {
+    public static <T> Interfaces inspect(final Class<T> componentClass, final Class<? super T>... restrictions) throws OpenComponentContainer.BindingException {
         final Map<Class<?>, Set<Class<?>>> interfaceMap = new LinkedHashMap<Class<?>, Set<Class<?>>>();
 
         final Set<Class<?>> path = new LinkedHashSet<Class<?>>();
@@ -131,7 +131,7 @@ public final class Components extends Utilities {
 
             for (final Class<?> api : restrictions) {
                 if (!factory && !api.isAssignableFrom(componentClass)) {
-                    throw new ComponentContainer.BindingException("Class %s refers to incompatible component interface %s", componentClass, api);
+                    throw new OpenComponentContainer.BindingException("Class %s refers to incompatible component interface %s", componentClass, api);
                 }
 
                 interfaces(api, api, map, path, false);
@@ -163,7 +163,7 @@ public final class Components extends Utilities {
             final Class<?> type = entry.getKey();
 
             if (ComponentFactory.class.isAssignableFrom(type)) {
-                throw new ComponentContainer.BindingException("Component interface for %s is the factory interface itself: %s", componentClass, type);
+                throw new OpenComponentContainer.BindingException("Component interface for %s is the factory interface itself: %s", componentClass, type);
             }
 
             interfaces.add(new Specification(type, entry.getValue()));
@@ -192,21 +192,21 @@ public final class Components extends Utilities {
 
                 if (component == null && !anonymous) {
                     if (factory) {
-                        throw new ComponentContainer.BindingException("Factory %s is missing @%s", checked, Component.class.getName());
+                        throw new OpenComponentContainer.BindingException("Factory %s is missing @%s", checked, Component.class.getName());
                     } else {
                         interfaceMap.put(actual, groups(checked));
                     }
                 } else if (automatic && reference) {
-                    throw new ComponentContainer.BindingException("Class %s referred to is itself an automatically bound component", checked.getName());
+                    throw new OpenComponentContainer.BindingException("Class %s referred to is itself an automatically bound component", checked.getName());
                 } else if (automatic && (Modifier.isAbstract(checked.getModifiers()) || checked.isInterface())) {
-                    throw new ComponentContainer.BindingException("Class %s is abstract", checked.getName());
+                    throw new OpenComponentContainer.BindingException("Class %s is abstract", checked.getName());
                 } else {
                     final Class<?>[] interfaces = component == null ? null : component.api();
 
                     if (interfaces != null && interfaces.length > 0) {
                         for (final Class<?> api : interfaces) {
                             if (!factory && !api.isAssignableFrom(checked)) {
-                                throw new ComponentContainer.BindingException("Class %s refers to incompatible %s", checked.getName(), api);
+                                throw new OpenComponentContainer.BindingException("Class %s refers to incompatible %s", checked.getName(), api);
                             }
 
                             interfaces(api, api, interfaceMap, path, true);
@@ -288,7 +288,7 @@ public final class Components extends Utilities {
                 } else {
                     for (final Class<?> api : interfaces) {
                         if (!api.isAssignableFrom(type)) {
-                            throw new ComponentContainer.BindingException("Class %s refers to incompatible component interface %s", type, api);
+                            throw new OpenComponentContainer.BindingException("Class %s refers to incompatible component interface %s", type, api);
                         }
 
                         groups.add(api);

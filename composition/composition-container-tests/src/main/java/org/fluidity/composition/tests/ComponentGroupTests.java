@@ -135,7 +135,7 @@ public final class ComponentGroupTests extends AbstractContainerTests {
     @Test
     public void testDependentGroupInHierarchy() throws Exception {
         final OpenComponentContainer child = registry.makeChildContainer();
-        final ComponentContainer.Registry nested = child.getRegistry();
+        final OpenComponentContainer.Registry nested = child.getRegistry();
 
         registry.bindComponent(OrderedFilter4.class);
         registry.bindComponent(OrderedFilter3.class);
@@ -163,7 +163,7 @@ public final class ComponentGroupTests extends AbstractContainerTests {
     @Test
     public void testGroupInHierarchy() throws Exception {
         final OpenComponentContainer child = registry.makeChildContainer();
-        final ComponentContainer.Registry nested = child.getRegistry();
+        final OpenComponentContainer.Registry nested = child.getRegistry();
 
         registry.bindComponent(Filter1.class);
         nested.bindComponent(Filter2.class);
@@ -375,7 +375,7 @@ public final class ComponentGroupTests extends AbstractContainerTests {
             dependencies.discover(type);
 
             return new Instance() {
-                public void bind(final Registry registry) throws ComponentContainer.BindingException {
+                public void bind(final Registry registry) throws OpenComponentContainer.BindingException {
                     registry.bindComponent(type);
                 }
             };

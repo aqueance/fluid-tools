@@ -42,9 +42,9 @@ import org.fluidity.foundation.spi.PropertyProvider;
  * }
  * </pre>
  * <h3>Query Methods</h3>
- * A settings interface like the above must have all of its methods annotated by the @{@link Configuration.Property} annotation, all methods must have a
- * supported return type and they may have any number of arguments. The given {@link Configuration.Property#key()}s are understood to be relative to the
- * concatenation of each @{@link Configuration.Context} annotation in the instantiation path of the configured component.
+ * A settings interface like the above must have all of its methods annotated by the {@link Configuration.Property @Configuration.Property} annotation, all
+ * methods must have a supported return type and they may have any number of arguments. The given {@link Configuration.Property#key()}s are understood to be
+ * relative to the concatenation of each {@link Configuration.Context @Configuration.Context} annotation in the instantiation path of the configured component.
  * <p/>
  * Query methods may have parameters that provide values to placeholders in the property key, as in the method definition for <code>property2</code> above.
  * <h3>Property Provider</h3>

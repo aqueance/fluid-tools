@@ -144,7 +144,7 @@ public final class ContainerBoundary implements ComponentContainer {
 
     /**
      * Allows a bootstrap code to add component instances to the container before it bootstraps. This method can only be invoked before any component is taken
-     * out of the container by any thread using any of the {@link #getComponent(Class)}, {@link #getComponent(Class, ComponentContainer.Bindings)}, {@link
+     * out of the container by any thread using any of the {@link #getComponent(Class)}, {@link #getComponent(Class, OpenComponentContainer.Bindings)}, {@link
      * #initialize(Object)} or {@link #makeChildContainer()} methods. Once that happens, this method will throw an {@link IllegalStateException}.
      * <p/>
      * Calling this method will trigger population of the associated container and its parents.
@@ -178,7 +178,7 @@ public final class ContainerBoundary implements ComponentContainer {
      * <p/>
      * {@inheritDoc}
      */
-    public <T> T getComponent(final Class<T> api, final Bindings bindings) {
+    public <T> T getComponent(final Class<T> api, final OpenComponentContainer.Bindings bindings) {
         return loadContainer(true).getComponent(api, bindings);
     }
 

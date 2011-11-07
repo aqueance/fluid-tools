@@ -35,7 +35,7 @@ public class EmptyRegistryTest extends MockGroupAbstractTest {
 
     private final ComponentRegistry mock = mock(ComponentRegistry.class);
     private final OpenComponentContainer container = mock(OpenComponentContainer.class);
-    private final ComponentContainer.Registry registry = new EmptyRegistry(mock);
+    private final OpenComponentContainer.Registry registry = new EmptyRegistry(mock);
 
     @Test
     public void childContainer() throws Exception {

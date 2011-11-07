@@ -80,7 +80,7 @@ public final class ContainerHierarchyTests extends AbstractContainerTests {
         registry.bindComponent(OtherValue.class);
 
         final OpenComponentContainer child = container.makeChildContainer();
-        final ComponentContainer.Registry childRegistry = child.getRegistry();
+        final OpenComponentContainer.Registry childRegistry = child.getRegistry();
         childRegistry.bindComponent(DependentValue.class);
         childRegistry.bindComponent(Value.class);
 
@@ -96,7 +96,7 @@ public final class ContainerHierarchyTests extends AbstractContainerTests {
     @Test
     public void childContainerContainsItself() throws Exception {
         final OpenComponentContainer childContainer = registry.makeChildContainer();
-        final ComponentContainer.Registry childRegistry = childContainer.getRegistry();
+        final OpenComponentContainer.Registry childRegistry = childContainer.getRegistry();
 
         childRegistry.bindComponent(ContainerDependent.class);
 

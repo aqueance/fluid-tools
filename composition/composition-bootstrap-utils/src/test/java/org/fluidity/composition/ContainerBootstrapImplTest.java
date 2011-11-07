@@ -52,7 +52,7 @@ public final class ContainerBootstrapImplTest extends MockGroupAbstractTest {
     private final ShutdownTasks shutdown = mock(ShutdownTasks.class);
     private final OpenComponentContainer container = mock(OpenComponentContainer.class);
     private final OpenComponentContainer parent = mock(OpenComponentContainer.class);
-    private final ComponentContainer.Registry registry = mock(ComponentContainer.Registry.class);
+    private final OpenComponentContainer.Registry registry = mock(OpenComponentContainer.Registry.class);
     private final PackageBindings bindings = mock(PackageBindings.class);
 
     private ContainerBootstrap bootstrap;
@@ -279,7 +279,7 @@ public final class ContainerBootstrapImplTest extends MockGroupAbstractTest {
 
         public static PackageBindings bindings;
 
-        public void bindComponents(final ComponentContainer.Registry registry) {
+        public void bindComponents(final OpenComponentContainer.Registry registry) {
             bindings.bindComponents(registry);
         }
 
@@ -303,7 +303,7 @@ public final class ContainerBootstrapImplTest extends MockGroupAbstractTest {
             // empty
         }
 
-        public void bindComponents(final ComponentContainer.Registry registry) {
+        public void bindComponents(final OpenComponentContainer.Registry registry) {
             bindings.bindComponents(registry);
         }
 
@@ -329,7 +329,7 @@ public final class ContainerBootstrapImplTest extends MockGroupAbstractTest {
             // empty
         }
 
-        public void bindComponents(final ComponentContainer.Registry registry) {
+        public void bindComponents(final OpenComponentContainer.Registry registry) {
             bindings.bindComponents(registry);
         }
 

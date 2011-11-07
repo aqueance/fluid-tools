@@ -17,6 +17,7 @@
 package org.fluidity.composition.spi;
 
 import org.fluidity.composition.ComponentContainer;
+import org.fluidity.composition.OpenComponentContainer;
 
 /**
  * Empty package bindings to simplify creation of actual implementations.
@@ -28,16 +29,16 @@ public abstract class EmptyPackageBindings implements PackageBindings {
     /**
      * {@inheritDoc}
      * <p/>
-     * This implementation does nothing, allows subclasses to do nothing by not overriding this method.
+     * This implementation does nothing; allows subclasses to do nothing by not overriding this method.
      */
-    public void bindComponents(final ComponentContainer.Registry registry) {
+    public void bindComponents(final OpenComponentContainer.Registry registry) {
         // empty
     }
 
     /**
      * {@inheritDoc}
      * <p/>
-     * This implementation does nothing, allows subclasses to do nothing by not overriding this method.
+     * This implementation does nothing; allows subclasses to do nothing by not overriding this method.
      */
     public void initializeComponents(final ComponentContainer container) {
         // empty
@@ -46,7 +47,7 @@ public abstract class EmptyPackageBindings implements PackageBindings {
     /**
      * {@inheritDoc}
      * <p/>
-     * This implementation does nothing, allows subclasses to do nothing by not overriding this method.
+     * This implementation does nothing; allows subclasses to do nothing by not overriding this method.
      */
     public void shutdownComponents(final ComponentContainer container) {
         // empty

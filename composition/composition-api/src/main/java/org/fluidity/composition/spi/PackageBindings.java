@@ -17,6 +17,7 @@
 package org.fluidity.composition.spi;
 
 import org.fluidity.composition.ComponentContainer;
+import org.fluidity.composition.OpenComponentContainer;
 import org.fluidity.composition.ServiceProvider;
 
 /**
@@ -30,23 +31,25 @@ import org.fluidity.composition.ServiceProvider;
  * @author Tibor Varga
  */
 @ServiceProvider(api = PackageBindings.class, type = PackageBindings.SERVICE_TYPE)
-public interface PackageBindings extends ComponentContainer.Bindings {
+public interface PackageBindings extends OpenComponentContainer.Bindings {
 
     String SERVICE_TYPE = "bindings";
 
     /**
      * Perform component specific initialization if necessary. This method is invoked once after the {@link
-     * ComponentContainer.Bindings#bindComponents(ComponentContainer.Registry)} method of all {@link PackageBindings} objects have been invoked and before any
-     * component is accessed in the provided container from outside the container.
+     * OpenComponentContainer.Bindings#bindComponents(OpenComponentContainer.Registry)} method of all {@link PackageBindings} objects have been invoked and
+     * before any component is accessed in the provided container from outside the container.
      *
-     * @param container is the container that was populated by the {@link ComponentContainer.Bindings#bindComponents(ComponentContainer.Registry)} method.
+     * @param container is the container that was populated by the {@link OpenComponentContainer.Bindings#bindComponents(OpenComponentContainer.Registry)}
+     *                  method.
      */
     void initializeComponents(ComponentContainer container);
 
     /**
      * Perform component specific shutdown if necessary. This method is invoked once when the application is being shut down.
      *
-     * @param container is the container that was populated by the {@link ComponentContainer.Bindings#bindComponents(ComponentContainer.Registry)} method.
+     * @param container is the container that was populated by the {@link OpenComponentContainer.Bindings#bindComponents(OpenComponentContainer.Registry)}
+     *                  method.
      */
     void shutdownComponents(ComponentContainer container);
 }

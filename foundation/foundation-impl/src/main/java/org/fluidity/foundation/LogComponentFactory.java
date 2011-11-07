@@ -19,6 +19,7 @@ package org.fluidity.foundation;
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
+import org.fluidity.composition.OpenComponentContainer;
 import org.fluidity.composition.spi.CustomComponentFactory;
 import org.fluidity.foundation.spi.LogFactory;
 
@@ -42,7 +43,7 @@ final class LogComponentFactory implements CustomComponentFactory {
         return new Instance() {
 
             @SuppressWarnings("unchecked")
-            public void bind(final Registry registry) throws ComponentContainer.BindingException {
+            public void bind(final Registry registry) throws OpenComponentContainer.BindingException {
                 final Log.Source marker = context.annotation(Log.Source.class, Log.class);
                 registry.bindInstance(factory.createLog(marker.value()), Log.class);
             }

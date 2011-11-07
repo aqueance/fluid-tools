@@ -172,8 +172,8 @@ public final class BasicResolutionTests extends AbstractContainerTests {
 
     @Test
     public void transientComponentBindings() throws Exception {
-        final Key value = container.getComponent(Key.class, new ComponentContainer.Bindings() {
-            public void bindComponents(ComponentContainer.Registry registry) {
+        final Key value = container.getComponent(Key.class, new OpenComponentContainer.Bindings() {
+            public void bindComponents(OpenComponentContainer.Registry registry) {
                 registry.bindComponent(Value.class);
                 registry.bindComponent(DependentValue.class);
             }
@@ -282,7 +282,7 @@ public final class BasicResolutionTests extends AbstractContainerTests {
         assert instantiated.contains(MultipleInterfaces.class);
     }
 
-    @Test(expectedExceptions = ComponentContainer.BindingException.class, expectedExceptionsMessageRegExp = ".*anonymous.*")
+    @Test(expectedExceptions = OpenComponentContainer.BindingException.class, expectedExceptionsMessageRegExp = ".*anonymous.*")
     public void anonymousClass() throws Exception {
         registry.bindInstance(this);
         registry.bindComponent(new Serializable() { }.getClass());

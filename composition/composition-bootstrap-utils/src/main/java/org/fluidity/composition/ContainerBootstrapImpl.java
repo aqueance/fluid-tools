@@ -66,7 +66,7 @@ final class ContainerBootstrapImpl implements ContainerBootstrap {
         final List<PackageBindings> assemblies = provider.instantiateBindings(services, properties, classes);
         assert assemblies != null;
 
-        final ComponentContainer.Registry registry = container.getRegistry();
+        final OpenComponentContainer.Registry registry = container.getRegistry();
 
         if (parent == null) {
             registry.bindInstance(discovery);

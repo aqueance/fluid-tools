@@ -22,6 +22,7 @@ import java.lang.reflect.Method;
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
+import org.fluidity.composition.OpenComponentContainer;
 
 /**
  * Defines the behaviour of component factories. Component creation follows a certain protocol and {@link ComponentFactory} objects must follow that protocol to
@@ -97,10 +98,10 @@ public interface ComponentFactory {
          *
          * @param registry the registry to bind components in.
          *
-         * @throws ComponentContainer.BindingException
+         * @throws OpenComponentContainer.BindingException
          *          when binding fails.
          */
-        void bind(Registry registry) throws ComponentContainer.BindingException;
+        void bind(Registry registry) throws OpenComponentContainer.BindingException;
     }
 
     /**
@@ -170,22 +171,22 @@ public interface ComponentFactory {
     interface Registry {
 
         /**
-         * @param implementation see {@link ComponentContainer.Registry#bindComponent(Class, Class[])}.
-         * @param interfaces     see {@link ComponentContainer.Registry#bindComponent(Class, Class[])}.
+         * @param implementation see {@link OpenComponentContainer.Registry#bindComponent(Class, Class[])}.
+         * @param interfaces     see {@link OpenComponentContainer.Registry#bindComponent(Class, Class[])}.
          *
-         * @throws ComponentContainer.BindingException
-         *          see {@link ComponentContainer.Registry#bindComponent(Class, Class[])}.
+         * @throws OpenComponentContainer.BindingException
+         *          see {@link OpenComponentContainer.Registry#bindComponent(Class, Class[])}.
          */
-        <T> void bindComponent(Class<T> implementation, Class<? super T>... interfaces) throws ComponentContainer.BindingException;
+        <T> void bindComponent(Class<T> implementation, Class<? super T>... interfaces) throws OpenComponentContainer.BindingException;
 
         /**
-         * @param instance   see {@link ComponentContainer.Registry#bindInstance(Object, Class[])}.
-         * @param interfaces see {@link ComponentContainer.Registry#bindInstance(Object, Class[])}.
+         * @param instance   see {@link OpenComponentContainer.Registry#bindInstance(Object, Class[])}.
+         * @param interfaces see {@link OpenComponentContainer.Registry#bindInstance(Object, Class[])}.
          *
-         * @throws ComponentContainer.BindingException
-         *          see {@link ComponentContainer.Registry#bindInstance(Object, Class[])}.
+         * @throws OpenComponentContainer.BindingException
+         *          see {@link OpenComponentContainer.Registry#bindInstance(Object, Class[])}.
          */
-        <T> void bindInstance(T instance, Class<? super T>... interfaces) throws ComponentContainer.BindingException;
+        <T> void bindInstance(T instance, Class<? super T>... interfaces) throws OpenComponentContainer.BindingException;
 
         /**
          * Returns the registry of a new child container that will use this registry as its parent. See {@link ComponentContainer#makeChildContainer()}.

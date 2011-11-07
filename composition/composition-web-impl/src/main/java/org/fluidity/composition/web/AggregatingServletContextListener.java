@@ -22,7 +22,7 @@ import javax.servlet.ServletContextListener;
 import org.fluidity.composition.ContainerBoundary;
 
 /**
- * Delegates servlet listener callbacks to all those annotated with @{@link org.fluidity.composition.ComponentGroup}.
+ * Delegates servlet listener callbacks to all those annotated with {@link org.fluidity.composition.ComponentGroup @ComponentGroup}.
  */
 public final class AggregatingServletContextListener implements ServletContextListener {
 

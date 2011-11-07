@@ -108,15 +108,15 @@ final class ComponentContainerShell extends EmptyComponentContainer {
         return new ComponentContainerShell(container, context, true, true, observer);
     }
 
-    public void bindComponent(final Components.Interfaces interfaces) throws ComponentContainer.BindingException {
+    public void bindComponent(final Components.Interfaces interfaces) throws BindingException {
         container.bindComponent(interfaces);
     }
 
-    public void bindInstance(final Object instance, final Components.Interfaces interfaces) throws ComponentContainer.BindingException {
+    public void bindInstance(final Object instance, final Components.Interfaces interfaces) throws BindingException {
         container.bindInstance(instance, interfaces);
     }
 
-    public OpenComponentContainer makeChildContainer(final Components.Interfaces interfaces) throws ComponentContainer.BindingException {
+    public OpenComponentContainer makeChildContainer(final Components.Interfaces interfaces) throws BindingException {
         return new ComponentContainerShell(container.linkComponent(interfaces), context, false, false, observer);
     }
 

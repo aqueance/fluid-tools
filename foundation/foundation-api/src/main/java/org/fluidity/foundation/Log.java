@@ -23,8 +23,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Log interface to use by Fluid Tools components. An instance is provided to your component via dependency injection. You need to specify the @{@link Source}
- * for the log messages as an annotation of the dependency on this interface. For instance:
+ * Log interface to use by Fluid Tools components. An instance is provided to your component via dependency injection. You need to specify the {@link Source
+ * @Source} for the log messages as an annotation of the dependency on this interface. For instance:
  * <pre>
  * &#64;Component
  * public class MyComponent {

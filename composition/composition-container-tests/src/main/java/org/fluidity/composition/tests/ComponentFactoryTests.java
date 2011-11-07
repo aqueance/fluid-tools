@@ -76,7 +76,7 @@ public final class ComponentFactoryTests extends AbstractContainerTests {
         final OpenComponentContainer child = registry.makeChildContainer(DependentFactory.class);
 
         final Check check = new Check();
-        final ComponentContainer.Registry childRegistry = child.getRegistry();
+        final OpenComponentContainer.Registry childRegistry = child.getRegistry();
 
         childRegistry.bindComponent(FactoryDependency.class);
         childRegistry.bindInstance(check);
@@ -177,7 +177,7 @@ public final class ComponentFactoryTests extends AbstractContainerTests {
             final Instance instance = delegate.resolve(context, dependencies);
 
             return new Instance() {
-                public void bind(final Registry registry) throws ComponentContainer.BindingException {
+                public void bind(final Registry registry) throws OpenComponentContainer.BindingException {
                     registry.bindComponent(DependentValue.class);
 
                     assert instance != null;
@@ -208,7 +208,7 @@ public final class ComponentFactoryTests extends AbstractContainerTests {
             final Instance instance = delegate.resolve(context, dependencies);
 
             return new Instance() {
-                public void bind(final Registry registry) throws ComponentContainer.BindingException {
+                public void bind(final Registry registry) throws OpenComponentContainer.BindingException {
                     registry.bindComponent(GroupMember1.class);
 
                     assert instance != null;
@@ -228,7 +228,7 @@ public final class ComponentFactoryTests extends AbstractContainerTests {
             final Instance instance = delegate.resolve(context, dependencies);
 
             return new Instance() {
-                public void bind(final Registry registry) throws ComponentContainer.BindingException {
+                public void bind(final Registry registry) throws OpenComponentContainer.BindingException {
                     registry.bindComponent(GroupMember2.class);
 
                     assert instance != null;
@@ -277,7 +277,7 @@ public final class ComponentFactoryTests extends AbstractContainerTests {
             final Dependency<?>[] args = dependencies.discover(DynamicComponent1.class);
 
             return new Instance() {
-                public void bind(final Registry registry) throws ComponentContainer.BindingException {
+                public void bind(final Registry registry) throws OpenComponentContainer.BindingException {
                     registry.bindInstance(new DynamicComponent1((ComponentContainer) args[0].instance()));
                 }
             };
@@ -306,7 +306,7 @@ public final class ComponentFactoryTests extends AbstractContainerTests {
             final Dependency<?>[] args = dependencies.discover(DynamicComponent1.class);
 
             return new Instance() {
-                public void bind(final Registry registry) throws ComponentContainer.BindingException {
+                public void bind(final Registry registry) throws OpenComponentContainer.BindingException {
                     registry.bindInstance(new DynamicComponent2((ComponentContainer) args[0].instance()));
                 }
             };

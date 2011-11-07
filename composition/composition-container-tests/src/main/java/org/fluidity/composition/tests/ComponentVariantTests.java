@@ -93,7 +93,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
         final OpenComponentContainer child = registry.makeChildContainer(DependentValue.class);
 
         final Check check = new Check();
-        final ComponentContainer.Registry childRegistry = child.getRegistry();
+        final OpenComponentContainer.Registry childRegistry = child.getRegistry();
 
         childRegistry.bindComponent(DependentVariants.class);
         childRegistry.bindInstance(check);
@@ -261,7 +261,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
         final OpenComponentContainer child = registry.makeChildContainer(DependentValue.class);
 
         final Check check = new Check();
-        final ComponentContainer.Registry childRegistry = child.getRegistry();
+        final OpenComponentContainer.Registry childRegistry = child.getRegistry();
 
         childRegistry.bindComponent(ContextProvider0.class);
         childRegistry.bindComponent(ContextProvider1.class);
@@ -289,7 +289,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
         registry.bindComponent(FactoryDependency.class);
 
         final OpenComponentContainer child = registry.makeChildContainer();
-        final ComponentContainer.Registry childRegistry = child.getRegistry();
+        final OpenComponentContainer.Registry childRegistry = child.getRegistry();
 
         childRegistry.bindComponent(ContextProvider0.class);
         childRegistry.bindComponent(ContextProvider1.class);
@@ -347,7 +347,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
                 assert !context.defines(Setting1.class) : Setting1.class;
                 assert context.defines(Setting2.class) : Setting2.class;
                 return new ComponentFactory.Instance() {
-                    public void bind(final ComponentFactory.Registry registry) throws ComponentContainer.BindingException {
+                    public void bind(final ComponentFactory.Registry registry) throws OpenComponentContainer.BindingException {
                         // empty
                     }
                 };
@@ -376,7 +376,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
                 assert context.defines(Setting1.class) : Setting1.class;
                 assert context.defines(Setting2.class) : Setting2.class;
                 return new ComponentFactory.Instance() {
-                    public void bind(final ComponentFactory.Registry registry) throws ComponentContainer.BindingException {
+                    public void bind(final ComponentFactory.Registry registry) throws OpenComponentContainer.BindingException {
                         // empty
                     }
                 };
@@ -454,7 +454,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
 
         public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
             return new Instance() {
-                public void bind(final Registry registry) throws ComponentContainer.BindingException {
+                public void bind(final Registry registry) throws OpenComponentContainer.BindingException {
                     final Setting1 annotation = context.annotation(Setting1.class, null);
                     registry.bindInstance(annotation == null ? null : annotation.value());
                 }
@@ -518,7 +518,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
             final Instance instance = delegate.resolve(context, dependencies);
 
             return new Instance() {
-                public void bind(final Registry registry) throws ComponentContainer.BindingException {
+                public void bind(final Registry registry) throws OpenComponentContainer.BindingException {
                     assert instance != null;
                     instance.bind(registry);
                 }
@@ -537,7 +537,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
             final Instance instance = delegate.resolve(context, dependencies);
 
             return new Instance() {
-                public void bind(final Registry registry) throws ComponentContainer.BindingException {
+                public void bind(final Registry registry) throws OpenComponentContainer.BindingException {
                     assert instance != null;
                     instance.bind(registry);
                 }
@@ -561,7 +561,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
             final Instance instance = delegate.resolve(context, dependencies);
 
             return new Instance() {
-                public void bind(final Registry registry) throws ComponentContainer.BindingException {
+                public void bind(final Registry registry) throws OpenComponentContainer.BindingException {
                     instances.add(DependentFactory.this);        // only instances in actual use count
                     assert instance != null;
                     instance.bind(registry);
@@ -625,7 +625,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
             assert dependency != null && dependency.instance() == checkValue : "Container does not check up";
 
             return new ComponentFactory.Instance() {
-                public void bind(final ComponentFactory.Registry registry) throws ComponentContainer.BindingException {
+                public void bind(final ComponentFactory.Registry registry) throws OpenComponentContainer.BindingException {
                     // empty
                 }
             };
@@ -652,7 +652,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
             assert dependency != null && dependency.instance() == checkValue : "Container does not check up";
 
             return new ComponentFactory.Instance() {
-                public void bind(final ComponentFactory.Registry registry) throws ComponentContainer.BindingException {
+                public void bind(final ComponentFactory.Registry registry) throws OpenComponentContainer.BindingException {
                     registry.bindInstance(arguments[0]);
                     registry.bindComponent(ContextDependentValue.class);
                 }
@@ -719,7 +719,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
             dependencies.discover(ConfiguredComponentImpl.class);
 
             return new Instance() {
-                public void bind(final Registry registry) throws ComponentContainer.BindingException {
+                public void bind(final Registry registry) throws OpenComponentContainer.BindingException {
                     registry.bindComponent(ConfiguredComponentImpl.class);
                 }
             };
@@ -744,7 +744,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
             dependencies.discover(Configuration.class);
 
             return new Instance() {
-                public void bind(final Registry registry) throws ComponentContainer.BindingException {
+                public void bind(final Registry registry) throws OpenComponentContainer.BindingException {
                     registry.bindInstance(context);
                     registry.bindComponent(Configuration.class);
                 }

@@ -26,70 +26,69 @@ import org.fluidity.composition.spi.DependencyPath;
 import org.fluidity.foundation.Strings;
 
 /**
- * This is the external API of a fully populated dependency injection container. The root container is populated automatically by some bootstrap object based on
- * metadata produced by the <code>org.fluidity.maven:maven-composition-plugin</code> Maven plugin. Bootstrap classes are / must be created for the various
- * application containers that are / may be used, such as the JRE application launcher, a web application or an OSGi bundle.
+ * This is the external API of a fully populated dependency injection container. For a discussion of dependency injection and dependency injection containers,
+ * see the <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Dependency_Injection_Concept">User Guide</a>.
  * <p/>
- * Any class loader that loads a bootstrap object will have its own container that will be either the root container or a direct or indirect child thereof. Thus
- * your application may have a hierarchy of containers that matches the application's class loader hierarchy.
+ * TODO: copy the next few paragraphs to the user guide
  * <p/>
- * Containers in a hierarchy co-operate in such a way that if a component is not found in a child container, a look-up is performed in its parent.
+ * An application based on Fluid Tools has a root container, which is the container associated with the highest level class loader that can load the necessary
+ * bootstrap classes. You configure the contents of a container, root or its descendants, by configuring the class path of the various class loaders in your
+ * application. How that is done is beyond the scope of this introduction.
  * <p/>
- * Components are instantiated by the container on demand and their dependencies are resolved by means of constructor and then field based dependency injection.
- * No setter injection or other means of dependency injection are supported. Components instantiated outside a container can still be field injected by the
- * container using its {@link ComponentContainer#initialize(Object)} method. Component instantiation may also be invoked internally for a component class not
- * in the container using the {@link ComponentContainer#instantiate(Class)} method.
+ * Any class loader that loads the class of a bootstrap object, i.e., one that calls {@link ContainerBoundary}, will have its own container that will be either
+ * the root container or a direct or indirect child thereof. Thus your application may have a hierarchy of containers that matches the application's class
+ * loader hierarchy.
+ * <p/>
+ * The root container is populated automatically by some bootstrap object based on metadata produced by the
+ * <code>org.fluidity.maven:maven-composition-plugin</code> Maven plugin. Bootstrap classes are / must be created for the various application containers that
+ * are / may be used to host your application, such as the JRE application launcher, a web application or an OSGi bundle.
+ * <p/>
+ * Containers in a hierarchy co-operate in such a way that if a component is not found in a child container, a look-up is performed in its parent. The act of
+ * looking up a dependency by its referenced type is called <i>dependency resolution</i>. Telling the container what class to resolve a component interface to
+ * is called <i>component binding</i> where a component class is bound to the component interface. The act of a container using its parent to resolve missing
+ * dependencies is called <i>defaulting to</i> the parent container.
+ * <p/>
+ * Dependency resolution is performed based on the referenced type of the dependency. If there was no explicit binding for the given interface then no component
+ * will be injected for that reference.
+ * <p/>
+ * Components are instantiated by the container on demand and their dependencies, defined by constructor parameters and {@link Inject @Inject} annotated fields,
+ * are resolved in this container or its parent. No setter injection or other means of dependency injection are supported.
+ * <p/>
+ * Components instantiated outside a container can still be field injected by the container using its {@link ComponentContainer#initialize(Object)} method.
+ * Component instantiation may also be invoked for a component class not in the container using the {@link ComponentContainer#instantiate(Class)} method.
  * <p/>
  * Components may be context aware, meaning that separate instances may be created for different contexts. Entire chains of dependencies, themselves not
  * necessarily context aware, may be instantiated multiple times for different contexts. This is not always what you expect so be aware of this effect when
- * working with context aware components. This is discussed in more detail in the <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide">User Guide</a>.
+ * working with context aware components. This is discussed in more detail in the
+ * <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Component_Context">User Guide</a>.
  * <p/>
  * Most of your components should never interact directly with this interface. Exceptions to this are management of objects created by third party tools or
  * components with dynamic dependencies, e.g., dependencies determined based on some run-time criteria.
- * <p/>
- * Each container has a registry, which allows components to be programmatically added to the container when it is booting. Except in rare circumstances, you
- * do not need to directly interact with a registry as the <code>org.fluidity.maven:maven-composition-plugin</code> Maven plugin does that for you. You should
- * not need to know about the registry unless you really have some fancy component binding logic. In those rare cases, the followings are provided to help you.
- * <p/>
- * The registry offers several ways to map an implementation to an interface in the host container. Which one you need depends on your requirements. These
- * methods are mostly invoked from the {@link org.fluidity.composition.spi.PackageBindings#bindComponents(ComponentContainer.Registry)} method of your binding
- * implementation.
- * <ul>
- * <li>To simply register a component implementation for its component interfaces, use {@link ComponentContainer.Registry#bindComponent(Class, Class[])}. This
- * is exactly what the Maven plugin uses for a @{@link Component} annotated class with no @{@link Component#automatic()} setting so if this method is all you
- * need then you should simply use the plugin instead of creating your own binding class.</li>
- * <li>To register an already instantiated component implementation for a component interface, use {@link ComponentContainer.Registry#bindInstance(Object,
- * Class[])}. If the implementation is annotated with @{@link Component} then its @{@link Component#automatic()} setting must be set to
- * <code>false</code>.</li>
- * <li>To register a component implementation when some or all of its dependencies are not accessible in the same container, use {@link
- * ComponentContainer.Registry#makeChildContainer(Class, Class[])} method and use the returned container's {@link OpenComponentContainer#getRegistry()} method
- * to gain access to the registry in which to bind the hidden dependencies. If the implementation is annotated with @{@link Component} then its @{@link
- * Component#automatic()} setting must be set to <code>false</code>.</li>
- * </ul>
  * <p/>
  * Containers can also be used to peek into the static dependency graph of your application. This functionality is provided by the {@link
  * ObservedComponentContainer} object returned by the {@link #observed(ComponentResolutionObserver)} method.
  *
  * @author Tibor Varga
  */
+@SuppressWarnings("JavadocReference")
 public interface ComponentContainer {
 
     /**
-     * Returns a new container that calls the given observer whenever a dependency is resolved while resolving a component via the returned container.
+     * Returns a new container that calls the given observer whenever a dependency is resolved while resolving a component interface via the returned container.
      *
      * @param observer the observer to call, may be <code>null</code>.
      *
-     * @return a new container instance backed by this one but using a possibly different resolution observer.
+     * @return a new container instance backed by this one and using the provided resolution observer.
      */
     ObservedComponentContainer observed(ComponentResolutionObserver observer);
 
     /**
      * Returns a component by interface or (super)class. This method is provided for boundary objects (objects created outside the container by third party
-     * tools) to acquire their dependencies. If there is no explicit binding to the provided class, no component will be returned.
+     * tools) to acquire their dependencies. If there was no explicit binding to the provided class, no component is returned.
      *
-     * @param api a class object that was used to bind a component against; never <code>null</code>.
+     * @param api a class object that was used to bind a component to; never <code>null</code>.
      *
-     * @return the component bound against the give class or <code>null</code> when none was found.
+     * @return the component bound to the give class or <code>null</code> when none was found.
      *
      * @throws ResolutionException when dependency resolution fails
      */
@@ -122,8 +121,8 @@ public interface ComponentContainer {
      * child container.
      * <p/>
      * Use this with care as a domain container may cause its parent containers to return multiple instances of the same, supposedly singleton, component. This
-     * is only safe if your application guarantees that the parent container is never used outside a domain container and that domain containers never talk to
-     * one another. Hence the term "domain".
+     * is only safe if your application guarantees that the parent container is never used outside a domain container and that domain containers and the
+     * components they instantiate never talk to other domain containers or components they instantiated. Hence the term "domain".
      *
      * @return a container that defaults to this container for satisfying component dependencies and which will also be used defaulted to by the ancestor
      *         components when they cannot resolve a dependency.
@@ -131,21 +130,24 @@ public interface ComponentContainer {
     OpenComponentContainer makeDomainContainer();
 
     /**
-     * Returns a component by interface or (super)class. This method is provided for factory creating transient components as a convenient
-     * shortcut to acquire a child container, register component bindings in it and then get the child container instantiate the requested component.
+     * Instantiates and returns a transient component by its interface or (super)class after invoking the bindings implemented by the supplied
+     * {@link OpenComponentContainer.Bindings} object. This method is a convenient shortcut to {@link #makeChildContainer() acquire a child container}, {@link
+     * OpenComponentContainer.Bindings#bindComponents(OpenComponentContainer.Registry) register component bindings} in it, and
+     * then get the child container to {@link #getComponent(Class) instantiate} the requested component.
      *
-     * @param api      an interface or class that the provided bindings will register an implementation or extension for.
+     * @param api      an interface or class that the provided bindings will register an implementation or extension for, along with its dependencies missing
+     *                 from this container or its parent or intended to be overridden.
      * @param bindings invoked to add component bindings to the child container.
      *
-     * @return the component bound against the give class or <code>null</code> when none was bound.
+     * @return the component bound to the given class or <code>null</code> if none was bound.
      *
      * @throws ResolutionException when dependency resolution fails
      */
-    <T> T getComponent(Class<T> api, Bindings bindings) throws ResolutionException;
+    <T> T getComponent(Class<T> api, OpenComponentContainer.Bindings bindings) throws ResolutionException;
 
     /**
-     * Post-initialize the @{@link Inject} annotated fields of the given object. You only need to use this method if the supplied component was instantiated
-     * outside the container.
+     * Resolves and injects the {@link Inject @Inject} annotated fields of the given object. You only need to use this method if the supplied component was
+     * instantiated outside the container.
      *
      * @param component a component that needs field injection of dependencies.
      *
@@ -156,9 +158,9 @@ public interface ComponentContainer {
     <T> T initialize(T component) throws ResolutionException;
 
     /**
-     * Invoke the given method of the given object. Parameters of the method will be dependency injected.
+     * Invokes the given method of the given object after resolving and injecting its parameters.
      *
-     * @param component the method to invoke on.
+     * @param component the method to invoke on the provided object.
      * @param method    is the method that needs its parameters injected.
      *
      * @return the result of the method invocation.
@@ -180,90 +182,6 @@ public interface ComponentContainer {
     <T> T instantiate(Class<T> componentClass) throws ResolutionException;
 
     /**
-     * Component bindings. Implementations of this interface populate a dependency injection container. A component binding is a mapping from an interface or
-     * class to a class that implements the interface or extends the class, respectively, or to an instance of such a class.
-     */
-    interface Bindings {
-
-        /**
-         * Add component bindings to the given registry.
-         *
-         * @param registry is an interface to register component bindings.
-         */
-        void bindComponents(ComponentContainer.Registry registry);
-    }
-
-    /**
-     * Allows registration of components into a container.
-     * <p/>
-     * This interface is mainly used by {@link org.fluidity.composition.spi.PackageBindings} objects when the host application populates its dependency
-     * injection container.
-     * <p/>
-     * Outside of <code>PackageBindings</code>, objects implementing this interface for an uninitialized container can be acquired by calling {@link
-     * OpenComponentContainer#getRegistry()} on the container.
-     *
-     * @author Tibor Varga
-     */
-    interface Registry {
-
-        /**
-         * Adds a component class to the container backing this registry. The component class will be instantiated on demand by the container.
-         * <p/>
-         * The supplied component class may implement {@link org.fluidity.composition.spi.ComponentFactory}, in which case the receiver must support
-         * the factory functionality as described in its documentation.
-         * <p/>
-         * When no class is provided in the <code>interfaces</code> parameter, the list of interfaces that resolve to the component at run-time is determined
-         * by the algorithm documented at {@link org.fluidity.composition.Components}.
-         *
-         * @param implementation the component class.
-         * @param interfaces     optional list of interfaces that should resolve to the supplied component class.
-         *
-         * @throws BindingException when component registration fails
-         */
-        @SuppressWarnings("JavadocReference")
-        <T> void bindComponent(Class<T> implementation, Class<? super T>... interfaces) throws BindingException;
-
-        /**
-         * Adds a component instance to the container backing this registry.
-         * Binds a component instance to its interface. Use this method when you have no control over the instantiation of a class, such as those performed by
-         * third party tools, but you still want to make the instances available for components in the container to depend on.
-         * <p/>
-         * The supplied component instance may be a {@link org.fluidity.composition.spi.ComponentFactory} instance, in which case the receiver must support
-         * the factory functionality as described in its documentation.
-         * <p/>
-         * When no class is provided in the <code>interfaces</code> parameter, the list of interfaces that resolve to the component at run-time is determined
-         * by the algorithm documented at {@link org.fluidity.composition.Components}.
-         *
-         * @param instance   the component instance.
-         * @param interfaces optional list of interfaces that should resolve to the supplied component class.
-         *
-         * @throws BindingException when component registration fails
-         */
-        @SuppressWarnings("JavadocReference")
-        <T> void bindInstance(T instance, Class<? super T>... interfaces) throws BindingException;
-
-        /**
-         * Returns a new child container that will use the container for this registry as its parent. See {@link ComponentContainer#makeChildContainer()}.
-         *
-         * @return an open container, never <code>null</code>.
-         */
-        OpenComponentContainer makeChildContainer();
-
-        /**
-         * Returns a new child container that will use the container for this registry as its parent, for the purpose of resolving through the parent
-         * dependencies on the supplied <code>interfaces</code> only.
-         *
-         * @param implementation the component whose dependencies the child container will help resolving.
-         * @param interfaces     the interfaces to resolve to the supplied <code>implementation</code> in both this container and the one returned.
-         *
-         * @return an open container, never <code>null</code>.
-         *
-         * @throws BindingException when component registration fails
-         */
-        <T> OpenComponentContainer makeChildContainer(Class<T> implementation, Class<? super T>... interfaces) throws BindingException;
-    }
-
-    /**
      * Top level exception for exceptions related to the dependency injection container.
      */
     class ContainerException extends RuntimeException {
@@ -274,16 +192,6 @@ public interface ComponentContainer {
 
         public ContainerException(final String format, final Object... data) {
             super(String.format(format, data));
-        }
-    }
-
-    /**
-     * Reports errors when binding a component class or instance to its component interfaces.
-     */
-    class BindingException extends ContainerException {
-
-        public BindingException(final String format, final Object... data) {
-            super(format, data);
         }
     }
 
@@ -313,7 +221,7 @@ public interface ComponentContainer {
 
     /**
      * Reports that some chain of dependencies is circular and that although there was at least one interface reference along the chain that could be used to
-     * break the circularity, all such interface references were attempted to be dynamically resolved by the constructor of of the class owning the reference.
+     * break the circularity, all such interface references were attempted to be dynamically resolved by the constructor of the class owning the reference.
      */
     class CircularInvocationException extends ContainerException {
 

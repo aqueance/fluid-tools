@@ -35,7 +35,7 @@ import org.fluidity.foundation.Exceptions;
 import org.fluidity.foundation.Strings;
 
 /**
- * Finds, resolves and sets, using the given container, all @{@link Inject} annotated fields of an object that have not yet been set.
+ * Finds, resolves and sets, using the given container, all {@link Inject @Inject} annotated fields of an object that have not yet been set.
  *
  * @author Tibor Varga
  */
