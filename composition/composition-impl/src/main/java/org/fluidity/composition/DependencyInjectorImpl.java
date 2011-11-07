@@ -129,7 +129,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
 
                 if (constructor.isAnnotationPresent(Inject.class)) {
                     if (designated != null) {
-                        throw new ComponentContainer.ResolutionException("Multiple @%s constructors found for %s", Inject.class, componentClass);
+                        throw new ComponentContainer.ResolutionException("Multiple @%s constructors found for %s", Inject.class.getName(), componentClass);
                     } else {
                         designated = constructor;
                     }

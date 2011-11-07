@@ -52,7 +52,7 @@ public interface ComponentFactory {
      * The following boilerplate demonstrates the pattern of the implementation in case it has to call the component's constructor:
      * <pre>
      * public Instance resolve(final Resolver dependencies, final ComponentContext context) throws ComponentContainer.ResolutionException {
-     *     final Dependency<?>[] parameters = dependencies.discover(CreatedComponent.class);
+     *     final Dependency&lt;?>[] parameters = dependencies.discover(CreatedComponent.class);
      *
      *     return new Instance() {
      *         public void bind(final Registry registry) throws ComponentContainer.ResolutionException {
@@ -65,8 +65,8 @@ public interface ComponentFactory {
      * The following boilerplate demonstrates the pattern of the implementation in case it has to call some external factory:
      * <pre>
      * public Instance resolve(final Resolver dependencies, final ComponentContext context) throws ComponentContainer.ResolutionException {
-     *     final Dependency<Dependency1> dependency1 = dependencies.resolve(Dependency1.class);
-     *     final Dependency<Dependency2> dependency2 = dependencies.resolve(Dependency2.class);
+     *     final Dependency&lt;Dependency1> dependency1 = dependencies.resolve(Dependency1.class);
+     *     final Dependency&lt;Dependency2> dependency2 = dependencies.resolve(Dependency2.class);
      *
      *     return new Instance() {
      *         public void bind(final Registry registry) throws ComponentContainer.ResolutionException {

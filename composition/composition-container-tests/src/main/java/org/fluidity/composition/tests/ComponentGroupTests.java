@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.fluidity.composition;
+package org.fluidity.composition.tests;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -23,6 +23,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.fluidity.composition.Component;
+import org.fluidity.composition.ComponentContainer;
+import org.fluidity.composition.ComponentContext;
+import org.fluidity.composition.ComponentGroup;
+import org.fluidity.composition.OpenComponentContainer;
+import org.fluidity.composition.Optional;
 import org.fluidity.composition.spi.CustomComponentFactory;
 
 import org.testng.annotations.Test;
@@ -33,7 +39,7 @@ import org.testng.annotations.Test;
 @SuppressWarnings("unchecked")
 public final class ComponentGroupTests extends AbstractContainerTests {
 
-    public ComponentGroupTests(final ContainerFactory factory) {
+    public ComponentGroupTests(final ArtifactFactory factory) {
         super(factory);
     }
 
@@ -225,7 +231,7 @@ public final class ComponentGroupTests extends AbstractContainerTests {
     }
 
     @ComponentGroup
-    public interface Filter {}
+    public interface Filter { }
 
     @Component(automatic = false)
     public static class Processor {

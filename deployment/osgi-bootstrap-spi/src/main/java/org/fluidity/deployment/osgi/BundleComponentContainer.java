@@ -48,12 +48,13 @@ import org.fluidity.composition.ServiceProvider;
  * <p/>
  * <b>Notification about OSGi Service Registration Events</b>
  * <p/>
- * {@link org.fluidity.deployment.osgi.BundleComponentContainer.Registration.Listener} components are {@link Managed} components that receive notifications about OSGi service registration and un-registration events.
+ * {@link Registration.Listener} components are {@link Managed} components that receive notifications about OSGi service registration and un-registration
+ * events.
  * <p/>
  * A managed component may at the same time be a registered OSGi service and may receive notifications about OSGi service registration events by implementing
- * both {@link Registration} and {@link org.fluidity.deployment.osgi.BundleComponentContainer.Registration.Listener}.
+ * both {@link Registration} and {@link Registration.Listener}.
  * <p/>
- * This container loads and manages all {@link BundleComponentContainer.Managed} components visible to its class loader, which is the OSGi bundle class loader. Components
+ * This container loads and manages all {@link Managed} components visible to its class loader, which is the OSGi bundle class loader. Components
  * with direct dependencies - i.e., those without the @{@link Service} annotation - to one another are grouped and their combined set of @{@link Service}
  * dependencies are consulted to determine when to instantiate or discard all components in the group. Independent component groups are instantiated and
  * discarded independently.

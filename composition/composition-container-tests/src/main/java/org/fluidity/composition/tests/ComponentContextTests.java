@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.fluidity.composition;
+package org.fluidity.composition.tests;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -25,6 +25,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.fluidity.composition.Component;
+import org.fluidity.composition.ComponentContainer;
+import org.fluidity.composition.ComponentContext;
+import org.fluidity.composition.ComponentGroup;
+import org.fluidity.composition.Inject;
 import org.fluidity.composition.spi.ComponentVariantFactory;
 import org.fluidity.composition.spi.CustomComponentFactory;
 
@@ -37,7 +42,7 @@ import org.testng.annotations.Test;
 @SuppressWarnings("unchecked")
 public final class ComponentContextTests extends AbstractContainerTests {
 
-    public ComponentContextTests(final ContainerFactory factory) {
+    public ComponentContextTests(final ArtifactFactory factory) {
         super(factory);
     }
 
@@ -217,9 +222,9 @@ public final class ComponentContextTests extends AbstractContainerTests {
     }
 
     @ComponentGroup
-    public interface GroupApi {}
+    public interface GroupApi { }
 
-    private static class GroupMember1 implements GroupApi {}
+    private static class GroupMember1 implements GroupApi { }
 
     @SuppressWarnings("UnusedDeclaration")
     @Component.Context(Setting1.class)
@@ -232,7 +237,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
         }
     }
 
-    private static class GroupMember3 implements GroupApi {}
+    private static class GroupMember3 implements GroupApi { }
 
     @Setting1("context-1")
     private static class GroupDependent1 {

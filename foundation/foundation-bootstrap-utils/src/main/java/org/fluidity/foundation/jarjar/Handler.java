@@ -93,7 +93,7 @@ public class Handler extends URLStreamHandler {
         final StringBuilder specification = new StringBuilder(256);
         final URLConnection connection = root.openConnection();
 
-        // TODO: could root be a jarjar URL? what happens then?
+        assert !root.getProtocol().equals(PROTOCOL) : root;
 
         if (connection instanceof JarURLConnection) {
 

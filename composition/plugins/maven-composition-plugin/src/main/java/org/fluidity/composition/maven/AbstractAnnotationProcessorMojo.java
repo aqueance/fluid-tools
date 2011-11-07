@@ -559,6 +559,7 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
 
         if (!superName.equals(OBJECT_CLASS_NAME)) {
             final ClassReader superClass = repository.reader(superName);
+
             if (superClass != null) {
                 processClass(superClass, processor);
                 processAncestry(processor, superClass, repository);

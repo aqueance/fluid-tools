@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.fluidity.composition;
+package org.fluidity.composition.tests;
 
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Documented;
@@ -30,6 +30,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.fluidity.composition.Component;
+import org.fluidity.composition.ComponentContainer;
+import org.fluidity.composition.ComponentContext;
+import org.fluidity.composition.ComponentGroup;
+import org.fluidity.composition.OpenComponentContainer;
 import org.fluidity.composition.spi.ComponentFactory;
 import org.fluidity.composition.spi.ComponentVariantFactory;
 import org.fluidity.composition.spi.CustomComponentFactory;
@@ -49,7 +54,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
 
     private CustomComponentFactory factory = mock(CustomComponentFactory.class);
 
-    public ComponentVariantTests(final ContainerFactory factory) {
+    public ComponentVariantTests(final ArtifactFactory factory) {
         super(factory);
     }
 
@@ -132,7 +137,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
             }
         }
 
-        return new ComponentContextImpl(map);
+        return artifacts.createContext(map);
     }
 
     private void verifyContext(final ComponentContainer container, final Class<?> contextConsumer) {
@@ -165,7 +170,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
             map.put(type, context.annotations(type));
         }
 
-        return new ComponentContextImpl(map);
+        return artifacts.createContext(map);
     }
 
     @Test
@@ -439,9 +444,9 @@ public final class ComponentVariantTests extends AbstractContainerTests {
     }
 
     @ComponentGroup
-    public interface GroupApi {}
+    public interface GroupApi { }
 
-    private static class GroupMember1 implements GroupApi {}
+    private static class GroupMember1 implements GroupApi { }
 
     @Component(api = GroupMember2.class, automatic = false)
     @Component.Context(Setting1.class)
@@ -465,7 +470,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
         }
     }
 
-    private static class GroupMember3 implements GroupApi {}
+    private static class GroupMember3 implements GroupApi { }
 
     @Setting1("context-1")
     private static class GroupDependent1 {
@@ -687,7 +692,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
     }
 
     @Component(automatic = false)
-    public static class ContextOblivious {}
+    public static class ContextOblivious { }
 
     public interface ConfiguredComponent {
 

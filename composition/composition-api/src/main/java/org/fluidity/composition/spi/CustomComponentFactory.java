@@ -30,4 +30,4 @@ import org.fluidity.composition.Component;
  *
  * @author Tibor Varga
  */
-public interface CustomComponentFactory extends ComponentFactory {}
+public interface CustomComponentFactory extends ComponentFactory { }

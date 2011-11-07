@@ -37,7 +37,7 @@ final class ComponentCacheImpl implements ComponentCache {
         this.log = logs.createLog(getClass());
     }
 
-    public Object lookup(final Object domain, final Object source, final ComponentContext context, final Class<?> api, final Instantiation create) {
+    public Object lookup(final Object domain, final Object source, final ComponentContext context, final Class<?> api, final Instantiation factory) {
         assert context != null : api;
         final boolean singleton = caches == null;
 
@@ -47,7 +47,7 @@ final class ComponentCacheImpl implements ComponentCache {
             caches.put(domain, cache = new HashMap<ComponentContext, Object>());
         }
 
-        return lookup(cache, source, context, api, create, log);
+        return lookup(cache, source, context, api, factory, log);
     }
 
     private synchronized Object lookup(final Map<ComponentContext, Object> cache,

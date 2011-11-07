@@ -83,12 +83,12 @@ public interface DependencyInjector {
      * Find the injectable constructor of the given class.
      * <p/>
      * There is no check for any constructor parameter being satisfiable. Synthetic constructors are ignored. If there is any constructor annotated with
-     * @{@link Inject}, all other constructors are ignored. If there's only one constructor, it is returned. If there is a default constructor and another, and
-     * neither is annotated with @Component, the other one is returned. If there are more constructors, the only one annotated with @{@link Inject} is returned.
-     * If these checks do not yield a single constructor, the same is repeated for public constructors only. If that yields no or multiple constructors, a
-     * ComponentContainer.ResolutionException is thrown.
+     * {@link Inject @Inject}, that one is returned. If there's only one constructor, it is returned. If there is a default constructor and another, and neither
+     * is annotated with <code>@Inject</code>, the other one is returned. If these checks do not yield a single constructor, the same is repeated for public
+     * constructors only. If that yields no or multiple constructors, a {@link ComponentContainer.ResolutionException} is thrown.
      * <p/>
-     * For synthetic constructors see http://java.sun.com/docs/books/jls/third_edition/html/binaryComp.html#13.1, "synthetic"
+     * For synthetic constructors see <a href="http://java.sun.com/docs/books/jls/third_edition/html/binaryComp.html#13.1">The Form of a Binary</a> and search
+     * for the term <em>synthetic</em>.
      *
      * @param componentClass the component class to find the injectable constructor of.
      *

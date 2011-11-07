@@ -48,7 +48,7 @@ final class ContainerProviderImpl implements ContainerProvider {
          */
         final Collection<Class<?>> groups = Collections.<Class<?>>singletonList(PackageBindings.class);
         for (final Class<PackageBindings> binding : bindings) {
-            container.bindComponent(new Components.Interfaces(binding, false, false, new Components.Specification[] {
+            container.bindComponent(new Components.Interfaces(binding, new Components.Specification[] {
                     new Components.Specification(binding, groups)
             }));
         }

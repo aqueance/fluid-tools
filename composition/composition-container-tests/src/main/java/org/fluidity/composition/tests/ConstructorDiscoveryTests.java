@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
-package org.fluidity.composition;
+package org.fluidity.composition.tests;
+
+import org.fluidity.composition.ComponentContainer;
+import org.fluidity.composition.Inject;
 
 import org.testng.annotations.Test;
 
@@ -24,7 +27,7 @@ import org.testng.annotations.Test;
 @SuppressWarnings("unchecked")
 public class ConstructorDiscoveryTests extends AbstractContainerTests {
 
-    public ConstructorDiscoveryTests(final ContainerFactory factory) {
+    public ConstructorDiscoveryTests(final ArtifactFactory factory) {
         super(factory);
     }
 
@@ -116,7 +119,7 @@ public class ConstructorDiscoveryTests extends AbstractContainerTests {
         private ThreeConstructors(final int ignore) {
         }
     }
-    
+
     @SuppressWarnings("UnusedDeclaration")
     private static class SingleComponentConstructor {
 
@@ -130,7 +133,7 @@ public class ConstructorDiscoveryTests extends AbstractContainerTests {
         private SingleComponentConstructor(final String ignore) {
         }
     }
-    
+
     @SuppressWarnings("UnusedDeclaration")
     private static class MultipleComponentConstructors {
 
@@ -146,6 +149,7 @@ public class ConstructorDiscoveryTests extends AbstractContainerTests {
         }
     }
 
+    @SuppressWarnings("UnusedDeclaration")
     private static class HiddenComponentConstructor {
 
         private HiddenComponentConstructor() {
@@ -159,6 +163,7 @@ public class ConstructorDiscoveryTests extends AbstractContainerTests {
         }
     }
 
+    @SuppressWarnings("UnusedDeclaration")
     private static class MixedComponentConstructors {
 
         private MixedComponentConstructors() {

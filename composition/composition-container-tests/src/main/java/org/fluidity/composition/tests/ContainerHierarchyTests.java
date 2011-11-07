@@ -14,7 +14,11 @@
  * limitations under the License.
  */
 
-package org.fluidity.composition;
+package org.fluidity.composition.tests;
+
+import org.fluidity.composition.Component;
+import org.fluidity.composition.ComponentContainer;
+import org.fluidity.composition.OpenComponentContainer;
 
 import org.testng.annotations.Test;
 
@@ -24,7 +28,7 @@ import org.testng.annotations.Test;
 @SuppressWarnings("unchecked")
 public final class ContainerHierarchyTests extends AbstractContainerTests {
 
-    public ContainerHierarchyTests(final ContainerFactory factory) {
+    public ContainerHierarchyTests(final ArtifactFactory factory) {
         super(factory);
     }
 

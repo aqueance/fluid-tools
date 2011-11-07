@@ -84,11 +84,7 @@ public class BundleJarManifest implements JarManifest {
         addEntry(attributes, BUNDLE_DESCRIPTION, new Metadata() { public String get() { return project.getDescription(); } });
         addEntry(attributes, BUNDLE_DOC_URL, new Metadata() { public String get() { return project.getUrl(); } });
         addEntry(attributes, BUNDLE_VENDOR, new Metadata() { public String get() { return project.getOrganization().getName(); } });
-        addEntry(attributes, BUNDLE_SYMBOLIC_NAME, new Metadata() {
-            public String get() {
-                return String.format("%s:%s", project.getGroupId(), project.getArtifactId());
-            }
-        });
+        addEntry(attributes, BUNDLE_SYMBOLIC_NAME, new Metadata() { public String get() { return project.getArtifactId(); } });
 
         // http://www.osgi.org/javadoc/r4v42/org/osgi/framework/Version.html#Version(java.lang.String)
         final String setVersion = attributes.getValue(BUNDLE_VERSION);
@@ -151,10 +147,18 @@ public class BundleJarManifest implements JarManifest {
                 // find the method to call
                 final Method method = classLoader.loadClass(run.getDeclaringClass().getName()).getDeclaredMethod(run.getName(), run.getParameterTypes());
 
-                // see if it can see the ContainerBoundary and BundleBootstrap classes
+                // see if the class loader can see the ContainerBoundary and BundleBootstrap classes and if so, find the bootstrap activator
                 final String activator = (String) method.invoke(command, (Object) null);
-                if (activator != null && checkActivator(attributes)) {
-                    addEntry(attributes, BUNDLE_ACTIVATOR, activator);
+
+                if (activator != null) {
+                    if (attributes.getValue(BUNDLE_ACTIVATOR) == null) {
+                        addEntry(attributes, BUNDLE_ACTIVATOR, activator);
+                    } else {
+                        throw new IllegalStateException(String.format(
+                                "Bundle activator is already set: add @%s to %s and make sure the composition plugin is active in this project",
+                                ComponentGroup.class.getName(),
+                                activator.getClass()));
+                    }
                 }
             } catch (final ClassNotFoundException e) {
                 // that's OK
@@ -164,7 +168,6 @@ public class BundleJarManifest implements JarManifest {
                 if (classLoader != null) {
                     classLoader.destroy();
                 }
-
             }
         }
 
@@ -197,16 +200,6 @@ public class BundleJarManifest implements JarManifest {
         }
     }
 
-    private boolean checkActivator(final Attributes attributes) {
-        final String activator = attributes.getValue(BUNDLE_ACTIVATOR);
-
-        if (activator != null) {
-            throw new IllegalStateException(String.format("Bundle activator is already set: add @%s to %s and make sure the composition plugin is active in this project", ComponentGroup.class, activator));
-        }
-
-        return true;
-    }
-
     private void addEntry(final Attributes attributes, final String entry, final Metadata metadata) {
         if (attributes.getValue(entry) == null) {
             String value;
@@ -237,8 +230,16 @@ public class BundleJarManifest implements JarManifest {
         return partCount;
     }
 
+    /**
+     * Encapsulates the action of getting some metadata. The idea is to be able to chain getters without considering <code>null</code> values along the way.
+     */
     private interface Metadata {
 
+        /**
+         * Return some metadata without caring about calling methods on a <code>null</code> object.
+         *
+         * @return some metadata.
+         */
         String get();
     }
 }

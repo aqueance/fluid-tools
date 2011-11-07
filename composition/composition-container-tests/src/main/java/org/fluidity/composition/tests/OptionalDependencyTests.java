@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
-package org.fluidity.composition;
+package org.fluidity.composition.tests;
+
+import org.fluidity.composition.ComponentContainer;
+import org.fluidity.composition.Optional;
 
 import org.testng.annotations.Test;
 
@@ -24,7 +27,7 @@ import org.testng.annotations.Test;
 @SuppressWarnings("unchecked")
 public final class OptionalDependencyTests extends AbstractContainerTests {
 
-    public OptionalDependencyTests(final ContainerFactory factory) {
+    public OptionalDependencyTests(final ArtifactFactory factory) {
         super(factory);
     }
 

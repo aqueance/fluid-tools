@@ -124,6 +124,6 @@ public class StringsTest extends MockGroupAbstractTest {
 
     private static @interface MultiValued {
         int id() default -1;
-        String[] list() default {};
+        String[] list() default { };
     }
 }

@@ -14,8 +14,13 @@
  * limitations under the License.
  */
 
-package org.fluidity.composition;
+package org.fluidity.composition.tests;
 
+import org.fluidity.composition.Component;
+import org.fluidity.composition.ComponentContainer;
+import org.fluidity.composition.ComponentContext;
+import org.fluidity.composition.ComponentGroup;
+import org.fluidity.composition.OpenComponentContainer;
 import org.fluidity.composition.spi.ComponentFactory;
 import org.fluidity.composition.spi.CustomComponentFactory;
 
@@ -34,7 +39,7 @@ public final class ComponentFactoryTests extends AbstractContainerTests {
     private final CustomComponentFactory factory = mock(CustomComponentFactory.class);
     private final ComponentFactory.Instance instance = mock(ComponentFactory.Instance.class);
 
-    public ComponentFactoryTests(final ContainerFactory factory) {
+    public ComponentFactoryTests(final ArtifactFactory factory) {
         super(factory);
     }
 

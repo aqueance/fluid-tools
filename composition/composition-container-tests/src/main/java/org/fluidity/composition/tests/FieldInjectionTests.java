@@ -14,7 +14,11 @@
  * limitations under the License.
  */
 
-package org.fluidity.composition;
+package org.fluidity.composition.tests;
+
+import org.fluidity.composition.Component;
+import org.fluidity.composition.Inject;
+import org.fluidity.composition.Optional;
 
 import org.testng.annotations.Test;
 
@@ -24,7 +28,7 @@ import org.testng.annotations.Test;
 @SuppressWarnings("unchecked")
 public final class FieldInjectionTests extends AbstractContainerTests {
 
-    public FieldInjectionTests(final ContainerFactory factory) {
+    public FieldInjectionTests(final ArtifactFactory factory) {
         super(factory);
     }
 
@@ -93,7 +97,7 @@ public final class FieldInjectionTests extends AbstractContainerTests {
         }
     }
 
-    public interface SelfDependent {}
+    public interface SelfDependent { }
 
     /**
      * A class that has a field dependency to itself.

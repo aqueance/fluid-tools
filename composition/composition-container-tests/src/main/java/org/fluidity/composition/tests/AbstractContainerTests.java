@@ -14,31 +14,35 @@
  * limitations under the License.
  */
 
-package org.fluidity.composition;
+package org.fluidity.composition.tests;
 
+import org.fluidity.composition.Component;
+import org.fluidity.composition.ComponentContainer;
+import org.fluidity.composition.ComponentContext;
+import org.fluidity.composition.OpenComponentContainer;
 import org.fluidity.tests.MockGroupAbstractTest;
 
 import org.testng.annotations.BeforeMethod;
 
 /**
- * Abstract test for container related test cases. Used by {@link ComponentContainerAbstractTest}.
+ * Abstract test for container related test cases. Used by {@link org.fluidity.composition.ComponentContainerAbstractTest}.
  *
  * @author Tibor Varga
  */
 public abstract class AbstractContainerTests extends MockGroupAbstractTest {
 
-    protected final ContainerFactory factory;
+    protected final ArtifactFactory artifacts;
 
     protected OpenComponentContainer container;
     protected ComponentContainer.Registry registry;
 
-    public AbstractContainerTests(final ContainerFactory factory) {
-        this.factory = factory;
+    public AbstractContainerTests(final ArtifactFactory artifacts) {
+        this.artifacts = artifacts;
     }
 
     @BeforeMethod
     public void createContainer() throws Exception {
-        container = factory.createContainer();
+        container = artifacts.createContainer();
         registry = container.getRegistry();
         Value.dependent = null;
     }
@@ -62,13 +66,18 @@ public abstract class AbstractContainerTests extends MockGroupAbstractTest {
         assert Value.instanceCount == originalCount + 1 : String.format("Expected only 1 Key object, got %d", Value.instanceCount - originalCount);
     }
 
+    /**
+     * Component interface for {@link Value}.
+     */
     public interface Key {
 
         String key();
     }
 
     /**
-     * This is intentionally protected - makes sure the container is able to instantiate non-public classes
+     * Component that depends on {@link DependentKey}.
+     *
+     * This is intentionally protected - makes sure the container is able to instantiate non-public classes.
      */
     @Component(automatic = false)
     protected static class Value implements Key {
@@ -99,13 +108,18 @@ public abstract class AbstractContainerTests extends MockGroupAbstractTest {
         }
     }
 
+    /**
+     * Component interface for {@link DependentValue}.
+     */
     public interface DependentKey {
 
         ComponentContext context();
     }
 
     /**
-     * This is intentionally protected - makes sure the container is able to instantiate non-public classes
+     * Component with no dependencies; one that can tell the component context that was prevalent at instantiation.
+     *
+     * This is intentionally protected - makes sure the container is able to instantiate non-public classes.
      */
     @Component(automatic = false)
     protected static class DependentValue implements DependentKey {
@@ -126,6 +140,8 @@ public abstract class AbstractContainerTests extends MockGroupAbstractTest {
     }
 
     /**
+     * Fallback component with no dependencies; one that can tell the component context that was prevalent at instantiation.
+     *
      * This is intentionally protected - makes sure the container is able to instantiate non-public classes
      */
     @SuppressWarnings("UnusedDeclaration")
@@ -173,8 +189,8 @@ public abstract class AbstractContainerTests extends MockGroupAbstractTest {
     }
 
     /**
-     * Just a class with no dependencies, intended to be registered to a container and then checked if the registration there in a container received from the
-     * system.
+     * Just a class with no dependencies, intended to be registered in a container and then checked if the registration is there in a container received from
+     * the system.
      */
     public static class Check {
 

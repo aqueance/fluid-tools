@@ -101,17 +101,17 @@ public class ComponentsTest {
 
     @Test
     public void noComponents() throws Exception {
-        checkComponent(OrdinaryClass.class, false, true);
-        checkComponent(OrdinarySubClass.class, false, true);
+        checkComponent(OrdinaryClass.class);
+        checkComponent(OrdinarySubClass.class);
     }
 
     @Test
     public void bareComponents() throws Exception {
-        checkComponent(BareComponent.class, false, false);
-        checkComponent(ManualBareComponent.class, true, false);
-        checkComponent(FallbackComponent.class, false, true);
-        checkComponent(ManualFallbackComponent.class, true, true);
-        checkComponent(ComponentSubClass.class, false, false);
+        checkComponent(BareComponent.class);
+        checkComponent(ManualBareComponent.class);
+        checkComponent(FallbackComponent.class);
+        checkComponent(ManualFallbackComponent.class);
+        checkComponent(ComponentSubClass.class);
     }
 
     @Test
@@ -119,7 +119,7 @@ public class ComponentsTest {
         final Class<? extends Serializable> innerClass = new Serializable() { }.getClass();
         final Components.Interfaces interfaces = Components.inspect(innerClass);
 
-        checkFlags(innerClass, interfaces, false, true);
+        checkImplementation(innerClass, interfaces);
         checkInterfaces(innerClass, interfaces.api, Serializable.class);
         checkGroups(interfaces.api[0]);
     }
@@ -128,7 +128,7 @@ public class ComponentsTest {
     public void selfReference() throws Exception {
         final Components.Interfaces interfaces = Components.inspect(SelfReferringComponent.class);
 
-        checkFlags(SelfReferringComponent.class, interfaces, false, false);
+        checkImplementation(SelfReferringComponent.class, interfaces);
         checkInterfaces(SelfReferringComponent.class, interfaces.api, SelfReferringComponent.class);
         checkGroups(interfaces.api[0]);
     }
@@ -137,7 +137,7 @@ public class ComponentsTest {
     public void singleComponent() throws Exception {
         final Components.Interfaces interfaces = Components.inspect(SingleComponent.class);
 
-        checkFlags(SingleComponent.class, interfaces, false, false);
+        checkImplementation(SingleComponent.class, interfaces);
         checkInterfaces(SingleComponent.class, interfaces.api, ComponentApi1.class);
         checkGroups(interfaces.api[0]);
     }
@@ -146,7 +146,7 @@ public class ComponentsTest {
     public void multipleComponent() throws Exception {
         final Components.Interfaces interfaces = Components.inspect(MultipleComponent.class);
 
-        checkFlags(MultipleComponent.class, interfaces, false, false);
+        checkImplementation(MultipleComponent.class, interfaces);
         checkInterfaces(MultipleComponent.class, interfaces.api, ComponentApi1.class, ComponentApi2.class);
         checkGroups(interfaces.api[0]);
         checkGroups(interfaces.api[1]);
@@ -156,7 +156,7 @@ public class ComponentsTest {
     public void singleMultipleComponent() throws Exception {
         final Components.Interfaces interfaces = Components.inspect(SingleMultipleComponent.class);
 
-        checkFlags(SingleMultipleComponent.class, interfaces, false, false);
+        checkImplementation(SingleMultipleComponent.class, interfaces);
         checkInterfaces(SingleMultipleComponent.class, interfaces.api, ComponentApi2.class);
         checkGroups(interfaces.api[0]);
     }
@@ -165,7 +165,7 @@ public class ComponentsTest {
     public void referencingComponent() throws Exception {
         final Components.Interfaces interfaces = Components.inspect(ReferencingComponent.class);
 
-        checkFlags(ReferencingComponent.class, interfaces, false, false);
+        checkImplementation(ReferencingComponent.class, interfaces);
         checkInterfaces(ReferencingComponent.class, interfaces.api, ComponentApi1.class, ComponentApi2.class);
         checkGroups(interfaces.api[0]);
         checkGroups(interfaces.api[1]);
@@ -175,7 +175,7 @@ public class ComponentsTest {
     public void groupApiDirectlyInherited() throws Exception {
         final Components.Interfaces interfaces = Components.inspect(GroupMember1.class);
 
-        checkFlags(GroupMember1.class, interfaces, false, false);
+        checkImplementation(GroupMember1.class, interfaces);
         checkInterfaces(GroupMember1.class, interfaces.api, GroupMember1.class);
         checkGroups(interfaces.api[0], GroupApi1.class, GroupApi2.class);
     }
@@ -184,7 +184,7 @@ public class ComponentsTest {
     public void groupApiIndirectlyInherited() throws Exception {
         final Components.Interfaces interfaces = Components.inspect(GroupMember2.class);
 
-        checkFlags(GroupMember2.class, interfaces, false, false);
+        checkImplementation(GroupMember2.class, interfaces);
         checkInterfaces(GroupMember2.class, interfaces.api, GroupMember2.class);
         checkGroups(interfaces.api[0], GroupApi1.class, GroupApi2.class);
     }
@@ -193,7 +193,7 @@ public class ComponentsTest {
     public void groupApiInferred() throws Exception {
         final Components.Interfaces interfaces = Components.inspect(GroupMember3.class);
 
-        checkFlags(GroupMember3.class, interfaces, false, false);
+        checkImplementation(GroupMember3.class, interfaces);
         checkInterfaces(GroupMember3.class, interfaces.api, GroupMember3.class);
         checkGroups(interfaces.api[0], GroupApi3.class);
     }
@@ -202,7 +202,7 @@ public class ComponentsTest {
     public void groupApiExcluded() throws Exception {
         final Components.Interfaces interfaces = Components.inspect(GroupMember4.class);
 
-        checkFlags(GroupMember4.class, interfaces, false, false);
+        checkImplementation(GroupMember4.class, interfaces);
         checkInterfaces(GroupMember4.class, interfaces.api, GroupMember4.class);
         checkGroups(interfaces.api[0], GroupApi3.class);
     }
@@ -211,7 +211,7 @@ public class ComponentsTest {
     public void componentGroupMember1() throws Exception {
         final Components.Interfaces interfaces = Components.inspect(GroupMemberComponent1.class);
 
-        checkFlags(GroupMemberComponent1.class, interfaces, false, false);
+        checkImplementation(GroupMemberComponent1.class, interfaces);
         checkInterfaces(GroupMemberComponent1.class, interfaces.api, GroupMemberComponent1.class, ComponentApi1.class);
         checkGroups(interfaces.api[0], GroupApi1.class);
         checkGroups(interfaces.api[1]);
@@ -221,7 +221,7 @@ public class ComponentsTest {
     public void componentGroupMember2() throws Exception {
         final Components.Interfaces interfaces = Components.inspect(GroupMemberComponent2.class);
 
-        checkFlags(GroupMemberComponent2.class, interfaces, false, false);
+        checkImplementation(GroupMemberComponent2.class, interfaces);
         checkInterfaces(GroupMemberComponent2.class, interfaces.api, GroupMemberComponent2.class, ComponentApi2.class);
         checkGroups(interfaces.api[0], GroupApi3.class);
         checkGroups(interfaces.api[1]);
@@ -231,7 +231,7 @@ public class ComponentsTest {
     public void componentGroupMember3() throws Exception {
         final Components.Interfaces interfaces = Components.inspect(GroupMemberComponent3.class);
 
-        checkFlags(GroupMemberComponent3.class, interfaces, true, false);
+        checkImplementation(GroupMemberComponent3.class, interfaces);
         checkInterfaces(GroupMemberComponent3.class, interfaces.api, GroupMemberComponent3.class, ComponentApi3.class);
         checkGroups(interfaces.api[0], GroupApi1.class, GroupApi2.class);
         checkGroups(interfaces.api[1]);
@@ -241,7 +241,7 @@ public class ComponentsTest {
     public void componentGroupMember4() throws Exception {
         final Components.Interfaces interfaces = Components.inspect(GroupMemberComponent4.class);
 
-        checkFlags(GroupMemberComponent4.class, interfaces, true, false);
+        checkImplementation(GroupMemberComponent4.class, interfaces);
         checkInterfaces(GroupMemberComponent4.class, interfaces.api, GroupMemberComponent4.class, ComponentApi3.class, ComponentApi4.class);
         checkGroups(interfaces.api[0], GroupApi2.class);
         checkGroups(interfaces.api[1]);
@@ -252,7 +252,7 @@ public class ComponentsTest {
     public void componentGroupMemberFactory1() throws Exception {
         final Components.Interfaces interfaces = Components.inspect(GroupMemberFactory1.class);
 
-        checkFlags(GroupMemberFactory1.class, interfaces, false, false);
+        checkImplementation(GroupMemberFactory1.class, interfaces);
         checkInterfaces(GroupMemberFactory1.class, interfaces.api, GroupMemberComponent3.class, ComponentApi3.class);
         checkGroups(interfaces.api[0], GroupApi1.class, GroupApi2.class);
         checkGroups(interfaces.api[1]);
@@ -262,7 +262,7 @@ public class ComponentsTest {
     public void componentGroupMemberFactory2() throws Exception {
         final Components.Interfaces interfaces = Components.inspect(GroupMemberFactory2.class);
 
-        checkFlags(GroupMemberFactory2.class, interfaces, false, false);
+        checkImplementation(GroupMemberFactory2.class, interfaces);
         checkInterfaces(GroupMemberFactory2.class, interfaces.api, GroupMemberComponent4.class, ComponentApi3.class, ComponentApi4.class);
         checkGroups(interfaces.api[0], GroupApi2.class);
         checkGroups(interfaces.api[1]);
@@ -283,25 +283,23 @@ public class ComponentsTest {
     private void checkPrimitive(final Class<?> type, final Class<?> primitive) {
         final Components.Interfaces interfaces = Components.inspect(type);
 
-        checkFlags(type, interfaces, false, true);
+        checkImplementation(type, interfaces);
         checkInterfaces(type, interfaces.api, type, primitive);
         checkGroups(interfaces.api[0]);
         checkGroups(interfaces.api[1]);
     }
 
-    private void checkComponent(final Class<?> type, final boolean ignored, final boolean fallback) {
+    private void checkComponent(final Class<?> type) {
         final Components.Interfaces interfaces = Components.inspect(type);
 
-        checkFlags(type, interfaces, ignored, fallback);
+        checkImplementation(type, interfaces);
         checkInterfaces(type, interfaces.api, type);
         checkGroups(interfaces.api[0]);
     }
 
-    private void checkFlags(final Class<?> type, final Components.Interfaces interfaces, final boolean ignored, final boolean fallback) {
+    private void checkImplementation(final Class<?> type, final Components.Interfaces interfaces) {
         assert interfaces != null : type;
         assert interfaces.implementation == type : interfaces.implementation;
-        assert interfaces.ignored == ignored : type;
-        assert interfaces.fallback == fallback : type;
     }
 
     private void checkInterfaces(final Class<?> type, final Components.Specification[] specifications, final Class<?>... list) {

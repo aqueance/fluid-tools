@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-package org.fluidity.composition;
+package org.fluidity.composition.tests;
+
+import org.fluidity.composition.Component;
 
 import org.testng.annotations.Test;
 
@@ -24,7 +26,7 @@ import org.testng.annotations.Test;
 @SuppressWarnings("unchecked")
 public final class StatefulComponentTests extends AbstractContainerTests {
 
-    public StatefulComponentTests(final ContainerFactory factory) {
+    public StatefulComponentTests(final ArtifactFactory factory) {
         super(factory);
     }
 

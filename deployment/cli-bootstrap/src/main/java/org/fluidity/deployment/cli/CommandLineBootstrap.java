@@ -20,8 +20,8 @@ import org.fluidity.composition.Component;
 import org.fluidity.composition.ContainerBoundary;
 
 /**
- * A command line main class that bootstraps the application's dependency injection container, invokes {@link Application#run()} to load and
- * run the application supplied main loop.
+ * A command line main class that bootstraps the application's dependency injection container, invokes {@link Application#run(String[])} to load and run the
+ * application supplied main loop.
  * <p/>
  * This class is public for its main method to be found by the Java launcher.
  *

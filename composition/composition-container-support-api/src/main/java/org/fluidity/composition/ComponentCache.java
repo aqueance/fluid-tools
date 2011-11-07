@@ -17,28 +17,28 @@
 package org.fluidity.composition;
 
 /**
- * Caches components by context. Implementations must be thread safe.
+ * Caches components by context. Implementations must be thread safe. This is an internal interface used by the dependency injection container implementation.
  *
  * @author Tibor Varga
  */
 public interface ComponentCache {
 
     /**
-     * Looks up and instantiates if necessary using the supplied command, the component whose class is also specified to find its annotations.
+     * Looks up, and instantiates if necessary using the supplied command, the cached component.
      *
-     * @param domain  the object against component instances are stored.
-     * @param source  something to identify who is creating instances through this cache.
+     * @param domain  the object against which component instances are cached; a separate instance will be cached for different domain parameter values.
+     * @param source  something to identify who is creating instances through this cache; used in log messages emitted by the cache.
      * @param context the context for the component.
      * @param api     the interface the component implements.
-     * @param create  the command that performs instantiation of the component; if <code>null</code>, only a lookup is made otherwise instantiation is
+     * @param factory the command that performs instantiation of the component; if <code>null</code>, only a lookup is made, otherwise instantiation is
      *                attempted if the no cached instance is found.
      *
-     * @return the component instance.
+     * @return the component instance or <code>null</code> depending on whether the supplied <code>factory</code> is <code>null</code> or not.
      */
-    Object lookup(final Object domain, Object source, ComponentContext context, Class<?> api, Instantiation create);
+    Object lookup(Object domain, Object source, ComponentContext context, Class<?> api, Instantiation factory);
 
     /**
-     * A command to create a component instance in some context.
+     * A command to create some component instance.
      */
     interface Instantiation {
 

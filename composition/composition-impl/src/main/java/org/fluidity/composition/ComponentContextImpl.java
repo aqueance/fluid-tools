@@ -61,7 +61,7 @@ final class ComponentContextImpl implements ComponentContext {
         } else if (reference == null) {
             return null;
         } else {
-            throw new ComponentContainer.ResolutionException("Annotation %s is not found for, or accepted by, the %s dependency", type.getName(), reference);
+            throw new ComponentContainer.ResolutionException("Annotation %s is missing from %s dependency", type.getName(), reference);
         }
     }
 

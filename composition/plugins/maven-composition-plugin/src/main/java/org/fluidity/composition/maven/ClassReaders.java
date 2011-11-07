@@ -36,6 +36,8 @@ import org.objectweb.asm.Type;
 
 /**
  * Class related convenience methods.
+ *
+ * @author Tibor Varga
  */
 public final class ClassReaders extends Utilities implements Opcodes {
 
@@ -53,7 +55,7 @@ public final class ClassReaders extends Utilities implements Opcodes {
         return (data.getAccess() & ACC_FINAL) != 0;
     }
 
-    public static ClassWriter makePublic(String className, ClassReader reader) throws MojoExecutionException {
+    public static ClassWriter makePublic(final String className, final ClassReader reader) throws MojoExecutionException {
         assert reader != null : className;
         final ClassWriter writer = new ClassWriter(0);
 
@@ -73,7 +75,7 @@ public final class ClassReaders extends Utilities implements Opcodes {
             }
 
             @Override
-            public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
+            public MethodVisitor visitMethod(final int access, final String name, final String desc, final String signature, final String[] exceptions) {
                 final boolean defaultConstructor = name.equals(CONSTRUCTOR_METHOD_NAME) && Type.getArgumentTypes(desc).length == 0;
 
                 if (defaultConstructor) {

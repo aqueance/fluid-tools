@@ -132,8 +132,8 @@ public final class Proxies extends Utilities {
     }
 
     /**
-     * Handles Object methods, i.e., {@link Object#hashCode()}, {@link Object#equals(Object)}, and {@link Object#toString()}. Exceptions wrapped in {@code
-     * InvocationTargetException}, {@code UndeclaredThrowableException} and {@code RuntimeException} are unwrapped and re-thrown.
+     * Handles Object methods, i.e., {@link Object#hashCode()}, {@link Object#equals(Object)}, and {@link Object#toString()}. Exceptions wrapped in
+     * <code>InvocationTargetException</code>, <code>UndeclaredThrowableException</code> and <code>RuntimeException</code> are unwrapped and re-thrown.
      */
     private static final class MethodInvocations<T> implements InvocationHandler {
 

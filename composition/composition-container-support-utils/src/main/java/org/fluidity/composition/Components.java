@@ -32,14 +32,64 @@ import java.util.Map;
 import java.util.Set;
 
 import org.fluidity.composition.spi.ComponentFactory;
-import org.fluidity.composition.spi.ComponentVariantFactory;
-import org.fluidity.composition.spi.CustomComponentFactory;
+import org.fluidity.foundation.Strings;
 import org.fluidity.foundation.Utilities;
 
 /**
- * Component and component group interface related tools.
+ * Implements the component interface discovery algorithm for classes added to an {@link OpenComponentContainer}. This algorithm produces a list of component
+ * interfaces for a given class and for each such interface, a list of component group interfaces for any component group that the given class is a member of
+ * through that component interface.
+ * <p/>
+ * The rules for discovering the component interfaces are described by the following recursive algorithm:
+ * <ol>
+ * <li>If the class has no {@link Component @Component} annotation, the algorithm returns the <u>class itself</u>, unless the class implements {@link
+ * org.fluidity.composition.spi.ComponentFactory}, in which case the algorithm terminates with an {@link ComponentContainer.BindingException error}.</li>
+ * <li>If the class is annotated with <code>@Component</code> and the <code>@Component(api = ...)</code> parameter is given with a non-empty array, the
+ * algorithm ignores the annotated class and repeats for each class specified <code>@Component(api = {...})</code>. However, if any of these classes are
+ * themselves <code>@Component</code> annotated classes with no <code>@Component(automatic = false)</code>, or if the class does not extend or implement either
+ * all of the listed classes and interfaces or <code>ComponentFactory</code>, the algorithm terminates with an
+ * {@link ComponentContainer.BindingException error}.</li>
+ * <li>If the super class is annotated with <code>@Component</code> but with no <code>@Component(automatic = false)</code>, the algorithm terminates with an
+ * {@link ComponentContainer.BindingException error}.</li>
+ * <li>If the class implements no interfaces directly and its super class is <code>Object</code> then the algorithm returns the <u>annotated class</u>.</li>
+ * <li>If the class implements no interfaces directly and its super class is not <code>Object</code> then the annotated class is ignored and this algorithm
+ * repeats for the super class.</li>
+ * <li>If the class directly implements one or more interfaces then the algorithm returns <u>those interfaces</u>.</li>
+ * </ol>
+ * <p/>
+ * Once the above algorithm has completed, the following takes place:
+ * <ul>
+ * <li>For each class returned, the list of group interfaces is calculated using the algorithm below.</li>
+ * <li>Any component interface that is also a component group interface is removed from the list of component interfaces.</li>
+ * </ul>
+ * <p/>
+ * For the component class itself and each component interface found above, the rules for component group interface discovery are described by the following
+ * recursive algorithm:
+ * <ol>
+ * <li>If the class is annotated with {@link ComponentGroup @ComponentGroup} with a non-empty <code>@ComponentGroup(api = ...)</code> parameter, the
+ * algorithm returns <ul>the classes specified</ul> therein. However, if the class does not extend or implement either all of those classes and interfaces or
+ * <code>ComponentFactory</code>, the algorithm terminates with an {@link ComponentContainer.BindingException error}.</li>
+ * <li>If the class is annotated with <code>@ComponentGroup</code> with no <code>@ComponentGroup(api = ...)</code> parameter, then
+ * <ol>
+ * <li>if the class is an interface, the algorithm returns <u>the annotated class</u>.</li>
+ * <li>if the class directly implements interfaces, the algorithm repeats for those interfaces and if they produce a list of groups the algorithm returns
+ * that list, otherwise the algorithm returns <u>the interfaces</u> themselves.</li>
+ * <li>if the class is not final, the algorithm returns <u>the annotated class</u>.</li>
+ * </ol></li>
+ * <li>The algorithm repeats for each directly implemented interface and the super class.</li>
+ * <li>If the class is <code>Object</code>, the algorithm returns <u>nothing</u>.</li>
+ * </ol>
+ * <p/>
+ * Once the above algorithm has completed, the following adjustments are made to the final result:
+ * <ul>
+ * <li>the component class or, in case of a <code>ComponentFactory</code> implementation, the classes referenced in its <code>@Component(api = ...)</code>
+ * parameter, are added to the component interface list <em>if</em> component group interfaces have been identified for that class or those classes.</li>
+ * </ul>
  *
  * @author Tibor Varga
+ * @see Component
+ * @see ComponentGroup
+ * @see ComponentFactory
  */
 public final class Components extends Utilities {
 
@@ -58,54 +108,12 @@ public final class Components extends Utilities {
     }
 
     /**
-     * Returns the list of component interfaces the given component class can be bound to with a list of component group interfaces for each component
-     * interface that the component may be a member of.
-     * <p/>
-     * The rules for component interface discovery are described by the following recursive algorithm:
-     * <ol>
-     * <li>If the class has no @{@link Component} annotation, the algorithm returns the queried class, unless the class implements {@link
-     * org.fluidity.composition.spi.CustomComponentFactory} or {@link org.fluidity.composition.spi.ComponentVariantFactory}, in which case the algorithm flags
-     * an error.</li>
-     * <li>If the class is annotated with @{@link Component} and the @{@link Component#api()} parameter is given, the algorithm ignores the annotated
-     * class and repeats for each class specified therein. However, if any of these classes are themselves @{@link Component} classes with @{@link
-     * Component#automatic()} not set to <code>false</code>, or if the class does not extend or implement all of those classes and interfaces or {@link
-     * org.fluidity.composition.spi.CustomComponentFactory} or {@link org.fluidity.composition.spi.ComponentVariantFactory}, the algorithm flags an error.</li>
-     * <li>If the super class is annotated with @{@link Component} and its @{@link Component#automatic()} is not set to <code>false</code>, the algorithm flags
-     * an error.</li>
-     * <li>If the class implements no interfaces directly and its super class is {@link Object} then the algorithm returns the annotated class.</li>
-     * <li>If the class implements no interfaces directly and its super class is not {@link Object} then this algorithm repeats for the super class.</li>
-     * <li>If the class directly implements one or more interfaces then the algorithm returns those interfaces.</li>
-     * <li>For each class returned, the list of group interfaces is calculated using the algorithm below.</li>
-     * <li>Any component interface that is also a component group interface is removed from the list of component interfaces.</li>
-     * </ol>
-     * <p/>
-     * For each component interface and the component class, the rules for component group interface discovery are described by the following recursive
-     * algorithm:
-     * <ol>
-     * <li>If the class is annotated with @{@link ComponentGroup} with a @{@link ComponentGroup#api()} parameter, the algorithm
-     * returns the classes specified therein. However, if the class does not extend or implement all of those classes and interfaces or {@link
-     * org.fluidity.composition.spi.CustomComponentFactory} or {@link org.fluidity.composition.spi.ComponentVariantFactory}, the algorithm flags an error.</li>
-     * <li>If the class is annotated with @{@link ComponentGroup} with no @{@link ComponentGroup#api()} parameter, then
-     * <ol>
-     * <li>if the class is an interface, the algorithm returns the annotated class.</li>
-     * <li>if the class directly implements interfaces, the algorithm repeats for those interfaces and if they produce a list of groups the algorithm returns
-     * that list, otherwise the algorithm returns the interfaces themselves.</li>
-     * <li>if the class is not final, the algorithm returns the annotated class.</li>
-     * </ol</li>
-     * <li>The algorithm repeats for each directly implemented interface and the super class.</li>
-     * <li>If the class is {@link Object}, the algorithm returns nothing.</li>
-     * </ol>
-     * <p/>
-     * Once the above algorithms have completed, the following adjustments are made to the final result:
-     * <ul>
-     * <li>the component class or, in case of a {@link
-     * org.fluidity.composition.spi.CustomComponentFactory} or {@link org.fluidity.composition.spi.ComponentVariantFactory} implementation, the classes
-     * referenced in its @{@link Component#api()} parameter, is/are added to the component interface list if component group interfaces have been identified for
-     * that class or those classes.</li>
-     * </ul>
+     * Returns the list of component interfaces that should resolve to the given component class, with a list of component group interfaces for each component
+     * interface that the component may be a member of through that component interface.
      *
      * @param componentClass the component class to inspect.
      * @param restrictions   optional list of interfaces to use instead of whatever the algorithm would find.
+     * @param <T>            the component class.
      *
      * @return an object listing all component interfaces and the set of component group interfaces for each.
      *
@@ -130,14 +138,14 @@ public final class Components extends Utilities {
                 filter(componentClass, interfaceMap, map);
             }
         } else {
-
-            // call the algorithm
             interfaces(componentClass, componentClass, interfaceMap, path, false);
         }
 
+        // handle boxing by means of treating the primitive type same as the box type
         if (interfaceMap.containsKey(componentClass) && componentClass.getName().startsWith("java.lang.")) {
             try {
                 final Field field = componentClass.getField("TYPE");
+
                 if (field.getType() == Class.class) {
                     interfaceMap.put((Class<?>) field.get(null), interfaceMap.get(componentClass));
                 }
@@ -161,17 +169,7 @@ public final class Components extends Utilities {
             interfaces.add(new Specification(type, entry.getValue()));
         }
 
-        final Set<Class<?>> allGroups = new HashSet<Class<?>>();
-
-        for (final Set<Class<?>> set : interfaceMap.values()) {
-            allGroups.addAll(set);
-        }
-
-        final Component component = componentClass.getAnnotation(Component.class);
-        return new Interfaces(componentClass,
-                              component != null && !component.automatic(),
-                              component == null ? allGroups.isEmpty() : !component.primary(),
-                              interfaces.toArray(new Specification[interfaces.size()]));
+        return new Interfaces(componentClass, interfaces.toArray(new Specification[interfaces.size()]));
     }
 
     private static void interfaces(final Class<?> actual,
@@ -185,6 +183,7 @@ public final class Components extends Utilities {
             interfaceMap.put(actual, groups(checked));
         } else {
             path.add(checked);
+
             try {
                 final boolean anonymous = checked.isAnonymousClass();
                 final boolean factory = isFactory(checked);
@@ -193,22 +192,21 @@ public final class Components extends Utilities {
 
                 if (component == null && !anonymous) {
                     if (factory) {
-                        throw new ComponentContainer.BindingException("Factory class %s is missing @%s", checked, Component.class);
+                        throw new ComponentContainer.BindingException("Factory %s is missing @%s", checked, Component.class.getName());
                     } else {
                         interfaceMap.put(actual, groups(checked));
                     }
                 } else if (automatic && reference) {
-                    throw new ComponentContainer.BindingException("Class referred to by %s, %s, is also an automatically bound component", actual.getName(),
-                                                                  checked.getName());
+                    throw new ComponentContainer.BindingException("Class %s referred to is itself an automatically bound component", checked.getName());
                 } else if (automatic && (Modifier.isAbstract(checked.getModifiers()) || checked.isInterface())) {
-                    throw new ComponentContainer.BindingException("Class %s is abstract", checked);
+                    throw new ComponentContainer.BindingException("Class %s is abstract", checked.getName());
                 } else {
                     final Class<?>[] interfaces = component == null ? null : component.api();
 
                     if (interfaces != null && interfaces.length > 0) {
                         for (final Class<?> api : interfaces) {
                             if (!factory && !api.isAssignableFrom(checked)) {
-                                throw new ComponentContainer.BindingException("Class %s refers to incompatible component interface %s", checked.getName(), api.getName());
+                                throw new ComponentContainer.BindingException("Class %s refers to incompatible %s", checked.getName(), api);
                             }
 
                             interfaces(api, api, interfaceMap, path, true);
@@ -240,13 +238,7 @@ public final class Components extends Utilities {
     }
 
     private static void filter(final Class<?> componentClass, final Map<Class<?>, Set<Class<?>>> output, final Map<Class<?>, Set<Class<?>>> interfaceMap) {
-        final Set<Class<?>> allGroups = new HashSet<Class<?>>();
-
-        for (final Set<Class<?>> set : interfaceMap.values()) {
-            allGroups.addAll(set);
-        }
-
-        interfaceMap.keySet().removeAll(allGroups);
+        interfaceMap.keySet().removeAll(allGroups(interfaceMap));
 
         final Set<Class<?>> groups = groups(componentClass);
 
@@ -264,6 +256,16 @@ public final class Components extends Utilities {
         }
 
         output.putAll(interfaceMap);
+    }
+
+    private static Set<Class<?>> allGroups(final Map<Class<?>, Set<Class<?>>> interfaceMap) {
+        final Set<Class<?>> allGroups = new HashSet<Class<?>>();
+
+        for (final Set<Class<?>> set : interfaceMap.values()) {
+            allGroups.addAll(set);
+        }
+
+        return allGroups;
     }
 
     private static Set<Class<?>> groups(final Class<?> type) {
@@ -328,27 +330,53 @@ public final class Components extends Utilities {
     }
 
     private static boolean isFactory(final Class<?> componentClass) {
-        return CustomComponentFactory.class.isAssignableFrom(componentClass) || ComponentVariantFactory.class.isAssignableFrom(componentClass);
+        return ComponentFactory.class.isAssignableFrom(componentClass);
     }
 
     /**
-     * List of component interfaces and a flag that tells whether automatic processing should ignore this list or not.
+     * List of component interfaces and corresponding component group interfaces for a component implementation.
      */
     public static final class Interfaces {
 
-        public final boolean ignored;
-        public final boolean fallback;
+        /**
+         * Component class.
+         */
         public final Class<?> implementation;
+
+        /**
+         * Component interfaces and component group interfaces associated therewith.
+         */
         public final Specification[] api;
 
         private final int hash;
 
-        Interfaces(final Class<?> implementation, final boolean ignored, final boolean fallback, final Specification[] interfaces) {
-            this.ignored = ignored;
-            this.fallback = fallback;
+        Interfaces(final Class<?> implementation, final Specification[] interfaces) {
             this.implementation = implementation;
             this.api = interfaces == null ? new Specification[0] : interfaces;
             this.hash = calculateHash();
+        }
+
+        @Override
+        public String toString() {
+            final StringBuilder text = new StringBuilder();
+
+            boolean multiple = false;
+            for (final Components.Specification specification : api) {
+                final Class<?> type = specification.api;
+
+                if (text.length() > 0) {
+                    text.append(", ");
+                    multiple = true;
+                }
+
+                text.append(Strings.arrayNotation(type));
+
+                if (specification.groups.length > 0) {
+                    text.append(" group ").append(Arrays.toString(specification.groups));
+                }
+            }
+
+            return (multiple ? text.insert(0, '[').append(']') : text).toString();
         }
 
         @Override
@@ -362,7 +390,7 @@ public final class Components extends Utilities {
             }
 
             final Interfaces that = (Interfaces) o;
-            return fallback == that.fallback && ignored == that.ignored && implementation.equals(that.implementation) && Arrays.equals(api, that.api);
+            return implementation.equals(that.implementation) && Arrays.equals(api, that.api);
         }
 
         @Override
@@ -371,9 +399,7 @@ public final class Components extends Utilities {
         }
 
         private int calculateHash() {
-            int result = (ignored ? 1 : 0);
-            result = 31 * result + (fallback ? 1 : 0);
-            result = 31 * result + implementation.hashCode();
+            int result = implementation.hashCode();
             result = 31 * result + Arrays.hashCode(api);
             return result;
         }
@@ -384,7 +410,14 @@ public final class Components extends Utilities {
      */
     public static final class Specification {
 
+        /**
+         * The component interface
+         */
         public final Class<?> api;
+
+        /**
+         * The group interfaces associated with the component interfaces
+         */
         public final Class<?>[] groups;
 
         Specification(final Class<?> api, final Collection<Class<?>> groups) {

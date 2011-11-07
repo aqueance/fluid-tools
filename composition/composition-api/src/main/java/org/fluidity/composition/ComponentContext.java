@@ -20,12 +20,14 @@ import java.lang.annotation.Annotation;
 import java.util.Set;
 
 /**
- * Provides a runtime context for components. A context represents configuration at the point of reference to a component, which it elects to receive using the
- * {@link Component.Context} annotation. Contexts are provided by components that depend, directly or indirectly, on context consuming components using custom,
- * user defined, annotations. The context consuming components list these annotation types in their respective {@link Component.Context} annotations.
+ * The runtime context for a component. A context represents configuration at the point of reference to a component, which it elects to receive using the
+ * {@link Context} annotation. Contexts are provided by components that depend, directly or indirectly, on context consuming components using custom, user
+ * defined, annotations. The context consuming components list these annotation types in their respective {@link Context} annotations.
  * <p/>
- * Context support can be added to a component that itself does not support contexts using {@link org.fluidity.composition.spi.ComponentVariantFactory}
- * components as long as the component does supports some other configuration mechanism that can be manipulated by the variant factory class.
+ * TODO: example
+ * <p/>
+ * Context support can be added to a component that itself does not support contexts using a {@link org.fluidity.composition.spi.ComponentVariantFactory}
+ * as long as the component does supports some other configuration mechanism that can be manipulated by the variant factory.
  *
  * @author Tibor Varga
  */

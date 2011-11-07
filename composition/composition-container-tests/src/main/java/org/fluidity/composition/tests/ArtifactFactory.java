@@ -14,14 +14,20 @@
  * limitations under the License.
  */
 
-package org.fluidity.composition;
+package org.fluidity.composition.tests;
+
+import java.lang.annotation.Annotation;
+import java.util.Map;
+
+import org.fluidity.composition.ComponentContext;
+import org.fluidity.composition.OpenComponentContainer;
 
 /**
- * Internal interface used by {@link ComponentContainerAbstractTest} and its tests.
+ * Internal interface used by {@link org.fluidity.composition.ComponentContainerAbstractTest} and its tests.
  *
  * @author Tibor Varga
  */
-public interface ContainerFactory {
+public interface ArtifactFactory {
 
     /**
      * Creates and returns a new container implementation.
@@ -29,4 +35,13 @@ public interface ContainerFactory {
      * @return a new container implementation.
      */
     OpenComponentContainer createContainer();
+
+    /**
+     * Creates a component context.
+     *
+     * @param map the map to form the basis of the context.
+     *
+     * @return a newly created component context object.
+     */
+    ComponentContext createContext(Map<Class<? extends Annotation>, Annotation[]> map);
 }

@@ -164,7 +164,7 @@ abstract class AbstractFactoryResolver extends AbstractResolver {
     }
 
     @SuppressWarnings("unchecked")
-    private class RegistryWrapper implements ComponentFactory.Registry {
+    private static class RegistryWrapper implements ComponentFactory.Registry {
         private final Class<?> api;
         private final SimpleContainer container;
 
@@ -174,24 +174,12 @@ abstract class AbstractFactoryResolver extends AbstractResolver {
         }
 
         public <T> void bindComponent(final Class<T> implementation, final Class<? super T>... interfaces) throws ComponentContainer.BindingException {
-            final Components.Interfaces inspect = Components.inspect(implementation, interfaces);
-
-            if (api.isAssignableFrom(implementation)) {
-                // TODO: container should not cache this one
-            }
-
-            container.bindComponent(inspect);
+            container.bindComponent(Components.inspect(implementation, interfaces));
         }
 
         public <T> void bindInstance(final T instance, final Class<? super T>... interfaces) throws ComponentContainer.BindingException {
             assert instance != null;
-            final Class<T> implementation = (Class<T>) instance.getClass();
-
-            if (api.isAssignableFrom(implementation)) {
-                // TODO: container should not cache this one
-            }
-
-            container.bindInstance(instance, Components.inspect(implementation, interfaces));
+            container.bindInstance(instance, Components.inspect((Class<T>) instance.getClass(), interfaces));
         }
 
         public ComponentFactory.Registry makeChildContainer() {
@@ -199,7 +187,7 @@ abstract class AbstractFactoryResolver extends AbstractResolver {
         }
     }
 
-    private class NodeDependency<T> implements ComponentFactory.Dependency<T> {
+    private static class NodeDependency<T> implements ComponentFactory.Dependency<T> {
         private final DependencyGraph.Node node;
         private final DependencyGraph.Traversal traversal;
 

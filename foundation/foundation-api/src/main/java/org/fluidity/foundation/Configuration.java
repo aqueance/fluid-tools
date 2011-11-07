@@ -46,7 +46,7 @@ import org.fluidity.foundation.spi.PropertyProvider;
  * supported return type and they may have any number of arguments. The given {@link Configuration.Property#key()}s are understood to be relative to the
  * concatenation of each @{@link Configuration.Context} annotation in the instantiation path of the configured component.
  * <p/>
- * Query methods may have parameters that provide values to placeholders in the property key, as in the method definition for {@code property2} above.
+ * Query methods may have parameters that provide values to placeholders in the property key, as in the method definition for <code>property2</code> above.
  * <h3>Property Provider</h3>
  * Using the above and a suitable, <code>@Component</code> annotated implementation of {@link PropertyProvider} in the class path,
  * a component can now declare a dependency to a configuration like so:
@@ -84,9 +84,9 @@ import org.fluidity.foundation.spi.PropertyProvider;
  * </ol>
  * <h2>Supported Return Types</h2>
  * <ul>
- * <li>{@code String}</li>
- * <li>Primitive Java type, such as {@code int}</li>
- * <li>Boxed primitive Java type, such as {@code Long}</li>
+ * <li><code>String</code></li>
+ * <li>Primitive Java type, such as <code>int</code></li>
+ * <li>Boxed primitive Java type, such as <code>Long</code></li>
  * <li>{@link Enum} type</li>
  * <li>Array of any supported type</li>
  * <li>{@link java.util.List} of any supported type</li>
@@ -131,7 +131,7 @@ public interface Configuration<T> {
      *
      * @param query the object to supply the settings implementation to.
      *
-     * @return whatever the supplied {@code query} returns.
+     * @return whatever the supplied <code>query</code> returns.
      */
     <R> R query(Query<T, R> query);
 
@@ -141,7 +141,7 @@ public interface Configuration<T> {
      * its methods outside the <code>read</code> method will not have the same effect.
      *
      * @param <T> the settings interface type.
-     * @param <R> the return type of the {@code read} method.
+     * @param <R> the return type of the <code>read</code> method.
      */
     interface Query<T, R> {
 

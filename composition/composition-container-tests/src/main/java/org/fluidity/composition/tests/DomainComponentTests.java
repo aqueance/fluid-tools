@@ -14,9 +14,13 @@
  * limitations under the License.
  */
 
-package org.fluidity.composition;
+package org.fluidity.composition.tests;
 
 import java.util.Arrays;
+
+import org.fluidity.composition.ComponentContainer;
+import org.fluidity.composition.ComponentGroup;
+import org.fluidity.composition.OpenComponentContainer;
 
 import org.testng.annotations.Test;
 
@@ -26,7 +30,7 @@ import org.testng.annotations.Test;
 @SuppressWarnings("unchecked")
 public final class DomainComponentTests extends AbstractContainerTests {
 
-    public DomainComponentTests(final ContainerFactory factory) {
+    public DomainComponentTests(final ArtifactFactory factory) {
         super(factory);
     }
 
@@ -154,7 +158,7 @@ public final class DomainComponentTests extends AbstractContainerTests {
     private static class Dependency { }
 
     @ComponentGroup
-    public interface GroupApi {}
+    public interface GroupApi { }
 
     public static class GroupMember1 implements GroupApi {
 

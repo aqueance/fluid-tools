@@ -25,10 +25,15 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * This annotation can be used to specify at the implementation class what interfaces it should be bound to. The org.fluidity.maven:maven-composition-plugin
- * Maven plugin will generate the necessary {@link org.fluidity.composition.spi.PackageBindings} object unless {@link #automatic()} is set to
- * <code>false</code>, and will create the appropriate service provider descriptor file even if you manually supply the bindings by implementing the {@link
- * org.fluidity.composition.spi.EmptyPackageBindings} class.
+ * Specifies the component interface(s) that a class implements and that should be resolved to the annotated class at run-time in a dependency injection
+ * container.
+ * <p/>
+ * On its own, this implementation is merely a marker. However, when coupled with the use of the <code>org.fluidity.maven:maven-composition-plugin</code> Maven
+ * plugin, carefree dependency injection becomes possible.
+ * <p/>
+ * For any class marked with this annotation and without having automatic processing disabled, i.e., without {@link #automatic() @Component(automatic = false)},
+ * the <code>maven-composition-plugin</code> Maven plugin will generate at build time the necessary metadata that the dependency injection container will need
+ * to pick up and process the annotated class at run-time.
  *
  * @author Tibor Varga
  */
@@ -39,36 +44,45 @@ import java.lang.annotation.Target;
 public @interface Component {
 
     /**
-     * Returns the (interface) class to map the implementation class against. The property defaults to the list of interfaces the class directly implements or
-     * the class itself if it implements no interface. In case of {@link org.fluidity.composition.spi.CustomComponentFactory} and {@link
-     * org.fluidity.composition.spi.ComponentVariantFactory} components, the value applies to the component the factory creates, not the factory itself.
+     * Returns the interfaces or classes that should resolve to the implementation class at run-time.
+     * <p/>
+     * In case of {@link org.fluidity.composition.spi.ComponentFactory}, the value applies to the component the factory creates, not the factory itself.
+     * <p/>
+     * When omitted, the property defaults to the list of interfaces determined by the algorithm documented at {@link org.fluidity.composition.Components}.
      *
-     * @return an array of class objects; ignored for annotated fields.
+     * @return an array of class objects.
      */
+    @SuppressWarnings("JavadocReference")
     Class<?>[] api() default { };
 
     /**
-     * Tells whether this component should be automatically bound or not. If manually bound, the developer has to implement the binding in a suitable {@link
-     * org.fluidity.composition.spi.PackageBindings} object. All other properties are ignored for manually bound components.
+     * Tells whether this class can be processed by the <code>org.fluidity.maven:maven-composition-plugin</code> Maven plugin. The default value is
+     * <code>true</code>, which means the class can be processed by the plugin.
+     * <p/>
+     * Setting this property to <code>false</code> is used when the class is manually processed or in cases when it is there to define a list of interfaces for
+     * another class to pick up, such as a {@link org.fluidity.composition.spi.CustomComponentFactory} implementation.
+     * <p/>
+     * If manually processed, the developer either has to provide a suitable {@link org.fluidity.composition.spi.PackageBindings} object or explicitly add the
+     * class to some child container at run-time.
      *
-     * @return <code>true</code> if this component should be automatically bound; ignored for annotated fields.
+     * @return <code>true</code> if this component should be automatically processed.
      *
      * @see org.fluidity.composition.spi.EmptyPackageBindings
      */
     boolean automatic() default true;
 
     /**
-     * Tells whether this component should be bound as a primary or a as fallback. As a fallback it will be used when no other component has been bound to its
-     * API interface as a primary.
+     * Tells whether the annotated class is a primary implementation of its component interface(s) or just a fallback or default implementation. As a fallback
+     * it will be used when no other class has been marked for its API interface as a primary.
      *
-     * @return <code>true</code> if this component should be mapped as a primary; ignored for annotated fields.
+     * @return <code>true</code> if this component should be mapped as a primary.
      */
     boolean primary() default true;
 
     /**
      * Tells whether this component should be singleton or a new instance must be created for every query or reference.
      *
-     * @return <code>true</code> if a new instance should be created for every query or dependency reference; ignored for annotated fields.
+     * @return <code>true</code> if a new instance should be created for every query or dependency reference.
      */
     boolean stateful() default false;
 
@@ -87,7 +101,7 @@ public @interface Component {
     @interface Context {
 
         /**
-         * Returns the context annotations that configure the class annotated with {@link org.fluidity.composition.Component.Context}.
+         * Returns the context annotations that configure the class annotated with {@link Context}.
          *
          * @return a list of context annotation classes.
          */

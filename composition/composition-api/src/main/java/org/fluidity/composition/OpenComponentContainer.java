@@ -19,6 +19,8 @@ package org.fluidity.composition;
 /**
  * This is a dependency injection container that components can be added to.
  *
+ * @see ComponentContainer
+ *
  * @author Tibor Varga
  */
 public interface OpenComponentContainer extends ComponentContainer {

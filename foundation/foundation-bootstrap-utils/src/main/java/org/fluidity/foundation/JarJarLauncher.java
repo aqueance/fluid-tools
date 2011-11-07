@@ -26,9 +26,9 @@ import java.util.jar.Attributes;
 import org.fluidity.foundation.jarjar.Handler;
 
 /**
- * Launches a main class from a jar file using a class loader that can load classes from jar files nested inside the main jar. Nested jar files must be located
- * in the path denoted by the Dependencies-Path manifest attribute. The main class to be loaded is defined by the Original-Main-Class manifest attribute. The
- * Main-Class manifest attribute, obviously, points to this class.
+ * Launches a main class from a JAR file using a class loader that can load classes from JAR files nested inside the main JAR. Nested JAR files must be located
+ * in the path denoted by the <code>Dependencies-Path</code> manifest attribute. The main class to be loaded is defined by the <code>Original-Main-Class</code>
+ * manifest attribute. The <code>Main-Class</code> manifest attribute has to point to this class, obviously.
  *
  * @author Tibor Varga
  */
@@ -56,7 +56,7 @@ public class JarJarLauncher {
 
             for (final String path : dependencies.split(" ")) {
 
-                // TODO: handle jars embedded in the embedded jar, recursively
+                // TODO: would it make sense to handle jars embedded in the embedded jar, recursively?
                 urls.add(Handler.formatURL(jarURL, path));
             }
 

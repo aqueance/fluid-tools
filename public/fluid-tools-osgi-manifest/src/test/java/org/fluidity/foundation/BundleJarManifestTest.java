@@ -1,3 +1,19 @@
+/*
+ * Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.fluidity.foundation;
 
 import java.util.ArrayList;
@@ -8,6 +24,8 @@ import java.util.jar.Attributes;
 import org.fluidity.deployment.JarManifest;
 
 import org.apache.maven.artifact.Artifact;
+import org.apache.maven.model.Organization;
+import org.apache.maven.project.MavenProject;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -23,7 +41,7 @@ public class BundleJarManifestTest {
         final Attributes attributes = new Attributes();
         final List<String> dependencies = new ArrayList<String>();
 
-        manifest.processManifest(null, attributes, dependencies, Collections.<Artifact>emptyList());
+        assert !manifest.processManifest(null, attributes, dependencies, Collections.<Artifact>emptyList());
 
         assert attributes.getValue(BundleJarManifest.BUNDLE_CLASSPATH) == null;
 
@@ -39,7 +57,7 @@ public class BundleJarManifestTest {
         final String dependency = "dependency.jar";
         dependencies.add(dependency);
 
-        manifest.processManifest(null, attributes, dependencies, Collections.<Artifact>emptyList());
+        assert !manifest.processManifest(null, attributes, dependencies, Collections.<Artifact>emptyList());
 
         assert dependency.equals(attributes.getValue(BundleJarManifest.BUNDLE_CLASSPATH));
 
@@ -60,7 +78,7 @@ public class BundleJarManifestTest {
         dependencies.add(dependency2);
         dependencies.add(dependency3);
 
-        manifest.processManifest(null, attributes, dependencies, Collections.<Artifact>emptyList());
+        assert !manifest.processManifest(null, attributes, dependencies, Collections.<Artifact>emptyList());
 
         final StringBuilder dependencyList = new StringBuilder();
         for (final String dependency : dependencies) {
@@ -97,11 +115,40 @@ public class BundleJarManifestTest {
         final Attributes attributes = new Attributes();
         attributes.putValue(BundleJarManifest.BUNDLE_VERSION, projectVersion);
 
-        manifest.processManifest(null, attributes, new ArrayList<String>(), Collections.<Artifact>emptyList());
+        assert !manifest.processManifest(null, attributes, new ArrayList<String>(), Collections.<Artifact>emptyList());
 
         final String version = attributes.getValue(BundleJarManifest.BUNDLE_VERSION);
         assert bundleVersion.equals(version) : version;
     }
 
-    // TODO: test Maven project metadata conversion
+    @Test
+    public void testProjectMetadata() throws Exception {
+        final Attributes attributes = new Attributes();
+        final MavenProject project = new MavenProject();
+
+        project.setVersion("1.0-SNAPSHOT");
+        project.setName("Project Name");
+        project.setDescription("Project Description");
+        project.setUrl("http://www.google.com");
+        project.setGroupId("my.company.group");
+        project.setArtifactId("my-artifact");
+
+        final Organization organization = new Organization();
+        organization.setName("My Organization");
+        organization.setUrl("http://my.company.com");
+        project.setOrganization(organization);
+
+        assert !manifest.processManifest(project, attributes, new ArrayList<String>(), Collections.<Artifact>emptyList());
+
+        expect(attributes, BundleJarManifest.BUNDLE_NAME, project.getName());
+        expect(attributes, BundleJarManifest.BUNDLE_DESCRIPTION, project.getDescription());
+        expect(attributes, BundleJarManifest.BUNDLE_DOC_URL, project.getUrl());
+        expect(attributes, BundleJarManifest.BUNDLE_VENDOR, project.getOrganization().getName());
+        expect(attributes, BundleJarManifest.BUNDLE_SYMBOLIC_NAME, project.getArtifactId());
+    }
+
+    private void expect(final Attributes attributes, final String key, final String expected) {
+        final Object value = attributes.getValue(key);
+        assert expected.equals(value) : value;
+    }
 }

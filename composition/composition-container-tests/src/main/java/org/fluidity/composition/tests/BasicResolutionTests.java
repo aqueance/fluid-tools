@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.fluidity.composition;
+package org.fluidity.composition.tests;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -29,6 +29,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.fluidity.composition.Component;
+import org.fluidity.composition.ComponentContainer;
+import org.fluidity.composition.Inject;
+import org.fluidity.composition.ObservedComponentContainer;
+import org.fluidity.composition.OpenComponentContainer;
 import org.fluidity.composition.spi.ComponentResolutionObserver;
 import org.fluidity.composition.spi.DependencyPath;
 
@@ -40,7 +45,7 @@ import org.testng.annotations.Test;
 @SuppressWarnings("unchecked")
 public final class BasicResolutionTests extends AbstractContainerTests {
 
-    public BasicResolutionTests(final ContainerFactory factory) {
+    public BasicResolutionTests(final ArtifactFactory factory) {
         super(factory);
     }
 
@@ -342,7 +347,7 @@ public final class BasicResolutionTests extends AbstractContainerTests {
     private interface Interface3 { }
 
     @Component(automatic = false)
-    private static class MultipleInterfaces implements Interface1, Interface2, Interface3 {}
+    private static class MultipleInterfaces implements Interface1, Interface2, Interface3 { }
 
     @Component(automatic = false)
     private static class DependencyChain1 {

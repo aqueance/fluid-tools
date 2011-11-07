@@ -124,7 +124,7 @@ final class SimpleContainerImpl implements ParentContainer {
         return replacement;
     }
 
-    private interface Resolver {
+    private static interface Resolver {
 
         ComponentResolver resolver(Class<?> type);
     }
@@ -204,7 +204,7 @@ final class SimpleContainerImpl implements ParentContainer {
         log.debug("%s: binding %s to %s (%s, %s)",
                   this,
                   implementation,
-                  print(interfaces),
+                  interfaces,
                   isStateful ? "stateful" : "stateless",
                   isFallback ? "fallback" : "primary");
 
@@ -246,7 +246,7 @@ final class SimpleContainerImpl implements ParentContainer {
                              ? ('\'' + String.valueOf(instance) + '\'')
                              : ("instance of " + Strings.arrayNotation(implementation));
 
-        log.debug("%s: binding %s to %s (%s)", this, value, print(interfaces), isFallback ? "fallback" : "primary");
+        log.debug("%s: binding %s to %s (%s)", this, value, interfaces, isFallback ? "fallback" : "primary");
 
         bindResolvers(implementation, interfaces.api, false, new ContentResolvers() {
             public boolean isVariantFactory() {
@@ -271,28 +271,6 @@ final class SimpleContainerImpl implements ParentContainer {
                 return new FactoryResolverInstance(isFallback ? 0 : 1, api, (CustomComponentFactory) instance, cache, logs);
             }
         });
-    }
-
-    private String print(final Components.Interfaces interfaces) {
-        final StringBuilder text = new StringBuilder();
-
-        boolean multiple = false;
-        for (final Components.Specification specification : interfaces.api) {
-            final Class<?> type = specification.api;
-
-            if (text.length() > 0) {
-                text.append(", ");
-                multiple = true;
-            }
-
-            text.append(Strings.arrayNotation(type));
-
-            if (specification.groups.length > 0) {
-                text.append(" group ").append(Arrays.toString(specification.groups));
-            }
-        }
-
-        return (multiple ? text.insert(0, '[').append(']') : text).toString();
     }
 
     public SimpleContainer linkComponent(final Components.Interfaces interfaces) throws ComponentContainer.BindingException {
@@ -523,7 +501,7 @@ final class SimpleContainerImpl implements ParentContainer {
     /**
      * Internal interface to generalize the binding of components, including ordinary ones, factories and variant factories.
      */
-    private interface ContentResolvers {
+    private static interface ContentResolvers {
 
         /**
          * Tells if we are processing a variant factory.

@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
-package org.fluidity.composition;
+package org.fluidity.composition.tests;
+
+import org.fluidity.composition.Component;
+import org.fluidity.composition.ComponentContainer;
 
 import org.testng.annotations.Test;
 
@@ -24,7 +27,7 @@ import org.testng.annotations.Test;
 @SuppressWarnings("unchecked")
 public final class CircularReferencesTests extends AbstractContainerTests {
 
-    public CircularReferencesTests(final ContainerFactory factory) {
+    public CircularReferencesTests(final ArtifactFactory factory) {
         super(factory);
     }
 
@@ -136,7 +139,7 @@ public final class CircularReferencesTests extends AbstractContainerTests {
         component.ping();
     }
 
-    private interface Pingable {
+    public interface Pingable {
 
         void ping();
     }
@@ -285,13 +288,13 @@ public final class CircularReferencesTests extends AbstractContainerTests {
     }
 
     @Component(automatic = false)
-    private interface CircularConstructor1 extends Pingable {}
+    private interface CircularConstructor1 extends Pingable { }
 
     @Component(automatic = false)
-    private interface CircularConstructor2 extends Pingable {}
+    private interface CircularConstructor2 extends Pingable { }
 
     @Component(automatic = false)
-    private interface CircularConstructor3 extends Pingable {}
+    private interface CircularConstructor3 extends Pingable { }
 
     // this will be instantiated once
     @Component(automatic = false)

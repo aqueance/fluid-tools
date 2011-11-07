@@ -16,6 +16,22 @@
 
 package org.fluidity.composition;
 
+import java.lang.annotation.Annotation;
+import java.util.Map;
+
+import org.fluidity.composition.tests.ArtifactFactory;
+import org.fluidity.composition.tests.BasicResolutionTests;
+import org.fluidity.composition.tests.CircularReferencesTests;
+import org.fluidity.composition.tests.ComponentContextTests;
+import org.fluidity.composition.tests.ComponentFactoryTests;
+import org.fluidity.composition.tests.ComponentGroupTests;
+import org.fluidity.composition.tests.ComponentVariantTests;
+import org.fluidity.composition.tests.ConstructorDiscoveryTests;
+import org.fluidity.composition.tests.ContainerHierarchyTests;
+import org.fluidity.composition.tests.DomainComponentTests;
+import org.fluidity.composition.tests.FieldInjectionTests;
+import org.fluidity.composition.tests.OptionalDependencyTests;
+import org.fluidity.composition.tests.StatefulComponentTests;
 import org.fluidity.foundation.logging.NoLogFactory;
 import org.fluidity.tests.MockGroupAbstractTest;
 
@@ -23,7 +39,8 @@ import org.testng.annotations.Factory;
 import org.testng.annotations.Test;
 
 /**
- * Abstract test for container implementations.
+ * Abstract test for container implementations. The custom implementation must implement the {@link #newContainer(ContainerServices)} method and create a new
+ * container when invoked.
  *
  * @author Tibor Varga
  */
@@ -40,9 +57,13 @@ public abstract class ComponentContainerAbstractTest extends MockGroupAbstractTe
 
     @Factory
     public Object[] tests() {
-        final ContainerFactory containers = new ContainerFactory() {
+        final ArtifactFactory containers = new ArtifactFactory() {
             public OpenComponentContainer createContainer() {
                 return newContainer(new ProductionServices(new NoLogFactory(), null));
+            }
+
+            public ComponentContext createContext(final Map<Class<? extends Annotation>, Annotation[]> map) {
+                return new ComponentContextImpl(map);
             }
         };
 
@@ -64,5 +85,5 @@ public abstract class ComponentContainerAbstractTest extends MockGroupAbstractTe
 
     // IDEA fails to recognize subclasses as test classes without this
     @Test(enabled = false)
-    public void ignored() {}
+    public void ignored() { }
 }
