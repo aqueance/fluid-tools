@@ -19,7 +19,6 @@ package org.fluidity.foundation;
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
-import org.fluidity.composition.Context;
 import org.fluidity.composition.spi.CustomComponentFactory;
 import org.fluidity.foundation.spi.LogFactory;
 
@@ -30,7 +29,7 @@ import org.fluidity.foundation.spi.LogFactory;
  * @author Tibor Varga
  */
 @Component(api = Log.class)
-@Context(Log.Source.class)
+@Component.Context(Log.Source.class)
 final class LogComponentFactory implements CustomComponentFactory {
 
     private final LogFactory factory;

@@ -35,13 +35,12 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
-import org.fluidity.composition.Context;
 import org.fluidity.composition.Optional;
 import org.fluidity.composition.spi.CustomComponentFactory;
 import org.fluidity.foundation.spi.PropertyProvider;
 
 @Component(api = Configuration.class)
-@Context({ Configuration.Interface.class, Configuration.Context.class })
+@Component.Context({ Configuration.Interface.class, Configuration.Context.class })
 final class ConfigurationFactory implements CustomComponentFactory {
 
     public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {

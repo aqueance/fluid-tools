@@ -115,7 +115,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
 
     private ComponentContext context(final Class<?> componentClass, final Class<? extends ComponentVariantFactory> factoryClass) {
         final Annotation[] contentContext = componentClass.getAnnotations();
-        final Context factoryContext = factoryClass == null ? null : factoryClass.getAnnotation(Context.class);
+        final Component.Context factoryContext = factoryClass == null ? null : factoryClass.getAnnotation(Component.Context.class);
         final Set<Class<? extends Annotation>> validTypes = factoryContext == null
                                                             ? null
                                                             : new HashSet<Class<? extends Annotation>>(Arrays.asList(factoryContext.value()));
@@ -155,7 +155,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
     }
 
     private ComponentContext filterContext(final ComponentContext context, final Class<?> consumer) {
-        final Context accepted = consumer.getAnnotation(Context.class);
+        final Component.Context accepted = consumer.getAnnotation(Component.Context.class);
 
         final Set<Class<? extends Annotation>> set = new HashSet<Class<? extends Annotation>>(context.types());
         set.retainAll(Arrays.asList(accepted.value()));
@@ -443,8 +443,8 @@ public final class ComponentVariantTests extends AbstractContainerTests {
 
     private static class GroupMember1 implements GroupApi {}
 
-    @Context(Setting1.class)
     @Component(api = GroupMember2.class, automatic = false)
+    @Component.Context(Setting1.class)
     private static class GroupMember2Variants implements ComponentVariantFactory {
 
         public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
@@ -490,7 +490,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
      * This is intentionally private - makes sure the container is able to instantiate non-public classes
      */
     @Component(automatic = false)
-    @Context(Setting1.class)
+    @Component.Context(Setting1.class)
     private static class ContextDependentValue extends DependentValue {
 
         public ContextDependentValue(final ComponentContext context) {
@@ -499,7 +499,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
     }
 
     @Component(api = DependentKey.class, automatic = false)
-    @Context({ Setting1.class, Setting2.class })
+    @Component.Context({ Setting1.class, Setting2.class })
     private static class DependentVariants implements ComponentVariantFactory {
 
         public static ComponentVariantFactory delegate;
@@ -522,7 +522,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
     }
 
     @Component(api = DependentKey.class, automatic = false)
-    @Context(Setting2.class)
+    @Component.Context(Setting2.class)
     private static class ExpandingVariants implements ComponentVariantFactory {
 
         public static ComponentVariantFactory delegate;
@@ -541,7 +541,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
     }
 
     @Component(api = DependentKey.class, automatic = false)
-    @Context({ Setting1.class, Setting2.class })
+    @Component.Context({ Setting1.class, Setting2.class })
     private static class DependentFactory implements CustomComponentFactory {
 
         public static CustomComponentFactory delegate;
@@ -675,8 +675,8 @@ public final class ComponentVariantTests extends AbstractContainerTests {
 
     @Setting1("value1")
     @Setting2("value2")
-    @Context(Setting1.class)
     @Component(automatic = false)
+    @Component.Context(Setting1.class)
     public static class ContextConsumer {
 
         public ContextOblivious dependency;
@@ -721,7 +721,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
         }
     }
 
-    @Context(Setting1.class)
+    @Component.Context(Setting1.class)
     public static class Configuration {
 
         public final String value;
@@ -732,7 +732,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
     }
 
     @Component(api = ConfiguredComponent.class, automatic = false)
-    @Context(Setting1.class)
+    @Component.Context(Setting1.class)
     public static class ConfiguredComponentVariants implements ComponentVariantFactory {
 
         public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {

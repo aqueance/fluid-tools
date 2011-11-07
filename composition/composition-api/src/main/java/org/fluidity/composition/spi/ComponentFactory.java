@@ -19,6 +19,7 @@ package org.fluidity.composition.spi;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 
+import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
 
@@ -76,7 +77,7 @@ public interface ComponentFactory {
      * </pre>
      *
      * @param context      the context under which component creation will take place. This context contains only those annotations that the implementing class
-     *                     lists in its {@link org.fluidity.composition.Context} annotation.
+     *                     lists in its {@link Component.Context} annotation.
      * @param dependencies the dependency resolver to notify of any dependencies the created class will have.
      *
      * @return an object that will bind the created components and its dependencies.
@@ -172,7 +173,7 @@ public interface ComponentFactory {
          * @param implementation see {@link ComponentContainer.Registry#bindComponent(Class, Class[])}.
          * @param interfaces     see {@link ComponentContainer.Registry#bindComponent(Class, Class[])}.
          *
-         * @throws org.fluidity.composition.ComponentContainer.BindingException
+         * @throws ComponentContainer.BindingException
          *          see {@link ComponentContainer.Registry#bindComponent(Class, Class[])}.
          */
         <T> void bindComponent(Class<T> implementation, Class<? super T>... interfaces) throws ComponentContainer.BindingException;

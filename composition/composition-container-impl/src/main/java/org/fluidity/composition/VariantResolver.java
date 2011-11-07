@@ -42,8 +42,8 @@ abstract class VariantResolver extends AbstractFactoryResolver {
         super(factoryClass, priority, api, cache, logs);
         this.parent = container.parentContainer();
 
-        if (factoryClass.getAnnotation(Context.class) == null) {
-            throw new ComponentContainer.BindingException("Factory %s is not annotated by @%s", factoryClass, Context.class);
+        if (factoryClass.getAnnotation(Component.Context.class) == null) {
+            throw new ComponentContainer.BindingException("Factory %s is not annotated by @%s", factoryClass, Component.Context.class);
         }
     }
 

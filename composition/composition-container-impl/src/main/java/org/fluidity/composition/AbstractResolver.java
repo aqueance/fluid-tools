@@ -86,7 +86,7 @@ abstract class AbstractResolver implements ComponentResolver {
     }
 
     public static Set<Class<? extends Annotation>> acceptedContext(final Class<?> type) {
-        final Context annotation = type.getAnnotation(Context.class);
+        final Component.Context annotation = type.getAnnotation(Component.Context.class);
         return annotation == null ? null : new HashSet<Class<? extends Annotation>>(Arrays.asList(annotation.value()));
     }
 

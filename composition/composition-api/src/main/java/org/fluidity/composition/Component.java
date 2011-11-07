@@ -16,8 +16,10 @@
 
 package org.fluidity.composition;
 
+import java.lang.annotation.Annotation;
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
+import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
@@ -69,4 +71,26 @@ public @interface Component {
      * @return <code>true</code> if a new instance should be created for every query or dependency reference; ignored for annotated fields.
      */
     boolean stateful() default false;
+
+    /**
+     * This annotation lists the context annotations accepted by the annotated class, thereby allowing the component to specify the annotation classes that will
+     * configure instances of the component at the points of dependency reference to the component. Such a configuration could, for instance, contain a database
+     * identifier for a database access dependency, etc.
+     *
+     * @author Tibor Varga
+     */
+    @Internal
+    @Documented
+    @Inherited
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target(ElementType.TYPE)
+    @interface Context {
+
+        /**
+         * Returns the context annotations that configure the class annotated with {@link org.fluidity.composition.Component.Context}.
+         *
+         * @return a list of context annotation classes.
+         */
+        Class<? extends Annotation>[] value();
+    }
 }

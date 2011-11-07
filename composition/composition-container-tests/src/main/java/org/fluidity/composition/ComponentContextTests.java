@@ -222,7 +222,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
     private static class GroupMember1 implements GroupApi {}
 
     @SuppressWarnings("UnusedDeclaration")
-    @Context(Setting1.class)
+    @Component.Context(Setting1.class)
     private static class GroupMember2 implements GroupApi {
         public final String setting;
 
@@ -346,7 +346,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
     }
 
     @Component(api = SecondComponent.class)
-    @Context(Setting2.class)
+    @Component.Context(Setting2.class)
     private static final class SecondFactory implements CustomComponentFactory {
 
         public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
@@ -367,7 +367,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
     }
 
     @Component(api = ThirdComponent.class)
-    @Context({ Setting1.class, Setting3.class })
+    @Component.Context({ Setting1.class, Setting3.class })
     private static final class ThirdFactory implements CustomComponentFactory {
 
         public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
@@ -448,7 +448,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
 
     }
 
-    @Context(Setting1.class)
+    @Component.Context(Setting1.class)
     @Component(automatic = false)
     private static class ContextAware1Impl implements ContextAware {
 
@@ -465,7 +465,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
         }
     }
 
-    @Context(Setting2.class)
+    @Component.Context(Setting2.class)
     @Component(automatic = false)
     private static class ContextAware2Impl implements ContextAware {
 
@@ -482,7 +482,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
         }
     }
 
-    @Context(Setting1.class)
+    @Component.Context(Setting1.class)
     @Component(automatic = false)
     private static class ContextAwareComponent1Impl implements ContextAwareComponent1 {
 
@@ -499,7 +499,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
         }
     }
 
-    @Context(Setting2.class)
+    @Component.Context(Setting2.class)
     @Component(automatic = false)
     private static class ContextAwareComponent2Impl implements ContextAwareComponent2 {
 
@@ -573,7 +573,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
     }
 
     @Component(api = ContextAware.class, automatic = false)
-    @Context(Setting1.class)
+    @Component.Context(Setting1.class)
     private static class ContextAwareVariants1 implements ComponentVariantFactory {
 
         public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
@@ -593,7 +593,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
     }
 
     @Component(api = ContextAware.class, automatic = false)
-    @Context(Setting2.class)
+    @Component.Context(Setting2.class)
     private static class ContextAwareVariants2 implements ComponentVariantFactory {
 
         public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
@@ -613,7 +613,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
     }
 
     @Component(api = OrdinaryComponent1.class, automatic = false)
-    @Context(Setting1.class)
+    @Component.Context(Setting1.class)
     private static class OrdinaryComponentVariants1 implements ComponentVariantFactory {
 
         public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
@@ -633,7 +633,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
     }
 
     @Component(api = OrdinaryComponent2.class, automatic = false)
-    @Context(Setting2.class)
+    @Component.Context(Setting2.class)
     private static class OrdinaryComponentVariants2 implements ComponentVariantFactory {
 
         public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
@@ -802,7 +802,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
     }
 
     @SuppressWarnings("UnusedDeclaration")
-    @Context({ Setting1.class, Setting2.class })
+    @Component.Context({ Setting1.class, Setting2.class })
     private static class ContextConsumer1 {
 
         public static ComponentContext context;
@@ -814,7 +814,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
     }
 
     @SuppressWarnings("UnusedDeclaration")
-    @Context({ Setting1.class, Setting3.class })
+    @Component.Context({ Setting1.class, Setting3.class })
     private static class ContextConsumer2 {
 
         public static ComponentContext context;

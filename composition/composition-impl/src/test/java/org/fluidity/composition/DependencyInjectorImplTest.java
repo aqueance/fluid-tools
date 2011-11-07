@@ -137,7 +137,7 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
         final Annotation[] componentContext = neverNull(componentType.getAnnotations());
         final Annotation[] dependencyContext = neverNull(dependencyAnnotations);
 
-        final Context annotation = dependencyType.getAnnotation(Context.class);
+        final Component.Context annotation = dependencyType.getAnnotation(Component.Context.class);
         final Set<Class<? extends Annotation>> acceptedContext = annotation == null ? null : new HashSet<Class<? extends Annotation>>(Arrays.asList(annotation.value()));
 
         final Annotation[] definitions = new Annotation[componentContext.length + dependencyContext.length];
