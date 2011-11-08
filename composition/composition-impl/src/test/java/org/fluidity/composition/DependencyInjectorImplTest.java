@@ -156,7 +156,7 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
                                                   EasyMock.<Annotation[]>notNull()))
                     .andReturn(new DependencyGraph.Node.Constant(dependencyType, services, null));
         } else if (dependencyType == ComponentContext.class) {
-            EasyMock.expect(copy.reduce(EasyMock.<Set<Class<? extends Annotation>>>isNull())).andReturn(copy);
+            EasyMock.expect(copy.accept(EasyMock.<Set<Class<? extends Annotation>>>isNull())).andReturn(copy);
 
             EasyMock.expect(copy.create()).andReturn(createdContext);
         } else {
@@ -168,7 +168,7 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
 
                 EasyMock.expect(resolver.mapping(dependencyType, copy)).andReturn(mapping);
                 EasyMock.expect(mapping.acceptedContext()).andReturn(acceptedContext);
-                EasyMock.expect(copy.reduce(acceptedContext)).andReturn(copy);
+                EasyMock.expect(copy.accept(acceptedContext)).andReturn(copy);
                 EasyMock.expect(resolver.resolveComponent(dependencyType, copy, traversal)).andReturn(new DependencyGraph.Node.Constant(dependencyType, component, null));
             }
         }

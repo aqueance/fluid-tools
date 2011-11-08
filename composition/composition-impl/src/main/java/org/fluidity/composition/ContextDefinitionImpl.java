@@ -33,7 +33,7 @@ import org.fluidity.foundation.Proxies;
 final class ContextDefinitionImpl implements ContextDefinition {
 
     private final Map<Class<? extends Annotation>, Annotation[]> defined = new HashMap<Class<? extends Annotation>, Annotation[]>();
-    private final Map<Class<? extends Annotation>, Annotation[]> collected = new HashMap<Class<? extends Annotation>, Annotation[]>();
+    private final Map<Class<? extends Annotation>, Annotation[]> active = new HashMap<Class<? extends Annotation>, Annotation[]>();
     private int hashCode;
 
     public ContextDefinitionImpl() {
@@ -41,10 +41,11 @@ final class ContextDefinitionImpl implements ContextDefinition {
     }
 
     private ContextDefinitionImpl(final Map<Class<? extends Annotation>, Annotation[]> defined,
-                                  final Map<Class<? extends Annotation>, Annotation[]> collected) {
+                                  final Map<Class<? extends Annotation>, Annotation[]> active) {
         copy(defined, this.defined);
-        copy(collected, this.collected);
-        hashCode = AnnotationMaps.hashCode(this.defined);
+        copy(active, this.active);
+
+        this.hashCode = AnnotationMaps.hashCode(this.defined);
     }
 
     public ContextDefinition expand(final Annotation[] definition) {
@@ -61,18 +62,18 @@ final class ContextDefinitionImpl implements ContextDefinition {
                 }
             }
 
-            hashCode = AnnotationMaps.hashCode(this.defined);
+            hashCode = AnnotationMaps.hashCode(defined);
         }
 
         return this;
     }
 
-    public ContextDefinition reduce(final Set<Class<? extends Annotation>> accepted) {
-        collected.clear();
+    public ContextDefinition accept(final Set<Class<? extends Annotation>> consumed) {
+        active.clear();
 
-        if (accepted != null) {
-            collected.putAll(defined);
-            collected.keySet().retainAll(accepted);
+        if (consumed != null) {
+            active.putAll(defined);
+            active.keySet().retainAll(consumed);
         }
 
         return this;
@@ -83,62 +84,52 @@ final class ContextDefinitionImpl implements ContextDefinition {
             collectOne(context);
         }
 
-        collected.keySet().retainAll(defined.keySet());
+        active.keySet().retainAll(defined.keySet());
 
         return this;
     }
 
-    public void collect(final ContextDefinition context) {
-        collectOne(context);
-        collected.keySet().retainAll(defined.keySet());
-    }
-
     private void collectOne(final ContextDefinition context) {
         if (context != null) {
-            final Map<Class<? extends Annotation>, Annotation[]> map = context.collected();
+            final Map<Class<? extends Annotation>, Annotation[]> map = context.active();
 
             for (final Map.Entry<Class<? extends Annotation>, Annotation[]> entry : map.entrySet()) {
                 final Class<? extends Annotation> type = entry.getKey();
                 final Annotation[] annotations = entry.getValue();
 
-                if (collected.containsKey(type)) {
-                    collected.put(type, combine(collected.get(type), annotations));
+                if (active.containsKey(type)) {
+                    active.put(type, combine(active.get(type), annotations));
                 } else {
-                    collected.put(type, annotations);
+                    active.put(type, annotations);
                 }
             }
         }
     }
 
-    public Map<Class<? extends Annotation>, Annotation[]> defined() {
-        return Collections.unmodifiableMap(defined);
-    }
-
-    public Map<Class<? extends Annotation>, Annotation[]> collected() {
-        return Collections.unmodifiableMap(collected);
+    public Map<Class<? extends Annotation>, Annotation[]> active() {
+        return Collections.unmodifiableMap(active);
     }
 
     public ContextDefinition copy() {
-        return new ContextDefinitionImpl(this.defined, this.collected);
+        return new ContextDefinitionImpl(defined, active);
     }
 
     public ComponentContext create() {
-        return new ComponentContextImpl(collected);
+        return new ComponentContextImpl(active);
     }
 
     private void copy(final Map<Class<? extends Annotation>, Annotation[]> in, final Map<Class<? extends Annotation>, Annotation[]> out) {
         for (final Map.Entry<Class<? extends Annotation>, Annotation[]> entry : in.entrySet()) {
-            final Class<? extends Annotation> key = entry.getKey();
-
-            final Class<? extends Annotation> type = Proxies.api(key);
-            out.put(type, entry.getValue().clone());
+            out.put(Proxies.api(entry.getKey()), entry.getValue().clone());
         }
     }
 
     private Annotation[] combine(final Annotation[] present, final Annotation... addition) {
         final Collection<Annotation> list = new LinkedHashSet<Annotation>(present.length + addition.length);
+
         list.addAll(Arrays.asList(present));
         list.addAll(Arrays.asList(addition));
+
         return list.toArray(new Annotation[list.size()]);
     }
 

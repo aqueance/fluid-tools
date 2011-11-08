@@ -53,15 +53,15 @@ final class ComponentContextImpl implements ComponentContext {
     }
 
     @SuppressWarnings("unchecked")
-    public <T extends Annotation> T annotation(final Class<T> type, final Class<?> reference) {
+    public <T extends Annotation> T annotation(final Class<T> type, final Class<?> caller) {
         final Annotation[] annotations = annotations(type);
 
         if (annotations != null && annotations.length > 0) {
             return (T) annotations[annotations.length - 1];
-        } else if (reference == null) {
+        } else if (caller == null) {
             return null;
         } else {
-            throw new ComponentContainer.ResolutionException("Annotation %s is missing from %s dependency", type.getName(), reference);
+            throw new ComponentContainer.ResolutionException("Annotation %s is missing from %s dependency", type.getName(), caller);
         }
     }
 

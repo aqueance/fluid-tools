@@ -20,7 +20,7 @@ import org.fluidity.composition.spi.ComponentResolutionObserver;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**
- * Common services for container implementations.
+ * Common services for container implementations. This is an internal interface to be used by dependency injection container implementations.
  *
  * @author Tibor Varga
  */
@@ -55,12 +55,12 @@ public interface ContainerServices {
     DependencyGraph.Traversal graphTraversal();
 
     /**
-     * Returns the default graph traversal with the given strategy and observer.
+     * Returns the default graph traversal with the given resolution observer.
      *
      *
-     * @param observer the object to notify when a component class gets resolved.
+     * @param observer the object to notify when a component interface gets resolved to a class.
      *
-     * @return the default graph traversal with the given strategy and observer.
+     * @return the default graph traversal with the given resolution observer.
      */
     DependencyGraph.Traversal graphTraversal(ComponentResolutionObserver observer);
 

@@ -446,7 +446,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
 
                     // always reduce the context to what the component accepts to avoid leaking contextual information to the component that it may inadvertently use
                     // without explicitly declaring it as accepted
-                    return context.reduce(mapping.acceptedContext()).create();
+                    return context.accept(mapping.acceptedContext()).create();
                 }
 
                 public ComponentContainer container() {
@@ -455,7 +455,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
 
                 public DependencyGraph.Node regular() {
                     final ComponentMapping mapping = container.mapping(dependencyType, context);
-                    return mapping != null ? container.resolveComponent(dependencyType, context.reduce(mapping.acceptedContext()), traversal) : null;
+                    return mapping != null ? container.resolveComponent(dependencyType, context.accept(mapping.acceptedContext()), traversal) : null;
                 }
 
                 public void handle(final RestrictedContainer container) {

@@ -94,7 +94,7 @@ final class GroupResolver {
             final ContextDefinition copy = context.copy();
 
             final ComponentResolver resolver = container.resolver(member, false);
-            nodes.add(container.resolveComponent(domain, false, member, copy.reduce(resolver.acceptedContext()), traversal));
+            nodes.add(container.resolveComponent(domain, false, member, copy.accept(resolver.acceptedContext()), traversal));
 
             consumed.add(copy);
         }

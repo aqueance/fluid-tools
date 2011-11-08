@@ -20,50 +20,78 @@ import java.lang.annotation.Annotation;
 import java.util.Set;
 
 /**
- * The runtime context for a component. A context represents configuration at the point of reference to a component, which it elects to receive using the
- * {@link Context} annotation. Contexts are provided by components that depend, directly or indirectly, on context consuming components using custom, user
- * defined, annotations. The context consuming components list these annotation types in their respective {@link Context} annotations.
+ * The runtime context for a component. This is the object that components may receive as a dependency to encapsulate the context in which they are being
+ * instantiated.
  * <p/>
- * TODO: example
- * <p/>
- * Context support can be added to a component that itself does not support contexts using a {@link org.fluidity.composition.spi.ComponentVariantFactory}
- * as long as the component does supports some other configuration mechanism that can be manipulated by the variant factory.
+ * A context represents configuration at the point of reference to a component, which it elects to receive using the
+ * {@link Component.Context @Component.Context} annotation. Contexts are provided by components using custom, user defined, annotations and consumed by
+ * components that list the custom annotations' type in their <code>@Component.Context</code> annotation. For example:
+ * <pre>
+ * &#64;Component
+ * &#64;MyContext1
+ * public class ContextProvider {
+ *
+ *     public ContextProvider(final &#64;MyContext2 dependency) {
+ *         ...
+ *     }
+ *
+ *     ...
+ * }
+ *
+ * &#64;Component
+ * &#64;Component.Context({ MyContext1.class,  MyContext2.class})
+ * final class Dependency {
+ *
+ *     public Dependency(final ComponentContext context) {
+ *
+ *         // all MyContext1 annotations in the instantiation path of this object
+ *         MyContext1[] context1s = context.annotations(MyContext1.class);
+ *
+ *         // the last MyContext2 annotation in the instantiation path of this object
+ *         MyContext2 context2 = context.annotation(MyContext2.class, Dependency.class);
+ *     }
+ * }
+ * </pre>
+ * Essentially, contexts offer a static configuration mechanism. Components with other means of configuration can be adapted to context based configuration
+ * using a {@link org.fluidity.composition.spi.ComponentVariantFactory ComponentVariantFactory}, which, when invoked by the dependency injection container in
+ * place of component instantiation, turns the configuration embedded in the instantiation context to configuration understood by the component being adapted.
  *
  * @author Tibor Varga
  */
 public interface ComponentContext {
 
     /**
-     * Returns all annotations in the context of the specified type. Annotations may be defined at multiple points along a reference path hence multiple
-     * annotations may be present for any given type. This method returns all of them in the order of decreasing distance from the reference being queried.
+     * Returns all context annotation instances of the given type in the instantiation path of the caller that received this object in its constructor.
+     * Annotations may be defined at multiple points along a reference path and so multiple annotations may be present for any given type. This method returns
+     * all of them in the order they were encountered in the reference path.
      *
      * @param type the annotation type to return instances of.
      *
-     * @return all annotations in the context for the specified type, or an empty array or null if none present.
+     * @return all context annotations of the given type, or an empty array or <code>null</code> if none present.
      *
      * @see #defines(Class)
      */
     <T extends Annotation> T[] annotations(Class<T> type);
 
     /**
-     * Returns the annotation in the context for the specified type that was defined nearest to the component reference being queried.
+     * Returns the last context annotation instance of the given type in the instantiation path of the caller that received this object, which may also be
+     * passed as the second parameter. If given and no annotation of the given type is found, an exception is thrown.
      *
-     * @param type      the annotation type to return instances of.
-     * @param reference the reference whose annotation is being queried. The method throws a {@link ComponentContainer.ResolutionException} exception if this
-     *                  parameter is not <code>null</code> and no annotation is found for the given <code>type</code>.
+     * @param type   the annotation type to return instances of.
+     * @param caller the optional caller to mention in the exception thrown when no annotation of the given type is present; may be <code>null</code>.
      *
-     * @return the nearest annotation in the context for the specified type or null if none present.
+     * @return the last context annotation of the given type or <code>null</code> if none present.
      *
-     * @throws org.fluidity.composition.ComponentContainer.ResolutionException
-     *          when the <code>reference</code> parameter is not <code>null</code> and no annotation of the given <code>type</code> is found.
+     * @throws ComponentContainer.ResolutionException
+     *          when the <code>caller</code> parameter is not <code>null</code> and no annotation of the given <code>type</code> is found.
      * @see #defines(Class)
      */
-    <T extends Annotation> T annotation(Class<T> type, Class<?> reference) throws ComponentContainer.ResolutionException;
+    <T extends Annotation> T annotation(Class<T> type, Class<?> caller) throws ComponentContainer.ResolutionException;
 
     /**
      * Tells whether the context contains an annotation of the given type.
      *
-     * @param type the annotation type to check the existence of instances thereof.
+     * @param type the annotation type to check the existence of instances of.
      *
      * @return <code>true</code> if there is at least one annotation of the given type, <code>false</code> otherwise.
      */

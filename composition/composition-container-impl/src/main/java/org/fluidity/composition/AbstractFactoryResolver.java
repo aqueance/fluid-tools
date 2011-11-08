@@ -72,8 +72,8 @@ abstract class AbstractFactoryResolver extends AbstractResolver {
                                                  final SimpleContainer container,
                                                  final ContextDefinition context,
                                                  final SimpleContainer child) {
-        final ContextDefinition reduced = context.copy().reduce(acceptedContext());
-        final ContextDefinition collected = context.copy().reduce(null);
+        final ContextDefinition reduced = context.copy().accept(acceptedContext());
+        final ContextDefinition collected = context.copy().accept(null);
         final ComponentContext passed = reduced.create();
 
         final ComponentFactory factory = factory(container, traversal, context);
@@ -100,7 +100,7 @@ abstract class AbstractFactoryResolver extends AbstractResolver {
 
                     public ComponentContainer container() {
                         traversal.resolving(resolving, api, null, null);
-                        return new ComponentContainerShell(child, reduced.reduce(null), false);
+                        return new ComponentContainerShell(child, reduced.accept(null), false);
                     }
 
                     public DependencyGraph.Node regular() {

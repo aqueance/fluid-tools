@@ -52,7 +52,7 @@ import org.fluidity.foundation.spi.PropertyProvider;
  * a component can now declare a dependency to a configuration like so:
  * <pre>
  *  &#64;Component
- *  &#64;Context(Configuration.Context.class)
+ *  &#64;Component.Context(Configuration.Context.class)
  *  &#64;Configuration.Context("prefix")
  *  public class Configured {
  *
