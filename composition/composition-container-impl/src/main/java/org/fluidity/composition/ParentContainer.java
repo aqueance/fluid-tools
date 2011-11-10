@@ -19,7 +19,7 @@ package org.fluidity.composition;
 import java.lang.annotation.Annotation;
 import java.util.List;
 
-import org.fluidity.composition.spi.ComponentMapping;
+import org.fluidity.composition.spi.ComponentDescriptor;
 
 /**
  * Interface to separate internal container methods from the higher level container interface.
@@ -31,14 +31,13 @@ interface ParentContainer extends SimpleContainer {
     /**
      * Returns a resolver either from the receiver or from its parent.
      *
-     *
-     * @param domain
+     * @param domain  the domain container to resolve missing dependencies in.
      * @param type    the component interface.
      * @param context the component context.
      *
      * @return a resolver or <code>null</code> if not found.
      */
-    ComponentMapping mapping(ParentContainer domain, Class<?> type, ContextDefinition context);
+    ComponentDescriptor describe(ParentContainer domain, Class<?> type, ContextDefinition context);
 
     /**
      * Resolves the group API to a list of implementations.
@@ -49,15 +48,14 @@ interface ParentContainer extends SimpleContainer {
      * @param context   the current context.
      *
      * @return a list of objects representing the group members in this container and its parent(s), if any, starting with those in the top level container
-     * and
-     *         ending with those in this one.
+     *         and ending with those in this one.
      */
     List<GroupResolver.Node> resolveGroup(ParentContainer domain, Class<?> api, Traversal traversal, ContextDefinition context);
 
     /**
      * Resolves a component group with the given traversal in the given context.
      *
-     * @param domain    the domain container to resolve missing dependencies in.
+     * @param domain      the domain container to resolve missing dependencies in.
      * @param api         the group interface.
      * @param context     the component context at the point of resolution.
      * @param traversal   the graph traversal to use.

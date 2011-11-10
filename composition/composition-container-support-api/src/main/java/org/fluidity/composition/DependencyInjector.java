@@ -19,73 +19,103 @@ package org.fluidity.composition;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 
-import org.fluidity.composition.spi.ComponentMapping;
+import org.fluidity.composition.spi.ComponentDescriptor;
 import org.fluidity.composition.spi.DependencyResolver;
 
 /**
- * Performs dependency injection.
+ * Performs dependency injection. This is an internal interface to be used by dependency injection container implementations.
  *
  * @author Tibor Varga
  */
 public interface DependencyInjector {
 
     /**
-     * Resolves all parameters of the given constructor.
+     * Resolves all parameters of the given constructor and returns a dependency graph node representing the component instance that would be produced by that
+     * constructor. The returned node's {@link DependencyGraph.Node#instance(DependencyGraph.Traversal)} method will instantiate the component and also inject
+     * its injectable fields.
      *
-     * @param traversal   the graph traversal to use.
-     * @param container   the container that can resolve dependencies
-     * @param mapping     the mapping that triggered the dependency resolution.
-     * @param context     the instantiation context of the object being constructed.
-     * @param constructor the constructor to find the arguments for.
+     * @param traversal   the current graph traversal.
+     * @param container   the container that can resolve dependencies.
+     * @param descriptor  describes the constructor's owning component.
+     * @param context     the component context of the component initialized by the constructor.
+     * @param constructor the constructor to resolve the arguments of.
      *
-     * @return the argument array for the given constructor.
+     * @return a dependency graph node.
      */
     DependencyGraph.Node constructor(DependencyGraph.Traversal traversal,
                                      DependencyResolver container,
-                                     ComponentMapping mapping,
+                                     ComponentDescriptor descriptor,
                                      ContextDefinition context,
                                      Constructor<?> constructor);
 
     /**
-     * Sets all {@link Inject} annotated fields of the receiver.
+     * Injects all {@link Inject @Inject} annotated fields of the received component. Useful for components instantiated by other means than via {@link
+     * #constructor(DependencyGraph.Traversal, DependencyResolver, ComponentDescriptor, ContextDefinition, Constructor)}.
      *
-     * @param instance  the object to set the fields of.     @return the received instances.
-     * @param traversal the graph traversal to use.
-     * @param container the container that can resolve dependencies
-     * @param mapping   the mapping that triggered the dependency resolution.
-     * @param context   the instantiation context of the object being constructed.
+     * @param instance   the object to inject the fields of.
+     * @param traversal  the current graph traversal.
+     * @param container  the container that can resolve dependencies.
+     * @param descriptor describes the component.
+     * @param context    the component context of the provided instance.
      *
-     * @return the received instance.
+     * @return the received component.
      */
-    <T> T fields(T instance, DependencyGraph.Traversal traversal, DependencyResolver container, ComponentMapping mapping, ContextDefinition context);
+    <T> T fields(T instance, DependencyGraph.Traversal traversal, DependencyResolver container, ComponentDescriptor descriptor, ContextDefinition context);
 
     /**
-     * Sets all parameters of the given method and invokes the method on the given component.
+     * Injects all parameters of the given method and invokes the method on the given component.
      *
-     * @param component the object to set the fields of.
-     * @param method    the method to invoke.
-     * @param traversal the graph traversal to use.
-     * @param container the container that can resolve dependencies
-     * @param mapping   the mapping that triggered the dependency resolution.
-     * @param context   the instantiation context of the object being constructed.
+     * @param component  the object to set the fields of.
+     * @param method     the method to invoke.
+     * @param traversal  the graph traversal to use.
+     * @param container  the container that can resolve dependencies
+     * @param descriptor describes the component.
+     * @param context    the instantiation context of the object being constructed.
      *
      * @return the received instance.
-     * @throws org.fluidity.composition.ComponentContainer.ResolutionException thrown when the search yields no or multiple constructors.
+     *
+     * @throws ComponentContainer.ResolutionException
+     *          thrown when the search yields no or multiple constructors.
      */
     Object invoke(Object component,
                   Method method,
                   DependencyGraph.Traversal traversal,
                   DependencyResolver container,
-                  ComponentMapping mapping,
+                  ComponentDescriptor descriptor,
+                  ContextDefinition context) throws ComponentContainer.ResolutionException;
+
+    /**
+     * Injects all {@link Inject @Inject} annotated parameters of the given method with no value in the provided argument list and invokes the method on the
+     * given component.
+     *
+     * @param component  the object to set the fields of.
+     * @param method     the method to invoke.
+     * @param arguments  the argument list containing parameters that need no dependency injection.
+     * @param traversal  the graph traversal to use.
+     * @param container  the container that can resolve dependencies
+     * @param descriptor describes the component.
+     * @param context    the instantiation context of the object being constructed.
+     *
+     * @return the received instance.
+     *
+     * @throws ComponentContainer.ResolutionException
+     *          thrown when the search yields no or multiple constructors.
+     */
+    Object invoke(Object component,
+                  Method method,
+                  Object[] arguments,
+                  DependencyGraph.Traversal traversal,
+                  DependencyResolver container,
+                  ComponentDescriptor descriptor,
                   ContextDefinition context) throws ComponentContainer.ResolutionException;
 
     /**
      * Find the injectable constructor of the given class.
      * <p/>
      * There is no check for any constructor parameter being satisfiable. Synthetic constructors are ignored. If there is any constructor annotated with
-     * {@link Inject @Inject}, that one is returned. If there's only one constructor, it is returned. If there is a default constructor and another, and neither
-     * is annotated with <code>@Inject</code>, the other one is returned. If these checks do not yield a single constructor, the same is repeated for public
-     * constructors only. If that yields no or multiple constructors, a {@link ComponentContainer.ResolutionException} is thrown.
+     * {@link Inject @Inject}, that one is returned. If there's only one constructor, it is returned. If there is a default constructor and another, and
+     * neither is annotated with <code>@Inject</code>, the other one is returned. If these checks do not yield a single constructor, the same checks are
+     * made on public constructors only. If that yields no or multiple constructors, a {@link ComponentContainer.ResolutionException} is thrown.
      * <p/>
      * For synthetic constructors see <a href="http://java.sun.com/docs/books/jls/third_edition/html/binaryComp.html#13.1">The Form of a Binary</a> and search
      * for the term <em>synthetic</em>.
@@ -94,17 +124,19 @@ public interface DependencyInjector {
      *
      * @return the injectable constructor of the given class.
      *
-     * @throws org.fluidity.composition.ComponentContainer.ResolutionException thrown when the search yields no or multiple constructors.
+     * @throws ComponentContainer.ResolutionException
+     *          thrown when the search yields no or multiple constructors.
      */
     Constructor<?> findConstructor(Class<?> componentClass) throws ComponentContainer.ResolutionException;
 
     /**
-     * Handles the special dependencies, e.g., {@link ComponentContext}, {@link ComponentContainer}, {@link org.fluidity.composition.spi.DependencyPath}, etc.
+     * Invokes the appropriate method of provided resolution object based on the given dependency type. Implements the special handling of certain dependencies
+     * of a component.
      *
-     * @param api        the component interface to resolve.
-     * @param resolution callback methods for the various dependency types.
+     * @param api        the dependency type.
+     * @param resolution resolves the various dependency types.
      *
-     * @return a resolution node or <code>null</code> if the given interface could not be resolved.
+     * @return a resolved node or <code>null</code> if the given dependency could not be resolved.
      */
     DependencyGraph.Node resolve(Class<?> api, Resolution resolution);
 
@@ -114,21 +146,21 @@ public interface DependencyInjector {
     public interface Resolution {
 
         /**
-         * A {@link ComponentContext} is being resolved.
+         * A {@link ComponentContext} is being depended on.
          *
-         * @return the component context to resolve.
+         * @return the resolved component context.
          */
         ComponentContext context();
 
         /**
-         * A {@link ComponentContainer} is being resolved.
+         * A {@link ComponentContainer} is being depended on.
          *
-         * @return the component container to resolve.
+         * @return the resolved component container.
          */
         ComponentContainer container();
 
         /**
-         * A regular dependency is being resolved.
+         * A regular dependency is being depended on.
          *
          * @return the resolved dependency.
          */

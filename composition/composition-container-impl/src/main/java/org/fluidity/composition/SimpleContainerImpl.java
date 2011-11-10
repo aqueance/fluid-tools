@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.fluidity.composition.spi.ComponentMapping;
+import org.fluidity.composition.spi.ComponentDescriptor;
 import org.fluidity.composition.spi.ComponentResolutionObserver;
 import org.fluidity.composition.spi.ComponentVariantFactory;
 import org.fluidity.composition.spi.CustomComponentFactory;
@@ -315,8 +315,8 @@ final class SimpleContainerImpl implements ParentContainer {
 
     public DependencyResolver dependencyResolver(final ParentContainer domain) {
         return new DependencyResolver() {
-            public ComponentMapping mapping(final Class<?> type, final ContextDefinition context) {
-                return SimpleContainerImpl.this.mapping(domain, type, context);
+            public ComponentDescriptor describe(final Class<?> type, final ContextDefinition context) {
+                return SimpleContainerImpl.this.describe(domain, type, context);
             }
 
             public ComponentContainer container(final ContextDefinition context) {
@@ -338,11 +338,11 @@ final class SimpleContainerImpl implements ParentContainer {
     }
 
     public Object initialize(final Object component, final ContextDefinition context, final ComponentResolutionObserver observer) {
-        return injector.fields(component, services.graphTraversal(), dependencyResolver(domain), new InstanceMapping(component), context);
+        return injector.fields(component, services.graphTraversal(), dependencyResolver(domain), new InstanceDescriptor(component), context);
     }
 
     public Object invoke(final Object component, final Method method, final ContextDefinition context) {
-        return injector.invoke(component, method, services.graphTraversal(), dependencyResolver(domain), new InstanceMapping(component), context);
+        return injector.invoke(component, method, services.graphTraversal(), dependencyResolver(domain), new InstanceDescriptor(component), context);
     }
 
     public Node resolveComponent(final ParentContainer domain, final boolean ascend, final Class<?> api, final ContextDefinition context, final Traversal traversal) {
@@ -477,10 +477,10 @@ final class SimpleContainerImpl implements ParentContainer {
         };
     }
 
-    public ComponentMapping mapping(final ParentContainer domain, final Class<?> type, final ContextDefinition context) {
+    public ComponentDescriptor describe(final ParentContainer domain, final Class<?> type, final ContextDefinition context) {
         final ComponentResolver resolver = resolver(type, true);
         return resolver == null
-               ? parent != null ? parent.mapping(domain, type, context) : domain != null && domain != this ? domain.mapping(null, type, context) : resolver
+               ? parent != null ? parent.describe(domain, type, context) : domain != null && domain != this ? domain.describe(null, type, context) : resolver
                : resolver;
     }
 
@@ -549,11 +549,11 @@ final class SimpleContainerImpl implements ParentContainer {
         FactoryResolver factory(Class<?> api, final ComponentCache cache);
     }
 
-    private class InstanceMapping implements ComponentMapping {
+    private class InstanceDescriptor implements ComponentDescriptor {
 
         private final Class<?> componentClass;
 
-        public InstanceMapping(final Object component) {
+        public InstanceDescriptor(final Object component) {
             this.componentClass = component.getClass();
         }
 
@@ -568,7 +568,7 @@ final class SimpleContainerImpl implements ParentContainer {
 
     private static class SuperContainer implements ParentContainer {
         private final PlatformContainer platform;
-        private final ComponentMapping emptyMapping = new ComponentMapping() {
+        private final ComponentDescriptor emptyDescriptor = new ComponentDescriptor() {
             public Set<Class<? extends Annotation>> acceptedContext() {
                 return null;
             }
@@ -635,8 +635,8 @@ final class SimpleContainerImpl implements ParentContainer {
             return emptyList;
         }
 
-        public ComponentMapping mapping(final ParentContainer domain, final Class<?> type, final ContextDefinition context) {
-            return platform.containsComponent(type, context) ? emptyMapping : null;
+        public ComponentDescriptor describe(final ParentContainer domain, final Class<?> type, final ContextDefinition context) {
+            return platform.containsComponent(type, context) ? emptyDescriptor : null;
         }
 
         public ComponentResolver resolver(final Class<?> api, final boolean ascend) {

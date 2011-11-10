@@ -20,11 +20,11 @@ import java.lang.annotation.Annotation;
 import java.util.Set;
 
 /**
- * Component mapping details used by container services.
+ * Component details used by container services.
  *
  * @author Tibor Varga
  */
-public interface ComponentMapping {
+public interface ComponentDescriptor {
 
     /**
      * Returns the list of context annotation accepted by the component.
@@ -41,9 +41,9 @@ public interface ComponentMapping {
     Annotation[] annotations();
 
     /**
-     * Converts the dependency mapping to a (more or less) human readable form.
+     * Converts the dependency descriptor to a (more or less) human readable form.
      *
-     * @return the {@link String} representation of the dependency mapping.
+     * @return the {@link String} representation of the dependency descriptor.
      */
     String toString();
 }

@@ -18,14 +18,14 @@ package org.fluidity.composition;
 
 import java.util.Collection;
 
-import org.fluidity.composition.spi.ComponentMapping;
+import org.fluidity.composition.spi.ComponentDescriptor;
 
 /**
- * Extends the {@link ComponentMapping} interface with methods required by the actual container implementation.
+ * Extends the {@link ComponentDescriptor} interface with methods required by the actual container implementation.
  *
  * @author Tibor Varga
  */
-interface ComponentResolver extends ComponentMapping {
+interface ComponentResolver extends ComponentDescriptor {
 
     /**
      * Resolves the represented component.

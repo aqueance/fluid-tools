@@ -46,13 +46,13 @@ abstract class AbstractFactoryResolver extends AbstractResolver {
     }
 
     /**
-     * Returns the {@link org.fluidity.composition.spi.ComponentFactory} instance this is a mapping for.
+     * Returns the {@link ComponentFactory} instance this is a mapping for.
      *
      * @param container  the container in which to resolve dependencies of the factory.
      * @param traversal  the current graph traversal.
      * @param definition the context in which the resolution takes place.
      *
-     * @return the {@link org.fluidity.composition.spi.ComponentFactory} instance this is a mapping for.
+     * @return the {@link ComponentFactory} instance this is a mapping for.
      */
     protected abstract ComponentFactory factory(final SimpleContainer container, final DependencyGraph.Traversal traversal, final ContextDefinition definition);
 

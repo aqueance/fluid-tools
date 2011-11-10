@@ -21,7 +21,7 @@ import org.fluidity.composition.spi.CustomComponentFactory;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**
- * Component mapping of a {@link org.fluidity.composition.spi.CustomComponentFactory} instance.
+ * Component mapping of a {@link CustomComponentFactory} instance.
  *
  * @author Tibor Varga
  */

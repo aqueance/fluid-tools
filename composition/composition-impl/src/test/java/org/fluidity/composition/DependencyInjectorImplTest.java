@@ -26,7 +26,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.fluidity.composition.spi.ComponentMapping;
+import org.fluidity.composition.spi.ComponentDescriptor;
 import org.fluidity.composition.spi.DependencyResolver;
 import org.fluidity.tests.MockGroupAbstractTest;
 
@@ -45,7 +45,7 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
 
     private final DependencyInjector injector = new DependencyInjectorImpl();
 
-    private final ComponentMapping mapping = new ComponentMapping() {
+    private final ComponentDescriptor descriptor = new ComponentDescriptor() {
         public Set<Class<? extends Annotation>> acceptedContext() {
             return null;
         }
@@ -161,13 +161,13 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
             EasyMock.expect(copy.create()).andReturn(createdContext);
         } else {
             if (dependencyType == ComponentContainer.class) {
-                EasyMock.expect(mapping.annotations()).andReturn(containerAnnotations).anyTimes();
+                EasyMock.expect(descriptor.annotations()).andReturn(containerAnnotations).anyTimes();
                 EasyMock.expect(resolver.container(copy)).andReturn(container);
             } else {
-                final ComponentMapping mapping = localMock(ComponentMapping.class);
+                final ComponentDescriptor descriptor = localMock(ComponentDescriptor.class);
 
-                EasyMock.expect(resolver.mapping(dependencyType, copy)).andReturn(mapping);
-                EasyMock.expect(mapping.acceptedContext()).andReturn(acceptedContext);
+                EasyMock.expect(resolver.describe(dependencyType, copy)).andReturn(descriptor);
+                EasyMock.expect(descriptor.acceptedContext()).andReturn(acceptedContext);
                 EasyMock.expect(copy.accept(acceptedContext)).andReturn(copy);
                 EasyMock.expect(resolver.resolveComponent(dependencyType, copy, traversal)).andReturn(new DependencyGraph.Node.Constant(dependencyType, component, null));
             }
@@ -198,7 +198,7 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
         expectCallbacks();
 
         replay();
-        assert component == injector.fields(component, traversal, resolver, mapping, context);
+        assert component == injector.fields(component, traversal, resolver, descriptor, context);
         verify();
 
         assert component.dependency == dependency : component.dependency;
@@ -220,7 +220,7 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
         expectCallbacks();
 
         replay();
-        assert component == injector.fields(component, traversal, resolver, mapping, context);
+        assert component == injector.fields(component, traversal, resolver, descriptor, context);
         verify();
     }
 
@@ -233,7 +233,7 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
         expectCallbacks();
 
         replay();
-        assert component == injector.fields(component, traversal, resolver, mapping, context);
+        assert component == injector.fields(component, traversal, resolver, descriptor, context);
         verify();
 
         assert component.dependency == null : component.dependency;
@@ -257,7 +257,7 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
         expectCallbacks();
 
         replay();
-        assert injector.constructor(traversal, resolver, mapping, context, constructor) != null;
+        assert injector.constructor(traversal, resolver, descriptor, context, constructor) != null;
         verify();
     }
 
@@ -274,7 +274,7 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
         expectCallbacks();
 
         replay();
-        assert component == injector.fields(component, traversal, resolver, mapping, context);
+        assert component == injector.fields(component, traversal, resolver, descriptor, context);
         verify();
 
         assert component.context == created : component.context;
@@ -298,7 +298,7 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
         expectCallbacks();
 
         replay();
-        assert injector.constructor(traversal, resolver, mapping, context, constructor) != null;
+        assert injector.constructor(traversal, resolver, descriptor, context, constructor) != null;
         verify();
     }
 
@@ -313,11 +313,29 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
         setupMethodResolution(MissingGroupConsumer.class, method, null, null, dependency, services);
 
         replay();
-        assert "value".equals(injector.invoke(component, method, traversal, resolver, mapping, context));
+        assert "value".equals(injector.invoke(component, method, traversal, resolver, descriptor, context));
         verify();
 
         assert component.dependency == dependency;
         assert component.services == services;
+    }
+
+    @Test
+    public void testInvokesMethodWithParameters() throws Exception {
+        final MethodInjected component = new MethodInjected();
+
+        final Method method = MethodInjected.class.getDeclaredMethod("pass", Dependency.class, Service[].class);
+        final DependencyImpl dependency = new DependencyImpl();
+
+//        setupMethodResolution(MissingGroupConsumer.class, method, null, null, null, null);
+
+        replay();
+        final Object[] arguments = new Object[] { dependency, null };
+        assert "value".equals(injector.invoke(component, method, arguments, traversal, resolver, descriptor, context));
+        verify();
+
+        assert component.dependency == dependency;
+        assert component.services == null;
     }
 
     private void expectCallbacks() {
@@ -390,12 +408,19 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
     @ComponentGroup
     public interface MissingService { }
 
+    @SuppressWarnings("UnusedDeclaration")
     public static class MethodInjected {
 
         public Dependency dependency;
         public Service[] services;
 
         private String inject(final Dependency dependency, final @ComponentGroup Service[] services) {
+            this.dependency = dependency;
+            this.services = services;
+            return "value";
+        }
+
+        private String pass(final @Inject Dependency dependency, final @ComponentGroup Service[] services) {
             this.dependency = dependency;
             this.services = services;
             return "value";
