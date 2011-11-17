@@ -21,7 +21,9 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * A dependency path.
+ * A dependency path. Objects implementing this interface are created and provided to {@link ComponentResolutionObserver component resolution observers} and
+ * to {@link org.fluidity.composition.ComponentContainer.InstantiationException instantiation exception} handlers. A dependency path is a list of components
+ * that depend on one another, each on the next in the path, up to the {@link #head() head} of the path, which represents the "current" component.
  *
  * @author Tibor Varga
  */
@@ -53,7 +55,7 @@ public interface DependencyPath {
     String toString(boolean api);
 
     /**
-     * Dependency path element.
+     * Dependency path element. A sequence of objects implementing this interface comprise a {@link DependencyPath}.
      */
     interface Element {
 
@@ -65,26 +67,26 @@ public interface DependencyPath {
         Class<?> api();
 
         /**
-         * Returns the resolved type at this point in the dependency path, or the reference interface if not yet known.
+         * Returns the resolved type at this point in the dependency path, or the referenced interface if not yet known.
          *
-         * @return the resolved type at this point in the dependency path, or the reference interface if not yet known; never <code>null</code>.
+         * @return the resolved type at this point in the dependency path, or the referenced interface if not yet known; never <code>null</code>.
          */
         Class<?> type();
 
         /**
-         * Returns the annotations defined for this reference.
+         * Returns the annotations defined for this element.
          *
-         * @return the annotations defined for this reference.
+         * @return the annotations defined for this element.
          */
         Set<Annotation> annotations();
 
         /**
-         * Returns, if defined, the annotation of the given type defined at this reference.
+         * Returns, if defined, the annotation with the given class at this element.
          *
          * @param type the annotation type to find.
          * @param <T>  the annotation type to find.
          *
-         * @return the annotation of the given type defined at this reference or <code>null</code> if not found.
+         * @return the annotation with the given type defined at this element or <code>null</code> if not found.
          */
         <T extends Annotation> T annotation(Class<T> type);
     }

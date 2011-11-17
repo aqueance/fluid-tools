@@ -35,7 +35,7 @@ final class InstanceResolver extends AbstractResolver {
         this.instance = instance;
     }
 
-    public Annotation[] annotations() {
+    public Annotation[] providedContext() {
         return null;
     }
 

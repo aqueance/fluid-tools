@@ -64,13 +64,12 @@ final class CompositeObserver implements ComponentResolutionObserver {
         }
     }
 
-    public void resolving(final Class<?> api,
-                          final Class<?> declaringType,
+    public void resolving(final Class<?> declaringType,
                           final Class<?> dependencyType,
                           final Annotation[] typeAnnotations,
                           final Annotation[] referenceAnnotations) {
         for (final ComponentResolutionObserver observer : observers) {
-            observer.resolving(api, declaringType, dependencyType, typeAnnotations, referenceAnnotations);
+            observer.resolving(declaringType, dependencyType, typeAnnotations, referenceAnnotations);
         }
     }
 

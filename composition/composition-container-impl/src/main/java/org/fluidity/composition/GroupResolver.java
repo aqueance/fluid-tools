@@ -46,7 +46,7 @@ final class GroupResolver {
     private final Map<Class<?>, Integer> instantiated = new HashMap<Class<?>, Integer>();
 
     private final ComponentResolutionObserver observer = new ComponentResolutionObserver() {
-        public void resolving(final Class<?> api, final Class<?> declaringType,
+        public void resolving(final Class<?> declaringType,
                               final Class<?> dependencyType,
                               final Annotation[] typeAnnotations,
                               final Annotation[] referenceAnnotations) {

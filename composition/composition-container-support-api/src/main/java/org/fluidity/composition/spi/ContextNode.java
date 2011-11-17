@@ -20,30 +20,23 @@ import java.lang.annotation.Annotation;
 import java.util.Set;
 
 /**
- * Component details used by container services.
+ * A node in a dependency graph where context annotations may be accepted and/or provided.
  *
  * @author Tibor Varga
  */
-public interface ComponentDescriptor {
+public interface ContextNode {
 
     /**
-     * Returns the list of context annotation accepted by the component.
+     * Returns the list of context annotation accepted at this node.
      *
-     * @return the list of context annotation accepted by the component.
+     * @return the list of context annotation accepted at this node.
      */
     Set<Class<? extends Annotation>> acceptedContext();
 
     /**
-     * Returns the list of annotations that may comprise the context of some other component. Factories do not provide context annotations.
+     * Returns the list of annotations defined at this node that may comprise the context of some other component.
      *
-     * @return the list of annotations that may comprise the context of some other component or <code>null</code> if none present.
+     * @return the list of annotations defined at this node or <code>null</code> if none present.
      */
-    Annotation[] annotations();
-
-    /**
-     * Converts the dependency descriptor to a (more or less) human readable form.
-     *
-     * @return the {@link String} representation of the dependency descriptor.
-     */
-    String toString();
+    Annotation[] providedContext();
 }

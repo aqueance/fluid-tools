@@ -25,8 +25,8 @@ package org.fluidity.composition.spi;
 public interface ShutdownTasks {
 
     /**
-     * Adds a task to be run when the application is shut down. Concrete implementations are needed for the various application types, i.e. command line, web,
-     * etc.
+     * Adds a task to be run when the application is shut down. Concrete implementations are provided for the various application types, i.e. command line, web,
+     * OSGi bundle, etc.
      *
      * @param command is the command to run prior application shutdown.
      */

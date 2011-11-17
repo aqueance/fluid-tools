@@ -28,7 +28,7 @@ import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.fluidity.composition.spi.ComponentDescriptor;
+import org.fluidity.composition.spi.ContextNode;
 import org.fluidity.composition.spi.DependencyPath;
 import org.fluidity.composition.spi.DependencyResolver;
 import org.fluidity.foundation.Exceptions;
@@ -44,7 +44,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
     public <T> T fields(final T instance,
                         final DependencyGraph.Traversal traversal,
                         final DependencyResolver container,
-                        final ComponentDescriptor descriptor,
+                        final ContextNode contexts,
                         final ContextDefinition context) {
         assert container != null;
 
@@ -52,7 +52,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
             final Class<?> componentClass = instance.getClass();
             final Map<Field, DependencyGraph.Node> fieldNodes = new IdentityHashMap<Field, DependencyGraph.Node>();
 
-            context.collect(resolveFields(traversal, container, descriptor, context, componentClass, fieldNodes));
+            context.collect(resolveFields(traversal, container, contexts, context, componentClass, fieldNodes));
 
             final List<RestrictedContainer> containers = new ArrayList<RestrictedContainer>();
             injectFields(fieldNodes, traversal, containers, instance);
@@ -66,7 +66,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
                          final Method method,
                          final DependencyGraph.Traversal traversal,
                          final DependencyResolver container,
-                         final ComponentDescriptor descriptor,
+                         final ContextNode contexts,
                          final ContextDefinition context) throws ComponentContainer.ResolutionException {
         assert method != null;
         assert container != null;
@@ -79,7 +79,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
 
         for (int i = 0, length = types.length; i < length; ++i) {
             final int index = i;
-            injectDependency(false, traversal, container, descriptor, context.copy(), componentClass, new Dependency() {
+            injectDependency(false, traversal, container, contexts, context.copy(), componentClass, new Dependency() {
 
                 public Class<?> type() {
                     return types[index];
@@ -121,7 +121,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
                          final Object[] arguments,
                          final DependencyGraph.Traversal traversal,
                          final DependencyResolver container,
-                         final ComponentDescriptor descriptor,
+                         final ContextNode contexts,
                          final ContextDefinition context) throws ComponentContainer.ResolutionException {
         assert method != null;
         assert container != null;
@@ -136,7 +136,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
             final int index = i;
 
             if (arguments[index] == null && contains(parameterAnnotations[index], Inject.class)) {
-                injectDependency(false, traversal, container, descriptor, context.copy(), componentClass, new Dependency() {
+                injectDependency(false, traversal, container, contexts, context.copy(), componentClass, new Dependency() {
 
                     public Class<?> type() {
                         return types[index];
@@ -288,7 +288,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
 
     public DependencyGraph.Node constructor(final DependencyGraph.Traversal traversal,
                                             final DependencyResolver container,
-                                            final ComponentDescriptor descriptor,
+                                            final ContextNode contexts,
                                             final ContextDefinition context,
                                             final Constructor<?> constructor) {
         final List<ContextDefinition> consumed = new ArrayList<ContextDefinition>();
@@ -301,7 +301,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
 
         for (int i = 0, length = types.length; i < length; ++i) {
             final int index = i;
-            consumed.add(injectDependency(true, traversal, container, descriptor, context.copy(), componentClass, new Dependency() {
+            consumed.add(injectDependency(true, traversal, container, contexts, context.copy(), componentClass, new Dependency() {
 
                 public Class<?> type() {
                     return types[index];
@@ -329,7 +329,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
         }
 
         final Map<Field, DependencyGraph.Node> fields = new IdentityHashMap<Field, DependencyGraph.Node>();
-        consumed.addAll(resolveFields(traversal, container, descriptor, context, componentClass, fields));
+        consumed.addAll(resolveFields(traversal, container, contexts, context, componentClass, fields));
 
         final ComponentContext componentContext = context.collect(consumed).create();
 
@@ -430,7 +430,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
 
     private List<ContextDefinition> resolveFields(final DependencyGraph.Traversal traversal,
                                                   final DependencyResolver container,
-                                                  final ComponentDescriptor descriptor,
+                                                  final ContextNode contexts,
                                                   final ContextDefinition context,
                                                   final Class<?> declaringType,
                                                   final Map<Field, DependencyGraph.Node> nodes) {
@@ -438,7 +438,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
 
         processFields(declaringType, new FieldCommand() {
             public void process(final Field field) {
-                consumed.add(injectDependency(false, traversal, container, descriptor, context.copy(), declaringType, new Dependency() {
+                consumed.add(injectDependency(false, traversal, container, contexts, context.copy(), declaringType, new Dependency() {
 
                     public Class<?> type() {
                         return field.getType();
@@ -465,7 +465,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
     private ContextDefinition injectDependency(final boolean resolving,
                                                final DependencyGraph.Traversal traversal,
                                                final DependencyResolver container,
-                                               final ComponentDescriptor descriptor,
+                                               final ContextNode contexts,
                                                final ContextDefinition context,
                                                final Class<?> declaringType,
                                                final Dependency dependency) {
@@ -473,8 +473,8 @@ final class DependencyInjectorImpl implements DependencyInjector {
         final Class<?> dependencyType = findDependencyType(dependency.annotation(Component.class), dependency.type(), declaringType);
         final boolean mandatory = dependency.annotation(Optional.class) == null;
 
-        assert descriptor != null : declaringType;
-        final Annotation[] typeContext = neverNull(descriptor.annotations());
+        assert contexts != null : declaringType;
+        final Annotation[] typeContext = neverNull(contexts.providedContext());
         final Annotation[] dependencyContext = neverNull(dependency.annotations());
 
         if (resolving) {
@@ -516,7 +516,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
 
                     // always reduce the context to what the component accepts to avoid leaking contextual information to the component that it may inadvertently use
                     // without explicitly declaring it as accepted
-                    return context.accept(descriptor.acceptedContext()).create();
+                    return context.accept(contexts.acceptedContext()).create();
                 }
 
                 public ComponentContainer container() {
@@ -524,8 +524,8 @@ final class DependencyInjectorImpl implements DependencyInjector {
                 }
 
                 public DependencyGraph.Node regular() {
-                    final ComponentDescriptor descriptor = container.describe(dependencyType, context);
-                    return descriptor != null ? container.resolveComponent(dependencyType, context.accept(descriptor.acceptedContext()), traversal) : null;
+                    final ContextNode contexts = container.contexts(dependencyType, context);
+                    return contexts != null ? container.resolveComponent(dependencyType, context.accept(contexts.acceptedContext()), traversal) : null;
                 }
 
                 public void handle(final RestrictedContainer container) {

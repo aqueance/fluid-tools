@@ -19,7 +19,7 @@ package org.fluidity.composition;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 
-import org.fluidity.composition.spi.ComponentDescriptor;
+import org.fluidity.composition.spi.ContextNode;
 import org.fluidity.composition.spi.DependencyResolver;
 
 /**
@@ -36,7 +36,7 @@ public interface DependencyInjector {
      *
      * @param traversal   the current graph traversal.
      * @param container   the container to resolve dependencies of the component.
-     * @param descriptor  describes the constructor's owning component.
+     * @param contexts    context node corresponding to the constructor's owning component.
      * @param context     the component context of the component.
      * @param constructor the constructor to resolve the arguments of.
      *
@@ -44,23 +44,23 @@ public interface DependencyInjector {
      */
     DependencyGraph.Node constructor(DependencyGraph.Traversal traversal,
                                      DependencyResolver container,
-                                     ComponentDescriptor descriptor,
+                                     ContextNode contexts,
                                      ContextDefinition context,
                                      Constructor<?> constructor);
 
     /**
      * Injects all {@link Inject @Inject} annotated fields of the received component. Useful for components instantiated by means other than calling {@link
-     * #constructor(DependencyGraph.Traversal, DependencyResolver, ComponentDescriptor, ContextDefinition, Constructor)}.
+     * #constructor(DependencyGraph.Traversal, DependencyResolver, ContextNode, ContextDefinition, Constructor)}.
      *
      * @param instance   the object to inject the fields of.
      * @param traversal  the current graph traversal.
-     * @param container   the container to resolve dependencies of the component.
-     * @param descriptor describes the component.
+     * @param container  the container to resolve dependencies of the component.
+     * @param contexts   context node corresponding to the component.
      * @param context    the component context of the provided instance.
      *
      * @return the received component.
      */
-    <T> T fields(T instance, DependencyGraph.Traversal traversal, DependencyResolver container, ComponentDescriptor descriptor, ContextDefinition context);
+    <T> T fields(T instance, DependencyGraph.Traversal traversal, DependencyResolver container, ContextNode contexts, ContextDefinition context);
 
     /**
      * Injects all parameters of the given method and invokes the method on the given component.
@@ -69,7 +69,7 @@ public interface DependencyInjector {
      * @param method     the method to invoke.
      * @param traversal  the graph traversal to use.
      * @param container  the container to resolve method parameters.
-     * @param descriptor describes the component.
+     * @param contexts   context node corresponding to the component.
      * @param context    the component context of the given component.
      *
      * @return the received instance.
@@ -81,7 +81,7 @@ public interface DependencyInjector {
                   Method method,
                   DependencyGraph.Traversal traversal,
                   DependencyResolver container,
-                  ComponentDescriptor descriptor,
+                  ContextNode contexts,
                   ContextDefinition context) throws ComponentContainer.ResolutionException;
 
     /**
@@ -93,7 +93,7 @@ public interface DependencyInjector {
      * @param arguments  the argument list containing parameters that need no dependency injection.
      * @param traversal  the graph traversal to use.
      * @param container  the container to resolve method parameters.
-     * @param descriptor describes the component.
+     * @param contexts   context node corresponding to the component.
      * @param context    the component context of the given component.
      *
      * @return the received instance.
@@ -106,7 +106,7 @@ public interface DependencyInjector {
                   Object[] arguments,
                   DependencyGraph.Traversal traversal,
                   DependencyResolver container,
-                  ComponentDescriptor descriptor,
+                  ContextNode contexts,
                   ContextDefinition context) throws ComponentContainer.ResolutionException;
 
     /**

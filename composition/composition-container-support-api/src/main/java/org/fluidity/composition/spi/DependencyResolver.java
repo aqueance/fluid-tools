@@ -23,22 +23,23 @@ import org.fluidity.composition.ContextDefinition;
 import org.fluidity.composition.DependencyGraph;
 
 /**
- * Capable of resolving component references.
+ * Capable of resolving component references. A dependency injection container implements this interface for a {@link
+ * org.fluidity.composition.DependencyInjector DependencyInjector} to be able to use the implementation.
  */
 public interface DependencyResolver extends DependencyGraph {
 
     /**
-     * Returns the component descriptor for the given component API.
+     * Returns the context node for the given component interface.
      *
-     * @param type    the component API to return a descriptor for.
+     * @param type    the component interface to return a context node for.
      * @param context the context prevalent at the reference.
      *
-     * @return the component descriptor for the given component API or <code>null</code> if not found.
+     * @return the context node for the given component API or <code>null</code> if not found.
      */
-    ComponentDescriptor describe(Class<?> type, ContextDefinition context);
+    ContextNode contexts(Class<?> type, ContextDefinition context);
 
     /**
-     * Returns a new child container with its base context set to the given properties.
+     * Returns a new child container with its base context set to the given definition.
      *
      * @param context the context for the new container to use as base context.
      *

@@ -37,8 +37,8 @@ final class LinkingResolver extends AbstractResolver {
         this.target = container;
     }
 
-    public Annotation[] annotations() {
-        return delegate.annotations();
+    public Annotation[] providedContext() {
+        return delegate.providedContext();
     }
 
     public Set<Class<? extends Annotation>> acceptedContext() {

@@ -18,14 +18,14 @@ package org.fluidity.composition;
 
 import java.util.Collection;
 
-import org.fluidity.composition.spi.ComponentDescriptor;
+import org.fluidity.composition.spi.ContextNode;
 
 /**
- * Extends the {@link ComponentDescriptor} interface with methods required by the actual container implementation.
+ * Extends the {@link ContextNode} interface with methods required by the actual container implementation.
  *
  * @author Tibor Varga
  */
-interface ComponentResolver extends ComponentDescriptor {
+interface ComponentResolver extends ContextNode {
 
     /**
      * Resolves the represented component.

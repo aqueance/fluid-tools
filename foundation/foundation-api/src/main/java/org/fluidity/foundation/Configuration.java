@@ -104,7 +104,7 @@ import org.fluidity.foundation.spi.PropertyProvider;
  * <ul>
  * <li>allows method parameters to vary the property consulted when returning a value for a method,</li>
  * <li>provides only object identity implementation for the {@link Object#equals(Object)} method,</li>
- * <li>may return a different value at different times if accessed outside the {@link Query#read(T)} method.</li>
+ * <li>may return a different value at different times if accessed outside the {@link Configuration.Query#read(Object) Configuration.Query.read(T)} method.</li>
  * </ul>
  * In contrast, your custom class:
  * <ul>
@@ -136,7 +136,7 @@ public interface Configuration<T> {
     <R> R query(Query<T, R> query);
 
     /**
-     * Groups property queries. Properties read in the {@link #read(T)} method will be consistent in that no property change will take place
+     * Groups property queries. Properties read in the {@link #read(Object) read(T)} method will be consistent in that no property change will take place
      * during the execution of that method. Subject to {@link PropertyProvider} support. However, stashing the <code>read</code> method parameter and invoking
      * its methods outside the <code>read</code> method will not have the same effect.
      *

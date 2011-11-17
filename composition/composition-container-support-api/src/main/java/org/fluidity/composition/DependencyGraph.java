@@ -212,14 +212,10 @@ public interface DependencyGraph {
         /**
          * Notifies the observer registered with the receiver that a dependency is being resolved. See {@link ComponentResolutionObserver} for details.
          *
-         * @param declaringType        see {@link ComponentResolutionObserver#resolving(Class, Class, Class, Annotation[], Annotation[])
-         *                             ComponentResolutionObserver}.
-         * @param dependencyType       see {@link ComponentResolutionObserver#resolving(Class, Class, Class, Annotation[], Annotation[])
-         *                             ComponentResolutionObserver}.
-         * @param typeAnnotations      see {@link ComponentResolutionObserver#resolving(Class, Class, Class, Annotation[], Annotation[])
-         *                             ComponentResolutionObserver}.
-         * @param referenceAnnotations see {@link ComponentResolutionObserver#resolving(Class, Class, Class, Annotation[], Annotation[])
-         *                             ComponentResolutionObserver}.
+         * @param declaringType        see {@link ComponentResolutionObserver#resolving(Class, Class, Annotation[], Annotation[]) ComponentResolutionObserver}.
+         * @param dependencyType       see {@link ComponentResolutionObserver#resolving(Class, Class, Annotation[], Annotation[]) ComponentResolutionObserver}.
+         * @param typeAnnotations      see {@link ComponentResolutionObserver#resolving(Class, Class, Annotation[], Annotation[]) ComponentResolutionObserver}.
+         * @param referenceAnnotations see {@link ComponentResolutionObserver#resolving(Class, Class, Annotation[], Annotation[]) ComponentResolutionObserver}.
          */
         void resolving(Class<?> declaringType, Class<?> dependencyType, Annotation[] typeAnnotations, Annotation[] referenceAnnotations);
 

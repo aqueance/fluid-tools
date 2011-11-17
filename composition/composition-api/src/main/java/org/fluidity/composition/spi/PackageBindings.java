@@ -21,26 +21,31 @@ import org.fluidity.composition.OpenComponentContainer;
 import org.fluidity.composition.ServiceProvider;
 
 /**
- * An implementation of this interface is placed, either automatically by the org.fluidity.maven:maven-composition-plugin or manually by the component
- * developer, in each package that contains component implementations. The goal of these classes is to add component bindings for component implementations in
- * the respective package to the supplied registry. The components thus bound may depend on other components in the container and vice versa.
+ * An implementation of this interface is placed, either automatically by the <code>org.fluidity.maven:maven-composition-plugin</code> Maven plugin or manually
+ * by the component developer, in each package that contains component implementations. The goal of these classes is to add component bindings for component
+ * implementations in the respective package to the supplied registry. The components thus bound may depend on other components in the container and vice
+ * versa.
  * <p/>
  * Placing the implementation of this interface in the same package as the components it binds allows those component classes to be package protected and thus
- * hiding them from inadvertent use.
+ * makes it possible to hide them from inadvertent use.
  *
  * @author Tibor Varga
  */
 @ServiceProvider(api = PackageBindings.class, type = PackageBindings.SERVICE_TYPE)
 public interface PackageBindings extends OpenComponentContainer.Bindings {
 
+    /**
+     * Distinguishes package bindings from the usual JAR service providers.
+     */
     String SERVICE_TYPE = "bindings";
 
     /**
      * Perform component specific initialization if necessary. This method is invoked once after the {@link
-     * OpenComponentContainer.Bindings#bindComponents(OpenComponentContainer.Registry)} method of all {@link PackageBindings} objects have been invoked and
+     * org.fluidity.composition.OpenComponentContainer.Bindings#bindComponents(org.fluidity.composition.OpenComponentContainer.Registry)
+     * OpenComponentContainer.Bindings.bindComponents()} method of all {@link PackageBindings} objects have been invoked and
      * before any component is accessed in the provided container from outside the container.
      *
-     * @param container is the container that was populated by the {@link OpenComponentContainer.Bindings#bindComponents(OpenComponentContainer.Registry)}
+     * @param container is the container that was populated by the <code>OpenComponentContainer.Bindings.bindComponents()</code>
      *                  method.
      */
     void initializeComponents(ComponentContainer container);
@@ -48,7 +53,7 @@ public interface PackageBindings extends OpenComponentContainer.Bindings {
     /**
      * Perform component specific shutdown if necessary. This method is invoked once when the application is being shut down.
      *
-     * @param container is the container that was populated by the {@link OpenComponentContainer.Bindings#bindComponents(OpenComponentContainer.Registry)}
+     * @param container is the container that was populated by the <code>OpenComponentContainer.Bindings.bindComponents()</code>
      *                  method.
      */
     void shutdownComponents(ComponentContainer container);

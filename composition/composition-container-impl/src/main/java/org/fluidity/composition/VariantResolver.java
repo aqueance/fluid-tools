@@ -89,7 +89,7 @@ abstract class VariantResolver extends AbstractFactoryResolver {
         return delegate;
     }
 
-    public Annotation[] annotations() {
+    public Annotation[] providedContext() {
         return null;
     }
 

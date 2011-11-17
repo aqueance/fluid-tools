@@ -19,23 +19,22 @@ package org.fluidity.composition.spi;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 
-import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.OpenComponentContainer;
 
 /**
- * Defines the behaviour of component factories. Component creation follows a certain protocol and {@link ComponentFactory} objects must follow that protocol to
- * integrate well to Fluid Tools. This interface defines the necessary methods and interfaces for that integration.
+ * Defines the behaviour of component factories. Component instantiation follows a certain protocol and <code>ComponentFactory</code> objects must follow that
+ * protocol to integrate well to Fluid Tools. This interface defines the necessary methods and interfaces for that integration.
  */
 public interface ComponentFactory {
 
     /**
-     * The factory in this method simply lets the caller know what dependencies the created component will have in the given context. Actual component
-     * instantiation does not take place in this method. The {@link Instance#bind(Registry)} method of the returned object will be invoked, at the right time,
-     * to actually bind the created component, and its local, internal dependencies to a registry. Actual instantiation should, when possible at all, be left to
-     * the caller of that method. If a factory absolutely has to instantiate the component on account of, for instance, having to call an external factory, then
-     * that instantiation must not take place in this method but in {@link Instance#bind(Registry)}.
+     * Informs the caller about the static dependencies the created component has in the given context. Actual component instantiation does not take place in
+     * this method. The {@link ComponentFactory.Instance#bind(ComponentFactory.Registry)} method of the returned object will be invoked, at the right time, to
+     * actually bind the created component, and its local, internal dependencies to a registry. Actual instantiation should, when possible at all, be left to
+     * the caller of that method. If the factory absolutely has to instantiate the component on account of, for instance, having to call an external factory,
+     * then that instantiation must not take place in this method but in {@link ComponentFactory.Instance#bind(ComponentFactory.Registry)}.
      * <p/>
      * The following boilerplate demonstrates the basic pattern of the implementation:
      * <pre>
@@ -77,8 +76,8 @@ public interface ComponentFactory {
      * }
      * </pre>
      *
-     * @param context      the context under which component creation will take place. This context contains only those annotations that the implementing class
-     *                     lists in its {@link Component.Context} annotation.
+     * @param context      the context under which component creation will take place. This context contains only those annotations that this factory lists in
+     *                     its {@link org.fluidity.composition.Component.Context @Component.Context} annotation.
      * @param dependencies the dependency resolver to notify of any dependencies the created class will have.
      *
      * @return an object that will bind the created components and its dependencies.
@@ -89,31 +88,34 @@ public interface ComponentFactory {
     Instance resolve(ComponentContext context, Resolver dependencies) throws ComponentContainer.ResolutionException;
 
     /**
-     * Represents an instance of the created component.
+     * Represents a future instance of the component a {@link ComponentFactory} is a factory for.
      */
     interface Instance {
 
         /**
-         * Binds the created component and all dependencies thereof to the supplied registry.
+         * Binds the created component and all its local dependencies, e.g., those not found in the application's containers by design, to the supplied
+         * registry.
          *
          * @param registry the registry to bind components in.
          *
-         * @throws OpenComponentContainer.BindingException
+         * @throws org.fluidity.composition.OpenComponentContainer.BindingException
          *          when binding fails.
          */
         void bind(Registry registry) throws OpenComponentContainer.BindingException;
     }
 
     /**
-     * Represents a resolved dependency of the component being created by the {@link ComponentFactory} in its {@link ComponentFactory#resolve(ComponentContext,
-     * Resolver)} method.
+     * Represents a resolved dependency of the component being created by a {@link ComponentFactory} in its {@link ComponentFactory#resolve(ComponentContext,
+     * Resolver) resolve()} method.
      *
      * @param <T> the type of the dependency.
      */
     interface Dependency<T> {
 
         /**
-         * Returns an actual instance of the dependency.
+         * Returns an actual instance of the dependency. This method is intended to be invoked only from the {@link
+         * ComponentFactory.Instance#bind(ComponentFactory.Registry) bind()} method of the <code>Instance</code> returned from the factory's {@link
+         * ComponentFactory#resolve(ComponentContext, ComponentFactory.Resolver) resolve()} method.
          *
          * @return an actual instance of the dependency; may be <code>null</code>.
          */
@@ -166,25 +168,40 @@ public interface ComponentFactory {
     }
 
     /**
-     * Registry to bind components in.
+     * Registry to bind components in by a {@link ComponentFactory}. Methods of this interface are to be invoked from the {@link
+     * ComponentFactory.Instance#bind(ComponentFactory.Registry) bind()} method of the <code>Instance</code> returned from the factory's {@link
+     * ComponentFactory#resolve(ComponentContext, ComponentFactory.Resolver) resolve()} method.
+     * <p/>
+     * The intent for this interface is to restrict access to a {@link org.fluidity.composition.OpenComponentContainer.Registry} object through a smaller set
+     * of methods.
      */
     interface Registry {
 
         /**
-         * @param implementation see {@link OpenComponentContainer.Registry#bindComponent(Class, Class[])}.
-         * @param interfaces     see {@link OpenComponentContainer.Registry#bindComponent(Class, Class[])}.
+         * Binds a component class to a list of component interfaces in the container behind this registry.
+         *
+         * @param implementation see {@link org.fluidity.composition.OpenComponentContainer.Registry#bindComponent(Class, Class[])
+         *                       OpenComponentContainer.Registry.bindComponent()}.
+         * @param interfaces     see {@link org.fluidity.composition.OpenComponentContainer.Registry#bindComponent(Class, Class[])
+         *                       OpenComponentContainer.Registry.bindComponent()}.
          *
          * @throws OpenComponentContainer.BindingException
-         *          see {@link OpenComponentContainer.Registry#bindComponent(Class, Class[])}.
+         *          see {@link org.fluidity.composition.OpenComponentContainer.Registry#bindComponent(Class, Class[])
+         *          OpenComponentContainer.Registry.bindComponent()}.
          */
         <T> void bindComponent(Class<T> implementation, Class<? super T>... interfaces) throws OpenComponentContainer.BindingException;
 
         /**
-         * @param instance   see {@link OpenComponentContainer.Registry#bindInstance(Object, Class[])}.
-         * @param interfaces see {@link OpenComponentContainer.Registry#bindInstance(Object, Class[])}.
+         * Binds a component instance to a list of component interfaces in the container behind this registry.
+         *
+         * @param instance   see {@link org.fluidity.composition.OpenComponentContainer.Registry#bindInstance(Object, Class[])
+         *                   OpenComponentContainer.Registry.bindInstance()}.
+         * @param interfaces see {@link org.fluidity.composition.OpenComponentContainer.Registry#bindInstance(Object, Class[])
+         *                   OpenComponentContainer.Registry.bindInstance()}.
          *
          * @throws OpenComponentContainer.BindingException
-         *          see {@link OpenComponentContainer.Registry#bindInstance(Object, Class[])}.
+         *          see {@link org.fluidity.composition.OpenComponentContainer.Registry#bindInstance(Object, Class[])
+         *          OpenComponentContainer.Registry.bindInstance()}.
          */
         <T> void bindInstance(T instance, Class<? super T>... interfaces) throws OpenComponentContainer.BindingException;
 

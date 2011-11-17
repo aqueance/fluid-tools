@@ -26,7 +26,7 @@ import org.fluidity.composition.Component;
  * The interface of the component is specified in the {@link Component#api()} annotation of the the factory implementation class, which must be present.
  * <p/>
  * If the component is context dependent, the factory class must specify on behalf of the components the valid context annotation classes using the {@link
- * Component.Context @Component.Context} class annotation.
+ * org.fluidity.composition.Component.Context @Component.Context} class annotation.
  *
  * @author Tibor Varga
  */

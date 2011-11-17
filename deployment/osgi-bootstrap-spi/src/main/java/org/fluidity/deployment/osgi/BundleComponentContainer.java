@@ -55,9 +55,9 @@ import org.fluidity.composition.ServiceProvider;
  * both {@link Registration} and {@link Registration.Listener}.
  * <p/>
  * This container loads and manages all {@link Managed} components visible to its class loader, which is the OSGi bundle class loader. Components
- * with direct dependencies - i.e., those without the {@link Service @Service} annotation - to one another are grouped and their combined set of {@link Service
- * @Service} dependencies are consulted to determine when to instantiate or discard all components in the group. Independent component groups are instantiated
- * and discarded independently.
+ * with direct dependencies - i.e., those without the {@link Service @Service} annotation - to one another are grouped and their combined set of {@link
+ * Service @Service} dependencies are consulted to determine when to instantiate or discard all components in the group. Independent component groups are
+ * instantiated and discarded independently.
  *
  * @author Tibor Varga
  */

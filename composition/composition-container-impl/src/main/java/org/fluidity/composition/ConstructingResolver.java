@@ -50,7 +50,7 @@ final class ConstructingResolver extends AbstractResolver {
         this.constructor = injector.findConstructor(componentClass);
     }
 
-    public Annotation[] annotations() {
+    public Annotation[] providedContext() {
         return ignoreContext ? null : componentClass.getAnnotations();
     }
 
@@ -65,7 +65,7 @@ final class ConstructingResolver extends AbstractResolver {
             }
 
             public Annotation[] annotations() {
-                return ConstructingResolver.this.annotations();
+                return ConstructingResolver.this.providedContext();
             }
 
             public DependencyGraph.Node resolve(final DependencyGraph.Traversal traversal, final ContextDefinition context) {

@@ -246,7 +246,7 @@ public final class BasicResolutionTests extends AbstractContainerTests {
         final List<Class<?>> instantiated = new ArrayList<Class<?>>();
 
         final ObservedComponentContainer observed = container.observed(new ComponentResolutionObserver() {
-            public void resolving(final Class<?> api, final Class<?> declaringType,
+            public void resolving(final Class<?> declaringType,
                                   final Class<?> dependencyType,
                                   final Annotation[] typeAnnotations,
                                   final Annotation[] referenceAnnotations) {

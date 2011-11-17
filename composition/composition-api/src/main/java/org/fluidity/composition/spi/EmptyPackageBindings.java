@@ -20,7 +20,8 @@ import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.OpenComponentContainer;
 
 /**
- * Empty package bindings to simplify creation of actual implementations.
+ * Empty package bindings to simplify creation of actual implementations. You don't normally need to implement {@link PackageBindings} yourself but when you
+ * do, this abstract implementation will give you empty implementations for all methods so that you don't have to.
  *
  * @author Tibor Varga
  */

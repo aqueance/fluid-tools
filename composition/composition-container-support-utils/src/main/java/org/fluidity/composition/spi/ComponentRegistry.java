@@ -20,7 +20,7 @@ import org.fluidity.composition.Components;
 import org.fluidity.composition.OpenComponentContainer;
 
 /**
- * Core registration API for dependency injection container implementations.
+ * Allows registration of component bindings to a backing {@link OpenComponentContainer component container}.
  *
  * @author Tibor Varga
  */
@@ -49,7 +49,7 @@ public interface ComponentRegistry {
 
     /**
      * Creates a child container and calls {@link #bindComponent(Components.Interfaces)} with the given parameters. The component implementation will be
-     * bound to all component interfaces and group interfaces also in the container the receiver is a registry for.
+     * bound to all component interfaces and group interfaces also in the container this is a registry for.
      *
      * @param interfaces     the component and group interfaces; never <code>null</code>.
      *

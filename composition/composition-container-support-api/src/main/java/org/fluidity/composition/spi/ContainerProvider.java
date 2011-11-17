@@ -24,7 +24,8 @@ import org.fluidity.composition.OpenComponentContainer;
 import org.fluidity.composition.ServiceProvider;
 
 /**
- * Provides actual dependency injection container instances and related functionality.
+ * Provides actual dependency injection container instances and related functionality. This is an internal interface to be implemented by dependency injection
+ * container implementations.
  *
  * @author Tibor Varga
  */
@@ -45,8 +46,8 @@ public interface ContainerProvider {
      * Instantiates all {@link PackageBindings} classes in the given set of bindings and returns the instances in instantiation order.
      *
      * @param services   provides service components for containers, in case needed.
-     * @param properties is to be made available to any {@link PackageBindings} object that may depend on it
-     * @param bindings   the collection of classes to instantiate. Some may depend on others in the set.
+     * @param properties properties to be made available to any {@link PackageBindings} object that may depend on it.
+     * @param bindings   the collection of classes to instantiate. Some may depend on others in the set and that influences the instantiation order.
      *
      * @return the list of {@link PackageBindings} instances in instantiation order.
      */

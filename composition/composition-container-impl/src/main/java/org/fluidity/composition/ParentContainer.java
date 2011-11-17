@@ -19,7 +19,7 @@ package org.fluidity.composition;
 import java.lang.annotation.Annotation;
 import java.util.List;
 
-import org.fluidity.composition.spi.ComponentDescriptor;
+import org.fluidity.composition.spi.ContextNode;
 
 /**
  * Interface to separate internal container methods from the higher level container interface.
@@ -29,7 +29,7 @@ import org.fluidity.composition.spi.ComponentDescriptor;
 interface ParentContainer extends SimpleContainer {
 
     /**
-     * Returns a resolver either from the receiver or from its parent.
+     * Returns a context node either from the receiver or from its parent.
      *
      * @param domain  the domain container to resolve missing dependencies in.
      * @param type    the component interface.
@@ -37,7 +37,7 @@ interface ParentContainer extends SimpleContainer {
      *
      * @return a resolver or <code>null</code> if not found.
      */
-    ComponentDescriptor describe(ParentContainer domain, Class<?> type, ContextDefinition context);
+    ContextNode contexts(ParentContainer domain, Class<?> type, ContextDefinition context);
 
     /**
      * Resolves the group API to a list of implementations.

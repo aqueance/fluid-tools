@@ -23,7 +23,7 @@ import org.fluidity.composition.spi.CustomComponentFactory;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**
- * Component resolver for a {@link org.fluidity.composition.spi.CustomComponentFactory} component.
+ * Component resolver for a {@link CustomComponentFactory} component.
  *
  * @author Tibor Varga
  */
@@ -41,7 +41,7 @@ abstract class FactoryResolver extends AbstractFactoryResolver {
         return AbstractResolver.acceptedContext(factoryClass());
     }
 
-    public Annotation[] annotations() {
+    public Annotation[] providedContext() {
         return null;
     }
 

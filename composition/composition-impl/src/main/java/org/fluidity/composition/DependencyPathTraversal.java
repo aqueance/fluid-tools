@@ -129,7 +129,7 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
                           final Annotation[] typeAnnotations,
                           final Annotation[] referenceAnnotations) {
         if (observer != null) {
-            observer.resolving(resolutionPath.get().head().api(), declaringType, dependencyType, typeAnnotations, referenceAnnotations);
+            observer.resolving(declaringType, dependencyType, typeAnnotations, referenceAnnotations);
         }
     }
 

@@ -20,7 +20,9 @@ import java.lang.annotation.Annotation;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * Observes component dependency resolutions.
+ * Observes component dependency resolutions. An object implementing this interface can be passed to the {@link
+ * org.fluidity.composition.ComponentContainer#observed(ComponentResolutionObserver) observed()} method of a <code>ComponentContainer</code> to get the
+ * observer's methods invoked as components get resolved and instantiated by that container.
  *
  * @author Tibor Varga
  */
@@ -29,17 +31,16 @@ public interface ComponentResolutionObserver {
     /**
      * Notifies the receiver that a dependency is being resolved.
      *
-     * @param api                  the component interface being queried, which is the one the declaring type is bound against
-     * @param declaringType        the class having the dependency.
-     * @param dependencyType       the dependency type.
+     * @param declaringType        the class having the dependency to the <code>api</code>.
+     * @param dependencyType       the class with which the <code>declaringType</code> references the dependency.
      * @param typeAnnotations      the annotations of the declaring class.
      * @param referenceAnnotations the annotations of the dependency reference.
      */
-    void resolving(Class<?> api, Class<?> declaringType, Class<?> dependencyType, Annotation[] typeAnnotations, Annotation[] referenceAnnotations);
+    void resolving(Class<?> declaringType, Class<?> dependencyType, Annotation[] typeAnnotations, Annotation[] referenceAnnotations);
 
     /**
-     * Invoked for each resolved graph node. The path and type are not final, they may change as circular references are handled. Elements of the path are
-     * reference declaration and may not be the actual classes that will be instantiated for those references.
+     * Notifies the receiver that a dependency has been resolved. The path and type are not final, they may change as circular references are handled. Elements
+     * of the path are reference declarations and may not be the actual classes that will be instantiated for those references.
      *
      * @param path the dependency path at which the given type has been resolved.
      * @param type the type that has been resolved at the given dependency path.
@@ -47,10 +48,12 @@ public interface ComponentResolutionObserver {
     void resolved(DependencyPath path, Class<?> type);
 
     /**
-     * Invoked for each instantiated graph node. The path and type are final. Elements of the path are actual classes that will be or have been instantiated.
+     * Notifies the receiver that a dependency has been instantiated. The path and type are final. Elements of the path are actual classes that will be or have
+     * been instantiated.
+     * <p/>
      * The {@link DependencyPath#head()} returns details about the class just instantiated.
      *
-     * @param path      the dependency path at which the given type has been instantiated. Does not yet include <code>type</code>.
+     * @param path      the dependency path at which the given type has been instantiated.
      * @param reference a reference to the component that has just been instantiated. The reference will be set <em>after</em> this method returns to prevent
      *                  the receiver from wreaking havoc by accessing the just instantiated component.
      */

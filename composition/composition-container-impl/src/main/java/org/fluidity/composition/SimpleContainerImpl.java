@@ -29,9 +29,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.fluidity.composition.spi.ComponentDescriptor;
 import org.fluidity.composition.spi.ComponentResolutionObserver;
 import org.fluidity.composition.spi.ComponentVariantFactory;
+import org.fluidity.composition.spi.ContextNode;
 import org.fluidity.composition.spi.CustomComponentFactory;
 import org.fluidity.composition.spi.DependencyResolver;
 import org.fluidity.composition.spi.PlatformContainer;
@@ -315,8 +315,8 @@ final class SimpleContainerImpl implements ParentContainer {
 
     public DependencyResolver dependencyResolver(final ParentContainer domain) {
         return new DependencyResolver() {
-            public ComponentDescriptor describe(final Class<?> type, final ContextDefinition context) {
-                return SimpleContainerImpl.this.describe(domain, type, context);
+            public ContextNode contexts(final Class<?> type, final ContextDefinition context) {
+                return SimpleContainerImpl.this.contexts(domain, type, context);
             }
 
             public ComponentContainer container(final ContextDefinition context) {
@@ -477,10 +477,10 @@ final class SimpleContainerImpl implements ParentContainer {
         };
     }
 
-    public ComponentDescriptor describe(final ParentContainer domain, final Class<?> type, final ContextDefinition context) {
+    public ContextNode contexts(final ParentContainer domain, final Class<?> type, final ContextDefinition context) {
         final ComponentResolver resolver = resolver(type, true);
         return resolver == null
-               ? parent != null ? parent.describe(domain, type, context) : domain != null && domain != this ? domain.describe(null, type, context) : resolver
+               ? parent != null ? parent.contexts(domain, type, context) : domain != null && domain != this ? domain.contexts(null, type, context) : resolver
                : resolver;
     }
 
@@ -549,7 +549,7 @@ final class SimpleContainerImpl implements ParentContainer {
         FactoryResolver factory(Class<?> api, final ComponentCache cache);
     }
 
-    private class InstanceDescriptor implements ComponentDescriptor {
+    private class InstanceDescriptor implements ContextNode {
 
         private final Class<?> componentClass;
 
@@ -561,23 +561,24 @@ final class SimpleContainerImpl implements ParentContainer {
             return AbstractResolver.acceptedContext(componentClass);
         }
 
-        public Annotation[] annotations() {
+        public Annotation[] providedContext() {
             return componentClass.getAnnotations();
         }
     }
 
     private static class SuperContainer implements ParentContainer {
         private final PlatformContainer platform;
-        private final ComponentDescriptor emptyDescriptor = new ComponentDescriptor() {
+        private final List<GroupResolver> emptyList = Collections.emptyList();
+
+        private final ContextNode noContexts = new ContextNode() {
             public Set<Class<? extends Annotation>> acceptedContext() {
                 return null;
             }
 
-            public Annotation[] annotations() {
+            public Annotation[] providedContext() {
                 return new Annotation[0];
             }
         };
-        private final List<GroupResolver> emptyList = Collections.emptyList();
 
         public SuperContainer(final PlatformContainer platform) {
             this.platform = platform;
@@ -635,8 +636,8 @@ final class SimpleContainerImpl implements ParentContainer {
             return emptyList;
         }
 
-        public ComponentDescriptor describe(final ParentContainer domain, final Class<?> type, final ContextDefinition context) {
-            return platform.containsComponent(type, context) ? emptyDescriptor : null;
+        public ContextNode contexts(final ParentContainer domain, final Class<?> type, final ContextDefinition context) {
+            return platform.containsComponent(type, context) ? noContexts : null;
         }
 
         public ComponentResolver resolver(final Class<?> api, final boolean ascend) {
