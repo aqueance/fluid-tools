@@ -32,12 +32,12 @@ public interface DependencyInjector {
     /**
      * Resolves all parameters of the given constructor and returns a dependency graph node representing the component instance that would be produced by that
      * constructor. The returned node's {@link DependencyGraph.Node#instance(DependencyGraph.Traversal)} method will instantiate the component and also inject
-     * its injectable fields.
+     * its {@link Inject @Inject} annotated fields.
      *
      * @param traversal   the current graph traversal.
-     * @param container   the container that can resolve dependencies.
+     * @param container   the container to resolve dependencies of the component.
      * @param descriptor  describes the constructor's owning component.
-     * @param context     the component context of the component initialized by the constructor.
+     * @param context     the component context of the component.
      * @param constructor the constructor to resolve the arguments of.
      *
      * @return a dependency graph node.
@@ -49,12 +49,12 @@ public interface DependencyInjector {
                                      Constructor<?> constructor);
 
     /**
-     * Injects all {@link Inject @Inject} annotated fields of the received component. Useful for components instantiated by other means than via {@link
+     * Injects all {@link Inject @Inject} annotated fields of the received component. Useful for components instantiated by means other than calling {@link
      * #constructor(DependencyGraph.Traversal, DependencyResolver, ComponentDescriptor, ContextDefinition, Constructor)}.
      *
      * @param instance   the object to inject the fields of.
      * @param traversal  the current graph traversal.
-     * @param container  the container that can resolve dependencies.
+     * @param container   the container to resolve dependencies of the component.
      * @param descriptor describes the component.
      * @param context    the component context of the provided instance.
      *
@@ -65,12 +65,12 @@ public interface DependencyInjector {
     /**
      * Injects all parameters of the given method and invokes the method on the given component.
      *
-     * @param component  the object to set the fields of.
+     * @param component  the object to call the method on.
      * @param method     the method to invoke.
      * @param traversal  the graph traversal to use.
-     * @param container  the container that can resolve dependencies
+     * @param container  the container to resolve method parameters.
      * @param descriptor describes the component.
-     * @param context    the instantiation context of the object being constructed.
+     * @param context    the component context of the given component.
      *
      * @return the received instance.
      *
@@ -88,13 +88,13 @@ public interface DependencyInjector {
      * Injects all {@link Inject @Inject} annotated parameters of the given method with no value in the provided argument list and invokes the method on the
      * given component.
      *
-     * @param component  the object to set the fields of.
+     * @param component  the object to call the method on.
      * @param method     the method to invoke.
      * @param arguments  the argument list containing parameters that need no dependency injection.
      * @param traversal  the graph traversal to use.
-     * @param container  the container that can resolve dependencies
+     * @param container  the container to resolve method parameters.
      * @param descriptor describes the component.
-     * @param context    the instantiation context of the object being constructed.
+     * @param context    the component context of the given component.
      *
      * @return the received instance.
      *
@@ -130,8 +130,9 @@ public interface DependencyInjector {
     Constructor<?> findConstructor(Class<?> componentClass) throws ComponentContainer.ResolutionException;
 
     /**
-     * Invokes the appropriate method of provided resolution object based on the given dependency type. Implements the special handling of certain dependencies
-     * of a component.
+     * Invokes the appropriate method of provided resolution object based on the type of the given dependency. Implements the special handling of non-regular
+     * dependencies of a component. A dependency to a {@link ComponentContainer} will be <em>restricted</em>, meaning that it will only accept method calls
+     * after it has been {@link RestrictedContainer#enable() enabled}.
      *
      * @param api        the dependency type.
      * @param resolution resolves the various dependency types.

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.fluidity.composition.cli;
+package org.fluidity.composition.cli.impl;
 
 import java.util.ArrayList;
 import java.util.List;
