@@ -35,7 +35,7 @@ import java.util.jar.JarInputStream;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
 
-import org.fluidity.deployment.JarManifest;
+import org.fluidity.deployment.plugin.spi.JarManifest;
 import org.fluidity.deployment.maven.MavenSupport;
 import org.fluidity.foundation.JarStreams;
 import org.fluidity.foundation.ServiceProviders;

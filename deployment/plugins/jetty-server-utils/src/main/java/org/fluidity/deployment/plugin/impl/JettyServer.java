@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.fluidity.deployment;
+package org.fluidity.deployment.plugin.impl;
 
 import java.util.List;
 

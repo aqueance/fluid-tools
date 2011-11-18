@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.fluidity.deployment;
+package org.fluidity.deployment.web;
 
-import javax.servlet.Servlet;
-import javax.servlet.ServletConfig;
+import javax.servlet.Filter;
+import javax.servlet.FilterChain;
+import javax.servlet.FilterConfig;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 
@@ -28,36 +29,32 @@ import org.testng.annotations.Test;
 /**
  * @author Tibor Varga
  */
-public class DependencyResolverServletTest extends MockGroupAbstractTest {
+public class DependencyResolverFilterTest extends MockGroupAbstractTest {
 
-    private final Servlet servlet = mock(Servlet.class);
-    private final ServletConfig config = mock(ServletConfig.class);
+    private final Filter filter = mock(Filter.class);
+    private final FilterConfig config = mock(FilterConfig.class);
     private final DependencyResolver resolver = mock(DependencyResolver.class);
     private final ServletRequest request = mock(ServletRequest.class);
     private final ServletResponse response = mock(ServletResponse.class);
+    private final FilterChain chain = mock(FilterChain.class);
 
-    @SuppressWarnings("StringEquality")
     @Test
     public void delegateAcquisition() throws Exception {
         final String componentKey = "key";
-        final String servletInfo = "info";
 
         EasyMock.expect(config.getInitParameter(DependencyResolver.COMPONENT_KEY)).andReturn(componentKey);
-        EasyMock.expect(resolver.findComponent(componentKey)).andReturn(servlet);
-        servlet.init(config);
-        EasyMock.expect(servlet.getServletConfig()).andReturn(config);
-        EasyMock.expect(servlet.getServletInfo()).andReturn(servletInfo);
-        servlet.service(request, response);
-        servlet.destroy();
+
+        EasyMock.expect(resolver.findComponent(componentKey)).andReturn(filter);
+        filter.init(config);
+        filter.doFilter(request, response, chain);
+        filter.destroy();
 
         replay();
 
-        final DependencyResolverServlet resolverServlet = new DependencyResolverServlet();
-        resolverServlet.init(config, resolver);
-        assert resolverServlet.getServletConfig() == config;
-        assert resolverServlet.getServletInfo() == servletInfo;
-        resolverServlet.service(request, response);
-        resolverServlet.destroy();
+        final DependencyResolverFilter resolverFilter = new DependencyResolverFilter();
+        resolverFilter.init(config, resolver);
+        resolverFilter.doFilter(request, response, chain);
+        resolverFilter.destroy();
 
         verify();
     }

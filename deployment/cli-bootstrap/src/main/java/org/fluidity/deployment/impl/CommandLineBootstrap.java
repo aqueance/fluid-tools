@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package org.fluidity.deployment.cli;
+package org.fluidity.deployment.impl;
 
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ContainerBoundary;
+import org.fluidity.deployment.spi.Application;
 
 /**
  * A command line main class that bootstraps the application's dependency injection container, invokes {@link Application#run(String[])} to load and run the
@@ -36,12 +37,11 @@ public final class CommandLineBootstrap {
         this.application = application;
     }
 
-    private void run(final String[] args) {
+    private void run(final String[] args) throws Exception {
         application.run(args);
     }
 
     public static void main(final String[] args) throws Exception {
-        final ContainerBoundary container = new ContainerBoundary();
-        container.getComponent(CommandLineBootstrap.class).run(args);
+        new ContainerBoundary().getComponent(CommandLineBootstrap.class).run(args);
     }
 }

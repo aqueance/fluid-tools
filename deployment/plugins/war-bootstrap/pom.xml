@@ -80,7 +80,7 @@ Contains the class that loads an embedded Jetty and deploys one or more war arti
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>org.fluidity.deployment.WarBootstrapLoader</mainClass>
+                            <mainClass>org.fluidity.deployment.impl.WarBootstrapLoader</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

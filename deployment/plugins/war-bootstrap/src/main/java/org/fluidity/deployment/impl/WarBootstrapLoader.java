@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.fluidity.deployment;
+package org.fluidity.deployment.impl;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -33,13 +33,14 @@ import java.util.jar.JarFile;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.fluidity.deployment.plugin.spi.ServerBootstrap;
 import org.fluidity.foundation.ClassLoaders;
 import org.fluidity.foundation.ServiceProviders;
 import org.fluidity.foundation.Streams;
 
 /**
- * Prepares the web container bootstrap process, e.g. creating a work directory, setting up the boot classpath and loading and invoking the bootstrap
- * component.
+ * Prepares the web container bootstrap process, e.g. creating a work directory, setting up the boot classpath, and loading and invoking the bootstrap
+ * component. This class is used as the main class for an executable WAR file.
  *
  * @author Tibor Varga
  */

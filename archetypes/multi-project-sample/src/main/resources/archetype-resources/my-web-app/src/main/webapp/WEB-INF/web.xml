@@ -27,7 +27,7 @@ limitations under the License.
 
     <servlet>
         <servlet-name>my-servlet</servlet-name>
-        <servlet-class>org.fluidity.deployment.DependencyResolverServlet</servlet-class>
+        <servlet-class>org.fluidity.deployment.web.DependencyResolverServlet</servlet-class>
         <load-on-startup>100</load-on-startup>
 
         <init-param>

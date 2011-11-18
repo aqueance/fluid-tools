@@ -74,7 +74,7 @@ Contains the interface that JAR manifest handlers must implement.
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>org.fluidity.deployment.WarBootstrapLoader</mainClass>
+                            <mainClass>org.fluidity.deployment.impl.WarBootstrapLoader</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

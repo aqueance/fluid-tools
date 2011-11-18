@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.fluidity.deployment;
+package org.fluidity.deployment.web;
 
 import org.fluidity.composition.Component;
 import org.fluidity.composition.OpenComponentContainer;

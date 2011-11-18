@@ -72,7 +72,7 @@ limitations under the License.
                         <manifest>
 
                             <!-- Use can use your own main class of course, unless you want component deployment -->
-                            <mainClass>org.fluidity.deployment.cli.CommandLineBootstrap</mainClass>
+                            <mainClass>org.fluidity.deployment.impl.CommandLineBootstrap</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

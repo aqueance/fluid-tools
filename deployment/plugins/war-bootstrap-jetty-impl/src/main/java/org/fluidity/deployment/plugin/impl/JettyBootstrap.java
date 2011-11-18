@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.fluidity.deployment;
+package org.fluidity.deployment.plugin.impl;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -22,10 +22,12 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.fluidity.deployment.plugin.spi.ServerBootstrap;
+
 import org.eclipse.jetty.webapp.WebAppContext;
 
 /**
- * Bootstraps a Jetty web container and deploys the .war file that contains this class and then all other .war files supplied.
+ * Bootstraps a Jetty web container and deploys the WAR file that contains this class and then all other supplied WAR files.
  *
  * @author Tibor Varga
  */
@@ -58,7 +60,7 @@ public final class JettyBootstrap implements ServerBootstrap {
         return context;
     }
 
-    private final Pattern archiveNamePattern = Pattern.compile("(.+?)-\\d.*\\.war");
+    private final Pattern archiveNamePattern = Pattern.compile("(.+?)(-\\d.*)?\\.war");
 
     private String artifactId(final String archiveName) {
         final Matcher matcher = archiveNamePattern.matcher(archiveName);

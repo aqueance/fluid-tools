@@ -58,19 +58,21 @@ project:
 
 The server can also be stopped by pressing Ctrl-C.
 
-You can implement your own server bootstrap with the web container of your choice
-by providing an implementation to the org.fluidity.deployment.ServerBootstrap
-interface from the org.fluidity.deployment:war-bootstrap-spi module and package
+You can implement your own server bootstrap with the web container of your
+choice by providing an implementation to the
+<code>org.fluidity.deployment.plugin.spi.ServerBootstrap</code> interface from
+the <code>org.fluidity.deployment:war-bootstrap-spi</code> module and package
 it in a JAR file or, ideally, in a Maven module.
 
-In case of a Maven module, the module may not depend on anything used by the WAR
-applications themselves because class incompatibilities are likely to occur due
-to different class loader domains. Moreover, any dependency of the Maven module
-that should not be visible to the deployed WAR applications must be declared
-optional in the POM.
+In case of a Maven module, the module may not depend on anything used by the
+WAR applications themselves because class incompatibilities are likely to occur
+due to different class loader domains. Moreover, any dependency of the Maven
+module that should not be visible to the deployed WAR applications must be
+declared optional in the POM.
 
 You can then use the Maven module containing your own server bootstrap in place
-of the org.fluidity.deployment:war-bootstrap-jetty-impl dependency above.
+of the <code>org.fluidity.deployment:war-bootstrap-jetty-impl</code> dependency
+above.
     ]]></description>
 
     <dependencies>

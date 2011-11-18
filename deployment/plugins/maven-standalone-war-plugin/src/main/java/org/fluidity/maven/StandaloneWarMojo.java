@@ -32,7 +32,7 @@ import java.util.jar.JarFile;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
 
-import org.fluidity.deployment.WarBootstrapLoader;
+import org.fluidity.deployment.impl.WarBootstrapLoader;
 import org.fluidity.deployment.maven.MavenSupport;
 import org.fluidity.foundation.Streams;
 
