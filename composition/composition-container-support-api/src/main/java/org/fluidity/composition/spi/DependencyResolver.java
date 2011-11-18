@@ -19,12 +19,10 @@ package org.fluidity.composition.spi;
 import java.lang.annotation.Annotation;
 
 import org.fluidity.composition.ComponentContainer;
-import org.fluidity.composition.ContextDefinition;
-import org.fluidity.composition.DependencyGraph;
 
 /**
  * Capable of resolving component references. A dependency injection container implements this interface for a {@link
- * org.fluidity.composition.DependencyInjector DependencyInjector} to be able to use the implementation.
+ * DependencyInjector DependencyInjector} to be able to use the implementation.
  */
 public interface DependencyResolver extends DependencyGraph {
 

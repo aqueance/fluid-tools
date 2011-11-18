@@ -16,8 +16,11 @@
 
 package org.fluidity.composition;
 
+import org.fluidity.composition.spi.ComponentCache;
 import org.fluidity.composition.spi.ComponentFactory;
 import org.fluidity.composition.spi.ComponentVariantFactory;
+import org.fluidity.composition.spi.ContextDefinition;
+import org.fluidity.composition.spi.DependencyGraph;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**

@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
-package org.fluidity.composition;
+package org.fluidity.composition.spi;
 
 import java.lang.annotation.Annotation;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
+
+import org.fluidity.composition.ComponentContext;
 
 /**
  * Maintains context state during dependency resolution. This is an internal interface to be used by dependency injection container implementations.
@@ -37,7 +39,7 @@ import java.util.Set;
  * The active set is then used as a cache key for stateless (i.e., cacheable) components regardless of whether they themselves are context aware or not.
  * <p/>
  * The above is implemented by<ol>
- * <li>{@link org.fluidity.composition.ContainerServices#emptyContext() creating an empty context} definition object at the head of some dependency path</li>
+ * <li>{@link ContainerServices#emptyContext() creating an empty context} definition object at the head of some dependency path</li>
  * <li>{@link #expand(java.lang.annotation.Annotation[]) expanding} that context with the context annotations at each node of that path as we move
  * downstream</li>
  * <li>passing downstream a {@link #copy() copy} of the current definition for each dependency of the current component</li>

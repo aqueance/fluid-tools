@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.fluidity.composition;
+package org.fluidity.composition.spi;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 
-import org.fluidity.composition.spi.ContextNode;
-import org.fluidity.composition.spi.DependencyResolver;
+import org.fluidity.composition.ComponentContainer;
+import org.fluidity.composition.ComponentContext;
 
 /**
  * Performs dependency injection. This is an internal interface to be used by dependency injection container implementations.
@@ -32,7 +32,7 @@ public interface DependencyInjector {
     /**
      * Resolves all parameters of the given constructor and returns a dependency graph node representing the component instance that would be produced by that
      * constructor. The returned node's {@link DependencyGraph.Node#instance(DependencyGraph.Traversal)} method will instantiate the component and also inject
-     * its {@link Inject @Inject} annotated fields.
+     * its {@link org.fluidity.composition.Inject @Inject} annotated fields.
      *
      * @param traversal   the current graph traversal.
      * @param container   the container to resolve dependencies of the component.
@@ -49,14 +49,16 @@ public interface DependencyInjector {
                                      Constructor<?> constructor);
 
     /**
-     * Injects all {@link Inject @Inject} annotated fields of the received component. Useful for components instantiated by means other than calling {@link
+     * Injects all {@link org.fluidity.composition.Inject @Inject} annotated fields of the received component. Useful for components instantiated by means
+     * other
+     * than calling {@link
      * #constructor(DependencyGraph.Traversal, DependencyResolver, ContextNode, ContextDefinition, Constructor)}.
      *
-     * @param instance   the object to inject the fields of.
-     * @param traversal  the current graph traversal.
-     * @param container  the container to resolve dependencies of the component.
-     * @param contexts   context node corresponding to the component.
-     * @param context    the component context of the provided instance.
+     * @param instance  the object to inject the fields of.
+     * @param traversal the current graph traversal.
+     * @param container the container to resolve dependencies of the component.
+     * @param contexts  context node corresponding to the component.
+     * @param context   the component context of the provided instance.
      *
      * @return the received component.
      */
@@ -65,16 +67,16 @@ public interface DependencyInjector {
     /**
      * Injects all parameters of the given method and invokes the method on the given component.
      *
-     * @param component  the object to call the method on.
-     * @param method     the method to invoke.
-     * @param traversal  the graph traversal to use.
-     * @param container  the container to resolve method parameters.
-     * @param contexts   context node corresponding to the component.
-     * @param context    the component context of the given component.
+     * @param component the object to call the method on.
+     * @param method    the method to invoke.
+     * @param traversal the graph traversal to use.
+     * @param container the container to resolve method parameters.
+     * @param contexts  context node corresponding to the component.
+     * @param context   the component context of the given component.
      *
      * @return the received instance.
      *
-     * @throws ComponentContainer.ResolutionException
+     * @throws org.fluidity.composition.ComponentContainer.ResolutionException
      *          thrown when the search yields no or multiple constructors.
      */
     Object invoke(Object component,
@@ -85,16 +87,16 @@ public interface DependencyInjector {
                   ContextDefinition context) throws ComponentContainer.ResolutionException;
 
     /**
-     * Injects all {@link Inject @Inject} annotated parameters of the given method with no value in the provided argument list and invokes the method on the
-     * given component.
+     * Injects all {@link org.fluidity.composition.Inject @Inject} annotated parameters of the given method with no value in the provided argument list and
+     * invokes the method on the given component.
      *
-     * @param component  the object to call the method on.
-     * @param method     the method to invoke.
-     * @param arguments  the argument list containing parameters that need no dependency injection.
-     * @param traversal  the graph traversal to use.
-     * @param container  the container to resolve method parameters.
-     * @param contexts   context node corresponding to the component.
-     * @param context    the component context of the given component.
+     * @param component the object to call the method on.
+     * @param method    the method to invoke.
+     * @param arguments the argument list containing parameters that need no dependency injection.
+     * @param traversal the graph traversal to use.
+     * @param container the container to resolve method parameters.
+     * @param contexts  context node corresponding to the component.
+     * @param context   the component context of the given component.
      *
      * @return the received instance.
      *
@@ -113,9 +115,12 @@ public interface DependencyInjector {
      * Find the injectable constructor of the given class.
      * <p/>
      * There is no check for any constructor parameter being satisfiable. Synthetic constructors are ignored. If there is any constructor annotated with
-     * {@link Inject @Inject}, that one is returned. If there's only one constructor, it is returned. If there is a default constructor and another, and
+     * {@link org.fluidity.composition.Inject @Inject}, that one is returned. If there's only one constructor,
+     * it is returned. If there is a default constructor
+     * and another, and
      * neither is annotated with <code>@Inject</code>, the other one is returned. If these checks do not yield a single constructor, the same checks are
-     * made on public constructors only. If that yields no or multiple constructors, a {@link ComponentContainer.ResolutionException} is thrown.
+     * made on public constructors only. If that yields no or multiple constructors, a {@link org.fluidity.composition.ComponentContainer.ResolutionException}
+     * is thrown.
      * <p/>
      * For synthetic constructors see <a href="http://java.sun.com/docs/books/jls/third_edition/html/binaryComp.html#13.1">The Form of a Binary</a> and search
      * for the term <em>synthetic</em>.
@@ -147,7 +152,7 @@ public interface DependencyInjector {
     public interface Resolution {
 
         /**
-         * A {@link ComponentContext} is being depended on.
+         * A {@link org.fluidity.composition.ComponentContext} is being depended on.
          *
          * @return the resolved component context.
          */

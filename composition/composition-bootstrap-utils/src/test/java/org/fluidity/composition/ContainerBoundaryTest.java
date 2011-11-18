@@ -24,6 +24,8 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.fluidity.composition.spi.ContainerProvider;
+import org.fluidity.composition.spi.ContainerServices;
+import org.fluidity.composition.spi.DependencyGraph;
 import org.fluidity.composition.spi.PlatformContainer;
 import org.fluidity.foundation.logging.NoLogFactory;
 import org.fluidity.foundation.spi.LogFactory;

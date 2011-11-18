@@ -29,10 +29,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.fluidity.composition.spi.ComponentCache;
 import org.fluidity.composition.spi.ComponentResolutionObserver;
 import org.fluidity.composition.spi.ComponentVariantFactory;
+import org.fluidity.composition.spi.ContainerServices;
+import org.fluidity.composition.spi.ContextDefinition;
 import org.fluidity.composition.spi.ContextNode;
 import org.fluidity.composition.spi.CustomComponentFactory;
+import org.fluidity.composition.spi.DependencyInjector;
 import org.fluidity.composition.spi.DependencyResolver;
 import org.fluidity.composition.spi.PlatformContainer;
 import org.fluidity.foundation.Log;

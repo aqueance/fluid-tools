@@ -19,6 +19,8 @@ package org.fluidity.composition;
 import java.lang.annotation.Annotation;
 import java.util.Set;
 
+import org.fluidity.composition.spi.ContextDefinition;
+import org.fluidity.composition.spi.DependencyGraph;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**

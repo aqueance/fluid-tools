@@ -14,10 +14,14 @@
  * limitations under the License.
  */
 
-package org.fluidity.composition;
+package org.fluidity.composition.spi;
+
+import org.fluidity.composition.ComponentContext;
 
 /**
- * Caches components by context. Implementations must be thread safe. This is an internal interface used by the dependency injection container implementation.
+ * Caches components by context. This is an internal interface used by the dependency injection container implementation.
+ * <p/>
+ * This cache is thread safe.
  *
  * @author Tibor Varga
  */
@@ -26,7 +30,7 @@ public interface ComponentCache {
     /**
      * Looks up, and instantiates if necessary using the supplied command, the cached component.
      *
-     * @param domain  the object against which component instances are cached; a separate instance will be cached for different domain parameter values.
+     * @param domain  the object against which component instances are cached; a separate instance will be cached for different domains.
      * @param source  something to identify who is creating instances through this cache; used in log messages emitted by the cache.
      * @param context the context for the component.
      * @param api     the interface the component implements.
@@ -38,14 +42,15 @@ public interface ComponentCache {
     Object lookup(Object domain, Object source, ComponentContext context, Class<?> api, Instantiation factory);
 
     /**
-     * A command to create some component instance.
+     * A command to create some component instance. This interface is used to tell a {@link ComponentCache} how to instantiate the cached component if it's
+     * missing.
      */
     interface Instantiation {
 
         /**
-         * Creates and returns a new instance of a component.
+         * Creates and returns a new instance of the component.
          *
-         * @return a new instance of a component; never <code>null</code>.
+         * @return a new instance of the component; never <code>null</code>.
          */
         Object instantiate();
     }

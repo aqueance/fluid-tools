@@ -16,6 +16,8 @@
 
 package org.fluidity.composition;
 
+import org.fluidity.composition.spi.ContainerServices;
+
 /**
  * @author Tibor Varga
  */

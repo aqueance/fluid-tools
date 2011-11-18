@@ -19,6 +19,7 @@ package org.fluidity.composition;
 import java.lang.annotation.Annotation;
 import java.util.List;
 
+import org.fluidity.composition.spi.ContextDefinition;
 import org.fluidity.composition.spi.ContextNode;
 
 /**

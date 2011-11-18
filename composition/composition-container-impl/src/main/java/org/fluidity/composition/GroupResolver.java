@@ -30,6 +30,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.fluidity.composition.spi.ComponentResolutionObserver;
+import org.fluidity.composition.spi.ContextDefinition;
+import org.fluidity.composition.spi.DependencyGraph;
 import org.fluidity.composition.spi.DependencyPath;
 
 /**

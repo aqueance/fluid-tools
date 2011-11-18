@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.fluidity.composition;
+package org.fluidity.composition.spi;
 
-import org.fluidity.composition.spi.ComponentResolutionObserver;
+import org.fluidity.composition.ClassDiscovery;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**
@@ -48,19 +48,18 @@ public interface ContainerServices {
     DependencyInjector dependencyInjector();
 
     /**
-     * Returns the default graph traversal.
+     * Returns a new graph traversal.
      *
-     * @return the default graph traversal.
+     * @return a new graph traversal.
      */
     DependencyGraph.Traversal graphTraversal();
 
     /**
-     * Returns the default graph traversal with the given resolution observer.
-     *
+     * Returns a new graph traversal with the given resolution observer.
      *
      * @param observer the object to notify when a component interface gets resolved to a class.
      *
-     * @return the default graph traversal with the given resolution observer.
+     * @return a new graph traversal with the given resolution observer.
      */
     DependencyGraph.Traversal graphTraversal(ComponentResolutionObserver observer);
 

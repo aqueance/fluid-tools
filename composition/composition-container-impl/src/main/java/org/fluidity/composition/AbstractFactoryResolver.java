@@ -22,7 +22,12 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.fluidity.composition.spi.ComponentCache;
 import org.fluidity.composition.spi.ComponentFactory;
+import org.fluidity.composition.spi.ContextDefinition;
+import org.fluidity.composition.spi.DependencyGraph;
+import org.fluidity.composition.spi.DependencyInjector;
+import org.fluidity.composition.spi.RestrictedContainer;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**

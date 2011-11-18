@@ -18,7 +18,9 @@ package org.fluidity.composition;
 
 import java.util.Collection;
 
+import org.fluidity.composition.spi.ContextDefinition;
 import org.fluidity.composition.spi.ContextNode;
+import org.fluidity.composition.spi.DependencyGraph;
 
 /**
  * Extends the {@link ContextNode} interface with methods required by the actual container implementation.

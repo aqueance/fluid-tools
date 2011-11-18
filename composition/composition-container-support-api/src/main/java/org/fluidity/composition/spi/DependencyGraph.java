@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.fluidity.composition;
+package org.fluidity.composition.spi;
 
 import java.lang.annotation.Annotation;
 
-import org.fluidity.composition.spi.ComponentResolutionObserver;
-import org.fluidity.composition.spi.DependencyPath;
+import org.fluidity.composition.ComponentContext;
+import org.fluidity.composition.ServiceProvider;
 
 /**
  * A dependency graph of components and component groups. This is an internal interface used by dependency injection container implementations.

@@ -19,6 +19,7 @@ package org.fluidity.composition;
 import java.util.Map;
 
 import org.fluidity.composition.spi.ContainerProvider;
+import org.fluidity.composition.spi.ContainerServices;
 import org.fluidity.composition.spi.PlatformContainer;
 
 /**

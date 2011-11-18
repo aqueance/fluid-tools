@@ -36,8 +36,8 @@ import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentGroup;
 import org.fluidity.composition.Components;
-import org.fluidity.composition.DependencyInjector;
 import org.fluidity.composition.OpenComponentContainer;
+import org.fluidity.composition.spi.DependencyInjector;
 import org.fluidity.foundation.Log;
 import org.fluidity.foundation.spi.LogFactory;
 
@@ -587,5 +587,4 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
             suspend();
         }
     }
-
 }

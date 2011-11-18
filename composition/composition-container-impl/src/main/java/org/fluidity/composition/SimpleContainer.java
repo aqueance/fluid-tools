@@ -19,6 +19,9 @@ package org.fluidity.composition;
 import java.lang.reflect.Method;
 
 import org.fluidity.composition.spi.ComponentResolutionObserver;
+import org.fluidity.composition.spi.ContainerServices;
+import org.fluidity.composition.spi.ContextDefinition;
+import org.fluidity.composition.spi.DependencyGraph;
 import org.fluidity.composition.spi.DependencyResolver;
 
 /**

@@ -26,7 +26,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.fluidity.composition.spi.ContextDefinition;
 import org.fluidity.composition.spi.ContextNode;
+import org.fluidity.composition.spi.DependencyGraph;
+import org.fluidity.composition.spi.DependencyInjector;
 import org.fluidity.composition.spi.DependencyResolver;
 import org.fluidity.tests.MockGroupAbstractTest;
 

@@ -25,8 +25,8 @@ import java.util.Set;
 
 import org.fluidity.composition.ClassDiscovery;
 import org.fluidity.composition.ComponentContainer;
-import org.fluidity.composition.DependencyInjector;
 import org.fluidity.composition.OpenComponentContainer;
+import org.fluidity.composition.spi.DependencyInjector;
 import org.fluidity.foundation.logging.NoLogFactory;
 import org.fluidity.foundation.spi.LogFactory;
 import org.fluidity.tests.MockGroupAbstractTest;

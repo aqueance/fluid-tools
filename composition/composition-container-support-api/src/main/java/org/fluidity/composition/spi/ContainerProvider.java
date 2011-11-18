@@ -19,7 +19,6 @@ package org.fluidity.composition.spi;
 import java.util.List;
 import java.util.Map;
 
-import org.fluidity.composition.ContainerServices;
 import org.fluidity.composition.OpenComponentContainer;
 import org.fluidity.composition.ServiceProvider;
 

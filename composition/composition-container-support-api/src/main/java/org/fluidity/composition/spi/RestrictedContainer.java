@@ -14,25 +14,19 @@
  * limitations under the License.
  */
 
-package org.fluidity.composition;
+package org.fluidity.composition.spi;
 
-import org.fluidity.composition.spi.ContainerServices;
-import org.fluidity.composition.spi.DependencyGraph;
-import org.fluidity.foundation.spi.LogFactory;
+import org.fluidity.composition.ComponentContainer;
 
 /**
- * Creates a {@link ContainerServices} object.
+ * Wraps another container and denies access to it until {@link #enable()} is invoked.
+ *
+ * @author Tibor Varga
  */
-@ServiceProvider
-interface ContainerServicesFactory {
+public interface RestrictedContainer extends ComponentContainer {
 
     /**
-     * Creates a {@link ContainerServices} object.
-     *
-     * @param logs     the logger factory to use.
-     * @param strategy the dependency graph traversal strategy, if any.
-     *
-     * @return a <code>ContainerServices</code> object.
+     * Enables the wrapped container.
      */
-    ContainerServices containerServices(LogFactory logs, DependencyGraph.Traversal.Strategy strategy);
+    void enable();
 }

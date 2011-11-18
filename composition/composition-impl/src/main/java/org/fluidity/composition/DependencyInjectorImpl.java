@@ -28,9 +28,13 @@ import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.fluidity.composition.spi.ContextDefinition;
 import org.fluidity.composition.spi.ContextNode;
+import org.fluidity.composition.spi.DependencyGraph;
+import org.fluidity.composition.spi.DependencyInjector;
 import org.fluidity.composition.spi.DependencyPath;
 import org.fluidity.composition.spi.DependencyResolver;
+import org.fluidity.composition.spi.RestrictedContainer;
 import org.fluidity.foundation.Exceptions;
 import org.fluidity.foundation.Strings;
 

@@ -19,6 +19,7 @@ package org.fluidity.composition;
 import java.lang.annotation.Annotation;
 import java.util.Map;
 
+import org.fluidity.composition.spi.ContainerServices;
 import org.fluidity.composition.tests.ArtifactFactory;
 import org.fluidity.composition.tests.BasicResolutionTests;
 import org.fluidity.composition.tests.CircularReferencesTests;

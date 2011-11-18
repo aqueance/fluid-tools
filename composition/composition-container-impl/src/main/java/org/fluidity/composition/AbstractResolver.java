@@ -23,6 +23,8 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.fluidity.composition.spi.ComponentCache;
+import org.fluidity.composition.spi.DependencyGraph;
 import org.fluidity.foundation.Log;
 import org.fluidity.foundation.spi.LogFactory;
 

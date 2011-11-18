@@ -21,12 +21,13 @@ import java.lang.reflect.Method;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.fluidity.composition.spi.ComponentResolutionObserver;
+import org.fluidity.composition.spi.RestrictedContainer;
 import org.fluidity.foundation.Proxies;
 
 /**
  * @author Tibor Varga
  */
-final class RestrictedContainerImpl implements  RestrictedContainer {
+final class RestrictedContainerImpl implements RestrictedContainer {
 
     private final AtomicReference<ComponentContainer> reference
             = new AtomicReference<ComponentContainer>((ComponentContainer) Proxies.create(ComponentContainer.class, new AccessDenied()));

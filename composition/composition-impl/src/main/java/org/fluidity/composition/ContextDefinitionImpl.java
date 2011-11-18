@@ -25,6 +25,7 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.fluidity.composition.spi.ContextDefinition;
 import org.fluidity.foundation.Proxies;
 
 /**

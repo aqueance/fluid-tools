@@ -31,7 +31,11 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.fluidity.composition.spi.ComponentResolutionObserver;
+import org.fluidity.composition.spi.ContextDefinition;
+import org.fluidity.composition.spi.DependencyGraph;
+import org.fluidity.composition.spi.DependencyInjector;
 import org.fluidity.composition.spi.DependencyPath;
+import org.fluidity.composition.spi.RestrictedContainer;
 import org.fluidity.foundation.Deferred;
 import org.fluidity.foundation.Proxies;
 import org.fluidity.foundation.Strings;
