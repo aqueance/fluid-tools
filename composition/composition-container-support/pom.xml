@@ -25,10 +25,10 @@
 
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.fluidity.composition</groupId>
-    <artifactId>composition-container-support-api</artifactId>
+    <artifactId>composition-container-support</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>jar</packaging>
-    <name>Composition: Container Support API</name>
+    <name>Composition: Container Support</name>
 
     <licenses>
         <license>
@@ -39,7 +39,6 @@
     </licenses>
 
     <dependencies>
-
         <dependency>
             <groupId>${fluidity.composition.groupId}</groupId>
             <artifactId>composition-api</artifactId>
@@ -48,10 +47,10 @@
 
         <dependency>
             <groupId>${fluidity.foundation.groupId}</groupId>
-            <artifactId>foundation-api</artifactId>
+            <artifactId>foundation-easymock</artifactId>
             <version>${project.version}</version>
+            <scope>test</scope>
         </dependency>
-
     </dependencies>
 
     <profiles>
