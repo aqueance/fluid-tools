@@ -25,14 +25,19 @@ import java.lang.annotation.Target;
 import org.fluidity.foundation.spi.PropertyProvider;
 
 /**
- * Represents some configuration.
+ * Represents some configuration of a component. The component receives its configuration, which will be an object implementing this interface, as an injected
+ * dependency. A component may have any number of such configurations, each for a different context if desired.
+ * <p/>
+ * The configuration is normally backed by a {@link PropertyProvider property provider} object that the configuration object queries for data
+ * and provides type conversion of values returned. The properties queried are determined by {@link Configuration.Context annotations} and the component
+ * context of the configured component.
  * <h2>Usage</h2>
- * A configuration is a group of settings consumed by some entity. The type parameter of this interface is the interface defining
- * the methods that query those settings.
+ * A configuration is a group of settings consumed by some entity. The settings are defined by the methods of a custom <em>settings interface</em>, which will
+ * be used as the type parameter of the <code>Configuration</code> interface.
  * <p/>
  * For instance:
  * <pre>
- * public interface MySettings {
+ * interface MySettings {
  *
  *   &#64;Configuration.Property(key = "property.1", undefined = "default value 1")
  *   String property1();
@@ -40,49 +45,49 @@ import org.fluidity.foundation.spi.PropertyProvider;
  *   &#64;Configuration.Property(key = "property.%d.value", undefined = "default value %d")
  *   String property2(int item);
  * }
- * </pre>
- * <h3>Query Methods</h3>
- * A settings interface like the above must have all of its methods annotated by the {@link Configuration.Property @Configuration.Property} annotation, all
- * methods must have a supported return type and they may have any number of arguments. The given {@link Configuration.Property#key()}s are understood to be
- * relative to the concatenation of each {@link Configuration.Context @Configuration.Context} annotation in the instantiation path of the configured component.
- * <p/>
- * Query methods may have parameters that provide values to placeholders in the property key, as in the method definition for <code>property2</code> above.
- * <h3>Property Provider</h3>
- * Using the above and a suitable, <code>@Component</code> annotated implementation of {@link PropertyProvider} in the class path,
- * a component can now declare a dependency to a configuration like so:
- * <pre>
- *  &#64;Component
- *  &#64;Component.Context(Configuration.Context.class)
- *  &#64;Configuration.Context("prefix")
- *  public class Configured {
  *
- *      private final String property1;
- *      private final String property2;
+ * &#64;Component
+ * final class ConfiguredComponent {
  *
- *      public Configured(final &#64;Configuration.Interface(MySettings.class) Configuration&lt;MySettings> settings) {
- *          final MySettings configuration = settings.snapshot();
- *          assert configuration != null;
- *
- *          property1 = configuration.property1();
- *          property2 = configuration.property2();
- *      }
+ *     public ConfiguredComponent(final &#64;Configuration.Interface(MySettings.class) Configuration&lt;MySettings> configuration) {
+ *         ...
+ *         final MySettings settings = configuration.settings();
+ *         ...
+ *     }
  * }
  * </pre>
+ * <h3>Query Methods</h3>
+ * A settings interface like the above must have all of its methods annotated with {@link Configuration.Property @Configuration.Property}, must have a
+ * <a href="#supported_types">supported return type</a>, and the methods may have any number of arguments.
+ * <p/>
+ * The given {@link Configuration.Property#key() property key}s are understood to be relative to the concatenation of the value of each {@link
+ * Configuration.Context @Configuration.Context} annotation in the instantiation path of the configured component.
+ * <p/>
+ * If the computed property has no value in the underlying property provider, the last context is stripped and the new property is queried, and this process
+ * is repeated until the property provider returns a value or there is no more context to strip.
+ * <p/>
+ * For instance if the the instantiation path contains <code>@Configuration.Context("a")</code>, <code>@Configuration.Context("b")</code> and
+ * <code>@Configuration.Context("c")</code>, then the method <code>@Configuration.Property(key = "property") String property()</code> will query the
+ * <code>"a.b.c.property"</code> from its underlying property provider, and then <code>"a.b.property"</code>, <code>"a.property"</code> and
+ * <code>"property"</code> until the property has a value or there is no more context to strip.
+ * <p/>
+ * Query methods may have parameters that provide values to placeholders in the property key, as shown in the method definition for <code>property2</code>
+ * above.
  * <p/>
  * <h3>Property Values</h3>
- * The snapshot of the configuration settings above works with an optional <code>PropertyProvider</code> and an optional implementation of the settings
- * interface itself, which in the above example was <code>MySettings</code>.
+ * The snapshot of the configuration settings above works with an optional {@link PropertyProvider} and an optional implementation of the settings interface
+ * itself, which in the above example was <code>MySettings</code>.
  * <p/>
  * The value returned by the configuration snapshot is computed as follows:
  * <ol>
  * <li>If a <code>PropertyProvider</code> component is found, it is queried for the property key specified in the method's {@link Configuration.Property}
- * annotation, with all contextual prefixes added. If the result is not <code>null</code>, it is returned.</li>
- * <li>If a component was found for the settings interface, the method invoked on the snapshot is forwarded to it. If the result is not <code>null</code>, it is
- * returned.</li>
+ * annotation, with contextual prefixes added. If the result is not <code>null</code>, it is returned.</li>
+ * <li>If a component bound to the settings interface was provided, the method invoked on the snapshot is forwarded to the settings implementation. If the
+ * result is not <code>null</code>, it is returned.</li>
  * <li>The {@link Configuration.Property#undefined()} parameter is checked. If it is not empty, it is returned, otherwise <code>null</code> is returned for non
  * primitive types and the default value is returned for primitive types.</li>
  * </ol>
- * <h2>Supported Return Types</h2>
+ * <a name="supported_types"><h2>Supported Return Types</h2></a>
  * <ul>
  * <li><code>String</code></li>
  * <li>Primitive Java type, such as <code>int</code></li>
@@ -97,20 +102,21 @@ import org.fluidity.foundation.spi.PropertyProvider;
  * <li>Any combination of the above</li>
  * </ul>
  * <h3>Custom Types</h3>
- * Both interfaces with query methods and class with fields are supported by the settings implementations. There are a few key difference between the two and
- * you need to choose the one that fits your use of the property data.
+ * The configuration implementation supports both interfaces with query methods and classes with fields as return values from the settings interface. There are
+ * a few key difference between the two and you need to choose the one that fits your use of the property data.
  * <p/>
  * The implementation for a custom interface:
  * <ul>
  * <li>allows method parameters to vary the property consulted when returning a value for a method,</li>
  * <li>provides only object identity implementation for the {@link Object#equals(Object)} method,</li>
- * <li>may return a different value at different times if accessed outside the {@link Configuration.Query#read(Object) Configuration.Query.read(T)} method.</li>
+ * <li>may return a different value at different times if accessed outside the {@link Configuration.Query#read(Object) Configuration.Query.read(T)}
+ * method.</li>
  * </ul>
  * In contrast, your custom class:
  * <ul>
  * <li>provides no means to vary at run-time the property value assigned to a given field,</li>
  * <li>may provide whatever equality in its {@link Object#equals(Object)} method,</li>
- * <li>will have the same property value in its fields regardless of when they are accessed until you change those values.</li>
+ * <li>will have the same property value in its fields regardless of when they are accessed (until you change those values, of course).</li>
  * </ul>
  *
  * @author Tibor Varga
@@ -126,8 +132,8 @@ public interface Configuration<T> {
     T settings();
 
     /**
-     * Provides access to an object that implements the settings interface. The configuration settings returned by the methods of the provided object are
-     * consistent and will not reflect changes to the underlying configuration settings while the method executes.
+     * Provides isolated access to an object that implements the settings interface. The configuration settings returned by the methods of the provided object
+     * are consistent and will not reflect changes to the underlying configuration settings while the method executes.
      *
      * @param query the object to supply the settings implementation to.
      *
@@ -136,9 +142,9 @@ public interface Configuration<T> {
     <R> R query(Query<T, R> query);
 
     /**
-     * Groups property queries. Properties read in the {@link #read(Object) read(T)} method will be consistent in that no property change will take place
-     * during the execution of that method. Subject to {@link PropertyProvider} support. However, stashing the <code>read</code> method parameter and invoking
-     * its methods outside the <code>read</code> method will not have the same effect.
+     * Groups property queries to provide settings consistency. Properties read in the {@link #read(Object) read(T)} method will be consistent in that no
+     * property change will take place during the execution of that method. Subject to {@link PropertyProvider} support. However, stashing the
+     * <code>read</code> method parameter and invoking its methods outside the <code>read</code> method will not have the same effect.
      *
      * @param <T> the settings interface type.
      * @param <R> the return type of the <code>read</code> method.

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.fluidity.foundation;
+package org.fluidity.foundation.impl;
 
 import java.net.JarURLConnection;
 import java.net.URL;
@@ -23,6 +23,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.jar.Attributes;
 
+import org.fluidity.foundation.ClassLoaders;
+import org.fluidity.foundation.JarStreams;
 import org.fluidity.foundation.jarjar.Handler;
 
 /**

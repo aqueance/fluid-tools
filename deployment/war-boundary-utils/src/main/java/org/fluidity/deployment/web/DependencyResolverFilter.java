@@ -17,7 +17,6 @@
 package org.fluidity.deployment.web;
 
 import java.io.IOException;
-
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
@@ -26,11 +25,10 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 
 /**
- * A filter decorator that enables its delegate to have its dependencies injected.
- *
+ * A filter decorator that enables its delegate to have its dependencies injected. The delegate must be another filter, obviously. The delegate is
+ * instantiated in the {@link #init(FilterConfig)}  method and discarded in the {@link #destroy()} method..
  * <p/>
- *
- * Usage:<pre>
+ * Usage in <code>web.xml</code>:<pre>
  * &lt;web-app>
  *   ...
  *   &lt;filter>

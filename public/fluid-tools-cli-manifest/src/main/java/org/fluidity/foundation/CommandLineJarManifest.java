@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.jar.Attributes;
 
 import org.fluidity.deployment.plugin.spi.JarManifest;
+import org.fluidity.foundation.impl.JarJarLauncher;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.project.MavenProject;

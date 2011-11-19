@@ -29,12 +29,19 @@ import org.eclipse.jetty.server.nio.SelectChannelConnector;
 import org.eclipse.jetty.webapp.WebAppContext;
 
 /**
- * Starts an embedded Jetty server.
+ * An embedded Jetty server.
  *
  * @author Tibor Varga
  */
 public final class JettyServer extends Utilities {
 
+    /**
+     * Starts an embedded Jetty server and waits until it stops.
+     *
+     * @param httpPort       the port for the server to listen on.
+     * @param defaultContext the default web application.
+     * @param contextList    optional list of other web applications.
+     */
     public static void start(final int httpPort, final WebAppContext defaultContext, final List<WebAppContext> contextList) {
         final ContextHandlerCollection contexts = new ContextHandlerCollection();
 

@@ -17,7 +17,6 @@
 package org.fluidity.deployment.web;
 
 import java.io.IOException;
-
 import javax.servlet.Servlet;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -25,11 +24,10 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 
 /**
- * A servlet decorator that enables the decorated servlet to have its dependencies injected.
- *
+ * A servlet decorator that enables its delegate to have its dependencies injected. The delegate must be another servlet, obviously. The delegate is
+ * instantiated in the {@link #init(ServletConfig)} method and discarded in the {@link #destroy()} method..
  * <p/>
- *
- * Usage:<pre>
+ * Usage <code>web.xml</code>:<pre>
  * &lt;web-app>
  *   ...
  *   &lt;servlet>
