@@ -14,22 +14,21 @@
  * limitations under the License.
  */
 
-package org.fluidity.foundation;
+package org.fluidity.foundation.impl;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.jar.Attributes;
 
 import org.fluidity.deployment.plugin.spi.JarManifest;
-import org.fluidity.foundation.impl.JarJarLauncher;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.project.MavenProject;
 
 /**
- * Launches a main class from a jar file using a class loader that can load classes from jar files nested inside the main jar. Nested jar files must be located
- * in the path denoted by the Nested-Dependencies manifest attribute. The main class to be loaded is defined by the Original-Main-Class manifest attribute. The
- * Main-Class manifest attribute, obviously, points to this class.
+ * Launches a main class from a JAR file using a class loader that can load classes from JAR files nested inside the main JAR. Nested JAR files must be located
+ * in the path denoted by the <code>Nested-Dependencies</code> manifest attribute. The main class to be loaded is defined by the
+ * <code>Original-Main-Class</code> manifest attribute. The <code>Main-Class</code> manifest attribute, obviously, points to this class.
  *
  * @author Tibor Varga
  */

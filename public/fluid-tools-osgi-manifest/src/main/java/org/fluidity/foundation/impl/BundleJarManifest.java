@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.fluidity.foundation;
+package org.fluidity.foundation.impl;
 
 import java.lang.reflect.Method;
 import java.net.URL;
@@ -25,16 +25,18 @@ import java.util.jar.Attributes;
 
 import org.fluidity.composition.ComponentGroup;
 import org.fluidity.composition.ContainerBoundary;
-import org.fluidity.deployment.plugin.spi.JarManifest;
 import org.fluidity.deployment.osgi.BundleBootstrap;
+import org.fluidity.deployment.plugin.spi.JarManifest;
+import org.fluidity.foundation.ClassLoaders;
+import org.fluidity.foundation.JarStreams;
+import org.fluidity.foundation.Methods;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.project.MavenProject;
 import org.apache.xbean.classloader.JarFileClassLoader;
 
 /**
- * Used by the maven-standalone-jar plugin after it has copied all transitive dependencies of the host project to the project artifact to modify the JAR
- * manifest of that artifact so that the host OSGi container finds those embedded JAR files and understands them to be in the bundle's class path.
+ * Modifies the JAR manifest of the host project's artifact so that an OSGi container finds those embedded JAR files and adds them to the bundle's class path.
  *
  * @author Tibor Varga
  */
@@ -63,7 +65,10 @@ public class BundleJarManifest implements JarManifest {
         return true;
     }
 
-    public boolean processManifest(final MavenProject project, final Attributes attributes, final List<String> paths, final Collection<Artifact> dependencies) {
+    public boolean processManifest(final MavenProject project,
+                                   final Attributes attributes,
+                                   final List<String> paths,
+                                   final Collection<Artifact> dependencies) {
         final StringBuilder classpath = new StringBuilder();
 
         for (final String dependency : paths) {
