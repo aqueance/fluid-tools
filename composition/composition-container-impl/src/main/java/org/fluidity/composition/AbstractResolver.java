@@ -16,12 +16,9 @@
 
 package org.fluidity.composition;
 
-import java.lang.annotation.Annotation;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Set;
 
 import org.fluidity.composition.spi.ComponentCache;
 import org.fluidity.composition.spi.DependencyGraph;
@@ -85,11 +82,6 @@ abstract class AbstractResolver implements ComponentResolver {
 
     protected final CachingNode cachingNode(final ParentContainer domain, final DependencyGraph.Node node, final SimpleContainer container) {
         return new CachingNode(domain, node, container);
-    }
-
-    public static Set<Class<? extends Annotation>> acceptedContext(final Class<?> type) {
-        final Component.Context annotation = type.getAnnotation(Component.Context.class);
-        return annotation == null ? null : new HashSet<Class<? extends Annotation>>(Arrays.asList(annotation.value()));
     }
 
     private class CachingNode implements DependencyGraph.Node {

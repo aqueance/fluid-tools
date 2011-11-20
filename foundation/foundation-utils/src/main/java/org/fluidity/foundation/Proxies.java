@@ -112,7 +112,7 @@ public final class Proxies extends Utilities {
         int hashCode(T instance);
 
         /**
-         * Returns whether the given objects are equal.
+         * Returns whether the given objects are equal. The proxy invocation handler calling this method assumes that the instance is the last parameter.
          *
          * @param other    the other object
          * @param instance the implementation object.

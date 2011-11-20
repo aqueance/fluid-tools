@@ -27,5 +27,4 @@ public class GroupMemberFactory1 implements CustomComponentFactory {
     public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
         throw new UnsupportedOperationException();
     }
-
 }

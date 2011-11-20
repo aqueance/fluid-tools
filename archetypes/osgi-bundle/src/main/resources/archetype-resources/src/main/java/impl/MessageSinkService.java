@@ -28,10 +28,10 @@ import ${package}.MessageSink;
 @Component(automatic = false)
 final class MessageSinkService implements MessageSink, BundleComponentContainer.Registration {
 
-    private final Log log;
+    private final Log<?> log;
     private Properties properties = new Properties();
 
-    public MessageSinkService(final @Log.Source(MessageSinkService.class) Log log) {
+    public MessageSinkService(final Log<MessageSinkService> log) {
         this.log = log;
         this.properties.setProperty("default", String.valueOf(true));
     }

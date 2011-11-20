@@ -36,6 +36,7 @@ public class MyServlet extends HttpServlet {
     public void init(final ServletConfig config) throws ServletException {
         sink.receiveText("--- Servlet initialized. Press Ctrl-C to terminate it.");
     }
+
     public void destroy() {
         sink.receiveText("--- Servlet destroyed.");
     }

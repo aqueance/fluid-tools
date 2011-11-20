@@ -16,6 +16,8 @@
 
 package org.fluidity.composition;
 
+import java.lang.reflect.Type;
+
 import org.fluidity.composition.spi.ComponentCache;
 import org.fluidity.composition.spi.ComponentFactory;
 import org.fluidity.composition.spi.ContextDefinition;
@@ -38,7 +40,10 @@ final class FactoryResolverInstance extends FactoryResolver {
     }
 
     @Override
-    protected ComponentFactory factory(final SimpleContainer container, final DependencyGraph.Traversal traversal, final ContextDefinition definition) {
+    protected ComponentFactory factory(final SimpleContainer container,
+                                       final DependencyGraph.Traversal traversal,
+                                       final ContextDefinition definition,
+                                       final Type reference) {
         return factory;
     }
 }

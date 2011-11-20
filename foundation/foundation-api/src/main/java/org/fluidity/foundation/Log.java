@@ -23,15 +23,15 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Log interface to use by Fluid Tools components. An instance is provided to your component via dependency injection. You need to specify the {@link
- * Source @Source} for the log messages as an annotation of the dependency on this interface. For instance:
+ * Log interface to use by Fluid Tools components. An instance is provided to your component via dependency injection. You must use a parameterized reference
+ * as the dependency on this interface. For instance:
  * <pre>
  * &#64;Component
  * public class MyComponent {
  *
- *   private final Log log;
+ *   private final Log&lt;?> log;
  *
- *   public MyComponent(final &#64;Log.Source(MyComponent.class) Log log) {
+ *   public MyComponent(final Log&lt;MyComponent> log) {
  *     this.log = log;
  *   }
  * }
@@ -41,7 +41,8 @@ import java.lang.annotation.Target;
  *
  * @author Tibor Varga
  */
-public interface Log {
+@SuppressWarnings("UnusedDeclaration")
+public interface Log<T> {
 
     boolean isTraceEnabled();
 
@@ -68,23 +69,4 @@ public interface Log {
     void warning(Throwable exception, String message, Object... args);
 
     void error(Throwable exception, String message, Object... args);
-
-    /**
-     * Context annotation for {@link Log} components. See that for details.
-     *
-     * @author Tibor Varga
-     */
-    @Documented
-    @Retention(RetentionPolicy.RUNTIME)
-    @Target({ ElementType.PARAMETER, ElementType.FIELD })
-    @interface Source {
-
-        /**
-         * The class to pass to the {@link org.fluidity.foundation.spi.LogFactory} implementation for the {@link Log} instance injected to the object with this
-         * annotation.
-         *
-         * @return a {@link Class} object.
-         */
-        Class<?> value();
-    }
 }

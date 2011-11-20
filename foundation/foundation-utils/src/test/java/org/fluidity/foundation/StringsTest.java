@@ -30,6 +30,7 @@ import org.testng.annotations.Test;
 /**
  * @author Tibor Varga
  */
+@SuppressWarnings("unchecked")
 public class StringsTest extends MockGroupAbstractTest {
 
     @Test
@@ -52,7 +53,9 @@ public class StringsTest extends MockGroupAbstractTest {
 
     @Test
     public void nakedAnnotation() throws Exception {
-        final Documented annotation = localNiceMock(Documented.class);
+        final Documented annotation = localMock(Documented.class);
+
+        EasyMock.expect(annotation.annotationType()).andReturn((Class) Documented.class);
 
         replay();
         final String string = Strings.simpleNotation(annotation);
@@ -63,7 +66,9 @@ public class StringsTest extends MockGroupAbstractTest {
 
     @Test
     public void plainValueAnnotation() throws Exception {
-        final Retention annotation = localNiceMock(Retention.class);
+        final Retention annotation = localMock(Retention.class);
+
+        EasyMock.expect(annotation.annotationType()).andReturn((Class) Retention.class);
         EasyMock.expect(annotation.value()).andReturn(RetentionPolicy.RUNTIME);
 
         replay();
@@ -75,10 +80,11 @@ public class StringsTest extends MockGroupAbstractTest {
 
     @Test
     public void arrayValueAnnotation() throws Exception {
-        final Target annotation = localNiceMock(Target.class);
+        final Target annotation = localMock(Target.class);
 
         final ElementType[] value = { ElementType.FIELD, ElementType.METHOD };
 
+        EasyMock.expect(annotation.annotationType()).andReturn((Class) Target.class);
         EasyMock.expect(annotation.value()).andReturn(value);
 
         replay();
@@ -90,11 +96,12 @@ public class StringsTest extends MockGroupAbstractTest {
 
     @Test
     public void multiValueAnnotation() throws Exception {
-        final MultiValued annotation = localNiceMock(MultiValued.class);
+        final MultiValued annotation = localMock(MultiValued.class);
 
         final int id = 1234;
         final String[] list = { "abcd", "efgh", "ijkl" };
 
+        EasyMock.expect(annotation.annotationType()).andReturn((Class) MultiValued.class);
         EasyMock.expect(annotation.id()).andReturn(id);
         EasyMock.expect(annotation.list()).andReturn(list);
 
@@ -102,16 +109,17 @@ public class StringsTest extends MockGroupAbstractTest {
         final String string = Strings.simpleNotation(annotation);
         verify();
 
-        assert String.format("@%s(id=%d, list={%s,%s,%s})", MultiValued.class.getSimpleName(), id, list[0], list[1], list[2]).equals(string) : string;
+        assert String.format("@%s.%s(id=%d, list={%s,%s,%s})", getClass().getSimpleName(), MultiValued.class.getSimpleName(), id, list[0], list[1], list[2]).equals(string) : string;
     }
 
     @Test
     public void defaultValueAnnotation() throws Exception {
-        final MultiValued annotation = localNiceMock(MultiValued.class);
+        final MultiValued annotation = localMock(MultiValued.class);
 
         final int id = -1;
         final String[] list = { };
 
+        EasyMock.expect(annotation.annotationType()).andReturn((Class) MultiValued.class);
         EasyMock.expect(annotation.id()).andReturn(id);
         EasyMock.expect(annotation.list()).andReturn(list);
 
@@ -119,7 +127,7 @@ public class StringsTest extends MockGroupAbstractTest {
         final String string = Strings.simpleNotation(annotation);
         verify();
 
-        assert String.format("@%s([id=%d], [list={}])", MultiValued.class.getSimpleName(), id).equals(string) : string;
+        assert String.format("@%s.%s([id=%d], [list={}])", getClass().getSimpleName(), MultiValued.class.getSimpleName(), id).equals(string) : string;
     }
 
     private static @interface MultiValued {

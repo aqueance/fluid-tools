@@ -17,6 +17,7 @@
 package org.fluidity.composition;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -88,7 +89,11 @@ final class GroupResolver {
         Collection<?> instance(DependencyGraph.Traversal traversal);
     }
 
-    public Node resolve(final ParentContainer domain, final DependencyGraph.Traversal traversal, final SimpleContainer container, final ContextDefinition context) {
+    public Node resolve(final ParentContainer domain,
+                        final DependencyGraph.Traversal traversal,
+                        final SimpleContainer container,
+                        final ContextDefinition context,
+                        final Type reference) {
         final List<DependencyGraph.Node> nodes = new ArrayList<DependencyGraph.Node>();
 
         final List<ContextDefinition> consumed = new ArrayList<ContextDefinition>();
@@ -96,7 +101,7 @@ final class GroupResolver {
             final ContextDefinition copy = context.copy();
 
             final ComponentResolver resolver = container.resolver(member, false);
-            nodes.add(container.resolveComponent(domain, false, member, copy.accept(resolver.acceptedContext()), traversal));
+            nodes.add(container.resolveComponent(domain, false, member, copy.accept(resolver.contextConsumer()), traversal, reference));
 
             consumed.add(copy);
         }

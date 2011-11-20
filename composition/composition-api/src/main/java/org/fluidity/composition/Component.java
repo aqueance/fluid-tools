@@ -23,6 +23,7 @@ import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.lang.reflect.Type;
 
 /**
  * Specifies the component interface(s) that a class implements and that should be resolved to the annotated class at run-time in a dependency injection
@@ -105,6 +106,40 @@ public @interface Component {
          *
          * @return a list of context annotation classes.
          */
-        Class<? extends Annotation>[] value();
+        Class<? extends Annotation>[] value() default { };
+
+        /**
+         * Tells if the component instance depends on the type parameters of the component reference. Specifying <code>@Component.Context(typed = true)</code>
+         * results in expanding the annotated component's context with {@link Component.Reference}. TODO: add this to the user guide.
+         *
+         * @return <code>true</code> if the component instance depends on the type parameters of the component reference, <code>false</code> otherwise.
+         */
+        boolean typed() default false;
+    }
+
+    /**
+     * Context annotation that captures the parameterized type of a component reference. This is not an actual annotation from the Java syntax point of view
+     * but simply a run-time representation of an annotation to convey type information. A Java annotation would not allow <code>Type</code> as the type of a
+     * parameter.
+     *
+     * @author Tibor Varga
+     */
+    interface Reference extends Annotation {
+
+        /**
+         * Returns the parameterized type.
+         *
+         * @return a type object.
+         */
+        Type type();
+
+        /**
+         * This is a convenience method that returns the raw type of the type parameter at the given index.
+         *
+         * @param index the index of the type parameter.
+         *
+         * @return the raw type of the type parameter at the given index or <code>null</code> if no such parameter is present.
+         */
+        Class<?> parameter(int index);
     }
 }

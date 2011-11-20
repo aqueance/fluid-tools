@@ -15,11 +15,11 @@ limitations under the License.
 *##set( $symbol_pound = '#' )#*
 *##set( $symbol_dollar = '$' )#*
 *##set( $symbol_escape = '\' )#*
-*#package ${packageInPathFormat};
+*#package ${package};
 
 import org.fluidity.foundation.Log;
 import org.fluidity.composition.Component;
-import org.fluidity.deployment.cli.Application;
+import org.fluidity.deployment.spi.Application;
 
 @Component
 final class MyApplication implements Application {
@@ -36,9 +36,9 @@ final class MyApplication implements Application {
 
     @Component
     private static class MessageSinkImpl implements ComponentApi.MessageSink {
-        private final Log log;
+        private final Log<?> log;
 
-        public MessageSinkImpl(final @Log.Source(MessageSinkImpl.class) Log log) {
+        public MessageSinkImpl(final Log<MessageSinkImpl> log) {
             this.log = log;
         }
 

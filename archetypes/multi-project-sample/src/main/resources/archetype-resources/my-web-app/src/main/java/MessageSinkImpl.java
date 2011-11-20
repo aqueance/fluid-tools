@@ -15,16 +15,16 @@ limitations under the License.
 *##set( $symbol_pound = '#' )#*
 *##set( $symbol_dollar = '$' )#*
 *##set( $symbol_escape = '\' )#*
-*#package ${packageInPathFormat};
+*#package ${package};
 
 import org.fluidity.foundation.Log;
 import org.fluidity.composition.Component;
 
 @Component
 final class MessageSinkImpl implements ComponentApi.MessageSink {
-    private final Log log;
+    private final Log<?> log;
 
-    public MessageSinkImpl(final @Log.Source(MessageSinkImpl.class) Log log) {
+    public MessageSinkImpl(final Log<MessageSinkImpl> log) {
         this.log = log;
     }
 

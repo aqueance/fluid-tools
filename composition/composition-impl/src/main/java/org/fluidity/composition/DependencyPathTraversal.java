@@ -58,7 +58,10 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
         this(new AtomicReference<ActualPath>(new ActualPath()), injector, strategy, observer);
     }
 
-    public DependencyPathTraversal(final AtomicReference<ActualPath> path, final DependencyInjector injector, final Strategy strategy, final ComponentResolutionObserver observer) {
+    public DependencyPathTraversal(final AtomicReference<ActualPath> path,
+                                   final DependencyInjector injector,
+                                   final Strategy strategy,
+                                   final ComponentResolutionObserver observer) {
         assert path != null;
         assert strategy != null;
         this.resolutionPath = path;
@@ -68,7 +71,7 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
     }
 
     public DependencyGraph.Node follow(final DependencyGraph graph, final ContextDefinition context, final DependencyGraph.Node.Reference reference) {
-        final Class<?> api = reference.api();
+        final Class<?> api = reference.type();
 
         assert context != null;
 
@@ -497,7 +500,7 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
         }
 
         public DependencyGraph.Node advance() {
-            return injector.resolve(reference.api(), new DependencyInjector.Resolution() {
+            return injector.resolve(reference.type(), new DependencyInjector.Resolution() {
                 public ComponentContext context() {
                     return null;
                 }

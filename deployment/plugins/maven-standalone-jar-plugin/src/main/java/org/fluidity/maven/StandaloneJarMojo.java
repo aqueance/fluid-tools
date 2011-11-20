@@ -171,6 +171,9 @@ public class StandaloneJarMojo extends AbstractMojo {
         }
 
         final JarManifest handler = ServiceProviders.findInstance(JarManifest.class, getClass().getClassLoader());
+        if (handler == null) {
+            throw new MojoExecutionException(String.format("No %s implementation found", JarManifest.class.getName()));
+        }
 
         final Collection<Artifact> runtimeDependencies = MavenSupport.runtimeDependencies(repositorySystem, repositorySession, projectRepositories, project, DEPENDENCY_TYPES);
 

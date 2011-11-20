@@ -34,7 +34,7 @@ final class RuntimeShutdownTasksImpl implements ShutdownTasks {
 
     private final List<Runnable> tasks = new ArrayList<Runnable>();
 
-    public RuntimeShutdownTasksImpl(final @Log.Source(RuntimeShutdownTasksImpl.class) Log log) {
+    public RuntimeShutdownTasksImpl(final Log<RuntimeShutdownTasksImpl> log) {
         Runtime.getRuntime().addShutdownHook(new Thread("Container shutdown") {
             @Override
             public void run() {

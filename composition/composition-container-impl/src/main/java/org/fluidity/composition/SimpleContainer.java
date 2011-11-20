@@ -17,6 +17,7 @@
 package org.fluidity.composition;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 
 import org.fluidity.composition.spi.ComponentResolutionObserver;
 import org.fluidity.composition.spi.ContainerServices;
@@ -72,10 +73,11 @@ interface SimpleContainer extends DependencyGraph {
      * @param api       the component interface.
      * @param context   the component context at the point of resolution.
      * @param traversal the graph traversal to use.
+     * @param reference the parameterized type of the dependency reference.
      *
      * @return the resolved component or <code>null</code> if none could be resolved.
      */
-    Node resolveComponent(ParentContainer domain, boolean ascend, Class<?> api, ContextDefinition context, Traversal traversal);
+    Node resolveComponent(ParentContainer domain, boolean ascend, Class<?> api, ContextDefinition context, Traversal traversal, Type reference);
 
     /**
      * Binds a component mapping in the container

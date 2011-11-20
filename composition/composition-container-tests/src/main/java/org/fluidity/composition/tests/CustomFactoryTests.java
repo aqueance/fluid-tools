@@ -16,6 +16,8 @@
 
 package org.fluidity.composition.tests;
 
+import java.lang.reflect.Type;
+
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
@@ -23,6 +25,7 @@ import org.fluidity.composition.ComponentGroup;
 import org.fluidity.composition.OpenComponentContainer;
 import org.fluidity.composition.spi.ComponentFactory;
 import org.fluidity.composition.spi.CustomComponentFactory;
+import org.fluidity.foundation.Generics;
 
 import org.easymock.EasyMock;
 import org.easymock.IAnswer;
@@ -33,13 +36,13 @@ import org.testng.annotations.Test;
  * @author Tibor Varga
  */
 @SuppressWarnings("unchecked")
-public final class ComponentFactoryTests extends AbstractContainerTests {
+public final class CustomFactoryTests extends AbstractContainerTests {
 
     @SuppressWarnings("unchecked")
     private final CustomComponentFactory factory = mock(CustomComponentFactory.class);
     private final ComponentFactory.Instance instance = mock(ComponentFactory.Instance.class);
 
-    public ComponentFactoryTests(final ArtifactFactory factory) {
+    public CustomFactoryTests(final ArtifactFactory factory) {
         super(factory);
     }
 
@@ -60,7 +63,9 @@ public final class ComponentFactoryTests extends AbstractContainerTests {
 
         registry.bindInstance(check);
 
-        EasyMock.expect(factory.resolve(EasyMock.<ComponentContext>notNull(), EasyMock.<ComponentFactory.Resolver>notNull())).andAnswer(new FactoryInvocation(Check.class, check, instance)).anyTimes();
+        EasyMock.expect(factory.resolve(EasyMock.<ComponentContext>notNull(), EasyMock.<ComponentFactory.Resolver>notNull()))
+                .andAnswer(new FactoryInvocation(Check.class, check, instance))
+                .anyTimes();
         instance.bind(EasyMock.<ComponentFactory.Registry>notNull());
         EasyMock.expectLastCall().anyTimes();
 
@@ -81,7 +86,9 @@ public final class ComponentFactoryTests extends AbstractContainerTests {
         childRegistry.bindComponent(FactoryDependency.class);
         childRegistry.bindInstance(check);
 
-        EasyMock.expect(factory.resolve(EasyMock.<ComponentContext>notNull(), EasyMock.<ComponentFactory.Resolver>notNull())).andAnswer(new FactoryInvocation(Check.class, check, instance)).anyTimes();
+        EasyMock.expect(factory.resolve(EasyMock.<ComponentContext>notNull(), EasyMock.<ComponentFactory.Resolver>notNull()))
+                .andAnswer(new FactoryInvocation(Check.class, check, instance))
+                .anyTimes();
         instance.bind(EasyMock.<ComponentFactory.Registry>notNull());
         EasyMock.expectLastCall().anyTimes();
 
@@ -161,6 +168,16 @@ public final class ComponentFactoryTests extends AbstractContainerTests {
         verify();
 
         assert component.key() != null;
+    }
+
+    @Test
+    public void testTypeReference() throws Exception {
+        registry.bindComponent(CustomDependent.class);
+        registry.bindComponent(CustomDependencyFactory.class);
+
+        replay();
+        assert container.getComponent(CustomDependent.class) != null;
+        verify();
     }
 
     @Component(api = DependentKey.class, automatic = false)
@@ -310,6 +327,54 @@ public final class ComponentFactoryTests extends AbstractContainerTests {
                     registry.bindInstance(new DynamicComponent2((ComponentContainer) args[0].instance()));
                 }
             };
+        }
+    }
+
+    private interface CustomParameter { }
+
+    private interface CustomParameter1 extends CustomParameter { }
+
+    private interface CustomParameter2 extends CustomParameter { }
+
+    private static class CustomDependency<T> { }
+
+    @Component(api = CustomDependency.class)
+    @Component.Context(typed = true)
+    private static class CustomDependencyFactory implements CustomComponentFactory {
+
+        public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
+            assert context.defines(Component.Reference.class);
+            assert context.annotations(Component.Reference.class) != null;
+
+            final Component.Reference annotation = context.annotation(Component.Reference.class, getClass());
+            final Type reference = annotation.type();
+            final Class<?> parameter = annotation.parameter(0);
+
+            assert parameter != null : reference;
+            assert Generics.rawType(reference) == CustomDependency.class : Generics.rawType(reference);
+            assert CustomParameter.class.isAssignableFrom(parameter) : Generics.typeParameter(reference, 0);
+
+            return new Instance() {
+                public void bind(final Registry registry) throws OpenComponentContainer.BindingException {
+                    registry.bindInstance(new CustomDependency(), CustomDependency.class);
+                }
+            };
+        }
+    }
+
+    private static class CustomDependent {
+
+        public CustomDependent(final ComponentContext context,
+                               final CustomDependency<CustomParameter1> dependency1,
+                               final CustomDependency<CustomParameter2> dependency2,
+                               final CustomDependency<CustomParameter1> dependency3) {
+            assert !context.defines(Component.Reference.class) : context;
+
+            assert dependency1 != null;
+            assert dependency2 != null;
+            assert dependency3 != null;
+            assert (Object) dependency1 != dependency2 : "Type parameter did not contribute to component context";
+            assert (Object) dependency1 == dependency3 : "Type parameter did not contribute to component context";
         }
     }
 }

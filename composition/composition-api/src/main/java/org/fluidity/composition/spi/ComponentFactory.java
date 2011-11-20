@@ -106,7 +106,7 @@ public interface ComponentFactory {
 
     /**
      * Represents a resolved dependency of the component being created by a {@link ComponentFactory} in its {@link ComponentFactory#resolve(ComponentContext,
-     * Resolver) resolve()} method.
+     * ComponentFactory.Resolver) resolve()} method.
      *
      * @param <T> the type of the dependency.
      */

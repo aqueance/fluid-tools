@@ -19,9 +19,9 @@ import org.fluidity.composition.Component;
 
 @Component
 final class MessageSinkImpl implements MessageSink {
-    private final Log log;
+    private final Log<?> log;
 
-    public MessageSinkImpl(final @Log.Source(MessageSinkImpl.class) Log log) {
+    public MessageSinkImpl(final Log<MessageSinkImpl> log) {
         this.log = log;
     }
 

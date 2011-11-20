@@ -17,6 +17,7 @@
 package org.fluidity.composition;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Type;
 import java.util.List;
 
 import org.fluidity.composition.spi.ContextDefinition;
@@ -47,11 +48,12 @@ interface ParentContainer extends SimpleContainer {
      * @param api       the group API.
      * @param traversal the current graph traversal.
      * @param context   the current context.
+     * @param reference the parameterized type of the dependency reference.
      *
      * @return a list of objects representing the group members in this container and its parent(s), if any, starting with those in the top level container
      *         and ending with those in this one.
      */
-    List<GroupResolver.Node> resolveGroup(ParentContainer domain, Class<?> api, Traversal traversal, ContextDefinition context);
+    List<GroupResolver.Node> resolveGroup(ParentContainer domain, Class<?> api, Traversal traversal, ContextDefinition context, Type reference);
 
     /**
      * Resolves a component group with the given traversal in the given context.
@@ -61,10 +63,11 @@ interface ParentContainer extends SimpleContainer {
      * @param context     the component context at the point of resolution.
      * @param traversal   the graph traversal to use.
      * @param annotations the annotations defined at the reference to the group interface being resolved.
+     * @param reference   the parameterized type of the dependency reference.
      *
      * @return the resolved component group or <code>null</code> if none could be resolved.
      */
-    Node resolveGroup(ParentContainer domain, Class<?> api, ContextDefinition context, Traversal traversal, Annotation[] annotations);
+    Node resolveGroup(ParentContainer domain, Class<?> api, ContextDefinition context, Traversal traversal, Annotation[] annotations, Type reference);
 
     /**
      * Returns the group resolver for the given interface, consulting the parent, if any, if not found in the container.

@@ -22,6 +22,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.IdentityHashMap;
@@ -36,6 +37,7 @@ import org.fluidity.composition.spi.DependencyPath;
 import org.fluidity.composition.spi.DependencyResolver;
 import org.fluidity.composition.spi.RestrictedContainer;
 import org.fluidity.foundation.Exceptions;
+import org.fluidity.foundation.Generics;
 import org.fluidity.foundation.Strings;
 
 /**
@@ -78,14 +80,14 @@ final class DependencyInjectorImpl implements DependencyInjector {
         final Class<?> componentClass = method.getDeclaringClass();
         final Annotation[] methodAnnotations = method.getAnnotations();
         final Annotation[][] parameterAnnotations = method.getParameterAnnotations();
-        final Class[] types = method.getParameterTypes();
+        final Type[] types = method.getGenericParameterTypes();
         final Object[] parameters = new Object[types.length];
 
         for (int i = 0, length = types.length; i < length; ++i) {
             final int index = i;
             injectDependency(false, traversal, container, contexts, context.copy(), componentClass, new Dependency() {
 
-                public Class<?> type() {
+                public Type reference() {
                     return types[index];
                 }
 
@@ -133,7 +135,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
         final Class<?> componentClass = method.getDeclaringClass();
         final Annotation[] methodAnnotations = method.getAnnotations();
         final Annotation[][] parameterAnnotations = method.getParameterAnnotations();
-        final Class[] types = method.getParameterTypes();
+        final Type[] types = method.getGenericParameterTypes();
         final Object[] parameters = new Object[types.length];
 
         for (int i = 0, length = types.length; i < length; ++i) {
@@ -142,7 +144,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
             if (arguments[index] == null && contains(parameterAnnotations[index], Inject.class)) {
                 injectDependency(false, traversal, container, contexts, context.copy(), componentClass, new Dependency() {
 
-                    public Class<?> type() {
+                    public Type reference() {
                         return types[index];
                     }
 
@@ -300,14 +302,14 @@ final class DependencyInjectorImpl implements DependencyInjector {
         final Class<?> componentClass = constructor.getDeclaringClass();
         final Annotation[] constructorAnnotations = neverNull(constructor.getAnnotations());
         final Annotation[][] parameterAnnotations = constructor.getParameterAnnotations();
-        final Class[] types = constructor.getParameterTypes();
+        final Type[] types = constructor.getGenericParameterTypes();
         final DependencyGraph.Node[] arguments = new DependencyGraph.Node[types.length];
 
         for (int i = 0, length = types.length; i < length; ++i) {
             final int index = i;
             consumed.add(injectDependency(true, traversal, container, contexts, context.copy(), componentClass, new Dependency() {
 
-                public Class<?> type() {
+                public Type reference() {
                     return types[index];
                 }
 
@@ -444,8 +446,8 @@ final class DependencyInjectorImpl implements DependencyInjector {
             public void process(final Field field) {
                 consumed.add(injectDependency(false, traversal, container, contexts, context.copy(), declaringType, new Dependency() {
 
-                    public Class<?> type() {
-                        return field.getType();
+                    public Type reference() {
+                        return field.getGenericType();
                     }
 
                     public <T extends Annotation> T annotation(final Class<T> annotationClass) {
@@ -466,15 +468,17 @@ final class DependencyInjectorImpl implements DependencyInjector {
         return consumed;
     }
 
-    private ContextDefinition injectDependency(final boolean resolving,
-                                               final DependencyGraph.Traversal traversal,
-                                               final DependencyResolver container,
-                                               final ContextNode contexts,
-                                               final ContextDefinition context,
-                                               final Class<?> declaringType,
-                                               final Dependency dependency) {
+    ContextDefinition injectDependency(final boolean resolving,
+                                       final DependencyGraph.Traversal traversal,
+                                       final DependencyResolver container,
+                                       final ContextNode contexts,
+                                       final ContextDefinition context,
+                                       final Class<?> declaringType,
+                                       final Dependency dependency) {
+        final Type reference = dependency.reference();
+
         final ComponentGroup componentGroup = dependency.annotation(ComponentGroup.class);
-        final Class<?> dependencyType = findDependencyType(dependency.annotation(Component.class), dependency.type(), declaringType);
+        final Class<?> dependencyType = findDependencyType(dependency.annotation(Component.class), Generics.rawType(reference), declaringType);
         final boolean mandatory = dependency.annotation(Optional.class) == null;
 
         assert contexts != null : declaringType;
@@ -489,7 +493,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
         System.arraycopy(typeContext, 0, definitions, 0, typeContext.length);
         System.arraycopy(dependencyContext, 0, definitions, typeContext.length, dependencyContext.length);
 
-        context.expand(definitions);
+        context.expand(definitions, reference);
 
         final DependencyGraph.Node node;
 
@@ -513,14 +517,14 @@ final class DependencyInjectorImpl implements DependencyInjector {
                         declaringType);
             }
 
-            node = container.resolveGroup(itemType, context, traversal, dependency.annotations());
+            node = container.resolveGroup(itemType, context, traversal, dependency.annotations(), dependency.reference());
         } else {
             node = resolve(dependencyType, new Resolution() {
                 public ComponentContext context() {
 
                     // always reduce the context to what the component accepts to avoid leaking contextual information to the component that it may inadvertently use
                     // without explicitly declaring it as accepted
-                    return context.accept(contexts.acceptedContext()).create();
+                    return context.accept(contexts.contextConsumer()).create();
                 }
 
                 public ComponentContainer container() {
@@ -529,7 +533,9 @@ final class DependencyInjectorImpl implements DependencyInjector {
 
                 public DependencyGraph.Node regular() {
                     final ContextNode contexts = container.contexts(dependencyType, context);
-                    return contexts != null ? container.resolveComponent(dependencyType, context.accept(contexts.acceptedContext()), traversal) : null;
+                    return contexts != null
+                           ? container.resolveComponent(dependencyType, context.accept(contexts.contextConsumer()), traversal, reference)
+                           : null;
                 }
 
                 public void handle(final RestrictedContainer container) {
@@ -567,11 +573,11 @@ final class DependencyInjectorImpl implements DependencyInjector {
     private interface Dependency {
 
         /**
-         * Returns the type by which the dependency is referred to.
+         * Returns the parameterized reference to the dependency.
          *
-         * @return the type by which the dependency is referred to.
+         * @return the parameterized reference to the dependency.
          */
-        Class<?> type();
+        Type reference();
 
         /**
          * Returns the annotation, if any, of the given type attached to the reference.

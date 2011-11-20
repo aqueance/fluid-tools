@@ -24,7 +24,7 @@ import org.fluidity.composition.tests.ArtifactFactory;
 import org.fluidity.composition.tests.BasicResolutionTests;
 import org.fluidity.composition.tests.CircularReferencesTests;
 import org.fluidity.composition.tests.ComponentContextTests;
-import org.fluidity.composition.tests.ComponentFactoryTests;
+import org.fluidity.composition.tests.CustomFactoryTests;
 import org.fluidity.composition.tests.ComponentGroupTests;
 import org.fluidity.composition.tests.ComponentVariantTests;
 import org.fluidity.composition.tests.ConstructorDiscoveryTests;
@@ -76,7 +76,7 @@ public abstract class ComponentContainerAbstractTest extends MockGroupAbstractTe
                 new FieldInjectionTests(containers),
                 new CircularReferencesTests(containers),
                 new ContainerHierarchyTests(containers),
-                new ComponentFactoryTests(containers),
+                new CustomFactoryTests(containers),
                 new ComponentVariantTests(containers),
                 new ComponentContextTests(containers),
                 new StatefulComponentTests(containers),

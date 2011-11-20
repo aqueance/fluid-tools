@@ -68,12 +68,11 @@ public final class Strings extends Utilities {
      */
     public static String simpleNotation(final Annotation annotation) {
         final StringBuilder output = new StringBuilder();
-        final Class<? extends Annotation> annotationClass = annotation.getClass();
 
-        @SuppressWarnings("unchecked")
-        final Class<? extends Annotation> type = Proxies.api(annotationClass);
+        final Class<? extends Annotation> type = annotation.annotationType();
 
-        output.append('@').append(type.getSimpleName());
+        final String name = type.getName();
+        output.append('@').append(name.substring(name.lastIndexOf(".") + 1).replace('$', '.'));
 
         final StringBuilder builder = new StringBuilder();
         final Method[] methods = type.getDeclaredMethods();
@@ -88,24 +87,26 @@ public final class Strings extends Utilities {
                 });
 
                 for (final Method method : methods) {
-                    if (builder.length() > 0) {
-                        builder.append(", ");
+                    if (method.getParameterTypes().length == 0) {
+                        if (builder.length() > 0) {
+                            builder.append(", ");
+                        }
+
+                        final StringBuilder parameter = new StringBuilder();
+                        parameter.append(method.getName()).append('=');
+
+                        final Object value = method.invoke(annotation);
+                        appendValue(parameter, value);
+
+                        final Object fallback = method.getDefaultValue();
+                        final Class<?> parameterType = method.getReturnType();
+
+                        if (fallback != null && (parameterType.isArray() ? Arrays.equals((Object[]) fallback, (Object[]) value) : fallback.equals(value))) {
+                            parameter.insert(0, '[').append(']');
+                        }
+
+                        builder.append(parameter);
                     }
-
-                    final StringBuilder parameter = new StringBuilder();
-                    parameter.append(method.getName()).append('=');
-
-                    final Object value = method.invoke(annotation);
-                    appendValue(parameter, value);
-
-                    final Object fallback = method.getDefaultValue();
-                    final Class<?> parameterType = method.getReturnType();
-
-                    if (fallback != null && (parameterType.isArray() ? Arrays.equals((Object[]) fallback, (Object[]) value) : fallback.equals(value))) {
-                        parameter.insert(0, '[').append(']');
-                    }
-
-                    builder.append(parameter);
                 }
             }
         } catch (final IllegalAccessException e) {

@@ -16,6 +16,7 @@
 
 package org.fluidity.composition;
 
+import java.lang.reflect.Type;
 import java.util.Collection;
 
 import org.fluidity.composition.spi.ContextDefinition;
@@ -36,10 +37,15 @@ interface ComponentResolver extends ContextNode {
      * @param traversal the graph traversal to use.
      * @param container the container calling the resolver.
      * @param context   the context in which the resolution takes place.
+     * @param reference the parameterized type of the dependency reference.
      *
      * @return a node representing the component.
      */
-    DependencyGraph.Node resolve(ParentContainer domain, DependencyGraph.Traversal traversal, final SimpleContainer container, final ContextDefinition context);
+    DependencyGraph.Node resolve(ParentContainer domain,
+                                 DependencyGraph.Traversal traversal,
+                                 SimpleContainer container,
+                                 ContextDefinition context,
+                                 Type reference);
 
     /**
      * Returns the relative priority of this mapping compared to another.

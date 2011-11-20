@@ -71,8 +71,7 @@ public final class BundleBootstrap implements BundleActivator {
         private final List<Runnable> tasks = new ArrayList<Runnable>();
 
         @Inject
-        @Log.Source(BundleShutdownTasks.class)
-        private Log log;
+        private Log<BundleShutdownTasks> log;
 
         public void add(final Runnable command) {
             tasks.add(command);
@@ -97,8 +96,9 @@ public final class BundleBootstrap implements BundleActivator {
         private final List<BundleActivator> activators = new ArrayList<BundleActivator>();
         private final Log log;
 
+        @SuppressWarnings("UnusedDeclaration")
         private Activators(final BundleContext context,
-                           final @Log.Source(Activators.class) Log log,
+                           final Log<Activators> log,
                            final @Optional BundleActivator single,
                            final @Optional @ComponentGroup BundleActivator[] multiple) {
             this.context = context;

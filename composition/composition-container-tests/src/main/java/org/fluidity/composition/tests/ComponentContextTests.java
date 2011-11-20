@@ -354,7 +354,6 @@ public final class ComponentContextTests extends AbstractContainerTests {
     @Component(api = SecondComponent.class)
     @Component.Context(Setting2.class)
     private static final class SecondFactory implements CustomComponentFactory {
-
         public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
             final Dependency<?>[] args = dependencies.discover(SecondComponent.class);
 
@@ -369,13 +368,11 @@ public final class ComponentContextTests extends AbstractContainerTests {
                 }
             };
         }
-
     }
 
     @Component(api = ThirdComponent.class)
     @Component.Context({ Setting1.class, Setting3.class })
     private static final class ThirdFactory implements CustomComponentFactory {
-
         public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
             dependencies.discover(ThirdComponent.class);
 
@@ -387,7 +384,6 @@ public final class ComponentContextTests extends AbstractContainerTests {
                 }
             };
         }
-
     }
 
     @Test
@@ -581,7 +577,6 @@ public final class ComponentContextTests extends AbstractContainerTests {
     @Component(api = ContextAware.class, automatic = false)
     @Component.Context(Setting1.class)
     private static class ContextAwareVariants1 implements ComponentVariantFactory {
-
         public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
             return new Instance() {
                 public void bind(final Registry registry) throws OpenComponentContainer.BindingException {
@@ -595,13 +590,11 @@ public final class ComponentContextTests extends AbstractContainerTests {
                 }
             };
         }
-
     }
 
     @Component(api = ContextAware.class, automatic = false)
     @Component.Context(Setting2.class)
     private static class ContextAwareVariants2 implements ComponentVariantFactory {
-
         public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
             return new Instance() {
                 public void bind(final Registry registry) throws OpenComponentContainer.BindingException {
@@ -615,13 +608,11 @@ public final class ComponentContextTests extends AbstractContainerTests {
                 }
             };
         }
-
     }
 
     @Component(api = OrdinaryComponent1.class, automatic = false)
     @Component.Context(Setting1.class)
     private static class OrdinaryComponentVariants1 implements ComponentVariantFactory {
-
         public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
             return new Instance() {
                 public void bind(final Registry registry) throws OpenComponentContainer.BindingException {
@@ -635,13 +626,11 @@ public final class ComponentContextTests extends AbstractContainerTests {
                 }
             };
         }
-
     }
 
     @Component(api = OrdinaryComponent2.class, automatic = false)
     @Component.Context(Setting2.class)
     private static class OrdinaryComponentVariants2 implements ComponentVariantFactory {
-
         public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
             return new Instance() {
                 public void bind(final Registry registry) throws OpenComponentContainer.BindingException {
@@ -655,7 +644,6 @@ public final class ComponentContextTests extends AbstractContainerTests {
                 }
             };
         }
-
     }
 
     @Component(automatic = false)

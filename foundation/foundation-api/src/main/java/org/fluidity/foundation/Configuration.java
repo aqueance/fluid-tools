@@ -49,7 +49,7 @@ import org.fluidity.foundation.spi.PropertyProvider;
  * &#64;Component
  * final class ConfiguredComponent {
  *
- *     public ConfiguredComponent(final &#64;Configuration.Interface(MySettings.class) Configuration&lt;MySettings> configuration) {
+ *     public ConfiguredComponent(final Configuration&lt;MySettings> configuration) {
  *         ...
  *         final MySettings settings = configuration.settings();
  *         ...
@@ -107,14 +107,14 @@ import org.fluidity.foundation.spi.PropertyProvider;
  * <p/>
  * The implementation for a custom interface:
  * <ul>
- * <li>allows method parameters to vary the property consulted when returning a value for a method,</li>
+ * <li>allows method parameters to vary the property queried for a given method,</li>
  * <li>provides only object identity implementation for the {@link Object#equals(Object)} method,</li>
  * <li>may return a different value at different times if accessed outside the {@link Configuration.Query#read(Object) Configuration.Query.read(T)}
  * method.</li>
  * </ul>
  * In contrast, your custom class:
  * <ul>
- * <li>provides no means to vary at run-time the property value assigned to a given field,</li>
+ * <li>provides no means to vary at run-time the property queried for a given field,</li>
  * <li>may provide whatever equality in its {@link Object#equals(Object)} method,</li>
  * <li>will have the same property value in its fields regardless of when they are accessed (until you change those values, of course).</li>
  * </ul>
@@ -143,8 +143,10 @@ public interface Configuration<T> {
 
     /**
      * Groups property queries to provide settings consistency. Properties read in the {@link #read(Object) read(T)} method will be consistent in that no
-     * property change will take place during the execution of that method. Subject to {@link PropertyProvider} support. However, stashing the
-     * <code>read</code> method parameter and invoking its methods outside the <code>read</code> method will not have the same effect.
+     * property change will take place during the execution of that method. Stashing the <code>read</code> method parameter and invoking its methods
+     * outside the <code>read</code> method will not have the same effect.
+     * <p/>
+     * This feature is subject to {@link PropertyProvider#properties(Runnable) property provider} support.
      *
      * @param <T> the settings interface type.
      * @param <R> the return type of the <code>read</code> method.
@@ -267,25 +269,6 @@ public interface Configuration<T> {
          * @return the prefix for individual items in a list; defaults to {@link #key()}.<code>concat(".%s")</code>.
          */
         String list() default "";
-    }
-
-    /**
-     * Context annotation for {@link Configuration} components.
-     *
-     * @author Tibor Varga
-     */
-    @Documented
-    @Retention(RetentionPolicy.RUNTIME)
-    @Target({ ElementType.PARAMETER, ElementType.FIELD })
-    @interface Interface {
-
-        /**
-         * Returns the interface that defines the configuration methods used by the class employing this annotation.
-         *
-         * @return a class object.
-         */
-        Class<?> value();
-
     }
 
     /**

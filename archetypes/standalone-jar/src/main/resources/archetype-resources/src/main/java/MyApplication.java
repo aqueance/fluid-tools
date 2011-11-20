@@ -18,7 +18,7 @@ limitations under the License.
 *#package ${package};
 
 import org.fluidity.composition.Component;
-import org.fluidity.deployment.cli.Application;
+import org.fluidity.deployment.spi.Application;
 
 @Component
 final class MyApplication implements Application {

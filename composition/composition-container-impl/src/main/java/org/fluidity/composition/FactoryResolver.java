@@ -17,7 +17,7 @@
 package org.fluidity.composition;
 
 import java.lang.annotation.Annotation;
-import java.util.Set;
+import java.lang.reflect.Type;
 
 import org.fluidity.composition.spi.ComponentCache;
 import org.fluidity.composition.spi.ContextDefinition;
@@ -40,8 +40,8 @@ abstract class FactoryResolver extends AbstractFactoryResolver {
         super(factoryClass, priority, api, cache, logs);
     }
 
-    public Set<Class<? extends Annotation>> acceptedContext() {
-        return AbstractResolver.acceptedContext(factoryClass());
+    public Class<?> contextConsumer() {
+        return factoryClass();
     }
 
     public Annotation[] providedContext() {
@@ -51,8 +51,9 @@ abstract class FactoryResolver extends AbstractFactoryResolver {
     public DependencyGraph.Node resolve(final ParentContainer domain,
                                         final DependencyGraph.Traversal traversal,
                                         final SimpleContainer container,
-                                        final ContextDefinition context) {
-        return resolve(domain, traversal, container, context, container.newChildContainer(false));
+                                        final ContextDefinition context,
+                                        final Type reference) {
+        return resolve(domain, traversal, container, context, container.newChildContainer(false), reference);
     }
 
     @Override

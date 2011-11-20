@@ -19,6 +19,7 @@ package org.fluidity.composition;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -56,10 +57,11 @@ abstract class AbstractFactoryResolver extends AbstractResolver {
      * @param container  the container in which to resolve dependencies of the factory.
      * @param traversal  the current graph traversal.
      * @param definition the context in which the resolution takes place.
+     * @param reference  the parameterized type of the dependency reference.
      *
      * @return the {@link ComponentFactory} instance this is a mapping for.
      */
-    protected abstract ComponentFactory factory(final SimpleContainer container, final DependencyGraph.Traversal traversal, final ContextDefinition definition);
+    protected abstract ComponentFactory factory(SimpleContainer container, DependencyGraph.Traversal traversal, ContextDefinition definition, Type reference);
 
     /**
      * Invokes the factory and performs proper context housekeeping.
@@ -69,6 +71,7 @@ abstract class AbstractFactoryResolver extends AbstractResolver {
      * @param container the original container.
      * @param context   the current component context.
      * @param child     the child of the original container to pass to the factory.
+     * @param reference the parameterized type of the dependency reference.
      *
      * @return the graph node for the component.
      */
@@ -76,12 +79,13 @@ abstract class AbstractFactoryResolver extends AbstractResolver {
                                                  final DependencyGraph.Traversal traversal,
                                                  final SimpleContainer container,
                                                  final ContextDefinition context,
-                                                 final SimpleContainer child) {
-        final ContextDefinition reduced = context.copy().accept(acceptedContext());
+                                                 final SimpleContainer child,
+                                                 final Type reference) {
+        final ContextDefinition reduced = context.copy().accept(contextConsumer());
         final ContextDefinition collected = context.copy().accept(null);
         final ComponentContext passed = reduced.create();
 
-        final ComponentFactory factory = factory(container, traversal, context);
+        final ComponentFactory factory = factory(container, traversal, context, reference);
 
         final List<ContextDefinition> list = new ArrayList<ContextDefinition>();
         list.add(reduced);
@@ -112,7 +116,7 @@ abstract class AbstractFactoryResolver extends AbstractResolver {
                         traversal.resolving(resolving, api, null, annotations);
                         final ContextDefinition copy = collected.copy();
                         list.add(copy);
-                        return child.resolveComponent(api, annotations == null ? copy : copy.expand(annotations), traversal);
+                        return child.resolveComponent(api, copy.expand(annotations, reference), traversal, reference);
                     }
 
                     public void handle(final RestrictedContainer container) {
@@ -154,7 +158,7 @@ abstract class AbstractFactoryResolver extends AbstractResolver {
             public Object instance(final DependencyGraph.Traversal traversal) {
                 try {
                     instance.bind(new RegistryWrapper(api, child));
-                    return child.resolveComponent(api, saved, traversal).instance(traversal);
+                    return child.resolveComponent(api, saved, traversal, reference).instance(traversal);
                 } finally {
                     for (final RestrictedContainer restricted : containers) {
                         restricted.enable();

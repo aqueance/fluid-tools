@@ -17,6 +17,7 @@
 package org.fluidity.composition.spi;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Type;
 
 import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.ServiceProvider;
@@ -39,7 +40,7 @@ import org.fluidity.composition.ServiceProvider;
 public interface DependencyGraph {
 
     /**
-     * Resolves, without instantiating it, a component using the given traversal in the given context.
+     * Resolves, without instantiating, a component using the given traversal in the given context.
      *
      * @param api       the component interface.
      * @param context   the component context at the node at which the resolution starts.
@@ -59,6 +60,30 @@ public interface DependencyGraph {
      * @return the resolved component group or <code>null</code> if none could be resolved.
      */
     Node resolveGroup(Class<?> api, ContextDefinition context, Traversal traversal);
+
+    /**
+     * Resolves, without instantiating, a component using the given traversal in the given context.
+     *
+     * @param api       the component interface.
+     * @param context   the component context at the node at which the resolution starts.
+     * @param traversal the graph traversal to use.
+     * @param reference the parameterized type of the dependency reference.
+     *
+     * @return the resolved component or <code>null</code> if none could be resolved.
+     */
+    Node resolveComponent(Class<?> api, ContextDefinition context, Traversal traversal, Type reference);
+
+    /**
+     * Resolves, without instantiating its members, a component group with the given traversal in the given context.
+     *
+     * @param api       the group interface.
+     * @param context   the component context at the node at which the resolution starts.
+     * @param traversal the graph traversal to use.
+     * @param reference the parameterized type of the dependency reference.
+     *
+     * @return the resolved component group or <code>null</code> if none could be resolved.
+     */
+    Node resolveGroup(Class<?> api, ContextDefinition context, Traversal traversal, Type reference);
 
     /**
      * A node in the graph. Nodes are created during traversal of a {@link DependencyGraph} and hold information about the node that enables proper component
@@ -101,7 +126,7 @@ public interface DependencyGraph {
              *
              * @return the component interface this node refers to.
              */
-            Class<?> api();
+            Class<?> type();
 
             /**
              * Returns the annotations at this reference.

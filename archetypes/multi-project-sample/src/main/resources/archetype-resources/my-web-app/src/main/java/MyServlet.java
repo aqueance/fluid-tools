@@ -15,7 +15,7 @@ limitations under the License.
 *##set( $symbol_pound = '#' )#*
 *##set( $symbol_dollar = '$' )#*
 *##set( $symbol_escape = '\' )#*
-*#package ${packageInPathFormat};
+*#package ${package};
 
 import java.io.IOException;
 
@@ -39,6 +39,7 @@ public class MyServlet extends HttpServlet {
     public void init(final ServletConfig config) throws ServletException {
         sink.sendText("--- Servlet initialized. Press Ctrl-C to terminate it.");
     }
+
     public void destroy() {
         sink.sendText("--- Servlet destroyed.");
     }

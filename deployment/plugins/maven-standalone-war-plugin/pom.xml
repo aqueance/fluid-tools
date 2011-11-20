@@ -28,7 +28,7 @@
     <artifactId>maven-standalone-war-plugin</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>maven-plugin</packaging>
-    <name>Plugins: Executable WAR</name>
+    <name>Plugins: Standalone WAR</name>
 
     <licenses>
         <license>

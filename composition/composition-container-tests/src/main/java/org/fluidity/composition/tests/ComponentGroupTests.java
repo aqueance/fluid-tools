@@ -17,6 +17,7 @@
 package org.fluidity.composition.tests;
 
 import java.io.Serializable;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -30,6 +31,7 @@ import org.fluidity.composition.ComponentGroup;
 import org.fluidity.composition.OpenComponentContainer;
 import org.fluidity.composition.Optional;
 import org.fluidity.composition.spi.CustomComponentFactory;
+import org.fluidity.foundation.Generics;
 
 import org.testng.annotations.Test;
 
@@ -372,6 +374,11 @@ public final class ComponentGroupTests extends AbstractContainerTests {
         }
 
         public final Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
+            final Type reference = context.annotation(Component.Reference.class, type).type();
+
+            assert reference != null;
+            assert !Generics.rawType(reference).isArray() : reference;
+
             dependencies.discover(type);
 
             return new Instance() {
@@ -383,12 +390,15 @@ public final class ComponentGroupTests extends AbstractContainerTests {
     }
 
     @Component(api = DynamicFilter1.class)
+    @Component.Context(typed = true)
     private static final class DynamicFilter1Factory extends DynamicFilterFactory { }
 
     @Component(api = DynamicFilter2.class)
+    @Component.Context(typed = true)
     private static final class DynamicFilter2Factory extends DynamicFilterFactory { }
 
     @Component(api = DynamicFilter3.class)
+    @Component.Context(typed = true)
     private static final class DynamicFilter3Factory extends DynamicFilterFactory { }
 
     @SuppressWarnings("UnusedDeclaration")

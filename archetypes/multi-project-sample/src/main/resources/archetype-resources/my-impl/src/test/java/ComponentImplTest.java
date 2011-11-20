@@ -15,7 +15,7 @@ limitations under the License.
 *##set( $symbol_pound = '#' )#*
 *##set( $symbol_dollar = '$' )#*
 *##set( $symbol_escape = '\' )#*
-*#package ${packageInPathFormat};
+*#package ${package};
 
 import org.easymock.EasyMock;
 import org.fluidity.tests.MockGroupAbstractTest;

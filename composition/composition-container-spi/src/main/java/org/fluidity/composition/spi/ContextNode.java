@@ -27,11 +27,11 @@ import java.util.Set;
 public interface ContextNode {
 
     /**
-     * Returns the list of context annotation accepted at this node.
+     * Returns the class that may accepted context annotations at this node.
      *
-     * @return the list of context annotation accepted at this node.
+     * @return the class that may accepted context annotations at this node; may be <code>null</code>.
      */
-    Set<Class<? extends Annotation>> acceptedContext();
+    Class<?> contextConsumer();
 
     /**
      * Returns the list of annotations defined at this node that may comprise the context of some other component.

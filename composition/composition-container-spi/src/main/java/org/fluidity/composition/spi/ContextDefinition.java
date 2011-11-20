@@ -17,9 +17,9 @@
 package org.fluidity.composition.spi;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Type;
 import java.util.Collection;
 import java.util.Map;
-import java.util.Set;
 
 import org.fluidity.composition.ComponentContext;
 
@@ -40,10 +40,10 @@ import org.fluidity.composition.ComponentContext;
  * <p/>
  * The above is implemented by<ol>
  * <li>{@link ContainerServices#emptyContext() creating an empty context} definition object at the head of some dependency path</li>
- * <li>{@link #expand(java.lang.annotation.Annotation[]) expanding} that context with the context annotations at each node of that path as we move
+ * <li>{@link #expand(java.lang.annotation.Annotation[], Type) expanding} that context with the context annotations at each node of that path as we move
  * downstream</li>
  * <li>passing downstream a {@link #copy() copy} of the current definition for each dependency of the current component</li>
- * <li>{@link #accept(Set) narrowing} another copy of the definition down to the contexts accepted by the current context that can then be used to<ul>
+ * <li>{@link #accept(Class) narrowing} another copy of the definition down to the contexts accepted by the current context that can then be used to<ul>
  * <li>{@link #create() create} the actual context to be injected to the current component upon instantiation</li>
  * <li>as a cache key to map the instantiated stateless component to</li>
  * </ul></li>
@@ -63,19 +63,20 @@ public interface ContextDefinition {
      * Expands the defined context.
      *
      * @param definition the annotations potentially defining new context.
+     * @param reference  the parameterized type of the reference to the current component.
      *
      * @return the receiver.
      */
-    ContextDefinition expand(Annotation[] definition);
+    ContextDefinition expand(Annotation[] definition, Type reference);
 
     /**
      * Narrows down the defined context set to the annotation classes accepted by the current component in the instantiation path.
      *
-     * @param consumed the context annotation classes accepted by the current component.
+     * @param consumer the class that may accept some context annotations; may be <code>null</code>.
      *
      * @return the receiver.
      */
-    ContextDefinition accept(Set<Class<? extends Annotation>> consumed);
+    ContextDefinition accept(Class<?> consumer);
 
     /**
      * Expands the active context set with annotations consumed by dependencies of the component at the current node in the instantiation path.

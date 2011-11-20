@@ -32,7 +32,7 @@ limitations under the License.
 
         <init-param>
             <param-name>component-key</param-name>
-            <param-value>${packageInPathFormat}.MyServlet</param-value>
+            <param-value>${package}.MyServlet</param-value>
         </init-param>
     </servlet>
 

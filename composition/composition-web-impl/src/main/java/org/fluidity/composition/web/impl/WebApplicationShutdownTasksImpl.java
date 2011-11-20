@@ -43,7 +43,7 @@ final class WebApplicationShutdownTasksImpl implements ShutdownTasks, ServletCon
     private final List<Runnable> tasks = new ArrayList<Runnable>();
     private final Log log;
 
-    public WebApplicationShutdownTasksImpl(final @Log.Source(WebApplicationShutdownTasksImpl.class) Log log) {
+    public WebApplicationShutdownTasksImpl(final Log<WebApplicationShutdownTasksImpl> log) {
         this.log = log;
     }
 

@@ -17,7 +17,7 @@
 package org.fluidity.composition;
 
 import java.lang.annotation.Annotation;
-import java.util.Set;
+import java.lang.reflect.Type;
 
 import org.fluidity.composition.spi.ComponentCache;
 import org.fluidity.composition.spi.ComponentVariantFactory;
@@ -96,8 +96,8 @@ abstract class VariantResolver extends AbstractFactoryResolver {
         return null;
     }
 
-    public Set<Class<? extends Annotation>> acceptedContext() {
-        return AbstractResolver.acceptedContext(factoryClass());
+    public Class<?> contextConsumer() {
+        return factoryClass();
     }
 
     @Override
@@ -123,12 +123,13 @@ abstract class VariantResolver extends AbstractFactoryResolver {
     public DependencyGraph.Node resolve(final ParentContainer domain,
                                         final DependencyGraph.Traversal traversal,
                                         final SimpleContainer container,
-                                        final ContextDefinition context) {
+                                        final ContextDefinition context,
+                                        final Type reference) {
         final SimpleContainer child = container.newChildContainer(false);
 
         child.bindResolver(api, findDelegate());
 
-        return resolve(domain, traversal, container, context, child);
+        return resolve(domain, traversal, container, context, child, reference);
     }
 
     @Override

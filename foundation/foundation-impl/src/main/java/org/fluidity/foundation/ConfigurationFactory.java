@@ -41,13 +41,15 @@ import org.fluidity.composition.spi.CustomComponentFactory;
 import org.fluidity.foundation.spi.PropertyProvider;
 
 @Component(api = Configuration.class)
-@Component.Context({ Configuration.Interface.class, Configuration.Context.class })
+@Component.Context(value = { Configuration.Context.class }, typed = true)
 final class ConfigurationFactory implements CustomComponentFactory {
 
     public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
-        final Configuration.Interface definition = context.annotation(Configuration.Interface.class, Configuration.class);
+        final Component.Reference reference = context.annotation(Component.Reference.class, Configuration.class);
         final Configuration.Context[] contexts = context.annotations(Configuration.Context.class);
-        final Dependency<?> dependency = dependencies.resolve(definition.value());
+
+        final Class<?> api = reference.parameter(0);
+        final Dependency<?> dependency = dependencies.resolve(api);
 
         return new Instance() {
             @SuppressWarnings("unchecked")
@@ -62,7 +64,7 @@ final class ConfigurationFactory implements CustomComponentFactory {
                     registry.bindInstance(contexts, Configuration.Context[].class);
                 }
 
-                registry.bindInstance(definition, Configuration.Interface.class);
+                registry.bindInstance(api, Class.class);
                 registry.bindComponent(ConfigurationImpl.class);
             }
         };
@@ -77,22 +79,17 @@ final class ConfigurationFactory implements CustomComponentFactory {
         /**
          * Constructs a new configuration object.
          *
-         * @param definition used to find out to what interface to adapt the properties provided by <code>provider</code>.
+         * @param api        the settings interface.
          * @param provider   provides properties.
          * @param defaults   when present, used as the provider of default values for properties missing from <code>provider</code>.
          * @param context    used to find the property prefix to apply to properties queried from the <code>provider</code>.
          */
-        @SuppressWarnings("unchecked")
-        public ConfigurationImpl(final Interface definition,
+        public ConfigurationImpl(final Class<T> api,
                                  final @Optional PropertyProvider provider,
                                  final @Optional T defaults,
                                  final @Optional Context... context) {
             this.provider = provider;
-
-            final String[] prefixes = propertyContexts(context);
-            final Class<T> api = (Class<T>) definition.value();
-
-            configuration = Proxies.create(api, new PropertyLoader<T>(api, prefixes, defaults, provider));
+            this.configuration = Proxies.create(api, new PropertyLoader<T>(api, propertyContexts(context), defaults, provider));
         }
 
         public T settings() {

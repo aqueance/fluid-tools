@@ -17,7 +17,7 @@
 package org.fluidity.composition;
 
 import java.lang.annotation.Annotation;
-import java.util.Set;
+import java.lang.reflect.Type;
 
 import org.fluidity.composition.spi.ContextDefinition;
 import org.fluidity.composition.spi.DependencyGraph;
@@ -41,7 +41,7 @@ final class InstanceResolver extends AbstractResolver {
         return null;
     }
 
-    public Set<Class<? extends Annotation>> acceptedContext() {
+    public Class<?> contextConsumer() {
         return null;
     }
 
@@ -49,9 +49,13 @@ final class InstanceResolver extends AbstractResolver {
         return true;
     }
 
-    public DependencyGraph.Node resolve(final ParentContainer domain, final DependencyGraph.Traversal traversal, final SimpleContainer container, final ContextDefinition context) {
+    public DependencyGraph.Node resolve(final ParentContainer domain,
+                                        final DependencyGraph.Traversal traversal,
+                                        final SimpleContainer container,
+                                        final ContextDefinition context,
+                                        final Type reference) {
         return traversal.follow(container, context, new DependencyGraph.Node.Reference() {
-            public Class<?> api() {
+            public Class<?> type() {
                 return api;
             }
 

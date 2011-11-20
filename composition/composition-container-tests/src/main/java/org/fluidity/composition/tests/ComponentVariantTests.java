@@ -366,7 +366,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
     @Test
     public void variantsFactoryCanUseDelegateContext() throws Exception {
         registry.bindComponent(ContextDependentValue.class);        // accepts Setting1
-        registry.bindComponent(DependentVariants.class);                     // accepts setting1 and Setting2
+        registry.bindComponent(DependentVariants.class);            // accepts setting1 and Setting2
         registry.bindComponent(ContextProvider1.class);
         registry.bindComponent(FactoryDependency.class);
 
@@ -714,7 +714,6 @@ public final class ComponentVariantTests extends AbstractContainerTests {
 
     @Component(api = ConfiguredComponent.class, automatic = false)
     public static class ConfiguredComponentFactory implements CustomComponentFactory {
-
         public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
             dependencies.discover(ConfiguredComponentImpl.class);
 
@@ -739,7 +738,6 @@ public final class ComponentVariantTests extends AbstractContainerTests {
     @Component(api = ConfiguredComponent.class, automatic = false)
     @Component.Context(Setting1.class)
     public static class ConfiguredComponentVariants implements ComponentVariantFactory {
-
         public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
             dependencies.discover(Configuration.class);
 

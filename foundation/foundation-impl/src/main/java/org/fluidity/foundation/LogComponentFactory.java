@@ -24,13 +24,13 @@ import org.fluidity.composition.spi.CustomComponentFactory;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**
- * Creates {@link Log} objects for the marker specified by a {@link Log.Source} annotation, using the user provided implementation of the {@link LogFactory}
- * interface.
+ * Creates {@link Log} objects for the class specified as the type parameter of the <code>Log</code> dependency, using the user provided implementation of the
+ * {@link LogFactory} interface.
  *
  * @author Tibor Varga
  */
 @Component(api = Log.class)
-@Component.Context(Log.Source.class)
+@Component.Context(typed = true)
 final class LogComponentFactory implements CustomComponentFactory {
 
     private final LogFactory factory;
@@ -44,10 +44,9 @@ final class LogComponentFactory implements CustomComponentFactory {
 
             @SuppressWarnings("unchecked")
             public void bind(final Registry registry) throws OpenComponentContainer.BindingException {
-                final Log.Source marker = context.annotation(Log.Source.class, Log.class);
-                registry.bindInstance(factory.createLog(marker.value()), Log.class);
+                final Component.Reference reference = context.annotation(Component.Reference.class, Log.class);
+                registry.bindInstance(factory.createLog(reference.parameter(0)), Log.class);
             }
         };
     }
-
 }

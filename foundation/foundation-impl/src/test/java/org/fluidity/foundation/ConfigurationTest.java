@@ -39,8 +39,6 @@ import org.testng.annotations.Test;
 @SuppressWarnings("UnusedDeclaration")
 public class ConfigurationTest extends MockGroupAbstractTest {
 
-    private final Configuration.Interface definition = mock(Configuration.Interface.class);
-
     private final PropertyProvider provider = new PropertyProvider() {
         private final PropertyProvider mock = mock(PropertyProvider.class);
 
@@ -53,12 +51,9 @@ public class ConfigurationTest extends MockGroupAbstractTest {
         }
     };
 
-    @SuppressWarnings("unchecked")
     private <T> Configuration<T> configure(final Class<T> settingsType, final PropertyProvider provider, final T defaults, Configuration.Context... contexts) {
-        EasyMock.expect(definition.value()).andReturn((Class) settingsType);
-
         replay();
-        final Configuration<T> configuration = new ConfigurationFactory.ConfigurationImpl<T>(definition, provider, defaults, contexts);
+        final Configuration<T> configuration = new ConfigurationFactory.ConfigurationImpl<T>(settingsType, provider, defaults, contexts);
         verify();
 
         return configuration;
