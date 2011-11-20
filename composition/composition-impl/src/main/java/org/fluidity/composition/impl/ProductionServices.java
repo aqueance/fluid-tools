@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package org.fluidity.composition;
+package org.fluidity.composition.impl;
 
+import org.fluidity.composition.ClassDiscovery;
 import org.fluidity.composition.spi.ComponentCache;
 import org.fluidity.composition.spi.ComponentResolutionObserver;
 import org.fluidity.composition.spi.ContainerServices;
@@ -31,6 +32,16 @@ import org.fluidity.foundation.spi.LogFactory;
  */
 final class ProductionServices implements ContainerServices {
 
+    private static final DependencyGraph.Traversal.Strategy DEFAULT_STRATEGY = new DependencyGraph.Traversal.Strategy() {
+        public DependencyGraph.Node advance(final DependencyGraph graph,
+                                            final ContextDefinition context,
+                                            final DependencyGraph.Traversal traversal,
+                                            final boolean repeating,
+                                            final DependencyGraph.Traversal.Trail trail) {
+            return trail.advance();
+        }
+    };
+
     private final LogFactory logs;
     private final ClassDiscovery discovery;
     private final DependencyInjector injector;
@@ -40,16 +51,7 @@ final class ProductionServices implements ContainerServices {
         this.logs = logs;
         this.discovery = new ClassDiscoveryImpl(logs);
         this.injector = new DependencyInjectorImpl();
-
-        this.strategy = strategy != null ? strategy : new DependencyGraph.Traversal.Strategy() {
-            public DependencyGraph.Node advance(final DependencyGraph graph,
-                                                final ContextDefinition context,
-                                                final DependencyGraph.Traversal traversal,
-                                                final boolean repeating,
-                                                final DependencyGraph.Traversal.Trail trail) {
-                return trail.advance();
-            }
-        };
+        this.strategy = strategy != null ? strategy : DEFAULT_STRATEGY;
     }
 
     public ContextDefinition emptyContext() {

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.fluidity.composition;
+package org.fluidity.composition.impl;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
@@ -22,6 +22,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+
+import org.fluidity.composition.ComponentContainer;
+import org.fluidity.composition.ComponentContext;
 
 /**
  * @author Tibor Varga

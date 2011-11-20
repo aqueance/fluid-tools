@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.fluidity.composition;
+package org.fluidity.composition.impl;
 
 import java.io.File;
 import java.io.FileOutputStream;

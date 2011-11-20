@@ -22,7 +22,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Denotes annotations defined by Fluid Tools.
+ * Denotes annotations defined and used internally by Fluid Tools.
  *
  * @author Tibor Varga
  */

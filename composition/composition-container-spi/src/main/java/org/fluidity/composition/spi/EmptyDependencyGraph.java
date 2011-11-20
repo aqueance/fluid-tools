@@ -19,6 +19,8 @@ package org.fluidity.composition.spi;
 import java.lang.reflect.Type;
 
 /**
+ * Implements basic method relationships and functionality useful for dependency graph implementations.
+ * <p/>
  * Implements the {@link DependencyGraph#resolveComponent(Class, ContextDefinition, Traversal)} and {@link DependencyGraph#resolveGroup(Class,
  * ContextDefinition, Traversal)} methods to delegate to the {@link DependencyGraph#resolveComponent(Class, ContextDefinition, Traversal, Type)} and
  * {@link DependencyGraph#resolveGroup(Class, ContextDefinition, Traversal, Type)} methods, respectively.

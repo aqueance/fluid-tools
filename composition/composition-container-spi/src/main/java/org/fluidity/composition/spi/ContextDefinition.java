@@ -107,4 +107,13 @@ public interface ContextDefinition {
      * @return a component context containing the active context set.
      */
     ComponentContext create();
+
+    /**
+     * Returns a component context containing the given context set.
+     *
+     * @param map a context set.
+     *
+     * @return a component context containing the given context set.
+     */
+    ComponentContext create(Map<Class<? extends Annotation>, Annotation[]> map);
 }

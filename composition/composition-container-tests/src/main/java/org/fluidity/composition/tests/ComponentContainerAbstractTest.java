@@ -14,26 +14,18 @@
  * limitations under the License.
  */
 
-package org.fluidity.composition;
+package org.fluidity.composition.tests;
 
 import java.lang.annotation.Annotation;
 import java.util.Map;
 
+import org.fluidity.composition.ComponentContext;
+import org.fluidity.composition.OpenComponentContainer;
+import org.fluidity.composition.impl.ProductionServicesFactory;
 import org.fluidity.composition.spi.ContainerServices;
-import org.fluidity.composition.tests.ArtifactFactory;
-import org.fluidity.composition.tests.BasicResolutionTests;
-import org.fluidity.composition.tests.CircularReferencesTests;
-import org.fluidity.composition.tests.ComponentContextTests;
-import org.fluidity.composition.tests.CustomFactoryTests;
-import org.fluidity.composition.tests.ComponentGroupTests;
-import org.fluidity.composition.tests.ComponentVariantTests;
-import org.fluidity.composition.tests.ConstructorDiscoveryTests;
-import org.fluidity.composition.tests.ContainerHierarchyTests;
-import org.fluidity.composition.tests.DomainComponentTests;
-import org.fluidity.composition.tests.FieldInjectionTests;
-import org.fluidity.composition.tests.OptionalDependencyTests;
-import org.fluidity.composition.tests.StatefulComponentTests;
+import org.fluidity.composition.spi.ContainerServicesFactory;
 import org.fluidity.foundation.logging.NoLogFactory;
+import org.fluidity.foundation.spi.LogFactory;
 import org.fluidity.tests.MockGroupAbstractTest;
 
 import org.testng.annotations.Factory;
@@ -58,13 +50,18 @@ public abstract class ComponentContainerAbstractTest extends MockGroupAbstractTe
 
     @Factory
     public Object[] tests() {
+        final ContainerServicesFactory factory = new ProductionServicesFactory();
+        final LogFactory logs = new NoLogFactory();
+        final ContainerServices services = factory.containerServices(logs, null);
+
         final ArtifactFactory containers = new ArtifactFactory() {
+
             public OpenComponentContainer createContainer() {
-                return newContainer(new ProductionServices(new NoLogFactory(), null));
+                return newContainer(services);
             }
 
             public ComponentContext createContext(final Map<Class<? extends Annotation>, Annotation[]> map) {
-                return new ComponentContextImpl(map);
+                return services.emptyContext().create(map);
             }
         };
 

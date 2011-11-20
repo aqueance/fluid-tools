@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-package org.fluidity.composition;
+package org.fluidity.composition.tests;
 
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.fluidity.composition.ClassDiscovery;
 import org.fluidity.composition.spi.ComponentCache;
 import org.fluidity.composition.spi.ContainerProvider;
 import org.fluidity.composition.spi.ContainerServices;

@@ -32,9 +32,9 @@ import java.lang.reflect.Type;
  * On its own, this implementation is merely a marker. However, when coupled with the use of the <code>org.fluidity.maven:maven-composition-plugin</code> Maven
  * plugin, carefree dependency injection becomes possible.
  * <p/>
- * For any class marked with this annotation and without having automatic processing disabled, i.e., without {@link #automatic() @Component(automatic = false)},
- * the <code>maven-composition-plugin</code> Maven plugin will generate at build time the necessary metadata that the dependency injection container will need
- * to pick up and process the annotated class at run-time.
+ * For any class marked with this annotation and without having automatic processing disabled, i.e., without {@link #automatic() @Component(automatic =
+ * false)}, the <code>maven-composition-plugin</code> Maven plugin will generate at build time the necessary metadata that the dependency injection container
+ * will need to pick up and process the annotated class at run-time.
  *
  * @author Tibor Varga
  */
@@ -45,7 +45,7 @@ import java.lang.reflect.Type;
 public @interface Component {
 
     /**
-     * Returns the interfaces or classes that should resolve to the implementation class at run-time.
+     * Specifies the interfaces or classes that should resolve to the implementation class at run-time.
      * <p/>
      * In case of {@link org.fluidity.composition.spi.ComponentFactory}, the value applies to the component the factory creates, not the factory itself.
      * <p/>
@@ -57,11 +57,11 @@ public @interface Component {
     Class<?>[] api() default { };
 
     /**
-     * Tells whether this class can be processed by the <code>org.fluidity.maven:maven-composition-plugin</code> Maven plugin. The default value is
+     * Tells whether the annotated class can be processed by the <code>org.fluidity.maven:maven-composition-plugin</code> Maven plugin. The default value is
      * <code>true</code>, which means the class can be processed by the plugin.
      * <p/>
      * Setting this property to <code>false</code> is used when the class is manually processed or in cases when it is there to define a list of interfaces for
-     * another class to pick up, such as a {@link org.fluidity.composition.spi.CustomComponentFactory} implementation.
+     * another class to pick up, such as a {@link org.fluidity.composition.spi.ComponentFactory} implementation.
      * <p/>
      * If manually processed, the developer either has to provide a suitable {@link org.fluidity.composition.spi.PackageBindings} object or explicitly add the
      * class to some child container at run-time.
@@ -74,22 +74,24 @@ public @interface Component {
 
     /**
      * Tells whether the annotated class is a primary implementation of its component interface(s) or just a fallback or default implementation. As a fallback
-     * it will be used when no other class has been marked for its API interface as a primary.
+     * it will be used when no other class has been marked for its API interface as a primary. This parameter defaults to <code>true</code>, which means the
+     * annotated component is the primary implementation of its component interfaces.
      *
-     * @return <code>true</code> if this component should be mapped as a primary.
+     * @return <code>true</code> if this component should be bound as a primary implementation of its component interfaces.
      */
     boolean primary() default true;
 
     /**
-     * Tells whether this component should be singleton or a new instance must be created for every query or reference.
+     * Tells whether annotated component should be singleton or a new instance must be created for every query or reference. This parameter defaults to
+     * <code>false</code>, which means that the annotated component is a singleton (or semi-singleton in case of context aware components).
      *
      * @return <code>true</code> if a new instance should be created for every query or dependency reference.
      */
     boolean stateful() default false;
 
     /**
-     * This annotation lists the context annotations accepted by the annotated class, thereby allowing the component to specify the annotation classes that will
-     * configure instances of the component at the points of dependency reference to the component. Such a configuration could, for instance, contain a database
+     * Lists the context annotations accepted by the annotated class, thereby allowing the component to specify the annotation classes that will configure
+     * instances of the component at the points of dependency references to the component. Such a configuration could, for instance, contain a database
      * identifier for a database access dependency, etc.
      *
      * @author Tibor Varga
@@ -102,7 +104,7 @@ public @interface Component {
     @interface Context {
 
         /**
-         * Returns the context annotations that configure the class annotated with {@link Context}.
+         * Specifies the context annotations that configure the class annotated with {@link Context}.
          *
          * @return a list of context annotation classes.
          */
@@ -110,7 +112,10 @@ public @interface Component {
 
         /**
          * Tells if the component instance depends on the type parameters of the component reference. Specifying <code>@Component.Context(typed = true)</code>
-         * results in expanding the annotated component's context with {@link Component.Reference}. TODO: add this to the user guide.
+         * results in expanding the annotated component's context with {@link Component.Reference}. This parameter defaults to <code>false</code>, which means
+         * that type parameters of dependency references to the annotated components will not form part of its component context.
+         * <p/>
+         * TODO: add this to the user guide.
          *
          * @return <code>true</code> if the component instance depends on the type parameters of the component reference, <code>false</code> otherwise.
          */

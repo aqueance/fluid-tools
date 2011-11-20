@@ -182,28 +182,54 @@ public interface ComponentContainer {
     <T> T instantiate(Class<T> componentClass) throws ResolutionException;
 
     /**
-     * Top level exception for exceptions related to the dependency injection container.
+     * Top level exception for errors related to the dependency injection container.
      */
     class ContainerException extends RuntimeException {
 
+        /**
+         * Creates a new instance using the given formatted text and with the given cause.
+         *
+         * @param cause  the exception that triggered this error.
+         * @param format the Java format specification.
+         * @param data   the details to format.
+         */
         public ContainerException(final Throwable cause, final String format, final Object... data) {
             super(String.format(format, data), cause);
         }
 
+        /**
+         * Creates a new instance using the given formatted text.
+         *
+         * @param format the Java format specification.
+         * @param data   the details to format.
+         */
         public ContainerException(final String format, final Object... data) {
             super(String.format(format, data));
         }
     }
 
     /**
-     * Reports error when resolving a component reference to a component class or instance.
+     * Reports an error that occurred when resolving a component reference to a component.
      */
     class ResolutionException extends ContainerException {
 
-        public ResolutionException(final Throwable e, final String format, final Object... data) {
-            super(e, format, data);
+        /**
+         * Creates a new instance using the given formatted text and with the cause.
+         *
+         * @param cause  the exception that triggered this error.
+         * @param format the Java format specification.
+         * @param data   the details to format.
+         */
+        public ResolutionException(final Throwable cause, final String format, final Object... data) {
+            super(cause, format, data);
         }
 
+        /**
+         * Creates a new instance using the given formatted text.
+         *
+         * @param format the Java format specification.
+         * @param data   the details to format.
+         */
         public ResolutionException(final String format, final Object... data) {
             super(format, data);
         }
@@ -214,6 +240,12 @@ public interface ComponentContainer {
      */
     class CircularReferencesException extends ResolutionException {
 
+        /**
+         * Creates a new instance for the given component interface resolved with the given instantiation path.
+         *
+         * @param api  the component interface that could not be resolved.
+         * @param path the instantiation path that led to this error.
+         */
         public CircularReferencesException(final Class<?> api, final String path) {
             super("Circular dependency detected while resolving %s: %s", Strings.arrayNotation(api), path);
         }
@@ -223,7 +255,7 @@ public interface ComponentContainer {
      * Reports that some chain of dependencies is circular and that although there was at least one interface reference along the chain that could be used to
      * break the circularity, all such interface references were attempted to be dynamically resolved by the constructor of the class owning the reference.
      */
-    class CircularInvocationException extends ContainerException {
+    class CircularInvocationException extends ResolutionException {
 
         private static List<String> methodNames(final Set<Method> methods) {
             final List<String> list = new ArrayList<String>();
@@ -238,6 +270,12 @@ public interface ComponentContainer {
             return list;
         }
 
+        /**
+         * Creates a new instance for the given object.
+         *
+         * @param object  the object some method of which could not be invoked.
+         * @param methods the list of method invocations that led to this error.
+         */
         public CircularInvocationException(final Object object, final Set<Method> methods) {
             super("Circular method invocation detected on %s@%x involving method(s) %s",
                   object.getClass().getName(),
@@ -254,8 +292,14 @@ public interface ComponentContainer {
 
         private final DependencyPath path;
 
-        public InstantiationException(final DependencyPath path, final Exception e) {
-            super(e, path.toString(false));
+        /**
+         * Creates a new instance for the given instantiation path and cause error.
+         *
+         * @param path  the instantiation path that led to this error.
+         * @param cause the error that occurred.
+         */
+        public InstantiationException(final DependencyPath path, final Exception cause) {
+            super(cause, path.toString(false));
             this.path = path;
         }
 
@@ -264,7 +308,7 @@ public interface ComponentContainer {
          *
          * @return the instantiation path that led to the error.
          */
-        public DependencyPath getInstantiationPath() {
+        public DependencyPath path() {
             return path;
         }
     }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.fluidity.composition;
+package org.fluidity.composition.impl;
 
 import java.lang.annotation.Annotation;
 import java.util.Arrays;
@@ -31,7 +31,7 @@ import org.fluidity.composition.spi.DependencyPath;
  *
  * @author Tibor Varga
  */
-final class CompositeObserver implements ComponentResolutionObserver {
+public final class CompositeObserver implements ComponentResolutionObserver {
 
     private final Set<ComponentResolutionObserver> observers = new LinkedHashSet<ComponentResolutionObserver>();
 

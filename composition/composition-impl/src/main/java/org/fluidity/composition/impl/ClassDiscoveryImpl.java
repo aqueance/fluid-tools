@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.fluidity.composition;
+package org.fluidity.composition.impl;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -27,6 +27,9 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import org.fluidity.composition.ClassDiscovery;
+import org.fluidity.composition.Component;
+import org.fluidity.composition.ServiceProvider;
 import org.fluidity.foundation.ClassLoaders;
 import org.fluidity.foundation.Exceptions;
 import org.fluidity.foundation.Log;

@@ -22,9 +22,8 @@ import org.fluidity.composition.ServiceProvider;
 
 /**
  * An implementation of this interface is placed, either automatically by the <code>org.fluidity.maven:maven-composition-plugin</code> Maven plugin or manually
- * by the component developer, in each package that contains component implementations. The goal of these classes is to add component bindings for component
- * implementations in the respective package to the supplied registry. The components thus bound may depend on other components in the container and vice
- * versa.
+ * by the component developer, in each package that contains component implementations. The goal of these classes is to add to the supplied registry component
+ * bindings for component implementations in the respective package. The components thus bound may depend on other components in the container and vice versa.
  * <p/>
  * Placing the implementation of this interface in the same package as the components it binds allows those component classes to be package protected and thus
  * makes it possible to hide them from inadvertent use.

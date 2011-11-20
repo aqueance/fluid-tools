@@ -90,7 +90,7 @@ public abstract class Exceptions {
     }
 
     /**
-     * A runtime exception that wraps a checked exception.
+     * An unchecked exception that wraps a checked exception.
      */
     public static final class Wrapper extends RuntimeException {
 

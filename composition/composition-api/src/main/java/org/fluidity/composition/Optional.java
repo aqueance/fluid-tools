@@ -24,7 +24,8 @@ import java.lang.annotation.Target;
 
 /**
  * Annotates a component reference as optional dependency. An optional dependency will receive a <code>null</code> value upon dependency resolution if the
- * dependency cannot be satisfied.
+ * dependency cannot be satisfied. Without this annotation, a {@link org.fluidity.composition.ComponentContainer.ResolutionException} is thrown in the same
+ * case.
  *
  * @author Tibor Varga
  */

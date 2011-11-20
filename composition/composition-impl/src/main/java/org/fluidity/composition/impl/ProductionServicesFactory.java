@@ -14,16 +14,17 @@
  * limitations under the License.
  */
 
-package org.fluidity.composition;
+package org.fluidity.composition.impl;
 
 import org.fluidity.composition.spi.ContainerServices;
+import org.fluidity.composition.spi.ContainerServicesFactory;
 import org.fluidity.composition.spi.DependencyGraph;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**
  * @author Tibor Varga
  */
-final class ProductionServicesFactory implements ContainerServicesFactory {
+public final class ProductionServicesFactory implements ContainerServicesFactory {
 
     public ContainerServices containerServices(final LogFactory logs, final DependencyGraph.Traversal.Strategy strategy) {
         assert logs != null : LogFactory.class;

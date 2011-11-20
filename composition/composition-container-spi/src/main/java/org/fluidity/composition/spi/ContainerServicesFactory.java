@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 
-package org.fluidity.composition;
+package org.fluidity.composition.spi;
 
-import org.fluidity.composition.spi.ContainerServices;
-import org.fluidity.composition.spi.DependencyGraph;
+import org.fluidity.composition.ServiceProvider;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**
  * Creates a {@link ContainerServices} object.
  */
 @ServiceProvider
-interface ContainerServicesFactory {
+public interface ContainerServicesFactory {
 
     /**
      * Creates a {@link ContainerServices} object.

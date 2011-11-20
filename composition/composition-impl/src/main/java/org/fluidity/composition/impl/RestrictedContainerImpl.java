@@ -14,12 +14,15 @@
  * limitations under the License.
  */
 
-package org.fluidity.composition;
+package org.fluidity.composition.impl;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.fluidity.composition.ComponentContainer;
+import org.fluidity.composition.ObservedComponentContainer;
+import org.fluidity.composition.OpenComponentContainer;
 import org.fluidity.composition.spi.ComponentResolutionObserver;
 import org.fluidity.composition.spi.RestrictedContainer;
 import org.fluidity.foundation.Proxies;

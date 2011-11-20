@@ -17,6 +17,7 @@
 package org.fluidity.composition;
 
 import org.fluidity.composition.spi.ContainerServices;
+import org.fluidity.composition.tests.ComponentContainerAbstractTest;
 
 /**
  * @author Tibor Varga

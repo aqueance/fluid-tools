@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.fluidity.composition;
+package org.fluidity.composition.impl;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
@@ -27,6 +27,10 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.fluidity.composition.Component;
+import org.fluidity.composition.ComponentContainer;
+import org.fluidity.composition.ComponentContext;
+import org.fluidity.composition.Internal;
 import org.fluidity.composition.spi.ContextDefinition;
 import org.fluidity.foundation.Generics;
 import org.fluidity.foundation.Proxies;
@@ -142,7 +146,11 @@ final class ContextDefinitionImpl implements ContextDefinition {
     }
 
     public ComponentContext create() {
-        return new ComponentContextImpl(active);
+        return create(active);
+    }
+
+    public ComponentContext create(final Map<Class<? extends Annotation>, Annotation[]> map) {
+        return new ComponentContextImpl(map);
     }
 
     private void copy(final Map<Class<? extends Annotation>, Annotation[]> in, final Map<Class<? extends Annotation>, Annotation[]> out) {

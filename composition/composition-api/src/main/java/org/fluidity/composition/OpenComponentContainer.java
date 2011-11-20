@@ -72,8 +72,8 @@ public interface OpenComponentContainer extends ComponentContainer {
      * This interface is mainly used by {@link org.fluidity.composition.spi.PackageBindings} objects that are invoked when the host application populates its
      * dependency injection containers.
      * <p/>
-     * Outside of <code>PackageBindings</code>, an object implementing this interface for an uninitialized container can be acquired by calling {@link
-     * OpenComponentContainer#getRegistry() getRegistry()} on the container.
+     * Outside of <code>PackageBindings</code>, an object implementing this interface for an {@link OpenComponentContainer uninitialized container} can be
+     * acquired by calling {@link OpenComponentContainer#getRegistry() getRegistry()} on the container.
      *
      * @author Tibor Varga
      */
@@ -142,10 +142,16 @@ public interface OpenComponentContainer extends ComponentContainer {
     }
 
     /**
-     * Reports errors when binding a component class or instance to its component interfaces.
+     * Reports an error that occurred when binding a component class or instance to its component interfaces.
      */
     class BindingException extends ContainerException {
 
+        /**
+         * Creates a new instance using the given formatted text.
+         *
+         * @param format the Java format specification.
+         * @param data   the details to format.
+         */
         public BindingException(final String format, final Object... data) {
             super(format, data);
         }

@@ -20,7 +20,7 @@ import java.lang.annotation.Annotation;
 import java.util.Set;
 
 /**
- * The runtime context for a component. This is the object that components may receive as a dependency to encapsulate the context in which they are being
+ * The run-time context for a component. This is the object that components may receive as a dependency to encapsulate the context in which they are being
  * instantiated.
  * <p/>
  * A context represents configuration at the point of reference to a component, which it elects to receive using the
@@ -39,7 +39,7 @@ import java.util.Set;
  * }
  *
  * &#64;Component
- * &#64;Component.Context({ MyContext1.class,  MyContext2.class})
+ * &#64;Component.Context({ MyContext1.class,  MyContext2.class })
  * final class Dependency {
  *
  *     public Dependency(final ComponentContext context) {

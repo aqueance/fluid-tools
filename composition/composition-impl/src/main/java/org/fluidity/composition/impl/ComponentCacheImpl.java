@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
-package org.fluidity.composition;
+package org.fluidity.composition.impl;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.WeakHashMap;
 
+import org.fluidity.composition.ComponentContainer;
+import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.spi.ComponentCache;
 import org.fluidity.composition.spi.ComponentFactory;
 import org.fluidity.foundation.Log;

@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.fluidity.composition.impl.CompositeObserver;
 import org.fluidity.composition.spi.ComponentCache;
 import org.fluidity.composition.spi.ComponentResolutionObserver;
 import org.fluidity.composition.spi.ComponentVariantFactory;

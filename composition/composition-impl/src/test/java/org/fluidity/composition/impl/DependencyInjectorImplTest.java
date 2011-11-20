@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.fluidity.composition;
+package org.fluidity.composition.impl;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
@@ -24,6 +24,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.fluidity.composition.ComponentContainer;
+import org.fluidity.composition.ComponentContext;
+import org.fluidity.composition.ComponentGroup;
+import org.fluidity.composition.Inject;
+import org.fluidity.composition.Optional;
 import org.fluidity.composition.spi.ContextDefinition;
 import org.fluidity.composition.spi.ContextNode;
 import org.fluidity.composition.spi.DependencyGraph;

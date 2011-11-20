@@ -23,7 +23,7 @@ import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.OpenComponentContainer;
 
 /**
- * Internal interface used by {@link org.fluidity.composition.ComponentContainerAbstractTest} and its tests.
+ * Internal interface used by {@link ComponentContainerAbstractTest} and its tests.
  *
  * @author Tibor Varga
  */

@@ -293,7 +293,8 @@
                     <configuration>
                         <encoding>UTF-8</encoding>
                         <author>false</author>
-                        <excludePackageNames>*.impl.*:*.tests.*:*.maven.*:*.jarjar.*</excludePackageNames>
+                        <show>public</show>
+                        <excludePackageNames>*.impl.*:*.internal.*:*.tests.*:*.maven.*:*.jarjar.*</excludePackageNames>
                     </configuration>
                 </plugin>
 

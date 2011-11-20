@@ -24,7 +24,7 @@ import java.lang.annotation.Target;
 
 /**
  * This annotation is used to mark instance fields and/or constructors of a component for dependency injection. In case a constructor is marked, that single
- * constructor will be used by the dependency injection container to instantiate the class. If there is only one public constructor then that needs not be
+ * constructor will be used by the dependency injection container to instantiate the class. If there is only one (public) constructor then that needs not be
  * marked with this annotation.
  * <p/>
  * The dependency injection container handles the annotated fields as well. If the component was instantiated by the container, no further action is necessary

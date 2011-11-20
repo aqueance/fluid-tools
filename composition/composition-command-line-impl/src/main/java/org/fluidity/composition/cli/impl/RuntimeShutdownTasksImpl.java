@@ -25,7 +25,7 @@ import org.fluidity.composition.spi.ShutdownTasks;
 import org.fluidity.foundation.Log;
 
 /**
- * Uses the {@link Runtime} object to add shutdown tasks to. The caller must make sure it has enough privileges to add a runtime shutdown hook.
+ * Uses the {@link Runtime} object to add shutdown tasks to. The caller must make sure it has enough privileges to add a shutdown hook.
  *
  * @author Tibor Varga
  */

@@ -40,7 +40,7 @@
 
     <description><![CDATA[
 This plugin takes the host project's JAR artifact, packages in it all its
-runtime dependencies and adds facilities to launch the main class using a
+run-time dependencies and adds facilities to launch the main class using a
 class loader that can load classes from those embedded dependencies.
     ]]></description>
 

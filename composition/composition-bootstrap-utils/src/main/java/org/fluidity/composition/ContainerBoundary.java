@@ -29,20 +29,21 @@ import java.util.WeakHashMap;
 import org.fluidity.composition.spi.ComponentResolutionObserver;
 import org.fluidity.composition.spi.ContainerProvider;
 import org.fluidity.composition.spi.ContainerServices;
+import org.fluidity.composition.spi.ContainerServicesFactory;
 import org.fluidity.composition.spi.DependencyGraph;
 import org.fluidity.composition.spi.PlatformContainer;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**
- * Static access to class loader specific dependency injection container. This utility class ensures that the child container - parent container hierarchy
- * matches the child class loader - parent class loader hierarchy. The root class loader to have a container is the one that can find the dependencies of this
- * class: {@link ContainerBootstrap}, {@link ContainerProvider} and {@link ContainerServicesFactory}.
+ * Static access to a class loader specific dependency injection container. This utility class ensures that the container hierarchy of the host application
+ * matches the class loader hierarchy. The highest level class loader to have a container is the one that can find the dependencies of this class:
+ * {@link ContainerProvider} and {@link ContainerServicesFactory}.
  * <p/>
- * This class bootstraps containers that have not yet been populated. Instances of this class all work against the same data structure, thereby giving classes
- * instantiated by third parties access to the container relevant to their level in the application's class loader hierarchy. Bootstrapping a container
- * hierarchy is performed up in the hierarchy from the requested container and if a higher level container is attempted to add bootstrap bindings or properties
- * to when it has already been bootstrapped due to earlier access to one of its child containers, the bootstrap binding or property registration operation will
- * fail. In such a case it is advised to explicitly bootstrap the higher level container before the lower level container is bootstrapped.
+ * This class bootstraps all parent containers that have not yet been populated. Instances of this class all work against the same data structure, thereby
+ * giving classes instantiated by third parties access to the container relevant to their level in the application's class loader hierarchy. Bootstrapping a
+ * container hierarchy is performed up in the hierarchy from the requested container and if a higher level container is attempted to add bootstrap bindings or
+ * properties to when it has already been bootstrapped due to earlier access to one of its child containers, the bootstrap binding or property registration
+ * operation will fail. In such a case it is advised to explicitly bootstrap the higher level container before the lower level container is bootstrapped.
  * <p/>
  * This class is a special case in the design since it has to be self-sufficient, depending on nothing that's not always available, and it also has to be
  * visible as it acts as the root object of an application's dependency graph. Thus it has to depend on concrete classes.
@@ -112,11 +113,19 @@ public final class ContainerBoundary implements ComponentContainer {
      */
     private final ClassLoader classLoader;
 
+    /**
+     * Creates a container boundary for the current class loader.
+     */
     public ContainerBoundary() {
         final ClassLoader cl = Thread.currentThread().getContextClassLoader();
         this.classLoader = cl == null ? getClass().getClassLoader() : cl;
     }
 
+    /**
+     * Creates a container boundary to gain access to the container associated with the given class loader.
+     *
+     * @param classLoader the class loader.
+     */
     public ContainerBoundary(final ClassLoader classLoader) {
         this.classLoader = classLoader;
     }
@@ -145,9 +154,9 @@ public final class ContainerBoundary implements ComponentContainer {
     }
 
     /**
-     * Allows a bootstrap code to add component instances to the container before it bootstraps. This method can only be invoked before any component is taken
-     * out of the container by any thread using any of the {@link #getComponent(Class)}, {@link #getComponent(Class, OpenComponentContainer.Bindings)}, {@link
-     * #initialize(Object)} or {@link #makeChildContainer()} methods. Once that happens, this method will throw an {@link IllegalStateException}.
+     * Allows a bootstrap code to add component instances to the container before it is populated. This method can only be invoked before any component is
+     * taken out of the container by any thread using any of the {@link #getComponent(Class)}, {@link #getComponent(Class, OpenComponentContainer.Bindings)},
+     * {@link #initialize(Object)} or {@link #makeChildContainer()} methods. Once that happens, this method will throw an {@link IllegalStateException}.
      * <p/>
      * Calling this method will trigger population of the associated container and its parents.
      *
@@ -161,6 +170,11 @@ public final class ContainerBoundary implements ComponentContainer {
         loadContainer(false).getRegistry().bindInstance(instance, api);
     }
 
+    /**
+     * Sets the platform container. The platform container is a bridge between the highest level dependency injection container and the platform's own
+     * dependency resolution facilities.
+     * @param platform the object that adapts the platform's native dependency resolution logic to the Fluid Tools dependency injection container concept.
+     */
     public void setPlatformContainer(final PlatformContainer platform) {
         assert this.platform == null;
         this.platform = platform;
@@ -193,6 +207,11 @@ public final class ContainerBoundary implements ComponentContainer {
         return loadContainer(true).makeChildContainer();
     }
 
+    /**
+     * Delegates to the enclosed container.
+     * <p/>
+     * {@inheritDoc}
+     */
     public OpenComponentContainer makeDomainContainer() {
         return loadContainer(true).makeDomainContainer();
     }
@@ -206,16 +225,40 @@ public final class ContainerBoundary implements ComponentContainer {
         return loadContainer(true).initialize(component);
     }
 
+    /**
+     * Delegates to the enclosed container.
+     * <p/>
+     * {@inheritDoc}
+     */
     public Object invoke(final Object component, final Method method) throws ResolutionException {
         return loadContainer(true).invoke(component, method);
     }
 
+    /**
+     * Delegates to the enclosed container.
+     * <p/>
+     * {@inheritDoc}
+     */
     public <T> T instantiate(final Class<T> componentClass) throws ResolutionException {
         return loadContainer(true).instantiate(componentClass);
     }
 
+    /**
+     * Delegates to the enclosed container.
+     * <p/>
+     * {@inheritDoc}
+     */
     public <T> T[] getComponentGroup(final Class<T> api) {
         return loadContainer(true).getComponentGroup(api);
+    }
+
+    /**
+     * Delegates to the enclosed container.
+     * <p/>
+     * {@inheritDoc}
+     */
+    public ObservedComponentContainer observed(final ComponentResolutionObserver observer) {
+        return loadContainer(true).observed(observer);
     }
 
     /**
@@ -370,9 +413,5 @@ public final class ContainerBoundary implements ComponentContainer {
 
             return containers.isEmpty() ? null : containers.get(0);
         }
-    }
-
-    public ObservedComponentContainer observed(final ComponentResolutionObserver observer) {
-        return loadContainer(true).observed(observer);
     }
 }

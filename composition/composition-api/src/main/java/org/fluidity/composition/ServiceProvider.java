@@ -25,10 +25,10 @@ import java.lang.annotation.Target;
 
 /**
  * Declares that the annotated class, or implementing classes of the annotated interface, are service providers in the <a
- * href="http://download.oracle.com/javase/1.5.0/docs/guide/jar/jar.html#Service Provider">JAR File Specification</a>'s sense. Such classes can then be
- * discovered in any given class loader by the {@link ClassDiscovery} component.
- * <p/>
- * The org.fluidity.maven:maven-composition-plugin Maven plugin will create the appropriate service provider descriptor file.
+ * href="http://download.oracle.com/javase/1.5.0/docs/guide/jar/jar.html#Service Provider">JAR File Specification</a>'s sense. As long as the
+ * <code>org.fluidity.maven:maven-composition-plugin</code> Maven plugin is used in the host project, such classes can then be discovered in any given class
+ * loader by the {@link ClassDiscovery} component, or in case the {@link #type()} parameter is not specified, using the service provider discovery mechanism
+ * built in the Java platform.
  *
  * @author Tibor Varga
  */
@@ -40,7 +40,7 @@ import java.lang.annotation.Target;
 public @interface ServiceProvider {
 
     /**
-     * Returns the interfaces that this service provider implements. For abstract classes or interfaces the value defaults to the annotated class itself. In
+     * Specifies the interfaces that this service provider implements. For abstract classes or interfaces the value defaults to the annotated class itself. In
      * other cases the annotation must specify a value.
      *
      * @return an array of Class objects.
@@ -48,8 +48,8 @@ public @interface ServiceProvider {
     Class[] api() default { };
 
     /**
-     * Returns the what type of service provider the annotated class is. JDK uses the default value, "services", which adds requirements to the class such as
-     * for the class to be public and to have a public zero-argument constructor.
+     * Specifies the what type of service provider the annotated class is. The Java platform uses the default value, "services", which adds requirements to the
+     * class such as for the class to be public and to have a public zero-argument constructor.
      * <p/>
      * The default type is understood by {@link java.util.ServiceLoader} while all types can be discovered via {@link ClassDiscovery}.
      *
