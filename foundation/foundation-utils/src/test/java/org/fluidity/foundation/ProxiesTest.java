@@ -47,7 +47,11 @@ public class ProxiesTest extends MockGroupAbstractTest {
         final TestObject proxy = Proxies.create(TestObject.class, handler);
 
         assert Proxies.invocationHandler(proxy) == handler;
-        assert Proxies.api(proxy.getClass()) == TestObject.class : Proxies.api(proxy.getClass());
+
+        final Class<?>[] types = proxy.getClass().getInterfaces();
+        assert types != null;
+        assert types.length == 1 : types.length;
+        assert types[0] == TestObject.class : types[0];
     }
 
     @Test

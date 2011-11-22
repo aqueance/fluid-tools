@@ -155,7 +155,7 @@ final class ContextDefinitionImpl implements ContextDefinition {
 
     private void copy(final Map<Class<? extends Annotation>, Annotation[]> in, final Map<Class<? extends Annotation>, Annotation[]> out) {
         for (final Map.Entry<Class<? extends Annotation>, Annotation[]> entry : in.entrySet()) {
-            out.put(Proxies.api(entry.getKey()), entry.getValue().clone());
+            out.put(entry.getKey(), entry.getValue().clone());
         }
     }
 

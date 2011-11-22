@@ -36,7 +36,8 @@ public final class Proxies extends Utilities {
         }
 
         public String toString(final Object instance) {
-            return String.format("%s@%x", Proxies.api(instance.getClass()).getSimpleName(), instance.hashCode());
+            assert Proxy.isProxyClass(instance.getClass()) : instance.getClass();
+            return String.format("%s@%x", instance.getClass().getInterfaces()[0].getSimpleName(), instance.hashCode());
         }
     };
 
@@ -68,19 +69,6 @@ public final class Proxies extends Utilities {
         final AtomicReference<T> proxy = new AtomicReference<T>();
         proxy.set((T) Proxy.newProxyInstance(type.getClassLoader(), new Class<?>[] { type }, new MethodInvocations(handler, proxy, identity)));
         return proxy.get();
-    }
-
-    /**
-     * If the supplied class is a proxy created by {@link #create(Class, InvocationHandler)} then this method returns the interface passed to that method;
-     * otherwise the supplied class is returned.
-     *
-     * @param type the class to find the original interface for.
-     *
-     * @return the first interface implemented by the supplied class if it is a {@link Proxy}, otherwise the supplied class itself.
-     */
-    @SuppressWarnings("unchecked")
-    public static <T> Class<T> api(final Class<T> type) {
-        return Proxy.isProxyClass(type) ? (Class<T>) type.getInterfaces()[0] : type;
     }
 
     /**
