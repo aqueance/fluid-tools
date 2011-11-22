@@ -47,7 +47,7 @@ import org.fluidity.foundation.Streams;
 public final class WarBootstrapLoader {
 
     private final DateFormat df = new SimpleDateFormat("yyyy-MM-dd-HH.mm.SSS");
-    private final Pattern warFilePattern = Pattern.compile("^jar:file:(.*.war)\\!/.*");
+    private final Pattern warFilePattern = Pattern.compile("^(jar:)?file:(.+\\.war)(\\!/.*)?");
 
     public static void main(final String[] args) throws Exception {
         new WarBootstrapLoader().boot(args);
@@ -63,7 +63,7 @@ public final class WarBootstrapLoader {
 
         final Matcher matcher = warFilePattern.matcher(bootUrl);
         if (matcher.matches()) {
-            final String warPath = matcher.group(1);
+            final String warPath = matcher.group(2);
             final File bootWar = new File(warPath);
             assert bootWar.exists() : bootWar;
 

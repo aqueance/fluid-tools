@@ -71,9 +71,24 @@ public final class MavenSupport extends Utilities {
     private static final String MANIFEST_MAVEN_GROUP_ID = "Maven-Group-Id";
     private static final String MANIFEST_MAVEN_ARTIFACT_ID = "Maven-Artifact-Id";
 
+    public static String artifactSpecification(final org.sonatype.aether.artifact.Artifact artifact) {
+        return artifact.getGroupId() + ':' + artifact.getArtifactId();
+    }
+
+    public static String artifactSpecification(final org.sonatype.aether.graph.Exclusion artifact) {
+        return artifact.getGroupId() + ':' + artifact.getArtifactId();
+    }
+
+    public static String artifactSpecification(final Artifact artifact) {
+        return artifact.getGroupId() + ':' + artifact.getArtifactId();
+    }
+
+    public static String artifactSpecification(final Exclusion artifact) {
+        return artifact.getGroupId() + ':' + artifact.getArtifactId();
+    }
+
     /**
      * Returns the transitive dependencies of the given dependency of the given root artifact.
-     *
      *
      * @param system             a Maven component of the respective type.
      * @param session            a Maven component of the respective type.
@@ -420,9 +435,9 @@ public final class MavenSupport extends Utilities {
         }
 
         public boolean selectDependency(final org.sonatype.aether.graph.Dependency dependency) {
-            final org.sonatype.aether.artifact.Artifact artifact = dependency.getArtifact();
-            final String spec = artifact.getGroupId() + ':' + artifact.getArtifactId();
-            return !excluded.contains(spec) && (compile ? COMPILE_SCOPES : RUNTIME_SCOPES).contains(dependency.getScope()) && (optionals || !dependency.isOptional());
+            return !excluded.contains(artifactSpecification(dependency.getArtifact()))
+                   && (compile ? COMPILE_SCOPES : RUNTIME_SCOPES).contains(dependency.getScope())
+                   && (optionals || !dependency.isOptional());
         }
 
         public DependencySelector deriveChildSelector(final DependencyCollectionContext context) {
@@ -431,10 +446,8 @@ public final class MavenSupport extends Utilities {
 
             excluded.addAll(this.excluded);
 
-            if (!exclusions.isEmpty()) {
-                for (org.sonatype.aether.graph.Exclusion exclusion : exclusions) {
-                    excluded.add(exclusion.getGroupId() + ':' + exclusion.getArtifactId());
-                }
+            for (final org.sonatype.aether.graph.Exclusion exclusion : exclusions) {
+                excluded.add(artifactSpecification(exclusion));
             }
 
             // second level optionals and those excluded will not be selected

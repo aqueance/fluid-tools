@@ -20,6 +20,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -38,6 +39,7 @@ import org.fluidity.foundation.Streams;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.Dependency;
+import org.apache.maven.model.Exclusion;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -199,15 +201,22 @@ public class StandaloneWarMojo extends AbstractMojo {
                                                                                                DEPENDENCY_TYPES);
         final Set<Artifact> serverDependencies = new HashSet<Artifact>();
         for (final Dependency dependency : project.getPlugin(pluginKey).getDependencies()) {
-            if (!dependency.isOptional()) {
-                serverDependencies.addAll(MavenSupport.transitiveDependencies(repositorySystem,
-                                                                              repositorySession,
-                                                                              projectRepositories,
-                                                                              MavenSupport.dependencyArtifact(dependency),
-                                                                              false,
-                                                                              false,
-                                                                              DEPENDENCY_TYPES));
+            assert !dependency.isOptional() : dependency;
+
+            final List<String> exclusions = new ArrayList<String>();
+
+            for (final Exclusion exclusion : dependency.getExclusions()) {
+                exclusions.add(MavenSupport.artifactSpecification(exclusion));
             }
+
+            serverDependencies.addAll(MavenSupport.transitiveDependencies(repositorySystem,
+                                                                          repositorySession,
+                                                                          projectRepositories,
+                                                                          MavenSupport.dependencyArtifact(dependency),
+                                                                          false,
+                                                                          false,
+                                                                          DEPENDENCY_TYPES,
+                                                                          exclusions.toArray(new String[exclusions.size()])));
         }
 
         serverDependencies.removeAll(MavenSupport.transitiveDependencies(repositorySystem, repositorySession, projectRepositories, project.getArtifact(), false, false, DEPENDENCY_TYPES));
