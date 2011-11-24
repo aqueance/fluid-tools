@@ -46,7 +46,7 @@ Contains the class that loads an embedded Jetty and deploys one or more war arti
 
         <dependency>
             <groupId>${fluidity.foundation.groupId}</groupId>
-            <artifactId>foundation-utils</artifactId>
+            <artifactId>foundation-bootstrap-utils</artifactId>
             <version>${project.version}</version>
         </dependency>
 

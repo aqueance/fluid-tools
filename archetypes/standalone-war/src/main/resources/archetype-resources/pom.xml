@@ -63,11 +63,13 @@ limitations under the License.
                 <groupId>org.fluidity.maven</groupId>
                 <artifactId>maven-standalone-war-plugin</artifactId>
                 <version>${symbol_dollar}{fluid.tools.version}</version>
-<!--
+
+<!-- Uncomment to support executable WAR only; trims some off the WAR size
                 <configuration>
                     <commandLineOnly>true</commandLineOnly>
                 </configuration>
 -->
+
                 <executions>
                     <execution>
                         <goals>
@@ -81,6 +83,15 @@ limitations under the License.
                         <groupId>org.fluidity.deployment</groupId>
                         <artifactId>war-bootstrap-jetty-impl</artifactId>
                         <version>${symbol_dollar}{fluid.tools.version}</version>
+
+<!-- Uncomment to remove support for JSP and trim about 3 MB off the WAR size
+                        <exclusions>
+                            <exclusion>
+                                <groupId>org.mortbay.jetty</groupId>
+                                <artifactId>jsp-2.1-glassfish</artifactId>
+                            </exclusion>
+                        </exclusions>
+-->
                     </dependency>
 
                     <dependency>

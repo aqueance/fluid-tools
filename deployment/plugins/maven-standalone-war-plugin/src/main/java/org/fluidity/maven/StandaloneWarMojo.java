@@ -49,7 +49,7 @@ import org.sonatype.aether.RepositorySystemSession;
 import org.sonatype.aether.repository.RemoteRepository;
 
 /**
- * Adds code to the project .war file that allows it to be run as a .jar file, e.g. <code>$ java -jar &lt;file name>.war</code>. More .war files can be
+ * Adds code to the project WAR file that allows it to be run as a .jar file, e.g. <code>$ java -jar &lt;file name>.war</code>. More .war files can be
  * specified in the command line and all will be deployed to the same application server.
  * <p/>
  * <b>Technical Details</b>
@@ -77,7 +77,7 @@ public class StandaloneWarMojo extends AbstractMojo {
 
     /**
      * Instructs the plugin, when set, to remove from the WEB-INF/lib directory all .jar files that the plugin puts in the WEB-INF/boot directory, effectively
-     * making the resulting .war smaller than otherwise but also making it executable via the command line only, i.e. the .war file will not be deployable in an
+     * making the resulting WAR smaller than otherwise but also making it executable via the command line only, i.e. the WAR file will not be deployable in an
      * ordinary web container.
      *
      * @parameter default-value="false"
@@ -184,7 +184,7 @@ public class StandaloneWarMojo extends AbstractMojo {
 
     public void execute() throws MojoExecutionException {
         if (!MavenSupport.WAR_TYPE.equals(packaging)) {
-            throw new MojoExecutionException("This is not a .war project");
+            throw new MojoExecutionException("This is not a WAR project");
         } else if (!packageFile.exists()) {
             throw new MojoExecutionException(String.format("%s does not exist", packageFile));
         }

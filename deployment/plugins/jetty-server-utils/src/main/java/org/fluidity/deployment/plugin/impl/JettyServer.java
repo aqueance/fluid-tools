@@ -67,7 +67,7 @@ public final class JettyServer extends Utilities {
         server.setHandler(handlers);
 
         try {
-            System.out.println("Starting server - press Ctrl-C to kill.");
+            System.out.println("Starting server - press Ctrl-C to stop.");
             server.setStopAtShutdown(true);
             server.start();
             server.join();
