@@ -26,6 +26,8 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 public final class Proxies extends Utilities {
 
+    private Proxies() { }
+
     private static ObjectIdentity DEFAULT_IDENTITY = new ObjectIdentity<Object>() {
         public int hashCode(final Object instance) {
             return System.identityHashCode(instance);
@@ -88,6 +90,9 @@ public final class Proxies extends Utilities {
      *
      * @param <T> the interface the proxy stands for.
      */
+    /*
+     *  The proxy invocation handler calling methods on this interface assumes that the instance is the last parameter of the method.
+     */
     public interface ObjectIdentity<T> {
 
         /**
@@ -100,7 +105,7 @@ public final class Proxies extends Utilities {
         int hashCode(T instance);
 
         /**
-         * Returns whether the given objects are equal. The proxy invocation handler calling this method assumes that the instance is the last parameter.
+         * Returns whether the given objects are equal.
          *
          * @param other    the other object
          * @param instance the implementation object.

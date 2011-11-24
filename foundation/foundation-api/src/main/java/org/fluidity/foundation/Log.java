@@ -16,15 +16,9 @@
 
 package org.fluidity.foundation;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-
 /**
  * Log interface to use by Fluid Tools components. An instance is provided to your component via dependency injection. You must use a parameterized reference
- * as the dependency on this interface. For instance:
+ * as the dependency on this interface to specify the class that will be the name of the injected logger. For instance:
  * <pre>
  * &#64;Component
  * public class MyComponent {
@@ -36,8 +30,12 @@ import java.lang.annotation.Target;
  *   }
  * }
  * </pre>
- *
+ * <p/>
  * Message formatting conforms to the Java print format specification.
+ * <p/>
+ * The injected instance will be backed by one of the popular logging frameworks; which one is used depends on the {@link
+ * org.fluidity.foundation.spi.LogFactory} found in the class path. If no specific logging framework is configured, Fluid Tools provides a default factory that
+ * forwards all log messages to the standard output stream.
  *
  * @author Tibor Varga
  */

@@ -30,6 +30,8 @@ import org.fluidity.foundation.Utilities;
  */
 final class AnnotationMaps extends Utilities {
 
+    private AnnotationMaps() { }
+
     public static boolean equal(Map<Class<? extends Annotation>, Annotation[]> map1, Map<Class<? extends Annotation>, Annotation[]> map2) {
         if (map1 == map2) {
             return true;

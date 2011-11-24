@@ -29,21 +29,26 @@ import java.util.jar.JarInputStream;
 import java.util.jar.Manifest;
 
 /**
- * Convenience methods to traverse jar streams
+ * Convenience methods to traverse jar streams.
  */
 public final class JarStreams extends Utilities {
 
+    private JarStreams() { }
+
     /**
-     * Allows the caller to search for and read entries in a jar file.
+     * Allows searching for and reading nested JAR files as in a JAR file. This method, as compared to {@link #readEntries(URL, JarEntryReader)}, supplies the
+     * provided <code>reader</code> with an independent stream for each entry rather than the stream tied to the supplied JAR file that the receiver should
+     * close.
      *
-     * @param jar    the URL of the jar file.
-     * @param reader the object that filters and reads the jar entries.
+     * @param jar    the URL of the JAR file.
+     * @param reader the object that filters and reads the JAR entries.
      *
      * @return the number of entries read.
      *
-     * @throws java.io.IOException when something goes wrong reading the jar file.
+     * @throws IOException when something goes wrong reading the JAR file.
      */
     public static int readNestedEntries(final URL jar, final JarEntryReader reader) throws IOException {
+        assert jar != null;
         final JarInputStream container = new JarInputStream(jar.openStream(), false);
 
         int count = 0;
@@ -80,14 +85,15 @@ public final class JarStreams extends Utilities {
     }
 
     /**
-     * Allows the caller to read an entry in a jar file as a jar file.
+     * Allows reading entries from a JAR file. This method, as compared to {@link #readNestedEntries(URL, JarEntryReader)}, supplies the
+     * provided <code>reader</code> the stream tied to the supplied JAR file that the receiver should not close.
      *
-     * @param jar    the URL of the jar file.
-     * @param reader the object that reads the jar entries.
+     * @param jar    the URL of the JAR file.
+     * @param reader the object that reads the JAR entries.
      *
      * @return the number of entries read.
      *
-     * @throws java.io.IOException when something goes wrong reading the jar file.
+     * @throws IOException when something goes wrong reading the JAR file.
      */
     public static int readEntries(final URL jar, final JarEntryReader reader) throws IOException {
         assert jar != null;
@@ -127,18 +133,18 @@ public final class JarStreams extends Utilities {
     }
 
     /**
-     * Loads manifest attributes from the jar file where the given class was loaded from.
+     * Loads manifest attributes from the JAR file where the given class was loaded from.
      *
-     * @param aClass the class whose source jar is to be processed.
+     * @param type the class whose source JAR is to be processed.
      * @param names  the list of attribute names to load.
      *
-     * @return an array of Strings, each being the value of the attribute name at the same index.
+     * @return an array of strings, each being the value of the attribute name at the same index in the <code>names</code> parameter.
      */
-    public static String[] manifestAttributes(final Class<?> aClass, final String... names) {
-        final URL url = ClassLoaders.findClassResource(aClass);
+    public static String[] manifestAttributes(final Class<?> type, final String... names) {
+        final URL url = ClassLoaders.findClassResource(type);
 
         if (url == null) {
-            throw new IllegalArgumentException(String.format("Can't find class loader for %s", aClass));
+            throw new IllegalArgumentException(String.format("Can't find class loader for %s", type));
         }
 
         try {
@@ -154,13 +160,22 @@ public final class JarStreams extends Utilities {
 
                 return list.toArray(new String[list.size()]);
             } else {
-                throw new IllegalArgumentException(String.format("Class %s was not loaded from a jar file: %s", aClass.getName(), url));
+                throw new IllegalArgumentException(String.format("Class %s was not loaded from a JAR file: %s", type.getName(), url));
             }
         } catch (final IOException e) {
             throw new IllegalArgumentException(e);
         }
     }
 
+    /**
+     * Loads the JAR manifest from the given JAR file URL.
+     *
+     * @param url the JAR file URL.
+     *
+     * @return the JAR manifest.
+     *
+     * @throws IOException if reading the URL contents fails.
+     */
     private static Manifest loadManifest(final URL url) throws IOException {
         final JarInputStream stream = new JarInputStream(url.openStream());
 
@@ -171,6 +186,15 @@ public final class JarStreams extends Utilities {
         }
     }
 
+    /**
+     * Loads the JAR manifest from the given JAR input stream.
+     *
+     * @param stream the JAR input stream to load the manifest from.
+     *
+     * @return the JAR manifest.
+     *
+     * @throws IOException if loading the input stream fails.
+     */
     public static Manifest loadManifest(final InputStream stream) throws IOException {
         final Manifest manifest = new Manifest();
 
@@ -183,6 +207,14 @@ public final class JarStreams extends Utilities {
         return manifest;
     }
 
+    /**
+     * Returns a <code>JarURLConnection</code> for the given JAR URL (an URL into a JAR file) that allows {@link JarURLConnection#getAttributes() loading the
+     * JAR manifest} or finding the {@link JarURLConnection#getJarFileURL() base JAR file URL} of the given URL.
+     *
+     * @param url the URL to interpret as a JAR URL.
+     *
+     * @return the JAR URL connection or <code>null</code> if the provided URL is not a JAR URL.
+     */
     public static JarURLConnection jarFile(final URL url) {
         try {
             final URLConnection connection = url.openConnection();
@@ -193,7 +225,8 @@ public final class JarStreams extends Utilities {
     }
 
     /**
-     * Filters and reads entries in a jar file.
+     * Filters and reads entries in a JAR file. Used by {@link JarStreams#readEntries(URL, JarEntryReader)} and {@link JarStreams#readNestedEntries(URL,
+     * JarEntryReader)}.
      */
     public interface JarEntryReader {
 
@@ -204,7 +237,7 @@ public final class JarStreams extends Utilities {
          *
          * @return <code>true</code> if the given entry should be passed to the {@link #read(JarEntry, JarInputStream)} method, <code>false</code> if not.
          *
-         * @throws java.io.IOException when something goes wrong reading the jar file.
+         * @throws IOException when something goes wrong reading the JAR file.
          */
         boolean matches(JarEntry entry) throws IOException;
 
@@ -212,11 +245,11 @@ public final class JarStreams extends Utilities {
          * Reads the given entry.
          *
          * @param entry  the entry to read.
-         * @param stream the stream containing the entry's contnt.
+         * @param stream the stream containing the entry's content.
          *
          * @return <code>true</code> if further searching is needed, <code>false</code> if search should terminate.
          *
-         * @throws java.io.IOException when something goes wrong reading the jar file.
+         * @throws IOException when something goes wrong reading the JAR file.
          */
         boolean read(JarEntry entry, JarInputStream stream) throws IOException;
     }

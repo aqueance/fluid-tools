@@ -27,6 +27,8 @@ import java.io.OutputStream;
  */
 public final class Streams extends Utilities {
 
+    private Streams() { }
+
     /**
      * Fully copies the contents of one stream into another. The input stream is closed afterwards.
      *

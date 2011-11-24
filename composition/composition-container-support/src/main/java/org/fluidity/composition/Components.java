@@ -93,6 +93,8 @@ import org.fluidity.foundation.Utilities;
  */
 public final class Components extends Utilities {
 
+    private Components() { }
+
     static {
         assert Component.class.isAnnotationPresent(Retention.class);
         assert Component.class.getAnnotation(Retention.class).value() == RetentionPolicy.RUNTIME;

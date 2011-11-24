@@ -20,14 +20,16 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.UndeclaredThrowableException;
 
 /**
- * Provides exception related common functionality.
+ * Utility methods on exceptions. See {@link Wrapper#rethrow(Class)} for description.
  *
  * @author Tibor Varga
  */
-public abstract class Exceptions {
+public final class Exceptions extends Utilities {
+
+    private Exceptions() { }
 
     /**
-     * Re-trows {@link RuntimeException}s and wraps other {@link Exception}s in a {@link RuntimeException}.
+     * Re-trows {@link RuntimeException}s and wraps other {@link Exception}s in a {@link Wrapper}.
      *
      * @param context the action part of the "Error %s" message in the wrapper exception.
      * @param command the command to run.
@@ -51,7 +53,7 @@ public abstract class Exceptions {
     }
 
     /**
-     * Re-trows {@link RuntimeException}s and wraps other {@link Exception}s in a {@link RuntimeException}.
+     * Re-trows {@link RuntimeException}s and wraps other {@link Exception}s in a {@link Wrapper}.
      *
      * @param command the command to run.
      *
@@ -74,14 +76,14 @@ public abstract class Exceptions {
     }
 
     /**
-     * The command to run and wrap the exceptions thrown therefrom.
+     * Used by {@link Exceptions}, this is a command to run and wrap the exceptions thrown therefrom.
      */
     public interface Command<T> {
 
         /**
          * Code to run and wrap the exceptions therefrom.
          *
-         * @return whatever the caller of the {@link Exceptions#wrap(Exceptions.Command)} or {@link Exceptions#wrap(String, Exceptions.Command)} wishes to
+         * @return whatever the caller of the {@link Exceptions#wrap(Command)} or {@link Exceptions#wrap(String, Command)} wishes to
          *         receive.
          *
          * @throws Throwable to turn to {@link RuntimeException} if necessary.
@@ -90,7 +92,8 @@ public abstract class Exceptions {
     }
 
     /**
-     * An unchecked exception that wraps a checked exception.
+     * An unchecked exception that wraps a checked exception. Thrown by {@link Exceptions#wrap(Exceptions.Command)} and {@link Exceptions#wrap(String,
+     * Exceptions.Command)}.
      */
     public static final class Wrapper extends RuntimeException {
 
@@ -105,23 +108,25 @@ public abstract class Exceptions {
         /**
          * If the wrapped exception is of the given type, it is thrown, otherwise this instance is returned. The intended usage is:
          * <pre>
-         * try {
-         *   ...
-         *   Exceptions.wrap(new Exceptions.Command&lt;Void> {
+         * void someMethod() throws CheckedException1, CheckedException2, CheckedException3 {
+         *   try {
          *     ...
-         *      return null;
-         *   });
-         *   ...
-         * } catch (final Exceptions.Wrapper wrapper) {
-         *   throw wrapper
-         *       .rethrow(ExpectedCheckedException1.class)
-         *       .rethrow(ExpectedCheckedException2.class)
-         *       .rethrow(ExpectedCheckedException3.class);
+         *     Exceptions.wrap(new Exceptions.Command&lt;Void> {
+         *       ...
+         *        return null;
+         *     });
+         *     ...
+         *   } catch (final Exceptions.Wrapper wrapper) {
+         *     throw wrapper
+         *         .rethrow(CheckedException1.class)
+         *         .rethrow(CheckedException2.class)
+         *         .rethrow(CheckedException3.class);
+         *   }
          * }
          * </pre>
          * <p/>
-         * The above will throw re-throw either <code>ExpectedCheckedException1</code>, <code>ExpectedCheckedException2</code>,
-         * <code>ExpectedCheckedException3</code> or <code>wrapper</code>, which is an unchecked exception.
+         * The above will re-throw either <code>CheckedException1</code>, <code>CheckedException2</code>,
+         * <code>CheckedException3</code> or the <code>wrapper</code>, which is an {@link RuntimeException unchecked} exception.
          *
          * @param accept the class of the exception to check.
          * @param <T>    the type of the exception to check.

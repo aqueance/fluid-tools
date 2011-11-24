@@ -35,6 +35,8 @@ import org.eclipse.jetty.webapp.WebAppContext;
  */
 public final class JettyServer extends Utilities {
 
+    private JettyServer() { }
+
     /**
      * Starts an embedded Jetty server and waits until it stops.
      *

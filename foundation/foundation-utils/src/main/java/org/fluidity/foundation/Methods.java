@@ -26,6 +26,8 @@ import java.lang.reflect.Method;
  */
 public final class Methods extends Utilities {
 
+    private Methods() { }
+
     /**
      * Finds a method object in a refactoring friendly way. Let's say you need to find the {@link java.io.Closeable#close()} method at run-time. Here's how you
      * do that with this method:
@@ -36,9 +38,11 @@ public final class Methods extends Utilities {
      *    }
      *  });
      * </pre>
+     * <p/>
+     * This works only on interface types.
      *
-     * @param type    the class that directly or indirectly defined the method.
-     * @param invoker code that invokes the method in question.
+     * @param type    the class that directly or indirectly defines the method you seek.
+     * @param invoker code that invokes the method on a dummy implementation of its owning interface.
      *
      * @return the method object.
      */

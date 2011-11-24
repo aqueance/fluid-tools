@@ -30,6 +30,8 @@ import java.util.Comparator;
  */
 public final class Strings extends Utilities {
 
+    private Strings() { }
+
     /**
      * Adds "[]" to the class name once for each step in the depth of the array. For instance:
      * <pre>

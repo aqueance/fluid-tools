@@ -17,7 +17,15 @@
 package org.fluidity.foundation;
 
 /**
- * Prevents instantiation.
+ * Abstract superclass that prevents instantiation of its subclasses. The intended boilerplate goes like this:
+ * <pre>
+ * public final MyUtilities extends Utilities {
+ *
+ *     private MyUtilities() { }
+ *
+ *     ...
+ * }
+ * </pre>
  */
 public abstract class Utilities {
 

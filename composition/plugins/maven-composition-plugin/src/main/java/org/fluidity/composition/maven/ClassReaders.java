@@ -41,6 +41,8 @@ import org.objectweb.asm.Type;
  */
 public final class ClassReaders extends Utilities implements Opcodes {
 
+    private ClassReaders() { }
+
     public static final String CONSTRUCTOR_METHOD_NAME = "<init>";
 
     public static boolean isInterface(final ClassReader data) {

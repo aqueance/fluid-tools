@@ -22,14 +22,16 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 
 /**
- * Utility methods to access generic type information.
+ * Utility methods to access parameterized type information.
  */
 public final class Generics extends Utilities {
 
+    private Generics() { }
+
     /**
-     * Returns the raw type, i.e., the class, corresponding to the given generic type.
+     * Returns the raw type, i.e., the class, corresponding to the given parameterized type.
      *
-     * @param type the generic type.
+     * @param type the parameterized type.
      *
      * @return the raw type or <code>null</code>.
      */
@@ -50,12 +52,12 @@ public final class Generics extends Utilities {
     }
 
     /**
-     * Returns the type parameter at the given index in the list of type parameters for the given generic type.
+     * Returns the type parameter at the given index in the list of type parameters for the given parameterized type.
      *
-     * @param type  the generic type.
+     * @param type  the parameterized type.
      * @param index the index.
      *
-     * @return the type parameter at the given index or <code>null</code> if the generic type is not a parameterized type or the index is out of range.
+     * @return the type parameter at the given index or <code>null</code> if the parameterized type is not a parameterized type or the index is out of range.
      */
     public static Type typeParameter(final Type type, final int index) {
         if (type instanceof ParameterizedType) {
@@ -70,9 +72,9 @@ public final class Generics extends Utilities {
     }
 
     /**
-     * Returns the generic array component type of the given generic type.
+     * Returns the parameterized array component type of the given parameterized type.
      *
-     * @param type the generic type.
+     * @param type the parameterized type.
      *
      * @return the array component type or <code>null</code> if the given type is not an array.
      */

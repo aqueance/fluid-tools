@@ -21,13 +21,16 @@ package org.fluidity.foundation;
  *
  * @author Tibor Varga
  */
-public class Deferred extends Utilities {
+public final class Deferred extends Utilities {
+
+    private Deferred() { }
 
     /**
-     * Returns a deferred reference to some object. The object is returned by the given factory's {@link Factory#create()} method, which will be invoked the
-     * first time the reference's {@link Reference#get()} method is invoked and then its return value will be cached for use in subsequent invocations.
+     * Returns a lazy loading reference to some object. The object is returned by the given factory's {@link Factory#create()} method, which will be invoked
+     * the first time the returned object's {@link Reference#get()} method is invoked, and then its return value will be cached for use in subsequent
+     * invocations.
      * <p/>
-     * This reference implements the double-check locking logic with volatile acquire/release semantics to lazy create the referenced object. If the factory
+     * This reference implements the double-check locking logic with volatile acquire/release semantics to lazily create the referenced object. If the factory
      * returns <code>null</code> instead of an object then the <code>null</code> value will be cached and returned in subsequent queries by the returned
      * reference.
      * <p/>
@@ -42,20 +45,20 @@ public class Deferred extends Utilities {
     }
 
     /**
-     * A factory of some object.
+     * A factory of some object to be lazily instantiated. This is used by {@link Deferred#reference(Factory)}.
      */
     public interface Factory<T> {
 
         /**
-         * Creates some object.
+         * Creates the object represented by this factory.
          *
-         * @return the object.
+         * @return a new instance.
          */
         T create();
     }
 
     /**
-     * A reference to some object.
+     * A reference to some object that is lazily instantiated. This is returned by {@link Deferred#reference(Factory)}.
      */
     public interface Reference<T> {
 
