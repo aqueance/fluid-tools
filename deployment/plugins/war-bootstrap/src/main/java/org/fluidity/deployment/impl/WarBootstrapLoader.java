@@ -100,7 +100,7 @@ public final class WarBootstrapLoader {
 
                 classpath.add(warURL);
 
-                JarStreams.readEntries(warURL, new JarStreams.JarEntryReader() {
+                JarStreams.readEntries(warURL, new JarStreams.EntryReader() {
                     private final String bootEntry = "WEB-INF/boot/";
 
                     public boolean matches(final JarEntry entry) throws IOException {

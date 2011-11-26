@@ -36,7 +36,7 @@ public final class JarStreams extends Utilities {
     private JarStreams() { }
 
     /**
-     * Allows searching for and reading nested JAR files as in a JAR file. This method, as compared to {@link #readEntries(URL, JarEntryReader)}, supplies the
+     * Allows searching for and reading nested JAR files as in a JAR file. This method, as compared to {@link #readEntries(URL, EntryReader)}, supplies the
      * provided <code>reader</code> with an independent stream for each entry rather than the stream tied to the supplied JAR file that the receiver should
      * close.
      *
@@ -47,7 +47,7 @@ public final class JarStreams extends Utilities {
      *
      * @throws IOException when something goes wrong reading the JAR file.
      */
-    public static int readNestedEntries(final URL jar, final JarEntryReader reader) throws IOException {
+    public static int readNestedEntries(final URL jar, final EntryReader reader) throws IOException {
         assert jar != null;
         final JarInputStream container = new JarInputStream(jar.openStream(), false);
 
@@ -85,7 +85,7 @@ public final class JarStreams extends Utilities {
     }
 
     /**
-     * Allows reading entries from a JAR file. This method, as compared to {@link #readNestedEntries(URL, JarEntryReader)}, supplies the
+     * Allows reading entries from a JAR file. This method, as compared to {@link #readNestedEntries(URL, EntryReader)}, supplies the
      * provided <code>reader</code> the stream tied to the supplied JAR file that the receiver should not close.
      *
      * @param jar    the URL of the JAR file.
@@ -95,7 +95,7 @@ public final class JarStreams extends Utilities {
      *
      * @throws IOException when something goes wrong reading the JAR file.
      */
-    public static int readEntries(final URL jar, final JarEntryReader reader) throws IOException {
+    public static int readEntries(final URL jar, final EntryReader reader) throws IOException {
         assert jar != null;
         final JarInputStream container = new JarInputStream(jar.openStream(), false);
 
@@ -225,10 +225,10 @@ public final class JarStreams extends Utilities {
     }
 
     /**
-     * Filters and reads entries in a JAR file. Used by {@link JarStreams#readEntries(URL, JarEntryReader)} and {@link JarStreams#readNestedEntries(URL,
-     * JarEntryReader)}.
+     * Filters and reads entries in a JAR file. Used by {@link JarStreams#readEntries(URL, EntryReader)} and {@link JarStreams#readNestedEntries(URL,
+     * EntryReader)}.
      */
-    public interface JarEntryReader {
+    public interface EntryReader {
 
         /**
          * Tells if the {@link #read(JarEntry, JarInputStream)} method should be invoked with the given entry.

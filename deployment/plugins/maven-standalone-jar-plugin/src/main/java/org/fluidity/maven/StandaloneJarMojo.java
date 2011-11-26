@@ -35,8 +35,8 @@ import java.util.jar.JarInputStream;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
 
-import org.fluidity.deployment.plugin.spi.JarManifest;
 import org.fluidity.deployment.maven.MavenSupport;
+import org.fluidity.deployment.plugin.spi.JarManifest;
 import org.fluidity.foundation.JarStreams;
 import org.fluidity.foundation.ServiceProviders;
 import org.fluidity.foundation.Streams;
@@ -294,7 +294,7 @@ public class StandaloneJarMojo extends AbstractMojo {
 
                         // got to check if our project artifact is something we have created in a previous run
                         // i.e., if it contains the project artifact we're about to copy
-                        int read = JarStreams.readEntries(dependency.toURI().toURL(), new JarStreams.JarEntryReader() {
+                        int read = JarStreams.readEntries(dependency.toURI().toURL(), new JarStreams.EntryReader() {
                             public boolean matches(final JarEntry entry) throws IOException {
                                 return entryName.equals(entry.getName());
                             }
