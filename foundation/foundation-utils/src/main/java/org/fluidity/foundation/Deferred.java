@@ -68,6 +68,13 @@ public final class Deferred extends Utilities {
          * @return the referred to object.
          */
         T get();
+
+        /**
+         * Tells if the reference has been resolved; i.e., if the object has been instantiated.
+         *
+         * @return <code>true</code> if the object has already been instantiated, <code>false</code> otherwise.
+         */
+        boolean resolved();
     }
 
     /**
@@ -97,6 +104,10 @@ public final class Deferred extends Utilities {
             }
 
             return cache;
+        }
+
+        public boolean resolved() {
+            return delegate != null;
         }
     }
 }
