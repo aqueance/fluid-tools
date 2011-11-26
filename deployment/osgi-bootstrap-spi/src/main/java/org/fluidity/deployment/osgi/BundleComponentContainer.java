@@ -22,7 +22,7 @@ import org.fluidity.composition.ComponentGroup;
 import org.fluidity.composition.ServiceProvider;
 
 /**
- * Sugar coating over the OSGi service registry: allows managed components to
+ * Sugar coating over the OSGi service registry. This container allows managed components to
  * <ul>
  * <li>declare dependencies on OSGi services and
  * <ul>

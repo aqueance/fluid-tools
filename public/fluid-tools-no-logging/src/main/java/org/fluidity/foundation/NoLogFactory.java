@@ -21,7 +21,7 @@ import org.fluidity.composition.ServiceProvider;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**
- * Log factory that gobbles up messages. This log implementation is meant for test cases.
+ * Log factory that gobbles up messages. This log implementation is meant to be used in test cases.
  *
  * @author Tibor Varga
  */

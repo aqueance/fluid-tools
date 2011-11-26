@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package org.fluidity.foundation;
+package org.fluidity.foundation.impl;
 
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ServiceProvider;
+import org.fluidity.foundation.Log;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**
