@@ -294,7 +294,7 @@
                         <encoding>UTF-8</encoding>
                         <author>false</author>
                         <show>public</show>
-                        <excludePackageNames>*.impl.*:*.internal.*:*.tests.*:*.maven.*:*.jarjar.*</excludePackageNames>
+                        <excludePackageNames>*.impl.*:*.internal.*:*.tests.*:*.maven.*</excludePackageNames>
                     </configuration>
                 </plugin>
 

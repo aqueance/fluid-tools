@@ -33,12 +33,26 @@ import java.util.jar.JarInputStream;
 import org.fluidity.foundation.ClassLoaders;
 
 /**
- * Handles resources inside JAR files inside JAR files, ad infinitum.
+ * {@link URLStreamHandler Stream protocol handler} to work with resources inside JAR archives embedded in other JAR archives, ad infinitum.
+ * <p/>
+ * When loaded, it adds its enclosing package to the protocol handler package list to make itself known. This stream protocol handler makes it possible for an
+ * ordinary {@link java.net.URLClassLoader} to work with JAR archives embedded in other JAR archives, enabling packaged Java applications without loss of
+ * functionality such as signed JAR files, etc.
+ * <p/>
+ * To use this this stream handler, all you need to do is {@link #formatURL(URL, String...) create} URLs that map to this stream protocol handler. For example,
+ * if you have a JAR archive named <code>my-archive.jar</code> that embeds another JAR archive, <code>my-dependency.jar</code>, the following will create an
+ * URL that can then be fed to an URL class loader:
+ * <pre>
+ * final URL embedded = Handler.formatURL(new File("my-archive.jar").toURI().toURL(), "my-dependency.jar");
+ * </pre>
  *
  * @author Tibor Varga
  */
-public class Handler extends URLStreamHandler {
+public final class Handler extends URLStreamHandler {
 
+    /**
+     * The URL protocol understood by this handler. The value is computed to be the last component of the containing package.
+     */
     public static final String PROTOCOL;
 
     static final String DELIMITER = "!:/";      // must not be the same used by the JAR handler
@@ -50,7 +64,7 @@ public class Handler extends URLStreamHandler {
         final int dot = canonicalName.lastIndexOf('.', canonicalName.length() - Handler.class.getSimpleName().length() - 2);
 
         if (dot < 0) {
-            throw new IllegalStateException(String.format("Class %s must not be in a package at least two levels deep", Handler.class.getName()));
+            throw new IllegalStateException(String.format("Class %s must be in a package at least two levels deep", Handler.class.getName()));
         }
 
         final String packageName = canonicalName.substring(0, dot);
@@ -61,6 +75,12 @@ public class Handler extends URLStreamHandler {
         }
 
         PROTOCOL = canonicalName.substring(dot + 1, canonicalName.lastIndexOf('.'));
+    }
+
+    /**
+     * Used by the URL stream handler framework. Do not call this constructor directly.
+     */
+    public Handler() {
     }
 
     @Override
@@ -89,6 +109,16 @@ public class Handler extends URLStreamHandler {
         }
     }
 
+    /**
+     * Creates a URL that will have the protocol handled, and the path format recognized, by this handler.
+     *
+     * @param root  the URL of the outermost JAR archive.
+     * @param paths the paths of the JAR archives embedded the last archive, or in case of the first item, the root archive.
+     *
+     * @return a URL properly formatted for this handler.
+     *
+     * @throws IOException if URL handling fails.
+     */
     public static URL formatURL(final URL root, final String... paths) throws IOException {
         final StringBuilder specification = new StringBuilder(256);
         final URLConnection connection = root.openConnection();
@@ -118,7 +148,10 @@ public class Handler extends URLStreamHandler {
         }
     }
 
-    public static class EmbeddedConnection extends URLConnection {
+    /**
+     * An URL connection for the represented URL protocol as required by the URL stream protocol handler framework.
+     */
+    private static class EmbeddedConnection extends URLConnection {
 
         private final URLConnection root;
 

@@ -570,11 +570,11 @@ public class ConfigurationTest extends MockGroupAbstractTest {
 
     interface ListSettings {
 
-        @Configuration.Property(key = "text", ids ="ids", list="text.value.%%s.string", split = ":")
-        List<String> textList();
+        @Configuration.Property(key = "text.%s", ids ="ids", list="text.%s.value.%%s.string", split = ":")
+        List<String> textList(String type);
 
-        @Configuration.Property(key = "text", ids ="ids")
-        Set<String> textSet();
+        @Configuration.Property(key = "text.%s", ids ="ids")
+        Set<String> textSet(String type);
 
         @Configuration.Property(key = "item", ids ="ids")
         Item1[] itemList();
@@ -644,14 +644,14 @@ public class ConfigurationTest extends MockGroupAbstractTest {
         final Configuration<ListSettings> configuration = configure(ListSettings.class, provider, null);
 
         // textList()
-        EasyMock.expect(provider.property("text.ids")).andReturn("1:2");
-        EasyMock.expect(provider.property("text.value.1.string")).andReturn("value11");
-        EasyMock.expect(provider.property("text.value.2.string")).andReturn("value12");
+        EasyMock.expect(provider.property("text.red.ids")).andReturn("1:2");
+        EasyMock.expect(provider.property("text.red.value.1.string")).andReturn("value11");
+        EasyMock.expect(provider.property("text.red.value.2.string")).andReturn("value12");
 
         // textSet()
-        EasyMock.expect(provider.property("text.ids")).andReturn("1, 2");
-        EasyMock.expect(provider.property("text.1")).andReturn("value21");
-        EasyMock.expect(provider.property("text.2")).andReturn("value22");
+        EasyMock.expect(provider.property("text.green.ids")).andReturn("1, 2");
+        EasyMock.expect(provider.property("text.green.1")).andReturn("value21");
+        EasyMock.expect(provider.property("text.green.2")).andReturn("value22");
 
         // itemList()
         EasyMock.expect(provider.property("item.ids")).andReturn("1, 2");
@@ -675,8 +675,8 @@ public class ConfigurationTest extends MockGroupAbstractTest {
         replay();
         configuration.query(new Configuration.Query<ListSettings, Void>() {
             public Void read(final ListSettings settings) {
-                checkObjects(Arrays.asList("value11", "value12"), settings.textList());
-                checkObjects(new HashSet<String>(Arrays.asList("value21", "value22")), settings.textSet());
+                checkObjects(Arrays.asList("value11", "value12"), settings.textList("red"));
+                checkObjects(new HashSet<String>(Arrays.asList("value21", "value22")), settings.textSet("green"));
                 checkArrays(new ListSettings.Item1[] { new ListSettings.Item1(12, "23"), new ListSettings.Item1(34, "45") }, settings.itemList());
 
                 final Map<Integer, ListSettings.Item2> itemMap = new HashMap<Integer, ListSettings.Item2>();

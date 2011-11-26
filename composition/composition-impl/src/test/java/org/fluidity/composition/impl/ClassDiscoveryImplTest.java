@@ -27,8 +27,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.fluidity.foundation.ClassLoaders;
+import org.fluidity.foundation.NoLogFactory;
 import org.fluidity.foundation.Streams;
-import org.fluidity.foundation.logging.NoLogFactory;
 import org.fluidity.foundation.spi.LogFactory;
 import org.fluidity.tests.MockGroupAbstractTest;
 

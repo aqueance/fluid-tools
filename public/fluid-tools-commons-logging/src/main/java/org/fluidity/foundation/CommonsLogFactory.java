@@ -14,18 +14,25 @@
  * limitations under the License.
  */
 
-package org.fluidity.foundation.logging;
+package org.fluidity.foundation;
 
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ServiceProvider;
-import org.fluidity.foundation.Log;
 import org.fluidity.foundation.spi.LogFactory;
 
+/**
+ * Log factory backed by Apache commons-logging.
+ *
+ * @author Tibor Varga
+ */
 @Component
 @ServiceProvider
-public final class Slf4jLogFactory implements LogFactory {
+final class CommonsLogFactory implements LogFactory {
 
+    /**
+     * {@inheritDoc}
+     */
     public Log createLog(final Class<?> source) {
-        return new Slf4jLogImpl(source);
+        return new CommonsLogImpl(source);
     }
 }

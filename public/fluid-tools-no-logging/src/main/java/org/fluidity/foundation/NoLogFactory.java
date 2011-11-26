@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 
-package org.fluidity.foundation.logging;
+package org.fluidity.foundation;
 
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ServiceProvider;
-import org.fluidity.foundation.Log;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**
- * Returns a {@link Log} object that simply gobbles up messages.
+ * Log factory that gobbles up messages. This log implementation is meant for test cases.
  *
  * @author Tibor Varga
  */
@@ -87,6 +86,14 @@ public final class NoLogFactory implements LogFactory {
         }
     };
 
+    /**
+     * Default constructor.
+     */
+    public NoLogFactory() { }
+
+    /**
+     * {@inheritDoc}
+     */
     public Log createLog(final Class<?> ignored) {
         return sink;
     }

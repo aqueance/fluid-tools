@@ -24,7 +24,7 @@ import org.fluidity.composition.OpenComponentContainer;
 import org.fluidity.composition.impl.ProductionServicesFactory;
 import org.fluidity.composition.spi.ContainerServices;
 import org.fluidity.composition.spi.ContainerServicesFactory;
-import org.fluidity.foundation.logging.NoLogFactory;
+import org.fluidity.foundation.NoLogFactory;
 import org.fluidity.foundation.spi.LogFactory;
 import org.fluidity.tests.MockGroupAbstractTest;
 

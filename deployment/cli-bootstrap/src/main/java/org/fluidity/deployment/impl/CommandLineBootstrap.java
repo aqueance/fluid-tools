@@ -18,7 +18,7 @@ package org.fluidity.deployment.impl;
 
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ContainerBoundary;
-import org.fluidity.deployment.spi.Application;
+import org.fluidity.deployment.cli.Application;
 
 /**
  * A command line main class that bootstraps the application's dependency injection container, invokes {@link Application#run(String[])} to load and run the

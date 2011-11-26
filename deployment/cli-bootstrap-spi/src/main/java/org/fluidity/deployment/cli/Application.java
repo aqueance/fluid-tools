@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.fluidity.deployment.spi;
+package org.fluidity.deployment.cli;
 
 /**
  * Command line application root object. For Fluid Tools based command line applications, this interface takes the place of the public static <code>main</code>

@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-package org.fluidity.foundation.logging;
-
-import org.fluidity.foundation.Log;
+package org.fluidity.foundation;
 
 import org.apache.commons.logging.LogFactory;
 

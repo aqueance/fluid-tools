@@ -21,13 +21,18 @@ import org.fluidity.composition.ServiceProvider;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**
+ * Log factory to emit messages to the standard output stream.
+ *
  * @author Tibor Varga
  */
 @ServiceProvider
 @Component(primary = false)
 final class StandardOutLogFactory implements LogFactory {
 
-    public Log createLog(final Class<?> marker) {
-        return new StandardOutLog(marker);
+    /**
+     * {@inheritDoc}
+     */
+    public Log createLog(final Class<?> source) {
+        return new StandardOutLog(source);
     }
 }

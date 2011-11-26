@@ -17,19 +17,21 @@
 package org.fluidity.foundation.spi;
 
 /**
- * Maps property keys to property values. You provide an implementation that suits your configuration strategy.
+ * Maps property keys to property values. You provide an implementation that suits your configuration strategy. As long as the implementation is annotated as
+ * {@link org.fluidity.composition.Component @Component}, Fluid Tools will find and use it.
  *
  * @author Tibor Varga
  */
+@SuppressWarnings("JavadocReference")
 public interface PropertyProvider {
 
     /**
-     * Returns the configured value for the given property or <code>null</code> if no property was configured with the given name. Default values are assigned
+     * Returns the configured value for the given property or <code>null</code> if no property was configured for the given key. Default values are assigned
      * to missing property values at higher levels.
      *
      * @param key the property name, or key.
      *
-     * @return the configured value for the given property or <code>null</code> if no property was configured with the given name.
+     * @return the configured value for the given property or <code>null</code> if no property was configured for the given key.
      */
     Object property(String key);
 

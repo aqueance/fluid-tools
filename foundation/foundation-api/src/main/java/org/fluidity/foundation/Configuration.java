@@ -166,19 +166,19 @@ public interface Configuration<T> {
     }
 
     /**
-     * Annotates a setting query method to specify what property to query and, optionally, what default value to return if the property is not defined.
+     * Annotates a configuration query method to specify what property to query, what default value to return if the property is not defined, and how to
+     * process list and map typed configuration values.
      * <p/>
-     * This annotation is to be used on interface methods that will be used in conjunction with either a {@link Configuration} component.
+     * This annotation is used on interface methods that parameterize a {@link Configuration} dependency is some component.
      * <p/>
-     * This annotation also specify how to handle query methods with array and parameterized {@link java.util.Set}, {@link java.util.List} or {@link
-     * java.util.Map} return types. The implementation understands JSON encoded arrays and maps, without the top level grouping characters, '[]' and '{}'
-     * included, and can convert such property values to arrays, lists, sets and maps, nested in any complexity, as long as the parameterized return type of
-     * the
-     * annotated method provides adequate information as to the expected type of any item encoded in the property value. The grouping and delimiter characters
-     * in the encoded property value are configurable, they aren't required to tell whether the item is a map or array since that information is already
-     * encoded in the return type of the annotated method.
+     * To handle query methods with array and parameterized {@link java.util.Set}, {@link java.util.List} or {@link java.util.Map} return types, the
+     * implementation understands JSON encoded arrays and maps, without the top level grouping characters included ('[]' and '{}'), and can convert such
+     * property values to arrays, lists, sets and maps, nested in any complexity, as long as the parameterized return type of the annotated method provides
+     * adequate information as to the expected type of any item encoded in the property value. Although the grouping and delimiter characters in the encoded
+     * property value are configurable, they aren't required to tell whether the item is a map or array since that information is already encoded in the return
+     * type of the annotated method.
      * <p/>
-     * For instance, with a method return value <code>Map&lt;List&lt;String>, long[]></code>, the following property values would be valid:
+     * For instance, with a method returning <code>Map&lt;List&lt;String>, long[]></code>, the following property values would be valid:
      * <ul>
      * <li>""</li>
      * <li>"[a, b]: [1, 2, 3]"</li>
@@ -208,15 +208,14 @@ public interface Configuration<T> {
 
         /**
          * For array or collection valued properties, this parameter defines the characters delimiting the items. The value is ignored for non collection type
-         * properties. If not specified, it defaults to ",:".
+         * properties.
          *
          * @return the list of characters that delimit items of an array, collection or map valued property.
          */
         String split() default ",:";
 
         /**
-         * For map or multidimensional collection valued properties, this string specifies the character pairs that enclose elements of one dimension. If not
-         * specified, it defaults to "[]{}".
+         * For map or multidimensional collection valued properties, this string specifies the character pairs that enclose elements of one dimension.
          * <p/>
          * For instance, <code>@Configuration.Property(key = "..." split = ',' grouping="()")</code> with property value "(1, 2, 3), (4, 5, 6), (7, 8, 9)"
          * results in a 2-dimensional array that is equivalent to the following Java array initializer:  <code>{ {1, 2, 3}, {4, 5, 6}, {7, 8, 9} }</code>.
@@ -226,10 +225,11 @@ public interface Configuration<T> {
         String grouping() default "[]{}";
 
         /**
-         * Returns the property key that defines a list of other items. This is attribute is useful in cases where one property defines a list that defines
-         * a list of other properties whose values should be returned as an array, collection, or map. For instance, let's consider the following properties:
+         * Returns the property key that defines a list of other items. This is attribute is useful in cases where one property provides a list from which
+         * a list of other properties are derived, and the values of those properties should be returned as an array, collection, or map. For instance,
+         * consider the following properties:
          * <pre>
-         * item.ids=1,2,3
+         * item.list=1,2,3
          * item.1=item1
          * item.2=item1
          * item.3=item1
@@ -238,7 +238,7 @@ public interface Configuration<T> {
          * <pre>
          * interface Settings {
          *     ...
-         *     &#64;Configuration.Property(key = "items", ids="ids")
+         *     &#64;Configuration.Property(key = "item", ids="list")
          *     String[] items();
          *     ...
          * }
@@ -251,7 +251,7 @@ public interface Configuration<T> {
         /**
          * Works in conjunction with {@link #ids()} to override the prefix for the individual items. For instance, let's consider the following properties:
          * <pre>
-         * item.ids=1,2,3
+         * item.list=1,2,3
          * item.1.value=item1
          * item.2.value=item1
          * item.3.value=item1
@@ -260,13 +260,36 @@ public interface Configuration<T> {
          * <pre>
          * interface Settings {
          *     ...
-         *     &#64;Configuration.Property(key = "items", ids="ids", list="item.%s.value")
+         *     &#64;Configuration.Property(key = "item", ids="list", list="item.%%s.value")
          *     String[] items();
          *     ...
          * }
          * </pre>
+         * </p>
+         * <b>Note</b>: the placeholder used in this parameter is <code>"%%s"</code> to allow for interpolating the method parameters. For instance:
+         * <pre>
+         * interface Settings {
+         *     ...
+         *     &#64;Configuration.Property(key = "item.%s", ids="list", list="item.%s.%%s.value")
+         *     String[] items(String type);
+         *     ...
+         * }
+         * </pre>
+         * The above would allow one to query either the <code>item.long</code> or <code>item.short</code> list by calling <code>items("long")</code> or
+         * <code>items("short")</code>, respectively.
+         * <pre>
+         * item.long.list=1,2,3
+         * item.long.1.value=item1
+         * item.long.2.value=item1
+         * item.long.3.value=item1
          *
-         * @return the prefix for individual items in a list; defaults to {@link #key()}.<code>concat(".%s")</code>.
+         * item.short.list=1,2
+         * item.short.1.value=item1
+         * item.short.2.value=item1
+         * </pre>
+         * In the above case, you would need the following method to read the list of items as an array of <code>String</code> objects:
+         *
+         * @return the property key pattern for individual items in a list; defaults to {@link #key()}.<code>concat(".%%s")</code>.
          */
         String list() default "";
     }
@@ -280,8 +303,7 @@ public interface Configuration<T> {
     @interface Context {
 
         /**
-         * The property prefix to apply to all property keys defined by the {@link Configuration.Property#key()} annotations for the {@link Configuration}
-         * dependency.
+         * The property prefix to apply to all property keys specified by {@link Configuration.Property#key()} annotated methods in the scope of this context.
          *
          * @return a property prefix, without the trailing dot.
          */

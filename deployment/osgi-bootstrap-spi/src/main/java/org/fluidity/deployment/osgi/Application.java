@@ -19,11 +19,10 @@ package org.fluidity.deployment.osgi;
 import org.osgi.framework.BundleActivator;
 
 /**
- * OSGi application root object. This one of the two ways to implement an OSGi application using Fluid Tools. One way, this, is to use the Fluid Tools
+ * OSGi application root object. This is one of the two ways to implement an OSGi application using Fluid Tools. One way, this, is to use the Fluid Tools
  * implementation of the {@link org.osgi.framework.BundleActivator} interface, which in turn uses the implementation of this interface, if exists, to notify
  * your application of the bundle's start and stop events. The other way is for the application to provide an implementation of the {@link
  * org.osgi.framework.BundleActivator} interface. In either case, bootstrapping the container is then the responsibility of the {@link
  * org.osgi.framework.BundleActivator} implementation.
  */
-public interface Application extends BundleActivator {
-}
+public interface Application extends BundleActivator { }
