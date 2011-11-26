@@ -32,7 +32,10 @@ import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 
 /**
- * Bootstraps the dependency injection container in an OSGi bundle. Must be public with a zero-arg constructor for the OSGi container to be able to call.
+ * Bootstraps the dependency injection container in an OSGi bundle. As properly set up OSGi bundle Maven project will automatically set up this class as the
+ * bundle activator for the project artifact. Thus, you never need to directly deal with this class.
+ * <p/>
+ * This class must be public with a zero-arg constructor for the OSGi container to be able to instantiate it.
  *
  * @author Tibor Varga
  */
@@ -42,6 +45,19 @@ public final class BundleBootstrap implements BundleActivator {
     private Activators activators;
     private BundleComponentContainer container;
 
+    /**
+     * Default constructor.
+     */
+    public BundleBootstrap() { }
+
+    /**
+     * Loads a {@link BundleComponentContainer} and calls {@link BundleActivator#start(BundleContext)} on all {@link ComponentGroup @ComponentGroup} annotated
+     * <code>BundleActivator</code> implementations in the bundle.
+     *
+     * @param context the bundle context for the host bundle.
+     *
+     * @throws Exception when anything goes wrong.
+     */
     @SuppressWarnings("unchecked")
     public void start(final BundleContext context) throws Exception {
         Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
@@ -60,6 +76,14 @@ public final class BundleBootstrap implements BundleActivator {
         activators.start();
     }
 
+    /**
+     * Stops the {@link BundleComponentContainer} loaded, and calls the {@link BundleActivator#stop(BundleContext)}
+     * method on all <code>BundleActivator</code> implementations instantiated, in the {@link #start(BundleContext)} method.
+     *
+     * @param context the bundle context for the host bundle.
+     *
+     * @throws Exception when anything goes wrong.
+     */
     public void stop(final BundleContext context) throws Exception {
         activators.stop();
         container.stop();
@@ -78,7 +102,7 @@ public final class BundleBootstrap implements BundleActivator {
         }
 
         public void stop() {
-            for (final ListIterator<Runnable> iterator = tasks.listIterator(tasks.size()); iterator.hasPrevious();) {
+            for (final ListIterator<Runnable> iterator = tasks.listIterator(tasks.size()); iterator.hasPrevious(); ) {
                 final Runnable task = iterator.previous();
                 try {
                     task.run();

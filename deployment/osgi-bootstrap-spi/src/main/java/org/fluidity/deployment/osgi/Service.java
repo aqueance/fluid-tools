@@ -23,8 +23,11 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Annotates method parameters of a {@link BundleComponentContainer.Managed} component that require an OSGi service instance. See
+ * Annotates method parameters of a {@link BundleComponentContainer.Managed} component that require an OSGi service instance to resolve. See
  * {@link BundleComponentContainer} for details on managed components.
+ * <p/>
+ * This annotation applies to constructor parameters but not to fields as the component whose constructor has parameters annotated with this type not expected
+ * to be instantiated until all of its constructor parameters annotated with this type have been registered in the OSGi service registry.
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
@@ -32,7 +35,8 @@ import java.lang.annotation.Target;
 public @interface Service {
 
     /**
-     * Returns the service interface under which the required OSGi service is expected to have been registered.
+     * Returns the service interface under which the required OSGi service is expected to have been registered. When not specified, the service interface
+     * defaults to the type of the annotated dependency reference.
      *
      * @return the service interface under which the required OSGi service is expected to have been registered.
      */

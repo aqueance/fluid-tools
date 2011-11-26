@@ -22,70 +22,86 @@ import org.fluidity.composition.ComponentGroup;
 import org.fluidity.composition.ServiceProvider;
 
 /**
- * Sugar coating over the OSGi service registry. This container allows managed components to
+ * Component life cycle management backed by the OSGi service registry. This container allows its managed components to<ul>
+ * <li>declare dependencies on {@link Service OSGi services} and
  * <ul>
- * <li>declare dependencies on OSGi services and
- * <ul>
- * <li>get instantiated and started when all those services become available</li>
- * <li>get stopped and discarded when any of those services become unavailable</li>
+ * <li>get instantiated and {@link Managed#start() started} when all those services become available</li>
+ * <li>get {@link Managed#stop() stopped} and discarded when any of those services become unavailable</li>
  * </ul>
  * </li>
- * <li>get registered as OSGi service</li>
- * <li>get notified when OSGi services become available and unavailable</li>
+ * <li>get registered as {@link Registration OSGi service}</li>
+ * <li>get notified when OSGi services become {@link Registration.Listener#clientAdded(Object, Properties) available} and
+ * {@link Registration.Listener#clientRemoved(Object) unavailable}</li>
  * </ul>
+ * This container automatically finds, loads and manages all implementations of the {@link Managed Managed} interface visible to its class loader, which is the
+ * OSGi bundle class loader. Implementations of the <code>Managed</code> interface include more specific components that implement {@link
+ * Registration Registration} and {@link Registration.Listener Registration.Listener}.
+ * <p/>
+ * By design, you never directly use this interface; rather, you implement your bundle as a collection of components managed by this container.
  * <p/>
  * <b>Depending on OSGi Services</b>
  * <p/>
- * The {@link Managed} component's constructor parameters annotated with {@link Service @Service} are dependencies to OSGi services while parameters not so
- * annotated are ordinary dependencies. When all of the OSGi services depended on become available, the component is instantiated and its {@link #start()}
- * method is invoked to start the component. The {@link #stop()} method of the component will be invoked when any of those OSGi services becomes unavailable and
- * then the component instance is discarded.
+ * <code>Managed</code> components with direct dependencies - i.e., those without the {@link Service @Service} annotation - to one another are grouped and
+ * their combined set of {@link Service @Service} dependencies are consulted to determine when to instantiate or discard all components in the group.
+ * Independent component groups are instantiated and discarded independently.
+ * <p/>
+ * The parameters of constructor of these components that are annotated with <code>@Service</code> are dependencies to OSGi services while parameters not so
+ * annotated are ordinary dependencies.
+ * <p/>
+ * When all of the OSGi services depended on become available, the component is instantiated and its {@link Managed#start() start()} method is invoked to start
+ * the component. The {@link Stoppable#stop() stop()} method of the component will be invoked when any of those OSGi services becomes unavailable and then the
+ * component instance is discarded.
  * <p/>
  * <b>Getting registered as OSGi Service</b>
  * <p/>
- * {@link Registration} components are {@link Managed} components that are registered as OSGi services when all OSGi services they depend on become available
- * and get unregistered when any of those become unavailable.
+ * {@link Registration Registration} components are <code>Managed</code> components that are registered as OSGi services when all OSGi services they depend on
+ * become available, and get unregistered when any of those become unavailable.
  * <p/>
  * <b>Notification about OSGi Service Registration Events</b>
  * <p/>
- * {@link Registration.Listener} components are {@link Managed} components that receive notifications about OSGi service registration and un-registration
- * events.
+ * {@link Registration.Listener Registration.Listener} components are <code>Managed</code> components that receive notifications about OSGi service
+ * registration events via the {@link Registration.Listener#clientAdded(Object, Properties) clientAdded()} method and un-registration events via the {@link
+ * Registration.Listener#clientRemoved(Object) clientRemoved()} method.
  * <p/>
  * A managed component may at the same time be a registered OSGi service and may receive notifications about OSGi service registration events by implementing
- * both {@link Registration} and {@link Registration.Listener}.
+ * both {@link Registration Registration} and {@link Registration.Listener Registration.Listener}.
  * <p/>
- * This container loads and manages all {@link Managed} components visible to its class loader, which is the OSGi bundle class loader. Components
- * with direct dependencies - i.e., those without the {@link Service @Service} annotation - to one another are grouped and their combined set of {@link
- * Service @Service} dependencies are consulted to determine when to instantiate or discard all components in the group. Independent component groups are
- * instantiated and discarded independently.
+ * <b>Observing Component Management</b>
+ * <p/>
+ * This container will also find and load all implementations of the {@link Observer Observer} interface. <code>Observer</code> components get notified when
+ * any of a set of components it {@link Observer#types() declares} to be interested in gets {@link Observer#started(Class, Object) started} or {@link
+ * Observer#stopping(Class, Object) stopped}.
  *
  * @author Tibor Varga
  */
 public interface BundleComponentContainer {
 
     /**
-     * Starts the container.
+     * Starts the container. Invoked automatically when the host bundle starts.
      */
     void start();
 
     /**
-     * Stops the container.
+     * Stops the container. Invoked automatically when the host bundle stops.
      */
     void stop();
 
+    /**
+     * A component that gets notified by a {@link BundleComponentContainer} when a {@link BundleComponentContainer.Managed Managed} component gets {@link
+     * #started(Class, Object) started} or {@link #stopping(Class, Object) stopped}.
+     */
     @ComponentGroup
     interface Observer {
 
         /**
-         * Returns the service interfaces this object will be notified about.
+         * Returns the component interfaces this object will be notified about.
          *
-         * @return the service interfaces this object will be notified about.
+         * @return the component interfaces this object will be notified about.
          */
         Class<?>[] types();
 
         /**
-         * Notifies the receiver that the given managed components have been started and are ready to be used. The objects are proxies and the supplied array
-         * contains only those components that registered only against interfaces.
+         * Notifies the receiver that the given managed component has been started and is ready to be used.
          *
          * @param type      the component type as listed by {@link #types()} an instance of which has just been started.
          * @param component the component that has just been started.
@@ -93,7 +109,7 @@ public interface BundleComponentContainer {
         void started(Class<?> type, Object component);
 
         /**
-         * Notifies the receiver that the managed components for the given service types have been stopped and are no longer usable.
+         * Notifies the receiver that the given managed component is about to be stopped and is thus no longer usable.
          *
          * @param type      the component type as listed by {@link #types()} the current instance of which is about to be stopped.
          * @param component the component that is about to be stopped.
@@ -102,10 +118,14 @@ public interface BundleComponentContainer {
     }
 
     /**
-     * A managed component that will be discovered and added to the container. Managed components may have two kinds of dependencies: OSGi service interfaces
-     * annotated with {@link Service @Service} and ordinary types denoting dependency injected components. When all OSGi services dependencies become available,
-     * the component is instantiated and its {@link #start()} method is invoked. The {@link #stop()} method of the component is invoked to stop the component if
-     * any of the services become unavailable and then the instance is discarded.
+     * A managed component that will be discovered and added to the container.
+     * <p/>
+     * Managed components may have two kinds of dependencies: OSGi service interfaces annotated with {@link Service @Service} and ordinary types denoting
+     * components in the same bundle.
+     * </p>
+     * When all OSGi services dependencies of a managed component become available, the component is instantiated and its {@link #start()} method is
+     * invoked. The {@link #stop() stop()} method of the component is invoked to stop the component if any of the services become unavailable and then the
+     * instance is discarded.
      */
     @ServiceProvider(type = "bundle-components")
     interface Managed extends Stoppable {
@@ -119,8 +139,10 @@ public interface BundleComponentContainer {
     }
 
     /**
-     * Denotes an OSGi service that will be registered when the host bundle is started. A service registration is also a {@link Managed} component and the
-     * start / stop logic described therein equally applies.
+     * Denotes an OSGi service implemented in this bundle that will be registered when it is {@link BundleComponentContainer.Managed#start() started} and
+     * un-registered when {@link BundleComponentContainer.Managed#stop() stopped} by its {@link BundleComponentContainer managing container}.
+     * <p/>
+     * A service registration is a {@link Managed Managed} component thus the start / stop logic described therein applies.
      *
      * @author Tibor Varga
      */
@@ -141,31 +163,32 @@ public interface BundleComponentContainer {
         Properties properties();
 
         /**
-         * An event source that wishes to receive notification about event consumer registration as per the Whiteboard pattern. An event source is a
-         * {@link org.fluidity.deployment.osgi.BundleComponentContainer.Managed} component and the start / stop logic described therein equally applies.
+         * An event source that wishes to receive notifications about event consumer registration as per the Whiteboard pattern.
+         * <p/>
+         * An event source is a {@link Managed Managed} component thus the start / stop logic described therein applies.
          */
         interface Listener<T> extends Managed {
 
             /**
-             * Returns the class event consumers are expected to register as. Service registrations only against the name of the returned class will be recognized
-             * as event consumer registration.
+             * Returns the class that event consumers of interest are expected to register as. Service registrations only against the name of the returned class will be
+             * recognized as event consumer registration.
              *
-             * @return the class event consumers are expected to register as.
+             * @return the class that event consumers of interest are expected to register as.
              */
             Class<T> clientType();
 
             /**
-             * Notifies the event source that a new component has been added.
+             * Notifies the event source that a new event consumer has been added.
              *
-             * @param component   the component.
-             * @param properties the component registration properties.
+             * @param component  the event consumer.
+             * @param properties the registration properties of the event consumer.
              */
             void clientAdded(T component, Properties properties);
 
             /**
-             * Notifies the event source that a component has been removed.
+             * Notifies the event source that an event consumer has been removed.
              *
-             * @param component the component that has been removed.
+             * @param component the event consumer that has been removed.
              */
             void clientRemoved(T component);
         }
@@ -173,6 +196,9 @@ public interface BundleComponentContainer {
 
     /**
      * Allows an item managed by the container to be explicitly removed from the container. This is also done automatically when the owning bundle is stopped.
+     * <p/>
+     * You never use this interface directly but through more specific interfaces such as {@link Managed Managed}, {@link Registration Registration} and
+     * {@link Registration.Listener Registration.Listener}.
      */
     interface Stoppable {
 

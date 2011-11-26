@@ -17,12 +17,12 @@
 package org.fluidity.deployment.osgi;
 
 /**
- * Enables cross-bundle class loading in an OSGi container. More specifically, this component allows:
+ * Enables controlled cross-bundle class loading in an OSGi container. More specifically, this component allows:
  * <ul>
- * <li>importing a remote component into the calling bundle and allows it to find classes in this bundle: useful when receiving a reference to an OSGi service
- * to allow it to load classes from the receiving bundle;</li>
- * <li>exporting a local component for access by another to allow the local component load classes from the bundle of the other: useful when sending an OSGi
- * service component to another bundle to allow it to load classes from that other bundle.</li>
+ * <li>importing a remote component into the calling bundle, allowing <em>it</em> to find classes in this bundle: useful when receiving a reference to an OSGi
+ * service that you want to be able to load classes from this bundle;</li>
+ * <li>exporting a local component for access by another component, allowing the local component to load classes from the bundle of the other: useful when
+ * sending to another bundle an OSGi service component that you want to be able to load classes from that other bundle.</li>
  * </ul>
  *
  * @author Tibor Varga

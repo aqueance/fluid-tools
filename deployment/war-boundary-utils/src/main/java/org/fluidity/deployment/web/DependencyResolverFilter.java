@@ -28,7 +28,7 @@ import javax.servlet.ServletResponse;
  * A filter decorator that enables its delegate to have its dependencies injected. The delegate must be another filter, obviously. The delegate is
  * instantiated in the {@link #init(FilterConfig)}  method and discarded in the {@link #destroy()} method..
  * <p/>
- * Usage in <code>web.xml</code>:<pre>
+ * Example <code>web.xml</code>:<pre>
  * &lt;web-app>
  *   ...
  *   &lt;filter>
@@ -51,6 +51,14 @@ public final class DependencyResolverFilter implements Filter {
 
     private Filter delegate;
 
+    /**
+     * Default constructor.
+     */
+    public DependencyResolverFilter() { }
+
+    /**
+     * {@inheritDoc}
+     */
     public void init(final FilterConfig config) throws ServletException {
         init(config, resolver);
     }
@@ -65,10 +73,16 @@ public final class DependencyResolverFilter implements Filter {
         delegate.init(config);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     public void doFilter(final ServletRequest request, final ServletResponse response, final FilterChain chain) throws IOException, ServletException {
         delegate.doFilter(request, response, chain);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     public void destroy() {
         delegate.destroy();
         delegate = null;
