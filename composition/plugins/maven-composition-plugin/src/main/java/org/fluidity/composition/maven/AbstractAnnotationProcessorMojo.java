@@ -120,8 +120,6 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
     @SuppressWarnings("UnusedDeclaration")
     private MavenProject project;
 
-    private final Log log = getLog();
-
     private String projectName;
 
     protected final Build build() {
@@ -162,6 +160,8 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
         } finally {
             repository.destroy();
         }
+
+        final Log log = getLog();
 
         for (final Map.Entry<String, Map<String, Collection<String>>> entry : serviceProviderMap.entrySet()) {
             final String type = entry.getKey();
@@ -243,6 +243,8 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
     }
 
     private void printBindings(final String indent, final String type, final Set<String> bindings) {
+        final Log log = getLog();
+
         log.info(String.format("%s%s bindings:", indent, type));
         for (final String implementationName : bindings) {
             log.info(String.format("%s%s%s", indent, indent, implementationName));
