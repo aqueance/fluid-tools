@@ -78,7 +78,7 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
         assert context != null;
 
         final ActualPath savedPath = resolutionPath.get();
-        final ActualPath currentPath = savedPath.descend(new ElementImpl(api, context, null));
+        final ActualPath currentPath = savedPath.descend(new ElementImpl(api, null));
 
         resolutionPath.set(currentPath);
         try {
@@ -144,7 +144,7 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
 
     Object instantiate(final Class<?> api, final DependencyGraph.Node node, final ElementImpl element, final DependencyGraph.Traversal traversal) {
         final ActualPath savedPath = resolutionPath.get();
-        final ActualPath currentPath = savedPath.descend(element.redefine(node));
+        final ActualPath currentPath = savedPath.descend(element.receive(node.context()));
 
         resolutionPath.set(currentPath);
         try {
@@ -355,22 +355,16 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
 
         public final Class<?> api;
         public Class<?> type;
-        public ContextDefinition definition;
         public ComponentContext context;
         public DependencyGraph.Node node;
         public Cache cache;
         private Set<Annotation> annotations = new HashSet<Annotation>();
 
-        public ElementImpl(final Class<?> api, final ContextDefinition definition, final Annotation[] annotations) {
+        public ElementImpl(final Class<?> api, final Annotation[] annotations) {
             this.api = api;
-            this.definition = definition.copy();
             if (annotations != null) {
                 this.annotations.addAll(Arrays.asList(annotations));
             }
-        }
-
-        private Object context() {
-            return definition == null ? context : definition;
         }
 
         @Override
@@ -381,22 +375,18 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
                 return false;
             }
 
-            final ElementImpl element = (ElementImpl) o;
-            final Object mine = context();
-            final Object theirs = element.context();
-            return api.equals(element.api) && (mine == null ? theirs == null : mine.equals(theirs));
+            final ElementImpl that = (ElementImpl) o;
+            return api.equals(that.api) && (context == null ? that.context == null : context.equals(that.context));
         }
 
         @Override
         public int hashCode() {
             final int hash = api.hashCode();
-            final Object context = context();
             return context != null ? context.hashCode() + 31 * hash : hash;
         }
 
-        public ElementImpl redefine(final DependencyGraph.Node node) {
-            this.definition = null;
-            this.context = node.context();
+        public ElementImpl receive(final ComponentContext context) {
+            this.context = context;
             return this;
         }
 

@@ -45,7 +45,7 @@ final class ContextDefinitionImpl implements ContextDefinition {
     private int hashCode;
 
     public ContextDefinitionImpl() {
-        hashCode = AnnotationMaps.hashCode(clean(defined, active));
+        hashCode = AnnotationMaps.hashCode(defined);
     }
 
     private ContextDefinitionImpl(final Map<Class<? extends Annotation>, Annotation[]> defined,
@@ -53,7 +53,7 @@ final class ContextDefinitionImpl implements ContextDefinition {
         copy(defined, this.defined);
         copy(active, this.active);
 
-        this.hashCode = AnnotationMaps.hashCode(clean(this.defined, this.active));
+        this.hashCode = AnnotationMaps.hashCode(this.defined);
     }
 
     public ContextDefinition expand(final Annotation[] definition, final Type reference) {
@@ -78,7 +78,7 @@ final class ContextDefinitionImpl implements ContextDefinition {
                 defined.put(Component.Reference.class, new Annotation[] { new ComponentReferenceImpl(reference) });
             }
 
-            hashCode = AnnotationMaps.hashCode(clean(defined, active));
+            hashCode = AnnotationMaps.hashCode(defined);
         }
 
         return this;
@@ -174,27 +174,7 @@ final class ContextDefinitionImpl implements ContextDefinition {
     @Override
     public boolean equals(final Object o) {
         final ContextDefinitionImpl that = (ContextDefinitionImpl) o;
-        return this == o || (o != null && getClass() == o.getClass() && AnnotationMaps.equal(clean(defined, active), clean(that.defined, that.active)));
-    }
-
-    /*
-     * The Component.Reference annotation is a special case in that
-     *  - it tracks only the last reference rather than all dependency references in the instantiation path,
-     *  - it should not contribute to context definition identity (hash code and equality check)
-     *
-     *  This method ensures the latter characteristics.
-     *
-     *  TODO: revise this
-     */
-    private Map<Class<? extends Annotation>, Annotation[]> clean(final Map<Class<? extends Annotation>, Annotation[]> defined,
-                                                                 final Map<Class<? extends Annotation>, Annotation[]> active) {
-        if (active.containsKey(Component.Reference.class)) {
-            return defined;
-        } else {
-            final Map<Class<? extends Annotation>, Annotation[]> clean = new HashMap<Class<? extends Annotation>, Annotation[]>(defined);
-            clean.remove(Component.Reference.class);
-            return clean;
-        }
+        return this == o || (o != null && getClass() == o.getClass() && AnnotationMaps.equal(defined, that.defined));
     }
 
     @Override
