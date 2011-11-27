@@ -23,8 +23,8 @@ import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -144,7 +144,7 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
 
     Object instantiate(final Class<?> api, final DependencyGraph.Node node, final ElementImpl element, final DependencyGraph.Traversal traversal) {
         final ActualPath savedPath = resolutionPath.get();
-        final ActualPath currentPath = savedPath.descend(element.receive(node.context()));
+        final ActualPath currentPath = savedPath.descend(element, node.context());
 
         resolutionPath.set(currentPath);
         try {
@@ -287,7 +287,7 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
         public final boolean tip;
 
         private final List<ElementImpl> list = new ArrayList<ElementImpl>();
-        private final Map<ElementImpl, ElementImpl> map = new LinkedHashMap<ElementImpl, ElementImpl>();
+        private final Map<ElementImpl, ElementImpl> map = new HashMap<ElementImpl, ElementImpl>();
 
         private ActualPath() {
             this.repeating = false;
@@ -313,6 +313,18 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
 
         public ActualPath descend(final ElementImpl element) {
             return new ActualPath(list, map, element);
+        }
+
+        public ActualPath descend(final ElementImpl element, final ComponentContext context) {
+            final ElementImpl found = map.remove(element);
+
+            element.receive(context);
+
+            if (found != null) {
+                map.put(element, element);
+            }
+
+            return descend(element);
         }
 
         public Element head() {
@@ -385,6 +397,9 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
             return context != null ? context.hashCode() + 31 * hash : hash;
         }
 
+        /*
+         * Note: this changes the object's identity
+         */
         public ElementImpl receive(final ComponentContext context) {
             this.context = context;
             return this;

@@ -80,7 +80,7 @@ abstract class AbstractResolver implements ComponentResolver {
         return false;
     }
 
-    protected final CachingNode cachingNode(final ParentContainer domain, final DependencyGraph.Node node, final SimpleContainer container) {
+    protected final CachingNode cachingNode(final ParentContainer domain, final SimpleContainer container, final DependencyGraph.Node node) {
         return new CachingNode(domain, node, container);
     }
 
@@ -88,12 +88,12 @@ abstract class AbstractResolver implements ComponentResolver {
 
         private final ParentContainer domain;
         private final DependencyGraph.Node node;
-        private final SimpleContainer container;
+        private final Object source;
 
         public CachingNode(final ParentContainer domain, final DependencyGraph.Node node, final SimpleContainer container) {
             this.domain = domain;
             this.node = node;
-            this.container = container;
+            this.source = container;
         }
 
         public Class<?> type() {
@@ -103,7 +103,7 @@ abstract class AbstractResolver implements ComponentResolver {
         public Object instance(final DependencyGraph.Traversal traversal) {
             final ComponentContext context = node.context();
 
-            return cache.lookup(domain, container, context, api, new ComponentCache.Instantiation() {
+            return cache.lookup(domain, source, context, api, new ComponentCache.Instantiation() {
                 public Object instantiate() {
                     return node.instance(traversal);
                 }

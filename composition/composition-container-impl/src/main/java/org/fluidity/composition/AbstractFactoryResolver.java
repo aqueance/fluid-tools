@@ -150,7 +150,7 @@ abstract class AbstractFactoryResolver extends AbstractResolver {
         final ContextDefinition saved = context.collect(list).copy();
         final ComponentContext actual = saved.create();
 
-        return cachingNode(domain, new DependencyGraph.Node() {
+        return cachingNode(domain, container, new DependencyGraph.Node() {
             public Class<?> type() {
                 return api;
             }
@@ -169,7 +169,7 @@ abstract class AbstractFactoryResolver extends AbstractResolver {
             public ComponentContext context() {
                 return actual;
             }
-        }, child);
+        });
     }
 
     @SuppressWarnings("unchecked")
