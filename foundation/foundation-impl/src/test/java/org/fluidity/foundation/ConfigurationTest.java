@@ -51,7 +51,10 @@ public class ConfigurationTest extends MockGroupAbstractTest {
         }
     };
 
-    private <T> Configuration<T> configure(final Class<T> settingsType, final PropertyProvider provider, final T defaults, Configuration.Context... contexts) {
+    private <T> Configuration<T> configure(final Class<T> settingsType,
+                                           final PropertyProvider provider,
+                                           final T defaults,
+                                           final Configuration.Context... contexts) {
         replay();
         final Configuration<T> configuration = new ConfigurationFactory.ConfigurationImpl<T>(settingsType, provider, defaults, contexts);
         verify();

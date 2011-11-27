@@ -44,6 +44,12 @@ import org.fluidity.foundation.spi.PropertyProvider;
 @Component.Context(value = { Configuration.Context.class }, typed = true)
 final class ConfigurationFactory implements CustomComponentFactory {
 
+    private final ComponentContainer container;
+
+    public ConfigurationFactory(final ComponentContainer container) {
+        this.container = container;
+    }
+
     public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
         final Component.Reference reference = context.annotation(Component.Reference.class, Configuration.class);
         final Configuration.Context[] contexts = context.annotations(Configuration.Context.class);
@@ -52,6 +58,7 @@ final class ConfigurationFactory implements CustomComponentFactory {
         final Dependency<?> dependency = dependencies.resolve(api);
 
         return new Instance() {
+
             @SuppressWarnings("unchecked")
             public void bind(final Registry registry) throws OpenComponentContainer.BindingException {
                 final Object settings = dependency.instance();
@@ -70,6 +77,26 @@ final class ConfigurationFactory implements CustomComponentFactory {
         };
     }
 
+    @SuppressWarnings("unchecked")
+    public <T> Configuration<T> create(final Class<T> type, final Configuration.Context... contexts) {
+        return (Configuration<T>) container.getComponent(Configuration.class, new OpenComponentContainer.Bindings() {
+            public void bindComponents(final OpenComponentContainer.Registry registry) {
+                final T defaults = container.getComponent(type);
+
+                if (defaults != null) {
+                    registry.bindInstance(defaults, Object.class);
+                }
+
+                if (contexts != null) {
+                    registry.bindInstance(contexts, Configuration.Context[].class);
+                }
+
+                registry.bindInstance(type, Class.class);
+                registry.bindComponent(ConfigurationImpl.class);
+            }
+        });
+    }
+
     @Component(automatic = false)
     static final class ConfigurationImpl<T> implements Configuration<T> {
 
@@ -79,17 +106,17 @@ final class ConfigurationFactory implements CustomComponentFactory {
         /**
          * Constructs a new configuration object.
          *
-         * @param api        the settings interface.
-         * @param provider   provides properties.
-         * @param defaults   when present, used as the provider of default values for properties missing from <code>provider</code>.
-         * @param context    used to find the property prefix to apply to properties queried from the <code>provider</code>.
+         * @param api      the settings interface.
+         * @param provider provides properties.
+         * @param defaults when found, used as the provider of default values for properties missing from <code>provider</code>.
+         * @param contexts used to find the property prefix to apply to properties queried from the <code>provider</code>.
          */
         public ConfigurationImpl(final Class<T> api,
                                  final @Optional PropertyProvider provider,
                                  final @Optional T defaults,
-                                 final @Optional Context... context) {
+                                 final @Optional Context... contexts) {
             this.provider = provider;
-            this.configuration = Proxies.create(api, new PropertyLoader<T>(api, propertyContexts(context), defaults, provider));
+            this.configuration = Proxies.create(api, new PropertyLoader<T>(api, propertyContexts(contexts), defaults, provider));
         }
 
         public T settings() {
@@ -154,18 +181,22 @@ final class ConfigurationFactory implements CustomComponentFactory {
                 final Class<?> type = method.getReturnType();
                 final Type genericType = method.getGenericReturnType();
 
-                return property(setting.split(),
-                                setting.grouping(),
-                                String.format(setting.ids(), args),
-                                String.format(setting.list(), args),
-                                String.format(setting.undefined(), args),
-                                type,
-                                genericType,
-                                prefixes,
-                                String.format(setting.key(), args),
-                                defaults,
-                                method,
-                                args);
+                try {
+                    return property(setting.split(),
+                                    setting.grouping(),
+                                    String.format(setting.ids(), args),
+                                    String.format(setting.list(), args),
+                                    String.format(setting.undefined(), args),
+                                    type,
+                                    genericType,
+                                    prefixes,
+                                    String.format(setting.key(), args),
+                                    defaults,
+                                    method,
+                                    args);
+                } catch (final Exception e) {
+                    throw new PropertyException(e, method.toGenericString());
+                }
             }
 
             private Object property(final String split,

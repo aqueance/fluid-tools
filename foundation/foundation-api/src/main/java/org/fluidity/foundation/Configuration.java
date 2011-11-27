@@ -119,6 +119,8 @@ import org.fluidity.foundation.spi.PropertyProvider;
  * <li>will have the same property value in its fields regardless of when they are accessed (until you change those values, of course).</li>
  * </ul>
  *
+ * @param <T> the settings interface.
+ *
  * @author Tibor Varga
  */
 public interface Configuration<T> {
@@ -140,6 +142,24 @@ public interface Configuration<T> {
      * @return whatever the supplied <code>query</code> returns.
      */
     <R> R query(Query<T, R> query);
+
+    /**
+     * Configuration that is periodically updated. This is a wrapper around {@link Configuration} that periodically refreshes the snapshot of the settings
+     * object. If accessed through this component, the methods of the settings interface may not have any parameters.
+     *
+     * @param <T> the settings interface.
+     */
+    interface Updated<T> {
+
+        /**
+         * Returns an object that can return the most recent snapshot of the settings.
+         *
+         * @param period the period during which at most one refresh will take place.
+         *
+         * @return an object that can return the most recent snapshot of the settings.
+         */
+        Updates.Snapshot<T> snapshot(long period);
+    }
 
     /**
      * Groups property queries to provide settings consistency. Properties read in the {@link #read(Object) read(T)} method will be consistent in that no
@@ -308,5 +328,22 @@ public interface Configuration<T> {
          * @return a property prefix, without the trailing dot.
          */
         String value();
+    }
+
+    /**
+     * Adds in a more descriptive error message to exceptions that occur while loading properties and converting them to settings.
+     */
+    class PropertyException extends RuntimeException {
+
+        /**
+         * Creates a new instance.
+         *
+         * @param cause  the original exception to decorate.
+         * @param format the message format.
+         * @param args   the message parameters.
+         */
+        public PropertyException(final Exception cause, final String format, final Object... args) {
+            super(String.format(format, args), cause);
+        }
     }
 }

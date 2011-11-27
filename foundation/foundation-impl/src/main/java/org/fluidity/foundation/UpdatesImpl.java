@@ -28,6 +28,7 @@ import org.fluidity.composition.Component;
  * @author Tibor Varga
  */
 @Component(automatic = false)
+@Component.Context(ignore = Configuration.Context.class)
 public class UpdatesImpl implements Updates {
 
     private final AtomicBoolean stopped = new AtomicBoolean();

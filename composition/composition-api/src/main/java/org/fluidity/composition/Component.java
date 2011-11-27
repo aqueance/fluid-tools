@@ -120,6 +120,17 @@ public @interface Component {
          * @return <code>true</code> if the component instance depends on the type parameters of the component reference, <code>false</code> otherwise.
          */
         boolean typed() default false;
+
+        /**
+         * Specifies what context annotations should be ignored up to this point in the instantiation path.
+         * <p/>
+         * TODO: add a unit test for this parameter
+         * <p/>
+         * TODO: add this to the user guide
+         *
+         * @return an array of annotation classes to ignore.
+         */
+        Class<? extends Annotation>[] ignore() default {};
     }
 
     /**

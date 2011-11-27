@@ -20,6 +20,7 @@ import java.lang.reflect.Array;
 import java.lang.reflect.GenericArrayType;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.lang.reflect.TypeVariable;
 
 /**
  * Utility methods to access parameterized type information.
@@ -45,6 +46,16 @@ public final class Generics extends Utilities {
 
             if (componentClass != null) {
                 return Array.newInstance(componentClass, 0).getClass();
+            }
+        } else if (type instanceof TypeVariable) {
+            final Type[] bounds = ((TypeVariable) type).getBounds();
+
+            if (bounds == null || bounds.length == 0) {
+                return Object.class;
+            } else {
+
+                // TODO: mention in the user guide that type variables in dependency references may have at most one upper bound
+                return rawType(bounds[0]);
             }
         }
 

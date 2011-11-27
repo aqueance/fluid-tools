@@ -33,7 +33,6 @@ import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.Internal;
 import org.fluidity.composition.spi.ContextDefinition;
 import org.fluidity.foundation.Generics;
-import org.fluidity.foundation.Proxies;
 
 /**
  * @author Tibor Varga
@@ -96,6 +95,10 @@ final class ContextDefinitionImpl implements ContextDefinition {
 
                 if (annotation.typed()) {
                     context.add(Component.Reference.class);
+                }
+
+                for (final Class<? extends Annotation> ignored : annotation.ignore()) {
+                    defined.remove(ignored);
                 }
 
                 active.putAll(defined);
