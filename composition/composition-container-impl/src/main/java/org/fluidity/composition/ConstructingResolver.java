@@ -77,11 +77,9 @@ final class ConstructingResolver extends AbstractResolver {
             }
 
             public DependencyGraph.Node resolve(final DependencyGraph.Traversal traversal, final ContextDefinition context) {
-                return cachingNode(domain, container, injector.constructor(traversal,
-                                                                           container.dependencyResolver(domain),
-                                                                           ConstructingResolver.this,
-                                                                           context,
-                                                                           constructor));
+                return cachingNode(domain,
+                                   container,
+                                   injector.constructor(traversal, container.dependencyResolver(domain), ConstructingResolver.this, context, constructor));
             }
         });
     }

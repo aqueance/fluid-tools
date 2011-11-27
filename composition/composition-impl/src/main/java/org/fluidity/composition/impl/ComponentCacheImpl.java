@@ -59,8 +59,7 @@ final class ComponentCacheImpl implements ComponentCache {
                                        final Class<?> api,
                                        final Instantiation delegate,
                                        final Log log) {
-        final boolean factory = ComponentFactory.class.isAssignableFrom(api);
-        final boolean report = !factory && log.isInfoEnabled();
+        final boolean report = !ComponentFactory.class.isAssignableFrom(api) && log.isInfoEnabled();
 
         if (!cache.containsKey(context)) {
 

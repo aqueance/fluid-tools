@@ -218,7 +218,7 @@ final class ConfigurationFactory implements CustomComponentFactory {
                         try {
                             return composite(type, suffix);
                         } catch (final Exception e) {
-                            throw new IllegalArgumentException(String.format("Could not create objects of type %s", Strings.arrayNotation(type)), e);
+                            throw new IllegalArgumentException(String.format("Could not create objects of type %s", Strings.arrayNotation(false, type)), e);
                         }
                     } else {
                         if (provider != null) {
@@ -260,7 +260,7 @@ final class ConfigurationFactory implements CustomComponentFactory {
                         } else if (type.isArray()) {
                             itemType = Generics.arrayComponentType(genericType);
                         } else {
-                            throw new IllegalArgumentException(String.format("Type %s is neither an array, nor a collection nor a map", Strings.arrayNotation(type)));
+                            throw new IllegalArgumentException(String.format("Type %s is neither an array, nor a collection nor a map", Strings.arrayNotation(false, type)));
                         }
 
                         for (final String id : identifiers) {
@@ -303,7 +303,7 @@ final class ConfigurationFactory implements CustomComponentFactory {
 
                             return array;
                         } else {
-                            throw new IllegalArgumentException(String.format("Type %s is neither an array, nor a collection nor a map", Strings.arrayNotation(type)));
+                            throw new IllegalArgumentException(String.format("Type %s is neither an array, nor a collection nor a map", Strings.arrayNotation(false, type)));
                         }
                     } else {
                         return null;
@@ -387,7 +387,7 @@ final class ConfigurationFactory implements CustomComponentFactory {
                     return booleanToNumber(target, (byte) (((Boolean) value) ? 1 : 0));
                 }
 
-                throw new IllegalArgumentException(String.format("Cannot convert %s to type %s", value, Strings.arrayNotation(target)));
+                throw new IllegalArgumentException(String.format("Cannot convert %s to type %s", value, Strings.arrayNotation(false, target)));
             }
 
             Object arrayValue(final Object value, final Class<?> target, final Type generic, final String delimiter, final String groupers, final String suffix, final ClassLoader loader) {
@@ -419,7 +419,7 @@ final class ConfigurationFactory implements CustomComponentFactory {
                         collection.add(convert(item, componentType, generic, delimiter, groupers, suffix, loader));
                     }
                 } else {
-                    throw new IllegalArgumentException(String.format("Cannot convert %s to type %s collection", value, Strings.arrayNotation(componentType)));
+                    throw new IllegalArgumentException(String.format("Cannot convert %s to type %s collection", value, Strings.arrayNotation(false, componentType)));
                 }
 
                 return collection;
@@ -434,7 +434,7 @@ final class ConfigurationFactory implements CustomComponentFactory {
                 } else if (target == List.class) {
                     collection = new ArrayList();
                 } else {
-                    throw new IllegalArgumentException(String.format("Collection type %s not supported (it is neither Set, List nor Map)", Strings.arrayNotation(target)));
+                    throw new IllegalArgumentException(String.format("Collection type %s not supported (it is neither Set, List nor Map)", Strings.arrayNotation(false, target)));
                 }
 
                 final Type parameterType = Generics.typeParameter(generic, 0);
@@ -452,7 +452,7 @@ final class ConfigurationFactory implements CustomComponentFactory {
                         collection.add(convert(item, Generics.rawType(parameterType), parameterType, delimiter, groupers, suffix, loader));
                     }
                 } else {
-                    throw new IllegalArgumentException(String.format("Cannot convert %s to type %s<%s>", value, target, Strings.arrayNotation(Generics.rawType(parameterType))));
+                    throw new IllegalArgumentException(String.format("Cannot convert %s to type %s<%s>", value, target, Strings.arrayNotation(false, Generics.rawType(parameterType))));
                 }
 
                 return collection;
@@ -601,7 +601,7 @@ final class ConfigurationFactory implements CustomComponentFactory {
                         }
                     }
 
-                    throw new IllegalArgumentException(String.format("Cannot convert %s to type %s", text, Strings.arrayNotation(target)));
+                    throw new IllegalArgumentException(String.format("Cannot convert %s to type %s", text, Strings.arrayNotation(false, target)));
                 }
             }
 
@@ -622,7 +622,7 @@ final class ConfigurationFactory implements CustomComponentFactory {
                     return number.doubleValue();
                 }
 
-                throw new IllegalArgumentException(String.format("Cannot convert %s to type %s", number, Strings.arrayNotation(target)));
+                throw new IllegalArgumentException(String.format("Cannot convert %s to type %s", number, Strings.arrayNotation(false, target)));
             }
 
             Object booleanToNumber(final Class<?> target, final byte flag) {
@@ -642,7 +642,7 @@ final class ConfigurationFactory implements CustomComponentFactory {
                     return (double) flag;
                 }
 
-                throw new IllegalArgumentException(String.format("Cannot convert %s to type %s", flag, Strings.arrayNotation(target)));
+                throw new IllegalArgumentException(String.format("Cannot convert %s to type %s", flag, Strings.arrayNotation(false, target)));
             }
         }
     }

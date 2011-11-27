@@ -372,7 +372,7 @@ public final class Components extends Utilities {
                     multiple = true;
                 }
 
-                text.append(Strings.arrayNotation(type));
+                text.append(Strings.arrayNotation(true, type));
 
                 if (specification.groups.length > 0) {
                     text.append(" group ").append(Arrays.toString(specification.groups));

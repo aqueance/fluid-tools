@@ -38,11 +38,12 @@ public final class Strings extends Utilities {
      * assert Strings.arrayNotation(Object[][][].class).equals("java.lang.Object[][][]");
      * </pre>
      *
+     * @param full if <code>true</code>, the type's full string representation is used, otherwise only its name is used.
      * @param type the class, which may be an array.
      *
      * @return the Java array notation corresponding to the given class.
      */
-    public static String arrayNotation(final Class<?> type) {
+    public static String arrayNotation(final boolean full, final Class<?> type) {
         final StringBuilder builder = new StringBuilder();
 
         Class<?> componentType = type;
@@ -50,7 +51,7 @@ public final class Strings extends Utilities {
             builder.append("[]");
         }
 
-        return builder.insert(0, componentType).toString();
+        return builder.insert(0, full ? componentType.toString() : componentType.getName()).toString();
     }
 
     /**

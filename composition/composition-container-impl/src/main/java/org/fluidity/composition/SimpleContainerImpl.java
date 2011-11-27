@@ -251,7 +251,7 @@ final class SimpleContainerImpl extends EmptyDependencyGraph implements ParentCo
 
         final String value = instance instanceof String || instance instanceof Number
                              ? ('\'' + String.valueOf(instance) + '\'')
-                             : ("instance of " + Strings.arrayNotation(implementation));
+                             : (String.format("%s@%x", Strings.arrayNotation(false, implementation), System.identityHashCode(implementation)));
 
         log.debug("%s: binding %s to %s (%s)", this, value, interfaces, isFallback ? "fallback" : "primary");
 

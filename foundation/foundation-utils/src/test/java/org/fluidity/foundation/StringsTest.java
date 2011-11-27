@@ -35,19 +35,25 @@ public class StringsTest extends MockGroupAbstractTest {
 
     @Test
     public void ordinaryType() throws Exception {
-        final String string = Strings.arrayNotation(Object.class);
+        final String string = Strings.arrayNotation(true, Object.class);
         assert Object.class.toString().equals(string) : string;
     }
 
     @Test
+    public void ordinaryName() throws Exception {
+        final String string = Strings.arrayNotation(false, Object.class);
+        assert Object.class.getName().equals(string) : string;
+    }
+
+    @Test
     public void oneDimensionalArray() throws Exception {
-        final String string = Strings.arrayNotation(String[].class);
+        final String string = Strings.arrayNotation(true, String[].class);
         assert String.format("%s[]", String.class).equals(string) : string;
     }
 
     @Test
     public void threeDimensionalArray() throws Exception {
-        final String string = Strings.arrayNotation(String[][][].class);
+        final String string = Strings.arrayNotation(true, String[][][].class);
         assert String.format("%s[][][]", String.class).equals(string) : string;
     }
 
