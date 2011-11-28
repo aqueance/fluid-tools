@@ -159,6 +159,9 @@ final class ConfigurationFactory implements CustomComponentFactory {
         }
 
         private static class PropertyLoader<T> implements InvocationHandler {
+            private static final String TRUE = String.valueOf(true);
+            private static final String FALSE = String.valueOf(false);
+
             private final Class<T> api;
             private final String[] prefixes;
             private final T defaults;
@@ -411,7 +414,7 @@ final class ConfigurationFactory implements CustomComponentFactory {
                 } else if (value instanceof Number) {
                     return numberToPrimitive(target, (Number) value);
                 } else if (value instanceof Boolean) {
-                    return booleanToPrimitive(target, (Boolean) value);
+                    return booleanToPrimitive(PRIMITIVE_TYPES.get(target), target, (Boolean) value);
                 }
 
                 throw new IllegalArgumentException(String.format("Cannot convert %s to type %s", value, Strings.arrayNotation(false, target)));
@@ -519,8 +522,7 @@ final class ConfigurationFactory implements CustomComponentFactory {
             }
 
             /*
-             * Parses a piece of text into a list of tokens. Tokens are delimited by delimiters. Tokens inside matching grouping characters are taken as
-             * one
+             * Parses a piece of text into a list of tokens. Tokens are delimited by delimiters. Tokens inside matching grouping characters are taken as one
              * token. Delimiters and grouping characters may be escaped by the '\' character.
              */
             List<String> split(final String text, final String delimiters, final String grouping) {
@@ -608,14 +610,14 @@ final class ConfigurationFactory implements CustomComponentFactory {
                         } catch (final ClassNotFoundException e) {
                             throw new IllegalArgumentException(e);
                         }
-                    } else if (String.valueOf(true).equals(text)) {
-                        return booleanToPrimitive(target, true);
-                    } else if (String.valueOf(false).equals(text)) {
-                        return booleanToPrimitive(target, false);
                     } else {
                         final PrimitiveType type = PRIMITIVE_TYPES.get(target);
 
-                        if (type != null) {
+                        if (TRUE.equals(text)) {
+                            return booleanToPrimitive(type, target, true);
+                        } else if (FALSE.equals(text)) {
+                            return booleanToPrimitive(type, target, false);
+                        } else if (type != null) {
                             switch (type) {
                             case BOOLEAN:
                                 return Boolean.valueOf(text);
@@ -668,9 +670,7 @@ final class ConfigurationFactory implements CustomComponentFactory {
                 throw new IllegalArgumentException(String.format("Cannot convert %s to type %s", number, Strings.arrayNotation(false, target)));
             }
 
-            Object booleanToPrimitive(final Class<?> target, final boolean flag) {
-                final PrimitiveType type = PRIMITIVE_TYPES.get(target);
-
+            Object booleanToPrimitive(final PrimitiveType type, final Class<?> target, final boolean flag) {
                 if (type != null) {
                     final int value = flag ? 1 : 0;
 
