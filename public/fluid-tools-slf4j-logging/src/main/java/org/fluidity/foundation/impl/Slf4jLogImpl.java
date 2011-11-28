@@ -16,54 +16,62 @@
 
 package org.fluidity.foundation.impl;
 
-import org.fluidity.foundation.Log;
+import org.fluidity.foundation.spi.AbstractLog;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Uses commons-logging as the underlying logging framework.
+ * Uses SLF4J as the underlying logging framework.
  */
-final class Slf4jLogImpl implements Log {
+final class Slf4jLogImpl extends AbstractLog<Logger> {
 
-    private final Logger log;
+    public Slf4jLogImpl(final Class<?> source, final Levels.Snapshots snapshots) {
+        super(snapshots, LoggerFactory.getLogger(source), new Levels.Factory<Logger>() {
+            public Levels create(final Logger log) {
+                return new Levels() {
+                    public boolean trace() {
+                        return log.isTraceEnabled();
+                    }
 
-    public Slf4jLogImpl(final Class<?> source) {
-        this.log = LoggerFactory.getLogger(source);
-    }
+                    public boolean debug() {
+                        return log.isDebugEnabled();
+                    }
 
-    public boolean isTraceEnabled() {
-        return log.isTraceEnabled();
-    }
+                    public boolean info() {
+                        return log.isInfoEnabled();
+                    }
 
-    public boolean isDebugEnabled() {
-        return log.isDebugEnabled();
-    }
-
-    public boolean isInfoEnabled() {
-        return log.isInfoEnabled();
+                    public boolean warning() {
+                        return log.isWarnEnabled();
+                    }
+                };
+            }
+        });
     }
 
     public void trace(final String message, final Object... args) {
-        if (log.isTraceEnabled()) {
+        if (isTraceEnabled()) {
             log.trace(String.format(message, args));
         }
     }
 
     public void debug(final String message, final Object... args) {
-        if (log.isDebugEnabled()) {
+        if (isDebugEnabled()) {
             log.debug(String.format(message, args));
         }
     }
 
     public void info(final String message, final Object... args) {
-        if (log.isInfoEnabled()) {
+        if (isInfoEnabled()) {
             log.info(String.format(message, args));
         }
     }
 
     public void warning(final String message, final Object... args) {
-        log.warn(String.format(message, args));
+        if (isWarningEnabled()) {
+            log.warn(String.format(message, args));
+        }
     }
 
     public void error(final String message, final Object... args) {
@@ -71,25 +79,27 @@ final class Slf4jLogImpl implements Log {
     }
 
     public void trace(final Throwable exception, final String message, final Object... args) {
-        if (log.isTraceEnabled()) {
+        if (isTraceEnabled()) {
             log.trace(String.format(message, args), exception);
         }
     }
 
     public void debug(final Throwable exception, final String message, final Object... args) {
-        if (log.isDebugEnabled()) {
+        if (isDebugEnabled()) {
             log.debug(String.format(message, args), exception);
         }
     }
 
     public void info(final Throwable exception, final String message, final Object... args) {
-        if (log.isInfoEnabled()) {
+        if (isInfoEnabled()) {
             log.info(String.format(message, args), exception);
         }
     }
 
     public void warning(final Throwable exception, final String message, final Object... args) {
-        log.warn(String.format(message, args), exception);
+        if (isWarningEnabled()) {
+            log.warn(String.format(message, args), exception);
+        }
     }
 
     public void error(final Throwable exception, final String message, final Object... args) {

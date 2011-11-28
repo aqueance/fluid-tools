@@ -48,6 +48,8 @@ public interface Log<T> {
 
     boolean isInfoEnabled();
 
+    boolean isWarningEnabled();
+
     void trace(String message, Object... args);
 
     void debug(String message, Object... args);

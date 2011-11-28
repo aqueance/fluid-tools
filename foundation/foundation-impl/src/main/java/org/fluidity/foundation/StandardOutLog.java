@@ -71,6 +71,10 @@ final class StandardOutLog implements Log {
         return true;
     }
 
+    public boolean isWarningEnabled() {
+        return true;
+    }
+
     public void trace(final String message, final Object... args) {
         log("TRACE", message, args);
     }

@@ -21,6 +21,7 @@ import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.OpenComponentContainer;
 import org.fluidity.composition.spi.CustomComponentFactory;
+import org.fluidity.foundation.spi.AbstractLog;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**
@@ -34,9 +35,48 @@ import org.fluidity.foundation.spi.LogFactory;
 final class LogComponentFactory implements CustomComponentFactory {
 
     private final LogFactory factory;
+    private final AbstractLog.Levels.Snapshots levels;
 
-    public LogComponentFactory(final LogFactory factory) {
+    public LogComponentFactory(final LogFactory factory, final Updates updates, final Configuration<AbstractLog.Settings> configuration) {
         this.factory = factory;
+
+        final Deferred.Reference<Long> period = Deferred.reference(new Deferred.Factory<Long>() {
+            public Long create() {
+                return configuration.settings().period();
+            }
+        });
+
+        this.levels = new AbstractLog.Levels.Snapshots() {
+            public Updates.Snapshot<AbstractLog.Levels> create(final AbstractLog.Levels levels) {
+                return updates.register(period.get(), new Updates.Snapshot<AbstractLog.Levels>() {
+                    public AbstractLog.Levels get() {
+                        return new AbstractLog.Levels() {
+
+                            private final boolean trace = levels.trace();
+                            private final boolean debug = levels.debug();
+                            private final boolean info = levels.info();
+                            private final boolean warning = levels.warning();
+
+                            public boolean trace() {
+                                return trace;
+                            }
+
+                            public boolean debug() {
+                                return debug;
+                            }
+
+                            public boolean info() {
+                                return info;
+                            }
+
+                            public boolean warning() {
+                                return warning;
+                            }
+                        };
+                    }
+                });
+            }
+        };
     }
 
     public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
@@ -45,7 +85,7 @@ final class LogComponentFactory implements CustomComponentFactory {
             @SuppressWarnings("unchecked")
             public void bind(final Registry registry) throws OpenComponentContainer.BindingException {
                 final Component.Reference reference = context.annotation(Component.Reference.class, Log.class);
-                registry.bindInstance(factory.createLog(reference.parameter(0)), Log.class);
+                registry.bindInstance(factory.createLog(reference.parameter(0), levels), Log.class);
             }
         };
     }

@@ -18,6 +18,7 @@ package org.fluidity.foundation;
 
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ServiceProvider;
+import org.fluidity.foundation.spi.AbstractLog;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**
@@ -42,6 +43,10 @@ public final class NoLogFactory implements LogFactory {
         }
 
         public boolean isInfoEnabled() {
+            return false;
+        }
+
+        public boolean isWarningEnabled() {
             return false;
         }
 
@@ -95,6 +100,13 @@ public final class NoLogFactory implements LogFactory {
      * {@inheritDoc}
      */
     public Log createLog(final Class<?> ignored) {
+        return sink;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public Log createLog(final Class<?> source, final AbstractLog.Levels.Snapshots levels) {
         return sink;
     }
 }

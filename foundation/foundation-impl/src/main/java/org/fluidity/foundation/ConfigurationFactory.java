@@ -368,7 +368,25 @@ final class ConfigurationFactory implements CustomComponentFactory {
 
             Object convert(final Object value, final Class<?> target, final Type generic, final String delimiter, final String groupers, final String suffix, final ClassLoader loader) {
                 if (value == null) {
-                    return null;
+                    if (target == Character.TYPE) {
+                        return (char) 0;
+                    } else if (target == Byte.TYPE) {
+                        return (byte) 0;
+                    } else if (target == Short.TYPE) {
+                        return (short) 0;
+                    } else if (target == Integer.TYPE) {
+                        return 0;
+                    } else if (target == Long.TYPE) {
+                        return 0L;
+                    } else if (target == Float.TYPE) {
+                        return 0f;
+                    } else if (target == Double.TYPE) {
+                        return 0d;
+                    } else if (target == Boolean.TYPE) {
+                        return false;
+                    } else {
+                        return null;
+                    }
                 } else if (target.isAssignableFrom(value.getClass())) {
                     return value;
                 } else if (target.isArray()) {
@@ -579,6 +597,8 @@ final class ConfigurationFactory implements CustomComponentFactory {
                         return booleanToNumber(target, (byte) 0);
                     } else if (target == Boolean.TYPE || target == Boolean.class) {
                         return Boolean.valueOf(text);
+                    } else if ((target == Character.TYPE || target == Character.class) && text != null && text.length() == 1) {
+                        return text.charAt(0);
                     } else if (target == Byte.TYPE || target == Byte.class) {
                         return Double.valueOf(text).byteValue();
                     } else if (target == Short.TYPE || target == Short.class) {

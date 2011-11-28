@@ -145,18 +145,18 @@ public interface Configuration<T> {
 
     /**
      * Configuration that is periodically updated. This is a wrapper around {@link Configuration} that periodically refreshes the snapshot of the settings
-     * object. If accessed through this component, the methods of the settings interface may not have any parameters.
+     * object. If used with this variant of the configuration mechanism, the methods of the settings interface may not have any parameters.
      *
      * @param <T> the settings interface.
      */
     interface Updated<T> {
 
         /**
-         * Returns an object that can return the most recent snapshot of the settings.
+         * Returns an object containing the most recent snapshot of the settings.
          *
          * @param period the period during which at most one refresh will take place.
          *
-         * @return an object that can return the most recent snapshot of the settings.
+         * @return an object containing the most recent snapshot of the settings.
          */
         Updates.Snapshot<T> snapshot(long period);
     }
@@ -331,7 +331,7 @@ public interface Configuration<T> {
     }
 
     /**
-     * Adds in a more descriptive error message to exceptions that occur while loading properties and converting them to settings.
+     * Adds a more descriptive error message to exceptions that occur while loading properties and converting them to settings.
      */
     class PropertyException extends RuntimeException {
 

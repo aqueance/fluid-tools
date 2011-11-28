@@ -20,6 +20,7 @@ import java.util.Properties;
 
 import org.fluidity.composition.Component;
 import org.fluidity.foundation.Updates;
+import org.fluidity.foundation.spi.AbstractLog;
 import org.fluidity.foundation.spi.PropertyProvider;
 
 /**
@@ -31,7 +32,8 @@ public class EchoPropertyProviderImpl implements PropertyProvider {
     private final Properties properties = new Properties();
 
     public EchoPropertyProviderImpl() {
-        properties.setProperty(Updates.PERIOD_PROPERTY, "10000");
+        properties.setProperty(Updates.PERIOD_PROPERTY, "0");
+        properties.setProperty(AbstractLog.LOG_LEVEL_CHECK_PERIOD, "0");
     }
 
     public Object property(final String key) {

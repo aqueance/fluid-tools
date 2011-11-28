@@ -16,53 +16,62 @@
 
 package org.fluidity.foundation.impl;
 
-import org.fluidity.foundation.Log;
+import org.fluidity.foundation.spi.AbstractLog;
 
+import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 /**
  * Uses commons-logging as the underlying logging framework.
  */
-final class CommonsLogImpl implements Log {
+final class CommonsLogImpl extends AbstractLog<Log> {
 
-    private final org.apache.commons.logging.Log log;
+    public CommonsLogImpl(final Class<?> source, final Levels.Snapshots snapshots) {
+        super(snapshots, LogFactory.getLog(source), new Levels.Factory<Log>() {
+            public Levels create(final Log log) {
+                return new Levels() {
+                    public boolean trace() {
+                        return log.isTraceEnabled();
+                    }
 
-    public CommonsLogImpl(final Class<?> marker) {
-        this.log = LogFactory.getLog(marker);
-    }
+                    public boolean debug() {
+                        return log.isDebugEnabled();
+                    }
 
-    public boolean isTraceEnabled() {
-        return log.isTraceEnabled();
-    }
+                    public boolean info() {
+                        return log.isInfoEnabled();
+                    }
 
-    public boolean isDebugEnabled() {
-        return log.isDebugEnabled();
-    }
-
-    public boolean isInfoEnabled() {
-        return log.isInfoEnabled();
+                    public boolean warning() {
+                        return log.isWarnEnabled();
+                    }
+                };
+            }
+        });
     }
 
     public void trace(final String message, final Object... args) {
-        if (log.isTraceEnabled()) {
+        if (isTraceEnabled()) {
             log.trace(String.format(message, args));
         }
     }
 
     public void debug(final String message, final Object... args) {
-        if (log.isDebugEnabled()) {
+        if (isDebugEnabled()) {
             log.debug(String.format(message, args));
         }
     }
 
     public void info(final String message, final Object... args) {
-        if (log.isInfoEnabled()) {
+        if (isInfoEnabled()) {
             log.info(String.format(message, args));
         }
     }
 
     public void warning(final String message, final Object... args) {
-        log.warn(String.format(message, args));
+        if (isWarningEnabled()) {
+            log.warn(String.format(message, args));
+        }
     }
 
     public void error(final String message, final Object... args) {
@@ -70,25 +79,27 @@ final class CommonsLogImpl implements Log {
     }
 
     public void trace(final Throwable exception, final String message, final Object... args) {
-        if (log.isTraceEnabled()) {
+        if (isTraceEnabled()) {
             log.trace(String.format(message, args), exception);
         }
     }
 
     public void debug(final Throwable exception, final String message, final Object... args) {
-        if (log.isDebugEnabled()) {
+        if (isDebugEnabled()) {
             log.debug(String.format(message, args), exception);
         }
     }
 
     public void info(final Throwable exception, final String message, final Object... args) {
-        if (log.isInfoEnabled()) {
+        if (isInfoEnabled()) {
             log.info(String.format(message, args), exception);
         }
     }
 
     public void warning(final Throwable exception, final String message, final Object... args) {
-        log.warn(String.format(message, args), exception);
+        if (isWarningEnabled()) {
+            log.warn(String.format(message, args), exception);
+        }
     }
 
     public void error(final Throwable exception, final String message, final Object... args) {

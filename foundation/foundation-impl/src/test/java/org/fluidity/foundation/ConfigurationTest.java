@@ -285,6 +285,12 @@ public class ConfigurationTest extends MockGroupAbstractTest {
 
     public interface MultiTypeSettings {
 
+        @Configuration.Property(key = "undefined")
+        long undefined();
+
+        @Configuration.Property(key = "char", undefined = "x")
+        char charValue();
+
         @Configuration.Property(key = "boolean", undefined = "true")
         boolean booleanValue();
 
@@ -341,6 +347,8 @@ public class ConfigurationTest extends MockGroupAbstractTest {
         replay();
         configuration.query(new Configuration.Query<MultiTypeSettings, Void>() {
             public Void read(final MultiTypeSettings settings) {
+                assert settings.undefined() == 0L : settings.undefined();
+                assert settings.charValue() == 'x' : settings.charValue();
                 assert settings.booleanValue();
                 assert settings.BooleanValue();
                 assert settings.byteValue() == (byte) 123 : settings.byteValue();

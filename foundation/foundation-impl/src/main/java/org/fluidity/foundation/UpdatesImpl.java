@@ -29,7 +29,7 @@ import org.fluidity.composition.Component;
  */
 @Component(automatic = false)
 @Component.Context(ignore = Configuration.Context.class)
-public class UpdatesImpl implements Updates {
+final class UpdatesImpl implements Updates {
 
     private final AtomicBoolean stopped = new AtomicBoolean();
     private final AtomicLong timestamp = new AtomicLong();
@@ -42,7 +42,7 @@ public class UpdatesImpl implements Updates {
         this.timer = Deferred.reference(new Deferred.Factory<Timer>() {
             public Timer create() {
                 if (period > 0) {
-                    final Timer timer = new Timer(Updates.class.getName());
+                    final Timer timer = new Timer(Updates.class.getName(), true);
 
                     final TimerTask task = new TimerTask() {
                         @Override
@@ -51,7 +51,7 @@ public class UpdatesImpl implements Updates {
                         }
                     };
 
-                    timer.scheduleAtFixedRate(task, 0, period);
+                    timer.scheduleAtFixedRate(task, period, period);
 
                     return timer;
                 } else {
@@ -66,7 +66,7 @@ public class UpdatesImpl implements Updates {
             throw new IllegalStateException("Updates have been stopped");
         }
 
-        if (timer.get() == null) {
+        if (timer.get() == null || period <= 0) {
             return new Snapshot<T>() {
                 private final T snapshot = loader.get();
 
@@ -76,12 +76,13 @@ public class UpdatesImpl implements Updates {
             };
         } else {
             return new Snapshot<T>() {
-                private final AtomicLong checked = new AtomicLong(System.currentTimeMillis());
+                private final AtomicLong loaded = new AtomicLong(System.currentTimeMillis());
                 private final AtomicReference<T> snapshot = new AtomicReference<T>(loader.get());
                 private final AtomicBoolean loading = new AtomicBoolean(false);
 
                 public T get() {
-                    if (timestamp.get() - checked.get() >= period && loading.compareAndSet(false, true)) {
+                    if (timestamp.get() - loaded.get() >= period && loading.compareAndSet(false, true)) {
+                        loaded.set(System.currentTimeMillis());
                         snapshot.set(loader.get());
                         loading.set(false);
                     }
