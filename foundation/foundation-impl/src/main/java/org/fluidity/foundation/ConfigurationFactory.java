@@ -24,6 +24,7 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -272,7 +273,9 @@ final class ConfigurationFactory implements CustomComponentFactory {
                                                           Generics.rawType(itemType),
                                                           itemType,
                                                           prefixes,
-                                                          String.format(format, id), null, null,
+                                                          String.format(format, id),
+                                                          null,
+                                                          null,
                                                           null);
 
                             if (value != null) {
@@ -288,7 +291,7 @@ final class ConfigurationFactory implements CustomComponentFactory {
                             final Map<Object, Object> map = new LinkedHashMap<Object, Object>();
 
                             final Type keyType = Generics.typeParameter(genericType, 0);
-                            for (final Map.Entry<String, Object> entry: instances.entrySet()) {
+                            for (final Map.Entry<String, Object> entry : instances.entrySet()) {
                                 map.put(convert(entry.getKey(), Generics.rawType(keyType), keyType, null, null, null, loader), entry.getValue());
                             }
 
@@ -317,28 +320,28 @@ final class ConfigurationFactory implements CustomComponentFactory {
 
             private Object composite(final Class<?> type, final String suffix) throws Exception {
                 if (type.isInterface()) {
-                        return Proxies.create(type, new InvocationHandler() {
-                            public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
-                                final Property setting = method.getAnnotation(Property.class);
+                    return Proxies.create(type, new InvocationHandler() {
+                        public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
+                            final Property setting = method.getAnnotation(Property.class);
 
-                                if (setting == null) {
-                                    throw new IllegalArgumentException(String.format("Method %s is not @%s annotated", method, Property.class));
-                                }
-
-                                return property(setting.split(),
-                                                setting.grouping(),
-                                                String.format(setting.ids(), args),
-                                                String.format(setting.list(), args),
-                                                String.format(setting.undefined(), args),
-                                                method.getReturnType(),
-                                                method.getGenericReturnType(),
-                                                prefixes,
-                                                String.format("%s.%s", suffix, String.format(setting.key(), args)),
-                                                null,
-                                                null,
-                                                null);
+                            if (setting == null) {
+                                throw new IllegalArgumentException(String.format("Method %s is not @%s annotated", method, Property.class));
                             }
-                        });
+
+                            return property(setting.split(),
+                                            setting.grouping(),
+                                            String.format(setting.ids(), args),
+                                            String.format(setting.list(), args),
+                                            String.format(setting.undefined(), args),
+                                            method.getReturnType(),
+                                            method.getGenericReturnType(),
+                                            prefixes,
+                                            String.format("%s.%s", suffix, String.format(setting.key(), args)),
+                                            null,
+                                            null,
+                                            null);
+                        }
+                    });
                 } else {
                     final Object instance = type.newInstance();
 
@@ -347,18 +350,19 @@ final class ConfigurationFactory implements CustomComponentFactory {
 
                         if (setting != null) {
                             field.setAccessible(true);
-                            field.set(instance, property(setting.split(),
-                                                         setting.grouping(),
-                                                         setting.ids(),
-                                                         setting.list(),
-                                                         setting.undefined(),
-                                                         field.getType(),
-                                                         field.getGenericType(),
-                                                         prefixes,
-                                                         String.format("%s.%s", suffix, setting.key()),
-                                                         null,
-                                                         null,
-                                                         null));
+                            field.set(instance,
+                                      property(setting.split(),
+                                               setting.grouping(),
+                                               setting.ids(),
+                                               setting.list(),
+                                               setting.undefined(),
+                                               field.getType(),
+                                               field.getGenericType(),
+                                               prefixes,
+                                               String.format("%s.%s", suffix, setting.key()),
+                                               null,
+                                               null,
+                                               null));
                         }
                     }
 
@@ -368,25 +372,30 @@ final class ConfigurationFactory implements CustomComponentFactory {
 
             Object convert(final Object value, final Class<?> target, final Type generic, final String delimiter, final String groupers, final String suffix, final ClassLoader loader) {
                 if (value == null) {
-                    if (target == Character.TYPE) {
-                        return (char) 0;
-                    } else if (target == Byte.TYPE) {
-                        return (byte) 0;
-                    } else if (target == Short.TYPE) {
-                        return (short) 0;
-                    } else if (target == Integer.TYPE) {
-                        return 0;
-                    } else if (target == Long.TYPE) {
-                        return 0L;
-                    } else if (target == Float.TYPE) {
-                        return 0f;
-                    } else if (target == Double.TYPE) {
-                        return 0d;
-                    } else if (target == Boolean.TYPE) {
-                        return false;
-                    } else {
-                        return null;
+                    final PrimitiveType type = PRIMITIVE_TYPES.get(target);
+
+                    if (type != null) {
+                        switch (type) {
+                        case BOOLEAN:
+                            return false;
+                        case BYTE:
+                            return (byte) 0;
+                        case SHORT:
+                            return (short) 0;
+                        case INTEGER:
+                            return 0;
+                        case LONG:
+                            return 0L;
+                        case FLOAT:
+                            return 0F;
+                        case DOUBLE:
+                            return 0D;
+                        case CHARACTER:
+                            return (char) 0;
+                        }
                     }
+
+                    return null;
                 } else if (target.isAssignableFrom(value.getClass())) {
                     return value;
                 } else if (target.isArray()) {
@@ -402,7 +411,7 @@ final class ConfigurationFactory implements CustomComponentFactory {
                 } else if (value instanceof Number) {
                     return numberToPrimitive(target, (Number) value);
                 } else if (value instanceof Boolean) {
-                    return booleanToNumber(target, (byte) (((Boolean) value) ? 1 : 0));
+                    return booleanToPrimitive(target, (Boolean) value);
                 }
 
                 throw new IllegalArgumentException(String.format("Cannot convert %s to type %s", value, Strings.arrayNotation(false, target)));
@@ -591,33 +600,42 @@ final class ConfigurationFactory implements CustomComponentFactory {
                 try {
                     return numberToPrimitive(target, Double.valueOf(text));
                 } catch (final NumberFormatException ignore) {
-                    if (String.valueOf(true).equals(text)) {
-                        return booleanToNumber(target, (byte) 1);
-                    } else if (String.valueOf(false).equals(text)) {
-                        return booleanToNumber(target, (byte) 0);
-                    } else if (target == Boolean.TYPE || target == Boolean.class) {
-                        return Boolean.valueOf(text);
-                    } else if ((target == Character.TYPE || target == Character.class) && text != null && text.length() == 1) {
-                        return text.charAt(0);
-                    } else if (target == Byte.TYPE || target == Byte.class) {
-                        return Double.valueOf(text).byteValue();
-                    } else if (target == Short.TYPE || target == Short.class) {
-                        return Double.valueOf(text).shortValue();
-                    } else if (target == Integer.TYPE || target == Integer.class) {
-                        return Double.valueOf(text).intValue();
-                    } else if (target == Long.TYPE || target == Long.class) {
-                        return Double.valueOf(text).longValue();
-                    } else if (target == Float.TYPE || target == Float.class) {
-                        return Double.valueOf(text).floatValue();
-                    } else if (target == Double.TYPE || target == Double.class) {
-                        return Double.valueOf(text);
-                    } else if (Enum.class.isAssignableFrom(target)) {
+                    if (Enum.class.isAssignableFrom(target)) {
                         return Enum.valueOf((Class<Enum>) target, text);
                     } else if (target == Class.class) {
                         try {
                             return loader.loadClass(text);
                         } catch (final ClassNotFoundException e) {
                             throw new IllegalArgumentException(e);
+                        }
+                    } else if (String.valueOf(true).equals(text)) {
+                        return booleanToPrimitive(target, true);
+                    } else if (String.valueOf(false).equals(text)) {
+                        return booleanToPrimitive(target, false);
+                    } else {
+                        final PrimitiveType type = PRIMITIVE_TYPES.get(target);
+
+                        if (type != null) {
+                            switch (type) {
+                            case BOOLEAN:
+                                return Boolean.valueOf(text);
+                            case BYTE:
+                                return Double.valueOf(text).byteValue();
+                            case SHORT:
+                                return Double.valueOf(text).shortValue();
+                            case INTEGER:
+                                return Double.valueOf(text).intValue();
+                            case LONG:
+                                return Double.valueOf(text).longValue();
+                            case FLOAT:
+                                return Double.valueOf(text).floatValue();
+                            case DOUBLE:
+                                return Double.valueOf(text);
+                            case CHARACTER:
+                                if (text != null && text.length() == 1) {
+                                    return text.charAt(0);
+                                }
+                            }
                         }
                     }
 
@@ -626,43 +644,81 @@ final class ConfigurationFactory implements CustomComponentFactory {
             }
 
             Object numberToPrimitive(final Class<?> target, final Number number) {
-                if (target == Boolean.TYPE || target == Boolean.class) {
-                    return number.doubleValue() != 0d;
-                } else if (target == Byte.TYPE || target == Byte.class) {
-                    return number.byteValue();
-                } else if (target == Short.TYPE || target == Short.class) {
-                    return number.shortValue();
-                } else if (target == Integer.TYPE || target == Integer.class) {
-                    return number.intValue();
-                } else if (target == Long.TYPE || target == Long.class) {
-                    return number.longValue();
-                } else if (target == Float.TYPE || target == Float.class) {
-                    return number.floatValue();
-                } else if (target == Double.TYPE || target == Double.class) {
-                    return number.doubleValue();
+                final PrimitiveType type = PRIMITIVE_TYPES.get(target);
+
+                if (type != null) {
+                    switch (type) {
+                    case BOOLEAN:
+                        return number.doubleValue() != 0d;
+                    case BYTE:
+                        return number.byteValue();
+                    case SHORT:
+                        return number.shortValue();
+                    case INTEGER:
+                        return number.intValue();
+                    case LONG:
+                        return number.longValue();
+                    case FLOAT:
+                        return number.floatValue();
+                    case DOUBLE:
+                        return number.doubleValue();
+                    }
                 }
 
                 throw new IllegalArgumentException(String.format("Cannot convert %s to type %s", number, Strings.arrayNotation(false, target)));
             }
 
-            Object booleanToNumber(final Class<?> target, final byte flag) {
-                if (target == Boolean.TYPE || target == Boolean.class) {
-                    return flag != 0;
-                } else if (target == Byte.TYPE || target == Byte.class) {
-                    return flag;
-                } else if (target == Short.TYPE || target == Short.class) {
-                    return (short) flag;
-                } else if (target == Integer.TYPE || target == Integer.class) {
-                    return (int) flag;
-                } else if (target == Long.TYPE || target == Long.class) {
-                    return (long) flag;
-                } else if (target == Float.TYPE || target == Float.class) {
-                    return (float) flag;
-                } else if (target == Double.TYPE || target == Double.class) {
-                    return (double) flag;
+            Object booleanToPrimitive(final Class<?> target, final boolean flag) {
+                final PrimitiveType type = PRIMITIVE_TYPES.get(target);
+
+                if (type != null) {
+                    final int value = flag ? 1 : 0;
+
+                    switch (type) {
+                    case BOOLEAN:
+                        return flag;
+                    case BYTE:
+                        return (byte) value;
+                    case SHORT:
+                        return (short) value;
+                    case INTEGER:
+                        return value;
+                    case LONG:
+                        return (long) value;
+                    case FLOAT:
+                        return (float) value;
+                    case DOUBLE:
+                        return (double) value;
+                    }
                 }
 
                 throw new IllegalArgumentException(String.format("Cannot convert %s to type %s", flag, Strings.arrayNotation(false, target)));
+            }
+        }
+    }
+
+    private static Map<Class<?>, PrimitiveType> PRIMITIVE_TYPES = new HashMap<Class<?>, PrimitiveType>();
+
+    static {
+        @SuppressWarnings({ "MismatchedReadAndWriteOfArray", "UnusedDeclaration" }) PrimitiveType[] types = PrimitiveType.values();
+    }
+
+    private enum PrimitiveType {
+        CHARACTER(Character.class),
+        BYTE(Byte.class),
+        SHORT(Short.class),
+        INTEGER(Integer.class),
+        LONG(Long.class),
+        FLOAT(Float.class),
+        DOUBLE(Double.class),
+        BOOLEAN(Boolean.class);
+
+        private PrimitiveType(final Class<?> boxing) {
+            try {
+                ConfigurationFactory.PRIMITIVE_TYPES.put(boxing, this);
+                ConfigurationFactory.PRIMITIVE_TYPES.put((Class<?>) boxing.getField("TYPE").get(null), this);
+            } catch (final Exception e) {
+                assert false : e;
             }
         }
     }
