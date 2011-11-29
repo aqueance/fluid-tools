@@ -16,8 +16,6 @@
 
 package org.fluidity.foundation;
 
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
@@ -27,46 +25,28 @@ import org.fluidity.composition.Component;
 /**
  * @author Tibor Varga
  */
-@Component(automatic = false)
+@Component
 @Component.Context(ignore = Configuration.Context.class)
 final class UpdatesImpl implements Updates {
 
-    private final AtomicBoolean stopped = new AtomicBoolean();
     private final AtomicLong timestamp = new AtomicLong();
 
-    private final Deferred.Reference<Timer> timer;
+    private final long delay;
 
-    public UpdatesImpl(final Configuration<Settings> configuration) {
-        final long period = configuration.settings().period();
+    public UpdatesImpl(final Scheduler scheduler, final Configuration<Settings> configuration) {
+        delay = configuration.settings().period();
 
-        this.timer = Deferred.reference(new Deferred.Factory<Timer>() {
-            public Timer create() {
-                if (period > 0) {
-                    final Timer timer = new Timer(Updates.class.getName(), true);
-
-                    final TimerTask task = new TimerTask() {
-                        @Override
-                        public void run() {
-                            timestamp.set(System.currentTimeMillis());
-                        }
-                    };
-
-                    timer.scheduleAtFixedRate(task, period, period);
-
-                    return timer;
-                } else {
-                    return null;
+        if (delay > 0) {
+            scheduler.invoke(delay, delay, new Runnable() {
+                public void run() {
+                    timestamp.set(System.currentTimeMillis());
                 }
-            }
-        });
+            });
+        }
     }
 
     public synchronized <T> Snapshot<T> register(final long period, final Snapshot<T> loader) {
-        if (stopped.get()) {
-            throw new IllegalStateException("Updates have been stopped");
-        }
-
-        if (timer.get() == null || period <= 0) {
+        if (delay <= 0 || period <= 0) {
             return new Snapshot<T>() {
                 private final T snapshot = loader.get();
 
@@ -90,16 +70,6 @@ final class UpdatesImpl implements Updates {
                     return snapshot.get();
                 }
             };
-        }
-    }
-
-    public synchronized void stop() {
-        if (stopped.compareAndSet(false, true) && timer.resolved()) {
-            final Timer timer = this.timer.get();
-
-            if (timer != null) {
-                timer.cancel();
-            }
         }
     }
 }

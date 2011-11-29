@@ -23,27 +23,27 @@ import org.fluidity.composition.OpenComponentContainer;
 import org.fluidity.composition.spi.EmptyPackageBindings;
 
 /**
- * Binds an {@link Updates} implementation and makes sure it is stopped when the container is shut down.
+ * Binds a {@link Scheduler} implementation and makes sure it is stopped when the container is shut down.
  *
  * @author Tibor Varga
  */
-final class UpdatesBindings extends EmptyPackageBindings {
+final class SchedulerBindings extends EmptyPackageBindings {
 
-    private final AtomicReference<UpdatesImpl> updates = new AtomicReference<UpdatesImpl>();
+    private final AtomicReference<SchedulerImpl> scheduler = new AtomicReference<SchedulerImpl>();
 
     @Override
     @SuppressWarnings("unchecked")
     public void bindComponents(final OpenComponentContainer.Registry registry) {
-        registry.bindComponent(UpdatesImpl.class);
+        registry.bindComponent(SchedulerImpl.class);
     }
 
     @Override
     public void initializeComponents(final ComponentContainer container) {
-        updates.set((UpdatesImpl) container.getComponent(Updates.class));
+        scheduler.set((SchedulerImpl) container.getComponent(Scheduler.class));
     }
 
     @Override
     public void shutdownComponents(final ComponentContainer container) {
-        updates.getAndSet(null).stop();
+        scheduler.getAndSet(null).stop();
     }
 }

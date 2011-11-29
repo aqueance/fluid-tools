@@ -16,9 +16,12 @@
 
 package org.fluidity.foundation;
 
+import java.util.concurrent.atomic.AtomicReference;
+
 import org.fluidity.tests.MockGroupAbstractTest;
 
 import org.easymock.EasyMock;
+import org.easymock.IAnswer;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.Test;
 
@@ -27,32 +30,51 @@ import org.testng.annotations.Test;
  */
 public class UpdatesTest extends MockGroupAbstractTest {
 
-    @SuppressWarnings("unchecked") private final Configuration<Updates.Settings> configuration = mock(Configuration.class);
-    @SuppressWarnings("unchecked") private final Updates.Snapshot<Object> loader = mock(Updates.Snapshot.class);
+    @SuppressWarnings("unchecked")
+    private final Configuration<Updates.Settings> configuration = mock(Configuration.class);
+    @SuppressWarnings("unchecked")
+    private final Updates.Snapshot<Object> loader = mock(Updates.Snapshot.class);
 
+    private final Scheduler scheduler = mock(Scheduler.class);
+    private final Scheduler.Control control = mock(Scheduler.Control.class);
     private final Updates.Settings settings = mock(Updates.Settings.class);
-    private UpdatesImpl updates;
 
-    public void setPeriod(final long value) throws Exception {
+    private Updates updates;
+
+    public Runnable setPeriod(final boolean schedule) throws Exception {
         assert updates == null;
+        final long period = schedule ? 10 : 0;
+
         EasyMock.expect(configuration.settings()).andReturn(settings);
-        EasyMock.expect(settings.period()).andReturn(value);
+        EasyMock.expect(settings.period()).andReturn(period);
+
+        final AtomicReference<Runnable> task = new AtomicReference<Runnable>();
+
+        if (period > 0) {
+            EasyMock.expect(scheduler.invoke(EasyMock.eq(period), EasyMock.eq(period), EasyMock.<Runnable>anyObject()))
+                    .andAnswer(new IAnswer<Scheduler.Control>() {
+                        public Scheduler.Control answer() throws Throwable {
+                            task.set((Runnable) EasyMock.getCurrentArguments()[2]);
+                            return control;
+                        }
+                    });
+        }
 
         replay();
-        updates = new UpdatesImpl(configuration);
+        updates = new UpdatesImpl(scheduler, configuration);
         verify();
+
+        return task.get();
     }
 
     @AfterMethod
     public void tearDown() throws Exception {
-        assert updates != null;
-        updates.stop();
         updates = null;
     }
 
     @Test
     public void testUpdates() throws Exception {
-        setPeriod(10L);
+        final Runnable timer = setPeriod(true);
 
         final Object context = new Object();
 
@@ -68,7 +90,8 @@ public class UpdatesTest extends MockGroupAbstractTest {
         assert context == snapshot.get();
         verify();
 
-        Thread.sleep(200);
+        Thread.sleep(150);
+        timer.run();
 
         EasyMock.expect(loader.get()).andReturn(new Object());
 
@@ -79,7 +102,8 @@ public class UpdatesTest extends MockGroupAbstractTest {
 
     @Test
     public void testNoUpdates() throws Exception {
-        setPeriod(0);
+        final Runnable timer = setPeriod(false);
+        assert timer == null;
 
         final Object context = new Object();
 
@@ -95,7 +119,7 @@ public class UpdatesTest extends MockGroupAbstractTest {
         assert context == snapshot.get();
         verify();
 
-        Thread.sleep(200);
+        Thread.sleep(150);
 
         replay();
         assert context == snapshot.get();

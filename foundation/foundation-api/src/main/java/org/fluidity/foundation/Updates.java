@@ -20,8 +20,8 @@ package org.fluidity.foundation;
  * Periodic updates facility. Components wishing to periodically update some data should call {@link #register(long, Snapshot)} upon initialization and then
  * use {@link Snapshot#get()} on the returned snapshot every time they wish to access the periodically updated data.
  * <p/>
- * This component is designed not to keep a hard reference to any object that registers for updates. Instead, the component using this one keeps a hard
- * reference to this component.
+ * This component is designed not to keep a hard reference to any object that registers for updates. Instead, the caller component keeps a hard reference to
+ * this component.
  * <p/>
  * The granularity of the updates can be configured by implementing a {@link org.fluidity.foundation.spi.PropertyProvider} component that returns a valid
  * number for the {@link #PERIOD_PROPERTY} key. The default period granularity is 1 second.

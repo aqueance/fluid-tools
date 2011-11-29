@@ -144,24 +144,6 @@ public interface Configuration<T> {
     <R> R query(Query<T, R> query);
 
     /**
-     * Configuration that is periodically updated. This is a wrapper around {@link Configuration} that periodically refreshes the snapshot of the settings
-     * object. If used with this variant of the configuration mechanism, the methods of the settings interface may not have any parameters.
-     *
-     * @param <T> the settings interface.
-     */
-    interface Updated<T> {
-
-        /**
-         * Returns an object containing the most recent snapshot of the settings.
-         *
-         * @param period the period during which at most one refresh will take place.
-         *
-         * @return an object containing the most recent snapshot of the settings.
-         */
-        Updates.Snapshot<T> snapshot(long period);
-    }
-
-    /**
      * Groups property queries to provide settings consistency. Properties read in the {@link #read(Object) read(T)} method will be consistent in that no
      * property change will take place during the execution of that method. Stashing the <code>read</code> method parameter and invoking its methods
      * outside the <code>read</code> method will not have the same effect.
@@ -183,6 +165,24 @@ public interface Configuration<T> {
          * @return whatever the caller wants {@link Configuration#query(Configuration.Query)} to return.
          */
         R read(T settings);
+    }
+
+    /**
+     * Configuration that is periodically updated. This is a wrapper around {@link Configuration} that periodically refreshes the snapshot of the settings
+     * object. If used with this variant of the configuration mechanism, the methods of the settings interface may not have any parameters.
+     *
+     * @param <T> the settings interface.
+     */
+    interface Updated<T> {
+
+        /**
+         * Returns an object containing the most recent snapshot of the settings.
+         *
+         * @param period the period during which at most one refresh will take place.
+         *
+         * @return an object containing the most recent snapshot of the settings.
+         */
+        Updates.Snapshot<T> snapshot(long period);
     }
 
     /**
