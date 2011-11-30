@@ -45,29 +45,18 @@ import org.fluidity.foundation.spi.PropertyProvider;
 @Component.Context(value = { Configuration.Context.class }, typed = true)
 final class ConfigurationFactory implements CustomComponentFactory {
 
-    private final ComponentContainer container;
-
-    public ConfigurationFactory(final ComponentContainer container) {
-        this.container = container;
-    }
-
     public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
         final Component.Reference reference = context.annotation(Component.Reference.class, Configuration.class);
         final Configuration.Context[] contexts = context.annotations(Configuration.Context.class);
 
         final Class<?> api = reference.parameter(0);
-        final Dependency<?> dependency = dependencies.resolve(api);
+
+        dependencies.discover(ConfigurationImpl.class);
 
         return new Instance() {
 
             @SuppressWarnings("unchecked")
             public void bind(final Registry registry) throws OpenComponentContainer.BindingException {
-                final Object settings = dependency.instance();
-
-                if (settings != null) {
-                    registry.bindInstance(settings, Object.class);
-                }
-
                 if (contexts != null) {
                     registry.bindInstance(contexts, Configuration.Context[].class);
                 }
@@ -76,26 +65,6 @@ final class ConfigurationFactory implements CustomComponentFactory {
                 registry.bindComponent(ConfigurationImpl.class);
             }
         };
-    }
-
-    @SuppressWarnings("unchecked")
-    public <T> Configuration<T> create(final Class<T> type, final Configuration.Context... contexts) {
-        return (Configuration<T>) container.getComponent(Configuration.class, new OpenComponentContainer.Bindings() {
-            public void bindComponents(final OpenComponentContainer.Registry registry) {
-                final T defaults = container.getComponent(type);
-
-                if (defaults != null) {
-                    registry.bindInstance(defaults, Object.class);
-                }
-
-                if (contexts != null) {
-                    registry.bindInstance(contexts, Configuration.Context[].class);
-                }
-
-                registry.bindInstance(type, Class.class);
-                registry.bindComponent(ConfigurationImpl.class);
-            }
-        });
     }
 
     @Component(automatic = false)

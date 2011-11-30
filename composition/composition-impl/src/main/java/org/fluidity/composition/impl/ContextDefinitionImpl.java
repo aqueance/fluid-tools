@@ -18,6 +18,8 @@ package org.fluidity.composition.impl;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
+import java.lang.reflect.TypeVariable;
+import java.lang.reflect.WildcardType;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -75,7 +77,7 @@ final class ContextDefinitionImpl implements ContextDefinition {
             if (reference != null) {
 
                 // the parameterized dependency type is retained only for the last reference
-                defined.put(Component.Reference.class, new Annotation[] { new ComponentReferenceImpl(reference) });
+                defined.put(Component.Reference.class, new Annotation[] { new ComponentReferenceImpl(reference, reference()) });
             }
 
             hashCode = AnnotationMaps.hashCode(defined);
@@ -144,6 +146,11 @@ final class ContextDefinitionImpl implements ContextDefinition {
         return Collections.unmodifiableMap(active);
     }
 
+    public Component.Reference reference() {
+        final Annotation[] annotations = defined.get(Component.Reference.class);
+        return annotations == null ? null : (Component.Reference) annotations[0];
+    }
+
     public ContextDefinition copy() {
         return new ContextDefinitionImpl(defined, active);
     }
@@ -192,8 +199,8 @@ final class ContextDefinitionImpl implements ContextDefinition {
     private static class ComponentReferenceImpl implements Component.Reference {
         private final Type reference;
 
-        public ComponentReferenceImpl(final Type reference) {
-            this.reference = reference;
+        public ComponentReferenceImpl(final Type reference, final Component.Reference inbound) {
+            this.reference = inbound == null ? reference : Generics.propagate(inbound.type(), reference);
         }
 
         public Type type() {
@@ -201,13 +208,13 @@ final class ContextDefinitionImpl implements ContextDefinition {
         }
 
         public Class<?> parameter(final int index) {
-            final Class parameter = Generics.rawType(Generics.typeParameter(reference, index));
+            final Type type = Generics.typeParameter(reference, index);
 
-            if (parameter == null) {
-                throw new ComponentContainer.ResolutionException("Type parameter %d missing from %s dependency", index, Generics.rawType(reference).getName());
+            if (type instanceof TypeVariable || type instanceof WildcardType) {
+                throw new ComponentContainer.ResolutionException("Type parameter %d not bound in %s dependency", index, Generics.rawType(reference).getName());
             }
 
-            return parameter;
+            return Generics.rawType(type);
         }
 
         public Class<? extends Annotation> annotationType() {

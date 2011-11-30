@@ -23,6 +23,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
+import java.lang.reflect.TypeVariable;
+import java.lang.reflect.WildcardType;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.IdentityHashMap;
@@ -239,6 +241,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
     }
 
     public DependencyGraph.Node resolve(final Class<?> api, final Resolution resolution) {
+        assert api != null;
         if (ComponentContext.class.isAssignableFrom(api)) {
             return new DependencyGraph.Node.Constant(ComponentContext.class, resolution.context(), null);
         } else if (DependencyPath.class.isAssignableFrom(api)) {
@@ -481,10 +484,11 @@ final class DependencyInjectorImpl implements DependencyInjector {
                                        final ContextDefinition context,
                                        final Class<?> declaringType,
                                        final Dependency dependency) {
-        final Type reference = dependency.reference();
+        final Component.Reference inbound = context.reference();
+        final Type reference = inbound == null ? dependency.reference() : Generics.propagate(inbound.type(), dependency.reference());
 
         final ComponentGroup componentGroup = dependency.annotation(ComponentGroup.class);
-        final Class<?> dependencyType = findDependencyType(dependency.annotation(Component.class), Generics.rawType(reference), declaringType);
+        final Class<?> dependencyType = findDependencyType(dependency.annotation(Component.class), reference, declaringType);
         final boolean mandatory = dependency.annotation(Optional.class) == null;
 
         assert contexts != null : declaringType;
@@ -523,7 +527,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
                         declaringType);
             }
 
-            node = container.resolveGroup(itemType, context, traversal, dependency.annotations(), dependency.reference());
+            node = container.resolveGroup(itemType, context, traversal, dependency.annotations(), reference);
         } else {
             node = resolve(dependencyType, new Resolution() {
                 public ComponentContext context() {
@@ -560,7 +564,10 @@ final class DependencyInjectorImpl implements DependencyInjector {
         return array == null ? new Annotation[0] : array;
     }
 
-    private Class<?> findDependencyType(final Component component, final Class<?> defaultType, Class<?> declaringType) {
+    private Class<?> findDependencyType(final Component component, final Type reference, final Class<?> declaringType) {
+        assert !(reference instanceof TypeVariable) && !(reference instanceof WildcardType) : reference;
+
+        final Class<?> defaultType = Generics.rawType(reference);
         final Class<?>[] types = component == null ? new Class<?>[] { defaultType } : component.api();
 
         switch (types.length) {

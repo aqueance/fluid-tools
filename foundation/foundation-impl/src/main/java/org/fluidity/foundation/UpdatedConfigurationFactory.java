@@ -25,7 +25,6 @@ import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.OpenComponentContainer;
-import org.fluidity.composition.Optional;
 import org.fluidity.composition.spi.CustomComponentFactory;
 
 /**
@@ -37,9 +36,9 @@ final class UpdatedConfigurationFactory implements CustomComponentFactory {
 
     public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
         final Component.Reference reference = context.annotation(Component.Reference.class, Configuration.class);
-        final Configuration.Context[] contexts = context.annotations(Configuration.Context.class);
-
         final Class<?> api = reference.parameter(0);
+
+        dependencies.discover(UpdatedConfigurationImpl.class);
 
         for (final Method method : api.getMethods()) {
             if (method.getParameterTypes().length > 0) {
@@ -51,10 +50,6 @@ final class UpdatedConfigurationFactory implements CustomComponentFactory {
 
             @SuppressWarnings("unchecked")
             public void bind(final Registry registry) throws OpenComponentContainer.BindingException {
-                if (contexts != null) {
-                    registry.bindInstance(contexts, Configuration.Context[].class);
-                }
-
                 registry.bindInstance(api, Class.class);
                 registry.bindComponent(UpdatedConfigurationImpl.class);
             }
@@ -64,25 +59,19 @@ final class UpdatedConfigurationFactory implements CustomComponentFactory {
     @Component(automatic = false)
     private static class UpdatedConfigurationImpl<T> implements Configuration.Updated<T> {
 
-        private final ConfigurationFactory factory;
+        private final Configuration<T> configuration;
         private final Updates updates;
         private final Class<T> type;
-        private final Configuration.Context[] contexts;
 
-        public UpdatedConfigurationImpl(final Class<T> type,
-                                        final ConfigurationFactory factory,
-                                        final Updates updates,
-                                        final @Optional Configuration.Context... contexts) {
-            this.factory = factory;
+        public UpdatedConfigurationImpl(final Class<T> type, final Configuration<T> configuration, final Updates updates) {
+            this.configuration = configuration;
             this.updates = updates;
             this.type = type;
-            this.contexts = contexts;
         }
 
         public Updates.Snapshot<T> snapshot(final long period) {
             return updates.register(period, new Updates.Snapshot<T>() {
-                private final Configuration<T> configuration = factory.create(type, contexts);
-                private Configuration.Query<T, T> query = new Configuration.Query<T, T>() {
+                private Configuration.Query<T, T> all = new Configuration.Query<T, T>() {
                     public T read(final T settings) {
                         final Map<Method, Object> cache = new HashMap<Method, Object>();
 
@@ -105,7 +94,7 @@ final class UpdatedConfigurationFactory implements CustomComponentFactory {
                 };
 
                 public T get() {
-                    return configuration.query(query);
+                    return configuration.query(all);
                 }
             });
         }

@@ -95,6 +95,43 @@ public interface ComponentFactory {
         /**
          * Binds the created component and all its local dependencies, e.g., those not found in the application's containers by design, to the supplied
          * registry.
+         * <p/>
+         * Note: if the created component is context aware, the {@link ComponentFactory} must extract from the context received in {@link
+         * ComponentFactory#resolve(ComponentContext, ComponentFactory.Resolver)} all context annotations declared in its {@link
+         * org.fluidity.composition.Component.Context @Component.Context} annotations and, if not <code>null</code>, bind them in the <code>registry</code>
+         * parameter of this method, and the component itself must declare an {@link org.fluidity.composition.Optional @Optional} array dependency on each
+         * context annotation that it accepts rather than depending on {@link ComponentContext} and extracting those context annotations therefrom. For
+         * example:
+         * <pre>
+         * &#64;Component(api = CreatedComponent.class)
+         * &#64;Component.Context(CustomContext.class)
+         * final class CustomFactory implements CustomComponentFactory {
+         *     public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
+         *         final CustomContext[] contexts = context.annotations(CustomContext.class);
+         *
+         *         dependencies.discover(CreatedComponent.class);
+         *
+         *         return new Instance() {
+         *
+         *             &#64;SuppressWarnings("unchecked")
+         *             public void bind(final Registry registry) throws OpenComponentContainer.BindingException {
+         *                 if (contexts != null) {
+         *                     registry.bindInstance(contexts, CreatedContext[].class);
+         *                 }
+         I
+         *                 registry.bindComponent(CreatedComponent.class);
+         *             }
+         *         };
+         *     }
+         * }
+         *
+         * final class CreatedComponent {
+         *
+         *     public CreatedComponent(final @Optional CustomContext[] contexts) {
+         *         ....
+         *     }
+         * }
+         * </pre>
          *
          * @param registry the registry to bind components in.
          *

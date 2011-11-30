@@ -21,6 +21,7 @@ import java.lang.reflect.Type;
 import java.util.Collection;
 import java.util.Map;
 
+import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContext;
 
 /**
@@ -116,4 +117,11 @@ public interface ContextDefinition {
      * @return a component context containing the given context set.
      */
     ComponentContext create(Map<Class<? extends Annotation>, Annotation[]> map);
+
+    /**
+     * Returns the component reference.
+     *
+     * @return the component reference.
+     */
+    Component.Reference reference();
 }

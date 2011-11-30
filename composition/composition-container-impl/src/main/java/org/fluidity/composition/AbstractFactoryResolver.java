@@ -29,6 +29,7 @@ import org.fluidity.composition.spi.ContextDefinition;
 import org.fluidity.composition.spi.DependencyGraph;
 import org.fluidity.composition.spi.DependencyInjector;
 import org.fluidity.composition.spi.RestrictedContainer;
+import org.fluidity.foundation.Generics;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**
@@ -98,25 +99,26 @@ abstract class AbstractFactoryResolver extends AbstractResolver {
                 return new NodeDependency<T>(resolve(api, null), traversal);
             }
 
-            public DependencyGraph.Node resolve(final Class<?> api, final Annotation[] annotations) {
+            public DependencyGraph.Node resolve(final Type api, final Annotation[] annotations) {
                 final Class<?> resolving = AbstractFactoryResolver.this.api;
+                final Class<?> type = Generics.rawType(api);
 
-                return injector.resolve(api, new DependencyInjector.Resolution() {
+                return injector.resolve(type, new DependencyInjector.Resolution() {
                     public ComponentContext context() {
-                        traversal.resolving(resolving, api, null, null);
+                        traversal.resolving(resolving, type, null, null);
                         return passed;
                     }
 
                     public ComponentContainer container() {
-                        traversal.resolving(resolving, api, null, null);
+                        traversal.resolving(resolving, type, null, null);
                         return new ComponentContainerShell(child, reduced.accept(null), false);
                     }
 
                     public DependencyGraph.Node regular() {
-                        traversal.resolving(resolving, api, null, annotations);
+                        traversal.resolving(resolving, type, null, annotations);
                         final ContextDefinition copy = collected.copy();
                         list.add(copy);
-                        return child.resolveComponent(api, copy.expand(annotations, reference), traversal, reference);
+                        return child.resolveComponent(type, copy.expand(annotations, api), traversal, api);
                     }
 
                     public void handle(final RestrictedContainer container) {
@@ -130,17 +132,17 @@ abstract class AbstractFactoryResolver extends AbstractResolver {
             }
 
             public ComponentFactory.Dependency<?>[] discover(final Constructor<?> constructor) {
-                return discover(constructor.getParameterTypes(), constructor.getParameterAnnotations());
+                return discover(constructor.getGenericParameterTypes(), constructor.getParameterAnnotations());
             }
 
             public ComponentFactory.Dependency<?>[] discover(final Method method) {
-                return discover(method.getParameterTypes(), method.getParameterAnnotations());
+                return discover(method.getGenericParameterTypes(), method.getParameterAnnotations());
             }
 
-            private ComponentFactory.Dependency<?>[] discover(final Class<?>[] types, final Annotation[][] annotations) {
+            private ComponentFactory.Dependency<?>[] discover(final Type[] types, final Annotation[][] annotations) {
                 final List<ComponentFactory.Dependency<?>> nodes = new ArrayList<ComponentFactory.Dependency<?>>();
                 for (int i = 0, limit = types.length; i < limit; i++) {
-                    nodes.add(new NodeDependency<Object>(resolve(types[i], annotations[i]), traversal));
+                    nodes.add(new NodeDependency<Object>(resolve(Generics.propagate(reference, types[i]), annotations[i]), traversal));
                 }
 
                 return nodes.toArray(new ComponentFactory.Dependency<?>[nodes.size()]);

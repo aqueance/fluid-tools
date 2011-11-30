@@ -140,6 +140,7 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
         final ContextDefinition copy = localMock(ContextDefinition.class);
 
         EasyMock.expect(context.copy()).andReturn(copy);
+        EasyMock.expect(copy.reference()).andReturn(null);
 
         final Annotation[] componentContext = neverNull(componentType.getAnnotations());
         final Annotation[] dependencyContext = neverNull(dependencyAnnotations);
