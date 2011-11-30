@@ -63,12 +63,6 @@ not listing on any other Fluid Tools dependency.
             <version>${project.version}</version>
         </dependency>
 
-        <dependency>
-            <groupId>${fluidity.deployment.groupId}</groupId>
-            <artifactId>cli-bootstrap-spi</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
     </dependencies>
 
     <profiles>
