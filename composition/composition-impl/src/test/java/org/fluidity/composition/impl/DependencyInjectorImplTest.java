@@ -20,10 +20,12 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.ComponentGroup;
@@ -149,7 +151,8 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
         System.arraycopy(componentContext, 0, definitions, 0, componentContext.length);
         System.arraycopy(dependencyContext, 0, definitions, componentContext.length, dependencyContext.length);
 
-        EasyMock.expect(copy.expand(EasyMock.aryEq(definitions), EasyMock.same(dependencyType))).andReturn(copy);
+        EasyMock.expect(copy.expand(EasyMock.aryEq(definitions), isSpecial(dependencyType) ? EasyMock.<Type>isNull() : EasyMock.same(dependencyType)))
+                .andReturn(copy);
 
         if (dependencyType.isArray()) {
             assert component == null || component.getClass().isArray() : component.getClass();
@@ -181,6 +184,10 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
         }
 
         return copy;
+    }
+
+    private boolean isSpecial(final Class<?> type) {
+        return ComponentContext.class.isAssignableFrom(type) || ComponentContainer.class.isAssignableFrom(type);
     }
 
     private void setupCollection(final ContextDefinition context, final ContextDefinition... copies) {
@@ -279,6 +286,8 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
                         setupFieldResolution(component.getClass(), "context", context, created, null));
 
         expectCallbacks();
+
+        EasyMock.expect(created.annotations(Component.Reference.class)).andReturn(null);
 
         replay();
         assert component == injector.fields(component, traversal, resolver, contexts, context);

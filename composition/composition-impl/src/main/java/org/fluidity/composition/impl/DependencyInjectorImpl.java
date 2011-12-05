@@ -361,7 +361,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
                         public Object run() throws Exception {
                             constructor.setAccessible(true);
                             traversal.instantiating(componentClass);
-                            final Object component = constructor.newInstance(create(traversal, containers, arguments));
+                            final Object component = constructor.newInstance(create(constructor.getDeclaringClass(), traversal, containers, arguments));
                             traversal.instantiated(componentClass, component);
                             return component;
                         }
@@ -395,7 +395,8 @@ final class DependencyInjectorImpl implements DependencyInjector {
         return Exceptions.wrap(String.format("setting %s fields", instance.getClass()), new Exceptions.Command<Object>() {
             public Object run() throws Exception {
                 for (final Map.Entry<Field, DependencyGraph.Node> entry : fieldNodes.entrySet()) {
-                    entry.getKey().set(instance, create(traversal, containers, entry.getValue())[0]);
+                    final Field field = entry.getKey();
+                    field.set(instance, create(field.getDeclaringClass(), traversal, containers, entry.getValue())[0]);
                 }
 
                 return instance;
@@ -403,7 +404,10 @@ final class DependencyInjectorImpl implements DependencyInjector {
         });
     }
 
-    public Object[] create(final DependencyGraph.Traversal traversal, final List<RestrictedContainer> containers, final DependencyGraph.Node... nodes) {
+    public Object[] create(final Class<?> type,
+                           final DependencyGraph.Traversal traversal,
+                           final List<RestrictedContainer> containers,
+                           final DependencyGraph.Node... nodes) {
         final Object[] values = new Object[nodes.length];
 
         for (int i = 0, limit = nodes.length; i < limit; i++) {
@@ -411,6 +415,18 @@ final class DependencyInjectorImpl implements DependencyInjector {
 
             if (value instanceof RestrictedContainer) {
                 containers.add((RestrictedContainer) value);
+            } else if (value instanceof ComponentContext) {
+                final Component.Reference[] references = ((ComponentContext) value).annotations(Component.Reference.class);
+
+                if (references != null) {
+                    final Type[] variables = Generics.unresolved((references[0]).type());
+
+                    if (variables != null) {
+                        throw new ComponentContainer.ResolutionException("Parameterized component of type %s with unresolved type variables: %s",
+                                                                         type.getName(),
+                                                                         Arrays.toString(variables));
+                    }
+                }
             }
 
             values[i] = value;
@@ -503,8 +519,6 @@ final class DependencyInjectorImpl implements DependencyInjector {
         System.arraycopy(typeContext, 0, definitions, 0, typeContext.length);
         System.arraycopy(dependencyContext, 0, definitions, typeContext.length, dependencyContext.length);
 
-        context.expand(definitions, reference);
-
         final DependencyGraph.Node node;
 
         if (componentGroup != null) {
@@ -527,21 +541,23 @@ final class DependencyInjectorImpl implements DependencyInjector {
                         declaringType);
             }
 
-            node = container.resolveGroup(itemType, context, traversal, dependency.annotations(), reference);
+            node = container.resolveGroup(itemType, context.expand(definitions, reference), traversal, dependency.annotations(), reference);
         } else {
             node = resolve(dependencyType, new Resolution() {
                 public ComponentContext context() {
 
                     // always reduce the context to what the component accepts to avoid leaking contextual information to the component that it may inadvertently use
                     // without explicitly declaring it as accepted
-                    return context.accept(contexts.contextConsumer()).create();
+                    return context.expand(definitions, null).accept(contexts.contextConsumer()).create();
                 }
 
                 public ComponentContainer container() {
-                    return container.container(context);
+                    return container.container(context.expand(definitions, null));
                 }
 
                 public DependencyGraph.Node regular() {
+                    context.expand(definitions, reference);
+
                     final ContextNode contexts = container.contexts(dependencyType, context);
                     return contexts != null
                            ? container.resolveComponent(dependencyType, context.accept(contexts.contextConsumer()), traversal, reference)

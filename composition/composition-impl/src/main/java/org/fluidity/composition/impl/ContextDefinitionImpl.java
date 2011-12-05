@@ -211,7 +211,7 @@ final class ContextDefinitionImpl implements ContextDefinition {
             final Type type = Generics.typeParameter(reference, index);
 
             if (type instanceof TypeVariable || type instanceof WildcardType) {
-                throw new ComponentContainer.ResolutionException("Type parameter %d not bound in %s dependency", index, Generics.rawType(reference).getName());
+                throw new ComponentContainer.ResolutionException("Type parameter %d could not be resolved in %s dependency", index, Generics.rawType(reference).getName());
             }
 
             return Generics.rawType(type);

@@ -52,7 +52,6 @@ public class GenericsTest {
     @Test
     public void testDirectVariables() throws Exception {
 
-        @SuppressWarnings({ "unchecked", "UnusedDeclaration" })
         class References {
             public final A<I1, I2, I3> reference = null;
         }
@@ -106,7 +105,6 @@ public class GenericsTest {
     @Test
     public void testExtendedVariables() throws Exception {
 
-        @SuppressWarnings({ "unchecked", "UnusedDeclaration" })
         class References {
             public final D reference = null;
         }
@@ -160,7 +158,6 @@ public class GenericsTest {
     @Test
     public void testImplementedVariables() throws Exception {
 
-        @SuppressWarnings({ "unchecked", "UnusedDeclaration" })
         class References {
             public final E<I1> reference = null;
         }
@@ -212,9 +209,114 @@ public class GenericsTest {
     }
 
     @Test
+    public void testUnresolvedTypeVariables() throws Exception {
+
+        class References {
+            public final A reference = null;
+        }
+
+        final Type reference = References.class.getField("reference").getGenericType();
+
+        final Constructor<A> constructorA = A.class.getConstructor(B.class, B.class, B[].class);
+        final ParameterizedType paramA0 = (ParameterizedType) constructorA.getGenericParameterTypes()[0];
+        final ParameterizedType paramA1 = (ParameterizedType) constructorA.getGenericParameterTypes()[1];
+        final GenericArrayType paramA2 = (GenericArrayType) constructorA.getGenericParameterTypes()[2];
+
+        final Constructor<B> constructorB = B.class.getConstructor(C.class, C.class);
+        final ParameterizedType paramB0 = (ParameterizedType) constructorB.getGenericParameterTypes()[0];
+        final ParameterizedType paramB1 = (ParameterizedType) constructorB.getGenericParameterTypes()[1];
+
+        assert B.class == Generics.rawType(Generics.propagate(reference, paramA0));
+        assert B.class == Generics.rawType(Generics.propagate(reference, paramA1));
+        assert B[].class == Generics.rawType(Generics.propagate(reference, paramA2));
+        assert C.class == Generics.rawType(Generics.propagate(reference, paramB0));
+        assert C.class == Generics.rawType(Generics.propagate(reference, paramB1));
+
+        assert Q.class == Generics.resolve(reference, (TypeVariable) paramA0.getActualTypeArguments()[0]);
+        assert Q.class == Generics.resolve(reference, (TypeVariable) paramA0.getActualTypeArguments()[1]);
+        assert Q.class == Generics.resolve(reference, (TypeVariable) paramA1.getActualTypeArguments()[0]);
+        assert Q.class == Generics.resolve(reference, (TypeVariable) paramA1.getActualTypeArguments()[1]);
+        assert Q.class == Generics.resolve(reference, (TypeVariable) ((ParameterizedType) Generics.arrayComponentType(paramA2)).getActualTypeArguments()[0]);
+        assert Q.class == Generics.resolve(reference, (TypeVariable) ((ParameterizedType) Generics.arrayComponentType(paramA2)).getActualTypeArguments()[1]);
+
+        final Type inheritedA0B0 = Generics.propagate(Generics.propagate(reference, paramA0), paramB0);
+        final Type inheritedA0B1 = Generics.propagate(Generics.propagate(reference, paramA0), paramB1);
+        final Type inheritedA1B0 = Generics.propagate(Generics.propagate(reference, paramA1), paramB0);
+        final Type inheritedA1B1 = Generics.propagate(Generics.propagate(reference, paramA1), paramB1);
+        final Type inheritedA2B0 = Generics.propagate(Generics.propagate(reference, paramA2), paramB0);
+        final Type inheritedA2B1 = Generics.propagate(Generics.propagate(reference, paramA2), paramB1);
+
+        assert Generics.rawType(inheritedA0B0) == C.class;
+        assert Generics.rawType(inheritedA0B1) == C.class;
+        assert Generics.rawType(inheritedA1B0) == C.class;
+        assert Generics.rawType(inheritedA1B1) == C.class;
+        assert Generics.rawType(inheritedA2B0) == C.class;
+        assert Generics.rawType(inheritedA2B1) == C.class;
+
+        assert Q.class == Generics.typeParameter(inheritedA0B0, 0);
+        assert Q.class == Generics.typeParameter(inheritedA0B1, 0);
+        assert Q.class == Generics.typeParameter(inheritedA1B0, 0);
+        assert Q.class == Generics.typeParameter(inheritedA1B1, 0);
+        assert Q.class == Generics.typeParameter(inheritedA2B0, 0);
+        assert Q.class == Generics.typeParameter(inheritedA2B1, 0);
+    }
+
+    @Test
+    public void testWildcardTypeVariables() throws Exception {
+
+        class References {
+            public final A<?, ?, ?> reference = null;
+        }
+
+        final Type reference = References.class.getField("reference").getGenericType();
+
+        final Constructor<A> constructorA = A.class.getConstructor(B.class, B.class, B[].class);
+        final ParameterizedType paramA0 = (ParameterizedType) constructorA.getGenericParameterTypes()[0];
+        final ParameterizedType paramA1 = (ParameterizedType) constructorA.getGenericParameterTypes()[1];
+        final GenericArrayType paramA2 = (GenericArrayType) constructorA.getGenericParameterTypes()[2];
+
+        final Constructor<B> constructorB = B.class.getConstructor(C.class, C.class);
+        final ParameterizedType paramB0 = (ParameterizedType) constructorB.getGenericParameterTypes()[0];
+        final ParameterizedType paramB1 = (ParameterizedType) constructorB.getGenericParameterTypes()[1];
+
+        assert B.class == Generics.rawType(Generics.propagate(reference, paramA0));
+        assert B.class == Generics.rawType(Generics.propagate(reference, paramA1));
+        assert B[].class == Generics.rawType(Generics.propagate(reference, paramA2));
+        assert C.class == Generics.rawType(Generics.propagate(reference, paramB0));
+        assert C.class == Generics.rawType(Generics.propagate(reference, paramB1));
+
+        assert Q.class == Generics.resolve(reference, (TypeVariable) paramA0.getActualTypeArguments()[0]);
+        assert Q.class == Generics.resolve(reference, (TypeVariable) paramA0.getActualTypeArguments()[1]);
+        assert Q.class == Generics.resolve(reference, (TypeVariable) paramA1.getActualTypeArguments()[0]);
+        assert Q.class == Generics.resolve(reference, (TypeVariable) paramA1.getActualTypeArguments()[1]);
+        assert Q.class == Generics.resolve(reference, (TypeVariable) ((ParameterizedType) Generics.arrayComponentType(paramA2)).getActualTypeArguments()[0]);
+        assert Q.class == Generics.resolve(reference, (TypeVariable) ((ParameterizedType) Generics.arrayComponentType(paramA2)).getActualTypeArguments()[1]);
+
+        final Type inheritedA0B0 = Generics.propagate(Generics.propagate(reference, paramA0), paramB0);
+        final Type inheritedA0B1 = Generics.propagate(Generics.propagate(reference, paramA0), paramB1);
+        final Type inheritedA1B0 = Generics.propagate(Generics.propagate(reference, paramA1), paramB0);
+        final Type inheritedA1B1 = Generics.propagate(Generics.propagate(reference, paramA1), paramB1);
+        final Type inheritedA2B0 = Generics.propagate(Generics.propagate(reference, paramA2), paramB0);
+        final Type inheritedA2B1 = Generics.propagate(Generics.propagate(reference, paramA2), paramB1);
+
+        assert Generics.rawType(inheritedA0B0) == C.class;
+        assert Generics.rawType(inheritedA0B1) == C.class;
+        assert Generics.rawType(inheritedA1B0) == C.class;
+        assert Generics.rawType(inheritedA1B1) == C.class;
+        assert Generics.rawType(inheritedA2B0) == C.class;
+        assert Generics.rawType(inheritedA2B1) == C.class;
+
+        assert Q.class == Generics.typeParameter(inheritedA0B0, 0);
+        assert Q.class == Generics.typeParameter(inheritedA0B1, 0);
+        assert Q.class == Generics.typeParameter(inheritedA1B0, 0);
+        assert Q.class == Generics.typeParameter(inheritedA1B1, 0);
+        assert Q.class == Generics.typeParameter(inheritedA2B0, 0);
+        assert Q.class == Generics.typeParameter(inheritedA2B1, 0);
+    }
+
+    @Test
     public void testTypeEquality() throws Exception {
 
-        @SuppressWarnings({ "unchecked", "UnusedDeclaration" })
         class References {
             public final A<I1, I2, I3> reference = null;
         }
@@ -258,11 +360,13 @@ public class GenericsTest {
         }
     }
 
-    private interface I1 { }
-    private interface I2 { }
-    private interface I3 { }
+    private interface Q { }
 
-    private static class A<R, S, T> {
+    private interface I1 extends Q { }
+    private interface I2 extends Q { }
+    private interface I3 extends Q { }
+
+    private static class A<R extends Q, S extends Q, T extends Q> {
 
         @SuppressWarnings("UnusedParameters")
         public A(final B<R, S> p1, final B<S, T>p2, final B<R, T>[] p3) { }

@@ -22,7 +22,9 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.lang.reflect.WildcardType;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 
 /**
  * Utility methods to access parameterized type information.
@@ -72,7 +74,8 @@ public final class Generics extends Utilities {
             final Type[] arguments = ((ParameterizedType) type).getActualTypeArguments();
 
             if (arguments != null && arguments.length > index) {
-                return arguments[index];
+                final Type argument = arguments[index];
+                return argument instanceof WildcardType ? rawType(rawType(((ParameterizedType) type).getRawType()).getTypeParameters()[index]) : argument;
             }
         }
 
@@ -101,7 +104,7 @@ public final class Generics extends Utilities {
      * type, and must have all its type parameters resolved.
      *
      * @param reference the base type to resolve the type variable against.
-     * @param variable the type variable to resolve.
+     * @param variable  the type variable to resolve.
      *
      * @return the resolved type variable if resolution was possible, <code>null</code> otherwise.
      */
@@ -115,6 +118,17 @@ public final class Generics extends Utilities {
                     return typeParameter(reference, i);
                 }
             }
+        } else if (reference instanceof Class) {
+            final String name = variable.getName();
+
+            final TypeVariable[] parameters = ((Class) reference).getTypeParameters();
+            for (int i = 0, limit = parameters.length; i < limit; i++) {
+                final TypeVariable parameter = parameters[i];
+
+                if (name.equals(parameter.getName())) {
+                    return rawType(parameter);
+                }
+            }
         } else if (reference instanceof GenericArrayType) {
             return resolve(((GenericArrayType) reference).getGenericComponentType(), variable);
         }
@@ -122,14 +136,49 @@ public final class Generics extends Utilities {
         return null;
     }
 
+    private static Collection<Type> unresolved(final Type reference, Collection<Type> list) {
+        if (reference instanceof Class) {
+            return list;
+        } else if (reference instanceof ParameterizedType) {
+            final ParameterizedType original = (ParameterizedType) reference;
+
+            final Type[] arguments = original.getActualTypeArguments();
+            for (int i = 0, limit = arguments.length; i < limit; i++) {
+                unresolved(arguments[i], list);
+            }
+
+            return list;
+        } else if (reference instanceof GenericArrayType) {
+            return unresolved(arrayComponentType(reference), list);
+        } else if (reference instanceof TypeVariable || reference instanceof WildcardType) {
+            list.add(reference);
+            return list;
+        } else {
+            assert false : reference;
+            return list;
+        }
+    }
+
     /**
-     * Resolves all unbound type variables of the <code>outbound</code> parameter using the <code>inbound</code> type as base type. The <code>inbound</code>
+     * Returns a list of unresolved type variables in the given type.
+     *
+     * @param reference the type to scan for unresolved type variables and wild card types.
+     *
+     * @return an array of {@link TypeVariable} or {@link WildcardType} objects, or <code>null</code> if no unresolved variable was found.
+     */
+    public static Type[] unresolved(final Type reference) {
+        final Collection<Type> list = unresolved(reference, new ArrayList<Type>());
+        return list.isEmpty() ? null : list.toArray(new Type[list.size()]);
+    }
+
+    /**
+     * Resolves all type variables of the <code>outbound</code> parameter using the <code>inbound</code> type as base type. The <code>inbound</code>
      * type must have all its parameters resolved.
      *
-     * @param inbound the base type to resolve type variables against.
+     * @param inbound  the base type to resolve type variables against.
      * @param outbound the outbound type whose type variables are to be resolved.
      *
-     * @return a type with all type variables resolved or <code>null</code> if no resulution was possible.
+     * @return a type with all type variables resolved or <code>null</code> if no resolution was possible.
      */
     public static Type propagate(final Type inbound, final Type outbound) {
         if (outbound instanceof Class) {
@@ -227,9 +276,9 @@ public final class Generics extends Utilities {
             }
 
             final ParameterizedType that = (ParameterizedType) o;
-            return Arrays.equals(arguments, that.getActualTypeArguments())
-                   && original.getRawType().equals(that.getRawType())
-                   && original.getOwnerType() == null ? that.getOwnerType() == null : original.getOwnerType().equals(that.getOwnerType());
+            return Arrays.equals(arguments, that.getActualTypeArguments()) && original.getRawType().equals(that.getRawType()) && original.getOwnerType() == null
+                   ? that.getOwnerType() == null
+                   : original.getOwnerType().equals(that.getOwnerType());
         }
 
         @Override
