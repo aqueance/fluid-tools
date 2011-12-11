@@ -17,15 +17,17 @@
 package org.fluidity.foundation;
 
 /**
- * Provides scheduled and periodic command invocation. This component keeps a hard reference to the supplied commands until their scheduled invocation is
- * canceled - either automatically or manually by calling {@link Scheduler.Control#cancel()}.
+ * Provides scheduled and periodic command invocation. This component keeps a hard reference to the supplied commands
+ * until their scheduled invocation is canceled - either automatically or manually by calling {@link
+ * Scheduler.Control#cancel()}.
  *
  * @author Tibor Varga
  */
 public interface Scheduler {
 
     /**
-     * Adds the given task to be invoked at a fixed <code>period</code> milliseconds rate after <code>delay</code> milliseconds.
+     * Adds the given task to be invoked at a fixed <code>period</code> milliseconds rate after <code>delay</code>
+     * milliseconds.
      *
      * @param delay  the delay in milliseconds before the first invocation.
      * @param period the time in milliseconds between the invocations.
@@ -38,15 +40,16 @@ public interface Scheduler {
     /**
      * Adds the given task to be invoked after <code>delay</code> milliseconds.
      *
-     * @param delay  the delay in milliseconds before the first invocation.
-     * @param task   the object to invoke.
+     * @param delay the delay in milliseconds before the first invocation.
+     * @param task  the object to invoke.
      *
      * @return an object to cancel the invocation.
      */
     Control invoke(long delay, Runnable task);
 
     /**
-     * Controls an invocation scheduled by {@link Scheduler#invoke(long, Runnable)} or {@link Scheduler#invoke(long, long, Runnable)}.
+     * Controls an invocation scheduled by {@link Scheduler#invoke(long, Runnable)} or {@link Scheduler#invoke(long,
+     * long, Runnable)}.
      */
     interface Control {
 

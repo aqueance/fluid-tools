@@ -28,7 +28,7 @@
     <artifactId>public</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
-    <name>Fluid Tools: Export Modules</name>
+    <name>Fluid Tools: Public Dependencies</name>
 
     <licenses>
         <license>
@@ -39,7 +39,7 @@
     </licenses>
 
     <description><![CDATA[
-This project lists the exported modules of Fluid Tools.
+This project lists the public modules of Fluid Tools.
     ]]></description>
 
     <modules>

@@ -17,14 +17,17 @@
 package org.fluidity.foundation;
 
 /**
- * Periodic updates facility. Components wishing to periodically update some data should call {@link #register(long, Snapshot)} upon initialization and then
- * use {@link Snapshot#get()} on the returned snapshot every time they wish to access the periodically updated data.
+ * Periodic updates facility. Components wishing to periodically update some data should call {@link #register(long,
+ * Snapshot)} upon initialization and then use {@link Snapshot#get()} on the returned snapshot every time they wish to
+ * access the periodically updated data.
  * <p/>
- * This component is designed not to keep a hard reference to any object that registers for updates. Instead, the caller component keeps a hard reference to
- * this component.
+ * This component is designed not to keep a hard reference to any object that registers for updates. Instead, the
+ * caller
+ * component keeps a hard reference to this component.
  * <p/>
- * The granularity of the updates can be configured by implementing a {@link org.fluidity.foundation.spi.PropertyProvider} component that returns a valid
- * number for the {@link #PERIOD_PROPERTY} key. The default period granularity is 1 second.
+ * The granularity of the updates can be configured by implementing a {@link org.fluidity.foundation.spi.PropertyProvider}
+ * component that returns a valid number for the {@link #PERIOD_PROPERTY} key. The default period granularity is 1
+ * second.
  *
  * @author Tibor Varga
  */
@@ -38,10 +41,12 @@ public interface Updates {
     /**
      * Registers an object to periodically update data with.
      * <p/>
-     * The data update is implemented by the supplied <code>loader</code>, which will be invoked at most once every <code>period</code> seconds. The data will
-     * be loaded once before this method returns and after that only if the {@link Snapshot#get()} method is invoked on the returned value.
+     * The data update is implemented by the supplied <code>loader</code>, which will be invoked at most once every
+     * <code>period</code> milliseconds. The data will be loaded once before this method returns and after that only if
+     * the {@link Snapshot#get()} method is invoked on the returned value.
      *
-     * @param period the number of milliseconds that must pass between subsequent calls to {@link Snapshot#get()} on the provided <code>loader</code>.
+     * @param period the number of milliseconds that must pass between subsequent calls to {@link Snapshot#get()} on
+     *               the provided <code>loader</code>.
      * @param loader the object that can refresh the data.
      *
      * @return an object through the up-to-date data can be obtained.
@@ -73,8 +78,8 @@ public interface Updates {
     interface Settings {
 
         /**
-         * The minimum number in milliseconds between subsequent calls to {@link Snapshot#get()} of a loader passed to {@link Updates#register(long,
-         * Snapshot)}.
+         * The minimum number in milliseconds between subsequent calls to {@link Snapshot#get()} of a loader passed to
+         * {@link Updates#register(long, Snapshot)}.
          *
          * @return a number greater than 0.
          */
