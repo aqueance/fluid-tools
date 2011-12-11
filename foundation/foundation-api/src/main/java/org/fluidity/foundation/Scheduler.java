@@ -54,8 +54,11 @@ public interface Scheduler {
     interface Control {
 
         /**
-         * Cancels the scheduled invocation.
+         * Cancels any subsequent scheduled invocation of the task this control corresponds to.
+         *
+         * @return <code>true</code> if the call prevented one or more scheduled executions from taking place;
+         *         <code>false</code> otherwise.
          */
-        void cancel();
+        boolean cancel();
     }
 }

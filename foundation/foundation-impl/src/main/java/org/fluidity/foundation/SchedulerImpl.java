@@ -75,8 +75,8 @@ final class SchedulerImpl implements Scheduler {
         timer.get().schedule(task, delay, period);
 
         return new Control() {
-            public void cancel() {
-                task.cancel();
+            public boolean cancel() {
+                return task.cancel();
             }
         };
     }
