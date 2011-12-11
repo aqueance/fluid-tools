@@ -16,13 +16,9 @@
 
 package org.fluidity.foundation;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-
 import org.fluidity.foundation.spi.PropertyProvider;
+
+import java.lang.annotation.*;
 
 /**
  * Represents some configuration of a component. The component receives its configuration, which will be an object implementing this interface, as an injected
@@ -173,7 +169,7 @@ public interface Configuration<T> {
      *
      * @param <T> the settings interface.
      */
-    interface Updated<T> {
+    interface Refreshed<T> {
 
         /**
          * Returns an object containing the most recent snapshot of the settings.

@@ -14,26 +14,32 @@
  * limitations under the License.
  */
 
-package org.fluidity.foundation.impl;
+package org.fluidity.foundation.tests;
 
 import org.fluidity.composition.Component;
-import org.fluidity.composition.ServiceProvider;
+import org.fluidity.composition.ComponentContainer;
+import org.fluidity.composition.ContainerBoundary;
 import org.fluidity.foundation.Log;
-import org.fluidity.foundation.spi.LogFactory;
+import org.testng.annotations.Test;
 
 /**
- * Log factory backed by SLF4J.
- *
  * @author Tibor Varga
  */
-@Component
-@ServiceProvider
-final class Slf4jLogFactory implements LogFactory {
+public class RefreshedLogFactoryTest {
 
-    /**
-     * {@inheritDoc}
-     */
-    public Log createLog(final Class<?> source) {
-        return new Slf4jLogImpl(source);
+    private final ComponentContainer container = new ContainerBoundary();
+
+    @Test
+    public void testRefreshedLogging() throws Exception {
+        assert container.getComponent(Logging.class) != null : Logging.class;
+    }
+
+    @Component
+    private static class Logging {
+
+        @SuppressWarnings("UnusedDeclaration")
+        public Logging(final Log.Refreshed<Logging> log) {
+            assert log != null;
+        }
     }
 }

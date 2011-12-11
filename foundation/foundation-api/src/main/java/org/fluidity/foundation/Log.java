@@ -17,8 +17,9 @@
 package org.fluidity.foundation;
 
 /**
- * Log interface to use by Fluid Tools components. An instance is provided to your component via dependency injection. You must use a parameterized reference
- * as the dependency on this interface to specify the class that will be the name of the injected logger. For instance:
+ * Log interface to use by Fluid Tools components. An instance is provided to your component via dependency injection.
+ * You must use a parameterized reference as the dependency on this interface to specify the class that will be the
+ * name of the injected logger. For instance:
  * <pre>
  * &#64;Component
  * public class MyComponent {
@@ -33,40 +34,191 @@ package org.fluidity.foundation;
  * <p/>
  * Message formatting conforms to the Java print format specification.
  * <p/>
- * The injected instance will be backed by one of the popular logging frameworks; which one is used depends on the {@link
- * org.fluidity.foundation.spi.LogFactory} found in the class path. If no specific logging framework is configured, Fluid Tools provides a default factory that
- * forwards all log messages to the standard output stream.
+ * The injected instance will be backed by one of the popular logging frameworks; which one is used depends on the
+ * {@link org.fluidity.foundation.spi.LogFactory} found in the class path. If no specific logging framework is
+ * configured, Fluid Tools provides a default factory that forwards all log messages to the standard output stream.
  *
  * @author Tibor Varga
  */
 @SuppressWarnings("UnusedDeclaration")
 public interface Log<T> {
 
+    /**
+     * Reloads from the underlying log implementation the flags that permit emission of TRACE, DEBUG, INFO and WARNING
+     * level log messages.
+     */
+    void refresh();
+
+    /**
+     * Tells if TRACE level messages will be emitted or not.
+     *
+     * @return <code>true</code> if TRACE level messages will be emitted, <code>false</code> if not.
+     */
     boolean isTraceEnabled();
 
+    /**
+     * Tells if DEBUG level messages will be emitted or not.
+     *
+     * @return <code>true</code> if DEBUG level messages will be emitted, <code>false</code> if not.
+     */
     boolean isDebugEnabled();
 
+    /**
+     * Tells if INFO level messages will be emitted or not.
+     *
+     * @return <code>true</code> if INFO level messages will be emitted, <code>false</code> if not.
+     */
     boolean isInfoEnabled();
 
+    /**
+     * Tells if WARNING level messages will be emitted or not.
+     *
+     * @return <code>true</code> if WARNING level messages will be emitted, <code>false</code> if not.
+     */
     boolean isWarningEnabled();
 
-    void trace(String message, Object... args);
+    /**
+     * Emits a TRACE level message, provided that TRACE level message emission is {@link #isTraceEnabled() permitted}.
+     *
+     * @param format the format parameter of a {@link String#format(String, Object...)} call.
+     * @param args   the args parameter of a {@link String#format(String, Object...)} call.
+     */
+    void trace(String format, Object... args);
 
-    void debug(String message, Object... args);
+    /**
+     * Emits a DEBUG level message, provided that DEBUG level message emission is {@link #isDebugEnabled() permitted}.
+     *
+     * @param format the format parameter of a {@link String#format(String, Object...)} call.
+     * @param args   the args parameter of a {@link String#format(String, Object...)} call.
+     */
+    void debug(String format, Object... args);
 
-    void info(String message, Object... args);
+    /**
+     * Emits an INFO level message, provided that INFO level message emission is {@link #isInfoEnabled() permitted}.
+     *
+     * @param format the format parameter of a {@link String#format(String, Object...)} call.
+     * @param args   the args parameter of a {@link String#format(String, Object...)} call.
+     */
+    void info(String format, Object... args);
 
-    void warning(String message, Object... args);
+    /**
+     * Emits a WARNING level message, provided that WARNING level message emission is {@link #isWarningEnabled()
+     * permitted}.
+     *
+     * @param format the format parameter of a {@link String#format(String, Object...)} call.
+     * @param args   the args parameter of a {@link String#format(String, Object...)} call.
+     */
+    void warning(String format, Object... args);
 
-    void error(String message, Object... args);
+    /**
+     * Emits an ERROR level message.
+     *
+     * @param format the format parameter of a {@link String#format(String, Object...)} call.
+     * @param args   the args parameter of a {@link String#format(String, Object...)} call.
+     */
+    void error(String format, Object... args);
 
-    void trace(Throwable exception, String message, Object... args);
+    /**
+     * Emits a TRACE level message and an exception stack trace, provided that TRACE level message emission is
+     * {@link #isTraceEnabled() permitted}.
+     *
+     * @param exception the exception to log the stack trace of.
+     * @param format    the format parameter of a {@link String#format(String, Object...)} call.
+     * @param args      the args parameter of a {@link String#format(String, Object...)} call.
+     */
+    void trace(Throwable exception, String format, Object... args);
 
-    void debug(Throwable exception, String message, Object... args);
+    /**
+     * Emits a DEBUG level message and an exception stack trace, provided that DEBUG level message emission is
+     * {@link #isDebugEnabled() permitted}.
+     *
+     * @param exception the exception to log the stack trace of.
+     * @param format    the format parameter of a {@link String#format(String, Object...)} call.
+     * @param args      the args parameter of a {@link String#format(String, Object...)} call.
+     */
+    void debug(Throwable exception, String format, Object... args);
 
-    void info(Throwable exception, String message, Object... args);
+    /**
+     * Emits an INFO level message and an exception stack trace, provided that INFO level message emission is
+     * {@link #isInfoEnabled() permitted}.
+     *
+     * @param exception the exception to log the stack trace of.
+     * @param format    the format parameter of a {@link String#format(String, Object...)} call.
+     * @param args      the args parameter of a {@link String#format(String, Object...)} call.
+     */
+    void info(Throwable exception, String format, Object... args);
 
-    void warning(Throwable exception, String message, Object... args);
+    /**
+     * Emits a WARNING level message and an exception stack trace, provided that WARNING level message emission is
+     * {@link #isWarningEnabled() permitted}.
+     *
+     * @param exception the exception to log the stack trace of.
+     * @param format    the format parameter of a {@link String#format(String, Object...)} call.
+     * @param args      the args parameter of a {@link String#format(String, Object...)} call.
+     */
+    void warning(Throwable exception, String format, Object... args);
 
-    void error(Throwable exception, String message, Object... args);
+    /**
+     * Emits an ERROR level message and an exception stack trace.
+     *
+     * @param exception the exception to log the stack trace of.
+     * @param format    the format parameter of a {@link String#format(String, Object...)} call.
+     * @param args      the args parameter of a {@link String#format(String, Object...)} call.
+     */
+    void error(Throwable exception, String format, Object... args);
+
+    /**
+     *  Queries the various log levels.
+     *  */
+    interface Levels<T> {
+
+        /**
+         * Returns <code>true</code> if trace level logging is enabled, <code>false</code> otherwise.
+         *
+         * @param log the underlying logger object.
+         * @return the flag for the log level.
+         */
+        boolean trace(T log);
+
+        /**
+         * Returns <code>true</code> if debug level logging is enabled, <code>false</code> otherwise.
+         *
+         * @param log the underlying logger object.
+         * @return the flag for the log level.
+         */
+        boolean debug(T log);
+
+        /**
+         * Returns <code>true</code> if info level logging is enabled, <code>false</code> otherwise.
+         *
+         * @param log the underlying logger object.
+         * @return the flag for the log level.
+         */
+        boolean info(T log);
+
+        /**
+         * Returns <code>true</code> if warning level logging is enabled, <code>false</code> otherwise.
+         *
+         * @param log the underlying logger object.
+         * @return the flag for the log level.
+         */
+        boolean warning(T log);
+    }
+
+    /**
+     * A {@link org.fluidity.foundation.Log} implementation wrapper that periodically refreshes log level permissions.
+     * The period of refreshing is configured by the {@link #LOG_LEVEL_CHECK_PERIOD} setting; see {@link Configuration}
+     * for details on configuration.
+     *
+     * @param <T> the underlying log implementation's class.
+     * @author Tibor Varga
+     */
+    interface Refreshed<T> extends Log<T> {
+
+        /**
+         * The configuration property that specifies the number of milliseconds during which at most one log level
+         * check is performed per logger.
+         */
+        String LOG_LEVEL_CHECK_PERIOD = "org.fluidity.log.level.refresh.period.ms";
+    }
 }

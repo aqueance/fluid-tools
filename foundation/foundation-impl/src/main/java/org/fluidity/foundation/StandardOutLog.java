@@ -59,6 +59,10 @@ final class StandardOutLog implements Log {
         System.out.printf("%s%s%s%n", prefix, suffix, stackTrace(exception));
     }
 
+    public void refresh() {
+        // ignore
+    }
+
     public boolean isTraceEnabled() {
         return true;
     }
@@ -75,43 +79,43 @@ final class StandardOutLog implements Log {
         return true;
     }
 
-    public void trace(final String message, final Object... args) {
-        log("TRACE", message, args);
+    public void trace(final String format, final Object... args) {
+        log("TRACE", format, args);
     }
 
-    public void trace(final Throwable exception, final String message, final Object... args) {
-        log("TRACE", exception, message, args);
+    public void trace(final Throwable exception, final String format, final Object... args) {
+        log("TRACE", exception, format, args);
     }
 
-    public void debug(final String message, final Object... args) {
-        log("DEBUG", message, args);
+    public void debug(final String format, final Object... args) {
+        log("DEBUG", format, args);
     }
 
-    public void debug(final Throwable exception, final String message, final Object... args) {
-        log("DEBUG", exception, message, args);
+    public void debug(final Throwable exception, final String format, final Object... args) {
+        log("DEBUG", exception, format, args);
     }
 
-    public void info(final String message, final Object... args) {
-        log("INFO", message, args);
+    public void info(final String format, final Object... args) {
+        log("INFO", format, args);
     }
 
-    public void info(final Throwable exception, final String message, final Object... args) {
-        log("INFO", exception, message, args);
+    public void info(final Throwable exception, final String format, final Object... args) {
+        log("INFO", exception, format, args);
     }
 
-    public void warning(final String message, final Object... args) {
-        log("WARN", message, args);
+    public void warning(final String format, final Object... args) {
+        log("WARN", format, args);
     }
 
-    public void warning(final Throwable exception, final String message, final Object... args) {
-        log("WARN", exception, message, args);
+    public void warning(final Throwable exception, final String format, final Object... args) {
+        log("WARN", exception, format, args);
     }
 
-    public void error(final String message, final Object... args) {
-        log("ERROR", message, args);
+    public void error(final String format, final Object... args) {
+        log("ERROR", format, args);
     }
 
-    public void error(final Throwable exception, final String message, final Object... args) {
-        log("ERROR", exception, message, args);
+    public void error(final Throwable exception, final String format, final Object... args) {
+        log("ERROR", exception, format, args);
     }
 }

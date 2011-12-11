@@ -21,13 +21,12 @@ import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ContainerBoundary;
 import org.fluidity.foundation.Configuration;
 import org.fluidity.foundation.Updates;
-
 import org.testng.annotations.Test;
 
 /**
  * @author Tibor Varga
  */
-public class UpdatedConfigurationFactoryTest {
+public class RefreshedConfigurationFactoryTest {
 
     private final ComponentContainer container = new ContainerBoundary();
 
@@ -44,7 +43,8 @@ public class UpdatedConfigurationFactoryTest {
     @Component
     private static class NoContextConfigured {
 
-        private NoContextConfigured(final Configuration.Updated<Settings> configuration) {
+        @SuppressWarnings("UnusedDeclaration")
+        private NoContextConfigured(final Configuration.Refreshed<Settings> configuration) {
             final Updates.Snapshot<Settings> snapshot = configuration.snapshot(20);
 
             assert snapshot != null;
@@ -63,9 +63,10 @@ public class UpdatedConfigurationFactoryTest {
         private static final String CONTEXT1 = "context1";
         private static final String CONTEXT2 = "context2";
 
-        private ContextConfigured(final @Configuration.Context(CONTEXT1) Configuration.Updated<Settings> configuration1,
-                                  final @Configuration.Context(CONTEXT2) Configuration.Updated<Settings> configuration2,
-                                  final @Configuration.Context(CONTEXT1) Configuration.Updated<Settings> configuration3) {
+        @SuppressWarnings("UnusedDeclaration")
+        private ContextConfigured(final @Configuration.Context(CONTEXT1) Configuration.Refreshed<Settings> configuration1,
+                                  final @Configuration.Context(CONTEXT2) Configuration.Refreshed<Settings> configuration2,
+                                  final @Configuration.Context(CONTEXT1) Configuration.Refreshed<Settings> configuration3) {
             final Settings settings1 = configuration1.snapshot(20).get();
             final Settings settings2 = configuration2.snapshot(20).get();
 

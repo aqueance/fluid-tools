@@ -20,7 +20,6 @@ import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ContainerBoundary;
 import org.fluidity.foundation.Log;
-
 import org.testng.annotations.Test;
 
 /**
@@ -38,6 +37,7 @@ public class LogFactoryTest {
     @Component
     private static class Logger {
 
+        @SuppressWarnings("UnusedDeclaration")
         private Logger(final Log<Logger> log) {
             assert log != null;
         }

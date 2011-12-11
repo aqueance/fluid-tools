@@ -16,93 +16,88 @@
 
 package org.fluidity.foundation.impl;
 
-import org.fluidity.foundation.spi.AbstractLog;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.fluidity.foundation.spi.AbstractLog;
 
 /**
  * Uses commons-logging as the underlying logging framework.
  */
 final class CommonsLogImpl extends AbstractLog<Log> {
 
-    public CommonsLogImpl(final Class<?> source, final Levels.Snapshots snapshots) {
-        super(snapshots, LogFactory.getLog(source), new Levels.Factory<Log>() {
-            public Levels create(final Log log) {
-                return new Levels() {
-                    public boolean trace() {
-                        return log.isTraceEnabled();
-                    }
+    public CommonsLogImpl(final Class<?> source) {
+        super(LogFactory.getLog(source), new Levels<Log>() {
+            public boolean trace(final Log log) {
+                return log.isTraceEnabled();
+            }
 
-                    public boolean debug() {
-                        return log.isDebugEnabled();
-                    }
+            public boolean debug(final Log log) {
+                return log.isDebugEnabled();
+            }
 
-                    public boolean info() {
-                        return log.isInfoEnabled();
-                    }
+            public boolean info(final Log log) {
+                return log.isInfoEnabled();
+            }
 
-                    public boolean warning() {
-                        return log.isWarnEnabled();
-                    }
-                };
+            public boolean warning(final Log log) {
+                return log.isWarnEnabled();
             }
         });
     }
 
-    public void trace(final String message, final Object... args) {
+    public void trace(final String format, final Object... args) {
         if (isTraceEnabled()) {
-            log.trace(String.format(message, args));
+            log.trace(String.format(format, args));
         }
     }
 
-    public void debug(final String message, final Object... args) {
+    public void debug(final String format, final Object... args) {
         if (isDebugEnabled()) {
-            log.debug(String.format(message, args));
+            log.debug(String.format(format, args));
         }
     }
 
-    public void info(final String message, final Object... args) {
+    public void info(final String format, final Object... args) {
         if (isInfoEnabled()) {
-            log.info(String.format(message, args));
+            log.info(String.format(format, args));
         }
     }
 
-    public void warning(final String message, final Object... args) {
+    public void warning(final String format, final Object... args) {
         if (isWarningEnabled()) {
-            log.warn(String.format(message, args));
+            log.warn(String.format(format, args));
         }
     }
 
-    public void error(final String message, final Object... args) {
-        log.error(String.format(message, args));
+    public void error(final String format, final Object... args) {
+        log.error(String.format(format, args));
     }
 
-    public void trace(final Throwable exception, final String message, final Object... args) {
+    public void trace(final Throwable exception, final String format, final Object... args) {
         if (isTraceEnabled()) {
-            log.trace(String.format(message, args), exception);
+            log.trace(String.format(format, args), exception);
         }
     }
 
-    public void debug(final Throwable exception, final String message, final Object... args) {
+    public void debug(final Throwable exception, final String format, final Object... args) {
         if (isDebugEnabled()) {
-            log.debug(String.format(message, args), exception);
+            log.debug(String.format(format, args), exception);
         }
     }
 
-    public void info(final Throwable exception, final String message, final Object... args) {
+    public void info(final Throwable exception, final String format, final Object... args) {
         if (isInfoEnabled()) {
-            log.info(String.format(message, args), exception);
+            log.info(String.format(format, args), exception);
         }
     }
 
-    public void warning(final Throwable exception, final String message, final Object... args) {
+    public void warning(final Throwable exception, final String format, final Object... args) {
         if (isWarningEnabled()) {
-            log.warn(String.format(message, args), exception);
+            log.warn(String.format(format, args), exception);
         }
     }
 
-    public void error(final Throwable exception, final String message, final Object... args) {
-        log.error(String.format(message, args), exception);
+    public void error(final Throwable exception, final String format, final Object... args) {
+        log.error(String.format(format, args), exception);
     }
 }

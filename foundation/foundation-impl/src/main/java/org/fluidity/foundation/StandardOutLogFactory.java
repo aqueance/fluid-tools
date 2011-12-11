@@ -18,7 +18,6 @@ package org.fluidity.foundation;
 
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ServiceProvider;
-import org.fluidity.foundation.spi.AbstractLog;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**
@@ -35,9 +34,5 @@ final class StandardOutLogFactory implements LogFactory {
      */
     public Log createLog(final Class<?> source) {
         return new StandardOutLog(source);
-    }
-
-    public Log createLog(final Class<?> source, final AbstractLog.Levels.Snapshots levels) {
-        return createLog(source);
     }
 }

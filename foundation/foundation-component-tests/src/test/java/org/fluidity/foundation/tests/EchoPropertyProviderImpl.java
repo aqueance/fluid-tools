@@ -16,12 +16,12 @@
 
 package org.fluidity.foundation.tests;
 
-import java.util.Properties;
-
 import org.fluidity.composition.Component;
+import org.fluidity.foundation.Log;
 import org.fluidity.foundation.Updates;
-import org.fluidity.foundation.spi.AbstractLog;
 import org.fluidity.foundation.spi.PropertyProvider;
+
+import java.util.Properties;
 
 /**
  * @author Tibor Varga
@@ -33,7 +33,7 @@ public class EchoPropertyProviderImpl implements PropertyProvider {
 
     public EchoPropertyProviderImpl() {
         properties.setProperty(Updates.PERIOD_PROPERTY, "0");
-        properties.setProperty(AbstractLog.LOG_LEVEL_CHECK_PERIOD, "0");
+        properties.setProperty(Log.Refreshed.LOG_LEVEL_CHECK_PERIOD, "0");
     }
 
     public Object property(final String key) {

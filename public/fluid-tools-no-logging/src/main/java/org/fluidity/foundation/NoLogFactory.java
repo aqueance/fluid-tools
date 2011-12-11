@@ -18,11 +18,11 @@ package org.fluidity.foundation;
 
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ServiceProvider;
-import org.fluidity.foundation.spi.AbstractLog;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**
- * Log factory that gobbles up messages. This log implementation is meant to be used in test cases.
+ * Log factory that gobbles up messages. This log implementation is meant to be used when you don't want any log
+ * message actually emitted, e.g., in test cases.
  *
  * @author Tibor Varga
  */
@@ -34,6 +34,11 @@ public final class NoLogFactory implements LogFactory {
      * A log sink that gobbles up all log messages.
      */
     public static final Log sink = new Log() {
+
+        public void refresh() {
+            // empty
+        }
+
         public boolean isTraceEnabled() {
             return false;
         }
@@ -50,43 +55,43 @@ public final class NoLogFactory implements LogFactory {
             return false;
         }
 
-        public void trace(final String message, final Object... args) {
+        public void trace(final String format, final Object... args) {
             // empty
         }
 
-        public void debug(final String message, final Object... args) {
+        public void debug(final String format, final Object... args) {
             // empty
         }
 
-        public void info(final String message, final Object... args) {
+        public void info(final String format, final Object... args) {
             // empty
         }
 
-        public void warning(final String message, final Object... args) {
+        public void warning(final String format, final Object... args) {
             // empty
         }
 
-        public void error(final String message, final Object... args) {
+        public void error(final String format, final Object... args) {
             // empty
         }
 
-        public void trace(final Throwable exception, final String message, final Object... args) {
+        public void trace(final Throwable exception, final String format, final Object... args) {
             // empty
         }
 
-        public void debug(final Throwable exception, final String message, final Object... args) {
+        public void debug(final Throwable exception, final String format, final Object... args) {
             // empty
         }
 
-        public void info(final Throwable exception, final String message, final Object... args) {
+        public void info(final Throwable exception, final String format, final Object... args) {
             // empty
         }
 
-        public void warning(final Throwable exception, final String message, final Object... args) {
+        public void warning(final Throwable exception, final String format, final Object... args) {
             // empty
         }
 
-        public void error(final Throwable exception, final String message, final Object... args) {
+        public void error(final Throwable exception, final String format, final Object... args) {
             // empty
         }
     };
@@ -100,13 +105,6 @@ public final class NoLogFactory implements LogFactory {
      * {@inheritDoc}
      */
     public Log createLog(final Class<?> ignored) {
-        return sink;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public Log createLog(final Class<?> source, final AbstractLog.Levels.Snapshots levels) {
         return sink;
     }
 }

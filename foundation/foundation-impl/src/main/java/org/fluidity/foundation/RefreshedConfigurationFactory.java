@@ -16,29 +16,29 @@
 
 package org.fluidity.foundation;
 
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.Map;
-
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.OpenComponentContainer;
 import org.fluidity.composition.spi.CustomComponentFactory;
 
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * @author Tibor Varga
  */
-@Component(api = Configuration.Updated.class)
+@Component(api = Configuration.Refreshed.class)
 @Component.Context(value = { Configuration.Context.class }, typed = true)
-final class UpdatedConfigurationFactory implements CustomComponentFactory {
+final class RefreshedConfigurationFactory implements CustomComponentFactory {
 
     public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
-        final Component.Reference reference = context.annotation(Component.Reference.class, Configuration.class);
+        final Component.Reference reference = context.annotation(Component.Reference.class, Configuration.Refreshed.class);
         final Class<?> api = reference.parameter(0);
 
-        dependencies.discover(UpdatedConfigurationImpl.class);
+        dependencies.discover(RefreshedConfigurationImpl.class);
 
         for (final Method method : api.getMethods()) {
             if (method.getParameterTypes().length > 0) {
@@ -51,19 +51,19 @@ final class UpdatedConfigurationFactory implements CustomComponentFactory {
             @SuppressWarnings("unchecked")
             public void bind(final Registry registry) throws OpenComponentContainer.BindingException {
                 registry.bindInstance(api, Class.class);
-                registry.bindComponent(UpdatedConfigurationImpl.class);
+                registry.bindComponent(RefreshedConfigurationImpl.class);
             }
         };
     }
 
     @Component(automatic = false)
-    private static class UpdatedConfigurationImpl<T> implements Configuration.Updated<T> {
+    private static class RefreshedConfigurationImpl<T> implements Configuration.Refreshed<T> {
 
         private final Configuration<T> configuration;
         private final Updates updates;
         private final Class<T> type;
 
-        public UpdatedConfigurationImpl(final Class<T> type, final Configuration<T> configuration, final Updates updates) {
+        public RefreshedConfigurationImpl(final Class<T> type, final Configuration<T> configuration, final Updates updates) {
             this.configuration = configuration;
             this.updates = updates;
             this.type = type;

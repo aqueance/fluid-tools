@@ -19,7 +19,6 @@ package org.fluidity.foundation.impl;
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ServiceProvider;
 import org.fluidity.foundation.Log;
-import org.fluidity.foundation.spi.AbstractLog;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**
@@ -35,13 +34,6 @@ final class CommonsLogFactory implements LogFactory {
      * {@inheritDoc}
      */
     public Log createLog(final Class<?> source) {
-        return createLog(source, null);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public Log createLog(final Class<?> source, final AbstractLog.Levels.Snapshots levels) {
-        return new CommonsLogImpl(source, levels);
+        return new CommonsLogImpl(source);
     }
 }

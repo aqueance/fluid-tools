@@ -31,7 +31,7 @@ import org.fluidity.foundation.Log;
  * suitable implementation in the class path. If you use more of Fluid Tools than just the composition framework then you should also annotate your
  * implementation as a {@link org.fluidity.composition.Component @Component} for components of Fluid Tools to find it.
  * <p/>
- * See {@link AbstractLog} for a recommended way to adapt an external logging framework to Fluid Tools.
+ * See {@link AbstractLog} for a recommended way to adapt any logging framework to Fluid Tools.
  * <p/>
  * {@link Log} objects returned by this factory are thread safe as long as the underlying log implementation is.
  *
@@ -48,14 +48,4 @@ public interface LogFactory {
      * @return a log sink.
      */
     Log createLog(Class<?> source);
-
-    /**
-     * Creates a log whose output is annotated by the given class. The log levels are periodically updated.
-     *
-     * @param source the class to annotate log messages with.
-     * @param levels the object that queries the various log levels from the underlying logger.
-     *
-     * @return a log sink.
-     */
-    Log createLog(Class<?> source, AbstractLog.Levels.Snapshots levels);
 }
