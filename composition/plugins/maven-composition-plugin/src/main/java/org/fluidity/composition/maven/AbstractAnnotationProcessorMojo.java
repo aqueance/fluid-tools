@@ -16,6 +16,7 @@
 
 package org.fluidity.composition.maven;
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -55,7 +56,6 @@ import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
-import org.apache.xbean.classloader.JarFileClassLoader;
 import org.codehaus.plexus.util.DirectoryScanner;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassReader;
@@ -150,7 +150,7 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
             assert false : e;
         }
 
-        final JarFileClassLoader repository = ClassLoaders.jarFileClassLoaders().create(null, urls.toArray(new URL[urls.size()]));
+        final ClassLoader repository = ClassLoaders.create(null, urls.toArray(new URL[urls.size()]));
         try {
             processClasses(repository, classesDirectory, serviceProviderMap, componentMap, componentGroupMap);
         } catch (final IOException e) {
@@ -158,7 +158,11 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
         } catch (final ClassNotFoundException e) {
             throw new MojoExecutionException("Error processing service providers", e);
         } finally {
-            repository.destroy();
+            try {
+                ((Closeable) repository).close();
+            } catch (final IOException e) {
+                getLog().warn(e.getMessage());
+            }
         }
 
         final Log log = getLog();

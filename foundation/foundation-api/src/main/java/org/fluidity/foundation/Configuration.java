@@ -16,9 +16,13 @@
 
 package org.fluidity.foundation;
 
-import org.fluidity.foundation.spi.PropertyProvider;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-import java.lang.annotation.*;
+import org.fluidity.foundation.spi.PropertyProvider;
 
 /**
  * Represents some configuration of a component. The component receives its configuration, which will be an object implementing this interface, as an injected
@@ -161,24 +165,6 @@ public interface Configuration<T> {
          * @return whatever the caller wants {@link Configuration#query(Configuration.Query)} to return.
          */
         R read(T settings);
-    }
-
-    /**
-     * Configuration that is periodically updated. This is a wrapper around {@link Configuration} that periodically refreshes the snapshot of the settings
-     * object. If used with this variant of the configuration mechanism, the methods of the settings interface may not have any parameters.
-     *
-     * @param <T> the settings interface.
-     */
-    interface Refreshed<T> {
-
-        /**
-         * Returns an object containing the most recent snapshot of the settings.
-         *
-         * @param period the period during which at most one refresh will take place.
-         *
-         * @return an object containing the most recent snapshot of the settings.
-         */
-        Updates.Snapshot<T> snapshot(long period);
     }
 
     /**

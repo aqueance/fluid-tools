@@ -16,6 +16,7 @@
 
 package org.fluidity.composition.impl;
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
@@ -32,7 +33,6 @@ import org.fluidity.foundation.Streams;
 import org.fluidity.foundation.spi.LogFactory;
 import org.fluidity.tests.MockGroupAbstractTest;
 
-import org.apache.xbean.classloader.JarFileClassLoader;
 import org.testng.annotations.Test;
 
 /**
@@ -65,18 +65,18 @@ public class ClassDiscoveryImplTest extends MockGroupAbstractTest {
 
         assert servicesFile.exists();
 
-        JarFileClassLoader classLoader = null;
+        ClassLoader loader = null;
         try {
-            classLoader = ClassLoaders.jarFileClassLoaders().create(getClass().getClassLoader(), classDir.toURI().toURL());
+            loader = ClassLoaders.create(getClass().getClassLoader(), classDir.toURI().toURL());
 
             replay();
-            final Class[] classes = new ClassDiscoveryImpl(logs).findComponentClasses(Interface.class, classLoader, false);
+            final Class[] classes = new ClassDiscoveryImpl(logs).findComponentClasses(Interface.class, loader, false);
             verify();
 
             assert new ArrayList<Class>(Arrays.asList(Impl1.class, Impl2.class, Impl3.class)).equals(new ArrayList<Class>(Arrays.asList(classes)));
         } finally {
-            if (classLoader != null) {
-                classLoader.destroy();
+            if (loader != null) {
+                ((Closeable) loader).close();
             }
 
             deleteDirectory(classDir, fileList);
@@ -114,11 +114,11 @@ public class ClassDiscoveryImplTest extends MockGroupAbstractTest {
 
         assert servicesFile.exists();
 
-        JarFileClassLoader classLoader1 = null;
-        JarFileClassLoader classLoader2 = null;
+        ClassLoader classLoader1 = null;
+        ClassLoader classLoader2 = null;
         try {
-            classLoader1 = ClassLoaders.jarFileClassLoaders().create(null, classDir1.toURI().toURL());
-            classLoader2 = ClassLoaders.jarFileClassLoaders().create(classLoader1, classDir2.toURI().toURL());
+            classLoader1 = ClassLoaders.create(null, classDir1.toURI().toURL());
+            classLoader2 = ClassLoaders.create(classLoader1, classDir2.toURI().toURL());
 
             replay();
             final Class[] classes = new ClassDiscoveryImpl(logs).findComponentClasses(classLoader1.loadClass(Interface.class.getName()), classLoader2, true);
@@ -127,11 +127,11 @@ public class ClassDiscoveryImplTest extends MockGroupAbstractTest {
             assert new ArrayList<Class>(Arrays.asList(classLoader2.loadClass(Impl1.class.getName()))).equals(new ArrayList<Class>(Arrays.asList(classes)));
         } finally {
             if (classLoader1 != null) {
-                classLoader1.destroy();
+                ((Closeable) classLoader1).close();
             }
 
             if (classLoader2 != null) {
-                classLoader2.destroy();
+                ((Closeable) classLoader2).close();
             }
 
             deleteDirectory(classDir1, fileList);

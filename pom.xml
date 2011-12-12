@@ -44,6 +44,7 @@
         <fluidity.composition.groupId>${fluidity.groupId}.composition</fluidity.composition.groupId>
         <fluidity.deployment.groupId>${fluidity.groupId}.deployment</fluidity.deployment.groupId>
         <fluidity.plugin.groupId>${fluidity.groupId}.maven</fluidity.plugin.groupId>
+        <fluidity.features.groupId>${fluidity.groupId}.features</fluidity.features.groupId>
         <fluidity.public.groupId>${fluidity.groupId}.public</fluidity.public.groupId>
 
         <maven.api.version>3.0.3</maven.api.version>
@@ -67,6 +68,7 @@
         <module>composition</module>
         <module>deployment</module>
         <module>archetypes</module>
+        <module>features</module>
         <module>public</module>
     </modules>
 

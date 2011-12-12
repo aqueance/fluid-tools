@@ -72,4 +72,13 @@ Lowest level utility classes that depend on absolutely no other module.
         </profile>
     </profiles>
 
+    <build>
+        <testResources>
+            <testResource>
+                <directory>src/test/resources</directory>
+                <filtering>false</filtering>
+            </testResource>
+        </testResources>
+    </build>
+
 </project>

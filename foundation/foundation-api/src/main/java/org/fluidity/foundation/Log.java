@@ -17,9 +17,9 @@
 package org.fluidity.foundation;
 
 /**
- * Log interface to use by Fluid Tools components. An instance is provided to your component via dependency injection.
- * You must use a parameterized reference as the dependency on this interface to specify the class that will be the
- * name of the injected logger. For instance:
+ * Log interface to use by Fluid Tools components. An instance is provided to your component via dependency injection. You must use a parameterized reference
+ * as
+ * the dependency on this interface to specify the class that will be the name of the injected logger. For instance:
  * <pre>
  * &#64;Component
  * public class MyComponent {
@@ -34,9 +34,9 @@ package org.fluidity.foundation;
  * <p/>
  * Message formatting conforms to the Java print format specification.
  * <p/>
- * The injected instance will be backed by one of the popular logging frameworks; which one is used depends on the
- * {@link org.fluidity.foundation.spi.LogFactory} found in the class path. If no specific logging framework is
- * configured, Fluid Tools provides a default factory that forwards all log messages to the standard output stream.
+ * The injected instance will be backed by one of the popular logging frameworks; which one is used depends on the {@link
+ * org.fluidity.foundation.spi.LogFactory} found in the class path. If no specific logging framework is configured, Fluid Tools provides a default factory that
+ * forwards all log messages to the standard output stream.
  *
  * @author Tibor Varga
  */
@@ -44,8 +44,7 @@ package org.fluidity.foundation;
 public interface Log<T> {
 
     /**
-     * Reloads from the underlying log implementation the flags that permit emission of TRACE, DEBUG, INFO and WARNING
-     * level log messages.
+     * Reloads from the underlying log implementation the flags that permit emission of TRACE, DEBUG, INFO and WARNING level log messages.
      */
     void refresh();
 
@@ -102,8 +101,7 @@ public interface Log<T> {
     void info(String format, Object... args);
 
     /**
-     * Emits a WARNING level message, provided that WARNING level message emission is {@link #isWarningEnabled()
-     * permitted}.
+     * Emits a WARNING level message, provided that WARNING level message emission is {@link #isWarningEnabled() permitted}.
      *
      * @param format the format parameter of a {@link String#format(String, Object...)} call.
      * @param args   the args parameter of a {@link String#format(String, Object...)} call.
@@ -119,8 +117,7 @@ public interface Log<T> {
     void error(String format, Object... args);
 
     /**
-     * Emits a TRACE level message and an exception stack trace, provided that TRACE level message emission is
-     * {@link #isTraceEnabled() permitted}.
+     * Emits a TRACE level message and an exception stack trace, provided that TRACE level message emission is {@link #isTraceEnabled() permitted}.
      *
      * @param exception the exception to log the stack trace of.
      * @param format    the format parameter of a {@link String#format(String, Object...)} call.
@@ -129,8 +126,7 @@ public interface Log<T> {
     void trace(Throwable exception, String format, Object... args);
 
     /**
-     * Emits a DEBUG level message and an exception stack trace, provided that DEBUG level message emission is
-     * {@link #isDebugEnabled() permitted}.
+     * Emits a DEBUG level message and an exception stack trace, provided that DEBUG level message emission is {@link #isDebugEnabled() permitted}.
      *
      * @param exception the exception to log the stack trace of.
      * @param format    the format parameter of a {@link String#format(String, Object...)} call.
@@ -139,8 +135,7 @@ public interface Log<T> {
     void debug(Throwable exception, String format, Object... args);
 
     /**
-     * Emits an INFO level message and an exception stack trace, provided that INFO level message emission is
-     * {@link #isInfoEnabled() permitted}.
+     * Emits an INFO level message and an exception stack trace, provided that INFO level message emission is {@link #isInfoEnabled() permitted}.
      *
      * @param exception the exception to log the stack trace of.
      * @param format    the format parameter of a {@link String#format(String, Object...)} call.
@@ -149,8 +144,7 @@ public interface Log<T> {
     void info(Throwable exception, String format, Object... args);
 
     /**
-     * Emits a WARNING level message and an exception stack trace, provided that WARNING level message emission is
-     * {@link #isWarningEnabled() permitted}.
+     * Emits a WARNING level message and an exception stack trace, provided that WARNING level message emission is {@link #isWarningEnabled() permitted}.
      *
      * @param exception the exception to log the stack trace of.
      * @param format    the format parameter of a {@link String#format(String, Object...)} call.
@@ -203,22 +197,5 @@ public interface Log<T> {
          * @return the flag for the log level.
          */
         boolean warning(T log);
-    }
-
-    /**
-     * A {@link org.fluidity.foundation.Log} implementation wrapper that periodically refreshes log level permissions.
-     * The period of refreshing is configured by the {@link #LOG_LEVEL_CHECK_PERIOD} setting; see {@link Configuration}
-     * for details on configuration.
-     *
-     * @param <T> the underlying log implementation's class.
-     * @author Tibor Varga
-     */
-    interface Refreshed<T> extends Log<T> {
-
-        /**
-         * The configuration property that specifies the number of milliseconds during which at most one log level
-         * check is performed per logger.
-         */
-        String LOG_LEVEL_CHECK_PERIOD = "org.fluidity.log.level.refresh.period.ms";
     }
 }

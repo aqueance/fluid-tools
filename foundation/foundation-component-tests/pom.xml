@@ -44,6 +44,27 @@
     <dependencies>
 
         <dependency>
+            <groupId>${fluidity.features.groupId}</groupId>
+            <artifactId>scheduler-impl</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>${fluidity.features.groupId}</groupId>
+            <artifactId>reloading-configuration-impl</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>${fluidity.features.groupId}</groupId>
+            <artifactId>reloading-logging-impl</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
             <groupId>${fluidity.foundation.groupId}</groupId>
             <artifactId>foundation-easymock</artifactId>
             <version>${project.version}</version>

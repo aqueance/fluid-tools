@@ -16,8 +16,11 @@
 
 package org.fluidity.foundation;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.UUID;
 
 import org.apache.xbean.classloader.JarFileClassLoader;
@@ -29,7 +32,8 @@ import org.apache.xbean.classloader.JarFileClassLoader;
  */
 public final class ClassLoaders extends Utilities {
 
-    private ClassLoaders() { }
+    private ClassLoaders() {
+    }
 
     /**
      * The <code>.class</code> suffix of Java class files.
@@ -131,32 +135,41 @@ public final class ClassLoaders extends Utilities {
     }
 
     /**
-     * Returns a class loader factory that can create closeable URL class loaders.
+     * Returns a closeable URL class loader. To close it, cast it to {@link Closeable} and invoke {@link Closeable#clone()} on the returned class loader.
      *
-     * @return a class loader factory that can create closeable URL class loaders.
+     * @param parent the parent class loader for the returned one.
+     * @param urls   the URLs to initialize the returned class loader with.
+     *
+     * @return a closeable URL class loader.
      */
-    public static JarFileClassLoaders jarFileClassLoaders() {
-        return JarFileClassLoaders.INSTANCE;
+    public static ClassLoader create(final ClassLoader parent, final URL... urls) {
+        return Closeable.class.isAssignableFrom(URLClassLoader.class) ? new URLClassLoader(urls, parent) : XBeansClassLoaders.INSTANCE.create(parent, urls);
     }
 
     /**
-     * Isolates <code>JarFileClassLoader</code>, which comes from an optional dependency of this Maven project. The class loaders created by this factory can
-     * be closed by calling {@link org.apache.xbean.classloader.JarFileClassLoader#destroy()}.
+     * This class isolates the xbeans class loader thus prevents it from being loaded if it is not necessary (i.e., when Java 7+ is present)
      */
-    public static class JarFileClassLoaders {
-        static JarFileClassLoaders INSTANCE = new JarFileClassLoaders();
+    private static class XBeansClassLoaders {
+
+        static final XBeansClassLoaders INSTANCE = new XBeansClassLoaders();
+
+        public ClassLoader create(final ClassLoader parent, final URL... urls) {
+            final ClassLoader daddy = parent == null ? ClassLoader.getSystemClassLoader() : parent;
+            return new CloseableURLClassLoader(urls, daddy);
+        }
+    }
+
+    private static class CloseableURLClassLoader extends JarFileClassLoader implements Closeable {
 
         private static final String[] EMPTY_STRING_ARRAY = new String[0];
 
-        public JarFileClassLoader create(final ClassLoader parent, final URL... urls) {
-            final ClassLoader daddy = parent == null ? ClassLoader.getSystemClassLoader() : parent;
+        public CloseableURLClassLoader(final URL[] urls, final ClassLoader parent) {
+            super(UUID.randomUUID().toString(), urls, parent, true, EMPTY_STRING_ARRAY, EMPTY_STRING_ARRAY);
+            assert parent != null;
+        }
 
-            return new JarFileClassLoader(UUID.randomUUID().toString(),
-                                          urls,
-                                          daddy, // pass null and even java.lang.Object goes missing...
-                                          true,  // some idiot thought it was a good idea to have a class loader that fails to delegate to parent by default...
-                                          EMPTY_STRING_ARRAY,
-                                          EMPTY_STRING_ARRAY);
+        public void close() throws IOException {
+            destroy();
         }
     }
 }

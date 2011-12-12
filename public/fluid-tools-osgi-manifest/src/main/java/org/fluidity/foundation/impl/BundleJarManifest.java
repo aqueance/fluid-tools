@@ -16,6 +16,8 @@
 
 package org.fluidity.foundation.impl;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.ArrayList;
@@ -33,7 +35,6 @@ import org.fluidity.foundation.Methods;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.project.MavenProject;
-import org.apache.xbean.classloader.JarFileClassLoader;
 
 /**
  * Modifies the JAR manifest of the host project's artifact so that an OSGi container finds those embedded JAR files and adds them to the bundle's class path.
@@ -123,7 +124,7 @@ public class BundleJarManifest implements JarManifest {
         }
 
         if (!dependencies.isEmpty()) {
-            JarFileClassLoader classLoader = null;
+            ClassLoader classLoader = null;
             try {
 
                 // create a class loader that sees the project's compile time dependencies
@@ -144,7 +145,7 @@ public class BundleJarManifest implements JarManifest {
                 addJarFile(urls, parent, Command.class);                        // add the jar where the command interface is found
 
                 // must not use our class loader as parent
-                classLoader = ClassLoaders.jarFileClassLoaders().create(null, urls.toArray(new URL[urls.size()]));
+                classLoader = ClassLoaders.create(null, urls.toArray(new URL[urls.size()]));
 
                 // find the command
                 final Object command = classLoader.loadClass(BundleActivatorProcessor.class.getName()).newInstance();
@@ -171,7 +172,11 @@ public class BundleJarManifest implements JarManifest {
                 throw new IllegalStateException(e);
             } finally {
                 if (classLoader != null) {
-                    classLoader.destroy();
+                    try {
+                        ((Closeable) classLoader).close();
+                    } catch (final IOException e) {
+                        // ignore
+                    }
                 }
             }
         }
