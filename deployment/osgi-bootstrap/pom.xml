@@ -80,7 +80,7 @@
         </dependency>
 
         <dependency>
-            <groupId>${fluidity.public.groupId}</groupId>
+            <groupId>${fluidity.features.groupId}</groupId>
             <artifactId>fluid-tools-no-logging</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>

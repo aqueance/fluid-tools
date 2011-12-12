@@ -17,29 +17,30 @@
 package org.fluidity.foundation.impl;
 
 import org.fluidity.foundation.spi.AbstractLog;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 /**
- * Uses SLF4J as the underlying logging framework.
+ * Uses commons-logging as the underlying logging framework.
  */
-final class Slf4jLogImpl extends AbstractLog<Logger> {
+final class CommonsLogImpl extends AbstractLog<Log> {
 
-    public Slf4jLogImpl(final Class<?> source) {
-        super(LoggerFactory.getLogger(source), new Levels<Logger>() {
-            public boolean trace(final Logger log) {
+    public CommonsLogImpl(final Class<?> source) {
+        super(LogFactory.getLog(source), new Levels<Log>() {
+            public boolean trace(final Log log) {
                 return log.isTraceEnabled();
             }
 
-            public boolean debug(final Logger log) {
+            public boolean debug(final Log log) {
                 return log.isDebugEnabled();
             }
 
-            public boolean info(final Logger log) {
+            public boolean info(final Log log) {
                 return log.isInfoEnabled();
             }
 
-            public boolean warning(final Logger log) {
+            public boolean warning(final Log log) {
                 return log.isWarnEnabled();
             }
         });

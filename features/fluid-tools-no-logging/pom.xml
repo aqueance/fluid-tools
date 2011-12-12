@@ -19,16 +19,16 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <parent>
         <groupId>org.fluidity</groupId>
-        <artifactId>public</artifactId>
+        <artifactId>features-root</artifactId>
         <version>1.0.0-SNAPSHOT</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
-    <groupId>org.fluidity.public</groupId>
-    <artifactId>fluid-tools-osgi-manifest</artifactId>
+    <groupId>org.fluidity.features</groupId>
+    <artifactId>fluid-tools-no-logging</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>jar</packaging>
-    <name>Fluid Tools: OSGi Manifest</name>
+    <name>Fluid Tools: Log Sink Implementation</name>
 
     <licenses>
         <license>
@@ -38,40 +38,30 @@
         </license>
     </licenses>
 
+    <description><![CDATA[
+This project is intended to be the Fluid Tools dependency of "test" scope
+to eliminate log messages from tested classes.
+    ]]></description>
+
     <dependencies>
 
         <dependency>
-            <groupId>${fluidity.deployment.groupId}</groupId>
-            <artifactId>manifest-handler-api</artifactId>
+            <groupId>${fluidity.foundation.groupId}</groupId>
+            <artifactId>foundation-api</artifactId>
             <version>${project.version}</version>
-            <scope>provided</scope> <!-- provided by the invoking standalone-jar plugin -->
         </dependency>
 
         <dependency>
-            <groupId>org.apache.maven</groupId>
-            <artifactId>maven-core</artifactId>
-            <scope>provided</scope> <!-- provided by the invoking standalone-jar plugin -->
-        </dependency>
-
-        <dependency>
-            <groupId>${fluidity.deployment.groupId}</groupId>
-            <artifactId>osgi-bootstrap</artifactId>
+            <groupId>${fluidity.composition.groupId}</groupId>
+            <artifactId>composition-api</artifactId>
             <version>${project.version}</version>
-            <optional>true</optional> <!-- Should not be seen by the invoking plugin -->
-        </dependency>
 
-        <dependency>
-            <groupId>org.apache.xbean</groupId>
-            <artifactId>xbean-classloader</artifactId>
-            <scope>provided</scope> <!-- provided by the invoking standalone-jar plugin -->
-        </dependency>
-
-        <dependency>
-            <groupId>${fluidity.public.groupId}</groupId>
-            <artifactId>fluid-tools-tests</artifactId>
-            <version>${project.version}</version>
-            <type>pom</type>
-            <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>${fluidity.foundation.groupId}</groupId>
+                    <artifactId>foundation-utils</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
     </dependencies>
@@ -88,5 +78,21 @@
             </build>
         </profile>
     </profiles>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>${fluidity.plugin.groupId}</groupId>
+                <artifactId>maven-composition-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>process-annotations</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>

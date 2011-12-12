@@ -19,16 +19,16 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <parent>
         <groupId>org.fluidity</groupId>
-        <artifactId>public</artifactId>
+        <artifactId>features-root</artifactId>
         <version>1.0.0-SNAPSHOT</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
-    <groupId>org.fluidity.public</groupId>
-    <artifactId>fluid-tools-cli-manifest</artifactId>
+    <groupId>org.fluidity.features</groupId>
+    <artifactId>fluid-tools-slf4j-logging</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>jar</packaging>
-    <name>Fluid Tools: Command Line Manifest</name>
+    <name>Fluid Tools: SLF4J Logging Implementation</name>
 
     <licenses>
         <license>
@@ -38,24 +38,37 @@
         </license>
     </licenses>
 
+    <description><![CDATA[
+This project is intended to be the Fluid Tools dependency of Maven modules
+containing top level application wrappers that wish to use SLF4 for logging.
+    ]]></description>
+
     <dependencies>
 
         <dependency>
             <groupId>${fluidity.foundation.groupId}</groupId>
-            <artifactId>foundation-utils</artifactId>
+            <artifactId>foundation-api</artifactId>
             <version>${project.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>${fluidity.deployment.groupId}</groupId>
-            <artifactId>manifest-handler-api</artifactId>
+            <groupId>${fluidity.composition.groupId}</groupId>
+            <artifactId>composition-api</artifactId>
             <version>${project.version}</version>
+
+            <exclusions>
+                <exclusion>
+                    <groupId>${fluidity.foundation.groupId}</groupId>
+                    <artifactId>foundation-utils</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
-            <groupId>org.apache.maven</groupId>
-            <artifactId>maven-core</artifactId>
-            <scope>provided</scope> <!-- provided by the invoking standalone-jar plugin -->
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.6.1</version>
+            <scope>provided</scope>
         </dependency>
 
     </dependencies>
@@ -72,5 +85,21 @@
             </build>
         </profile>
     </profiles>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>${fluidity.plugin.groupId}</groupId>
+                <artifactId>maven-composition-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>process-annotations</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>

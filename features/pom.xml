@@ -43,6 +43,11 @@ This project lists the extra feature modules of Fluid Tools.
     ]]></description>
 
     <modules>
+        <module>fluid-tools-slf4j-logging</module>
+        <module>fluid-tools-commons-logging</module>
+        <module>fluid-tools-no-logging</module>
+        <module>fluid-tools-cli-manifest</module>
+        <module>fluid-tools-osgi-manifest</module>
         <module>scheduler-api</module>
         <module>scheduler-impl</module>
         <module>reloading-configuration-api</module>
