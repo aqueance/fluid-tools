@@ -16,6 +16,8 @@
 
 package org.fluidity.features;
 
+import org.fluidity.foundation.Configuration;
+
 /**
  * Configuration that is periodically updated. This is a wrapper around {@link org.fluidity.foundation.Configuration} that periodically refreshes the snapshot
  * of the settings object. If used with this variant of the configuration mechanism, the methods of the settings interface may not have any parameters.
@@ -26,12 +28,28 @@ package org.fluidity.features;
  */
 public interface ReloadingConfiguration<T> {
 
+    String CONFIGURATION_REFRESH_PERIOD = "org.fluidity.features.configuration-refresh-period-ms";
+
     /**
-     * Returns an object containing the most recent snapshot of the settings.
+     * Returns an an automatically refreshing snapshot of the settings.
      *
-     * @param period the period during which at most one refresh will take place.
-     *
-     * @return an object containing the most recent snapshot of the settings.
+     * @return an an automatically refreshing snapshot of the settings.
      */
-    Updates.Snapshot<T> snapshot(long period);
+    Updates.Snapshot<T> snapshot();
+
+
+    /**
+     * Configuration refresh period settings.
+     */
+    interface Settings {
+
+        /**
+         * Returns the period in milliseconds during which at most one log level check takes place per logger. May
+         * be 0 or negative, in which case no periodic log level check will take place.
+         *
+         * @return the period in milliseconds.
+         */
+        @Configuration.Property(key = ReloadingConfiguration.CONFIGURATION_REFRESH_PERIOD, undefined = "30000")
+        long period();
+    }
 }

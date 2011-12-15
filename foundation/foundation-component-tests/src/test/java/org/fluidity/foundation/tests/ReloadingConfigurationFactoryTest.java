@@ -47,7 +47,7 @@ public class ReloadingConfigurationFactoryTest {
 
         @SuppressWarnings("UnusedDeclaration")
         private NoContextConfigured(final ReloadingConfiguration<Settings> configuration) {
-            final Updates.Snapshot<Settings> snapshot = configuration.snapshot(20);
+            final Updates.Snapshot<Settings> snapshot = configuration.snapshot();
 
             assert snapshot != null;
             final Settings settings = snapshot.get();
@@ -69,8 +69,8 @@ public class ReloadingConfigurationFactoryTest {
         private ContextConfigured(final @Configuration.Context(CONTEXT1) ReloadingConfiguration<Settings> configuration1,
                                   final @Configuration.Context(CONTEXT2) ReloadingConfiguration<Settings> configuration2,
                                   final @Configuration.Context(CONTEXT1) ReloadingConfiguration<Settings> configuration3) {
-            final Settings settings1 = configuration1.snapshot(20).get();
-            final Settings settings2 = configuration2.snapshot(20).get();
+            final Settings settings1 = configuration1.snapshot().get();
+            final Settings settings2 = configuration2.snapshot().get();
 
             assert settings1 != null;
             assert String.format("%s.%s.%s", ROOT, CONTEXT1, Settings.SOME_PROPERTY).equals(settings1.property()) : settings1.property();

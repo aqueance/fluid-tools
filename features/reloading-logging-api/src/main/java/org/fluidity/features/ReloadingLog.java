@@ -20,10 +20,10 @@ import org.fluidity.foundation.Log;
 
 /**
  * A {@link org.fluidity.foundation.Log} implementation wrapper that periodically refreshes log level permissions. The period of refreshing is configured by
- * the {@link #LOG_LEVEL_CHECK_PERIOD} setting; see {@link org.fluidity.foundation.Configuration} for details on configuration.
+ * the {@link #LOG_LEVEL_REFRESH_PERIOD} setting; see {@link org.fluidity.foundation.Configuration} for details on configuration.
  *
  * The granularity of the updates can be configured by implementing a {@link org.fluidity.foundation.spi.PropertyProvider} component that returns a valid
- * number for the {@link #LOG_LEVEL_CHECK_PERIOD} key. The default period granularity is 30 seconds.
+ * number for the {@link #LOG_LEVEL_REFRESH_PERIOD} key. The default period granularity is 30 seconds.
  *
  * @param <T> the underlying log implementation's class.
  *
@@ -35,5 +35,5 @@ public interface ReloadingLog<T> extends Log<T> {
      * The configuration property that specifies the number of milliseconds during which at most one log level
      * check is performed per logger.
      */
-    String LOG_LEVEL_CHECK_PERIOD = "org.fluidity.features.log-level-reload-period-ms";
+    String LOG_LEVEL_REFRESH_PERIOD = "org.fluidity.features.log-level-refresh-period-ms";
 }

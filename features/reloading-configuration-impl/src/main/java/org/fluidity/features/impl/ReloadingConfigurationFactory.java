@@ -29,6 +29,7 @@ import org.fluidity.composition.spi.CustomComponentFactory;
 import org.fluidity.features.ReloadingConfiguration;
 import org.fluidity.features.Updates;
 import org.fluidity.foundation.Configuration;
+import org.fluidity.foundation.Deferred;
 import org.fluidity.foundation.Exceptions;
 import org.fluidity.foundation.Proxies;
 
@@ -43,7 +44,7 @@ final class ReloadingConfigurationFactory implements CustomComponentFactory {
         final Component.Reference reference = context.annotation(Component.Reference.class, ReloadingConfiguration.class);
         final Class<?> api = reference.parameter(0);
 
-        dependencies.discover(RefreshedConfigurationImpl.class);
+        dependencies.discover(ReloadingConfigurationImpl.class);
 
         for (final Method method : api.getMethods()) {
             if (method.getParameterTypes().length > 0) {
@@ -56,52 +57,55 @@ final class ReloadingConfigurationFactory implements CustomComponentFactory {
             @SuppressWarnings("unchecked")
             public void bind(final Registry registry) throws OpenComponentContainer.BindingException {
                 registry.bindInstance(api, Class.class);
-                registry.bindComponent(RefreshedConfigurationImpl.class);
+                registry.bindComponent(ReloadingConfigurationImpl.class);
             }
         };
     }
 
     @Component(automatic = false)
-    private static class RefreshedConfigurationImpl<T> implements ReloadingConfiguration<T> {
+    private static class ReloadingConfigurationImpl<T> implements ReloadingConfiguration<T> {
 
-        private final Configuration<T> configuration;
-        private final Updates updates;
-        private final Class<T> type;
+        private final Deferred.Reference<Updates.Snapshot<T>> snapshot;
 
-        public RefreshedConfigurationImpl(final Class<T> type, final Configuration<T> configuration, final Updates updates) {
-            this.configuration = configuration;
-            this.updates = updates;
-            this.type = type;
-        }
+        public ReloadingConfigurationImpl(final Class<T> type,
+                                          final Configuration<T> delegate,
+                                          final Configuration<Settings> configuration,
+                                          final Updates updates) {
+            this.snapshot = Deferred.reference(new Deferred.Factory<Updates.Snapshot<T>>() {
+                public Updates.Snapshot<T> create() {
+                    return updates.register(configuration.settings().period(), new Updates.Snapshot<T>() {
+                        private Configuration.Query<T, T> all = new Configuration.Query<T, T>() {
+                            public T read(final T settings) {
+                                final Map<Method, Object> cache = new HashMap<Method, Object>();
 
-        public Updates.Snapshot<T> snapshot(final long period) {
-            return updates.register(period, new Updates.Snapshot<T>() {
-                private Configuration.Query<T, T> all = new Configuration.Query<T, T>() {
-                    public T read(final T settings) {
-                        final Map<Method, Object> cache = new HashMap<Method, Object>();
-
-                        for (final Method method : type.getMethods()) {
-                            cache.put(method, Exceptions.wrap(new Exceptions.Command<Object>() {
-                                public Object run() throws Throwable {
-                                    assert method.getParameterTypes().length == 0 : method;
-                                    method.setAccessible(true);
-                                    return method.invoke(settings);
+                                for (final Method method : type.getMethods()) {
+                                    cache.put(method, Exceptions.wrap(new Exceptions.Command<Object>() {
+                                        public Object run() throws Throwable {
+                                            assert method.getParameterTypes().length == 0 : method;
+                                            method.setAccessible(true);
+                                            return method.invoke(settings);
+                                        }
+                                    }));
                                 }
-                            }));
-                        }
 
-                        return Proxies.create(type, new InvocationHandler() {
-                            public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
-                                return cache.get(method);
+                                return Proxies.create(type, new InvocationHandler() {
+                                    public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
+                                        return cache.get(method);
+                                    }
+                                });
                             }
-                        });
-                    }
-                };
+                        };
 
-                public T get() {
-                    return configuration.query(all);
+                        public T get() {
+                            return delegate.query(all);
+                        }
+                    });
                 }
             });
+        }
+
+        public Updates.Snapshot<T> snapshot() {
+            return snapshot.get();
         }
     }
 }

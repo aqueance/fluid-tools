@@ -19,6 +19,7 @@ package org.fluidity.foundation.tests;
 import java.util.Properties;
 
 import org.fluidity.composition.Component;
+import org.fluidity.features.ReloadingConfiguration;
 import org.fluidity.features.ReloadingLog;
 import org.fluidity.features.Updates;
 import org.fluidity.foundation.spi.PropertyProvider;
@@ -29,16 +30,28 @@ import org.fluidity.foundation.spi.PropertyProvider;
 @Component
 public class EchoPropertyProviderImpl implements PropertyProvider {
 
+    private static final String[] known = new String[] {
+            Updates.UPDATE_GRANULARITY,
+            ReloadingLog.LOG_LEVEL_REFRESH_PERIOD,
+            ReloadingConfiguration.CONFIGURATION_REFRESH_PERIOD
+    };
+
     private final Properties properties = new Properties();
 
     public EchoPropertyProviderImpl() {
-        properties.setProperty(Updates.UPDATE_GRANULARITY, "0");
-        properties.setProperty(ReloadingLog.LOG_LEVEL_CHECK_PERIOD, "0");
+        for (final String name : known) {
+            properties.setProperty(name, "0");
+        }
     }
 
     public Object property(final String key) {
-        final String property = properties.getProperty(key);
-        return property == null ? key : property;
+        for (final String name : known) {
+            if (key.endsWith(name)) {
+                return properties.getProperty(key);
+            }
+        }
+
+        return key;
     }
 
     public void properties(final Runnable reader) {

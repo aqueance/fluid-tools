@@ -24,7 +24,6 @@ import org.fluidity.composition.spi.CustomComponentFactory;
 import org.fluidity.features.ReloadingLog;
 import org.fluidity.features.Updates;
 import org.fluidity.foundation.Configuration;
-import org.fluidity.foundation.Deferred;
 import org.fluidity.foundation.Log;
 
 /**
@@ -34,22 +33,13 @@ import org.fluidity.foundation.Log;
 @Component.Context(typed = true)
 final class ReloadingLogFactory implements CustomComponentFactory {
 
-    private final Deferred.Reference<Long> period;
-
-    public ReloadingLogFactory(final Configuration<Settings> configuration) {
-        this.period = Deferred.reference(new Deferred.Factory<Long>() {
-            public Long create() {
-                return configuration.settings().period();
-            }
-        });
-    }
-
     public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
+        dependencies.discover(RefreshedLogImpl.class);
+
         return new Instance() {
 
             @SuppressWarnings("unchecked")
             public void bind(final Registry registry) throws OpenComponentContainer.BindingException {
-                registry.bindInstance(period.get(), Long.class);
                 registry.bindComponent(RefreshedLogImpl.class);
             }
         };
@@ -63,8 +53,8 @@ final class ReloadingLogFactory implements CustomComponentFactory {
 
         private final Updates.Snapshot<Log<T>> log;
 
-        public RefreshedLogImpl(final Log<T> log, final Updates updates, final long period) {
-            this.log = updates.register(period, new Updates.Snapshot<Log<T>>() {
+        public RefreshedLogImpl(final Log<T> log, final Updates updates, final Configuration<Settings> configuration) {
+            this.log = updates.register(configuration.settings().period(), new Updates.Snapshot<Log<T>>() {
                 public Log<T> get() {
                     log.refresh();
                     return log;
@@ -144,7 +134,7 @@ final class ReloadingLogFactory implements CustomComponentFactory {
          *
          * @return the period in milliseconds.
          */
-        @Configuration.Property(key = ReloadingLog.LOG_LEVEL_CHECK_PERIOD, undefined = "30000")
+        @Configuration.Property(key = ReloadingLog.LOG_LEVEL_REFRESH_PERIOD, undefined = "30000")
         long period();
     }
 }

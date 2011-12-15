@@ -109,22 +109,54 @@ final class ConfigurationFactory implements CustomComponentFactory {
             }
         }
 
+        /*
+         * Computes the property prefixes that will be traversed for any property in order until a value is found in the underlying property provider.
+         *
+         * Assuming N context annotations, c1, c2, c3, ..., cN-2, cN-1, cN, the property prefixes will be as follows:
+         *  - c1.c2.c3 ... .cN-2.cN-1.cN.
+         *  - c2.c3 ... .cN-2.cN-1.cN.
+         *  - c3. ... .cN-2.cN-1.cN.
+         *  - ...
+         *  - cN-2.cN-1.cN.
+         *  - cN-1.cN.
+         *  - cN.
+         *  - c1.c2.c3 ... .cN-2.
+         *  - ...
+         *  - c1.c2.c3.
+         *  - c1.c2.
+         *  - c1.
+         *  - (empty prefix)
+         */
         private String[] propertyContexts(final Context[] annotations) {
-            final List<String> list = new ArrayList<String>((annotations == null ? 0 : annotations.length) + 1);
-
-            final StringBuilder prefix = new StringBuilder();
-            list.add(prefix.toString());
+            final List<String> contexts = new ArrayList<String>();
 
             if (annotations != null) {
-                for (final Context next : annotations) {
-                    prefix.append(next.value()).append('.');
-                    list.add(prefix.toString());
+                for (final Context context : annotations) {
+                    contexts.add(context.value().concat("."));
                 }
+            }
+
+            final List<String> list = new ArrayList<String>(contexts.size() << 1);
+
+            final StringBuilder prefix = new StringBuilder();
+
+            // empty prefix is added first and last prefix is not appended; will be appended below when going through the prefixes in reverse
+            for (final String next : contexts) {
+                list.add(prefix.toString());
+                prefix.append(next);
+            }
+
+            Collections.reverse(contexts);
+
+            prefix.setLength(0);
+            for (final String next : contexts) {
+                prefix.insert(0, next);
+                list.add(prefix.toString());
             }
 
             Collections.reverse(list);
 
-            return list.toArray(new String[list.size()]);
+            return list.isEmpty() ? new String[] { "" } : list.toArray(new String[list.size()]);
         }
 
         private static class PropertyLoader<T> implements InvocationHandler {

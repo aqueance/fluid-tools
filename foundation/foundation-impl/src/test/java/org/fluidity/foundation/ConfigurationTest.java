@@ -20,6 +20,7 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -94,6 +95,8 @@ public class ConfigurationTest extends MockGroupAbstractTest {
 
         properties(provider, false, null, null, null, null, null, null);
         properties(provider, true, "context1.context2.context3", null, null, null, "value2", 5678);
+        properties(provider, false, "context2.context3", null, null, null, null, null);
+        properties(provider, false, "context3", null, null, null, null, null);
         properties(provider, false, "context1.context2", null, null, null, null, null);
         properties(provider, false, "context1", null, null, "value1", null, null);
 
@@ -235,25 +238,25 @@ public class ConfigurationTest extends MockGroupAbstractTest {
         replay();
         configuration.query(new Configuration.Query<CollectionSettings, Void>() {
             public Void read(final CollectionSettings settings) {
-                assert Arrays.equals(settings.integers(), new int[] { 1, 2, 3 }) : Arrays.toString(settings.integers());
-                assert Arrays.equals(settings.empty_integers(), new int[0]) : Arrays.toString(settings.empty_integers());
-                assert settings.no_integers() == null : Arrays.toString(settings.no_integers());
+                checkObjects(new int[] { 1, 2, 3 }, settings.integers());
+                checkObjects(new int[0], settings.empty_integers());
+                checkObjects(null, settings.no_integers());
 
-                assert Arrays.equals(settings.flags(), new boolean[] { true, false }) : Arrays.toString(settings.flags());
-                assert Arrays.equals(settings.empty_flags(), new boolean[0]) : Arrays.toString(settings.empty_flags());
-                assert settings.no_flags() == null : Arrays.toString(settings.no_flags());
+                checkObjects(new boolean[] { true, false }, settings.flags());
+                checkObjects(new boolean[0], settings.empty_flags());
+                checkObjects(null, settings.no_flags());
 
-                assert settings.strings().equals(Arrays.asList("good", "bad")) : settings.strings();
-                assert settings.empty_strings().isEmpty() : settings.empty_strings();
-                assert settings.no_strings() == null : settings.no_strings();
+                checkObjects(Arrays.asList("good", "bad"), settings.strings());
+                checkObjects(Collections.EMPTY_LIST, settings.empty_strings());
+                checkObjects(null, settings.no_strings());
 
                 final Map<String, Integer> map = new HashMap<String, Integer>();
                 map.put("key1", 12);
                 map.put("key2", 34);
 
-                assert settings.numbers().equals(map) : settings.numbers();
-                assert settings.empty_numbers().isEmpty() : settings.empty_numbers();
-                assert settings.no_numbers() == null : settings.no_numbers();
+                checkObjects(map, settings.numbers());
+                checkObjects(Collections.EMPTY_MAP, settings.empty_numbers());
+                checkObjects(null, settings.no_numbers());
 
                 final Map<List<Integer>, Map<String, List<long[]>>> insane = new HashMap<List<Integer>, Map<String, List<long[]>>>();
 
@@ -711,7 +714,25 @@ public class ConfigurationTest extends MockGroupAbstractTest {
         verify();
     }
 
-    private void checkArrays(final Object expected, final Object actual) {
+    static void checkObjects(final Object expected, final Object actual) {
+        if (expected == null) {
+            assert actual == null : String.format("Expected null, got %s", actual);
+        } else {
+            final Class<?> type = expected.getClass();
+
+            if (type.isArray()) {
+                checkArrays(expected, actual);
+            } else if (Collection.class.isAssignableFrom(type) || Map.class.isAssignableFrom(type)) {
+                collectionCheck(expected, actual);
+            } else {
+                assert expected.equals(actual) : String.format("Expected %s, got %s", expected, actual);
+            }
+        }
+    }
+
+    private static void checkArrays(final Object expected, final Object actual) {
+        assert actual != null : String.format("Expected %s, got null", array(expected));
+
         final int length = Array.getLength(actual);
         assert Array.getLength(expected) == length : String.format("Expected %d, got %d", Array.getLength(expected), length);
 
@@ -720,11 +741,21 @@ public class ConfigurationTest extends MockGroupAbstractTest {
         }
     }
 
-    static void checkObjects(final Object expected, final Object actual) {
-        assert expected.equals(actual) : String.format("Expected %s, got %s", expected, actual);
+    private static String array(final Object actual) {
+        final StringBuilder text = new StringBuilder();
+
+        for (int i = 0, length = Array.getLength(actual); i < length; ++i) {
+            if (text.length() > 0) {
+                text.append(", ");
+            }
+
+            text.append(Array.get(actual, i));
+        }
+
+        return text.insert(0, "[").append("]").toString();
     }
 
-    private void collectionCheck(final Object expected, final Object actual) {
+    private static void collectionCheck(final Object expected, final Object actual) {
         if (expected instanceof Map) {
             assert actual instanceof Map : actual;
 
