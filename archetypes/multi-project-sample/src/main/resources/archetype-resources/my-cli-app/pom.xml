@@ -58,7 +58,7 @@ limitations under the License.
 
         <dependency>
             <groupId>org.fluidity.features</groupId>
-            <artifactId>fluid-tools-commons-logging</artifactId>
+            <artifactId>logging-commons-impl</artifactId>
             <version>${symbol_dollar}{fluid.tools.version}</version>
         </dependency>
 
@@ -116,7 +116,7 @@ limitations under the License.
 
                     <dependency>
                         <groupId>org.fluidity.features</groupId>
-                        <artifactId>fluid-tools-cli-manifest</artifactId>
+                        <artifactId>jar-manifest-command-launcher-impl</artifactId>
                         <version>${symbol_dollar}{fluid.tools.version}</version>
                     </dependency>
 

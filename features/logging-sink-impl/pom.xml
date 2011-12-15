@@ -25,10 +25,10 @@
 
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.fluidity.features</groupId>
-    <artifactId>fluid-tools-cli-manifest</artifactId>
+    <artifactId>logging-sink-impl</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>jar</packaging>
-    <name>Fluid Tools: Command Line Manifest</name>
+    <name>Fluid Tools: Log Sink Implementation</name>
 
     <licenses>
         <license>
@@ -38,24 +38,30 @@
         </license>
     </licenses>
 
+    <description><![CDATA[
+This project is intended to be the Fluid Tools dependency of "test" scope
+to eliminate log messages from tested classes.
+    ]]></description>
+
     <dependencies>
 
         <dependency>
             <groupId>${fluidity.foundation.groupId}</groupId>
-            <artifactId>foundation-utils</artifactId>
+            <artifactId>foundation-api</artifactId>
             <version>${project.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>${fluidity.deployment.groupId}</groupId>
-            <artifactId>manifest-handler-api</artifactId>
+            <groupId>${fluidity.composition.groupId}</groupId>
+            <artifactId>composition-api</artifactId>
             <version>${project.version}</version>
-        </dependency>
 
-        <dependency>
-            <groupId>org.apache.maven</groupId>
-            <artifactId>maven-core</artifactId>
-            <scope>provided</scope> <!-- provided by the invoking standalone-jar plugin -->
+            <exclusions>
+                <exclusion>
+                    <groupId>${fluidity.foundation.groupId}</groupId>
+                    <artifactId>foundation-utils</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
     </dependencies>
@@ -72,5 +78,21 @@
             </build>
         </profile>
     </profiles>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>${fluidity.plugin.groupId}</groupId>
+                <artifactId>maven-composition-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>process-annotations</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>

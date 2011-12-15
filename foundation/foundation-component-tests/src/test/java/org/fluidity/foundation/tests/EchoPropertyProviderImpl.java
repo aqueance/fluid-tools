@@ -32,7 +32,7 @@ public class EchoPropertyProviderImpl implements PropertyProvider {
     private final Properties properties = new Properties();
 
     public EchoPropertyProviderImpl() {
-        properties.setProperty(Updates.PERIOD_PROPERTY, "0");
+        properties.setProperty(Updates.UPDATE_GRANULARITY, "0");
         properties.setProperty(ReloadingLog.LOG_LEVEL_CHECK_PERIOD, "0");
     }
 

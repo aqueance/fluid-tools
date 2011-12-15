@@ -73,7 +73,7 @@
 
         <dependency>
             <groupId>${fluidity.features.groupId}</groupId>
-            <artifactId>fluid-tools-no-logging</artifactId>
+            <artifactId>logging-sink-impl</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
         </dependency>

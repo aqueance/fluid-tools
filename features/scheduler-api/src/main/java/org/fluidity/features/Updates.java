@@ -26,7 +26,7 @@ import org.fluidity.foundation.Configuration;
  * this component.
  * <p/>
  * The granularity of the updates can be configured by implementing a {@link org.fluidity.foundation.spi.PropertyProvider} component that returns a valid
- * number for the {@link #PERIOD_PROPERTY} key. The default period granularity is 1 second.
+ * number for the {@link #UPDATE_GRANULARITY} key. The default period granularity is 1 second.
  *
  * @author Tibor Varga
  */
@@ -35,7 +35,7 @@ public interface Updates {
     /**
      * The configuration property that specifies the update granularity in milliseconds.
      */
-    String PERIOD_PROPERTY = "org.fluidity.foundation.update.period.ms";
+    String UPDATE_GRANULARITY = "org.fluidity.features.update-granularity-ms";
 
     /**
      * Registers an object to periodically update data with.
@@ -80,7 +80,7 @@ public interface Updates {
          *
          * @return a number greater than 0.
          */
-        @Configuration.Property(key = Updates.PERIOD_PROPERTY, undefined = "1000")
+        @Configuration.Property(key = Updates.UPDATE_GRANULARITY, undefined = "1000")
         long period();
     }
 }

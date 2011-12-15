@@ -25,10 +25,10 @@
 
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.fluidity.features</groupId>
-    <artifactId>fluid-tools-slf4j-logging</artifactId>
+    <artifactId>logging-commons-impl</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>jar</packaging>
-    <name>Fluid Tools: SLF4J Logging Implementation</name>
+    <name>Fluid Tools: Commons Logging Implementation</name>
 
     <licenses>
         <license>
@@ -40,7 +40,7 @@
 
     <description><![CDATA[
 This project is intended to be the Fluid Tools dependency of Maven modules
-containing top level application wrappers that wish to use SLF4 for logging.
+containing top level application wrappers that wish to use Apache Commons Logging.
     ]]></description>
 
     <dependencies>
@@ -65,9 +65,9 @@ containing top level application wrappers that wish to use SLF4 for logging.
         </dependency>
 
         <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>1.6.1</version>
+            <groupId>commons-logging</groupId>
+            <artifactId>commons-logging-api</artifactId>
+            <version>1.1</version>
             <scope>provided</scope>
         </dependency>
 

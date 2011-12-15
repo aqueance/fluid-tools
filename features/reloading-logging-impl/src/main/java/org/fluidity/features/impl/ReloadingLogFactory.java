@@ -144,7 +144,7 @@ final class ReloadingLogFactory implements CustomComponentFactory {
          *
          * @return the period in milliseconds.
          */
-        @Configuration.Property(key = ReloadingLog.LOG_LEVEL_CHECK_PERIOD)
+        @Configuration.Property(key = ReloadingLog.LOG_LEVEL_CHECK_PERIOD, undefined = "30000")
         long period();
     }
 }
