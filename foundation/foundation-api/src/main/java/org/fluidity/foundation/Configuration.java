@@ -25,27 +25,31 @@ import java.lang.annotation.Target;
 import org.fluidity.foundation.spi.PropertyProvider;
 
 /**
- * Represents some configuration of a component. The component receives its configuration, which will be an object implementing this interface, as an injected
- * dependency. A component may have any number of such configurations, each for a different context if desired.
+ * Dependency injected component configuration. A component may have any number of such configurations, each for a different context and / or for a different
+ * settings interface.
  * <p/>
- * The configuration is normally backed by a {@link PropertyProvider property provider} object that the configuration object queries for data
- * and provides type conversion of values returned. The properties queried are determined by {@link Configuration.Context annotations} and the component
- * context of the configured component.
+ * The configuration is backed by a {@link PropertyProvider property provider} component that, if found, the configuration object queries for data
+ * and provides type conversion of values returned. The properties queried are determined by {@link Configuration.Context context annotations} of the
+ * configured component up to the point of its dependency reference.
  * <h2>Usage</h2>
- * A configuration is a group of settings consumed by some entity. The settings are defined by the methods of a custom <em>settings interface</em>, which will
- * be used as the type parameter of the <code>Configuration</code> interface.
+ * A configuration is a group of settings consumed by the configured component. The settings are defined by the methods of a custom <em>settings
+ * interface</em>, which is specified as the type parameter of the <code>Configuration</code> interface.
  * <p/>
  * For instance:
  * <pre>
+ * // The settings interface
  * interface MySettings {
  *
  *   &#64;Configuration.Property(key = "property.1", undefined = "default value 1")
  *   String property1();
  *
+ *   // When the method is invoked, the "%d" in the <code>key</code> parameter of the annotation is
+ *   // substituted with the value of the <code>item</code> parameter of the method.
  *   &#64;Configuration.Property(key = "property.%d.value", undefined = "default value %d")
  *   String property2(int item);
  * }
  *
+ * // The configured component
  * &#64;Component
  * final class ConfiguredComponent {
  *
@@ -63,13 +67,21 @@ import org.fluidity.foundation.spi.PropertyProvider;
  * The given {@link Configuration.Property#key() property key}s are understood to be relative to the concatenation of the value of each {@link
  * Configuration.Context @Configuration.Context} annotation in the instantiation path of the configured component.
  * <p/>
- * If the computed property has no value in the underlying property provider, the last context is stripped and the new property is queried, and this process
- * is repeated until the property provider returns a value or there is no more context to strip.
+ * If the computed property has no value in the underlying property provider, the first context is stripped and the new property is queried, and this process
+ * is repeated until the property provider returns a value or there is no more context to strip, then the last context is stripped from the original property
+ * and the new property is queried, and the process is repeated again.
  * <p/>
- * For instance if the the instantiation path contains <code>@Configuration.Context("a")</code>, <code>@Configuration.Context("b")</code> and
- * <code>@Configuration.Context("c")</code>, then the method <code>@Configuration.Property(key = "property") String property()</code> will query the
- * <code>"a.b.c.property"</code> from its underlying property provider, and then <code>"a.b.property"</code>, <code>"a.property"</code> and
- * <code>"property"</code> until the property has a value or there is no more context to strip.
+ * For instance, if the the instantiation path contains <code>@Configuration.Context("a")</code>, <code>@Configuration.Context("b")</code> and
+ * <code>@Configuration.Context("c")</code>, then the method <code>@Configuration.Property(key = "property") String property()</code> will query the following
+ * properties, in the given order, from its underlying property provider until it returns a value or there is no more context to strip:
+ * <ul>
+ * <li><code>a.b.c.property</code></li>
+ * <li><code>b.c.property</code></li>
+ * <li><code>c.property</code></li>
+ * <li><code>a.b.property</code></li>
+ * <li><code>a.property</code></li>
+ * <li><code>property</code></li>
+ * </ul>
  * <p/>
  * Query methods may have parameters that provide values to placeholders in the property key, as shown in the method definition for <code>property2</code>
  * above.
@@ -78,12 +90,12 @@ import org.fluidity.foundation.spi.PropertyProvider;
  * The snapshot of the configuration settings above works with an optional {@link PropertyProvider} and an optional implementation of the settings interface
  * itself, which in the above example was <code>MySettings</code>.
  * <p/>
- * The value returned by the configuration snapshot is computed as follows:
+ * The value returned by the configuration snapshot is computed as follows, in the given order:
  * <ol>
  * <li>If a <code>PropertyProvider</code> component is found, it is queried for the property key specified in the method's {@link Configuration.Property}
- * annotation, with contextual prefixes added. If the result is not <code>null</code>, it is returned.</li>
- * <li>If a component bound to the settings interface was provided, the method invoked on the snapshot is forwarded to the settings implementation. If the
- * result is not <code>null</code>, it is returned.</li>
+ * annotation, with contextual prefixes added and stripped as described above. If the result is not <code>null</code>, it is returned.</li>
+ * <li>If a component bound to the settings interface has been implemented, the method invoked on the snapshot is forwarded to the settings implementation. If
+ * a result is not <code>null</code>, it is returned.</li>
  * <li>The {@link Configuration.Property#undefined()} parameter is checked. If it is not empty, it is returned, otherwise <code>null</code> is returned for non
  * primitive types and the default value is returned for primitive types.</li>
  * </ol>
@@ -105,17 +117,17 @@ import org.fluidity.foundation.spi.PropertyProvider;
  * The configuration implementation supports both interfaces with query methods and classes with fields as return values from the settings interface. There are
  * a few key difference between the two and you need to choose the one that fits your use of the property data.
  * <p/>
- * The implementation for a custom interface:
+ * A custom interface:
  * <ul>
  * <li>allows method parameters to vary the property queried for a given method,</li>
- * <li>provides only object identity implementation for the {@link Object#equals(Object)} method,</li>
+ * <li>is given the default {@link Object#equals(Object) object identity},</li>
  * <li>may return a different value at different times if accessed outside the {@link Configuration.Query#read(Object) Configuration.Query.read(T)}
  * method.</li>
  * </ul>
- * In contrast, your custom class:
+ * In contrast, a custom class:
  * <ul>
  * <li>provides no means to vary at run-time the property queried for a given field,</li>
- * <li>may provide whatever equality in its {@link Object#equals(Object)} method,</li>
+ * <li>honours the equality defined by its {@link Object#equals(Object)} method,</li>
  * <li>will have the same property value in its fields regardless of when they are accessed (until you change those values, of course).</li>
  * </ul>
  *
@@ -134,8 +146,9 @@ public interface Configuration<T> {
     T settings();
 
     /**
-     * Provides isolated access to an object that implements the settings interface. The configuration settings returned by the methods of the provided object
-     * are consistent and will not reflect changes to the underlying configuration settings while the method executes.
+     * Provides isolated access to the configuration settings. The settings returned by the methods of the object provided as the parameter of the {@link
+     * Query#read(Object)} method are consistent and will not reflect changes to the underlying configuration settings while this method executes. This
+     * consistence, however, is subject to support by the {@link PropertyProvider#properties(Runnable)} method of the underlying property provider, if found.
      *
      * @param query the object to supply the settings implementation to.
      *
@@ -157,8 +170,7 @@ public interface Configuration<T> {
 
         /**
          * Allows access to the settings. If the underlying {@link PropertyProvider} supports it, properties will not be updated dynamically while this method
-         * executes. However, stashing the <code>read</code> method parameter and invoking its methods outside the <code>read</code> method will not have the
-         * same guarantee.
+         * executes. However, stashing the method parameter and invoking its methods outside this method will circumvent this consistency.
          *
          * @param settings an object implementing the settings interface.
          *

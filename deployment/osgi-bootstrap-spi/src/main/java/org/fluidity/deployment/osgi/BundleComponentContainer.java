@@ -89,6 +89,8 @@ public interface BundleComponentContainer {
     /**
      * A component that gets notified by a {@link BundleComponentContainer} when a {@link BundleComponentContainer.Managed Managed} component gets {@link
      * #started(Class, Object) started} or {@link #stopping(Class, Object) stopped}.
+     * <p/>
+     * TODO: add start failure notification
      */
     @ComponentGroup
     interface Observer {

@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.fluidity.foundation.JarStreams;
+import org.fluidity.foundation.Archives;
 import org.fluidity.foundation.Utilities;
 
 import org.apache.maven.artifact.Artifact;
@@ -111,7 +111,7 @@ public final class MavenSupport extends Utilities {
                                                               final Artifact root,
                                                               final List<Dependency> dependencies,
                                                               final Set<String> types) throws MojoExecutionException {
-        final String[] spec = JarStreams.manifestAttributes(dependency, MANIFEST_MAVEN_GROUP_ID, MANIFEST_MAVEN_ARTIFACT_ID);
+        final String[] spec = Archives.manifestAttributes(dependency, MANIFEST_MAVEN_GROUP_ID, MANIFEST_MAVEN_ARTIFACT_ID);
 
         if (spec == null || spec.length != 2 || spec[0] == null || spec[1] == null) {
             throw new MojoExecutionException(String.format("Could not find Maven project for %s", dependency));

@@ -37,7 +37,7 @@ import javax.servlet.ServletResponse;
  *     ...
  *     &lt;init-param>
  *       &lt;param-name>component-key&lt;/param-name>
- *       &lt;param-value><i>the class name of this filter's delegate</i>&lt;/param-value>
+ *       &lt;param-value><em>the class name of this filter's delegate</em>&lt;/param-value>
  *     &lt;/init-param>
  *   &lt;/filter>
  * &lt;/web-app>

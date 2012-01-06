@@ -23,8 +23,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Annotates a component reference as optional dependency. An optional dependency will receive a <code>null</code> value upon dependency resolution if the
- * dependency cannot be satisfied. Without this annotation, a {@link org.fluidity.composition.ComponentContainer.ResolutionException} is thrown in the same
+ * Annotates a {@link Component} reference as optional dependency. An optional dependency will receive a <code>null</code> value upon dependency resolution if
+ * the dependency cannot be satisfied. Without this annotation, a {@link org.fluidity.composition.ComponentContainer.ResolutionException} is thrown in the same
  * case.
  *
  * @author Tibor Varga
@@ -32,5 +32,5 @@ import java.lang.annotation.Target;
 @Internal
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.PARAMETER, ElementType.FIELD})
-public @interface Optional { }
+@Target({ ElementType.PARAMETER, ElementType.FIELD })
+public @interface Optional {}

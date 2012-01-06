@@ -19,6 +19,9 @@ package org.fluidity.features;
 /**
  * Provides scheduled and periodic command invocation. This component keeps a hard reference to the supplied commands until their scheduled invocation is
  * canceled - either automatically or manually by calling {@link Scheduler.Control#cancel()}.
+ * <p/>
+ * <b>NOTE</b>: This component keeps a hard reference to the tasks supplied in its {@link #invoke(long, Runnable)} and {@link #invoke(long, long, Runnable)}
+ * methods. If you need periodic updates without the consequent hard reference, use {@link Updates} instead of directly using this component.
  *
  * @author Tibor Varga
  */

@@ -26,8 +26,8 @@ import org.fluidity.composition.spi.DependencyPath;
 import org.fluidity.foundation.Strings;
 
 /**
- * This is the external API of a fully populated dependency injection container. For a discussion of dependency injection and dependency injection containers,
- * see the <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Dependency_Injection_Concept">User Guide</a>.
+ * The external API of a fully populated <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Dependency_Injection_Concept">dependency injection</a>
+ * <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Dependency_Injection_Containers">container</a>.
  * <p/>
  * TODO: copy the next few paragraphs to the user guide
  * <p/>
@@ -44,9 +44,9 @@ import org.fluidity.foundation.Strings;
  * are / may be used to host your application, such as the JRE application launcher, a web application or an OSGi bundle.
  * <p/>
  * Containers in a hierarchy co-operate in such a way that if a component is not found in a child container, a look-up is performed in its parent. The act of
- * looking up a dependency by its referenced type is called <i>dependency resolution</i>. Telling the container what class to resolve a component interface to
- * is called <i>component binding</i> where a component class is bound to the component interface. The act of a container using its parent to resolve missing
- * dependencies is called <i>defaulting to</i> the parent container.
+ * looking up a dependency by its referenced type is called <em>dependency resolution</em>. Telling the container what class to resolve a component interface to
+ * is called <em>component binding</em> where a component class is bound to the component interface. The act of a container using its parent to resolve missing
+ * dependencies is called <em>defaulting to</em> the parent container.
  * <p/>
  * Dependency resolution is performed based on the referenced type of the dependency. If there was no explicit binding for the given interface then no component
  * will be injected for that reference.

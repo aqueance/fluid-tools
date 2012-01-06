@@ -26,8 +26,8 @@ import java.lang.annotation.Target;
 import java.lang.reflect.Type;
 
 /**
- * Specifies the component interface(s) that a class implements and that should be resolved to the annotated class at run-time in a dependency injection
- * container.
+ * Specifies the <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Definitions">component interface(s)</a> that a class implements and that should
+ * be resolved to the annotated class at run-time in a dependency injection container.
  * <p/>
  * On its own, this implementation is merely a marker. However, when coupled with the use of the <code>org.fluidity.maven:maven-composition-plugin</code> Maven
  * plugin, carefree dependency injection becomes possible.
@@ -90,9 +90,9 @@ public @interface Component {
     boolean stateful() default false;
 
     /**
-     * Lists the context annotations accepted by the annotated class, thereby allowing the component to specify the annotation classes that will configure
-     * instances of the component at the points of dependency references to the component. Such a configuration could, for instance, contain a database
-     * identifier for a database access dependency, etc.
+     * Lists the <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Component_Context">context annotations</a> accepted by the annotated class,
+     * thereby allowing the component to specify the annotation classes that will configure instances of the component at the points of dependency references
+     * to the component. Such a configuration could, for instance, contain a database identifier for a database access dependency, etc.
      *
      * @author Tibor Varga
      */
@@ -134,23 +134,23 @@ public @interface Component {
     }
 
     /**
-     * Context annotation that captures the parameterized type of a component reference. This is not an actual annotation from the Java syntax point of view
-     * but simply a run-time representation of an annotation to convey type information. A Java annotation would not allow <code>Type</code> as the type of a
-     * parameter.
+     * <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Component_Context">Context annotation</a> that captures the parameterized type of a
+     * component reference. This is not an actual annotation from the Java syntax point of view but simply a run-time representation of an annotation to convey
+     * type information. A Java annotation would not allow <code>Type</code> as the type of a parameter.
      *
      * @author Tibor Varga
      */
     interface Reference extends Annotation {
 
         /**
-         * Returns the parameterized type.
+         * Returns the parameterized type of a component reference.
          *
          * @return a type object.
          */
         Type type();
 
         /**
-         * This is a convenience method that returns the raw type of the type parameter at the given index.
+         * This is a convenience method that returns the raw type of the type parameter at the given index, of the component reference.
          *
          * @param index the index of the type parameter.
          *

@@ -23,8 +23,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.jar.Attributes;
 
+import org.fluidity.foundation.Archives;
 import org.fluidity.foundation.ClassLoaders;
-import org.fluidity.foundation.JarStreams;
 import org.fluidity.foundation.jarjar.Handler;
 
 /**
@@ -43,7 +43,7 @@ public class JarJarLauncher {
         final Class<?> main = JarJarLauncher.class;
 
         final URL url = ClassLoaders.findClassResource(main);
-        final JarURLConnection jar = JarStreams.jarFile(url);
+        final JarURLConnection jar = Archives.jarFile(url);
 
         if (jar != null) {
             final URL jarURL = jar.getJarFileURL();

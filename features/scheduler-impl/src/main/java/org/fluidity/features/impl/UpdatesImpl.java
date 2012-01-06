@@ -75,4 +75,21 @@ final class UpdatesImpl implements Updates {
             };
         }
     }
+
+    /**
+     * Provides settings to the {@link org.fluidity.features.Updates} component.
+     *
+     * @author Tibor Varga
+     */
+    private static interface Settings {
+
+        /**
+         * The minimum number in milliseconds between subsequent calls to {@link org.fluidity.features.Updates.Snapshot#get()} of a loader passed to {@link org.fluidity.features.Updates#register(long,
+         * org.fluidity.features.Updates.Snapshot)}.
+         *
+         * @return a number greater than 0.
+         */
+        @Configuration.Property(key = Updates.UPDATE_GRANULARITY, undefined = "1000")
+        long period();
+    }
 }

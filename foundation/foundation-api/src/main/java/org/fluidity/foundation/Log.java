@@ -160,42 +160,4 @@ public interface Log<T> {
      * @param args      the args parameter of a {@link String#format(String, Object...)} call.
      */
     void error(Throwable exception, String format, Object... args);
-
-    /**
-     *  Queries the various log levels.
-     *  */
-    interface Levels<T> {
-
-        /**
-         * Returns <code>true</code> if trace level logging is enabled, <code>false</code> otherwise.
-         *
-         * @param log the underlying logger object.
-         * @return the flag for the log level.
-         */
-        boolean trace(T log);
-
-        /**
-         * Returns <code>true</code> if debug level logging is enabled, <code>false</code> otherwise.
-         *
-         * @param log the underlying logger object.
-         * @return the flag for the log level.
-         */
-        boolean debug(T log);
-
-        /**
-         * Returns <code>true</code> if info level logging is enabled, <code>false</code> otherwise.
-         *
-         * @param log the underlying logger object.
-         * @return the flag for the log level.
-         */
-        boolean info(T log);
-
-        /**
-         * Returns <code>true</code> if warning level logging is enabled, <code>false</code> otherwise.
-         *
-         * @param log the underlying logger object.
-         * @return the flag for the log level.
-         */
-        boolean warning(T log);
-    }
 }

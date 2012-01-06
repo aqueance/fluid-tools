@@ -20,8 +20,8 @@ import java.lang.annotation.Annotation;
 import java.util.Set;
 
 /**
- * The run-time context for a component. This is the object that components may receive as a dependency to encapsulate the context in which they are being
- * instantiated.
+ * The <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Component_Context">run-time context</a> for a component. This is the object that components
+ * may receive as a dependency to encapsulate the context in which they are being instantiated.
  * <p/>
  * A context represents configuration at the point of reference to a component, which it elects to receive using the
  * {@link Component.Context @Component.Context} annotation. Contexts are provided by components using custom, user defined, annotations and consumed by

@@ -24,10 +24,10 @@
 </p>
 
 <p>
-    The entry point to the implementation is a class implementing the {@link org.fluidity.composition.spi.ContainerProvider ContainerProvider} interface that
-    the implementation must provide. As long as the implementation is built using Maven and the <code>org.fluidity.maven:maven-composition-plugin</code> Maven
-    plugin is used to build the implementation, no other action is necessary for Fluid Tools to find the <code>ContainerProvider</code> that packaging it in a
-    JAR file and making sure that JAR file is loaded by the host application.
+    The entry point to the container implementation is a class implementing the {@link org.fluidity.composition.spi.ContainerProvider ContainerProvider}
+    interface that the implementation must provide. As long as the implementation is built using Maven and the
+    <code>org.fluidity.maven:maven-composition-plugin</code> Maven plugin is used to build the implementation, no other action is necessary for Fluid Tools to
+    find the <code>ContainerProvider</code> than packaging it in a JAR file and making sure that JAR file is loaded by the host application.
 </p>
 
 <p>
@@ -36,7 +36,7 @@
 </p>
 
 <p>
-    The implementation is offered a few basic services by {@link org.fluidity.composition.spi.ContainerServices}, an object implementing which is given to the
+    The implementation is offered a few basic services in the form of a {@link org.fluidity.composition.spi.ContainerServices} object given to the
     <code>ContainerProvider</code> whenever it is invoked.
 </p>
 </BODY>

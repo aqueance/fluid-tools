@@ -16,14 +16,12 @@
 
 package org.fluidity.features;
 
-import org.fluidity.foundation.Configuration;
-
 /**
  * Periodic updates facility. Components wishing to periodically update some data should call {@link #register(long, Snapshot)} upon initialization and then
  * use {@link Snapshot#get()} on the returned snapshot every time they wish to access the periodically updated data.
  * <p/>
- * This component is designed not to keep a hard reference to any object that registers for updates. Instead, the caller component keeps a hard reference to
- * this component.
+ * <b>NOTE</b>: This component is designed not to keep a hard reference to any object that registers for updates and thus is a preferred way to the
+ * {@link Scheduler} component of implementing periodic updates.
  * <p/>
  * The granularity of the updates can be configured by implementing a {@link org.fluidity.foundation.spi.PropertyProvider} component that returns a valid
  * number for the {@link #UPDATE_GRANULARITY} key. The default period granularity is 1 second.
@@ -65,22 +63,5 @@ public interface Updates {
          * @return an up-to-date snapshot of the represented data.
          */
         T get();
-    }
-
-    /**
-     * Provides settings to the {@link Updates} component.
-     *
-     * @author Tibor Varga
-     */
-    interface Settings {
-
-        /**
-         * The minimum number in milliseconds between subsequent calls to {@link Snapshot#get()} of a loader passed to {@link Updates#register(long,
-         * Snapshot)}.
-         *
-         * @return a number greater than 0.
-         */
-        @Configuration.Property(key = Updates.UPDATE_GRANULARITY, undefined = "1000")
-        long period();
     }
 }

@@ -35,9 +35,10 @@ import org.fluidity.composition.spi.PlatformContainer;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**
- * Static access to a class loader specific dependency injection container. This utility class ensures that the container hierarchy of the host application
- * matches the class loader hierarchy. The highest level class loader to have a container is the one that can find the dependencies of this class:
- * {@link ContainerProvider} and {@link ContainerServicesFactory}.
+ * Static access to a class loader specific <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Dependency_Injection_Concept">dependency injection</a>
+ * <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Dependency_Injection_Containers">container</a>. This utility class ensures that the container
+ * hierarchy of the host application matches the class loader hierarchy. The highest level class loader to have a container is the one that can find the
+ * dependencies of this class: {@link ContainerProvider} and {@link ContainerServicesFactory}.
  * <p/>
  * This class bootstraps all parent containers that have not yet been populated. Instances of this class all work against the same data structure, thereby
  * giving classes instantiated by third parties access to the container relevant to their level in the application's class loader hierarchy. Bootstrapping a

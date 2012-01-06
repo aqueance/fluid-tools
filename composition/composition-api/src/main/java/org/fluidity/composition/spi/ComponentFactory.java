@@ -24,7 +24,7 @@ import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.OpenComponentContainer;
 
 /**
- * Defines the behaviour of component factories. Component instantiation follows a certain protocol and <code>ComponentFactory</code> objects must follow that
+ * Defines the behavior of component factories. Component instantiation follows a certain protocol and <code>ComponentFactory</code> objects must follow that
  * protocol to integrate well to Fluid Tools. This interface defines the necessary methods and interfaces for that integration.
  */
 public interface ComponentFactory {

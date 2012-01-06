@@ -16,9 +16,9 @@
 
 package org.fluidity.foundation.spi;
 
-import org.fluidity.foundation.Log;
-
 import java.util.concurrent.atomic.AtomicReference;
+
+import org.fluidity.foundation.Log;
 
 /**
  * The recommended super class for log implementations.
@@ -26,13 +26,13 @@ import java.util.concurrent.atomic.AtomicReference;
  * The intended boiler-plate code for a subclass implementation, with implementation specific bits highlighted, is as
  * follows:
  * <pre>
- * import external.logging.<b>Log</b>;
- * import external.logging.<b>LogFactory</b>;
+ * import <b>external.logging.Log</b>;
+ * import <b>external.logging.LogFactory</b>;
  *
  * final class MyLogImpl extends AbstractLog&lt;<b>Log</b>> {
  *
  *     public MyLogImpl(final Class&lt;?> source) {
- *         super(LoggerFactory.getLogger(source), new Levels<Logger>() {
+ *         super(LoggerFactory.getLogger(source), new Levels&lt;<b>Log</b>>() {
  *             public boolean trace(final <b>Log</b> log) {
  *                 return log.<b>isTraceEnabled</b>();
  *             }
@@ -154,5 +154,47 @@ public abstract class AbstractLog<T> implements Log<T> {
      */
     public final boolean isWarningEnabled() {
         return permissions.get().info(log);
+    }
+
+    /**
+     * Queries the various log levels.
+     */
+    public static interface Levels<T> {
+
+        /**
+         * Returns <code>true</code> if trace level logging is enabled, <code>false</code> otherwise.
+         *
+         * @param log the underlying logger object.
+         *
+         * @return the flag for the log level.
+         */
+        boolean trace(T log);
+
+        /**
+         * Returns <code>true</code> if debug level logging is enabled, <code>false</code> otherwise.
+         *
+         * @param log the underlying logger object.
+         *
+         * @return the flag for the log level.
+         */
+        boolean debug(T log);
+
+        /**
+         * Returns <code>true</code> if info level logging is enabled, <code>false</code> otherwise.
+         *
+         * @param log the underlying logger object.
+         *
+         * @return the flag for the log level.
+         */
+        boolean info(T log);
+
+        /**
+         * Returns <code>true</code> if warning level logging is enabled, <code>false</code> otherwise.
+         *
+         * @param log the underlying logger object.
+         *
+         * @return the flag for the log level.
+         */
+        boolean warning(T log);
     }
 }

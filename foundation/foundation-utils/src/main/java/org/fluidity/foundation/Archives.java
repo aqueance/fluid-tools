@@ -29,11 +29,11 @@ import java.util.jar.JarInputStream;
 import java.util.jar.Manifest;
 
 /**
- * Convenience methods to traverse jar streams.
+ * Convenience methods to browse and read JAR archives.
  */
-public final class JarStreams extends Utilities {
+public final class Archives extends Utilities {
 
-    private JarStreams() { }
+    private Archives() { }
 
     /**
      * Allows searching for and reading nested JAR files as in a JAR file. This method, as compared to {@link #readEntries(URL, EntryReader)}, supplies the
@@ -225,7 +225,7 @@ public final class JarStreams extends Utilities {
     }
 
     /**
-     * Filters and reads entries in a JAR file. Used by {@link JarStreams#readEntries(URL, EntryReader)} and {@link JarStreams#readNestedEntries(URL,
+     * Filters and reads entries in a JAR file. Used by {@link Archives#readEntries(URL, EntryReader)} and {@link Archives#readNestedEntries(URL,
      * EntryReader)}.
      */
     public interface EntryReader {

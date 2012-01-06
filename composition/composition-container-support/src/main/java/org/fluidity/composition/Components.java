@@ -36,9 +36,11 @@ import org.fluidity.foundation.Strings;
 import org.fluidity.foundation.Utilities;
 
 /**
- * Implements the component interface discovery algorithm for classes added to an {@link OpenComponentContainer}. This algorithm produces a list of component
- * interfaces for a given class and for each such interface, a list of component group interfaces for any component group that the given class is a member of
- * through that component interface.
+ * Implements the <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Definitions">component interface</a> discovery algorithm for classes added to an
+ * {@link OpenComponentContainer}. This algorithm produces a list of component interfaces for a given class and for each such interface, a list of component
+ * group interfaces for any component group that the given class is a member of through that component interface.
+ * <p/>
+ * TODO: Describe the component interface discovery logic in the user guide.
  * <p/>
  * The rules for discovering the component interfaces are described by the following recursive algorithm:
  * <ol>
@@ -336,8 +338,9 @@ public final class Components extends Utilities {
     }
 
     /**
-     * List of component interfaces and corresponding component group interfaces for a component implementation. Instances are produced by {@link
-     * Components#inspect(Class, Class[])}.
+     * List of <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Definitions">component interfaces</a> and corresponding
+     * <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Definitions">component group interfaces</a> for a component implementation. Instances are
+     * produced by {@link Components#inspect(Class, Class[])}.
      */
     public static final class Interfaces {
 
@@ -409,8 +412,9 @@ public final class Components extends Utilities {
     }
 
     /**
-     * A component interface and the associated component group interfaces. A list of these objects is returned as part of the {@link Interfaces} by {@link
-     * Components#inspect(Class, Class[])}.
+     * A <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Definitions">component interface</a> and the associated
+     * <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Definitions">component group interfaces</a>. A list of these objects is returned as part of
+     * the {@link Interfaces} by {@link Components#inspect(Class, Class[])}.
      */
     public static final class Specification {
 

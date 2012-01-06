@@ -108,4 +108,19 @@ final class ReloadingConfigurationFactory implements CustomComponentFactory {
             return snapshot.get();
         }
     }
+
+    /**
+     * Configuration refresh period settings.
+     */
+    private static interface Settings {
+
+        /**
+         * Returns the period in milliseconds during which at most one log level check takes place per logger. May
+         * be 0 or negative, in which case no periodic log level check will take place.
+         *
+         * @return the period in milliseconds.
+         */
+        @Configuration.Property(key = ReloadingConfiguration.CONFIGURATION_REFRESH_PERIOD, undefined = "30000")
+        long period();
+    }
 }

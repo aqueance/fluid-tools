@@ -16,9 +16,13 @@
 
 package org.fluidity.composition;
 
+import org.fluidity.composition.spi.ComponentResolutionObserver;
+
 /**
- * This container is able to traverse static dependencies without instantiating components. An <code>ObservedComponentContainer</code> instance works together
- * with a {@link org.fluidity.composition.spi.ComponentResolutionObserver} object that it sends component resolution events to.
+ * A <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Dependency_Injection_Concept">dependency injection</a>
+ * <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Dependency_Injection_Containers">container</a> that offers traversal of static dependencies
+ * without instantiating components. An <code>ObservedComponentContainer</code> instance works together with a {@link ComponentResolutionObserver} object that
+ * it sends component resolution events to.
  *
  * @author Tibor Varga
  */

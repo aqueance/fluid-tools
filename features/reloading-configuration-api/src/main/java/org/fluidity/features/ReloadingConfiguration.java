@@ -16,11 +16,12 @@
 
 package org.fluidity.features;
 
-import org.fluidity.foundation.Configuration;
-
 /**
  * Configuration that is periodically updated. This is a wrapper around {@link org.fluidity.foundation.Configuration} that periodically refreshes the snapshot
- * of the settings object. If used with this variant of the configuration mechanism, the methods of the settings interface may not have any parameters.
+ * of the settings object. The methods of the settings interface, if used with this variant of the configuration mechanism, may not have any parameters.
+ * <p/>
+ * The granularity of the updates can be configured by implementing a {@link org.fluidity.foundation.spi.PropertyProvider} component that returns a valid
+ * number for the {@link #CONFIGURATION_REFRESH_PERIOD} key. The default period granularity is 30 seconds.
  *
  * @param <T> the settings interface.
  *
@@ -36,20 +37,4 @@ public interface ReloadingConfiguration<T> {
      * @return an an automatically refreshing snapshot of the settings.
      */
     Updates.Snapshot<T> snapshot();
-
-
-    /**
-     * Configuration refresh period settings.
-     */
-    interface Settings {
-
-        /**
-         * Returns the period in milliseconds during which at most one log level check takes place per logger. May
-         * be 0 or negative, in which case no periodic log level check will take place.
-         *
-         * @return the period in milliseconds.
-         */
-        @Configuration.Property(key = ReloadingConfiguration.CONFIGURATION_REFRESH_PERIOD, undefined = "30000")
-        long period();
-    }
 }

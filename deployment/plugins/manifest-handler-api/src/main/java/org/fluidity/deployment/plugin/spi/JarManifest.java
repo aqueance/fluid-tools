@@ -37,8 +37,8 @@ import org.apache.maven.project.MavenProject;
 public interface JarManifest {
 
     /**
-     * Tells if the last parameter of the {@link #processManifest(MavenProject, Attributes, List, Collection) processManifest()} method need compile time or
-     * run-time dependencies.
+     * Tells if the last parameter of the {@link #processManifest(MavenProject, Attributes, List, Collection) processManifest()} method need compile time
+     * (<code>true</code>) or run-time (<code>false</code>) dependencies.
      *
      * @return <code>true</code> if compile time dependencies are required, <code>false</code> if run-time dependencies are.
      */

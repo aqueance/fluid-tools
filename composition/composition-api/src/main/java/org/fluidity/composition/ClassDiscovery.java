@@ -17,25 +17,24 @@
 package org.fluidity.composition;
 
 /**
- * Partially implements the Service Provider discovery mechanism described in the <a href="http://download.oracle.com/javase/1.5.0/docs/guide/jar/jar.html#Service
- * Provider">JAR File Specification</a>.
+ * Partially implements the <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Service_Providers">service provider</a> discovery mechanism described
+ * in the <a href="http://download.oracle.com/javase/1.5.0/docs/guide/jar/jar.html#Service Provider">JAR File Specification</a>. The implementation is partial
+ * because this component does not instantiate the service provider classes, it only finds them.
  * <p/>
- * The implementation is partial because this component does not instantiate the service provider classes, it merely finds them.
- * <p/>
- * This is useful not so much for client components as for those providing core composition functionality such as component container bootstrap. Client
- * components normally need to use a {@link ComponentGroup} annotated array parameter instead.
+ * The goal of this component is to find and return the list of <em>classes</em> that implement a given interface or extend a given class. To find and
+ * <em>instantiate</em> those classes, use a dependency injected {@link ComponentGroup} annotated array parameter instead.
  *
  * @author Tibor Varga
  */
 public interface ClassDiscovery {
 
     /**
-     * Finds all classes visible to the given class loader that have been registered according to the standard service discovery specification.
+     * Finds all classes visible to the given class loader that have been registered according to the service provider specification.
      *
      * @param api         the interface or class all discovered classes should implement or extend.
      * @param classLoader the class loader to use to find the classes.
-     * @param strict      specifies whether to find classes visible by only the given class loader (<code>true</code>) or any of its parent class loaders
-     *                    (<code>false</code>).
+     * @param strict      specifies whether to find classes directly visible to the given class loader (<code>true</code>) or indirectly via any of its parent
+     *                    class loaders (<code>false</code>).
      *
      * @return a list of <code>Class</code> objects for the discovered classes.
      */

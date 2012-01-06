@@ -19,7 +19,7 @@ package org.fluidity.composition.spi;
 import org.fluidity.composition.ComponentContext;
 
 /**
- * Caches components by context. This is an internal interface used by the dependency injection container implementation.
+ * Caches components by <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Component_Context">context</a>.
  * <p/>
  * This cache is thread safe.
  *

@@ -17,9 +17,10 @@
 package org.fluidity.composition;
 
 /**
- * This is a dependency injection container that components can be added to using the container's registry. Except in {@link ContainerBoundary rare
- * circumstances}, you do not need to directly interact with a registry of the root container as the <code>org.fluidity.maven:maven-composition-plugin</code>
- * Maven plugin does that for you.
+ * A <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Dependency_Injection_Concept">dependency injection</a>
+ * <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Dependency_Injection_Containers">container</a> that components can be added to using the
+ * container's registry. Except in {@link ContainerBoundary rare circumstances}, you do not need to directly interact with a registry of the root container as
+ * the <code>org.fluidity.maven:maven-composition-plugin</code> Maven plugin does that for you.
  * <p/>
  * The registry offers several ways to map an implementation to an interface in the host container. Which one you need depends on your requirements. These
  * methods are mostly invoked from the {@link OpenComponentContainer.Bindings#bindComponents(OpenComponentContainer.Registry) bindComponents()}
@@ -53,8 +54,9 @@ public interface OpenComponentContainer extends ComponentContainer {
     Registry getRegistry();
 
     /**
-     * Component bindings. Implementations of this interface populate a dependency injection container when asked to. A component binding is a mapping from an
-     * interface or class to a class that implements the interface or extends the class, respectively, or to an instance of such a class.
+     * <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Composition">Component</a> bindings. Implementations of this interface populate a
+     * dependency injection container when asked to. A component binding is a mapping from an interface or class to a class that implements the interface or
+     * extends the class, respectively, or to an instance of such a class.
      */
     interface Bindings {
 
@@ -67,7 +69,9 @@ public interface OpenComponentContainer extends ComponentContainer {
     }
 
     /**
-     * Allows registration of components into a container.
+     * Allows registration of <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Composition">components</a> into a
+     * <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Dependency_Injection_Concept">dependency injection</a>
+     * <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Dependency_Injection_Containers">container</a>.
      * <p/>
      * This interface is mainly used by {@link org.fluidity.composition.spi.PackageBindings} objects that are invoked when the host application populates its
      * dependency injection containers.

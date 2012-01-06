@@ -29,8 +29,8 @@ import org.fluidity.composition.ComponentGroup;
 import org.fluidity.composition.ContainerBoundary;
 import org.fluidity.deployment.osgi.BundleBootstrap;
 import org.fluidity.deployment.plugin.spi.JarManifest;
+import org.fluidity.foundation.Archives;
 import org.fluidity.foundation.ClassLoaders;
-import org.fluidity.foundation.JarStreams;
 import org.fluidity.foundation.Methods;
 
 import org.apache.maven.artifact.Artifact;
@@ -186,7 +186,7 @@ public class BundleJarManifest implements JarManifest {
 
     private void addJarFile(final List<URL> urls, final ClassLoader parent, final Class<?> type) {
         final URL source = parent.getResource(ClassLoaders.classResourceName(type));
-        final URL jar = JarStreams.jarFile(source).getJarFileURL();
+        final URL jar = Archives.jarFile(source).getJarFileURL();
 
         if (jar != null) {
             urls.add(jar);

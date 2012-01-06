@@ -30,8 +30,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.fluidity.deployment.plugin.spi.ServerBootstrap;
+import org.fluidity.foundation.Archives;
 import org.fluidity.foundation.ClassLoaders;
-import org.fluidity.foundation.JarStreams;
 import org.fluidity.foundation.ServiceProviders;
 import org.fluidity.foundation.jarjar.Handler;
 
@@ -92,7 +92,7 @@ public final class WarBootstrapLoader {
                 }
             }
             final URL url = ClassLoaders.findClassResource(WarBootstrapLoader.class);
-            final JarURLConnection jar = JarStreams.jarFile(url);
+            final JarURLConnection jar = Archives.jarFile(url);
 
             if (jar != null) {
                 final URL warURL = jar.getJarFileURL();
@@ -100,7 +100,7 @@ public final class WarBootstrapLoader {
 
                 classpath.add(warURL);
 
-                JarStreams.readEntries(warURL, new JarStreams.EntryReader() {
+                Archives.readEntries(warURL, new Archives.EntryReader() {
                     private final String bootEntry = "WEB-INF/boot/";
 
                     public boolean matches(final JarEntry entry) throws IOException {
