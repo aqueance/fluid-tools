@@ -16,8 +16,6 @@
 
 package org.fluidity.foundation.tests;
 
-import java.util.Properties;
-
 import org.fluidity.composition.Component;
 import org.fluidity.features.ReloadingConfiguration;
 import org.fluidity.features.ReloadingLog;
@@ -36,18 +34,10 @@ public class EchoPropertyProviderImpl implements PropertyProvider {
             ReloadingConfiguration.CONFIGURATION_REFRESH_PERIOD
     };
 
-    private final Properties properties = new Properties();
-
-    public EchoPropertyProviderImpl() {
-        for (final String name : known) {
-            properties.setProperty(name, "0");
-        }
-    }
-
     public Object property(final String key) {
         for (final String name : known) {
-            if (key.endsWith(name)) {
-                return properties.getProperty(key);
+            if (key.equals(name) || key.endsWith(".".concat(name))) {
+                return "0";
             }
         }
 
