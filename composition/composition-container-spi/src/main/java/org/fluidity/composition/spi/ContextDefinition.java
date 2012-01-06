@@ -27,15 +27,13 @@ import org.fluidity.composition.ComponentContext;
 /**
  * Maintains context state during dependency resolution. This is an internal interface to be used by dependency injection container implementations.
  * <p/>
- * TODO: use this concept of defined / active context in the user guide
- * <p/>
- * The context state consists of two sets of annotations: defined set and active set.
+ * For any context aware component, the context state consists of two sets of annotations: defined set and active set.
  * <p/>
  * The defined set contains all the annotations that have been defined along
  * an instantiation path and is computed as we move downstream in the path by adding new context annotations to it.
  * <p/>
- * The active set is computed as we fly backward on the instantiation path by adding context annotations from the defined set that are accepted by components
- * on the path.
+ * The active set is computed as we go backward on the instantiation path by adding context annotations from the defined set that are accepted by components
+ * on the path and removing them as we pass their definition.
  * <p/>
  * The active set is then used as a cache key for stateless (i.e., cacheable) components regardless of whether they themselves are context aware or not.
  * <p/>

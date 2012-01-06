@@ -27,32 +27,26 @@ import org.fluidity.foundation.Strings;
 
 /**
  * The external API of a fully populated <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Dependency_Injection_Concept">dependency injection</a>
- * <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Dependency_Injection_Containers">container</a>.
+ * <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Dependency_Injection_Containers">container</a>. See <a href=""></a> for a discussion on
+ * the automatic container population.
  * <p/>
- * TODO: copy the next few paragraphs to the user guide
+ * Containers in an application may form a hierarchy that matches the class loaders in the application. Containers in a hierarchy co-operate in such a way that
+ * if a component is not found in a child container, a look-up is performed in its parent. The act of looking up a dependency by its referenced type is called
+ * <em>dependency resolution</em>. Telling the container what class to resolve a component interface to is called <em>component binding</em> where a component
+ * class is bound to the component interface. The act of a container using its parent to resolve missing dependencies is called <em>defaulting to</em> the
+ * parent container.
  * <p/>
- * An application based on Fluid Tools has a root container, which is the container associated with the highest level class loader that can load the necessary
- * bootstrap classes. You configure the contents of a container, root or its descendants, by configuring the class path of the various class loaders in your
- * application. How that is done is beyond the scope of this introduction.
+ * In case of a child container bound to a class loader or one returned by the {@link #makeChildContainer()} method, dependencies of a component resolved in a
+ * parent container will be resolved in that parent container or its ancestors, never in the original child container. In a child container returned by the
+ * {@link #makeDomainContainer()} method, however, transitive dependencies will also be resolved from the original child container and its ancestry. The latter
+ * case allows segregating the application into dependency resolution domains as long as those domains do not overlap, meaning application code reaches out of
+ * one domain and into another.
  * <p/>
- * Any class loader that loads the class of a bootstrap object, i.e., one that calls {@link ContainerBoundary}, will have its own container that will be either
- * the root container or a direct or indirect child thereof. Thus your application may have a hierarchy of containers that matches the application's class
- * loader hierarchy.
+ * Dependency resolution is performed based on the referenced type of the dependency. If there was no explicit binding for the given interface then no
+ * component will be injected for that reference.
  * <p/>
- * The root container is populated automatically by some bootstrap object based on metadata produced by the
- * <code>org.fluidity.maven:maven-composition-plugin</code> Maven plugin. Bootstrap classes are / must be created for the various application containers that
- * are / may be used to host your application, such as the JRE application launcher, a web application or an OSGi bundle.
- * <p/>
- * Containers in a hierarchy co-operate in such a way that if a component is not found in a child container, a look-up is performed in its parent. The act of
- * looking up a dependency by its referenced type is called <em>dependency resolution</em>. Telling the container what class to resolve a component interface to
- * is called <em>component binding</em> where a component class is bound to the component interface. The act of a container using its parent to resolve missing
- * dependencies is called <em>defaulting to</em> the parent container.
- * <p/>
- * Dependency resolution is performed based on the referenced type of the dependency. If there was no explicit binding for the given interface then no component
- * will be injected for that reference.
- * <p/>
- * Components are instantiated by the container on demand and their dependencies, defined by constructor parameters and {@link Inject @Inject} annotated fields,
- * are resolved in this container or its parent. No setter injection or other means of dependency injection are supported.
+ * Components are instantiated by the container on demand and their dependencies, defined by constructor parameters and {@link Inject @Inject} annotated
+ * fields, are resolved in this container or its parent. No setter injection or other means of dependency injection are supported.
  * <p/>
  * Components instantiated outside a container can still be field injected by the container using its {@link ComponentContainer#initialize(Object)} method.
  * Component instantiation may also be invoked for a component class not in the container using the {@link ComponentContainer#instantiate(Class)} method.

@@ -59,6 +59,7 @@ final class UpdatesImpl implements Updates {
             };
         } else {
             return new Snapshot<T>() {
+
                 private final AtomicLong loaded = new AtomicLong(System.currentTimeMillis());
                 private final AtomicReference<T> snapshot = new AtomicReference<T>(loader.get());
                 private final AtomicBoolean loading = new AtomicBoolean(false);

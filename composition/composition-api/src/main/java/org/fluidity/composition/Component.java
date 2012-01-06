@@ -114,8 +114,6 @@ public @interface Component {
          * Tells if the component instance depends on the type parameters of the component reference. Specifying <code>@Component.Context(typed = true)</code>
          * results in expanding the annotated component's context with {@link Component.Reference}. This parameter defaults to <code>false</code>, which means
          * that type parameters of dependency references to the annotated components will not form part of its component context.
-         * <p/>
-         * TODO: add this to the user guide.
          *
          * @return <code>true</code> if the component instance depends on the type parameters of the component reference, <code>false</code> otherwise.
          */
@@ -125,8 +123,6 @@ public @interface Component {
          * Specifies what context annotations should be ignored up to this point in the instantiation path.
          * <p/>
          * TODO: add a unit test for this parameter
-         * <p/>
-         * TODO: add this to the user guide
          *
          * @return an array of annotation classes to ignore.
          */
