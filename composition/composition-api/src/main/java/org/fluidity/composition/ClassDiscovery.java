@@ -21,8 +21,21 @@ package org.fluidity.composition;
  * in the <a href="http://download.oracle.com/javase/1.5.0/docs/guide/jar/jar.html#Service Provider">JAR File Specification</a>. The implementation is partial
  * because this component does not instantiate the service provider classes, it only finds them.
  * <p/>
- * The goal of this component is to find and return the list of <em>classes</em> that implement a given interface or extend a given class. To find and
- * <em>instantiate</em> those classes, use a dependency injected {@link ComponentGroup @ComponentGroup} annotated array parameter instead.
+ * The goal of this component is to find and return the list of <em>classes</em> that implement a given interface or extend a given class. To find <em>and
+ * instantiate</em> those classes, use a dependency injected {@link ComponentGroup @ComponentGroup} annotated array parameter instead.
+ * <h3>Usage</h3>
+ * <pre>
+ * &#64;{@linkplain Component}
+ * final class MyComponent {
+ *
+ *   public MyComponent(final <span class="hl1">ClassDiscovery</span> discovery) {
+ *     final ClassLoader loader = getClass().getClassLoader();
+ *     final Class&lt;<span class="hl2">MyProvider</span>>[] classes = discovery.<span class="hl1">findComponentClasses(</span><span class="hl2">MyProvider</span>.class, loader, false<span class="hl1">)</span>;
+ *     assert classes != null : MyProvider.class;
+ *     ...
+ *   }
+ * }
+ * </pre>
  *
  * @author Tibor Varga
  */

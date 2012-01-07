@@ -125,6 +125,8 @@ public @interface Component {
          * that type parameters of dependency references to the annotated components will not form part of its component context.
          * <p/>
          * This parameter is used only at class level.
+         * <h3>Usage</h3>
+         * See at {@link Component.Reference}.
          *
          * @return <code>true</code> if the component instance depends on the type parameters of the component reference, <code>false</code> otherwise.
          */
@@ -143,6 +145,35 @@ public @interface Component {
      * <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Component_Context">Context annotation</a> that captures the parameterized type of a
      * component reference. This is not an actual annotation from the Java syntax point of view but simply a run-time representation of an annotation to convey
      * type information. A Java annotation would not allow <code>Type</code> as the type of a parameter.
+     * <h3>Usage</h3>
+     * <pre>
+     * &#64;{@linkplain Component}
+     * &#64;{@linkplain Component.Context}(<span class="hl1">typed = true</span>)
+     * final class <span class="hl2">MyComponent</span>&lt;T> {
+     *
+     *   private final Class&lt;?> type;
+     *
+     *   public final MyComponent(final {@linkplain ComponentContext} context) {
+     *     final <span class="hl1">Component.Reference</span> reference = context.annotation(<span class="hl1">Component.Reference</span>.class, null);
+     *     assert reference != null : MyComponent.class;
+     *     this.type = reference.parameter(0);
+     *     ...
+     *   }
+     *
+     *   public Class&lt;?> <span class="hl2">type()</span> {
+     *     return type;
+     *   }
+     * }
+     *
+     * &#64;{@linkplain Component}
+     * final class MyReferrer {
+     *
+     *   public MyReferrer(final <span class="hl2">MyComponent</span><span class="hl3">&lt;MyType></span> dependency) {
+     *     assert dependency.<span class="hl2">type()</span> == <span class="hl3">MyType</span>.class : MyComponent.class;
+     *     ...
+     *   }
+     * }
+     * </pre>
      *
      * @author Tibor Varga
      */

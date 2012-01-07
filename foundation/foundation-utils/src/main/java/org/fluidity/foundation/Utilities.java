@@ -20,7 +20,7 @@ package org.fluidity.foundation;
  * Abstract superclass that prevents instantiation of its subclasses.
  * <h3>Usage</h3>
  * <pre>
- * public final MyUtilities extends <b>Utilities</b> {
+ * public final MyUtilities extends <span class="hl1">Utilities</span> {
  *
  *     private MyUtilities() { }
  *

@@ -22,19 +22,19 @@ package org.fluidity.foundation;
  * <pre>
  * final class LightObject {
  *
- *   private final <b>Deferred.Reference</b>&lt;HeavyObject> reference = <b>Deferred.reference</b>(new <b>Deferred.Factory</b>&lt;HeavyObject>() {
- *     public HeavyObject <b>create()</b> {
+ *   private final <span class="hl1">Deferred.Reference</span><span class="hl2">&lt;HeavyObject></span> reference = <span class="hl1">Deferred.reference</span>(new <span class="hl1">Deferred.Factory</span><span class="hl2">&lt;HeavyObject></span>() {
+ *     public <span class="hl2">HeavyObject</span> <span class="hl1">create()</span> {
  *       return new HeavyObject(...);
  *     }
  *   });
  *
- *    ...
+ *   ...
  *
- *    private void someMethod() {
- *        final HeavyObject object = reference.<b>get()</b>;
- *        assert object != null;
- *        assert object == reference.<b>get()</b>;
- *    }
+ *   private void someMethod() {
+ *     final <span class="hl2">HeavyObject</span> object = reference.<span class="hl1">get()</span>;
+ *     assert object != null : HeavyObject.class;
+ *     assert object == reference.<span class="hl1">get()</span>;
+ *   }
  * }
  * </pre>
  *

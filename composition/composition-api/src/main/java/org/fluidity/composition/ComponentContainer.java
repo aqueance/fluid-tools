@@ -61,6 +61,50 @@ import org.fluidity.foundation.Strings;
  * <p/>
  * Containers can also be used to peek into the static dependency graph of your application. This functionality is provided by the {@link
  * ObservedComponentContainer} object returned by the {@link #observed(ComponentResolutionObserver)} method.
+ * <h3>Usage</h3>
+ * All examples below assume the following component boilerplate:
+ * <pre>
+ * &#64;{@linkplain Component}
+ * final class MyComponent {
+ *
+ *   private final <span class="hl1">ComponentContainer</span> container;
+ *
+ *   public MyComponent(final <span class="hl1">ComponentContainer</span> container) {
+ *     this.container = container;
+ *     ...
+ *   }
+ *
+ *   private void exampleMethod() {
+ *     ... example code below ...
+ *   }
+ * }
+ * </pre>
+ * <h4>Observing Dependency Resolution</h4>
+ * TODO
+ * <h4>Local Instantiation</h4>
+ * Use temporary containers to quickly instantiate some helper class without polluting your component with the dependencies of the helper.
+ * <pre>
+ *     &#47;*
+ *      * If the helper <b>depends on something specific to this particular use</b>, then
+ *      *  - acquire a child container,
+ *      *  - add the necessary bindings to it,
+ *      *  - and get your component instantiated:
+ *      *&#47;
+ *     final {@link OpenComponentContainer} child = container.<span class="hl1">makeChildContainer()</span>;
+ *     child.getRegistry().bindInstance("local context", String.class);
+ *     final <span class="hl2">MyHelper1</span> helper1 = child.<span class="hl1">getComponent(</span><span class="hl2">MyHelper1</span>.class<span class="hl1">)</span>;
+ *
+ *     &#47;*
+ *      * If the helper needs <b>no dependencies specific to this particular use</b>, then use a shortcut:
+ *      *&#47;
+ *     final <span class="hl2">MyHelper2</span> helper2 = container.<span class="hl1">instantiate(</span><span class="hl2">MyHelper2</span>.class<span class="hl1">)</span>;
+ * </pre>
+ * <h4>Domain Containers</h4>
+ * TODO
+ * <h4>Container Boundary</h4>
+ * TODO
+ * <h4>Method Dependencies</h4>
+ * TODO
  *
  * @author Tibor Varga
  */
@@ -174,6 +218,8 @@ public interface ComponentContainer {
      * @throws ResolutionException when dependency resolution fails
      */
     <T> T instantiate(Class<T> componentClass) throws ResolutionException;
+
+    // TODO: add instantiate(class, bindings)
 
     /**
      * Top level exception for errors related to the dependency injection container.

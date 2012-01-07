@@ -35,25 +35,25 @@ import java.lang.annotation.Target;
  * interface or class marked with this annotation. In such a case, however, this annotation will only be recognized if inherited via a component interface,
  * i.e., one by which the component can be depended upon. The algorithm for computing the set of component interfaces is described at {@link
  * OpenComponentContainer.Registry#bindComponent(Class, Class[])}.
- * <p/>
- * Example of use:
+ * <h3>Usage</h3>
  * <pre>
- * &#64;ComponentGroup
- * public interface ImageFilter { ... }
+ * <span class="hl1">&#64;ComponentGroup</span>
+ * public interface <span class="hl2">ImageFilter</span> { ... }
  *
  * &#64;Component
  * final class ImageProcessor {
  *
- *   public ImageProcessor(final &#64;ComponentGroup ImageFilter[] filters) {
- *      ... do something with the list of ImageFilter implementations...
+ *   public ImageProcessor(final <span class="hl1">&#64;ComponentGroup</span> <span class="hl2">ImageFilter</span>[] filters) {
+ *     assert filters != null : ImageFilter.class;
+ *     ...
  *   }
  * }
  *
- * final class ImageFilter1 implements ImageFilter { ... }
+ * final class ImageFilter1 implements <span class="hl2">ImageFilter</span> { ... }
  *
- * final class ImageFilter2 implements ImageFilter { ... }
+ * final class ImageFilter2 implements <span class="hl2">ImageFilter</span> { ... }
  *
- * final class ImageFilter3 implements ImageFilter { ... }
+ * final class ImageFilter3 implements <span class="hl2">ImageFilter</span> { ... }
  * </pre>
  *
  * @author Tibor Varga

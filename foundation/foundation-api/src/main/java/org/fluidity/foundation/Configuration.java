@@ -38,26 +38,27 @@ import org.fluidity.foundation.spi.PropertyProvider;
  * For instance:
  * <pre>
  * // The settings interface
- * interface MySettings {
+ * interface <span class="hl2">MySettings</span> {
  *
- *   &#64;Configuration.Property(key = "property.1", undefined = "default value 1")
- *   String property1();
+ *   <span class="hl1">&#64;{@linkplain Property}(key = </span>"property.<span class="hl3">%d</span>"<span class="hl1">, undefined = </span>"default value <span class="hl3">%d</span>"<span class="hl1">)</span>
+ *   String <span class="hl2">property(</span><span class="hl3">int item</span><span class="hl2">)</span>;
  *
- *   // When the method is invoked, the "%d" in the <code>key</code> parameter of the annotation is
- *   // substituted with the value of the <code>item</code> parameter of the method.
- *   &#64;Configuration.Property(key = "property.%d.value", undefined = "default value %d")
- *   String property2(int item);
+ *   ...
  * }
  *
  * // The configured component
- * &#64;Component
- * final class ConfiguredComponent {
+ * &#64;{@linkplain org.fluidity.composition.Component}
+ * final class MyComponent {
  *
- *     public ConfiguredComponent(final Configuration&lt;MySettings> configuration) {
- *         ...
- *         final MySettings settings = configuration.settings();
- *         ...
- *     }
+ *   public MyComponent(final <span class="hl1">Configuration</span><span class="hl2">&lt;MySettings></span> configuration) {
+ *     ...
+ *     final <span class="hl2">MySettings</span> settings = configuration<span class="hl1">.settings()</span>;
+ *     ...
+ *     final String property123 = settings.<span class="hl2">property(</span><span class="hl3">123</span><span class="hl2">)</span>;
+ *     ...
+ *   }
+ *
+ *   ...
  * }
  * </pre>
  * <h4>Query Methods</h4>
@@ -83,7 +84,7 @@ import org.fluidity.foundation.spi.PropertyProvider;
  * <li><code>property</code></li>
  * </ul>
  * <p/>
- * Query methods may have parameters that provide values to placeholders in the property key, as shown in the method definition for <code>property2</code>
+ * Query methods may have parameters that provide values to placeholders in the property key, as shown in the method definition for <code>property</code>
  * above.
  * <p/>
  * <h4>Property Values</h4>
@@ -136,6 +137,7 @@ import org.fluidity.foundation.spi.PropertyProvider;
  *
  * @author Tibor Varga
  */
+@SuppressWarnings("JavadocReference")
 public interface Configuration<T> {
 
     /**

@@ -62,7 +62,6 @@ final class ClassDiscoveryImpl implements ClassDiscovery {
         return findComponentClasses(annotation == null ? defaultType : annotation.type(), api, classLoader, strict);
     }
 
-    @SuppressWarnings({ "unchecked", "SuspiciousToArrayCall" })
     private <T> Class<T>[] findComponentClasses(final String type, final Class<T> api, final ClassLoader cl, final boolean strict) {
         final ClassLoader classLoader = cl == null ? ClassLoaders.findClassLoader(api) : cl;
         log.debug("Loading '%s' type service provider files for %s using class loader %s", type, api, classLoader);
@@ -96,6 +95,7 @@ final class ClassDiscoveryImpl implements ClassDiscovery {
 
                                     if (!strict || rawClass.getClassLoader() == classLoader) {
                                         if (api.isAssignableFrom(rawClass)) {
+                                            @SuppressWarnings("unchecked")
                                             final Class<T> componentClass = (Class<T>) rawClass;
 
                                             if (Modifier.isAbstract(componentClass.getModifiers())) {
@@ -136,6 +136,11 @@ final class ClassDiscoveryImpl implements ClassDiscovery {
             }
         });
 
+        return asArray(componentList);
+    }
+
+    @SuppressWarnings({ "unchecked", "SuspiciousToArrayCall" })
+    private <T> Class<T>[] asArray(final Collection<Class<T>> componentList) {
         return (Class<T>[]) componentList.toArray(new Class[componentList.size()]);
     }
 }
