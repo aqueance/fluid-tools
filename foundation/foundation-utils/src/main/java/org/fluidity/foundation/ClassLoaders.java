@@ -26,14 +26,13 @@ import java.util.UUID;
 import org.apache.xbean.classloader.JarFileClassLoader;
 
 /**
- * Utility methods related to {@link ClassLoader class loaders}.
+ * Utility methods related to {@linkplain ClassLoader class loaders}.
  *
  * @author Tibor Varga
  */
 public final class ClassLoaders extends Utilities {
 
-    private ClassLoaders() {
-    }
+    private ClassLoaders() { }
 
     /**
      * The <code>.class</code> suffix of Java class files.

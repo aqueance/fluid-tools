@@ -32,7 +32,7 @@ import org.fluidity.foundation.Log;
  * <code>ServletContextListeners</code> or a mechanism that finds this class and forwards listener method invocations to it. Fluid Tools has such mechanism in
  * the form of a <code>ServletContextListeners</code>, <code>AggregatingServletContextListener</code>, which uses service provider discovery to find any
  * implementation of the <code>ServletContextListeners</code> interface, including this class, as long the implementation is marked by the {@link
- * ComponentGroup} annotation.
+ * ComponentGroup @ComponentGroup} annotation.
  *
  * @author Tibor Varga
  */

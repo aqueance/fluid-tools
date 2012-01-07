@@ -33,15 +33,15 @@ import java.util.jar.JarInputStream;
 import org.fluidity.foundation.ClassLoaders;
 
 /**
- * {@link URLStreamHandler Stream protocol handler} to work with resources inside JAR archives embedded in other JAR archives, ad infinitum.
+ * {@linkplain URLStreamHandler Stream protocol handler} to work with resources inside JAR archives embedded in other JAR archives, ad infinitum.
  * <p/>
  * When loaded, it adds its enclosing package to the protocol handler package list to make itself known. This stream protocol handler makes it possible for an
  * ordinary {@link java.net.URLClassLoader} to work with JAR archives embedded in other JAR archives, enabling packaged Java applications without loss of
  * functionality such as signed JAR files, etc.
  * <p/>
- * To use this this stream handler, all you need to do is {@link #formatURL(URL, String...) create} URLs that map to this stream protocol handler. For example,
- * if you have a JAR archive named <code>my-archive.jar</code> that embeds another JAR archive, <code>my-dependency.jar</code>, the following will create an
- * URL that can then be fed to an URL class loader:
+ * To use this this stream handler, all you need to do is {@linkplain #formatURL(URL, String...) create} URLs that map to this stream protocol handler. For
+ * example, if you have a JAR archive named <code>my-archive.jar</code> that embeds another JAR archive, <code>my-dependency.jar</code>, the following will
+ * create an URL that can then be fed to an URL class loader:
  * <pre>
  * final URL embedded = Handler.formatURL(new File("my-archive.jar").toURI().toURL(), "my-dependency.jar");
  * </pre>

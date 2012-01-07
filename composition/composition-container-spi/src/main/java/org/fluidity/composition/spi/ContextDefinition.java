@@ -38,15 +38,16 @@ import org.fluidity.composition.ComponentContext;
  * The active set is then used as a cache key for stateless (i.e., cacheable) components regardless of whether they themselves are context aware or not.
  * <p/>
  * The above is implemented by<ol>
- * <li>{@link ContainerServices#emptyContext() creating an empty context} definition object at the head of some dependency path</li>
- * <li>{@link #expand(java.lang.annotation.Annotation[], Type) expanding} that context with the context annotations at each node of that path as we move
+ * <li>{@linkplain ContainerServices#emptyContext() creating an empty context} definition object at the head of some dependency path</li>
+ * <li>{@linkplain #expand(java.lang.annotation.Annotation[], Type) expanding} that context with the context annotations at each node of that path as we move
  * downstream</li>
- * <li>passing downstream a {@link #copy() copy} of the current definition for each dependency of the current component</li>
- * <li>{@link #accept(Class) narrowing} another copy of the definition down to the contexts accepted by the current context that can then be used to<ul>
- * <li>{@link #create() create} the actual context to be injected to the current component upon instantiation</li>
+ * <li>passing downstream a {@linkplain #copy() copy} of the current definition for each dependency of the current component</li>
+ * <li>{@linkplain #accept(Class) narrowing} another copy of the definition down to the contexts accepted by the current context that can then be used to<ul>
+ * <li>{@linkplain #create() create} the actual context to be injected to the current component upon instantiation</li>
  * <li>as a cache key to map the instantiated stateless component to</li>
  * </ul></li>
- * <li>{@link #collect(Collection) collecting} the copies of the definition carrying the active set for the resolved dependencies of the current component</li>
+ * <li>{@linkplain #collect(Collection) collecting} the copies of the definition carrying the active set for the resolved dependencies of the current
+ * component</li>
  * <li>passing the resulting definition upstream.</li>
  * </ol>
  * <p/>

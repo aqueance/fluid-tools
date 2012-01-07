@@ -85,8 +85,8 @@ final class UpdatesImpl implements Updates {
     private static interface Settings {
 
         /**
-         * The minimum number in milliseconds between subsequent calls to {@link org.fluidity.features.Updates.Snapshot#get()} of a loader passed to {@link org.fluidity.features.Updates#register(long,
-         * org.fluidity.features.Updates.Snapshot)}.
+         * The minimum number in milliseconds between subsequent calls to {@link org.fluidity.features.Updates.Snapshot#get()} of a loader passed to
+         * {@link org.fluidity.features.Updates#register(long, org.fluidity.features.Updates.Snapshot)}.
          *
          * @return a number greater than 0.
          */

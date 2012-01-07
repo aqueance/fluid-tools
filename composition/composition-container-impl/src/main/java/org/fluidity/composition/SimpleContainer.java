@@ -127,7 +127,7 @@ interface SimpleContainer extends DependencyGraph {
     SimpleContainer linkComponent(Components.Interfaces interfaces) throws OpenComponentContainer.BindingException;
 
     /**
-     * Injects the {@link Inject} annotated fields of the given component instance.
+     * Injects the {@link Inject @Inject} annotated fields of the given component instance.
      *
      * @param component the component instance.
      * @param context   the base context to resolve the component's dependencies in.

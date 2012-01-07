@@ -45,21 +45,22 @@ import org.fluidity.foundation.Utilities;
  * The rules for discovering the component interfaces are described by the following recursive algorithm:
  * <ol>
  * <li>If the class has no {@link Component @Component} annotation, the algorithm returns the <u>class itself</u>, unless the class implements {@link
- * org.fluidity.composition.spi.ComponentFactory}, in which case the algorithm terminates with an {@link OpenComponentContainer.BindingException error}.</li>
+ * org.fluidity.composition.spi.ComponentFactory}, in which case the algorithm terminates with an {@linkplain
+ * OpenComponentContainer.BindingException error}.</li>
  * <li>If the class is annotated with <code>@Component</code> and the <code>@Component(api = ...)</code> parameter is given with a non-empty array, the
  * algorithm ignores the annotated class and repeats for each class specified <code>@Component(api = {...})</code>. However, if any of these classes are
  * themselves <code>@Component</code> annotated classes with no <code>@Component(automatic = false)</code>, or if the current class does not extend or
- * implement either all of the listed classes and interfaces or <code>ComponentFactory</code>, the algorithm terminates with an
- * {@link OpenComponentContainer.BindingException error}.</li>
+ * implement either all of the listed classes and interfaces or <code>ComponentFactory</code>, the algorithm terminates with an {@linkplain
+ * OpenComponentContainer.BindingException error}.</li>
  * <li>If the super class is annotated with <code>@Component</code> but with no <code>@Component(automatic = false)</code>, the algorithm terminates with an
- * {@link OpenComponentContainer.BindingException error}.</li>
+ * {@linkplain OpenComponentContainer.BindingException error}.</li>
  * <li>If the class implements no interfaces directly and its super class is <code>Object</code> then the algorithm returns the <u>annotated class</u>.</li>
  * <li>If the class implements no interfaces directly and its super class is not <code>Object</code> then this algorithm repeats for the super class with the
  * difference that the algorithm returns this class rather than the super class.</li>
  * <li>If the class directly implements one or more interfaces then the algorithm returns <u>those interfaces</u>.</li>
  * </ol>
  * <p/>
- * Once the above algorithm has completed, the following takes place:
+ * Once the above algorithm has completed, the followings take place:
  * <ul>
  * <li>For each class returned, the list of group interfaces is calculated using the algorithm below.</li>
  * <li>Any component interface that is also a component group interface is removed from the list of component interfaces.</li>
@@ -70,7 +71,7 @@ import org.fluidity.foundation.Utilities;
  * <ol>
  * <li>If the class is annotated with {@link ComponentGroup @ComponentGroup} with a non-empty <code>@ComponentGroup(api = ...)</code> parameter, the
  * algorithm returns <u>the classes specified</u> therein. However, if the class does not extend or implement either all of those classes and interfaces or
- * <code>ComponentFactory</code>, the algorithm terminates with an {@link OpenComponentContainer.BindingException error}.</li>
+ * <code>ComponentFactory</code>, the algorithm terminates with an {@linkplain OpenComponentContainer.BindingException error}.</li>
  * <li>If the class is annotated with <code>@ComponentGroup</code> with no <code>@ComponentGroup(api = ...)</code> parameter, then
  * <ol>
  * <li>if the class is an interface, the algorithm returns <u>the annotated class</u>.</li>

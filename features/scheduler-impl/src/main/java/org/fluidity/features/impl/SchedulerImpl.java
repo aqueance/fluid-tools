@@ -27,19 +27,16 @@ import org.fluidity.foundation.Deferred;
 /**
  * @author Tibor Varga
  */
-@Component(automatic = false)
+@Component(automatic = false, primary = false)
 final class SchedulerImpl implements Scheduler {
 
     private final AtomicBoolean stopped = new AtomicBoolean();
-    private final Deferred.Reference<Timer> timer;
 
-    public SchedulerImpl() {
-        this.timer = Deferred.reference(new Deferred.Factory<Timer>() {
-            public Timer create() {
-                return new Timer(Scheduler.class.getName(), true);
-            }
-        });
-    }
+    private final Deferred.Reference<Timer> timer = Deferred.reference(new Deferred.Factory<Timer>() {
+        public Timer create() {
+            return new Timer(Scheduler.class.getName(), true);
+        }
+    });
 
     public synchronized void stop() {
         if (stopped.compareAndSet(false, true) && timer.resolved()) {

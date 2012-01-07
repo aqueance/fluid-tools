@@ -22,8 +22,8 @@ import java.lang.reflect.Type;
 import org.fluidity.composition.ComponentContainer;
 
 /**
- * Capable of resolving component references. A dependency injection container implements this interface for a {@link
- * DependencyInjector DependencyInjector} to be able to use the implementation.
+ * Capable of resolving component references. A dependency injection container implements this interface for a {@link DependencyInjector} to be able to use the
+ * implementation.
  */
 public interface DependencyResolver extends DependencyGraph {
 

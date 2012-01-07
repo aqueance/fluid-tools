@@ -21,9 +21,10 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * A dependency path. Objects implementing this interface are created and provided to {@link ComponentResolutionObserver component resolution observers} and
- * to {@link org.fluidity.composition.ComponentContainer.InstantiationException instantiation exception} handlers. A dependency path is a list of components
- * that depend on one another, each on the next in the path, up to the {@link #head() head} of the path, which represents the "current" component.
+ * A dependency path. Objects implementing this interface are created and provided to {@linkplain ComponentResolutionObserver component resolution observers}
+ * and to {@linkplain org.fluidity.composition.ComponentContainer.InstantiationException instantiation exception} handlers. A dependency path is a list of
+ * components that depend on one another, each on the next in the path, up to the {@linkplain #head() head} of the path, which represents the "current"
+ * component.
  *
  * @author Tibor Varga
  */

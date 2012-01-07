@@ -50,9 +50,7 @@ public interface DependencyInjector {
 
     /**
      * Injects all {@link org.fluidity.composition.Inject @Inject} annotated fields of the received component. Useful for components instantiated by means
-     * other
-     * than calling {@link
-     * #constructor(DependencyGraph.Traversal, DependencyResolver, ContextNode, ContextDefinition, Constructor)}.
+     * other than calling {@link #constructor(DependencyGraph.Traversal, DependencyResolver, ContextNode, ContextDefinition, Constructor) constructor(...)}.
      *
      * @param instance  the object to inject the fields of.
      * @param traversal the current graph traversal.
@@ -122,8 +120,8 @@ public interface DependencyInjector {
      * made on public constructors only. If that yields no or multiple constructors, a {@link org.fluidity.composition.ComponentContainer.ResolutionException}
      * is thrown.
      * <p/>
-     * For synthetic constructors see <a href="http://java.sun.com/docs/books/jls/third_edition/html/binaryComp.html#13.1">The Form of a Binary</a> and search
-     * for the term <em>synthetic</em>.
+     * For synthetic constructors see the <a href="http://java.sun.com/docs/books/jls/third_edition/html/binaryComp.html#13.1">Java Language Specification: The
+     * Form of a Binary</a> and search for the term <em>synthetic</em>.
      *
      * @param componentClass the component class to find the injectable constructor of.
      *

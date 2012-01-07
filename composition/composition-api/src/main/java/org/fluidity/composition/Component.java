@@ -111,7 +111,7 @@ public @interface Component {
     @interface Context {
 
         /**
-         * Specifies the context annotations that configure the class annotated with {@link Context}.
+         * Specifies the context annotations that configure the annotated class.
          * <p/>
          * This parameter is used only at class level.
          *

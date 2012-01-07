@@ -17,7 +17,26 @@
 package org.fluidity.foundation;
 
 /**
- * Lazy loading utilities.
+ * Double-checked locking with <code>volatile</code> acquire/release semantics.
+ * <h3>Usage</h3>
+ * <pre>
+ * final class LightObject {
+ *
+ *   private final <b>Deferred.Reference</b>&lt;HeavyObject> reference = <b>Deferred.reference</b>(new <b>Deferred.Factory</b>&lt;HeavyObject>() {
+ *     public HeavyObject <b>create()</b> {
+ *       return new HeavyObject(...);
+ *     }
+ *   });
+ *
+ *    ...
+ *
+ *    private void someMethod() {
+ *        final HeavyObject object = reference.<b>get()</b>;
+ *        assert object != null;
+ *        assert object == reference.<b>get()</b>;
+ *    }
+ * }
+ * </pre>
  *
  * @author Tibor Varga
  */
@@ -26,15 +45,16 @@ public final class Deferred extends Utilities {
     private Deferred() { }
 
     /**
-     * Returns a lazy loading reference to some object. The object is returned by the given factory's {@link Factory#create()} method, which will be invoked
-     * the first time the returned object's {@link Reference#get()} method is invoked, and then its return value will be cached for use in subsequent
-     * invocations.
+     * Returns a lazy loading reference to some object. The object is instantiated by the given factory's {@link Factory#create() create()} method, which will
+     * be invoked the first time the returned object's {@link Reference#get() get()} method is invoked, and then its return value will be cached for use in
+     * subsequent invocations.
      * <p/>
      * This reference implements the double-check locking logic with volatile acquire/release semantics to lazily create the referenced object. If the factory
      * returns <code>null</code> instead of an object then the <code>null</code> value will be cached and returned in subsequent queries by the returned
      * reference.
      * <p/>
-     * Note: the returned object will maintain a strong reference to the provided factory until the first time its {@link Reference#get()} method is invoked.
+     * Note: the returned object will maintain a strong reference to the provided factory until the first time its {@link Reference#get() get()} method is
+     * invoked.
      *
      * @param factory the factory to create the referred to object.
      *
@@ -58,7 +78,7 @@ public final class Deferred extends Utilities {
     }
 
     /**
-     * A reference to some object that is lazily instantiated. This is returned by {@link Deferred#reference(Factory)}.
+     * A reference to some object that is lazily instantiated. Instances are created by {@link Deferred#reference(Factory)}.
      */
     public interface Reference<T> {
 
@@ -92,7 +112,7 @@ public final class Deferred extends Utilities {
         public final T get() {
             T cache = delegate;
 
-            if (factory != null && delegate == null) {
+            if (factory != null && cache == null) {
                 synchronized (this) {
                     cache = delegate;
 

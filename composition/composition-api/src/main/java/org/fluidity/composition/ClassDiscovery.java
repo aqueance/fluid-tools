@@ -22,7 +22,7 @@ package org.fluidity.composition;
  * because this component does not instantiate the service provider classes, it only finds them.
  * <p/>
  * The goal of this component is to find and return the list of <em>classes</em> that implement a given interface or extend a given class. To find and
- * <em>instantiate</em> those classes, use a dependency injected {@link ComponentGroup} annotated array parameter instead.
+ * <em>instantiate</em> those classes, use a dependency injected {@link ComponentGroup @ComponentGroup} annotated array parameter instead.
  *
  * @author Tibor Varga
  */

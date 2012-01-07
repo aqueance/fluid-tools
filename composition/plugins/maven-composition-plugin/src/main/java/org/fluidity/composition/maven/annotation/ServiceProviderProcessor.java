@@ -32,7 +32,7 @@ import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.EmptyVisitor;
 
 /**
- * Processes a {@link org.fluidity.composition.ServiceProvider} annotation.
+ * Processes a {@link org.fluidity.composition.ServiceProvider @ServiceProvider} annotation.
  *
  * @author Tibor Varga
  */

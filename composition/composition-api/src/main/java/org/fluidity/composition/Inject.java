@@ -23,7 +23,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * This annotation is used to mark instance fields and/or constructors of a {@link Component} for
+ * This annotation is used to mark instance fields and/or constructors of a {@linkplain Component component} for
  * <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Dependency_Injection_Concept">dependency injection</a>. In case a constructor is marked, that
  * single constructor will be used by the dependency injection container to instantiate the class. If there is only one (public) constructor then that needs
  * not be marked with this annotation.

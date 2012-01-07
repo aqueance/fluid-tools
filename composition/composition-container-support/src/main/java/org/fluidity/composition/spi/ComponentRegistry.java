@@ -20,7 +20,7 @@ import org.fluidity.composition.Components;
 import org.fluidity.composition.OpenComponentContainer;
 
 /**
- * Allows registration of component bindings to a backing {@link OpenComponentContainer component container}.
+ * Allows registration of component bindings to a backing {@linkplain OpenComponentContainer component container}.
  *
  * @author Tibor Varga
  */

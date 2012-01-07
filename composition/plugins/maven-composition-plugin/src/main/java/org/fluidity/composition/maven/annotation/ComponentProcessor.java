@@ -20,7 +20,7 @@ import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.commons.EmptyVisitor;
 
 /**
- * Processes a {@link org.fluidity.composition.Component} annotation.
+ * Processes a {@link org.fluidity.composition.Component @Component} annotation.
  *
  * @author Tibor Varga
  */

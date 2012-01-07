@@ -19,12 +19,12 @@ package org.fluidity.composition;
 /**
  * A <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Dependency_Injection_Concept">dependency injection</a>
  * <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Dependency_Injection_Containers">container</a> that components can be added to using the
- * container's registry. Except in {@link ContainerBoundary rare circumstances}, you do not need to directly interact with a registry of the root container as
- * the <code>org.fluidity.maven:maven-composition-plugin</code> Maven plugin does that for you.
+ * container's registry. Except in {@linkplain ContainerBoundary rare circumstances}, you do not need to directly interact with a registry of the root
+ * container as the <code>org.fluidity.maven:maven-composition-plugin</code> Maven plugin does that for you.
  * <p/>
  * The registry offers several ways to map an implementation to an interface in the host container. Which one you need depends on your requirements. These
  * methods are mostly invoked from the {@link OpenComponentContainer.Bindings#bindComponents(OpenComponentContainer.Registry) bindComponents()}
- * method of your {@link org.fluidity.composition.spi.PackageBindings binding} implementation.
+ * method of your {@linkplain org.fluidity.composition.spi.PackageBindings binding} implementation.
  * <ul>
  * <li>To simply register a component implementation for its component interfaces, use {@link OpenComponentContainer.Registry#bindComponent(Class, Class[])
  * bindComponent()}. This is exactly what the Maven plugin does for a {@link Component @Component} annotated class with no {@link Component#automatic()
@@ -76,7 +76,7 @@ public interface OpenComponentContainer extends ComponentContainer {
      * This interface is mainly used by {@link org.fluidity.composition.spi.PackageBindings} objects that are invoked when the host application populates its
      * dependency injection containers.
      * <p/>
-     * Outside of <code>PackageBindings</code>, an object implementing this interface for an {@link OpenComponentContainer uninitialized container} can be
+     * Outside of <code>PackageBindings</code>, an object implementing this interface for an {@linkplain OpenComponentContainer uninitialized container} can be
      * acquired by calling {@link OpenComponentContainer#getRegistry() getRegistry()} on the container.
      *
      * @author Tibor Varga

@@ -90,7 +90,7 @@ public interface ComponentContainer {
 
     /**
      * Returns the list of components implementing the given interface, provided that they each, or the given interface itself, has been marked with the {@link
-     * ComponentGroup} annotation.
+     * ComponentGroup @ComponentGroup} annotation.
      *
      * @param api the group interface class.
      *
@@ -125,9 +125,9 @@ public interface ComponentContainer {
 
     /**
      * Instantiates and returns a transient component by its interface or (super)class after invoking the bindings implemented by the supplied
-     * {@link OpenComponentContainer.Bindings} object. This method is a convenient shortcut to {@link #makeChildContainer() acquire a child container}, {@link
-     * OpenComponentContainer.Bindings#bindComponents(OpenComponentContainer.Registry) register component bindings} in it, and
-     * then get the child container to {@link #getComponent(Class) instantiate} the requested component.
+     * {@link OpenComponentContainer.Bindings} object. This method is a convenient shortcut to {@linkplain #makeChildContainer() acquire a child container},
+     * {@linkplain OpenComponentContainer.Bindings#bindComponents(OpenComponentContainer.Registry) register component bindings} in it, and
+     * then get the child container to {@linkplain #getComponent(Class) instantiate} the requested component.
      *
      * @param api      an interface or class that the provided bindings will register an implementation or extension for, along with its dependencies missing
      *                 from this container or its parent or intended to be overridden.

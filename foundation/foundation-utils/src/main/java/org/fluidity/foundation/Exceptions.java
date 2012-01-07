@@ -29,7 +29,7 @@ public final class Exceptions extends Utilities {
     private Exceptions() { }
 
     /**
-     * Re-trows {@link RuntimeException}s and wraps other {@link Exception}s in a {@link Wrapper}.
+     * Re-trows {@link RuntimeException RuntimeExceptions} and wraps other {@link Exception Exceptions} in a {@link Wrapper}.
      *
      * @param context the action part of the "Error %s" message in the wrapper exception.
      * @param command the command to run.
@@ -53,7 +53,7 @@ public final class Exceptions extends Utilities {
     }
 
     /**
-     * Re-trows {@link RuntimeException}s and wraps other {@link Exception}s in a {@link Wrapper}.
+     * Re-trows {@link RuntimeException RuntimeExceptions} and wraps other {@link Exception Exceptions} in a {@link Wrapper}.
      *
      * @param command the command to run.
      *
@@ -126,7 +126,7 @@ public final class Exceptions extends Utilities {
          * </pre>
          * <p/>
          * The above will re-throw either <code>CheckedException1</code>, <code>CheckedException2</code>,
-         * <code>CheckedException3</code> or the <code>wrapper</code>, which is an {@link RuntimeException unchecked} exception.
+         * <code>CheckedException3</code> or the <code>wrapper</code>, which is an {@linkplain RuntimeException unchecked} exception.
          *
          * @param accept the class of the exception to check.
          * @param <T>    the type of the exception to check.
