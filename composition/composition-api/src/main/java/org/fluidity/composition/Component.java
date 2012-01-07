@@ -93,6 +93,13 @@ public @interface Component {
      * Lists the <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Component_Context">context annotations</a> accepted by the annotated class,
      * thereby allowing the component to specify the annotation classes that will configure instances of the component at the points of dependency references
      * to the component. Such a configuration could, for instance, contain a database identifier for a database access dependency, etc.
+     * <p/>
+     * A special context is the parameterized type of the dependency reference to the context aware component. Since that context is automatically computed,
+     * it is not specified by a context annotation but by turning it on using the {@link #typed()} parameter of this annotation.
+     * <p/>
+     * When the {@link #ignore()} parameter is present, it ignores, up to but not including the annotated entity, the specified context annotations for the
+     * annotated entity.
+     * <p/>
      *
      * @author Tibor Varga
      */
@@ -100,11 +107,13 @@ public @interface Component {
     @Documented
     @Inherited
     @Retention(RetentionPolicy.RUNTIME)
-    @Target(ElementType.TYPE)
+    @Target({ ElementType.TYPE, ElementType.FIELD, ElementType.PARAMETER })
     @interface Context {
 
         /**
          * Specifies the context annotations that configure the class annotated with {@link Context}.
+         * <p/>
+         * This parameter is used only at class level.
          *
          * @return a list of context annotation classes.
          */
@@ -114,15 +123,16 @@ public @interface Component {
          * Tells if the component instance depends on the type parameters of the component reference. Specifying <code>@Component.Context(typed = true)</code>
          * results in expanding the annotated component's context with {@link Component.Reference}. This parameter defaults to <code>false</code>, which means
          * that type parameters of dependency references to the annotated components will not form part of its component context.
+         * <p/>
+         * This parameter is used only at class level.
          *
          * @return <code>true</code> if the component instance depends on the type parameters of the component reference, <code>false</code> otherwise.
          */
         boolean typed() default false;
 
         /**
-         * Specifies what context annotations should be ignored up to this point in the instantiation path.
-         * <p/>
-         * TODO: add a unit test for this parameter
+         * Specifies what context annotations should be ignored up to this point in the instantiation path. This parameter can be used when annotating fields
+         * and constructor parameters as well as classes.
          *
          * @return an array of annotation classes to ignore.
          */

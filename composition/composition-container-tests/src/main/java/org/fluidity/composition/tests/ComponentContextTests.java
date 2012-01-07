@@ -34,6 +34,7 @@ import org.fluidity.composition.OpenComponentContainer;
 import org.fluidity.composition.spi.ComponentVariantFactory;
 import org.fluidity.composition.spi.CustomComponentFactory;
 
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -45,6 +46,12 @@ public final class ComponentContextTests extends AbstractContainerTests {
 
     public ComponentContextTests(final ArtifactFactory factory) {
         super(factory);
+    }
+
+    @BeforeMethod
+    public void setup() throws Exception {
+        ContextConsumer1.context = null;
+        ContextConsumer2.context = null;
     }
 
     @DataProvider(name = "component-types")
@@ -89,7 +96,8 @@ public final class ComponentContextTests extends AbstractContainerTests {
     }
 
     @Test(dataProvider = "component-types")
-    public <T extends ContextAware, F extends ComponentVariantFactory> void explicitContext(final Class<? extends T> type, final Class<? extends F> factory)
+    public <T extends ContextAware, F extends ComponentVariantFactory> void testExplicitContext(final Class<? extends T> type,
+                                                                                                final Class<? extends F> factory)
             throws Exception {
         registry.bindComponent(type);
         registry.bindComponent(Test1.class);
@@ -121,7 +129,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
     }
 
     @Test
-    public void implicitContext() throws Exception {
+    public void testImplicitContext() throws Exception {
         registry.bindComponent(BaseComponent.class);
         registry.bindComponent(OverridingComponent.class);
         registry.bindComponent(ContextAwareComponent1Impl.class);
@@ -140,7 +148,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
     }
 
     @Test
-    public void contextInheritance() throws Exception {
+    public void testContextInheritance() throws Exception {
         registry.bindComponent(ContextAwareComponent1Impl.class);
         registry.bindComponent(ContextAwareComponent2Impl.class);
         registry.bindComponent(OrdinaryComponent1Impl.class);
@@ -178,7 +186,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
     }
 
     @Test
-    public void embeddedContext() throws Exception {
+    public void testEmbeddedContext() throws Exception {
         registry.bindComponent(ContextProvider1.class);
         registry.bindComponent(ContextConsumer1.class);
 
@@ -202,7 +210,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
     }
 
     @Test
-    public void fieldContext() throws Exception {
+    public void testFieldContext() throws Exception {
         registry.bindComponent(ContextProvider2.class);
         registry.bindComponent(ContextConsumer2.class);
 
@@ -220,43 +228,6 @@ public final class ComponentContextTests extends AbstractContainerTests {
         // values come from ContextProvider2
         assert "setting-1".equals(setting1.value()) : setting1.value();
         assert "setting-3".equals(setting3.value()) : setting3.value();
-    }
-
-    @ComponentGroup
-    public interface GroupApi { }
-
-    private static class GroupMember1 implements GroupApi { }
-
-    @SuppressWarnings("UnusedDeclaration")
-    @Component.Context(Setting1.class)
-    private static class GroupMember2 implements GroupApi {
-        public final String setting;
-
-        private GroupMember2(final ComponentContext context) {
-            final Setting1 annotation = context.annotation(Setting1.class, null);
-            setting = annotation == null ? null : annotation.value();
-        }
-    }
-
-    private static class GroupMember3 implements GroupApi { }
-
-    @Setting1("context-1")
-    private static class GroupDependent1 {
-
-        public final List<GroupApi> group;
-
-        public GroupDependent1(final @ComponentGroup GroupApi[] group) {
-            this.group = Arrays.asList(group);
-        }
-    }
-
-    public static class GroupDependent2 {
-
-        public final List<GroupApi> group;
-
-        public GroupDependent2(final @Setting1("context-2") @ComponentGroup GroupApi[] group) {
-            this.group = Arrays.asList(group);
-        }
     }
 
     @Test
@@ -298,6 +269,105 @@ public final class ComponentContextTests extends AbstractContainerTests {
 
         assert expected.equals(group1) : group1;
         assert expected.equals(group2) : group2;
+    }
+
+    @Test
+    public void testInstantiatingFactory() throws Exception {
+        registry.bindComponent(FirstComponent.class);
+        registry.bindComponent(ThirdFactory.class);
+        registry.bindComponent(SecondFactory.class);
+
+        final FirstComponent first = container.getComponent(FirstComponent.class);
+        assert first != null;
+        assertContext(first.settings1);
+        assertContext(first.settings2);
+        assertContext(first.settings3);
+
+        final SecondComponent second = first.dependency;
+        assert second != null;
+        assertContext(second.settings1);
+        assertContext(second.settings2, "second");
+        assertContext(second.settings3);
+
+        final ThirdComponent third = second.dependency;
+        assert third != null;
+        assertContext(third.settings1, "first");
+        assertContext(third.settings2);
+        assertContext(third.settings3, "third");
+    }
+
+    @Test
+    public void testIgnoredContext() throws Exception {
+        registry.bindComponent(ContextProvider3.class);
+        registry.bindComponent(ContextProvider4.class);
+        registry.bindComponent(ContextConsumer1.class);
+        registry.bindComponent(ContextConsumer2.class);
+
+        final ContextProvider3 root = container.getComponent(ContextProvider3.class);
+        assert root != null : ContextProvider3.class;
+
+        final ComponentContext context1 = root.provider.consumer1.local;
+        final ComponentContext context2 = root.provider.consumer2.local;
+        final ComponentContext context3 = root.provider.consumer3.local;
+        final ComponentContext context4 = root.provider.consumer4.local;
+        assert context1 != null;
+        assert context2 != null;
+        assert context3 != null;
+        assert context4 != null;
+
+        final Setting1 setting11 = context1.annotation(Setting1.class, null);
+        final Setting1 setting21 = context2.annotation(Setting1.class, null);
+        final Setting2 setting12 = context1.annotation(Setting2.class, null);
+        final Setting2 setting22 = context3.annotation(Setting2.class, null);
+        final Setting3 setting13 = context2.annotation(Setting3.class, null);
+        final Setting3 setting23 = context4.annotation(Setting3.class, null);
+
+        assert setting11 == null;       // @Setting1 is ignored and not redefined
+        assert setting21 == null;       // @Setting1 is ignored and not redefined
+        assert setting12 == null;       // @Setting2 is ignored and not redefined
+        assert setting22 != null;       // @Setting2 is ignored and then redefined
+        assert setting13 != null;       // @Setting3 is ignored and then redefined
+        assert setting23 != null;       // @Setting3 is ignored and then redefined
+
+        assert "setting-2-n".equals(setting22.value()) : setting22.value();
+        assert "setting-3-n".equals(setting23.value()) : setting23.value();
+    }
+
+    @ComponentGroup
+    public interface GroupApi { }
+
+    private static class GroupMember1 implements GroupApi { }
+
+    @SuppressWarnings("UnusedDeclaration")
+    @Component.Context(Setting1.class)
+    private static class GroupMember2 implements GroupApi {
+        public final String setting;
+
+        private GroupMember2(final ComponentContext context) {
+            final Setting1 annotation = context.annotation(Setting1.class, null);
+            setting = annotation == null ? null : annotation.value();
+        }
+    }
+
+    private static class GroupMember3 implements GroupApi { }
+
+    @Setting1("context-1")
+    private static class GroupDependent1 {
+
+        public final List<GroupApi> group;
+
+        public GroupDependent1(final @ComponentGroup GroupApi[] group) {
+            this.group = Arrays.asList(group);
+        }
+    }
+
+    public static class GroupDependent2 {
+
+        public final List<GroupApi> group;
+
+        public GroupDependent2(final @Setting1("context-2") @ComponentGroup GroupApi[] group) {
+            this.group = Arrays.asList(group);
+        }
     }
 
     @Setting1("first")
@@ -384,31 +454,6 @@ public final class ComponentContextTests extends AbstractContainerTests {
                 }
             };
         }
-    }
-
-    @Test
-    public void testInstantiatingFactory() throws Exception {
-        registry.bindComponent(FirstComponent.class);
-        registry.bindComponent(ThirdFactory.class);
-        registry.bindComponent(SecondFactory.class);
-
-        final FirstComponent first = container.getComponent(FirstComponent.class);
-        assert first != null;
-        assertContext(first.settings1);
-        assertContext(first.settings2);
-        assertContext(first.settings3);
-
-        final SecondComponent second = first.dependency;
-        assert second != null;
-        assertContext(second.settings1);
-        assertContext(second.settings2, "second");
-        assertContext(second.settings3);
-
-        final ThirdComponent third = second.dependency;
-        assert third != null;
-        assertContext(third.settings1, "first");
-        assertContext(third.settings2);
-        assertContext(third.settings3, "third");
     }
 
     private void assertContext(final Object[] settings, final String... expected) throws Exception {
@@ -792,7 +837,44 @@ public final class ComponentContextTests extends AbstractContainerTests {
 
         @Inject
         @Setting3("setting-3")
+        @SuppressWarnings("UnusedDeclaration")
         public ContextConsumer2 consumer;
+    }
+
+    @Setting1("setting-1")
+    private static class ContextProvider3 {
+
+        @Inject
+        @Setting2("setting-2")
+        @SuppressWarnings("UnusedDeclaration")
+        public ContextProvider4 provider;
+    }
+
+    @Setting3("setting-3")
+    @Component.Context(ignore = Setting1.class)
+    private static class ContextProvider4 {
+
+        @Inject
+        @SuppressWarnings("UnusedDeclaration")
+        @Component.Context(ignore = { Setting2.class, Setting3.class })
+        public ContextConsumer1 consumer1;
+
+        @Inject
+        @SuppressWarnings("UnusedDeclaration")
+        @Component.Context(ignore = { Setting2.class, Setting3.class })
+        public ContextConsumer2 consumer2;
+
+        @Inject
+        @SuppressWarnings("UnusedDeclaration")
+        @Setting2("setting-2-n")
+        @Component.Context(ignore = { Setting2.class, Setting3.class })
+        public ContextConsumer1 consumer3;
+
+        @Inject
+        @SuppressWarnings("UnusedDeclaration")
+        @Component.Context(ignore = { Setting2.class, Setting3.class })
+        @Setting3("setting-3-n")
+        public ContextConsumer2 consumer4;
     }
 
     @SuppressWarnings("UnusedDeclaration")
@@ -800,10 +882,11 @@ public final class ComponentContextTests extends AbstractContainerTests {
     private static class ContextConsumer1 {
 
         public static ComponentContext context;
+        public final ComponentContext local;
 
         private ContextConsumer1(final ComponentContext context) {
-            assert ContextConsumer1.context == null;
             ContextConsumer1.context = context;
+            this.local = context;
         }
     }
 
@@ -812,10 +895,11 @@ public final class ComponentContextTests extends AbstractContainerTests {
     private static class ContextConsumer2 {
 
         public static ComponentContext context;
+        public final ComponentContext local;
 
         private ContextConsumer2(final ComponentContext context) {
-            assert ContextConsumer2.context == null;
             ContextConsumer2.context = context;
+            this.local = context;
         }
     }
 

@@ -127,7 +127,8 @@ public final class Strings extends Utilities {
 
     private static void appendValue(final StringBuilder output, final Object value) {
         if (value instanceof Class) {
-            output.append(((Class) value).getSimpleName()).append(".class");
+            final String name = ((Class) value).getName();
+            output.append(name.substring(name.lastIndexOf(".") + 1).replace('$', '.')).append(".class");
         } else {
             output.append(value.getClass().isArray() ? appendArray(value) : value);
         }

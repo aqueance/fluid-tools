@@ -61,6 +61,17 @@ final class ContextDefinitionImpl implements ContextDefinition {
     public ContextDefinition expand(final Annotation[] definition, final Type reference) {
         if (definition != null || reference != null) {
             if (definition != null) {
+
+                // first remove all ignored context
+                for (final Annotation value : definition) {
+                    if (value instanceof Component.Context) {
+                        for (final Class<? extends Annotation> ignore : ((Component.Context) value).ignore()) {
+                            defined.remove(ignore);
+                        }
+                    }
+                }
+
+                // then define extend context definition
                 for (final Annotation value : definition) {
                     final Class<? extends Annotation> type = value.annotationType();
 
@@ -97,10 +108,6 @@ final class ContextDefinitionImpl implements ContextDefinition {
 
                 if (annotation.typed()) {
                     context.add(Component.Reference.class);
-                }
-
-                for (final Class<? extends Annotation> ignored : annotation.ignore()) {
-                    defined.remove(ignored);
                 }
 
                 active.putAll(defined);
