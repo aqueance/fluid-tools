@@ -53,7 +53,7 @@ public class TypeParameterTests extends AbstractContainerTests {
         assert rootComponent.p3 != null;
         assert rootComponent.p3.p2 != null;
 
-        rootComponent.p3.container.invoke(rootComponent.p3, true, TypedComponent3.class.getMethod("method", TypedComponent1.class));
+        rootComponent.p3.container.invoke(rootComponent.p3, TypedComponent3.class.getMethod("method", TypedComponent1.class));
     }
 
     @Test
@@ -71,7 +71,7 @@ public class TypeParameterTests extends AbstractContainerTests {
         assert rootComponent.p3 != null;
         assert rootComponent.p3.p2 != null;
 
-        rootComponent.p3.container.invoke(rootComponent.p3, true, TypedComponent3.class.getMethod("method", TypedComponent1.class));
+        rootComponent.p3.container.invoke(rootComponent.p3, TypedComponent3.class.getMethod("method", TypedComponent1.class));
     }
 
     @Test(expectedExceptions = ComponentContainer.ResolutionException.class)
@@ -89,7 +89,7 @@ public class TypeParameterTests extends AbstractContainerTests {
         assert rootComponent.p3 != null;
         assert rootComponent.p3.p2 != null;
 
-        container.invoke(rootComponent.p3, true, TypedComponent3.class.getMethod("method", TypedComponent1.class));
+        container.invoke(rootComponent.p3, TypedComponent3.class.getMethod("method", TypedComponent1.class));
     }
 
     @Component(automatic = false)

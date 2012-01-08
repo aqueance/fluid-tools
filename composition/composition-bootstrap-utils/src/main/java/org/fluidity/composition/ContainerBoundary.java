@@ -16,6 +16,7 @@
 
 package org.fluidity.composition;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -250,8 +251,8 @@ public final class ContainerBoundary implements ComponentContainer {
      * <p/>
      * {@inheritDoc}
      */
-    public Object invoke(final Object component, final boolean explicit, final Method method, final Object... arguments) throws ResolutionException {
-        return loadedContainer().invoke(component, explicit, method, arguments);
+    public Object invoke(final Object component, final Method method, final Object... arguments) throws ResolutionException, InvocationTargetException {
+        return loadedContainer().invoke(component, method, arguments);
     }
 
     /**

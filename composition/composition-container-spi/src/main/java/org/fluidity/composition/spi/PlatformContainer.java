@@ -43,7 +43,7 @@ public interface PlatformContainer {
      * @return see {@link ComponentContainer#getComponent(Class)}.
      *
      * @throws ComponentContainer.ResolutionException
-     *          see {@link ComponentContainer#getComponent(Class)}
+     *          see {@link ComponentContainer#getComponent(Class)}.
      */
     <T> T getComponent(Class<T> api, ContextDefinition context) throws ComponentContainer.ResolutionException;
 

@@ -16,6 +16,7 @@
 
 package org.fluidity.composition;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 
@@ -152,9 +153,10 @@ interface SimpleContainer extends DependencyGraph {
      * @return the component instance.
      *
      * @throws ComponentContainer.ResolutionException
-     *          when dependency resolution fails.
+     *                                   when dependency resolution fails.
+     * @throws InvocationTargetException when the method throws an exception.
      */
-    Object invoke(Object component, Method method, ContextDefinition context, Object[] arguments, boolean explicit);
+    Object invoke(Object component, Method method, ContextDefinition context, Object[] arguments, boolean explicit) throws InvocationTargetException;
 
     /**
      * Returns a textual identifier for the container.

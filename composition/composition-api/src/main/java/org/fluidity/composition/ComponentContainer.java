@@ -16,6 +16,7 @@
 
 package org.fluidity.composition;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
@@ -74,7 +75,7 @@ import org.fluidity.foundation.Strings;
  *     ...
  *   }
  *
- *   private void exampleMethod() {
+ *   private void myMethod() throws throws <b>MyCheckedException</b> {
  *     ... example code snippet from below ...
  *   }
  * }
@@ -149,7 +150,8 @@ import org.fluidity.foundation.Strings;
  * <span class="hl1">{@linkplain Component @Component}(automatic = false)</span>
  * final class MyHelper implements <span class="hl2">InjectableMethods</span> {
  *   ...
- *   int <span class="hl2">someMethod</span>(final <span class="hl3">int given</span>, final <span class="hl1">{@linkplain Inject @Inject}</span> MyDependency1 mandatory, <span class="hl1">{@linkplain Inject @Inject}</span> {@linkplain Optional @Optional} MyDependency2 optional);
+ *   int <span class="hl2">someMethod</span>(final <span class="hl3">int given</span>, final <span class="hl1">{@linkplain Inject @Inject}</span> MyDependency1 mandatory, <span class="hl1">{@linkplain Inject @Inject}</span> {@linkplain Optional @Optional} MyDependency2 optional)
+ *     throws SomeCheckedException;
  *   ...
  * }
  *
@@ -158,35 +160,34 @@ import org.fluidity.foundation.Strings;
  * &#47;* ... pass null for unknown parameters *&#47;
  * final int result = helper.<span class="hl2">someMethod</span>(<span class="hl3">1234</span>, null, null);
  * </pre></li>
- * <li><b>ad-hoc method invocation with implicit injection</b>: any method parameter not provided a value will be injected; if a method parameter cannot be
+ * <li><b>ad-hoc method invocation</b>: any method parameter not provided a value will be injected; if a method parameter cannot be
  * resolved and it is not annotated with {@link Optional @Optional} then an exception is thrown.
  * <pre>
  * final class <span class="hl2">MyHelper</span> {
  *   ...
- *   int <span class="hl2">someMethod</span>(final <span class="hl3">int given</span>, final MyDependency1 mandatory, {@linkplain Optional @Optional} MyDependency2 optional);
+ *   <span class="hl2">int</span> <span class="hl2">someMethod</span>(final <span class="hl3">int given</span>, final MyDependency1 mandatory, {@linkplain Optional @Optional} MyDependency2 optional);
+ *     throws SomeCheckedException;
  *   ...
  * }
  *
  * final <span class="hl2">MyHelper</span> helper = new <span class="hl2">MyHelper()</span>;
  * final Method method = <span class="hl2">MyHelper</span>.class.getMethod("<span class="hl2">someMethod</span>", Integer.TYPE, MyDependency1.class, MyDependency2.class);
  *
- * &#47;* ... pass known parameters as the last method parameters *&#47;
- * final int result = (Integer) container.<span class="hl1">invoke</span>(helper, method, <span class="hl1">true</span>, <span class="hl3">1234</span>);
- * </pre></li>
- * <li><b>ad-hoc method invocation with explicit injection</b>: any method parameter annotated with {@link Inject @Inject} but not provided a value will be
- * injected; if a method parameter cannot be resolved and it is not annotated with {@link Optional @Optional} then an exception is thrown.
- * <pre>
- * final class <span class="hl2">MyHelper</span> {
- *   ...
- *   int <span class="hl2">someMethod</span>(final <span class="hl3">int given</span>, final <span class="hl1">{@linkplain Inject @Inject}</span> MyDependency1 mandatory, <span class="hl1">{@linkplain Inject @Inject}</span> {@linkplain Optional @Optional} MyDependency2 optional);
- *   ...
+ * final <span class="hl2">int</span> result;
+ * try {
+ *
+ *   &#47;* ... handle checked exceptions ... *&#47;
+ *   result = {@linkplain org.fluidity.foundation.Exceptions}.wrap(new Exceptions.Command&lt;<span class="hl2">Integer</span>>() {
+ *     public <span class="hl2">Integer</span> run() throws Throwable {
+ *
+ *       &#47;* ... pass known parameters as the last method parameters *&#47;
+ *       return (<span class="hl2">Integer</span>) container.<span class="hl1">invoke</span>(helper, method, <span class="hl3">1234</span>);
+ *     }
+ *   });
+ * } catch (final {@linkplain org.fluidity.foundation.Exceptions.Wrapper} e) {
+ *   throw e.rethrow(<b>MyCheckedException</b>.class);
  * }
  *
- * final <span class="hl2">MyHelper</span> helper = new <span class="hl2">MyHelper()</span>;
- * final Method method = <span class="hl2">MyHelper</span>.class.getMethod("<span class="hl2">someMethod</span>", Integer.TYPE, MyDependency1.class, MyDependency2.class);
- *
- * &#47;* ... pass known parameters as the last method parameters *&#47;
- * final int result = (Integer) container.<span class="hl1">invoke</span>(helper, method, <span class="hl1">false</span>, <span class="hl3">1234</span>);
  * </pre></li>
  * </ul>
  * <h4>Observing Dependency Resolution</h4>
@@ -214,7 +215,7 @@ public interface ComponentContainer {
      *
      * @return the component bound to the give class or <code>null</code> when none was found.
      *
-     * @throws ResolutionException when dependency resolution fails
+     * @throws ResolutionException when dependency resolution fails.
      */
     <T> T getComponent(Class<T> api) throws ResolutionException;
 
@@ -240,7 +241,7 @@ public interface ComponentContainer {
      *
      * @return the component bound to the given class or <code>null</code> if none was bound.
      *
-     * @throws ResolutionException when dependency resolution fails
+     * @throws ResolutionException when dependency resolution fails.
      */
     <T> T getComponent(Class<T> api, ComponentContainer.Bindings bindings) throws ResolutionException;
 
@@ -290,7 +291,7 @@ public interface ComponentContainer {
      *
      * @return the supplied object.
      *
-     * @throws ResolutionException when dependency resolution fails
+     * @throws ResolutionException when dependency resolution fails.
      */
     <T> T initialize(T component) throws ResolutionException;
 
@@ -302,7 +303,7 @@ public interface ComponentContainer {
      *
      * @return the new component.
      *
-     * @throws ResolutionException when dependency resolution fails
+     * @throws ResolutionException when dependency resolution fails.
      */
     <T> T instantiate(Class<T> componentClass) throws ResolutionException;
 
@@ -315,39 +316,35 @@ public interface ComponentContainer {
      *
      * @return the new component.
      *
-     * @throws ResolutionException when dependency resolution fails
+     * @throws ResolutionException when dependency resolution fails.
      */
     <T> T instantiate(Class<T> componentClass, ComponentContainer.Bindings bindings) throws ResolutionException;
 
     /**
      * Invokes the given method of the given object after resolving and injecting its applicable parameters that the given argument list contains no
      * (or <code>null</code>) value for.
-     * <p/>
-     * TODO: get rid of the <code>explicit</code> parameter
      *
      * @param component the method to invoke on the provided object.
-     * @param explicit  tells if all parameters are subject to injection (<code>true</code>) or only those annotated with {@link Inject @Inject}
-     *                  (<code>false</code>).
      * @param method    the method that needs its parameters injected.
      * @param arguments the method parameters matching the method's signature with <code>null</code> values where injection is needed.
      *
      * @return the result of the method invocation.
      *
-     * @throws ResolutionException when dependency resolution fails
+     * @throws ResolutionException when dependency resolution fails.
+     * @throws InvocationTargetException when the supplied method throws an exception.
      */
-    Object invoke(Object component, boolean explicit, Method method, Object... arguments) throws ResolutionException;
+    Object invoke(Object component, Method method, Object... arguments) throws ResolutionException, InvocationTargetException;
 
     /**
-     * Wraps the given component in a proxy that calls {@link #invoke(Object, boolean, Method, Object...) invoke}<code>(<b>component</b>, <b>false</b>,
-     * <i>method</i>, <i>args</i>)</code> on all methods with {@link Inject @Inject} annotated parameters of all or given {@linkplain Components#inspect(Class,
-     * Class[]) component interfaces} of the supplied component.
+     * Wraps the given component in a proxy that inject all missing {@link Inject @Inject} annotated parameters of any method of all, or the given, component
+     * interfaces of the supplied component.
      *
      * @param component a component that needs field injection of dependencies.
      * @param api       optional list of component interfaces to expose by the returned object.
      *
      * @return a new component that implements all, or the given, component interfaces and injects missing method parameters from this container.
      *
-     * @throws ResolutionException when dependency resolution fails
+     * @throws ResolutionException when dependency resolution fails.
      */
     @SuppressWarnings("JavadocReference")
     <T> T complete(T component, Class<? super T>... api) throws ResolutionException;
@@ -527,7 +524,7 @@ public interface ComponentContainer {
          * @param interfaces     optional list of interfaces that should resolve to the supplied component class.
          *
          * @throws ComponentContainer.BindingException
-         *          when component registration fails
+         *          when component registration fails.
          */
         @SuppressWarnings("JavadocReference")
         <T> void bindComponent(Class<T> implementation, Class<? super T>... interfaces) throws ComponentContainer.BindingException;
@@ -547,7 +544,7 @@ public interface ComponentContainer {
          * @param interfaces optional list of interfaces that should resolve to the supplied component class.
          *
          * @throws ComponentContainer.BindingException
-         *          when component registration fails
+         *          when component registration fails.
          */
         @SuppressWarnings("JavadocReference")
         <T> void bindInstance(T instance, Class<? super T>... interfaces) throws ComponentContainer.BindingException;
@@ -570,7 +567,7 @@ public interface ComponentContainer {
          * @return an open container, never <code>null</code>.
          *
          * @throws ComponentContainer.BindingException
-         *          when component registration fails
+         *          when component registration fails.
          */
         <T> OpenComponentContainer makeChildContainer(Class<T> implementation, Class<? super T>... interfaces) throws ComponentContainer.BindingException;
     }

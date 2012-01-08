@@ -17,6 +17,7 @@
 package org.fluidity.composition.impl;
 
 import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -72,8 +73,8 @@ final class RestrictedContainerImpl implements RestrictedContainer {
         return reference.get().initialize(component);
     }
 
-    public Object invoke(final Object component, final boolean explicit, final Method method, final Object... arguments) throws ResolutionException {
-        return reference.get().invoke(component, explicit, method, arguments);
+    public Object invoke(final Object component, final Method method, final Object... arguments) throws ResolutionException, InvocationTargetException {
+        return reference.get().invoke(component, method, arguments);
     }
 
     public <T> T complete(final T component, final Class<? super T>... api) throws ResolutionException {

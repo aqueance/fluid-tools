@@ -39,6 +39,7 @@ public interface ServerBootstrap {
      * @param managedApps The web application WAR files to deploy. These WAR files shall be deployed under a context that is derived from the WAR name
      *                    excluding the version number and the extension.
      * @param args        The list of command line arguments left unprocessed by the invoker.
+     *
      * @throws Exception thrown when something goes wrong.
      */
     void bootstrap(int httpPort, File bootApp, List<File> managedApps, String args[]) throws Exception;

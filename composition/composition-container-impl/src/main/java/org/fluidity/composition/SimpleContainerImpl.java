@@ -18,6 +18,7 @@ package org.fluidity.composition;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -328,7 +329,8 @@ final class SimpleContainerImpl extends EmptyDependencyGraph implements ParentCo
         return injector.fields(component, services.graphTraversal(), dependencyResolver(domain), new InstanceDescriptor(component), context);
     }
 
-    public Object invoke(final Object component, final Method method, final ContextDefinition context, final Object[] arguments, final boolean explicit) {
+    public Object invoke(final Object component, final Method method, final ContextDefinition context, final Object[] arguments, final boolean explicit)
+            throws InvocationTargetException {
         return injector.invoke(component,
                                method,
                                arguments,

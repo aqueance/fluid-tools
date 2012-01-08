@@ -17,6 +17,7 @@
 package org.fluidity.composition.spi;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import org.fluidity.composition.ComponentContainer;
@@ -78,7 +79,8 @@ public interface DependencyInjector {
      * @return the received instance.
      *
      * @throws ComponentContainer.ResolutionException
-     *          thrown when the search yields no or multiple constructors.
+     *                                   thrown when the search yields no or multiple constructors.
+     * @throws InvocationTargetException when the method throws an exception.
      */
     Object invoke(Object component,
                   Method method,
@@ -87,7 +89,7 @@ public interface DependencyInjector {
                   DependencyResolver container,
                   ContextNode contexts,
                   ContextDefinition context,
-                  boolean explicit) throws ComponentContainer.ResolutionException;
+                  boolean explicit) throws ComponentContainer.ResolutionException, InvocationTargetException;
 
     /**
      * Find the injectable constructor of the given class.

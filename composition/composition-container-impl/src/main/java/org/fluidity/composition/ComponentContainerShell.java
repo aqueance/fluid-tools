@@ -16,6 +16,7 @@
 
 package org.fluidity.composition;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import org.fluidity.composition.impl.CompositeObserver;
@@ -100,7 +101,8 @@ final class ComponentContainerShell extends EmptyComponentContainer {
         return (T) container.initialize(component, context.copy(), null);
     }
 
-    public Object invoke(final Object component, final boolean explicit, final Method method, final Object... arguments) throws ResolutionException {
+    public Object invoke(final Object component, final boolean explicit, final Method method, final Object... arguments)
+            throws ResolutionException, InvocationTargetException {
         return container.invoke(component, method, context.copy(), arguments, explicit);
     }
 

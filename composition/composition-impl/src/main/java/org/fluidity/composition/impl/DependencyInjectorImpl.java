@@ -83,7 +83,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
                          final DependencyResolver container,
                          final ContextNode contexts,
                          final ContextDefinition context,
-                         final boolean explicit) throws ComponentContainer.ResolutionException {
+                         final boolean explicit) throws ComponentContainer.ResolutionException, InvocationTargetException {
         assert method != null;
         assert container != null;
 
@@ -122,8 +122,6 @@ final class DependencyInjectorImpl implements DependencyInjector {
             return method.invoke(component, parameters);
         } catch (final IllegalAccessException e) {
             throw new ComponentContainer.ResolutionException(e, "Invoking %s", method);
-        } catch (final InvocationTargetException e) {
-            throw new ComponentContainer.ResolutionException(e.getCause(), "Invoking %s", method);
         }
     }
 

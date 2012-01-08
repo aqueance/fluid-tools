@@ -33,7 +33,7 @@ public interface ComponentRegistry {
      * @param interfaces     the component and group interfaces; never <code>null</code>.
      *
      * @throws ComponentContainer.BindingException
-     *          when the implementation cannot be bound to some interface
+     *          when the implementation cannot be bound to some interface.
      */
     void bindComponent(Components.Interfaces interfaces) throws ComponentContainer.BindingException;
 
@@ -44,7 +44,7 @@ public interface ComponentRegistry {
      * @param interfaces the component and group interfaces; never <code>null</code>.
      *
      * @throws ComponentContainer.BindingException
-     *          when the implementation cannot be bound to some interface
+     *          when the implementation cannot be bound to some interface.
      */
     void bindInstance(Object instance, Components.Interfaces interfaces) throws ComponentContainer.BindingException;
 
@@ -57,7 +57,7 @@ public interface ComponentRegistry {
      * @return the child container to bind further components in.
      *
      * @throws ComponentContainer.BindingException
-     *          when the implementation cannot be bound to some interface
+     *          when the implementation cannot be bound to some interface.
      */
     OpenComponentContainer makeChildContainer(Components.Interfaces interfaces) throws ComponentContainer.BindingException;
 

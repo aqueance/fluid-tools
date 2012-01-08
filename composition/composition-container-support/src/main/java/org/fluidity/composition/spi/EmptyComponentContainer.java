@@ -18,6 +18,7 @@ package org.fluidity.composition.spi;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
@@ -39,6 +40,34 @@ import org.fluidity.foundation.Proxies;
 public abstract class EmptyComponentContainer implements OpenComponentContainer, ObservedComponentContainer, ComponentRegistry {
 
     private final Registry registry = new EmptyRegistry(this);
+
+    /**
+     * Invokes the given method of the given object after resolving and injecting its applicable parameters that the given argument list contains no
+     * (or <code>null</code>) value for.
+     * <p/>
+     *
+     * @param component the method to invoke on the provided object.
+     * @param explicit  tells if all parameters are subject to injection (<code>true</code>) or only those annotated with {@link Inject @Inject}
+     *                  (<code>false</code>).
+     * @param method    the method that needs its parameters injected.
+     * @param arguments the method parameters matching the method's signature with <code>null</code> values where injection is needed.
+     *
+     * @return the result of the method invocation.
+     *
+     * @throws ResolutionException when dependency resolution fails.
+     * @throws InvocationTargetException when the method throws an exception.
+     */
+    protected abstract Object invoke(Object component, boolean explicit, Method method, Object... arguments)
+            throws ResolutionException, InvocationTargetException;
+
+    /**
+     * Calls {@link #invoke(Object, boolean, Method, Object...) invoke}<code>(component, <b>true</b>, method, arguments)</code>.
+     * <p/>
+     * {@inheritDoc}
+     */
+    public final Object invoke(final Object component, final Method method, final Object... arguments) throws ResolutionException, InvocationTargetException {
+        return invoke(component, true, method, arguments);
+    }
 
     /**
      * Implements this convenience method using the primary methods of the container.
