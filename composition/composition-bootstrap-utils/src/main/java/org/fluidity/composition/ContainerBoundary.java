@@ -188,7 +188,7 @@ public final class ContainerBoundary implements ComponentContainer {
      * {@inheritDoc}
      */
     public <T> T getComponent(final Class<T> api) {
-        return loadContainer(true).getComponent(api);
+        return loadedContainer().getComponent(api);
     }
 
     /**
@@ -197,7 +197,7 @@ public final class ContainerBoundary implements ComponentContainer {
      * {@inheritDoc}
      */
     public <T> T[] getComponentGroup(final Class<T> api) {
-        return loadContainer(true).getComponentGroup(api);
+        return loadedContainer().getComponentGroup(api);
     }
 
     /**
@@ -206,7 +206,7 @@ public final class ContainerBoundary implements ComponentContainer {
      * {@inheritDoc}
      */
     public <T> T getComponent(final Class<T> api, final Bindings bindings) throws ResolutionException {
-        return loadContainer(true).getComponent(api, bindings);
+        return loadedContainer().getComponent(api, bindings);
     }
 
     /**
@@ -215,7 +215,7 @@ public final class ContainerBoundary implements ComponentContainer {
      * {@inheritDoc}
      */
     public OpenComponentContainer makeChildContainer() {
-        return loadContainer(true).makeChildContainer();
+        return loadedContainer().makeChildContainer();
     }
 
     /**
@@ -224,7 +224,7 @@ public final class ContainerBoundary implements ComponentContainer {
      * {@inheritDoc}
      */
     public ComponentContainer makeChildContainer(final Bindings bindings) {
-        return loadContainer(true).makeChildContainer(bindings);
+        return loadedContainer().makeChildContainer(bindings);
     }
 
     /**
@@ -233,7 +233,7 @@ public final class ContainerBoundary implements ComponentContainer {
      * {@inheritDoc}
      */
     public OpenComponentContainer makeDomainContainer() {
-        return loadContainer(true).makeDomainContainer();
+        return loadedContainer().makeDomainContainer();
     }
 
     /**
@@ -242,7 +242,7 @@ public final class ContainerBoundary implements ComponentContainer {
      * {@inheritDoc}
      */
     public <T> T initialize(final T component) {
-        return loadContainer(true).initialize(component);
+        return loadedContainer().initialize(component);
     }
 
     /**
@@ -250,8 +250,17 @@ public final class ContainerBoundary implements ComponentContainer {
      * <p/>
      * {@inheritDoc}
      */
-    public Object invoke(final Object component, final Method method) throws ResolutionException {
-        return loadContainer(true).invoke(component, method);
+    public Object invoke(final Object component, final boolean explicit, final Method method, final Object... arguments) throws ResolutionException {
+        return loadedContainer().invoke(component, explicit, method, arguments);
+    }
+
+    /**
+     * Delegates to the enclosed container.
+     * <p/>
+     * {@inheritDoc}
+     */
+    public <T> T complete(final T component, final Class<? super T>... api) throws ResolutionException {
+        return loadedContainer().complete(component, api);
     }
 
     /**
@@ -260,7 +269,7 @@ public final class ContainerBoundary implements ComponentContainer {
      * {@inheritDoc}
      */
     public <T> T instantiate(final Class<T> componentClass) throws ResolutionException {
-        return loadContainer(true).instantiate(componentClass);
+        return loadedContainer().instantiate(componentClass);
     }
 
     /**
@@ -269,7 +278,7 @@ public final class ContainerBoundary implements ComponentContainer {
      * {@inheritDoc}
      */
     public <T> T instantiate(final Class<T> componentClass, final Bindings bindings) throws ResolutionException {
-        return loadContainer(true).instantiate(componentClass, bindings);
+        return loadedContainer().instantiate(componentClass, bindings);
     }
 
     /**
@@ -278,7 +287,7 @@ public final class ContainerBoundary implements ComponentContainer {
      * {@inheritDoc}
      */
     public ObservedComponentContainer observed(final ComponentResolutionObserver observer) {
-        return loadContainer(true).observed(observer);
+        return loadedContainer().observed(observer);
     }
 
     /**
@@ -304,11 +313,11 @@ public final class ContainerBoundary implements ComponentContainer {
     }
 
     /**
-     * Makes the container for the nearest class loader available to the caller. Used for testing.
+     * Makes the container for the nearest class loader available to the caller.
      *
      * @return the container for the nearest class loader.
      */
-    /* package */ ComponentContainer getContainer() {
+    /* package */ ComponentContainer loadedContainer() {
         return loadContainer(true);
     }
 

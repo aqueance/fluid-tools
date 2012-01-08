@@ -147,8 +147,8 @@ public @interface Component {
      * type information. A Java annotation would not allow <code>Type</code> as the type of a parameter.
      * <h3>Usage</h3>
      * <pre>
-     * &#64;{@linkplain Component}
-     * &#64;{@linkplain Component.Context}(<span class="hl1">typed = true</span>)
+     * {@linkplain Component @Component}
+     * {@linkplain Component.Context @Component.Context}(<span class="hl1">typed = true</span>)
      * final class <span class="hl2">MyComponent</span>&lt;T> {
      *
      *   private final Class&lt;?> type;
@@ -165,7 +165,7 @@ public @interface Component {
      *   }
      * }
      *
-     * &#64;{@linkplain Component}
+     * {@linkplain Component @Component}
      * final class MyReferrer {
      *
      *   public MyReferrer(final <span class="hl2">MyComponent</span><span class="hl3">&lt;MyType></span> dependency) {

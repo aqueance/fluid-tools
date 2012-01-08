@@ -328,8 +328,15 @@ final class SimpleContainerImpl extends EmptyDependencyGraph implements ParentCo
         return injector.fields(component, services.graphTraversal(), dependencyResolver(domain), new InstanceDescriptor(component), context);
     }
 
-    public Object invoke(final Object component, final Method method, final ContextDefinition context) {
-        return injector.invoke(component, method, services.graphTraversal(), dependencyResolver(domain), new InstanceDescriptor(component), context);
+    public Object invoke(final Object component, final Method method, final ContextDefinition context, final Object[] arguments, final boolean explicit) {
+        return injector.invoke(component,
+                               method,
+                               arguments,
+                               services.graphTraversal(),
+                               dependencyResolver(domain),
+                               new InstanceDescriptor(component),
+                               context,
+                               explicit);
     }
 
     public Node resolveComponent(final ParentContainer domain,
@@ -699,7 +706,7 @@ final class SimpleContainerImpl extends EmptyDependencyGraph implements ParentCo
             throw new UnsupportedOperationException();
         }
 
-        public Object invoke(final Object component, final Method method, final ContextDefinition copy) {
+        public Object invoke(final Object component, final Method method, final ContextDefinition copy, final Object[] arguments, final boolean explicit) {
             throw new UnsupportedOperationException();
         }
 

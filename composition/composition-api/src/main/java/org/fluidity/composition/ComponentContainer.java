@@ -27,7 +27,7 @@ import org.fluidity.foundation.Strings;
 
 /**
  * The external API of a fully populated <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Dependency_Injection_Concept">dependency injection</a>
- * <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Dependency_Injection_Containers">container</a>. See <a href=""></a> for a discussion on
+ * <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Dependency_Injection_Containers">container</a>. See <a href="TODO"></a> for a discussion on
  * the automatic container population.
  * <p/>
  * Containers in an application may form a hierarchy that matches the class loaders in the application. Containers in a hierarchy co-operate in such a way that
@@ -64,7 +64,7 @@ import org.fluidity.foundation.Strings;
  * <h3>Usage</h3>
  * All examples below assume the following component boilerplate:
  * <pre>
- * &#64;{@linkplain Component}
+ * {@linkplain Component @Component}
  * final class MyComponent {
  *
  *   private final <span class="hl1">ComponentContainer</span> container;
@@ -140,15 +140,61 @@ import org.fluidity.foundation.Strings;
  * }<span class="hl1">)</span>;
  * </pre></li>
  * </ul>
+ * <h4>Method Parameter Injection</h4>
+ * A container can be used to call methods on a component and inject missing method parameters. There are three variants to this:
+ * <ul>
+ * <li><b>automatic parameter injection</b>: automatically injects all parameters of all component interface methods that have {@link Inject @Inject} annotated
+ * parameters with no argument supplied in the original method call. The component's interfaces must be actual Java interfaces.
+ * <pre>
+ * <span class="hl1">{@linkplain Component @Component}(automatic = false)</span>
+ * final class MyHelper implements <span class="hl2">InjectableMethods</span> {
+ *   ...
+ *   int <span class="hl2">someMethod</span>(final <span class="hl3">int given</span>, final <span class="hl1">{@linkplain Inject @Inject}</span> MyDependency1 mandatory, <span class="hl1">{@linkplain Inject @Inject}</span> {@linkplain Optional @Optional} MyDependency2 optional);
+ *   ...
+ * }
+ *
+ * final <span class="hl2">InjectableMethods</span> helper = container.<span class="hl1">complete(</span>new MyHelper()</span class="hl1">)</span>;
+ *
+ * &#47;* ... pass null for unknown parameters *&#47;
+ * final int result = helper.<span class="hl2">someMethod</span>(<span class="hl3">1234</span>, null, null);
+ * </pre></li>
+ * <li><b>ad-hoc method invocation with implicit injection</b>: any method parameter not provided a value will be injected; if a method parameter cannot be
+ * resolved and it is not annotated with {@link Optional @Optional} then an exception is thrown.
+ * <pre>
+ * final class <span class="hl2">MyHelper</span> {
+ *   ...
+ *   int <span class="hl2">someMethod</span>(final <span class="hl3">int given</span>, final MyDependency1 mandatory, {@linkplain Optional @Optional} MyDependency2 optional);
+ *   ...
+ * }
+ *
+ * final <span class="hl2">MyHelper</span> helper = new <span class="hl2">MyHelper()</span>;
+ * final Method method = <span class="hl2">MyHelper</span>.class.getMethod("<span class="hl2">someMethod</span>", Integer.TYPE, MyDependency1.class, MyDependency2.class);
+ *
+ * &#47;* ... pass known parameters as the last method parameters *&#47;
+ * final int result = (Integer) container.<span class="hl1">invoke</span>(helper, method, <span class="hl1">true</span>, <span class="hl3">1234</span>);
+ * </pre></li>
+ * <li><b>ad-hoc method invocation with explicit injection</b>: any method parameter annotated with {@link Inject @Inject} but not provided a value will be
+ * injected; if a method parameter cannot be resolved and it is not annotated with {@link Optional @Optional} then an exception is thrown.
+ * <pre>
+ * final class <span class="hl2">MyHelper</span> {
+ *   ...
+ *   int <span class="hl2">someMethod</span>(final <span class="hl3">int given</span>, final <span class="hl1">{@linkplain Inject @Inject}</span> MyDependency1 mandatory, <span class="hl1">{@linkplain Inject @Inject}</span> {@linkplain Optional @Optional} MyDependency2 optional);
+ *   ...
+ * }
+ *
+ * final <span class="hl2">MyHelper</span> helper = new <span class="hl2">MyHelper()</span>;
+ * final Method method = <span class="hl2">MyHelper</span>.class.getMethod("<span class="hl2">someMethod</span>", Integer.TYPE, MyDependency1.class, MyDependency2.class);
+ *
+ * &#47;* ... pass known parameters as the last method parameters *&#47;
+ * final int result = (Integer) container.<span class="hl1">invoke</span>(helper, method, <span class="hl1">false</span>, <span class="hl3">1234</span>);
+ * </pre></li>
+ * </ul>
  * <h4>Observing Dependency Resolution</h4>
  * A container can be used to explore the static and dynamic dependencies starting at any component interface. See {@link ObservedComponentContainer} for an
  * example.
- * <h4>Method Parameter Injection</h4>
- * TODO
  *
  * @author Tibor Varga
  */
-@SuppressWarnings("JavadocReference")
 public interface ComponentContainer {
 
     /**
@@ -249,18 +295,6 @@ public interface ComponentContainer {
     <T> T initialize(T component) throws ResolutionException;
 
     /**
-     * Invokes the given method of the given object after resolving and injecting its parameters.
-     *
-     * @param component the method to invoke on the provided object.
-     * @param method    the method that needs its parameters injected.
-     *
-     * @return the result of the method invocation.
-     *
-     * @throws ResolutionException when dependency resolution fails
-     */
-    Object invoke(Object component, Method method) throws ResolutionException;
-
-    /**
      * Instantiates the given class as a component, injecting its constructor and field dependencies in the process from the receiving container. No caching
      * takes place, a new instance is created at every invocation.
      *
@@ -284,6 +318,39 @@ public interface ComponentContainer {
      * @throws ResolutionException when dependency resolution fails
      */
     <T> T instantiate(Class<T> componentClass, ComponentContainer.Bindings bindings) throws ResolutionException;
+
+    /**
+     * Invokes the given method of the given object after resolving and injecting its applicable parameters that the given argument list contains no
+     * (or <code>null</code>) value for.
+     * <p/>
+     * TODO: get rid of the <code>explicit</code> parameter
+     *
+     * @param component the method to invoke on the provided object.
+     * @param explicit  tells if all parameters are subject to injection (<code>true</code>) or only those annotated with {@link Inject @Inject}
+     *                  (<code>false</code>).
+     * @param method    the method that needs its parameters injected.
+     * @param arguments the method parameters matching the method's signature with <code>null</code> values where injection is needed.
+     *
+     * @return the result of the method invocation.
+     *
+     * @throws ResolutionException when dependency resolution fails
+     */
+    Object invoke(Object component, boolean explicit, Method method, Object... arguments) throws ResolutionException;
+
+    /**
+     * Wraps the given component in a proxy that calls {@link #invoke(Object, boolean, Method, Object...) invoke}<code>(<b>component</b>, <b>false</b>,
+     * <i>method</i>, <i>args</i>)</code> on all methods with {@link Inject @Inject} annotated parameters of all or given {@linkplain Components#inspect(Class,
+     * Class[]) component interfaces} of the supplied component.
+     *
+     * @param component a component that needs field injection of dependencies.
+     * @param api       optional list of component interfaces to expose by the returned object.
+     *
+     * @return a new component that implements all, or the given, component interfaces and injects missing method parameters from this container.
+     *
+     * @throws ResolutionException when dependency resolution fails
+     */
+    @SuppressWarnings("JavadocReference")
+    <T> T complete(T component, Class<? super T>... api) throws ResolutionException;
 
     /**
      * Top level exception for errors related to the dependency injection container.
@@ -391,7 +458,6 @@ public interface ComponentContainer {
     /**
      * Reports an error that occurred while trying to instantiate a component class during dependency resolution.
      */
-    @SuppressWarnings("UnusedDeclaration")
     class InstantiationException extends ResolutionException {
 
         private final DependencyPath path;

@@ -192,7 +192,5 @@ public abstract class AbstractContainerTests extends MockGroupAbstractTest {
      * Just a class with no dependencies, intended to be registered in a container and then checked if the registration is there in a container received from
      * the system.
      */
-    public static class Check {
-
-    }
+    public static class Check { }
 }

@@ -16,9 +16,20 @@
 
 package org.fluidity.composition.spi;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 import org.fluidity.composition.ComponentContainer;
+import org.fluidity.composition.Components;
+import org.fluidity.composition.Inject;
 import org.fluidity.composition.ObservedComponentContainer;
 import org.fluidity.composition.OpenComponentContainer;
+import org.fluidity.foundation.Proxies;
 
 /**
  * Implements basic method relationships and functionality useful for container and registry implementations.
@@ -71,6 +82,49 @@ public abstract class EmptyComponentContainer implements OpenComponentContainer,
         });
 
         return container.getComponent(componentClass);
+    }
+
+    @SuppressWarnings("unchecked")
+    public final <T> T complete(final T component, final Class<? super T>... api) throws ResolutionException {
+        final Class<T> type = (Class<T>) component.getClass();
+        final List<Class<?>> interfaces = new ArrayList<Class<?>>();
+
+        for (final Components.Specification specification : Components.inspect(type, api).api) {
+            if (specification.api.isInterface()) {
+                interfaces.add(specification.api);
+            } else {
+                throw new IllegalArgumentException(String.format("Component %s may only have interfaces as its component interfaces", type.getName()));
+            }
+        }
+
+        return (T) Proxies.create(type.getClassLoader(), interfaces.toArray(new Class<?>[interfaces.size()]), new InvocationHandler() {
+
+            private final Map<Method, Boolean> injectMap = new ConcurrentHashMap<Method, Boolean>();
+
+            public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
+                Boolean inject = injectMap.get(method);
+
+                if (inject == null) {
+                    LOOP:
+                    for (final Annotation[] annotations : method.getParameterAnnotations()) {
+                        for (final Annotation annotation : annotations) {
+                            if (annotation instanceof Inject) {
+                                injectMap.put(method, inject = true);
+                                break LOOP;
+                            }
+                        }
+                    }
+
+                    if (inject == null) {
+                        injectMap.put(method, inject = false);
+                    }
+
+                    method.setAccessible(true);
+                }
+
+                return inject ? EmptyComponentContainer.this.invoke(component, false, method, args) : method.invoke(component, args);
+            }
+        });
     }
 
     public final Registry getRegistry() {

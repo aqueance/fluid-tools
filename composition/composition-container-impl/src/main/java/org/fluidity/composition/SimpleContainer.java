@@ -141,18 +141,20 @@ interface SimpleContainer extends DependencyGraph {
     Object initialize(Object component, ContextDefinition context, ComponentResolutionObserver observer) throws ComponentContainer.ResolutionException;
 
     /**
-     * Injects the parameters of the given method and invokes it on the given interface.
+     * Injects all applicable parameters of the given method that the provided argument list contains no value for, and invokes it on the given interface.
      *
      * @param component the component instance.
      * @param method    the method to inject and invoke.
      * @param context   the base context to resolve the component's dependencies in.
+     * @param arguments the method parameters already resolved.
+     * @param explicit  tells if all parameters of the method are subject to injection (<code>true</code>) or only those annotated with {@link Inject @Inject}.
      *
      * @return the component instance.
      *
      * @throws ComponentContainer.ResolutionException
      *          when dependency resolution fails.
      */
-    Object invoke(Object component, Method method, final ContextDefinition context);
+    Object invoke(Object component, Method method, ContextDefinition context, Object[] arguments, boolean explicit);
 
     /**
      * Returns a textual identifier for the container.

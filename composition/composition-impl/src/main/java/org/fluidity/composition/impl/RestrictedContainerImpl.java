@@ -72,8 +72,12 @@ final class RestrictedContainerImpl implements RestrictedContainer {
         return reference.get().initialize(component);
     }
 
-    public Object invoke(final Object component, final Method method) throws ResolutionException {
-        return reference.get().invoke(component, method);
+    public Object invoke(final Object component, final boolean explicit, final Method method, final Object... arguments) throws ResolutionException {
+        return reference.get().invoke(component, explicit, method, arguments);
+    }
+
+    public <T> T complete(final T component, final Class<? super T>... api) throws ResolutionException {
+        return reference.get().complete(component, api);
     }
 
     public <T> T instantiate(final Class<T> componentClass) throws ResolutionException {

@@ -322,14 +322,14 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
     public void testInvokesMethod() throws Exception {
         final MethodInjected component = new MethodInjected();
 
-        final Method method = MethodInjected.class.getDeclaredMethod("inject", Dependency.class, Service[].class);
+        final Method method = MethodInjected.class.getDeclaredMethod("explicit", Dependency.class, Service[].class);
         final DependencyImpl dependency = new DependencyImpl();
         final Service[] services = new Service[0];
 
         setupMethodResolution(MissingGroupConsumer.class, method, null, null, dependency, services);
 
         replay();
-        assert "value".equals(injector.invoke(component, method, traversal, resolver, contexts, context));
+        assert "value".equals(injector.invoke(component, method, null, traversal, resolver, contexts, context, true));
         verify();
 
         assert component.dependency == dependency;
@@ -340,14 +340,11 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
     public void testInvokesMethodWithParameters() throws Exception {
         final MethodInjected component = new MethodInjected();
 
-        final Method method = MethodInjected.class.getDeclaredMethod("pass", Dependency.class, Service[].class);
+        final Method method = MethodInjected.class.getDeclaredMethod("implicit", Dependency.class, Service[].class);
         final DependencyImpl dependency = new DependencyImpl();
 
-//        setupMethodResolution(MissingGroupConsumer.class, method, null, null, null, null);
-
         replay();
-        final Object[] arguments = new Object[] { dependency, null };
-        assert "value".equals(injector.invoke(component, method, arguments, traversal, resolver, contexts, context));
+        assert "value".equals(injector.invoke(component, method, new Object[] { dependency, null }, traversal, resolver, contexts, context, false));
         verify();
 
         assert component.dependency == dependency;
@@ -430,13 +427,13 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
         public Dependency dependency;
         public Service[] services;
 
-        private String inject(final Dependency dependency, final @ComponentGroup Service[] services) {
+        private String explicit(final Dependency dependency, final @ComponentGroup Service[] services) {
             this.dependency = dependency;
             this.services = services;
             return "value";
         }
 
-        private String pass(final @Inject Dependency dependency, final @ComponentGroup Service[] services) {
+        private String implicit(final @Inject Dependency dependency, final @ComponentGroup Service[] services) {
             this.dependency = dependency;
             this.services = services;
             return "value";

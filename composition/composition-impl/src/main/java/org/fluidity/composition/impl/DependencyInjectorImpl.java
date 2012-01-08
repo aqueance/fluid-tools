@@ -78,65 +78,12 @@ final class DependencyInjectorImpl implements DependencyInjector {
 
     public Object invoke(final Object component,
                          final Method method,
-                         final DependencyGraph.Traversal traversal,
-                         final DependencyResolver container,
-                         final ContextNode contexts,
-                         final ContextDefinition context) throws ComponentContainer.ResolutionException {
-        assert method != null;
-        assert container != null;
-
-        final Class<?> componentClass = method.getDeclaringClass();
-        final Annotation[] methodAnnotations = method.getAnnotations();
-        final Annotation[][] parameterAnnotations = method.getParameterAnnotations();
-        final Type[] types = method.getGenericParameterTypes();
-        final Object[] parameters = new Object[types.length];
-
-        for (int i = 0, length = types.length; i < length; ++i) {
-            final int index = i;
-            injectDependency(false, traversal, container, contexts, context.copy(), componentClass, new Dependency() {
-
-                public Type reference() {
-                    return types[index];
-                }
-
-                @SuppressWarnings("unchecked")
-                public <T extends Annotation> T annotation(final Class<T> annotationClass) {
-                    for (final Annotation annotation : annotations()) {
-                        if (annotationClass.isAssignableFrom(annotation.getClass())) {
-                            return (T) annotation;
-                        }
-                    }
-
-                    return null;
-                }
-
-                public Annotation[] annotations() {
-                    return parameterAnnotations(methodAnnotations, parameterAnnotations[index]);
-                }
-
-                public void set(final DependencyGraph.Node node) {
-                    parameters[index] = node.instance(traversal);
-                }
-            });
-        }
-
-        try {
-            method.setAccessible(true);
-            return method.invoke(component, parameters);
-        } catch (final IllegalAccessException e) {
-            throw new ComponentContainer.ResolutionException(e, "Invoking %s", method);
-        } catch (final InvocationTargetException e) {
-            throw new ComponentContainer.ResolutionException(e.getCause(), "Invoking %s", method);
-        }
-    }
-
-    public Object invoke(final Object component,
-                         final Method method,
                          final Object[] arguments,
                          final DependencyGraph.Traversal traversal,
                          final DependencyResolver container,
                          final ContextNode contexts,
-                         final ContextDefinition context) throws ComponentContainer.ResolutionException {
+                         final ContextDefinition context,
+                         final boolean explicit) throws ComponentContainer.ResolutionException {
         assert method != null;
         assert container != null;
 
@@ -144,27 +91,19 @@ final class DependencyInjectorImpl implements DependencyInjector {
         final Annotation[] methodAnnotations = method.getAnnotations();
         final Annotation[][] parameterAnnotations = method.getParameterAnnotations();
         final Type[] types = method.getGenericParameterTypes();
-        final Object[] parameters = new Object[types.length];
+        final Object[] parameters = arguments == null ? new Object[types.length] : Arrays.copyOf(arguments, types.length);
 
         for (int i = 0, length = types.length; i < length; ++i) {
             final int index = i;
-
-            if (arguments[index] == null && contains(parameterAnnotations[index], Inject.class)) {
+            if (parameters[index] == null && (explicit || contains(parameterAnnotations[index], Inject.class))) {
                 injectDependency(false, traversal, container, contexts, context.copy(), componentClass, new Dependency() {
 
                     public Type reference() {
                         return types[index];
                     }
 
-                    @SuppressWarnings("unchecked")
                     public <T extends Annotation> T annotation(final Class<T> annotationClass) {
-                        for (final Annotation annotation : annotations()) {
-                            if (annotationClass.isAssignableFrom(annotation.getClass())) {
-                                return (T) annotation;
-                            }
-                        }
-
-                        return null;
+                        return find(annotations(), annotationClass);
                     }
 
                     public Annotation[] annotations() {
@@ -175,8 +114,6 @@ final class DependencyInjectorImpl implements DependencyInjector {
                         parameters[index] = node.instance(traversal);
                     }
                 });
-            } else {
-                parameters[index] = arguments[index];
             }
         }
 
@@ -190,9 +127,20 @@ final class DependencyInjectorImpl implements DependencyInjector {
         }
     }
 
-    private <T> boolean contains(final T[] list, final Class<? extends T> check) {
+    @SuppressWarnings("unchecked")
+    private <T extends Annotation> T find(final Annotation[] annotations, final Class<T> check) {
+        for (final Annotation annotation : annotations) {
+            if (annotation.annotationType() == check) {
+                return (T) annotation;
+            }
+        }
+
+        return null;
+    }
+
+    private <T extends Annotation> boolean contains(final T[] list, final Class<? extends T> check) {
         for (final T item : list) {
-            if (item.getClass() == check) {
+            if (item.annotationType() == check) {
                 return true;
             }
         }
@@ -322,15 +270,8 @@ final class DependencyInjectorImpl implements DependencyInjector {
                     return types[index];
                 }
 
-                @SuppressWarnings("unchecked")
                 public <T extends Annotation> T annotation(final Class<T> annotationClass) {
-                    for (final Annotation annotation : annotations()) {
-                        if (annotationClass.isAssignableFrom(annotation.getClass())) {
-                            return (T) annotation;
-                        }
-                    }
-
-                    return null;
+                    return find(annotations(), annotationClass);
                 }
 
                 public Annotation[] annotations() {

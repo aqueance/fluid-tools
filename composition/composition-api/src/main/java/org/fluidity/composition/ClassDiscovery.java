@@ -25,7 +25,7 @@ package org.fluidity.composition;
  * instantiate</em> those classes, use a dependency injected {@link ComponentGroup @ComponentGroup} annotated array parameter instead.
  * <h3>Usage</h3>
  * <pre>
- * &#64;{@linkplain Component}
+ * {@linkplain Component @Component}
  * final class MyComponent {
  *
  *   public MyComponent(final <span class="hl1">ClassDiscovery</span> discovery) {

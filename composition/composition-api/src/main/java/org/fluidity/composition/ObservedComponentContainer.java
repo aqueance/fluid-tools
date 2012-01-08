@@ -25,7 +25,7 @@ import org.fluidity.composition.spi.ComponentResolutionObserver;
  * works together with a client supplied {@link ComponentResolutionObserver} object that it sends component resolution events to.
  * <h3>Usage</h3>
  * <pre>
- * &#64;{@linkplain Component}
+ * {@linkplain Component @Component}
  * final class MyComponent {
  *
  *   private final <span class="hl3">{@linkplain ComponentContainer}</span> container;

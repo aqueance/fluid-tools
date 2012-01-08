@@ -63,30 +63,7 @@ public interface DependencyInjector {
     <T> T fields(T instance, DependencyGraph.Traversal traversal, DependencyResolver container, ContextNode contexts, ContextDefinition context);
 
     /**
-     * Injects all parameters of the given method and invokes the method on the given component.
-     *
-     * @param component the object to call the method on.
-     * @param method    the method to invoke.
-     * @param traversal the graph traversal to use.
-     * @param container the container to resolve method parameters.
-     * @param contexts  context node corresponding to the component.
-     * @param context   the component context of the given component.
-     *
-     * @return the received instance.
-     *
-     * @throws org.fluidity.composition.ComponentContainer.ResolutionException
-     *          thrown when the search yields no or multiple constructors.
-     */
-    Object invoke(Object component,
-                  Method method,
-                  DependencyGraph.Traversal traversal,
-                  DependencyResolver container,
-                  ContextNode contexts,
-                  ContextDefinition context) throws ComponentContainer.ResolutionException;
-
-    /**
-     * Injects all {@link org.fluidity.composition.Inject @Inject} annotated parameters of the given method with no value in the provided argument list and
-     * invokes the method on the given component.
+     * Injects the parameters of the given method that the provided argument list contains no value for, and invokes the method on the given component.
      *
      * @param component the object to call the method on.
      * @param method    the method to invoke.
@@ -95,6 +72,8 @@ public interface DependencyInjector {
      * @param container the container to resolve method parameters.
      * @param contexts  context node corresponding to the component.
      * @param context   the component context of the given component.
+     * @param explicit  tells whether all method arguments are subject to injection (<code>true</code>) or only those annotated with {@link
+     *                  org.fluidity.composition.Inject @Inject}.
      *
      * @return the received instance.
      *
@@ -107,7 +86,8 @@ public interface DependencyInjector {
                   DependencyGraph.Traversal traversal,
                   DependencyResolver container,
                   ContextNode contexts,
-                  ContextDefinition context) throws ComponentContainer.ResolutionException;
+                  ContextDefinition context,
+                  boolean explicit) throws ComponentContainer.ResolutionException;
 
     /**
      * Find the injectable constructor of the given class.
