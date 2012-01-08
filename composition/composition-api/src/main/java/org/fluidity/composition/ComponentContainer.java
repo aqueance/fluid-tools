@@ -63,7 +63,7 @@ import org.fluidity.foundation.Strings;
  * Containers can also be used to peek into the static dependency graph of your application. This functionality is provided by the {@link
  * ObservedComponentContainer} object returned by the {@link #observed(ComponentResolutionObserver)} method.
  * <h3>Usage</h3>
- * All examples below assume the following component boilerplate:
+ * All examples below assume the following enclosing boilerplate:
  * <pre>
  * {@linkplain Component @Component}
  * final class MyComponent {
@@ -76,7 +76,7 @@ import org.fluidity.foundation.Strings;
  *   }
  *
  *   private void myMethod() throws throws <b>MyCheckedException</b> {
- *     ... example code snippet from below ...
+ *     <i>... example code snippet from below ...</i>
  *   }
  * }
  * </pre>
@@ -481,9 +481,40 @@ public interface ComponentContainer {
     }
 
     /**
-     * <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Composition">Component</a> bindings. Implementations of this interface populate a
-     * dependency injection container when asked to. A component binding is a mapping from an interface or class to a class that implements the interface or
-     * extends the class, respectively, or to an instance of such a class.
+     * Component bindings: a list of component class to component interface and / or component group mappings. {@link ComponentContainer
+     * ComponentContainers} use bindings to map component and component group interfaces to component classes when resolving dependencies.
+     * <p/>
+     * Bindings are mostly used when automatically populating an application's dependency injection container hierarchy. At build time, the
+     * <code>org.fluidity.maven:maven-composition-plugin</code> produces bindings to capture the list of {@link Component @Component} annotated classes in a
+     * module as component bindings, while at run-time Fluid Tools finds these bindings and loads them before the first query is made to a dependency injection
+     * container.
+     * <h3>Usage</h3>
+     * Programmatic use of bindings allows working with components not automatically bound by design. For example, some library may want to capture the
+     * instantiation of some component that depends on information at the site of its use rather than, or in addition to, application-wide state.
+     * <pre>
+     * {@linkplain Component @Component}
+     * public final class MyComponentFactory {
+     *
+     *   public <span class="hl2">MyComponent</span> create(final {@linkplain ComponentContainer} container, final <span class="hl3">MyLocalDependency</span> <span class="hl3">state</span>) {
+     *     return container.getComponent(<span class="hl2">MyComponent</span>.class, new <span class="hl1">ComponentContainer.Bindings</span>() {
+     *       public void <span class="hl1">bindComponents(</span>final {@linkplain ComponentContainer.Registry} registry<span class="hl1">)</span> {
+     *         registry.bindComponent(<span class="hl2">MyComponentImpl</span>.class);
+     *         registry.bindInstance(<span class="hl3">state</span>, <span class="hl3">MyLocalDependency</span>.class);
+     *       }
+     *     });
+     *   }
+     * }
+     *
+     * {@linkplain Component @Component}<span class="hl1">(automatic = false)</span>
+     * final class <span class="hl2">MyComponentImpl</span> implements <span class="hl2">MyComponent</span> {
+     *
+     *   public <span class="hl2">MyComponentImpl</span>(final <span class="hl3">MyLocalDependency</span> local, final MyGlobalDependency global) {
+     *     ...
+     *   }
+     *
+     *   ...
+     * }
+     * </pre>
      */
     interface Bindings {
 

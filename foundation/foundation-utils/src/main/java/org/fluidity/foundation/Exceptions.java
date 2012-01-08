@@ -20,28 +20,34 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.UndeclaredThrowableException;
 
 /**
- * Utility methods on exceptions.
+ * Utilities to allow propagation of checked exceptions through method calls that don't allow those checked exceptions thrown from inside.
  * <h3>Usage</h3>
+ * Let's say some executor expects a {@link Runnable} command to run, in the same thread, and your command needs to be able to throw some checked exceptions
+ * back to the caller. Assuming that the executor lets {@link RuntimeException RuntimeExceptions} thrown through:
  * <pre>
- * void someMethod() throws <span class="hl2">CheckedException1</span>, <span class="hl2">CheckedException2</span>, <span class="hl2">CheckedException3</span> {
+ * public void someMethod() throws <span class="hl2">CheckedException1</span>, <span class="hl2">CheckedException2</span>, <span class="hl2">CheckedException3</span> {
  *   try {
- *     ...
- *     <span class="hl1">{@linkplain Exceptions}.wrap(new {@linkplain Exceptions.Command}</span>&lt;Void> {
- *       ...
- *       return null;
- *     }<span class="hl1">)</span>;
- *     ...
- *   } catch (final <span class="hl1">Exceptions.Wrapper</span> wrapper) {
+ *     executor.run(new Runnable() {
+ *       public void run() {
+ *         <span class="hl1">Exceptions.wrap</span>(new <span class="hl1">{@linkplain Exceptions.Command}</span>&lt;Void>() {
+ *           public Void <span class="hl1">run</span>() throws Throwable {
+ *             ...
+ *             throw new <span class="hl2">CheckedException2</span>();
+ *           }
+ *         }<span class="hl1">)</span>;
+ *       }
+ *     });
+ *   } catch (final <span class="hl1">{@linkplain Exceptions.Wrapper}</span> wrapper) {
  *     throw wrapper
- *         .<span class="hl1">rethrow(</span><span class="hl2">CheckedException1</span>.class<span class="hl1">)</span>
- *         .<span class="hl1">rethrow(</span><span class="hl2">CheckedException2</span>.class<span class="hl1">)</span>
- *         .<span class="hl1">rethrow(</span><span class="hl2">CheckedException3</span>.class<span class="hl1">)</span>;
+ *         .<span class="hl1">rethrow</span><span class="hl2">(CheckedException1</span>.class)
+ *         .<span class="hl1">rethrow</span><span class="hl2">(CheckedException2</span>.class)
+ *         .<span class="hl1">rethrow</span><span class="hl2">(CheckedException3</span>.class);
  *   }
  * }
  * </pre>
  * <p/>
- * The above will re-throw either <code>CheckedException1</code>, <code>CheckedException2</code>,
- * <code>CheckedException3</code> or the <code>wrapper</code>, which is an {@linkplain RuntimeException unchecked} exception.
+ * The above allows re-throwing either <code>CheckedException1</code>, <code>CheckedException2</code>, <code>CheckedException3</code>, or <code>wrapper</code>,
+ * which is an {@linkplain RuntimeException unchecked} exception.
  *
  * @author Tibor Varga
  */
@@ -50,7 +56,8 @@ public final class Exceptions extends Utilities {
     private Exceptions() { }
 
     /**
-     * Re-trows {@link RuntimeException RuntimeExceptions} and wraps other {@link Exception Exceptions} in a {@link Wrapper}.
+     * Re-trows {@link RuntimeException RuntimeExceptions} and {@link Error Errors}, and wraps checked {@link Exception Exceptions} in an {@link Wrapper}
+     * object.
      *
      * @param context the action part of the "Error %s" message in the wrapper exception.
      * @param command the command to run.
@@ -74,7 +81,8 @@ public final class Exceptions extends Utilities {
     }
 
     /**
-     * Re-trows {@link RuntimeException RuntimeExceptions} and wraps other {@link Exception Exceptions} in a {@link Wrapper}.
+     * Re-trows {@link RuntimeException RuntimeExceptions} and {@link Error Errors}, and wraps checked {@link Exception Exceptions} in an {@link Wrapper}
+     * object.
      *
      * @param command the command to run.
      *
@@ -115,6 +123,8 @@ public final class Exceptions extends Utilities {
     /**
      * An unchecked exception that wraps a checked exception. Thrown by {@link Exceptions#wrap(Exceptions.Command)} and {@link Exceptions#wrap(String,
      * Exceptions.Command)}.
+     * <h3>Usage</h3>
+     * See {@link Exceptions} for an example.
      */
     public static final class Wrapper extends RuntimeException {
 
@@ -128,8 +138,6 @@ public final class Exceptions extends Utilities {
 
         /**
          * If the wrapped exception is of the given type, it is thrown, otherwise this instance is returned. The intended usage is:
-         * <h3>Usage</h3>
-         * See {@link Exceptions} for an example.
          *
          * @param accept the class of the exception to check.
          * @param <T>    the type of the exception to check.
