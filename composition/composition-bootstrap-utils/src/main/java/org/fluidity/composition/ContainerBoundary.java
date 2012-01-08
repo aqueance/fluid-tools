@@ -156,8 +156,9 @@ public final class ContainerBoundary implements ComponentContainer {
 
     /**
      * Allows a bootstrap code to add component instances to the container before it is populated. This method can only be invoked before any component is
-     * taken out of the container by any thread using any of the {@link #getComponent(Class)}, {@link #getComponent(Class, OpenComponentContainer.Bindings)},
-     * {@link #initialize(Object)} or {@link #makeChildContainer()} methods. Once that happens, this method will throw an {@link IllegalStateException}.
+     * taken out of the container by any thread using any of the {@link #getComponent(Class)}, {@link #initialize(Object)}, {@link #instantiate(Class)}, {@link
+     * #instantiate(Class, ComponentContainer.Bindings)}, {@link #makeChildContainer()} or {@link #makeChildContainer(ComponentContainer.Bindings)} methods.
+     * Once that happens, this method will throw an {@link IllegalStateException}.
      * <p/>
      * Calling this method will trigger population of the associated container and its parents.
      *
@@ -195,7 +196,16 @@ public final class ContainerBoundary implements ComponentContainer {
      * <p/>
      * {@inheritDoc}
      */
-    public <T> T getComponent(final Class<T> api, final OpenComponentContainer.Bindings bindings) {
+    public <T> T[] getComponentGroup(final Class<T> api) {
+        return loadContainer(true).getComponentGroup(api);
+    }
+
+    /**
+     * Delegates to the enclosed container.
+     * <p/>
+     * {@inheritDoc}
+     */
+    public <T> T getComponent(final Class<T> api, final Bindings bindings) throws ResolutionException {
         return loadContainer(true).getComponent(api, bindings);
     }
 
@@ -206,6 +216,15 @@ public final class ContainerBoundary implements ComponentContainer {
      */
     public OpenComponentContainer makeChildContainer() {
         return loadContainer(true).makeChildContainer();
+    }
+
+    /**
+     * Delegates to the enclosed container.
+     * <p/>
+     * {@inheritDoc}
+     */
+    public ComponentContainer makeChildContainer(final Bindings bindings) {
+        return loadContainer(true).makeChildContainer(bindings);
     }
 
     /**
@@ -249,8 +268,8 @@ public final class ContainerBoundary implements ComponentContainer {
      * <p/>
      * {@inheritDoc}
      */
-    public <T> T[] getComponentGroup(final Class<T> api) {
-        return loadContainer(true).getComponentGroup(api);
+    public <T> T instantiate(final Class<T> componentClass, final Bindings bindings) throws ResolutionException {
+        return loadContainer(true).instantiate(componentClass, bindings);
     }
 
     /**

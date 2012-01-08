@@ -34,6 +34,6 @@ pre, tt, code, kbd, samp, xmp { font-family: courier }
 .NavBarCell3    { font-family: Arial, Helvetica, sans-serif; background-color: #FFFFFF; color: #000000}
 
 .hl1 { font-weight: bolder; }
-.hl1 { color: maroon; }
-.hl2 { color: navy; }
-.hl3 { color: teal; }
+.hl1, .hl1 a { color: maroon; }
+.hl2, .hl2 a { color: navy; }
+.hl3, .hl3 a { color: teal; }

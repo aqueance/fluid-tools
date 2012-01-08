@@ -51,7 +51,7 @@ public class BundleComponentContainerImplTest extends MockGroupAbstractTest {
     private final BundleContext context = mock(BundleContext.class);
     private final ComponentContainer container = mock(ComponentContainer.class);
     private final OpenComponentContainer child = mock(OpenComponentContainer.class);
-    private final OpenComponentContainer.Registry registry = mock(OpenComponentContainer.Registry.class);
+    private final ComponentContainer.Registry registry = mock(ComponentContainer.Registry.class);
     private final ClassDiscovery discovery = mock(ClassDiscovery.class);
     private final DependencyInjector injector = mock(DependencyInjector.class);
     private final BundleBoundary border = mock(BundleBoundary.class);

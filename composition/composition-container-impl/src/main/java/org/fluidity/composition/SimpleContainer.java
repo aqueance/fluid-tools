@@ -87,20 +87,20 @@ interface SimpleContainer extends DependencyGraph {
      *
      * @return the bound resolver.
      *
-     * @throws OpenComponentContainer.BindingException
+     * @throws ComponentContainer.BindingException
      *          when binding fails.
      */
-    ComponentResolver bindResolver(Class<?> key, ComponentResolver entry) throws OpenComponentContainer.BindingException;
+    ComponentResolver bindResolver(Class<?> key, ComponentResolver entry) throws ComponentContainer.BindingException;
 
     /**
      * Binds a component class to an interface.
      *
      * @param interfaces the component and group interfaces to bind to.
      *
-     * @throws OpenComponentContainer.BindingException
+     * @throws ComponentContainer.BindingException
      *          when binding fails.
      */
-    void bindComponent(Components.Interfaces interfaces) throws OpenComponentContainer.BindingException;
+    void bindComponent(Components.Interfaces interfaces) throws ComponentContainer.BindingException;
 
     /**
      * Binds a component instance to an interface.
@@ -108,10 +108,10 @@ interface SimpleContainer extends DependencyGraph {
      * @param instance   the component instance to bind.
      * @param interfaces the component and group interfaces to bind to.
      *
-     * @throws OpenComponentContainer.BindingException
+     * @throws ComponentContainer.BindingException
      *          when binding fails.
      */
-    void bindInstance(Object instance, Components.Interfaces interfaces) throws OpenComponentContainer.BindingException;
+    void bindInstance(Object instance, Components.Interfaces interfaces) throws ComponentContainer.BindingException;
 
     /**
      * Creates a child container of the receiver and links the given interface to a mapping added to the returned child, effectively directing the component
@@ -121,10 +121,10 @@ interface SimpleContainer extends DependencyGraph {
      *
      * @return the child container returned.
      *
-     * @throws OpenComponentContainer.BindingException
+     * @throws ComponentContainer.BindingException
      *          when binding fails.
      */
-    SimpleContainer linkComponent(Components.Interfaces interfaces) throws OpenComponentContainer.BindingException;
+    SimpleContainer linkComponent(Components.Interfaces interfaces) throws ComponentContainer.BindingException;
 
     /**
      * Injects the {@link Inject @Inject} annotated fields of the given component instance.

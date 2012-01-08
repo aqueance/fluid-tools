@@ -36,7 +36,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
-import org.fluidity.composition.OpenComponentContainer;
 import org.fluidity.composition.Optional;
 import org.fluidity.composition.spi.CustomComponentFactory;
 import org.fluidity.foundation.spi.PropertyProvider;
@@ -56,7 +55,7 @@ final class ConfigurationFactory implements CustomComponentFactory {
         return new Instance() {
 
             @SuppressWarnings("unchecked")
-            public void bind(final Registry registry) throws OpenComponentContainer.BindingException {
+            public void bind(final Registry registry) throws ComponentContainer.BindingException {
                 if (contexts != null) {
                     registry.bindInstance(contexts, Configuration.Context[].class);
                 }

@@ -201,7 +201,7 @@ final class SimpleContainerImpl extends EmptyDependencyGraph implements ParentCo
         final boolean isAnonymousClass = implementation.isAnonymousClass();
 
         if (isSyntheticClass || isAnonymousClass) {
-            throw new OpenComponentContainer.BindingException("Component %s is not instantiable (%s)", implementation, isSyntheticClass ? "synthetic" : "anonymous");
+            throw new ComponentContainer.BindingException("Component %s is not instantiable (%s)", implementation, isSyntheticClass ? "synthetic" : "anonymous");
         }
 
         final Component componentSpec = implementation.getAnnotation(Component.class);
@@ -242,7 +242,7 @@ final class SimpleContainerImpl extends EmptyDependencyGraph implements ParentCo
 
     public void bindInstance(final Object instance, final Components.Interfaces interfaces) {
         if (instance == null) {
-            throw new OpenComponentContainer.BindingException("Component instance for %s is null", interfaces.implementation);
+            throw new ComponentContainer.BindingException("Component instance for %s is null", interfaces.implementation);
         }
 
         final Class<?> implementation = instance.getClass();
@@ -280,7 +280,7 @@ final class SimpleContainerImpl extends EmptyDependencyGraph implements ParentCo
         });
     }
 
-    public SimpleContainer linkComponent(final Components.Interfaces interfaces) throws OpenComponentContainer.BindingException {
+    public SimpleContainer linkComponent(final Components.Interfaces interfaces) throws ComponentContainer.BindingException {
         final LogFactory logs = this.logs;
         final SimpleContainer child = newChildContainer(false);
 
@@ -679,19 +679,19 @@ final class SimpleContainerImpl extends EmptyDependencyGraph implements ParentCo
             throw new UnsupportedOperationException();
         }
 
-        public ComponentResolver bindResolver(final Class<?> key, final ComponentResolver entry) throws OpenComponentContainer.BindingException {
+        public ComponentResolver bindResolver(final Class<?> key, final ComponentResolver entry) throws ComponentContainer.BindingException {
             throw new UnsupportedOperationException();
         }
 
-        public void bindComponent(final Components.Interfaces interfaces) throws OpenComponentContainer.BindingException {
+        public void bindComponent(final Components.Interfaces interfaces) throws ComponentContainer.BindingException {
             throw new UnsupportedOperationException();
         }
 
-        public void bindInstance(final Object instance, final Components.Interfaces interfaces) throws OpenComponentContainer.BindingException {
+        public void bindInstance(final Object instance, final Components.Interfaces interfaces) throws ComponentContainer.BindingException {
             throw new UnsupportedOperationException();
         }
 
-        public SimpleContainer linkComponent(final Components.Interfaces interfaces) throws OpenComponentContainer.BindingException {
+        public SimpleContainer linkComponent(final Components.Interfaces interfaces) throws ComponentContainer.BindingException {
             throw new UnsupportedOperationException();
         }
 

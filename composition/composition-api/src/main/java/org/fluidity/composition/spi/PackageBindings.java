@@ -17,7 +17,6 @@
 package org.fluidity.composition.spi;
 
 import org.fluidity.composition.ComponentContainer;
-import org.fluidity.composition.OpenComponentContainer;
 import org.fluidity.composition.ServiceProvider;
 
 /**
@@ -31,7 +30,7 @@ import org.fluidity.composition.ServiceProvider;
  * @author Tibor Varga
  */
 @ServiceProvider(api = PackageBindings.class, type = PackageBindings.SERVICE_TYPE)
-public interface PackageBindings extends OpenComponentContainer.Bindings {
+public interface PackageBindings extends ComponentContainer.Bindings {
 
     /**
      * Distinguishes package bindings from the usual JAR service providers.
@@ -40,11 +39,11 @@ public interface PackageBindings extends OpenComponentContainer.Bindings {
 
     /**
      * Perform component specific initialization if necessary. This method is invoked once after the {@link
-     * org.fluidity.composition.OpenComponentContainer.Bindings#bindComponents(org.fluidity.composition.OpenComponentContainer.Registry)
-     * OpenComponentContainer.Bindings.bindComponents()} method of all {@link PackageBindings} objects have been invoked and
+     * org.fluidity.composition.ComponentContainer.Bindings#bindComponents(org.fluidity.composition.ComponentContainer.Registry)
+     * ComponentContainer.Bindings.bindComponents()} method of all {@link PackageBindings} objects have been invoked and
      * before any component is accessed in the provided container from outside the container.
      *
-     * @param container is the container that was populated by the <code>OpenComponentContainer.Bindings.bindComponents()</code>
+     * @param container is the container that was populated by the <code>ComponentContainer.Bindings.bindComponents()</code>
      *                  method.
      */
     void initializeComponents(ComponentContainer container);
@@ -52,7 +51,7 @@ public interface PackageBindings extends OpenComponentContainer.Bindings {
     /**
      * Perform component specific shutdown if necessary. This method is invoked once when the application is being shut down.
      *
-     * @param container is the container that was populated by the <code>OpenComponentContainer.Bindings.bindComponents()</code>
+     * @param container is the container that was populated by the <code>ComponentContainer.Bindings.bindComponents()</code>
      *                  method.
      */
     void shutdownComponents(ComponentContainer container);

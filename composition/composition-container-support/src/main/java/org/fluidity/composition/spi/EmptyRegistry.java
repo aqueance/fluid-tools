@@ -16,13 +16,14 @@
 
 package org.fluidity.composition.spi;
 
+import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.Components;
 import org.fluidity.composition.OpenComponentContainer;
 
 /**
  * Implements basic method relationships and useful functionality to registry implementations.
  */
-final class EmptyRegistry implements OpenComponentContainer.Registry {
+final class EmptyRegistry implements ComponentContainer.Registry {
 
     private final ComponentRegistry delegate;
 
@@ -35,19 +36,19 @@ final class EmptyRegistry implements OpenComponentContainer.Registry {
     }
 
     @SuppressWarnings("unchecked")
-    public final <T> void bindComponent(final Class<T> implementation, final Class<? super T>... interfaces) throws OpenComponentContainer.BindingException {
+    public final <T> void bindComponent(final Class<T> implementation, final Class<? super T>... interfaces) throws ComponentContainer.BindingException {
         delegate.bindComponent(Components.inspect(implementation, interfaces));
     }
 
     @SuppressWarnings("unchecked")
-    public final <T> void bindInstance(final T instance, final Class<? super T>... interfaces) throws OpenComponentContainer.BindingException {
+    public final <T> void bindInstance(final T instance, final Class<? super T>... interfaces) throws ComponentContainer.BindingException {
         assert instance != null;
         final Class<T> implementation = (Class<T>) instance.getClass();
         delegate.bindInstance(instance, Components.inspect(implementation, interfaces));
     }
 
     @SuppressWarnings("unchecked")
-    public final <T> OpenComponentContainer makeChildContainer(final Class<T> implementation, final Class<? super T>... interfaces) throws OpenComponentContainer.BindingException {
+    public final <T> OpenComponentContainer makeChildContainer(final Class<T> implementation, final Class<? super T>... interfaces) throws ComponentContainer.BindingException {
         return delegate.makeChildContainer(Components.inspect(implementation, interfaces));
     }
 }

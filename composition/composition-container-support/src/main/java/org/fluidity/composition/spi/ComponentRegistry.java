@@ -16,6 +16,7 @@
 
 package org.fluidity.composition.spi;
 
+import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.Components;
 import org.fluidity.composition.OpenComponentContainer;
 
@@ -31,10 +32,10 @@ public interface ComponentRegistry {
      *
      * @param interfaces     the component and group interfaces; never <code>null</code>.
      *
-     * @throws OpenComponentContainer.BindingException
+     * @throws ComponentContainer.BindingException
      *          when the implementation cannot be bound to some interface
      */
-    void bindComponent(Components.Interfaces interfaces) throws OpenComponentContainer.BindingException;
+    void bindComponent(Components.Interfaces interfaces) throws ComponentContainer.BindingException;
 
     /**
      * Binds a component instance to a list of component interfaces and group interfaces.
@@ -42,10 +43,10 @@ public interface ComponentRegistry {
      * @param instance   the component instance.
      * @param interfaces the component and group interfaces; never <code>null</code>.
      *
-     * @throws OpenComponentContainer.BindingException
+     * @throws ComponentContainer.BindingException
      *          when the implementation cannot be bound to some interface
      */
-    void bindInstance(Object instance, Components.Interfaces interfaces) throws OpenComponentContainer.BindingException;
+    void bindInstance(Object instance, Components.Interfaces interfaces) throws ComponentContainer.BindingException;
 
     /**
      * Creates a child container and calls {@link #bindComponent(Components.Interfaces)} with the given parameters. The component implementation will be
@@ -55,10 +56,10 @@ public interface ComponentRegistry {
      *
      * @return the child container to bind further components in.
      *
-     * @throws OpenComponentContainer.BindingException
+     * @throws ComponentContainer.BindingException
      *          when the implementation cannot be bound to some interface
      */
-    OpenComponentContainer makeChildContainer(Components.Interfaces interfaces) throws OpenComponentContainer.BindingException;
+    OpenComponentContainer makeChildContainer(Components.Interfaces interfaces) throws ComponentContainer.BindingException;
 
     /**
      * Creates an empty child container.

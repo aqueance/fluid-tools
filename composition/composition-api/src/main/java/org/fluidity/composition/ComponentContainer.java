@@ -75,35 +75,75 @@ import org.fluidity.foundation.Strings;
  *   }
  *
  *   private void exampleMethod() {
- *     ... example code below ...
+ *     ... example code snippet from below ...
  *   }
  * }
  * </pre>
- * <h4>Observing Dependency Resolution</h4>
- * TODO
  * <h4>Local Instantiation</h4>
- * Use temporary containers to quickly instantiate some helper class without polluting your component with the dependencies of the helper.
+ * A container can be used to quickly instantiate some helper class without polluting the host component with the dependencies of its helpers.
+ * <ul>
+ * <li>If the helper has <b>no</b> dependencies specific to this particular use:
  * <pre>
- *     &#47;*
- *      * If the helper <b>depends on something specific to this particular use</b>, then
- *      *  - acquire a child container,
- *      *  - add the necessary bindings to it,
- *      *  - and get your component instantiated:
- *      *&#47;
- *     final {@link OpenComponentContainer} child = container.<span class="hl1">makeChildContainer()</span>;
- *     child.getRegistry().bindInstance("local context", String.class);
- *     final <span class="hl2">MyHelper1</span> helper1 = child.<span class="hl1">getComponent(</span><span class="hl2">MyHelper1</span>.class<span class="hl1">)</span>;
+ * final <span class="hl2">MyHelper</span> helper = container.<span class="hl1">instantiate(</span><span class="hl2">MyHelper</span>.class<span class="hl1">)</span>;
+ * </pre></li>
+ * <li>If the helper <b>does</b> have dependencies specific to this particular use:
+ * <pre>
+ * final <span class="hl2">MyHelper</span> helper = container.<span class="hl1">instantiate(</span><span class="hl2">MyHelper</span>.class, new {@linkplain ComponentContainer.Bindings}() {
+ *   public void bindComponents({@linkplain ComponentContainer.Registry} registry) {
+ *     registry.bindInstance("local context", String.class);
+ *     ...
+ *   }
+ * }<span class="hl1">)</span>;
+ * </pre></li>
+ * <li>If <b>multiple</b> helpers share dependencies specific to this particular use, then
+ * <pre>
+ * &#47;* ... acquire a child container with the necessary bindings: *&#47;
  *
- *     &#47;*
- *      * If the helper needs <b>no dependencies specific to this particular use</b>, then use a shortcut:
- *      *&#47;
- *     final <span class="hl2">MyHelper2</span> helper2 = container.<span class="hl1">instantiate(</span><span class="hl2">MyHelper2</span>.class<span class="hl1">)</span>;
- * </pre>
- * <h4>Domain Containers</h4>
- * TODO
- * <h4>Container Boundary</h4>
- * TODO
- * <h4>Method Dependencies</h4>
+ * final <span class="hl1">ComponentContainer</span> child = container.<span class="hl1">makeChildContainer(</span>new {@linkplain ComponentContainer.Bindings}() {
+ *   public void bindComponents({@linkplain ComponentContainer.Registry} registry) {
+ *     registry.bindInstance("local context", String.class);
+ *     ...
+ *   }
+ * }<span class="hl1">)</span>;
+ *
+ * &#47;* ... and get your helpers instantiated: *&#47;
+ *
+ * final <span class="hl2">MyHelper1</span> helper1 = child.<span class="hl1">instantiate(</span><span class="hl2">MyHelper1</span>.class<span class="hl1">)</span>;
+ * final <span class="hl2">MyHelper2</span> helper2 = child.<span class="hl1">instantiate(</span><span class="hl2">MyHelper2</span>.class<span class="hl1">)</span>;
+ * </pre></li>
+ * <li>If <b>multiple</b> helpers share dependencies specific to this particular use and they also have local dependencies that should <b>not</b> be shared,
+ * then
+ * <pre>
+ * &#47;* ... acquire a child container with the necessary bindings: *&#47;
+ *
+ * final <span class="hl1">ComponentContainer</span> child = container.<span class="hl1">makeChildContainer(</span>new {@linkplain ComponentContainer.Bindings}() {
+ *   public void bindComponents({@linkplain ComponentContainer.Registry} registry) {
+ *     registry.bindInstance("local context", String.class);
+ *     ...
+ *   }
+ * }<span class="hl1">)</span>;
+ *
+ * &#47;* ... and get your helpers instantiated with the bindings not shared: *&#47;
+ *
+ * final <span class="hl2">MyHelper1</span> helper1 = child.<span class="hl1">instantiate(</span><span class="hl2">MyHelper1</span>.class, new {@linkplain ComponentContainer.Bindings}() {
+ *   public void bindComponents({@linkplain ComponentContainer.Registry} registry) {
+ *     registry.bindInstance(1234, Integer.TYPE);
+ *     ...
+ *   }
+ * }<span class="hl1">)</span>;
+ *
+ * final <span class="hl2">MyHelper2</span> helper2 = child.<span class="hl1">instantiate(</span><span class="hl2">MyHelper2</span>.class, new {@linkplain ComponentContainer.Bindings}() {
+ *   public void bindComponents({@linkplain ComponentContainer.Registry} registry) {
+ *     registry.bindInstance(5678, Integer.TYPE);
+ *     ...
+ *   }
+ * }<span class="hl1">)</span>;
+ * </pre></li>
+ * </ul>
+ * <h4>Observing Dependency Resolution</h4>
+ * A container can be used to explore the static and dynamic dependencies starting at any component interface. See {@link ObservedComponentContainer} for an
+ * example.
+ * <h4>Method Parameter Injection</h4>
  * TODO
  *
  * @author Tibor Varga
@@ -143,6 +183,22 @@ public interface ComponentContainer {
     <T> T[] getComponentGroup(Class<T> api);
 
     /**
+     * Finds by its component interface and instantiates a transient component after invoking the bindings implemented by the supplied
+     * {@link ComponentContainer.Bindings} object. This method is a convenient shortcut to {@linkplain #makeChildContainer() acquire a child container},
+     * {@linkplain ComponentContainer.Bindings#bindComponents(ComponentContainer.Registry) register component bindings} in it, and then get the child container
+     * to {@linkplain #getComponent(Class) find and instantiate} the requested component.
+     *
+     * @param api      an interface or class that the provided bindings will register an implementation or extension for, along with its dependencies missing
+     *                 from this container or its parent or intended to be overridden.
+     * @param bindings invoked to add component bindings to the child container.
+     *
+     * @return the component bound to the given class or <code>null</code> if none was bound.
+     *
+     * @throws ResolutionException when dependency resolution fails
+     */
+    <T> T getComponent(Class<T> api, ComponentContainer.Bindings bindings) throws ResolutionException;
+
+    /**
      * Creates another container whose components' dependencies will be satisfied from itself first and then from this container when the child could find no
      * component to satisfy a dependency with.
      * <p/>
@@ -152,6 +208,19 @@ public interface ComponentContainer {
      * @return a container that defaults to this container for satisfying component dependencies.
      */
     OpenComponentContainer makeChildContainer();
+
+    /**
+     * Creates another container whose components' dependencies will be satisfied from itself first and then from this container when the child could find no
+     * component to satisfy a dependency with.
+     * <p/>
+     * This method can be used to gain access to the dependency resolution and injection functionality of the container without polluting it with new
+     * components after it has been set up. Components placed in the child container will not be visible to clients of, or components in, this container.
+     *
+     * @param bindings invoked to add component bindings to the child container.
+     *
+     * @return a container that defaults to this container for satisfying component dependencies.
+     */
+    ComponentContainer makeChildContainer(Bindings bindings);
 
     /**
      * Creates another container whose components' dependencies will be satisfied from itself first, then from this container when the child could find no
@@ -166,22 +235,6 @@ public interface ComponentContainer {
      *         components when they cannot resolve a dependency.
      */
     OpenComponentContainer makeDomainContainer();
-
-    /**
-     * Instantiates and returns a transient component by its interface or (super)class after invoking the bindings implemented by the supplied
-     * {@link OpenComponentContainer.Bindings} object. This method is a convenient shortcut to {@linkplain #makeChildContainer() acquire a child container},
-     * {@linkplain OpenComponentContainer.Bindings#bindComponents(OpenComponentContainer.Registry) register component bindings} in it, and
-     * then get the child container to {@linkplain #getComponent(Class) instantiate} the requested component.
-     *
-     * @param api      an interface or class that the provided bindings will register an implementation or extension for, along with its dependencies missing
-     *                 from this container or its parent or intended to be overridden.
-     * @param bindings invoked to add component bindings to the child container.
-     *
-     * @return the component bound to the given class or <code>null</code> if none was bound.
-     *
-     * @throws ResolutionException when dependency resolution fails
-     */
-    <T> T getComponent(Class<T> api, OpenComponentContainer.Bindings bindings) throws ResolutionException;
 
     /**
      * Resolves and injects the {@link Inject @Inject} annotated fields of the given object. You only need to use this method if the supplied component was
@@ -199,7 +252,7 @@ public interface ComponentContainer {
      * Invokes the given method of the given object after resolving and injecting its parameters.
      *
      * @param component the method to invoke on the provided object.
-     * @param method    is the method that needs its parameters injected.
+     * @param method    the method that needs its parameters injected.
      *
      * @return the result of the method invocation.
      *
@@ -208,10 +261,10 @@ public interface ComponentContainer {
     Object invoke(Object component, Method method) throws ResolutionException;
 
     /**
-     * Instantiates the given class as a component, injecting its constructor and field dependencies in the process. No caching takes place, a new instance is
-     * created at every invocation.
+     * Instantiates the given class as a component, injecting its constructor and field dependencies in the process from the receiving container. No caching
+     * takes place, a new instance is created at every invocation.
      *
-     * @param componentClass is the component class to instantiate.
+     * @param componentClass the component class to instantiate.
      *
      * @return the new component.
      *
@@ -219,7 +272,18 @@ public interface ComponentContainer {
      */
     <T> T instantiate(Class<T> componentClass) throws ResolutionException;
 
-    // TODO: add instantiate(class, bindings)
+    /**
+     * Instantiates the given class as a component, injecting its constructor and field dependencies in the process from the given bindings and the receiving
+     * container. No caching takes place, a new instance is created at every invocation.
+     *
+     * @param componentClass the component class to instantiate.
+     * @param bindings       the local component bindings.
+     *
+     * @return the new component.
+     *
+     * @throws ResolutionException when dependency resolution fails
+     */
+    <T> T instantiate(Class<T> componentClass, ComponentContainer.Bindings bindings) throws ResolutionException;
 
     /**
      * Top level exception for errors related to the dependency injection container.
@@ -350,6 +414,114 @@ public interface ComponentContainer {
          */
         public DependencyPath path() {
             return path;
+        }
+    }
+
+    /**
+     * <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Composition">Component</a> bindings. Implementations of this interface populate a
+     * dependency injection container when asked to. A component binding is a mapping from an interface or class to a class that implements the interface or
+     * extends the class, respectively, or to an instance of such a class.
+     */
+    interface Bindings {
+
+        /**
+         * Add the component bindings to the given registry.
+         *
+         * @param registry is an object to register component bindings with.
+         */
+        void bindComponents(ComponentContainer.Registry registry);
+    }
+
+    /**
+     * Allows registration of <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Composition">components</a> into a
+     * <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Dependency_Injection_Concept">dependency injection</a>
+     * <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Dependency_Injection_Containers">container</a>.
+     * <p/>
+     * This interface is mainly used by {@link org.fluidity.composition.spi.PackageBindings} objects that are invoked when the host application populates its
+     * dependency injection containers.
+     * <p/>
+     * Outside of <code>PackageBindings</code>, an object implementing this interface for an {@linkplain OpenComponentContainer uninitialized container} can be
+     * acquired by calling {@link OpenComponentContainer#getRegistry() getRegistry()} on the container.
+     *
+     * @author Tibor Varga
+     */
+    interface Registry {
+
+        /**
+         * Binds a component class to a list of component interfaces in the container behind this registry. The component class will be instantiated on demand
+         * by the container when it resolves any of the provided component interfaces.
+         * <p/>
+         * The supplied component class may implement {@link org.fluidity.composition.spi.ComponentFactory}, in which case the receiver must support
+         * the factory functionality as described in the <code>ComponentFactory</code> documentation.
+         * <p/>
+         * When no class is provided in the <code>interfaces</code> parameter, the list of interfaces that resolve to the component at run-time will be
+         * determined by the algorithm documented at {@link Components}.
+         *
+         * @param implementation the component class.
+         * @param interfaces     optional list of interfaces that should resolve to the supplied component class.
+         *
+         * @throws ComponentContainer.BindingException
+         *          when component registration fails
+         */
+        @SuppressWarnings("JavadocReference")
+        <T> void bindComponent(Class<T> implementation, Class<? super T>... interfaces) throws ComponentContainer.BindingException;
+
+        /**
+         * Binds a component instance to a list of component interfaces in the container behind this registry. Use this method when you have no control over
+         * the instantiation of a class as in case of third party tools handing you the component, but you still want to make the instances available for
+         * components in the container to depend on.
+         * <p/>
+         * The supplied component instance may be a {@link org.fluidity.composition.spi.ComponentFactory} instance, in which case the receiver must support
+         * the factory functionality as described in the <code>ComponentFactory</code> documentation.
+         * <p/>
+         * When no class is provided in the <code>interfaces</code> parameter, the list of interfaces that resolve to the component at run-time will be
+         * determined by the algorithm documented at {@link Components}.
+         *
+         * @param instance   the component instance.
+         * @param interfaces optional list of interfaces that should resolve to the supplied component class.
+         *
+         * @throws ComponentContainer.BindingException
+         *          when component registration fails
+         */
+        @SuppressWarnings("JavadocReference")
+        <T> void bindInstance(T instance, Class<? super T>... interfaces) throws ComponentContainer.BindingException;
+
+        /**
+         * Returns a new child container that will use the container behind this registry as its parent. See {@link ComponentContainer#makeChildContainer()}.
+         *
+         * @return an open container, never <code>null</code>.
+         */
+        OpenComponentContainer makeChildContainer();
+
+        /**
+         * Returns a new child container that will use the container behind this registry as its parent to resolve only the given list of interfaces. This
+         * variant is intended to be used when the list of component interfaces resolvable in the returned container through the container behind this registry
+         * is restricted to a fixed set.
+         *
+         * @param implementation the component whose dependencies the child container will resolve.
+         * @param interfaces     the interfaces that the returned container should be able resolve through this container.
+         *
+         * @return an open container, never <code>null</code>.
+         *
+         * @throws ComponentContainer.BindingException
+         *          when component registration fails
+         */
+        <T> OpenComponentContainer makeChildContainer(Class<T> implementation, Class<? super T>... interfaces) throws ComponentContainer.BindingException;
+    }
+
+    /**
+     * Reports an error that occurred when binding a component class or instance to its component interfaces.
+     */
+    class BindingException extends ContainerException {
+
+        /**
+         * Creates a new instance using the given formatted text.
+         *
+         * @param format the Java format specification.
+         * @param data   the details to format.
+         */
+        public BindingException(final String format, final Object... data) {
+            super(format, data);
         }
     }
 }

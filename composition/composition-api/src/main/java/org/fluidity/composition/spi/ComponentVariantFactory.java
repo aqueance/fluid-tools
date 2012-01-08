@@ -22,8 +22,8 @@ package org.fluidity.composition.spi;
  * org.fluidity.composition.Component.Context @Component.Context} class annotation.
  * <p/>
  * A <code>ComponentVariantFactory</code> works in conjunction with an otherwise singleton component independently registered in a dependency injection
- * container accessible to the factory with a binding that allows new instances to be created, i.e., the component has not been bound by {@link
- * org.fluidity.composition.OpenComponentContainer.Registry#bindInstance(Object, Class[]) OpenComponentContainer.Registry.bindInstance()}.
+ * container and accessible to the factory with a binding that allows new instances to be created, i.e., the component has not been bound by {@link
+ * org.fluidity.composition.ComponentContainer.Registry#bindInstance(Object, Class[])}.
  *
  * @author Tibor Varga
  */

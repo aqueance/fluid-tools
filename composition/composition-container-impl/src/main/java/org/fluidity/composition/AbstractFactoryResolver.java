@@ -184,11 +184,11 @@ abstract class AbstractFactoryResolver extends AbstractResolver {
             this.container = container;
         }
 
-        public <T> void bindComponent(final Class<T> implementation, final Class<? super T>... interfaces) throws OpenComponentContainer.BindingException {
+        public <T> void bindComponent(final Class<T> implementation, final Class<? super T>... interfaces) throws ComponentContainer.BindingException {
             container.bindComponent(Components.inspect(implementation, interfaces));
         }
 
-        public <T> void bindInstance(final T instance, final Class<? super T>... interfaces) throws OpenComponentContainer.BindingException {
+        public <T> void bindInstance(final T instance, final Class<? super T>... interfaces) throws ComponentContainer.BindingException {
             assert instance != null;
             container.bindInstance(instance, Components.inspect((Class<T>) instance.getClass(), interfaces));
         }

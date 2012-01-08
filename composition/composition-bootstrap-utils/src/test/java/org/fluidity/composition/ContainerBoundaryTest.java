@@ -47,7 +47,7 @@ public class ContainerBoundaryTest extends MockGroupAbstractTest {
     private final ContainerBootstrap bootstrap = mock(ContainerBootstrap.class);
     private final ContainerProvider provider = mock(ContainerProvider.class);
     private final OpenComponentContainer container = mock(OpenComponentContainer.class);
-    private final OpenComponentContainer.Registry registry = mock(OpenComponentContainer.Registry.class);
+    private final ComponentContainer.Registry registry = mock(ComponentContainer.Registry.class);
 
     private final ContainerServicesFactory servicesFactory = mock(ContainerServicesFactory.class);
     private final ContainerServices services = mock(ContainerServices.class);

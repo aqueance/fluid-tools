@@ -46,7 +46,7 @@ abstract class VariantResolver extends AbstractFactoryResolver {
         this.parent = container.parentContainer();
 
         if (factoryClass.getAnnotation(Component.Context.class) == null) {
-            throw new OpenComponentContainer.BindingException("Factory %s is not annotated by @%s", factoryClass, Component.Context.class.getName());
+            throw new ComponentContainer.BindingException("Factory %s is not annotated by @%s", factoryClass, Component.Context.class.getName());
         }
     }
 
@@ -59,7 +59,7 @@ abstract class VariantResolver extends AbstractFactoryResolver {
             if (variants == this) {
                 return false;
             } else if (check == priority()) {
-                throw new OpenComponentContainer.BindingException("Component %s already hijacked by %s", api, variants.factoryClass().getName());
+                throw new ComponentContainer.BindingException("Component %s already hijacked by %s", api, variants.factoryClass().getName());
             } else {
                 final boolean replaces = super.replaces(variants);
 
@@ -70,7 +70,7 @@ abstract class VariantResolver extends AbstractFactoryResolver {
                 return replaces;
             }
         } else if (resolver.isInstanceMapping()) {
-            throw new OpenComponentContainer.BindingException("Component instance %s cannot be hijacked by %s", api, factoryClass().getName());
+            throw new ComponentContainer.BindingException("Component instance %s cannot be hijacked by %s", api, factoryClass().getName());
         } else {
             if (delegate == null || resolver.replaces(delegate)) {
                 resolverReplaced(api, delegate, resolver);
@@ -104,7 +104,7 @@ abstract class VariantResolver extends AbstractFactoryResolver {
     public void resolverReplaced(final Class<?> api, final ComponentResolver previous, final ComponentResolver replacement) {
         if (api == this.api && delegate == previous) {
             if (replacement.isInstanceMapping()) {
-                throw new OpenComponentContainer.BindingException("Component %s cannot be hijacked by %s", this.api, ((VariantResolver) replacement).factoryClass().getName());
+                throw new ComponentContainer.BindingException("Component %s cannot be hijacked by %s", this.api, ((VariantResolver) replacement).factoryClass().getName());
             }
 
             delegate = replacement;

@@ -34,7 +34,7 @@ public abstract class AbstractContainerTests extends MockGroupAbstractTest {
     protected final ArtifactFactory artifacts;
 
     protected OpenComponentContainer container;
-    protected OpenComponentContainer.Registry registry;
+    protected ComponentContainer.Registry registry;
 
     public AbstractContainerTests(final ArtifactFactory artifacts) {
         this.artifacts = artifacts;

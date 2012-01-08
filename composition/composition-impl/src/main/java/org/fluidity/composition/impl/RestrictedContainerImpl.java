@@ -52,16 +52,20 @@ final class RestrictedContainerImpl implements RestrictedContainer {
         return reference.get().getComponentGroup(api);
     }
 
+    public <T> T getComponent(final Class<T> api, final Bindings bindings) throws ResolutionException {
+        return reference.get().getComponent(api, bindings);
+    }
+
     public OpenComponentContainer makeChildContainer() {
         return reference.get().makeChildContainer();
     }
 
-    public OpenComponentContainer makeDomainContainer() {
-        return reference.get().makeDomainContainer();
+    public ComponentContainer makeChildContainer(final Bindings bindings) {
+        return reference.get().makeChildContainer(bindings);
     }
 
-    public <T> T getComponent(final Class<T> api, final OpenComponentContainer.Bindings bindings) throws ResolutionException {
-        return reference.get().getComponent(api, bindings);
+    public OpenComponentContainer makeDomainContainer() {
+        return reference.get().makeDomainContainer();
     }
 
     public <T> T initialize(final T component) throws ResolutionException {
@@ -74,6 +78,10 @@ final class RestrictedContainerImpl implements RestrictedContainer {
 
     public <T> T instantiate(final Class<T> componentClass) throws ResolutionException {
         return reference.get().instantiate(componentClass);
+    }
+
+    public <T> T instantiate(final Class<T> componentClass, final Bindings bindings) throws ResolutionException {
+        return reference.get().instantiate(componentClass, bindings);
     }
 
     public void enable() {

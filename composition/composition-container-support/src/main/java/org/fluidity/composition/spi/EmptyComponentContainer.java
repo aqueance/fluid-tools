@@ -16,6 +16,7 @@
 
 package org.fluidity.composition.spi;
 
+import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ObservedComponentContainer;
 import org.fluidity.composition.OpenComponentContainer;
 
@@ -34,9 +35,13 @@ public abstract class EmptyComponentContainer implements OpenComponentContainer,
      * {@inheritDoc}
      */
     public final <T> T getComponent(final Class<T> api, final Bindings bindings) throws ResolutionException {
-        final OpenComponentContainer child = makeChildContainer();
-        bindings.bindComponents(child.getRegistry());
-        return child.getComponent(api);
+        return makeChildContainer(bindings).getComponent(api);
+    }
+
+    public final ComponentContainer makeChildContainer(final Bindings bindings) {
+        final OpenComponentContainer container = makeChildContainer();
+        bindings.bindComponents(container.getRegistry());
+        return container;
     }
 
     /**
@@ -44,10 +49,27 @@ public abstract class EmptyComponentContainer implements OpenComponentContainer,
      * <p/>
      * {@inheritDoc}
      */
-    @SuppressWarnings("unchecked")
     public final <T> T instantiate(final Class<T> componentClass) throws ResolutionException {
-        final OpenComponentContainer container = makeChildContainer();
-        container.getRegistry().bindComponent(componentClass, componentClass);
+        return instantiate(componentClass, null);
+    }
+
+    /**
+     * Implements this convenience method using the primary methods of the container.
+     * <p/>
+     * {@inheritDoc}
+     */
+    public final <T> T instantiate(final Class<T> componentClass, final Bindings bindings) throws ResolutionException {
+        final ComponentContainer container = makeChildContainer(new Bindings() {
+            @SuppressWarnings("unchecked")
+            public void bindComponents(final Registry registry) {
+                registry.bindComponent(componentClass, componentClass);
+
+                if (bindings != null) {
+                    bindings.bindComponents(registry);
+                }
+            }
+        });
+
         return container.getComponent(componentClass);
     }
 
