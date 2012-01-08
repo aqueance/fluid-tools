@@ -46,7 +46,6 @@ public final class Methods extends Utilities {
      *
      * @return the method object.
      */
-    @SuppressWarnings("unchecked")
     public static <T> Method get(final Class<T> type, final Invoker<T> invoker) {
         try {
             invoker.invoke(Proxies.create(type, new InvocationHandler() {
@@ -55,9 +54,11 @@ public final class Methods extends Utilities {
                 }
             }));
 
-            throw new IllegalStateException("Desired method not called or errors blocked");
+            throw new IllegalStateException("Desired method not called or exceptions not thrown");
         } catch (final Capture e) {
             return e.method;
+        } catch (final Throwable e) {
+            throw new IllegalStateException(e);
         }
     }
 
@@ -71,8 +72,9 @@ public final class Methods extends Utilities {
          *
          * @param capture a dummy implementation of the interface owning the method being sought. The implementation must call on the supplied
          *                object the one method it is looking for via {@link Methods#get(Class, Invoker)}.
+         * @throws Throwable listed for convenience; should never actually be thrown.
          */
-        void invoke(T capture);
+        void invoke(T capture) throws Throwable;
     }
 
     private static class Capture extends Error {

@@ -22,22 +22,14 @@ public class MethodInjectionTests extends AbstractContainerTests {
     private final Dependency2 dependency2 = mock(Dependency2.class);
 
     private final Method injectable = Methods.get(InjectedMethods.class, new Methods.Invoker<InjectedMethods>() {
-        public void invoke(final InjectedMethods capture) {
-            try {
-                capture.explicit(null, null);
-            } catch (final CheckedException e) {
-                assert false : e;
-            }
+        public void invoke(final InjectedMethods capture) throws Throwable {
+            capture.explicit(null, null);
         }
     });
 
     private final Method explicit = Methods.get(InjectedMethods.class, new Methods.Invoker<InjectedMethods>() {
-        public void invoke(final InjectedMethods capture) {
-            try {
-                capture.explicit(0, null, null, null);
-            } catch (final CheckedException e) {
-                assert false : e;
-            }
+        public void invoke(final InjectedMethods capture) throws Throwable {
+            capture.explicit(0, null, null, null);
         }
     });
 
@@ -131,6 +123,7 @@ public class MethodInjectionTests extends AbstractContainerTests {
 
         final InjectedMethods completed = container.complete(component, InjectedMethods.class);
 
+        // no parameter is @Inject-ed
         component.explicit(1234, "abcd", null, null);
         EasyMock.expectLastCall().times(2);
 
@@ -139,6 +132,7 @@ public class MethodInjectionTests extends AbstractContainerTests {
         completed.explicit(1234, "abcd", null, null);
         verify();
 
+        // last two parameters are @Inject-ed
         component.implicit(1234, "abcd", dependency1, dependency2);
         EasyMock.expectLastCall().times(2);
 

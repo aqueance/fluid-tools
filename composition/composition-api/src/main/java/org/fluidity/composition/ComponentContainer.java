@@ -161,7 +161,7 @@ import org.fluidity.foundation.Strings;
  * final int result = helper.<span class="hl2">someMethod</span>(<span class="hl3">1234</span>, null, null);
  * </pre></li>
  * <li><b>ad-hoc method invocation</b>: any method parameter not provided a value will be injected; if a method parameter cannot be
- * resolved and it is not annotated with {@link Optional @Optional} then an exception is thrown.
+ * resolved and it is not annotated with {@link Optional @Optional} then a {@link ResolutionException} is thrown.
  * <pre>
  * final class <span class="hl2">MyHelper</span> {
  *   ...

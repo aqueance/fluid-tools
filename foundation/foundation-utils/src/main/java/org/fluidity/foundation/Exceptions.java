@@ -20,7 +20,28 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.UndeclaredThrowableException;
 
 /**
- * Utility methods on exceptions. See {@link Wrapper#rethrow(Class)} for description.
+ * Utility methods on exceptions.
+ * <h3>Usage</h3>
+ * <pre>
+ * void someMethod() throws <span class="hl2">CheckedException1</span>, <span class="hl2">CheckedException2</span>, <span class="hl2">CheckedException3</span> {
+ *   try {
+ *     ...
+ *     <span class="hl1">{@linkplain Exceptions}.wrap(new {@linkplain Exceptions.Command}</span>&lt;Void> {
+ *       ...
+ *       return null;
+ *     }<span class="hl1">)</span>;
+ *     ...
+ *   } catch (final <span class="hl1">Exceptions.Wrapper</span> wrapper) {
+ *     throw wrapper
+ *         .<span class="hl1">rethrow(</span><span class="hl2">CheckedException1</span>.class<span class="hl1">)</span>
+ *         .<span class="hl1">rethrow(</span><span class="hl2">CheckedException2</span>.class<span class="hl1">)</span>
+ *         .<span class="hl1">rethrow(</span><span class="hl2">CheckedException3</span>.class<span class="hl1">)</span>;
+ *   }
+ * }
+ * </pre>
+ * <p/>
+ * The above will re-throw either <code>CheckedException1</code>, <code>CheckedException2</code>,
+ * <code>CheckedException3</code> or the <code>wrapper</code>, which is an {@linkplain RuntimeException unchecked} exception.
  *
  * @author Tibor Varga
  */
@@ -107,26 +128,8 @@ public final class Exceptions extends Utilities {
 
         /**
          * If the wrapped exception is of the given type, it is thrown, otherwise this instance is returned. The intended usage is:
-         * <pre>
-         * void someMethod() throws CheckedException1, CheckedException2, CheckedException3 {
-         *   try {
-         *     ...
-         *     Exceptions.wrap(new Exceptions.Command&lt;Void> {
-         *       ...
-         *        return null;
-         *     });
-         *     ...
-         *   } catch (final Exceptions.Wrapper wrapper) {
-         *     throw wrapper
-         *         .rethrow(CheckedException1.class)
-         *         .rethrow(CheckedException2.class)
-         *         .rethrow(CheckedException3.class);
-         *   }
-         * }
-         * </pre>
-         * <p/>
-         * The above will re-throw either <code>CheckedException1</code>, <code>CheckedException2</code>,
-         * <code>CheckedException3</code> or the <code>wrapper</code>, which is an {@linkplain RuntimeException unchecked} exception.
+         * <h3>Usage</h3>
+         * See {@link Exceptions} for an example.
          *
          * @param accept the class of the exception to check.
          * @param <T>    the type of the exception to check.
