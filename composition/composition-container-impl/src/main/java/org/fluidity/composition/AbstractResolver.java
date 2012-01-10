@@ -64,6 +64,10 @@ abstract class AbstractResolver implements ComponentResolver {
         // empty
     }
 
+    public void skipParent() {
+        // empty
+    }
+
     public final void addGroups(final Collection<Class<?>> groups) {
         this.groups.addAll(groups);
     }

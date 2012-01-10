@@ -32,8 +32,7 @@ import org.fluidity.foundation.spi.LogFactory;
  */
 abstract class VariantResolver extends AbstractFactoryResolver {
 
-    private final SimpleContainer parent;
-
+    private SimpleContainer parent;
     private ComponentResolver delegate;     // the one creating instances
 
     public VariantResolver(final int priority,
@@ -80,6 +79,23 @@ abstract class VariantResolver extends AbstractFactoryResolver {
         }
     }
 
+    @Override
+    public void skipParent() {
+        assert parent != null : api;
+        parent = parent.parentContainer();
+    }
+
+    @Override
+    public void resolverReplaced(final Class<?> api, final ComponentResolver previous, final ComponentResolver replacement) {
+        if (api == this.api && delegate == previous) {
+            if (replacement.isInstanceMapping()) {
+                throw new ComponentContainer.BindingException("Component %s cannot be hijacked by %s", this.api, ((VariantResolver) replacement).factoryClass().getName());
+            }
+
+            delegate = replacement;
+        }
+    }
+
     private ComponentResolver findDelegate() {
         if (delegate == null) {
             delegate = parent == null ? null : parent.resolver(api, true);
@@ -98,17 +114,6 @@ abstract class VariantResolver extends AbstractFactoryResolver {
 
     public Class<?> contextConsumer() {
         return factoryClass();
-    }
-
-    @Override
-    public void resolverReplaced(final Class<?> api, final ComponentResolver previous, final ComponentResolver replacement) {
-        if (api == this.api && delegate == previous) {
-            if (replacement.isInstanceMapping()) {
-                throw new ComponentContainer.BindingException("Component %s cannot be hijacked by %s", this.api, ((VariantResolver) replacement).factoryClass().getName());
-            }
-
-            delegate = replacement;
-        }
     }
 
     public ComponentResolver delegate() {

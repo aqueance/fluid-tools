@@ -35,7 +35,7 @@ package org.fluidity.composition;
  * be
  * set to <code>false</code>.</li>
  * <li>To register a component implementation when some or all of its dependencies are - by design - not accessible in the same container, use {@link
- * org.fluidity.composition.ComponentContainer.Registry#makeChildContainer(Class, Class[]) makeChildContainer()} method and use the returned container's
+ * org.fluidity.composition.ComponentContainer.Registry#isolateComponent(Class, Class[]) makeChildContainer()} method and use the returned container's
  * {@link OpenComponentContainer#getRegistry() getRegistry()} method to gain access to the registry in which to bind the hidden dependencies. If the
  * implementation is annotated with <code>@Component</code> then its <code>@Component(automatic = ...)</code> parameter must be set to <code>false</code>.</li>
  * </ul>

@@ -87,16 +87,15 @@ public final class ComponentVariantTests extends AbstractContainerTests {
     }
 
     @Test
-    public void invokesVariantsFactoryClassOnceInChildContainer() throws Exception {
+    public void invokesVariantsFactoryClassOnceInLinkedContainer() throws Exception {
         registry.bindComponent(Value.class);
         registry.bindComponent(FactoryDependency.class);
-        final OpenComponentContainer child = registry.makeChildContainer(DependentValue.class);
+        final ComponentContainer.Registry child = registry.isolateComponent(DependentValue.class);
 
         final Check check = new Check();
-        final ComponentContainer.Registry childRegistry = child.getRegistry();
 
-        childRegistry.bindComponent(DependentVariants.class);
-        childRegistry.bindInstance(check);
+        child.bindComponent(DependentVariants.class);
+        child.bindInstance(check);
 
         EasyMock.expect(variants.resolve(EasyMock.<ComponentContext>notNull(), EasyMock.<ComponentFactory.Resolver>notNull())).andAnswer(new VariantContainerCheck(Check.class, check)).anyTimes();
 
@@ -255,20 +254,18 @@ public final class ComponentVariantTests extends AbstractContainerTests {
     }
 
     @Test
-    public void variantFactoryCreatesMultipleInstancesInChildContainer() throws Exception {
+    public void variantsFactoryCreatesMultipleInstancesInLinkedContainer() throws Exception {
         registry.bindComponent(Value.class);
+        registry.bindComponent(DependentValue.class);
         registry.bindComponent(FactoryDependency.class);
-        final OpenComponentContainer child = registry.makeChildContainer(DependentValue.class);
+
+        registry.bindComponent(ContextProvider0.class);
+        registry.bindComponent(ContextProvider1.class);
+        registry.bindComponent(ContextProvider2.class);
 
         final Check check = new Check();
-        final ComponentContainer.Registry childRegistry = child.getRegistry();
 
-        childRegistry.bindComponent(ContextProvider0.class);
-        childRegistry.bindComponent(ContextProvider1.class);
-        childRegistry.bindComponent(ContextProvider2.class);
-
-        childRegistry.bindComponent(DependentVariants.class);
-        childRegistry.bindInstance(check);
+        registry.isolateComponent(DependentVariants.class).bindInstance(check);
 
         EasyMock.expect(variants.resolve(EasyMock.<ComponentContext>notNull(), EasyMock.<ComponentFactory.Resolver>notNull())).andAnswer(new VariantContainerCheck(Check.class, check)).anyTimes();
 
@@ -277,7 +274,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
         verifyComponent(container);
 
         // get objects that specify all contexts
-        verifyContext(child, DependentVariants.class);
+        verifyContext(container, DependentVariants.class);
 
         verify();
     }
@@ -288,17 +285,17 @@ public final class ComponentVariantTests extends AbstractContainerTests {
         registry.bindComponent(DependentValue.class);
         registry.bindComponent(FactoryDependency.class);
 
-        final OpenComponentContainer child = registry.makeChildContainer();
+        final OpenComponentContainer child = container.makeChildContainer();
+
+        final Check check = new Check();
         final ComponentContainer.Registry childRegistry = child.getRegistry();
 
         childRegistry.bindComponent(ContextProvider0.class);
         childRegistry.bindComponent(ContextProvider1.class);
         childRegistry.bindComponent(ContextProvider2.class);
 
-        // corresponding binding component took place in the parent container but must still be found
+        // dependency binding component was added to the parent container but must still be found from inside the child
         childRegistry.bindComponent(DependentVariants.class);
-
-        final Check check = new Check();
 
         childRegistry.bindInstance(check);
 

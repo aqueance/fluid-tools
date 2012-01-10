@@ -54,11 +54,26 @@ public abstract class EmptyComponentContainer implements OpenComponentContainer,
      *
      * @return the result of the method invocation.
      *
-     * @throws ResolutionException when dependency resolution fails.
+     * @throws ResolutionException       when dependency resolution fails.
      * @throws InvocationTargetException when the method throws an exception.
      */
-    protected abstract Object invoke(Object component, boolean explicit, Method method, Object... arguments)
+    protected abstract Object invoke(final Object component, boolean explicit, final Method method, final Object... arguments)
             throws ResolutionException, InvocationTargetException;
+
+    /**
+     * Adds the given list of component bindings to this container.
+     *
+     * @param list the list of bindings to add.
+     *
+     * @return this container.
+     */
+    protected final OpenComponentContainer addBindings(final Bindings... list) {
+        for (final Bindings bindings : list) {
+            bindings.bindComponents(registry);
+        }
+
+        return this;
+    }
 
     /**
      * Calls {@link #invoke(Object, boolean, Method, Object...) invoke}<code>(component, <b>true</b>, method, arguments)</code>.
@@ -74,14 +89,8 @@ public abstract class EmptyComponentContainer implements OpenComponentContainer,
      * <p/>
      * {@inheritDoc}
      */
-    public final <T> T getComponent(final Class<T> api, final Bindings bindings) throws ResolutionException {
+    public final <T> T getComponent(final Class<T> api, final Bindings... bindings) throws ResolutionException {
         return makeChildContainer(bindings).getComponent(api);
-    }
-
-    public final ComponentContainer makeChildContainer(final Bindings bindings) {
-        final OpenComponentContainer container = makeChildContainer();
-        bindings.bindComponents(container.getRegistry());
-        return container;
     }
 
     /**

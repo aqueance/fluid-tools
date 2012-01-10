@@ -76,13 +76,13 @@ interface ContainerBootstrap {
          *
          * @param container the container.
          */
-        void containerInitialized(OpenComponentContainer container);
+        void containerInitialized(ComponentContainer container);
 
         /**
          * Notifies the receiver that the given container has been shut down.
          *
          * @param container the container.
          */
-        void containerShutdown(OpenComponentContainer container);
+        void containerShutdown(ComponentContainer container);
     }
 }

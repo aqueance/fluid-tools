@@ -110,6 +110,10 @@ final class ComponentContainerShell extends EmptyComponentContainer {
         return new ComponentContainerShell(container, context, true, false, observer);
     }
 
+    public OpenComponentContainer makeChildContainer(final Bindings... list) {
+        return new ComponentContainerShell(container, context, true, false, observer).addBindings(list);
+    }
+
     public OpenComponentContainer makeDomainContainer() {
         return new ComponentContainerShell(container, context, true, true, observer);
     }

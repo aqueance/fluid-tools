@@ -35,7 +35,7 @@ import org.fluidity.foundation.Log;
 final class ContainerLifecycle {
     private ContainerBootstrap.Callback callback;
 
-    private final OpenComponentContainer container;
+    private final ComponentContainer container;
     private final List<PackageBindings> bindings;
 
     private final Set<ContainerLifecycle> children = new HashSet<ContainerLifecycle>();
@@ -43,7 +43,7 @@ final class ContainerLifecycle {
     private final AtomicBoolean shouldInitialize = new AtomicBoolean(true);
     private final AtomicBoolean shouldShutdown = new AtomicBoolean(true);
 
-    public ContainerLifecycle(final OpenComponentContainer container, final List<PackageBindings> bindings, final ContainerBootstrap.Callback callback) {
+    public ContainerLifecycle(final ComponentContainer container, final List<PackageBindings> bindings, final ContainerBootstrap.Callback callback) {
         this.container = container;
         this.bindings = bindings;
         this.callback = callback;

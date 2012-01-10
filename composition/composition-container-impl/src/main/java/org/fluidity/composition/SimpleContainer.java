@@ -115,8 +115,8 @@ interface SimpleContainer extends DependencyGraph {
     void bindInstance(Object instance, Components.Interfaces interfaces) throws ComponentContainer.BindingException;
 
     /**
-     * Creates a child container of the receiver and links the given interface to a mapping added to the returned child, effectively directing the component
-     * resolution in the parent container to the child.
+     * Creates a child container and links the given interfaces to mappings added to the returned child, effectively directing the component
+     * resolution for these interfaces in this container to the child.
      *
      * @param interfaces the component and group interfaces to bind to.
      *

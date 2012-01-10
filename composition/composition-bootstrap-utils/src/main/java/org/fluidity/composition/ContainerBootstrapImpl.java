@@ -44,13 +44,7 @@ final class ContainerBootstrapImpl implements ContainerBootstrap {
         final Log log = services.logs().createLog(getClass());
         final ClassDiscovery discovery = services.classDiscovery();
 
-        final OpenComponentContainer container;
-
-        if (parent == null) {
-            container = provider.newContainer(services, platform);
-        } else {
-            container = parent.makeChildContainer();
-        }
+        final OpenComponentContainer container = parent == null ? provider.newContainer(services, platform) : parent.makeChildContainer();
 
         log.debug("Created new %s%s", container, (classLoader == null ? "" : String.format(" for class loader %s", classLoader)));
 

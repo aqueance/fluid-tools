@@ -33,7 +33,6 @@ import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.Inject;
 import org.fluidity.composition.ObservedComponentContainer;
-import org.fluidity.composition.OpenComponentContainer;
 import org.fluidity.composition.spi.ComponentResolutionObserver;
 import org.fluidity.composition.spi.DependencyPath;
 
@@ -65,7 +64,11 @@ public final class BasicResolutionTests extends AbstractContainerTests {
         }
 
         for (int i = 0; i < 100000 && !collected; ++i) {
-            container.makeChildContainer().getRegistry().bindInstance(new FinalizationAware());
+            container.makeChildContainer(new ComponentContainer.Bindings() {
+                public void bindComponents(final ComponentContainer.Registry registry) {
+                    registry.bindInstance(new FinalizationAware());
+                }
+            });
             Runtime.getRuntime().gc();
         }
 
@@ -154,7 +157,7 @@ public final class BasicResolutionTests extends AbstractContainerTests {
 
     @Test
     public void identifiesContainerChain() throws Exception {
-        final OpenComponentContainer child = container.makeChildContainer();
+        final ComponentContainer child = container.makeChildContainer();
 
         final String topString = container.toString();
         final String childString = child.toString();

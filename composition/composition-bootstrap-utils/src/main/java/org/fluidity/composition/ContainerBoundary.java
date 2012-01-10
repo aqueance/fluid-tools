@@ -58,17 +58,17 @@ public final class ContainerBoundary implements ComponentContainer {
 
     private static final Map<ClassLoader, OpenComponentContainer> populatedContainers = new WeakHashMap<ClassLoader, OpenComponentContainer>();
     private static final Map<ClassLoader, Map> propertiesMap = new WeakHashMap<ClassLoader, Map>();
-    private static final Set<OpenComponentContainer> lockedContainers = new HashSet<OpenComponentContainer>();
+    private static final Set<ComponentContainer> lockedContainers = new HashSet<ComponentContainer>();
     private static final Object stateLock = new Object();
 
     private static final ContainerBootstrap.Callback CONTAINER_LOCK_CALLBACK = new ContainerBootstrap.Callback() {
-        public void containerInitialized(final OpenComponentContainer container) {
+        public void containerInitialized(final ComponentContainer container) {
             synchronized (stateLock) {
                 lockedContainers.add(container);
             }
         }
 
-        public void containerShutdown(final OpenComponentContainer container) {
+        public void containerShutdown(final ComponentContainer container) {
             synchronized (stateLock) {
                 lockedContainers.remove(container);
 
@@ -158,8 +158,8 @@ public final class ContainerBoundary implements ComponentContainer {
     /**
      * Allows a bootstrap code to add component instances to the container before it is populated. This method can only be invoked before any component is
      * taken out of the container by any thread using any of the {@link #getComponent(Class)}, {@link #initialize(Object)}, {@link #instantiate(Class)}, {@link
-     * #instantiate(Class, ComponentContainer.Bindings)}, {@link #makeChildContainer()} or {@link #makeChildContainer(ComponentContainer.Bindings)} methods.
-     * Once that happens, this method will throw an {@link IllegalStateException}.
+     * #instantiate(Class, ComponentContainer.Bindings)}, {@link #makeChildContainer(Bindings...)} or {@link
+     * ComponentContainer#makeChildContainer(Bindings...)} methods. Once that happens, this method will throw an {@link IllegalStateException}.
      * <p/>
      * Calling this method will trigger population of the associated container and its parents.
      *
@@ -206,7 +206,7 @@ public final class ContainerBoundary implements ComponentContainer {
      * <p/>
      * {@inheritDoc}
      */
-    public <T> T getComponent(final Class<T> api, final Bindings bindings) throws ResolutionException {
+    public <T> T getComponent(final Class<T> api, final Bindings... bindings) throws ResolutionException {
         return loadedContainer().getComponent(api, bindings);
     }
 
@@ -215,16 +215,7 @@ public final class ContainerBoundary implements ComponentContainer {
      * <p/>
      * {@inheritDoc}
      */
-    public OpenComponentContainer makeChildContainer() {
-        return loadedContainer().makeChildContainer();
-    }
-
-    /**
-     * Delegates to the enclosed container.
-     * <p/>
-     * {@inheritDoc}
-     */
-    public ComponentContainer makeChildContainer(final Bindings bindings) {
+    public OpenComponentContainer makeChildContainer(final Bindings... bindings) {
         return loadedContainer().makeChildContainer(bindings);
     }
 

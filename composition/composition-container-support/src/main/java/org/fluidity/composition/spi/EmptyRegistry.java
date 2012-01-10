@@ -36,8 +36,8 @@ final class EmptyRegistry implements ComponentContainer.Registry {
     }
 
     @SuppressWarnings("unchecked")
-    public final <T> void bindComponent(final Class<T> implementation, final Class<? super T>... interfaces) throws ComponentContainer.BindingException {
-        delegate.bindComponent(Components.inspect(implementation, interfaces));
+    public final <T> void bindComponent(final Class<T> type, final Class<? super T>... interfaces) throws ComponentContainer.BindingException {
+        delegate.bindComponent(Components.inspect(type, interfaces));
     }
 
     @SuppressWarnings("unchecked")
@@ -48,7 +48,7 @@ final class EmptyRegistry implements ComponentContainer.Registry {
     }
 
     @SuppressWarnings("unchecked")
-    public final <T> OpenComponentContainer makeChildContainer(final Class<T> implementation, final Class<? super T>... interfaces) throws ComponentContainer.BindingException {
-        return delegate.makeChildContainer(Components.inspect(implementation, interfaces));
+    public final <T> ComponentContainer.Registry isolateComponent(final Class<T> type, final Class<? super T>... interfaces) throws ComponentContainer.BindingException {
+        return delegate.makeChildContainer(Components.inspect(type, interfaces)).getRegistry();
     }
 }
