@@ -20,9 +20,10 @@ import java.lang.annotation.Annotation;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * Observes component dependency resolutions. An object implementing this interface can be passed to the {@link
- * org.fluidity.composition.ComponentContainer#observed(ComponentResolutionObserver) observed()} method of a <code>ComponentContainer</code> to get the
- * observer's methods invoked as components get resolved and instantiated by that container.
+ * Observes component dependency resolutions.
+ * <h3>Usage</h3>
+ * A {@link org.fluidity.composition.ComponentContainer} can be used to explore the static and dynamic dependencies starting at any component interface. See
+ * {@link org.fluidity.composition.ObservedComponentContainer} for an example.
  *
  * @author Tibor Varga
  */
@@ -51,7 +52,7 @@ public interface ComponentResolutionObserver {
      * Notifies the receiver that a dependency has been instantiated. The path and type are final. Elements of the path are actual classes that will be or have
      * been instantiated.
      * <p/>
-     * The {@link DependencyPath#head()} returns details about the class just instantiated.
+     * The {@link DependencyPath#head()} returns details about the just instantiated object.
      *
      * @param path      the dependency path at which the given type has been instantiated.
      * @param reference a reference to the component that has just been instantiated. The reference will be set <em>after</em> this method returns to prevent

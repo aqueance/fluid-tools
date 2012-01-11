@@ -87,6 +87,12 @@ interface ComponentResolver extends ContextNode {
     void resolverReplaced(Class<?> api, ComponentResolver previous, ComponentResolver replacement);
 
     /**
+     * If the resolver maintains a reference to the parent container of its containing one, this method notifies it that it should use the skip one level and
+     * use the parent's parent instead.
+     */
+    void skipParent();
+
+    /**
      * Adds a list of group interfaces that the resolved component belongs to.
      *
      * @param groups list of group interfaces that the resolved component belongs to.

@@ -22,7 +22,6 @@ import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.ComponentGroup;
-import org.fluidity.composition.OpenComponentContainer;
 import org.fluidity.composition.spi.ComponentFactory;
 import org.fluidity.composition.spi.CustomComponentFactory;
 import org.fluidity.foundation.Generics;
@@ -75,16 +74,14 @@ public final class CustomFactoryTests extends AbstractContainerTests {
     }
 
     @Test
-    public void invokesStandaloneFactoryClassOnceInChildContainer() throws Exception {
+    public void invokesStandaloneFactoryClassOnceInLinkedContainer() throws Exception {
         registry.bindComponent(Value.class);
-
-        final OpenComponentContainer child = registry.makeChildContainer(DependentFactory.class);
+        final ComponentContainer.Registry child = registry.isolateComponent(DependentFactory.class);
 
         final Check check = new Check();
-        final OpenComponentContainer.Registry childRegistry = child.getRegistry();
 
-        childRegistry.bindComponent(FactoryDependency.class);
-        childRegistry.bindInstance(check);
+        child.bindComponent(FactoryDependency.class);
+        child.bindInstance(check);
 
         EasyMock.expect(factory.resolve(EasyMock.<ComponentContext>notNull(), EasyMock.<ComponentFactory.Resolver>notNull()))
                 .andAnswer(new FactoryInvocation(Check.class, check, instance))
@@ -194,7 +191,7 @@ public final class CustomFactoryTests extends AbstractContainerTests {
             final Instance instance = delegate.resolve(context, dependencies);
 
             return new Instance() {
-                public void bind(final Registry registry) throws OpenComponentContainer.BindingException {
+                public void bind(final Registry registry) throws ComponentContainer.BindingException {
                     registry.bindComponent(DependentValue.class);
 
                     assert instance != null;
@@ -225,7 +222,7 @@ public final class CustomFactoryTests extends AbstractContainerTests {
             final Instance instance = delegate.resolve(context, dependencies);
 
             return new Instance() {
-                public void bind(final Registry registry) throws OpenComponentContainer.BindingException {
+                public void bind(final Registry registry) throws ComponentContainer.BindingException {
                     registry.bindComponent(GroupMember1.class);
 
                     assert instance != null;
@@ -245,7 +242,7 @@ public final class CustomFactoryTests extends AbstractContainerTests {
             final Instance instance = delegate.resolve(context, dependencies);
 
             return new Instance() {
-                public void bind(final Registry registry) throws OpenComponentContainer.BindingException {
+                public void bind(final Registry registry) throws ComponentContainer.BindingException {
                     registry.bindComponent(GroupMember2.class);
 
                     assert instance != null;
@@ -294,7 +291,7 @@ public final class CustomFactoryTests extends AbstractContainerTests {
             final Dependency<?>[] args = dependencies.discover(DynamicComponent1.class);
 
             return new Instance() {
-                public void bind(final Registry registry) throws OpenComponentContainer.BindingException {
+                public void bind(final Registry registry) throws ComponentContainer.BindingException {
                     registry.bindInstance(new DynamicComponent1((ComponentContainer) args[0].instance()));
                 }
             };
@@ -323,7 +320,7 @@ public final class CustomFactoryTests extends AbstractContainerTests {
             final Dependency<?>[] args = dependencies.discover(DynamicComponent1.class);
 
             return new Instance() {
-                public void bind(final Registry registry) throws OpenComponentContainer.BindingException {
+                public void bind(final Registry registry) throws ComponentContainer.BindingException {
                     registry.bindInstance(new DynamicComponent2((ComponentContainer) args[0].instance()));
                 }
             };
@@ -336,6 +333,7 @@ public final class CustomFactoryTests extends AbstractContainerTests {
 
     private interface CustomParameter2 extends CustomParameter { }
 
+    @SuppressWarnings("UnusedDeclaration")
     private static class CustomDependency<T> { }
 
     @Component(api = CustomDependency.class)
@@ -355,7 +353,7 @@ public final class CustomFactoryTests extends AbstractContainerTests {
             assert CustomParameter.class.isAssignableFrom(parameter) : Generics.typeParameter(reference, 0);
 
             return new Instance() {
-                public void bind(final Registry registry) throws OpenComponentContainer.BindingException {
+                public void bind(final Registry registry) throws ComponentContainer.BindingException {
                     registry.bindInstance(new CustomDependency(), CustomDependency.class);
                 }
             };
@@ -373,8 +371,8 @@ public final class CustomFactoryTests extends AbstractContainerTests {
             assert dependency1 != null;
             assert dependency2 != null;
             assert dependency3 != null;
-            assert (Object) dependency1 != dependency2 : "Type parameter did not contribute to component context";
-            assert (Object) dependency1 == dependency3 : "Type parameter did not contribute to component context";
+            assert (CustomDependency) dependency1 != dependency2 : "Type parameter did not contribute to component context";
+            assert (CustomDependency) dependency1 == dependency3 : "Type parameter did not contribute to component context";
         }
     }
 }

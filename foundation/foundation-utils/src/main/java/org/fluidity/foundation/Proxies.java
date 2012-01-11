@@ -43,7 +43,6 @@ public final class Proxies extends Utilities {
         }
     };
 
-
     /**
      * Creates a new proxy for the given interface using the given invocation handler. The class loader of the interface will be used to load the proxy class.
      *
@@ -58,7 +57,8 @@ public final class Proxies extends Utilities {
     }
 
     /**
-     * Creates a new proxy for the given interface using the given invocation handler. The class loader of the interface will be used to load the proxy class.
+     * Creates a new proxy for the given interface using the given invocation handler and object identity. The class loader of the interface will be used to
+     * load the proxy class.
      *
      * @param type     the interface to implement with a proxy.
      * @param identity the object that computes object identity for the returned proxy.
@@ -70,6 +70,37 @@ public final class Proxies extends Utilities {
     public static <T> T create(final Class<T> type, final ObjectIdentity<T> identity, final InvocationHandler handler) {
         final AtomicReference<T> proxy = new AtomicReference<T>();
         proxy.set((T) Proxy.newProxyInstance(type.getClassLoader(), new Class<?>[] { type }, new MethodInvocations(handler, proxy, identity)));
+        return proxy.get();
+    }
+
+    /**
+     * Creates a new proxy for the given interfaces using the given invocation handler.
+     *
+     * @param loader  the class loader to create the proxy.
+     * @param types   the interfaces to implement with a proxy.
+     * @param handler the handler that implements the interface's methods.
+     *
+     * @return a proxy implementing the given interface.
+     */
+    @SuppressWarnings("unchecked")
+    public static Object create(final ClassLoader loader, final Class<?>[] types, final InvocationHandler handler) {
+        return create(loader, (ObjectIdentity<?>) DEFAULT_IDENTITY, types, handler);
+    }
+
+    /**
+     * Creates a new proxy for the given interfaces using the given invocation handler and object identity.
+     *
+     * @param loader   the class loader to create the proxy.
+     * @param identity the object that computes object identity for the returned proxy.
+     * @param types    the interfaces to implement with a proxy.
+     * @param handler  the handler that implements the interface's methods.
+     *
+     * @return a proxy implementing the given interface.
+     */
+    @SuppressWarnings("unchecked")
+    public static Object create(final ClassLoader loader, final ObjectIdentity<?> identity, final Class<?>[] types, final InvocationHandler handler) {
+        final AtomicReference proxy = new AtomicReference();
+        proxy.set(Proxy.newProxyInstance(loader, types, new MethodInvocations(handler, proxy, identity)));
         return proxy.get();
     }
 

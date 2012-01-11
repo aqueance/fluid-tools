@@ -47,7 +47,7 @@ public class ContainerBoundaryTest extends MockGroupAbstractTest {
     private final ContainerBootstrap bootstrap = mock(ContainerBootstrap.class);
     private final ContainerProvider provider = mock(ContainerProvider.class);
     private final OpenComponentContainer container = mock(OpenComponentContainer.class);
-    private final OpenComponentContainer.Registry registry = mock(OpenComponentContainer.Registry.class);
+    private final ComponentContainer.Registry registry = mock(ComponentContainer.Registry.class);
 
     private final ContainerServicesFactory servicesFactory = mock(ContainerServicesFactory.class);
     private final ContainerServices services = mock(ContainerServices.class);
@@ -123,14 +123,14 @@ public class ContainerBoundaryTest extends MockGroupAbstractTest {
         replay();
 
         // first access goes through the above interaction
-        assert boundary.getContainer() == container;
+        assert boundary.loadedContainer() == container;
 
         verify();
 
         replay();
 
         // second access should simply return the cached container
-        assert boundary.getContainer() == container;
+        assert boundary.loadedContainer() == container;
 
         verify();
     }
@@ -197,14 +197,14 @@ public class ContainerBoundaryTest extends MockGroupAbstractTest {
         replay();
 
         // first access goes through the above interaction
-        assert boundary.getContainer() == container;
+        assert boundary.loadedContainer() == container;
 
         verify();
 
         replay();
 
         // second access should simply return the cached container
-        assert boundary.getContainer() == container;
+        assert boundary.loadedContainer() == container;
 
         verify();
     }
@@ -270,14 +270,14 @@ public class ContainerBoundaryTest extends MockGroupAbstractTest {
         replay();
 
         // first access goes through the above interaction
-        assert boundary.getContainer() == ourContainer;
+        assert boundary.loadedContainer() == ourContainer;
 
         verify();
 
         replay();
 
         // second access should simply return the cached container
-        assert boundary.getContainer() == ourContainer;
+        assert boundary.loadedContainer() == ourContainer;
 
         verify();
 
@@ -285,7 +285,7 @@ public class ContainerBoundaryTest extends MockGroupAbstractTest {
             replay();
 
             // access to higher level container should simply return the cached container
-            assert new ContainerBoundary(ourClassLoader.getParent()).getContainer() == containers.get(ourClassLoader.getParent());
+            assert new ContainerBoundary(ourClassLoader.getParent()).loadedContainer() == containers.get(ourClassLoader.getParent());
 
             verify();
         }
@@ -348,7 +348,7 @@ public class ContainerBoundaryTest extends MockGroupAbstractTest {
         boundary.bindBootComponent(component2);
 
         // first access goes through the above interaction
-        assert boundary.getContainer() == container;
+        assert boundary.loadedContainer() == container;
 
         verify();
 

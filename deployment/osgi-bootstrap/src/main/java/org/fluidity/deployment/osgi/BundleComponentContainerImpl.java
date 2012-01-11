@@ -36,7 +36,6 @@ import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentGroup;
 import org.fluidity.composition.Components;
-import org.fluidity.composition.OpenComponentContainer;
 import org.fluidity.composition.spi.DependencyInjector;
 import org.fluidity.foundation.Log;
 import org.fluidity.foundation.spi.LogFactory;
@@ -303,16 +302,14 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
     @SuppressWarnings("unchecked")
     private void resolveDependencies(final Collection<Components.Interfaces> cluster, final Collection<ServiceSpecification> services, final Log listenerLog) {
         if (services.isEmpty()) {
-            final OpenComponentContainer child = container.makeChildContainer();
-
-            clusters.putAll(start(cluster, child, child.getRegistry()));
+            clusters.putAll(start(cluster));
 
             for (final Managed managed : clusters.keySet()) {
                 cleanup(managed.getClass().getName(), managed);
             }
         } else {
             final ServiceSpecification[] dependencies = services.toArray(new ServiceSpecification[services.size()]);
-            final ServiceChangeListener listener = new ServiceChangeListener(container, cluster, dependencies, listenerLog);
+            final ServiceChangeListener listener = new ServiceChangeListener(cluster, dependencies, listenerLog);
 
             final String filter = serviceFilter(dependencies);
 
@@ -343,12 +340,18 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
     }
 
     @SuppressWarnings({ "unchecked", "MismatchedQueryAndUpdateOfCollection" })
-    Map<Managed, Set<Class<?>>> start(final Collection<Components.Interfaces> cluster,
-                                      final OpenComponentContainer child,
-                                      final OpenComponentContainer.Registry registry) {
-        for (final Components.Interfaces interfaces : cluster) {
-            registry.bindComponent(interfaces.implementation);
-        }
+    Map<Managed, Set<Class<?>>> start(final Collection<Components.Interfaces> cluster, final ComponentContainer.Bindings... list) {
+        final ComponentContainer child = container.makeChildContainer(new ComponentContainer.Bindings() {
+            public void bindComponents(final ComponentContainer.Registry registry) {
+                for (final ComponentContainer.Bindings bindings : list) {
+                    bindings.bindComponents(registry);
+                }
+
+                for (final Components.Interfaces interfaces : cluster) {
+                    registry.bindComponent(interfaces.implementation);
+                }
+            }
+        });
 
         final Map<Managed, Set<Class<?>>> components = new HashMap<Managed, Set<Class<?>>>();
 
@@ -444,23 +447,18 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
         private final Map<ServiceSpecification, ServiceReference> referenceMap = new HashMap<ServiceSpecification, ServiceReference>();
         private final Map<ServiceSpecification, Object> dependencyMap = new HashMap<ServiceSpecification, Object>();
 
-        private final ComponentContainer container;
         private final Collection<Components.Interfaces> cluster;
         private final Log log;
 
         private final String name;
         private final Map<Managed, Set<Class<?>>> components = new IdentityHashMap<Managed, Set<Class<?>>>();
 
-        public ServiceChangeListener(final ComponentContainer container,
-                                     final Collection<Components.Interfaces> cluster,
-                                     final ServiceSpecification[] dependencies,
-                                     final Log log) {
-            this.container = container;
+        public ServiceChangeListener(final Collection<Components.Interfaces> cluster, final ServiceSpecification[] dependencies, final Log log) {
             this.cluster = cluster;
             this.log = log;
 
             final StringBuilder builder = new StringBuilder();
-            for (final Components.Interfaces interfaces : cluster) {
+            for (final Components.Interfaces interfaces : this.cluster) {
                 if (builder.length() > 0) {
                     builder.append(", ");
                 }
@@ -516,15 +514,13 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
 
             if (stopped && dependencyMap.size() == referenceMap.size()) {
                 assert components.isEmpty();
-
-                final OpenComponentContainer child = container.makeChildContainer();
-                final OpenComponentContainer.Registry registry = child.getRegistry();
-
-                for (final Map.Entry<ServiceSpecification, Object> entry : dependencyMap.entrySet()) {
-                    registry.bindInstance(entry.getValue(), (Class<Object>) entry.getKey().api);
-                }
-
-                components.putAll(start(cluster, child, registry));
+                components.putAll(start(cluster, new ComponentContainer.Bindings() {
+                    public void bindComponents(final ComponentContainer.Registry registry) {
+                        for (final Map.Entry<ServiceSpecification, Object> entry : dependencyMap.entrySet()) {
+                            registry.bindInstance(entry.getValue(), (Class<Object>) entry.getKey().api);
+                        }
+                    }
+                }));
             }
 
             if (log.isInfoEnabled() && dependencyMap.size() != referenceMap.size()) {

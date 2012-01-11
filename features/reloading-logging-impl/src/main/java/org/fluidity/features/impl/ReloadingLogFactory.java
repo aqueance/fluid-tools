@@ -19,7 +19,6 @@ package org.fluidity.features.impl;
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
-import org.fluidity.composition.OpenComponentContainer;
 import org.fluidity.composition.spi.CustomComponentFactory;
 import org.fluidity.features.ReloadingLog;
 import org.fluidity.features.Updates;
@@ -39,7 +38,7 @@ final class ReloadingLogFactory implements CustomComponentFactory {
         return new Instance() {
 
             @SuppressWarnings("unchecked")
-            public void bind(final Registry registry) throws OpenComponentContainer.BindingException {
+            public void bind(final Registry registry) throws ComponentContainer.BindingException {
                 registry.bindComponent(RefreshedLogImpl.class);
             }
         };

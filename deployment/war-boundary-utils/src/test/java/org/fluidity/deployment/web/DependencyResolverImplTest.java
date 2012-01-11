@@ -30,8 +30,6 @@ public class DependencyResolverImplTest extends MockGroupAbstractTest {
 
     private static OpenComponentContainer container;
 
-    private final OpenComponentContainer.Registry registry = mock(OpenComponentContainer.Registry.class);
-
     private DependencyResolverImpl resolver = new DependencyResolverImpl();
 
     public DependencyResolverImplTest() {

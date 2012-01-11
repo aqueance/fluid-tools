@@ -134,7 +134,7 @@ public final class ClassLoaders extends Utilities {
     }
 
     /**
-     * Returns a closeable URL class loader. To close it, cast it to {@link Closeable} and invoke {@link Closeable#clone()} on the returned class loader.
+     * Returns a closeable URL class loader. To close it, cast it to {@link Closeable} and invoke {@link Closeable#close()} on the returned class loader.
      *
      * @param parent the parent class loader for the returned one.
      * @param urls   the URLs to initialize the returned class loader with.

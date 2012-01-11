@@ -35,15 +35,14 @@ public final class ContainerHierarchyTests extends AbstractContainerTests {
     @Test
     public void linkingComponentDependencyResolvesInParent() throws Exception {
         registry.bindComponent(DependentValue.class);
-        registry.makeChildContainer(Value.class);
+        registry.isolateComponent(Value.class);
 
         verifyComponent(container);
     }
 
     @Test
     public void linkingComponentDependencyResolvesInChild() throws Exception {
-        final OpenComponentContainer child = registry.makeChildContainer(Value.class);
-        child.getRegistry().bindComponent(DependentValue.class);
+        registry.isolateComponent(Value.class).bindComponent(DependentValue.class);
 
         verifyComponent(container);
     }
@@ -52,24 +51,29 @@ public final class ContainerHierarchyTests extends AbstractContainerTests {
     public void dependencyFromChildResolvesInParent() throws Exception {
         registry.bindComponent(DependentValue.class);
 
-        final OpenComponentContainer child = container.makeChildContainer();
-        child.getRegistry().bindComponent(Value.class);
+        final ComponentContainer child = container.makeChildContainer(new ComponentContainer.Bindings() {
+            public void bindComponents(final ComponentContainer.Registry registry) {
+                registry.bindComponent(Value.class);
+            }
+        });
 
         verifyComponent(child);
     }
 
     @Test
-    public void linkingComponentDependencyResolvesOnOtherLinkingComponentAtSameLevel() throws Exception {
-        registry.makeChildContainer(DependentValue.class);
-        registry.makeChildContainer(Value.class);
+    public void linkingComponentDependencyResolvesToOtherLinkingComponentAtSameLevel() throws Exception {
+        registry.isolateComponent(DependentValue.class);
+        registry.isolateComponent(Value.class);
 
         verifyComponent(container);
     }
 
     @Test
-    public void linkingComponentDependencyResolvesOnOtherLinkingComponentAtHigherLevel() throws Exception {
-        registry.makeChildContainer(DependentValue.class);
-        final OpenComponentContainer child = registry.makeChildContainer().getRegistry().makeChildContainer(Value.class);
+    public void linkingComponentDependencyResolvesToOtherLinkingComponentAtHigherLevel() throws Exception {
+        registry.isolateComponent(DependentValue.class);
+        final OpenComponentContainer child = container.makeChildContainer();
+
+        child.getRegistry().isolateComponent(Value.class);
 
         verifyComponent(child);
     }
@@ -79,10 +83,12 @@ public final class ContainerHierarchyTests extends AbstractContainerTests {
         registry.bindComponent(OtherDependentValue.class);
         registry.bindComponent(OtherValue.class);
 
-        final OpenComponentContainer child = container.makeChildContainer();
-        final OpenComponentContainer.Registry childRegistry = child.getRegistry();
-        childRegistry.bindComponent(DependentValue.class);
-        childRegistry.bindComponent(Value.class);
+        final ComponentContainer child = container.makeChildContainer(new ComponentContainer.Bindings() {
+            public void bindComponents(final ComponentContainer.Registry registry) {
+                registry.bindComponent(DependentValue.class);
+                registry.bindComponent(Value.class);
+            }
+        });
 
         verifyComponent(child);
 
@@ -95,8 +101,8 @@ public final class ContainerHierarchyTests extends AbstractContainerTests {
 
     @Test
     public void childContainerContainsItself() throws Exception {
-        final OpenComponentContainer childContainer = registry.makeChildContainer();
-        final OpenComponentContainer.Registry childRegistry = childContainer.getRegistry();
+        final OpenComponentContainer childContainer = container.makeChildContainer();
+        final ComponentContainer.Registry childRegistry = childContainer.getRegistry();
 
         childRegistry.bindComponent(ContainerDependent.class);
 

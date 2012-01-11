@@ -38,8 +38,8 @@ import java.util.Map;
 import java.util.Set;
 
 import org.fluidity.composition.Component;
+import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentGroup;
-import org.fluidity.composition.OpenComponentContainer;
 import org.fluidity.composition.ServiceProvider;
 import org.fluidity.composition.maven.annotation.ComponentProcessor;
 import org.fluidity.composition.maven.annotation.ProcessorCallback;
@@ -96,11 +96,11 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
 
         final Class<?>[] implementedParameters = implementedMethod.getParameterTypes();
         assert implementedParameters.length == 1 : implementedMethod;
-        assert implementedParameters[0] == OpenComponentContainer.Registry.class : implementedMethod;
+        assert implementedParameters[0] == ComponentContainer.Registry.class : implementedMethod;
 
-        invokedMethod = Methods.get(OpenComponentContainer.Registry.class, new Methods.Invoker<OpenComponentContainer.Registry>() {
+        invokedMethod = Methods.get(ComponentContainer.Registry.class, new Methods.Invoker<ComponentContainer.Registry>() {
             @SuppressWarnings("unchecked")
-            public void invoke(final OpenComponentContainer.Registry capture) {
+            public void invoke(final ComponentContainer.Registry capture) {
                 capture.bindComponent(null);
             }
         });

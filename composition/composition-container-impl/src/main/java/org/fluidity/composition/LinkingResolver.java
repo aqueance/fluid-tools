@@ -35,8 +35,11 @@ final class LinkingResolver extends AbstractResolver {
 
     public LinkingResolver(final SimpleContainer container, final Class<?> api, final ComponentResolver delegate, final LogFactory logs) {
         super(delegate.priority(), api, null, logs);
+
         this.delegate = delegate;
         this.target = container;
+
+        this.delegate.skipParent();
     }
 
     public Annotation[] providedContext() {
@@ -52,7 +55,7 @@ final class LinkingResolver extends AbstractResolver {
                                         final SimpleContainer container,
                                         final ContextDefinition context,
                                         final Type reference) {
-        assert target.parentContainer() == container;
+        assert target.parentContainer() == container : api;
         return delegate.resolve(domain, traversal, target, context, reference);
     }
 
@@ -64,6 +67,11 @@ final class LinkingResolver extends AbstractResolver {
     @Override
     public boolean isInstanceMapping() {
         return delegate.isInstanceMapping();
+    }
+
+    @Override
+    public boolean replaces(final ComponentResolver resolver) {
+        return delegate.replaces(resolver);
     }
 
     @Override

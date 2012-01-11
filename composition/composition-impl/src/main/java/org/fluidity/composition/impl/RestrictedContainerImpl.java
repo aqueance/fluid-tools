@@ -17,6 +17,7 @@
 package org.fluidity.composition.impl;
 
 import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -52,28 +53,36 @@ final class RestrictedContainerImpl implements RestrictedContainer {
         return reference.get().getComponentGroup(api);
     }
 
-    public OpenComponentContainer makeChildContainer() {
-        return reference.get().makeChildContainer();
+    public <T> T getComponent(final Class<T> api, final Bindings... bindings) throws ResolutionException {
+        return reference.get().getComponent(api, bindings);
+    }
+
+    public OpenComponentContainer makeChildContainer(final Bindings... bindings) {
+        return reference.get().makeChildContainer(bindings);
     }
 
     public OpenComponentContainer makeDomainContainer() {
         return reference.get().makeDomainContainer();
     }
 
-    public <T> T getComponent(final Class<T> api, final OpenComponentContainer.Bindings bindings) throws ResolutionException {
-        return reference.get().getComponent(api, bindings);
-    }
-
     public <T> T initialize(final T component) throws ResolutionException {
         return reference.get().initialize(component);
     }
 
-    public Object invoke(final Object component, final Method method) throws ResolutionException {
-        return reference.get().invoke(component, method);
+    public Object invoke(final Object component, final Method method, final Object... arguments) throws ResolutionException, InvocationTargetException {
+        return reference.get().invoke(component, method, arguments);
+    }
+
+    public <T> T complete(final T component, final Class<? super T>... api) throws ResolutionException {
+        return reference.get().complete(component, api);
     }
 
     public <T> T instantiate(final Class<T> componentClass) throws ResolutionException {
         return reference.get().instantiate(componentClass);
+    }
+
+    public <T> T instantiate(final Class<T> componentClass, final Bindings bindings) throws ResolutionException {
+        return reference.get().instantiate(componentClass, bindings);
     }
 
     public void enable() {

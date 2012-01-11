@@ -18,6 +18,7 @@ package org.fluidity.composition;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -201,7 +202,7 @@ final class SimpleContainerImpl extends EmptyDependencyGraph implements ParentCo
         final boolean isAnonymousClass = implementation.isAnonymousClass();
 
         if (isSyntheticClass || isAnonymousClass) {
-            throw new OpenComponentContainer.BindingException("Component %s is not instantiable (%s)", implementation, isSyntheticClass ? "synthetic" : "anonymous");
+            throw new ComponentContainer.BindingException("Component %s is not instantiable (%s)", implementation, isSyntheticClass ? "synthetic" : "anonymous");
         }
 
         final Component componentSpec = implementation.getAnnotation(Component.class);
@@ -242,7 +243,7 @@ final class SimpleContainerImpl extends EmptyDependencyGraph implements ParentCo
 
     public void bindInstance(final Object instance, final Components.Interfaces interfaces) {
         if (instance == null) {
-            throw new OpenComponentContainer.BindingException("Component instance for %s is null", interfaces.implementation);
+            throw new ComponentContainer.BindingException("Component instance for %s is null", interfaces.implementation);
         }
 
         final Class<?> implementation = instance.getClass();
@@ -280,7 +281,7 @@ final class SimpleContainerImpl extends EmptyDependencyGraph implements ParentCo
         });
     }
 
-    public SimpleContainer linkComponent(final Components.Interfaces interfaces) throws OpenComponentContainer.BindingException {
+    public SimpleContainer linkComponent(final Components.Interfaces interfaces) throws ComponentContainer.BindingException {
         final LogFactory logs = this.logs;
         final SimpleContainer child = newChildContainer(false);
 
@@ -328,8 +329,16 @@ final class SimpleContainerImpl extends EmptyDependencyGraph implements ParentCo
         return injector.fields(component, services.graphTraversal(), dependencyResolver(domain), new InstanceDescriptor(component), context);
     }
 
-    public Object invoke(final Object component, final Method method, final ContextDefinition context) {
-        return injector.invoke(component, method, services.graphTraversal(), dependencyResolver(domain), new InstanceDescriptor(component), context);
+    public Object invoke(final Object component, final Method method, final ContextDefinition context, final Object[] arguments, final boolean explicit)
+            throws InvocationTargetException {
+        return injector.invoke(component,
+                               method,
+                               arguments,
+                               services.graphTraversal(),
+                               dependencyResolver(domain),
+                               new InstanceDescriptor(component),
+                               context,
+                               explicit);
     }
 
     public Node resolveComponent(final ParentContainer domain,
@@ -679,19 +688,19 @@ final class SimpleContainerImpl extends EmptyDependencyGraph implements ParentCo
             throw new UnsupportedOperationException();
         }
 
-        public ComponentResolver bindResolver(final Class<?> key, final ComponentResolver entry) throws OpenComponentContainer.BindingException {
+        public ComponentResolver bindResolver(final Class<?> key, final ComponentResolver entry) throws ComponentContainer.BindingException {
             throw new UnsupportedOperationException();
         }
 
-        public void bindComponent(final Components.Interfaces interfaces) throws OpenComponentContainer.BindingException {
+        public void bindComponent(final Components.Interfaces interfaces) throws ComponentContainer.BindingException {
             throw new UnsupportedOperationException();
         }
 
-        public void bindInstance(final Object instance, final Components.Interfaces interfaces) throws OpenComponentContainer.BindingException {
+        public void bindInstance(final Object instance, final Components.Interfaces interfaces) throws ComponentContainer.BindingException {
             throw new UnsupportedOperationException();
         }
 
-        public SimpleContainer linkComponent(final Components.Interfaces interfaces) throws OpenComponentContainer.BindingException {
+        public SimpleContainer linkComponent(final Components.Interfaces interfaces) throws ComponentContainer.BindingException {
             throw new UnsupportedOperationException();
         }
 
@@ -699,7 +708,7 @@ final class SimpleContainerImpl extends EmptyDependencyGraph implements ParentCo
             throw new UnsupportedOperationException();
         }
 
-        public Object invoke(final Object component, final Method method, final ContextDefinition copy) {
+        public Object invoke(final Object component, final Method method, final ContextDefinition copy, final Object[] arguments, final boolean explicit) {
             throw new UnsupportedOperationException();
         }
 

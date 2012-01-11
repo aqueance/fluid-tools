@@ -19,7 +19,6 @@ package org.fluidity.features.impl;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.fluidity.composition.ComponentContainer;
-import org.fluidity.composition.OpenComponentContainer;
 import org.fluidity.composition.spi.EmptyPackageBindings;
 import org.fluidity.features.Scheduler;
 
@@ -34,7 +33,7 @@ final class SchedulerBindings extends EmptyPackageBindings {
 
     @Override
     @SuppressWarnings("unchecked")
-    public void bindComponents(final OpenComponentContainer.Registry registry) {
+    public void bindComponents(final ComponentContainer.Registry registry) {
         registry.bindComponent(SchedulerImpl.class);
     }
 

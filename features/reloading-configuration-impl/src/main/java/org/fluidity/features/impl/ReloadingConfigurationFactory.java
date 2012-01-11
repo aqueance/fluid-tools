@@ -24,7 +24,6 @@ import java.util.Map;
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
-import org.fluidity.composition.OpenComponentContainer;
 import org.fluidity.composition.spi.CustomComponentFactory;
 import org.fluidity.features.ReloadingConfiguration;
 import org.fluidity.features.Updates;
@@ -55,7 +54,7 @@ final class ReloadingConfigurationFactory implements CustomComponentFactory {
         return new Instance() {
 
             @SuppressWarnings("unchecked")
-            public void bind(final Registry registry) throws OpenComponentContainer.BindingException {
+            public void bind(final Registry registry) throws ComponentContainer.BindingException {
                 registry.bindInstance(api, Class.class);
                 registry.bindComponent(ReloadingConfigurationImpl.class);
             }

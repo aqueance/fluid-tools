@@ -16,6 +16,7 @@
 
 package org.fluidity.composition;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -57,17 +58,17 @@ public final class ContainerBoundary implements ComponentContainer {
 
     private static final Map<ClassLoader, OpenComponentContainer> populatedContainers = new WeakHashMap<ClassLoader, OpenComponentContainer>();
     private static final Map<ClassLoader, Map> propertiesMap = new WeakHashMap<ClassLoader, Map>();
-    private static final Set<OpenComponentContainer> lockedContainers = new HashSet<OpenComponentContainer>();
+    private static final Set<ComponentContainer> lockedContainers = new HashSet<ComponentContainer>();
     private static final Object stateLock = new Object();
 
     private static final ContainerBootstrap.Callback CONTAINER_LOCK_CALLBACK = new ContainerBootstrap.Callback() {
-        public void containerInitialized(final OpenComponentContainer container) {
+        public void containerInitialized(final ComponentContainer container) {
             synchronized (stateLock) {
                 lockedContainers.add(container);
             }
         }
 
-        public void containerShutdown(final OpenComponentContainer container) {
+        public void containerShutdown(final ComponentContainer container) {
             synchronized (stateLock) {
                 lockedContainers.remove(container);
 
@@ -156,8 +157,9 @@ public final class ContainerBoundary implements ComponentContainer {
 
     /**
      * Allows a bootstrap code to add component instances to the container before it is populated. This method can only be invoked before any component is
-     * taken out of the container by any thread using any of the {@link #getComponent(Class)}, {@link #getComponent(Class, OpenComponentContainer.Bindings)},
-     * {@link #initialize(Object)} or {@link #makeChildContainer()} methods. Once that happens, this method will throw an {@link IllegalStateException}.
+     * taken out of the container by any thread using any of the {@link #getComponent(Class)}, {@link #initialize(Object)}, {@link #instantiate(Class)}, {@link
+     * #instantiate(Class, ComponentContainer.Bindings)}, {@link #makeChildContainer(Bindings...)} or {@link
+     * ComponentContainer#makeChildContainer(Bindings...)} methods. Once that happens, this method will throw an {@link IllegalStateException}.
      * <p/>
      * Calling this method will trigger population of the associated container and its parents.
      *
@@ -187,61 +189,7 @@ public final class ContainerBoundary implements ComponentContainer {
      * {@inheritDoc}
      */
     public <T> T getComponent(final Class<T> api) {
-        return loadContainer(true).getComponent(api);
-    }
-
-    /**
-     * Delegates to the enclosed container.
-     * <p/>
-     * {@inheritDoc}
-     */
-    public <T> T getComponent(final Class<T> api, final OpenComponentContainer.Bindings bindings) {
-        return loadContainer(true).getComponent(api, bindings);
-    }
-
-    /**
-     * Delegates to the enclosed container.
-     * <p/>
-     * {@inheritDoc}
-     */
-    public OpenComponentContainer makeChildContainer() {
-        return loadContainer(true).makeChildContainer();
-    }
-
-    /**
-     * Delegates to the enclosed container.
-     * <p/>
-     * {@inheritDoc}
-     */
-    public OpenComponentContainer makeDomainContainer() {
-        return loadContainer(true).makeDomainContainer();
-    }
-
-    /**
-     * Delegates to the enclosed container.
-     * <p/>
-     * {@inheritDoc}
-     */
-    public <T> T initialize(final T component) {
-        return loadContainer(true).initialize(component);
-    }
-
-    /**
-     * Delegates to the enclosed container.
-     * <p/>
-     * {@inheritDoc}
-     */
-    public Object invoke(final Object component, final Method method) throws ResolutionException {
-        return loadContainer(true).invoke(component, method);
-    }
-
-    /**
-     * Delegates to the enclosed container.
-     * <p/>
-     * {@inheritDoc}
-     */
-    public <T> T instantiate(final Class<T> componentClass) throws ResolutionException {
-        return loadContainer(true).instantiate(componentClass);
+        return loadedContainer().getComponent(api);
     }
 
     /**
@@ -250,7 +198,79 @@ public final class ContainerBoundary implements ComponentContainer {
      * {@inheritDoc}
      */
     public <T> T[] getComponentGroup(final Class<T> api) {
-        return loadContainer(true).getComponentGroup(api);
+        return loadedContainer().getComponentGroup(api);
+    }
+
+    /**
+     * Delegates to the enclosed container.
+     * <p/>
+     * {@inheritDoc}
+     */
+    public <T> T getComponent(final Class<T> api, final Bindings... bindings) throws ResolutionException {
+        return loadedContainer().getComponent(api, bindings);
+    }
+
+    /**
+     * Delegates to the enclosed container.
+     * <p/>
+     * {@inheritDoc}
+     */
+    public OpenComponentContainer makeChildContainer(final Bindings... bindings) {
+        return loadedContainer().makeChildContainer(bindings);
+    }
+
+    /**
+     * Delegates to the enclosed container.
+     * <p/>
+     * {@inheritDoc}
+     */
+    public OpenComponentContainer makeDomainContainer() {
+        return loadedContainer().makeDomainContainer();
+    }
+
+    /**
+     * Delegates to the enclosed container.
+     * <p/>
+     * {@inheritDoc}
+     */
+    public <T> T initialize(final T component) {
+        return loadedContainer().initialize(component);
+    }
+
+    /**
+     * Delegates to the enclosed container.
+     * <p/>
+     * {@inheritDoc}
+     */
+    public Object invoke(final Object component, final Method method, final Object... arguments) throws ResolutionException, InvocationTargetException {
+        return loadedContainer().invoke(component, method, arguments);
+    }
+
+    /**
+     * Delegates to the enclosed container.
+     * <p/>
+     * {@inheritDoc}
+     */
+    public <T> T complete(final T component, final Class<? super T>... api) throws ResolutionException {
+        return loadedContainer().complete(component, api);
+    }
+
+    /**
+     * Delegates to the enclosed container.
+     * <p/>
+     * {@inheritDoc}
+     */
+    public <T> T instantiate(final Class<T> componentClass) throws ResolutionException {
+        return loadedContainer().instantiate(componentClass);
+    }
+
+    /**
+     * Delegates to the enclosed container.
+     * <p/>
+     * {@inheritDoc}
+     */
+    public <T> T instantiate(final Class<T> componentClass, final Bindings bindings) throws ResolutionException {
+        return loadedContainer().instantiate(componentClass, bindings);
     }
 
     /**
@@ -259,7 +279,7 @@ public final class ContainerBoundary implements ComponentContainer {
      * {@inheritDoc}
      */
     public ObservedComponentContainer observed(final ComponentResolutionObserver observer) {
-        return loadContainer(true).observed(observer);
+        return loadedContainer().observed(observer);
     }
 
     /**
@@ -285,11 +305,11 @@ public final class ContainerBoundary implements ComponentContainer {
     }
 
     /**
-     * Makes the container for the nearest class loader available to the caller. Used for testing.
+     * Makes the container for the nearest class loader available to the caller.
      *
      * @return the container for the nearest class loader.
      */
-    /* package */ ComponentContainer getContainer() {
+    /* package */ ComponentContainer loadedContainer() {
         return loadContainer(true);
     }
 

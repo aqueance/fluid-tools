@@ -33,7 +33,6 @@ import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.Inject;
 import org.fluidity.composition.ObservedComponentContainer;
-import org.fluidity.composition.OpenComponentContainer;
 import org.fluidity.composition.spi.ComponentResolutionObserver;
 import org.fluidity.composition.spi.DependencyPath;
 
@@ -65,7 +64,11 @@ public final class BasicResolutionTests extends AbstractContainerTests {
         }
 
         for (int i = 0; i < 100000 && !collected; ++i) {
-            container.makeChildContainer().getRegistry().bindInstance(new FinalizationAware());
+            container.makeChildContainer(new ComponentContainer.Bindings() {
+                public void bindComponents(final ComponentContainer.Registry registry) {
+                    registry.bindInstance(new FinalizationAware());
+                }
+            });
             Runtime.getRuntime().gc();
         }
 
@@ -154,7 +157,7 @@ public final class BasicResolutionTests extends AbstractContainerTests {
 
     @Test
     public void identifiesContainerChain() throws Exception {
-        final OpenComponentContainer child = container.makeChildContainer();
+        final ComponentContainer child = container.makeChildContainer();
 
         final String topString = container.toString();
         final String childString = child.toString();
@@ -171,9 +174,28 @@ public final class BasicResolutionTests extends AbstractContainerTests {
     }
 
     @Test
-    public void transientComponentBindings() throws Exception {
-        final Key value = container.getComponent(Key.class, new OpenComponentContainer.Bindings() {
-            public void bindComponents(OpenComponentContainer.Registry registry) {
+    public void transientComponentInstantiation() throws Exception {
+        assert container.instantiate(Check.class) != null;
+    }
+
+    @Test
+    public void transientDependentComponentInstantiation() throws Exception {
+        final Key value = container.instantiate(Value.class, new ComponentContainer.Bindings() {
+            public void bindComponents(ComponentContainer.Registry registry) {
+                registry.bindComponent(DependentValue.class);
+            }
+        });
+
+        assert value != null;
+        assert container.getComponent(Key.class) == null;
+        assert container.getComponent(Value.class) == null;
+        assert container.getComponent(DependentKey.class) == null;
+    }
+
+    @Test
+    public void transientBindings() throws Exception {
+        final Key value = container.getComponent(Key.class, new ComponentContainer.Bindings() {
+            public void bindComponents(ComponentContainer.Registry registry) {
                 registry.bindComponent(Value.class);
                 registry.bindComponent(DependentValue.class);
             }
@@ -181,12 +203,8 @@ public final class BasicResolutionTests extends AbstractContainerTests {
 
         assert value != null;
         assert container.getComponent(Key.class) == null;
+        assert container.getComponent(Value.class) == null;
         assert container.getComponent(DependentKey.class) == null;
-    }
-
-    @Test
-    public void transientComponentInstantiation() throws Exception {
-        assert container.instantiate(Check.class) != null;
     }
 
     @Test
@@ -282,7 +300,7 @@ public final class BasicResolutionTests extends AbstractContainerTests {
         assert instantiated.contains(MultipleInterfaces.class);
     }
 
-    @Test(expectedExceptions = OpenComponentContainer.BindingException.class, expectedExceptionsMessageRegExp = ".*anonymous.*")
+    @Test(expectedExceptions = ComponentContainer.BindingException.class, expectedExceptionsMessageRegExp = ".*anonymous.*")
     public void anonymousClass() throws Exception {
         registry.bindInstance(this);
         registry.bindComponent(new Serializable() { }.getClass());

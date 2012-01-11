@@ -16,6 +16,7 @@
 
 package org.fluidity.composition;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 
@@ -87,20 +88,20 @@ interface SimpleContainer extends DependencyGraph {
      *
      * @return the bound resolver.
      *
-     * @throws OpenComponentContainer.BindingException
+     * @throws ComponentContainer.BindingException
      *          when binding fails.
      */
-    ComponentResolver bindResolver(Class<?> key, ComponentResolver entry) throws OpenComponentContainer.BindingException;
+    ComponentResolver bindResolver(Class<?> key, ComponentResolver entry) throws ComponentContainer.BindingException;
 
     /**
      * Binds a component class to an interface.
      *
      * @param interfaces the component and group interfaces to bind to.
      *
-     * @throws OpenComponentContainer.BindingException
+     * @throws ComponentContainer.BindingException
      *          when binding fails.
      */
-    void bindComponent(Components.Interfaces interfaces) throws OpenComponentContainer.BindingException;
+    void bindComponent(Components.Interfaces interfaces) throws ComponentContainer.BindingException;
 
     /**
      * Binds a component instance to an interface.
@@ -108,23 +109,23 @@ interface SimpleContainer extends DependencyGraph {
      * @param instance   the component instance to bind.
      * @param interfaces the component and group interfaces to bind to.
      *
-     * @throws OpenComponentContainer.BindingException
+     * @throws ComponentContainer.BindingException
      *          when binding fails.
      */
-    void bindInstance(Object instance, Components.Interfaces interfaces) throws OpenComponentContainer.BindingException;
+    void bindInstance(Object instance, Components.Interfaces interfaces) throws ComponentContainer.BindingException;
 
     /**
-     * Creates a child container of the receiver and links the given interface to a mapping added to the returned child, effectively directing the component
-     * resolution in the parent container to the child.
+     * Creates a child container and links the given interfaces to mappings added to the returned child, effectively directing the component
+     * resolution for these interfaces in this container to the child.
      *
      * @param interfaces the component and group interfaces to bind to.
      *
      * @return the child container returned.
      *
-     * @throws OpenComponentContainer.BindingException
+     * @throws ComponentContainer.BindingException
      *          when binding fails.
      */
-    SimpleContainer linkComponent(Components.Interfaces interfaces) throws OpenComponentContainer.BindingException;
+    SimpleContainer linkComponent(Components.Interfaces interfaces) throws ComponentContainer.BindingException;
 
     /**
      * Injects the {@link Inject @Inject} annotated fields of the given component instance.
@@ -141,18 +142,21 @@ interface SimpleContainer extends DependencyGraph {
     Object initialize(Object component, ContextDefinition context, ComponentResolutionObserver observer) throws ComponentContainer.ResolutionException;
 
     /**
-     * Injects the parameters of the given method and invokes it on the given interface.
+     * Injects all applicable parameters of the given method that the provided argument list contains no value for, and invokes it on the given interface.
      *
      * @param component the component instance.
      * @param method    the method to inject and invoke.
      * @param context   the base context to resolve the component's dependencies in.
+     * @param arguments the method parameters already resolved.
+     * @param explicit  tells if all parameters of the method are subject to injection (<code>true</code>) or only those annotated with {@link Inject @Inject}.
      *
      * @return the component instance.
      *
      * @throws ComponentContainer.ResolutionException
-     *          when dependency resolution fails.
+     *                                   when dependency resolution fails.
+     * @throws InvocationTargetException when the method throws an exception.
      */
-    Object invoke(Object component, Method method, final ContextDefinition context);
+    Object invoke(Object component, Method method, ContextDefinition context, Object[] arguments, boolean explicit) throws InvocationTargetException;
 
     /**
      * Returns a textual identifier for the container.
