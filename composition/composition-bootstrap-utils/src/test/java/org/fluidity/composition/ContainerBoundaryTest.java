@@ -26,7 +26,6 @@ import java.util.Properties;
 import org.fluidity.composition.spi.ContainerProvider;
 import org.fluidity.composition.spi.ContainerServices;
 import org.fluidity.composition.spi.ContainerServicesFactory;
-import org.fluidity.composition.spi.DependencyGraph;
 import org.fluidity.composition.spi.PlatformContainer;
 import org.fluidity.foundation.NoLogFactory;
 import org.fluidity.foundation.spi.LogFactory;
@@ -52,7 +51,6 @@ public class ContainerBoundaryTest extends MockGroupAbstractTest {
     private final ContainerServicesFactory servicesFactory = mock(ContainerServicesFactory.class);
     private final ContainerServices services = mock(ContainerServices.class);
 
-    private final DependencyGraph.Traversal.Strategy strategy = mock(DependencyGraph.Traversal.Strategy.class);
     private final LogFactory logs = new NoLogFactory();
 
     private void setupDependencies(final ClassLoader classLoader, final boolean assign) {
@@ -62,8 +60,7 @@ public class ContainerBoundaryTest extends MockGroupAbstractTest {
         if (assign) {
             EasyMock.expect(providers.<ContainerServicesFactory>findInstance(ContainerServicesFactory.class, classLoader)).andReturn(servicesFactory);
             EasyMock.expect(providers.<LogFactory>findInstance(LogFactory.class, classLoader)).andReturn(logs);
-            EasyMock.expect(providers.<DependencyGraph.Traversal.Strategy>findInstance(DependencyGraph.Traversal.Strategy.class, classLoader)).andReturn(strategy);
-            EasyMock.expect(servicesFactory.containerServices(logs, strategy)).andReturn(services);
+            EasyMock.expect(servicesFactory.containerServices(logs)).andReturn(services);
         }
     }
 

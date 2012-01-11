@@ -16,9 +16,13 @@
 
 package org.fluidity.composition.tests;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
+import org.fluidity.composition.ComponentGroup;
 
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 /**
@@ -27,8 +31,15 @@ import org.testng.annotations.Test;
 @SuppressWarnings("unchecked")
 public final class CircularReferencesTests extends AbstractContainerTests {
 
+    private static final AtomicBoolean loopback = new AtomicBoolean();
+
     public CircularReferencesTests(final ArtifactFactory factory) {
         super(factory);
+    }
+
+    @BeforeMethod
+    public void setUp() throws Exception {
+        loopback.set(false);
     }
 
     @Test(expectedExceptions = ComponentContainer.CircularReferencesException.class)
@@ -48,39 +59,40 @@ public final class CircularReferencesTests extends AbstractContainerTests {
         container.getComponent(Circular3Dependent1Class.class);
     }
 
-    @Test(expectedExceptions = ComponentContainer.CircularInvocationException.class)
+    @Test
     public void circularTwoWayCalls() throws Exception {
         registry.bindComponent(Circular2Dependent1Impl.class);
         registry.bindComponent(Circular2Dependent2Impl.class);
 
         ping(Circular2Dependent1.class);
-        ping(Circular2Dependent2.class);
+
+        assert loopback.get();
     }
 
-    @Test(expectedExceptions = ComponentContainer.CircularInvocationException.class)
+    @Test
     public void circularThreeWayCalls() throws Exception {
         registry.bindComponent(Circular3Dependent1Impl.class);
         registry.bindComponent(Circular3Dependent2Impl.class);
         registry.bindComponent(Circular3Dependent3Impl.class);
 
         ping(Circular3Dependent1.class);
-        ping(Circular3Dependent2.class);
-        ping(Circular3Dependent2.class);
+
+        assert loopback.get();
     }
 
-    @Test(expectedExceptions = ComponentContainer.CircularInvocationException.class)
+    @Test
     public void circularThreeWayIntermediateInstantiation() throws Exception {
         registry.bindComponent(Circular3IntermediateDependent1Class.class);
         registry.bindComponent(Circular3IntermediateDependent2Class.class);
         registry.bindComponent(Circular3IntermediateDependent3Class.class);
 
         ping(Circular3IntermediateDependent1Class.class);
-        ping(Circular3IntermediateDependent2Class.class);
-        ping(Circular3IntermediateDependent3.class);
+
+        assert loopback.get();
     }
 
     @Test(expectedExceptions = ComponentContainer.CircularReferencesException.class)
-    public void circularReferences() throws Exception {
+    public void circularInstantiationAndConstructorCalls0() throws Exception {
         circularConstruction(true, true, true);
     }
 
@@ -119,6 +131,15 @@ public final class CircularReferencesTests extends AbstractContainerTests {
         circularConstruction(false, false, false);
     }
 
+    @Test(enabled = false) // TODO
+    public void testCircularGroupReference() throws Exception {
+        registry.bindComponent(HeadClass.class);
+        registry.bindComponent(HeadInterfaceImpl.class);
+        registry.bindComponent(GroupMember.class);
+
+        container.getComponent(HeadClass.class).ping();
+    }
+
     private void circularConstruction(final boolean call1, final boolean call2, final boolean call3) {
         CircularConstructor1Impl.call = call1;
         CircularConstructor2Impl.call = call2;
@@ -146,6 +167,7 @@ public final class CircularReferencesTests extends AbstractContainerTests {
 
     private static class PingableImpl implements Pingable {
 
+        private final AtomicBoolean visited = new AtomicBoolean();
         private final Pingable delegate;
 
         protected PingableImpl(final Pingable delegate) {
@@ -154,7 +176,11 @@ public final class CircularReferencesTests extends AbstractContainerTests {
         }
 
         public final void ping() {
-            delegate.ping();
+            if (visited.compareAndSet(false, true)) {
+                delegate.ping();
+            } else {
+                loopback.set(true);
+            }
         }
     }
 
@@ -275,9 +301,7 @@ public final class CircularReferencesTests extends AbstractContainerTests {
     }
 
     @Component(automatic = false)
-    private interface Circular3IntermediateDependent3 extends Pingable {
-
-    }
+    private interface Circular3IntermediateDependent3 extends Pingable { }
 
     @Component(automatic = false)
     private static class Circular3IntermediateDependent3Class extends PingableImpl implements Circular3IntermediateDependent3 {
@@ -334,6 +358,56 @@ public final class CircularReferencesTests extends AbstractContainerTests {
 
         public CircularConstructor3Impl(final CircularConstructor1 dependency) {
             if (call) dependency.ping();
+        }
+
+        public void ping() {
+            // empty
+        }
+    }
+
+    /*
+     * head -> head -> member -> group -> member
+     *              -> group -> member -> group
+     */
+
+    @Component(automatic = false, api = HeadClass.class)
+    private static class HeadClass implements Pingable {
+
+        private final HeadInterface next;
+
+        public HeadClass(final HeadInterface next) {
+            this.next = next;
+        }
+
+        public void ping() {
+            next.ping();
+        }
+    }
+
+    private interface HeadInterface extends Pingable { }
+
+    @Component(automatic = false)
+    private static class HeadInterfaceImpl implements HeadInterface {
+
+        public HeadInterfaceImpl(final GroupMember next1) {
+            assert false : getClass();
+        }
+
+        public void ping() {
+            // empty
+        }
+    }
+
+    @ComponentGroup
+    private interface RecursiveGroup extends Pingable { }
+
+    @Component(automatic = false)
+    private static class GroupMember implements RecursiveGroup {
+
+        public GroupMember(final @ComponentGroup RecursiveGroup[] group) {
+            for (final Pingable next : group) {
+                next.ping();
+            }
         }
 
         public void ping() {

@@ -19,7 +19,6 @@ package org.fluidity.composition.impl;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -49,72 +48,121 @@ import org.fluidity.foundation.Strings;
  */
 final class DependencyPathTraversal implements DependencyGraph.Traversal {
 
-    private final Strategy strategy;
     private final ComponentResolutionObserver observer;
-
     private final AtomicReference<ActualPath> resolutionPath;
-
     private final DependencyInjector injector;
 
-    public DependencyPathTraversal(final DependencyInjector injector, final Strategy strategy, final ComponentResolutionObserver observer) {
-        this(new AtomicReference<ActualPath>(new ActualPath()), injector, strategy, observer);
+    final AtomicReference<CircularReferencesException> deferring = new AtomicReference<CircularReferencesException>();
+
+    public DependencyPathTraversal(final DependencyInjector injector, final ComponentResolutionObserver observer) {
+        this(new AtomicReference<ActualPath>(new ActualPath()), injector, observer);
     }
 
-    public DependencyPathTraversal(final AtomicReference<ActualPath> path,
-                                   final DependencyInjector injector,
-                                   final Strategy strategy,
-                                   final ComponentResolutionObserver observer) {
+    public DependencyPathTraversal(final AtomicReference<ActualPath> path, final DependencyInjector injector, final ComponentResolutionObserver observer) {
         assert path != null;
-        assert strategy != null;
         this.resolutionPath = path;
         this.injector = injector;
-        this.strategy = strategy;
         this.observer = observer;
     }
 
-    public DependencyGraph.Node follow(final DependencyGraph graph, final ContextDefinition context, final DependencyGraph.Node.Reference reference) {
-        final Class<?> api = reference.type();
+    private interface Resolution {
 
+        DependencyGraph.Node perform();
+    }
+
+    public DependencyGraph.Node follow(final DependencyGraph graph, final ContextDefinition context, final DependencyGraph.Node.Reference reference) {
         assert context != null;
+
+        final Class<?> api = reference.type();
 
         final ActualPath savedPath = resolutionPath.get();
         final ActualPath currentPath = savedPath.descend(new ElementImpl(api, null));
 
-        resolutionPath.set(currentPath);
-        try {
-            final boolean repeating = currentPath.repeating;
+        final Resolution resolution = new Resolution() {
+            public DependencyGraph.Node perform() {
+                final CircularReferencesException error = deferring.get();
 
-            if (repeating) {
-                final DependencyGraph.Node node = strategy.advance(graph, context, this, repeating, new TerminationTrail(currentPath));
+                if (error != null && currentPath.repeating) {
+                    if (currentPath.head.node == null) {
+                        throw error;
+                    } else {
+                        return currentPath.head.node;
+                    }
+                }
 
-                if (node == null) {
-                    return new ProxyNode(api, currentPath, null);
-                } else {
+                resolutionPath.set(currentPath);
+
+                try {
+                    final DependencyGraph.Node resolved = injector.resolve(reference.type(), new DependencyInjector.Resolution() {
+                        public ComponentContext context() {
+                            assert false;
+                            return null;
+                        }
+
+                        public ComponentContainer container() {
+                            assert false;
+                            return null;
+                        }
+
+                        public DependencyGraph.Node regular() {
+                            return reference.resolve(DependencyPathTraversal.this, context);
+                        }
+
+                        public void handle(final RestrictedContainer container) {
+                            assert false;
+                        }
+                    });
+
+                    assert resolved != null : api;
+
                     if (observer != null) {
-                        observer.resolved(currentPath, node.type());
+                        observer.resolved(currentPath, resolved.type());
                     }
 
-                    return node;
+                    return new ResolvedNode(api, currentPath.head, resolved);
+                } finally {
+                    resolutionPath.set(savedPath);
+                }
+            }
+        };
+
+        if (currentPath.repeating) {
+            if (currentPath.head.node == null) {
+                @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
+                final CircularReferencesException original = deferring.get();
+                final CircularReferencesException error = original == null ? new CircularReferencesException(api, currentPath) : original;
+
+                if (api.isInterface() && original == null) {
+                    return new ProxyNode(api, error, resolution);
+                } else {
+                    throw error;
                 }
             } else {
-                final Trail trail = new ResolutionTrail(injector, this, currentPath, reference, context);
-                final DependencyGraph.Node node = strategy.advance(graph, context, this, repeating, trail);
-                final DependencyGraph.Node resolved = node == null ? trail.advance() : node;
-                assert resolved != null : api;
-
-                if (observer != null) {
-                    observer.resolved(currentPath, resolved.type());
-                }
-
-                return new ResolvedNode(api, currentPath.head, resolved);
+                return currentPath.head.node;
             }
-        } finally {
-            resolutionPath.set(savedPath);
+        } else {
+            try {
+                return resolution.perform();
+            } catch (final CircularReferencesException error) {
+                if (error.unrolled) {
+                    throw error;
+                } else {
+                    if (error.api == api) {
+                        error.unrolled = true;
+                    }
+
+                    if (api.isInterface()) {
+                        return new ProxyNode(api, error, resolution);
+                    } else {
+                        throw error;
+                    }
+                }
+            }
         }
     }
 
     public DependencyGraph.Traversal observed(final ComponentResolutionObserver observer) {
-        return new DependencyPathTraversal(resolutionPath, injector, strategy, CompositeObserver.combine(this.observer, observer));
+        return new DependencyPathTraversal(resolutionPath, injector, CompositeObserver.combine(this.observer, observer));
     }
 
     public void instantiating(final Class<?> type) {
@@ -148,19 +196,19 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
 
         resolutionPath.set(currentPath);
         try {
-            final DependencyGraph.Node resolved = currentPath.head.node = resolve(api, savedPath, node, traversal);
+            final DependencyGraph.Node resolved = currentPath.head.node = resolve(api, currentPath, node, traversal);
             Object instance = resolved.instance(traversal);
 
             if (instance != null) {
-                if (currentPath.head.cache != null) {
+                if (currentPath.head.cache.get() != null) {
 
                     // chain has been cut short
-                    instance = currentPath.head.cache.instance;
+                    instance = currentPath.head.cache.get();
                 } else {
                     if (currentPath.repeating && !currentPath.tip) {
 
                         // cut short the instantiation chain
-                        currentPath.head.cache = new Cache(instance);
+                        currentPath.head.cache.set(instance);
                     }
                 }
             }
@@ -175,81 +223,40 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
                                          final ActualPath path,
                                          final DependencyGraph.Node node,
                                          final DependencyGraph.Traversal traversal) throws CircularReferencesException {
+        final Resolution resolution = new Resolution() {
+            public DependencyGraph.Node perform() {
+                final ActualPath saved = resolutionPath.getAndSet(path);
+
+                try {
+                    final Object instance = node.instance(traversal);
+                    return instance == null ? null : new DependencyGraph.Node.Constant(node.type(), instance, node.context());
+                } finally {
+                    resolutionPath.set(saved);
+                }
+            }
+        };
+
         try {
-            final Object instance = node.instance(traversal);
-            return instance == null ? null : new DependencyGraph.Node.Constant(node.type(), instance, node.context());
+            return resolution.perform();
         } catch (final CircularReferencesException error) {
-            if (error.node == node) {
+            if (error.unrolled) {
                 throw error;
             } else {
-                return new ProxyNode(api, path, error.node.error == null ? error : error.node.error);
+                if (error.api == api) {
+                    error.unrolled = true;
+                }
+
+                if (api.isInterface()) {
+                    return new ProxyNode(api, error, resolution);
+                } else {
+                    throw error;
+                }
             }
         } catch (final ComponentContainer.InstantiationException e) {
             throw e;
         } catch (final Exception e) {
             throw new ComponentContainer.InstantiationException(resolutionPath.get(), e);
         }
-    }
-
-    private class ProxyNode implements DependencyGraph.Node {
-
-        public final ElementImpl repeat;
-        public final Class<?> api;
-        public final String path;
-        public final CircularReferencesException error;
-
-        public ProxyNode(final Class<?> api, final ActualPath path, final CircularReferencesException error) {
-            this.api = api;
-            this.path = path.toString();
-            this.error = error;
-            this.repeat = path.head;
-        }
-
-        public Class<?> type() {
-            return Proxy.class;
-        }
-
-        public Object instance(final DependencyGraph.Traversal traversal) {
-            if (api.isInterface()) {
-                final Deferred.Reference<Object> delegate = Deferred.reference(new Deferred.Factory<Object>() {
-                    public Object create() {
-                        if (repeat == null || repeat.node == null) {
-                            throw circularity(ProxyNode.this);
-                        } else {
-                            assert repeat.node != ProxyNode.this : api;
-                            return repeat.node.instance(traversal);
-                        }
-                    }
-                });
-
-                return Proxies.create(api, new InvocationHandler() {
-                    private Set<Method> methods = new HashSet<Method>();
-
-                    public Object invoke(final Object proxy, final Method method, final Object[] arguments) throws Throwable {
-                        if (!methods.add(method)) {
-                            throw new ComponentContainer.CircularInvocationException(delegate.get(), methods);
-                        } else {
-                            try {
-                                return method.invoke(delegate.get(), arguments);
-                            } finally {
-                                methods.remove(method);
-                            }
-                        }
-                    }
-                });
-            } else {
-                throw circularity(this);
-            }
-        }
-
-        public ComponentContext context() {
-            assert repeat != null && repeat.node != null : path;
-            return repeat.node.context();
-        }
-    }
-
-    public static CircularReferencesException circularity(final ProxyNode node) {
-        return node.error == null ? new CircularReferencesException(node) : node.error;
     }
 
     private class ResolvedNode implements DependencyGraph.Node {
@@ -354,22 +361,13 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
         }
     }
 
-    private static class Cache {
-
-        public final Object instance;
-
-        public Cache(final Object instance) {
-            this.instance = instance;
-        }
-    }
-
     private static final class ElementImpl implements DependencyPath.Element {
 
         public final Class<?> api;
         public Class<?> type;
         public ComponentContext context;
         public DependencyGraph.Node node;
-        public Cache cache;
+        public AtomicReference<Object> cache = new AtomicReference<Object>();
         private Set<Annotation> annotations = new HashSet<Annotation>();
 
         public ElementImpl(final Class<?> api, final Annotation[] annotations) {
@@ -388,13 +386,12 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
             }
 
             final ElementImpl that = (ElementImpl) o;
-            return api.equals(that.api) && (context == null ? that.context == null : context.equals(that.context));
+            return api.equals(that.api);
         }
 
         @Override
         public int hashCode() {
-            final int hash = api.hashCode();
-            return context != null ? context.hashCode() + 31 * hash : hash;
+            return api.hashCode();
         }
 
         /*
@@ -431,99 +428,62 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
 
     private static final class CircularReferencesException extends ComponentContainer.CircularReferencesException {
 
-        public final ProxyNode node;
+        private final Class<?> api;
+        public final ActualPath path;
+        public boolean unrolled;
 
-        public CircularReferencesException(final ProxyNode node) {
-            super(node.api, node.path);
-            this.node = node;
+        public CircularReferencesException(final Class<?> api, final ActualPath path) {
+            super(api, path.toString(true));
+            this.api = api;
+            this.path = path;
         }
     }
 
-    private static class TerminationTrail implements Trail {
+    private class ProxyNode implements DependencyGraph.Node {
 
-        private final ActualPath currentPath;
+        private final Class<?> api;
+        private final Deferred.Reference<DependencyGraph.Node> node;
 
-        public TerminationTrail(final ActualPath currentPath) {
-            this.currentPath = currentPath;
-        }
+        public ProxyNode(final Class<?> api, final CircularReferencesException error, final Resolution resolution) {
+            this.api = api;
 
-        public Element head() {
-            return currentPath.head();
-        }
-
-        public List<Element> path() {
-            return currentPath.path();
-        }
-
-        @Override
-        public String toString() {
-            return currentPath.toString();
-        }
-
-        public String toString(final boolean api) {
-            return currentPath.toString(api);
-        }
-
-        public DependencyGraph.Node advance() {
-            return null;
-        }
-    }
-
-    private static class ResolutionTrail implements Trail {
-
-        private final DependencyGraph.Traversal traversal;
-        private final ActualPath currentPath;
-        private final DependencyGraph.Node.Reference reference;
-        private final ContextDefinition context;
-        private final DependencyInjector injector;
-
-        public ResolutionTrail(final DependencyInjector injector,
-                               final DependencyGraph.Traversal traversal,
-                               final ActualPath currentPath,
-                               final DependencyGraph.Node.Reference reference,
-                               final ContextDefinition context) {
-            this.injector = injector;
-            this.traversal = traversal;
-            this.currentPath = currentPath;
-            this.reference = reference;
-            this.context = context;
-        }
-
-        public Element head() {
-            return currentPath.head();
-        }
-
-        public List<Element> path() {
-            return currentPath.path();
-        }
-
-        @Override
-        public String toString() {
-            return currentPath.toString();
-        }
-
-        public String toString(final boolean api) {
-            return currentPath.toString(api);
-        }
-
-        public DependencyGraph.Node advance() {
-            return injector.resolve(reference.type(), new DependencyInjector.Resolution() {
-                public ComponentContext context() {
-                    return null;
-                }
-
-                public ComponentContainer container() {
-                    return null;
-                }
-
-                public DependencyGraph.Node regular() {
-                    return reference.resolve(traversal, context);
-                }
-
-                public void handle(final RestrictedContainer container) {
-                    // empty
+            this.node = Deferred.reference(new Deferred.Factory<DependencyGraph.Node>() {
+                public DependencyGraph.Node create() {
+                    if (deferring.compareAndSet(null, error)) {
+                        try {
+                            return resolution.perform();
+                        } finally {
+                            deferring.set(null);
+                        }
+                    } else {
+                        throw error;
+                    }
                 }
             });
+        }
+
+        public Class<?> type() {
+            return api;
+        }
+
+        public Object instance(final DependencyGraph.Traversal traversal) {
+            assert traversal == DependencyPathTraversal.this : traversal;
+
+            final Deferred.Reference<Object> delegate = Deferred.reference(new Deferred.Factory<Object>() {
+                public Object create() {
+                    return node.get().instance(traversal);
+                }
+            });
+
+            return Proxies.create(api, new InvocationHandler() {
+                public Object invoke(final Object proxy, final Method method, final Object[] arguments) throws Throwable {
+                    return method.invoke(delegate.get(), arguments);
+                }
+            });
+        }
+
+        public ComponentContext context() {
+            return node.get().context();
         }
     }
 }

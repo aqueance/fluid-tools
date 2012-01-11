@@ -20,7 +20,6 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 
 import org.fluidity.composition.ComponentContext;
-import org.fluidity.composition.ServiceProvider;
 
 /**
  * A dependency graph of components and component groups. This is an internal interface used by dependency injection container implementations.
@@ -188,10 +187,7 @@ public interface DependencyGraph {
 
         /**
          * Follows a dependency. This is an indirectly recursive method as during resolution of a node further invocations of this method are expected and thus
-         * one single instance is able to maintain a path of invocations. The implementation, if co-operates with a {@link DependencyGraph.Traversal.Strategy},
-         * must invoke the strategy object's {@link DependencyGraph.Traversal.Strategy#advance(DependencyGraph, ContextDefinition, DependencyGraph.Traversal,
-         * boolean, DependencyGraph.Traversal.Trail) advance()} method to actually advance on the dependency path by providing a {@link
-         * DependencyGraph.Traversal.Trail} object to do the advancing.
+         * one single instance is able to maintain a path of invocations.
          *
          * @param graph     the graph in which this dependency is to be followed.
          * @param context   the component context at the point of dependency.
@@ -243,28 +239,6 @@ public interface DependencyGraph {
          * @param referenceAnnotations see {@link ComponentResolutionObserver#resolving(Class, Class, Annotation[], Annotation[]) ComponentResolutionObserver}.
          */
         void resolving(Class<?> declaringType, Class<?> dependencyType, Annotation[] typeAnnotations, Annotation[] referenceAnnotations);
-
-        /**
-         * A dependency graph traversal strategy. The strategy is consulted before advancing on a dependency path. This is an SPI that allows a suitable
-         * implementation to replace a repeating node, i.e., circular reference, with a delegation chain. This is currently not implemented.
-         */
-        @ServiceProvider
-        interface Strategy {
-
-            /**
-             * Advances on a dependency path. The strategy may return an unrelated <code>Node</code> or may invoke the given trail object to advance on the
-             * dependency path.
-             *
-             * @param graph     the graph in which the dependency path is currently being followed.
-             * @param context   the component context at the next node in the path.
-             * @param traversal the traversal object that maintains the dependency path.
-             * @param repeating <code>true</code> if this node is a repetition of a previous node, as defined by the dependency interface and the context.
-             * @param trail     the dependency trail.
-             *
-             * @return the next node on the dependency path.
-             */
-            Node advance(DependencyGraph graph, ContextDefinition context, Traversal traversal, boolean repeating, Trail trail);
-        }
 
         /**
          * A dependency path that can be advanced on.

@@ -32,26 +32,14 @@ import org.fluidity.foundation.spi.LogFactory;
  */
 final class ProductionServices implements ContainerServices {
 
-    private static final DependencyGraph.Traversal.Strategy DEFAULT_STRATEGY = new DependencyGraph.Traversal.Strategy() {
-        public DependencyGraph.Node advance(final DependencyGraph graph,
-                                            final ContextDefinition context,
-                                            final DependencyGraph.Traversal traversal,
-                                            final boolean repeating,
-                                            final DependencyGraph.Traversal.Trail trail) {
-            return trail.advance();
-        }
-    };
-
     private final LogFactory logs;
     private final ClassDiscovery discovery;
     private final DependencyInjector injector;
-    private final DependencyGraph.Traversal.Strategy strategy;
 
-    public ProductionServices(final LogFactory logs, final DependencyGraph.Traversal.Strategy strategy) {
+    public ProductionServices(final LogFactory logs) {
         this.logs = logs;
         this.discovery = new ClassDiscoveryImpl(logs);
         this.injector = new DependencyInjectorImpl();
-        this.strategy = strategy != null ? strategy : DEFAULT_STRATEGY;
     }
 
     public ContextDefinition emptyContext() {
@@ -71,7 +59,7 @@ final class ProductionServices implements ContainerServices {
     }
 
     public DependencyGraph.Traversal graphTraversal(final ComponentResolutionObserver observer) {
-        return new DependencyPathTraversal(injector, strategy, observer);
+        return new DependencyPathTraversal(injector, observer);
     }
 
     public LogFactory logs() {

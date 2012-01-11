@@ -18,9 +18,6 @@ package org.fluidity.composition;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
 
 import org.fluidity.composition.spi.ComponentResolutionObserver;
 import org.fluidity.composition.spi.DependencyPath;
@@ -565,39 +562,6 @@ public interface ComponentContainer {
          */
         public CircularReferencesException(final Class<?> api, final String path) {
             super("Circular dependency detected while resolving %s: %s", Strings.arrayNotation(true, api), path);
-        }
-    }
-
-    /**
-     * Reports that some chain of dependencies is circular and that although there was at least one interface reference along the chain that could be used to
-     * break the circularity, all such interface references were attempted to be dynamically resolved by the constructor of the class owning the reference.
-     */
-    class CircularInvocationException extends ResolutionException {
-
-        private static List<String> methodNames(final Set<Method> methods) {
-            final List<String> list = new ArrayList<String>();
-
-            for (final Method method : methods) {
-                final String name = method.toString();
-                final String owner = method.getDeclaringClass().getName();
-
-                list.add(name.substring(name.indexOf(owner) + owner.length() + 1));
-            }
-
-            return list;
-        }
-
-        /**
-         * Creates a new instance for the given object.
-         *
-         * @param object  the object some method of which could not be invoked.
-         * @param methods the list of method invocations that led to this error.
-         */
-        public CircularInvocationException(final Object object, final Set<Method> methods) {
-            super("Circular method invocation detected on %s@%x involving method(s) %s",
-                  object.getClass().getName(),
-                  System.identityHashCode(object),
-                  methodNames(methods));
         }
     }
 

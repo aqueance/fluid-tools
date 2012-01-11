@@ -18,7 +18,6 @@ package org.fluidity.composition.impl;
 
 import org.fluidity.composition.spi.ContainerServices;
 import org.fluidity.composition.spi.ContainerServicesFactory;
-import org.fluidity.composition.spi.DependencyGraph;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**
@@ -26,8 +25,8 @@ import org.fluidity.foundation.spi.LogFactory;
  */
 public final class ProductionServicesFactory implements ContainerServicesFactory {
 
-    public ContainerServices containerServices(final LogFactory logs, final DependencyGraph.Traversal.Strategy strategy) {
+    public ContainerServices containerServices(final LogFactory logs) {
         assert logs != null : LogFactory.class;
-        return new ProductionServices(logs, strategy);
+        return new ProductionServices(logs);
     }
 }

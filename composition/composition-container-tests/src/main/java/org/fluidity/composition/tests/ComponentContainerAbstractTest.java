@@ -52,7 +52,7 @@ public abstract class ComponentContainerAbstractTest extends MockGroupAbstractTe
     public Object[] tests() {
         final ContainerServicesFactory factory = new ProductionServicesFactory();
         final LogFactory logs = new NoLogFactory();
-        final ContainerServices services = factory.containerServices(logs, null);
+        final ContainerServices services = factory.containerServices(logs);
 
         final ArtifactFactory containers = new ArtifactFactory() {
 

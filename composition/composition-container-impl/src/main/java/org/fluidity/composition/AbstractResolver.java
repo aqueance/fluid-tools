@@ -111,7 +111,6 @@ abstract class AbstractResolver implements ComponentResolver {
                 public Object instantiate() {
                     return node.instance(traversal);
                 }
-
             });
         }
 

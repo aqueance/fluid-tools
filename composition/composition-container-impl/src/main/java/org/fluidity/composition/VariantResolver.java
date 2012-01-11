@@ -131,9 +131,7 @@ abstract class VariantResolver extends AbstractFactoryResolver {
                                         final ContextDefinition context,
                                         final Type reference) {
         final SimpleContainer child = container.newChildContainer(false);
-
         child.bindResolver(api, findDelegate());
-
         return resolve(domain, traversal, container, context, child, reference);
     }
 

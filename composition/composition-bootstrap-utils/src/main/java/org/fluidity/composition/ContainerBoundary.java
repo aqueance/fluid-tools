@@ -31,7 +31,6 @@ import org.fluidity.composition.spi.ComponentResolutionObserver;
 import org.fluidity.composition.spi.ContainerProvider;
 import org.fluidity.composition.spi.ContainerServices;
 import org.fluidity.composition.spi.ContainerServicesFactory;
-import org.fluidity.composition.spi.DependencyGraph;
 import org.fluidity.composition.spi.PlatformContainer;
 import org.fluidity.foundation.spi.LogFactory;
 
@@ -352,8 +351,7 @@ public final class ContainerBoundary implements ComponentContainer {
                         final ContainerServicesFactory factory = services.findInstance(ContainerServicesFactory.class, loader);
                         assert factory != null : ContainerServicesFactory.class;
 
-                        containerServices = factory.containerServices(services.findInstance(LogFactory.class, loader),
-                                                                      services.findInstance(DependencyGraph.Traversal.Strategy.class, loader));
+                        containerServices = factory.containerServices(services.findInstance(LogFactory.class, loader));
                         assert containerServices != null : ContainerServicesFactory.class;
                     }
 
