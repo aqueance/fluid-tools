@@ -40,7 +40,7 @@ public final class Generics extends Utilities {
      *
      * @return the raw type or <code>null</code>.
      */
-    public static Class rawType(final Type type) {
+    public static Class<?> rawType(final Type type) {
         if (type instanceof Class) {
             return (Class) type;
         } else if (type instanceof ParameterizedType) {

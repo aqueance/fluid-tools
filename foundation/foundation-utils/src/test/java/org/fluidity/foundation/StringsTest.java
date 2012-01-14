@@ -101,6 +101,20 @@ public class StringsTest extends MockGroupAbstractTest {
     }
 
     @Test
+    public void classArrayValueAnnotation() throws Exception {
+        final ClassValued annotation = localMock(ClassValued.class);
+
+        EasyMock.expect(annotation.annotationType()).andReturn((Class) ClassValued.class);
+        EasyMock.expect(annotation.value()).andReturn(Object[].class);
+
+        replay();
+        final String string = Strings.simpleNotation(annotation);
+        verify();
+
+        assert String.format("@%s.%s(Object[].class)", getClass().getSimpleName(), ClassValued.class.getSimpleName()).equals(string) : string;
+    }
+
+    @Test
     public void multiValueAnnotation() throws Exception {
         final MultiValued annotation = localMock(MultiValued.class);
 
@@ -139,5 +153,9 @@ public class StringsTest extends MockGroupAbstractTest {
     private static @interface MultiValued {
         int id() default -1;
         String[] list() default { };
+    }
+
+    private static @interface ClassValued {
+        Class value() default Object.class;
     }
 }

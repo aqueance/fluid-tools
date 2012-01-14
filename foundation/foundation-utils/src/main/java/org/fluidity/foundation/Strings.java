@@ -38,12 +38,29 @@ public final class Strings extends Utilities {
      * assert Strings.arrayNotation(Object[][][].class).equals("java.lang.Object[][][]");
      * </pre>
      *
-     * @param full if <code>true</code>, the type's full string representation is used, otherwise only its name is used.
+     * @param full if <code>true</code>, the type's full string representation is used, otherwise only its fully qualified name is used.
      * @param type the class, which may be an array.
      *
      * @return the Java array notation corresponding to the given class.
      */
     public static String arrayNotation(final boolean full, final Class<?> type) {
+        return arrayNotation(full, true, type);
+    }
+
+    /**
+     * Adds "[]" to the class name once for each step in the depth of the array. For instance:
+     * <pre>
+     * assert Strings.arrayNotation(Object[][][].class).equals("java.lang.Object[][][]");
+     * </pre>
+     *
+     * @param full      if <code>true</code>, the type's full string representation is used, otherwise only its name is used.
+     * @param qualified if <code>true</code> and <code>full</code> is <code>false</code>, the type's fully qualified name is used, otherwise its simple name is
+     *                  used.
+     * @param type      the class, which may be an array.
+     *
+     * @return the Java array notation corresponding to the given class.
+     */
+    public static String arrayNotation(final boolean full, final boolean qualified, final Class<?> type) {
         final StringBuilder builder = new StringBuilder();
 
         Class<?> componentType = type;
@@ -51,7 +68,18 @@ public final class Strings extends Utilities {
             builder.append("[]");
         }
 
-        return builder.insert(0, full ? componentType.toString() : componentType.getName()).toString();
+        final String typeName;
+
+        if (full) {
+            typeName = componentType.toString();
+        } else if (qualified) {
+            typeName = componentType.getName();
+        } else {
+            final String name = componentType.getName();
+            typeName = name.substring(name.lastIndexOf(".") + 1).replace('$', '.');
+        }
+
+        return builder.insert(0, typeName).toString();
     }
 
     /**
@@ -62,7 +90,7 @@ public final class Strings extends Utilities {
      * <li><code>@MyAnnotation(id = 1000, code = "abcd")</code>: "@MyAnnotation(id=1000,code=\"abcd\")"</li>
      * <li><code>@MyAnnotation({ 1, 2, 3 })</code>: "@MyAnnotation({1,2,3})"</li>
      * </ul>
-     *
+     * <p/>
      * Default values are surrounded by a pair of square brackets, i.e., "[]".
      *
      * @param annotation the annotation instance to return the Java-like form of.
@@ -127,8 +155,7 @@ public final class Strings extends Utilities {
 
     private static void appendValue(final StringBuilder output, final Object value) {
         if (value instanceof Class) {
-            final String name = ((Class) value).getName();
-            output.append(name.substring(name.lastIndexOf(".") + 1).replace('$', '.')).append(".class");
+            output.append(arrayNotation(false, false, (Class) value)).append(".class");
         } else {
             output.append(value.getClass().isArray() ? appendArray(value) : value);
         }

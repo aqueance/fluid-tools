@@ -37,7 +37,7 @@ final class AnnotationMaps extends Utilities {
             return true;
         }
 
-        if (!map1.keySet().equals(map1.keySet())) {
+        if (!map1.keySet().equals(map2.keySet())) {
             return false;
         }
 
@@ -66,11 +66,9 @@ final class AnnotationMaps extends Utilities {
     public static String toString(final Map<Class<? extends Annotation>, Annotation[]> map) {
         final StringBuilder builder = new StringBuilder();
 
-        boolean multiple = false;
         for (final Map.Entry<Class<? extends Annotation>, Annotation[]> entry : sorted(map).entrySet()) {
             if (builder.length() > 0) {
-                builder.append(", ");
-                multiple = true;
+                builder.append(" ");
             }
 
             for (final Annotation annotation : entry.getValue()) {
@@ -78,7 +76,7 @@ final class AnnotationMaps extends Utilities {
             }
         }
 
-        return (multiple ? builder.insert(0, '[').append(']') : builder).toString();
+        return builder.toString();
     }
 
     private static Map<Class<? extends Annotation>, Annotation[]> sorted(final Map<Class<? extends Annotation>, Annotation[]> map) {
