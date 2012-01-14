@@ -71,7 +71,7 @@ final class ContextDefinitionImpl implements ContextDefinition {
                     }
                 }
 
-                // then define extend context definition
+                // then extend the context definition
                 for (final Annotation value : definition) {
                     final Class<? extends Annotation> type = value.annotationType();
 
@@ -158,6 +158,10 @@ final class ContextDefinitionImpl implements ContextDefinition {
         return annotations == null ? null : (Component.Reference) annotations[0];
     }
 
+    public boolean isEmpty() {
+        return defined.isEmpty();
+    }
+
     public ContextDefinition copy() {
         return new ContextDefinitionImpl(defined, active);
     }
@@ -196,12 +200,10 @@ final class ContextDefinitionImpl implements ContextDefinition {
         return hashCode;
     }
 
-/*
     @Override
     public String toString() {
-        return String.format("defined: [%s] active: [%s]", AnnotationMaps.toString(defined), AnnotationMaps.toString(active));
+        return AnnotationMaps.toString(defined);
     }
-*/
 
     private static class ComponentReferenceImpl implements Component.Reference {
         private final Type reference;

@@ -54,6 +54,8 @@ import org.fluidity.composition.ComponentContext;
  * This context tracking algorithm ensures that between the component that defines some context and the ones that consume it, all intermediate components will
  * also have a dedicated instance for the active context. This may not appear intuitive at first but this rule guarantees that context aware components will
  * indeed have a unique instance for each actual context in the application.
+ * <p/>
+ * TODO: mention that the multiple identical context annotations will be collapsed into one instance
  *
  * @author Tibor Varga
  */
@@ -123,4 +125,11 @@ public interface ContextDefinition {
      * @return the component reference.
      */
     Component.Reference reference();
+
+    /**
+     * Tells if the context definition is empty.
+     *
+     * @return <code>true</code> if there is no context annotation in the receiver; <code>false</code> otherwise.
+     */
+    boolean isEmpty();
 }
