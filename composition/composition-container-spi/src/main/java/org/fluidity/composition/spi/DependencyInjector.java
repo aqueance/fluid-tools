@@ -35,6 +35,7 @@ public interface DependencyInjector {
      * constructor. The returned node's {@link DependencyGraph.Node#instance(DependencyGraph.Traversal)} method will instantiate the component and also inject
      * its {@link org.fluidity.composition.Inject @Inject} annotated fields.
      *
+     * @param api         the component interface of the component to construct.
      * @param traversal   the current graph traversal.
      * @param container   the container to resolve dependencies of the component.
      * @param contexts    context node corresponding to the constructor's owning component.
@@ -43,7 +44,8 @@ public interface DependencyInjector {
      *
      * @return a dependency graph node.
      */
-    DependencyGraph.Node constructor(DependencyGraph.Traversal traversal,
+    DependencyGraph.Node constructor(Class<?> api,
+                                     DependencyGraph.Traversal traversal,
                                      DependencyResolver container,
                                      ContextNode contexts,
                                      ContextDefinition context,
@@ -51,7 +53,8 @@ public interface DependencyInjector {
 
     /**
      * Injects all {@link org.fluidity.composition.Inject @Inject} annotated fields of the received component. Useful for components instantiated by means
-     * other than calling {@link #constructor(DependencyGraph.Traversal, DependencyResolver, ContextNode, ContextDefinition, Constructor) constructor(...)}.
+     * other than calling {@link #constructor(Class, DependencyGraph.Traversal, DependencyResolver, ContextNode, ContextDefinition, Constructor)
+     * constructor(...)}.
      *
      * @param instance  the object to inject the fields of.
      * @param traversal the current graph traversal.

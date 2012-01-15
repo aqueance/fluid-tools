@@ -247,7 +247,8 @@ final class DependencyInjectorImpl implements DependencyInjector {
         }
     }
 
-    public DependencyGraph.Node constructor(final DependencyGraph.Traversal traversal,
+    public DependencyGraph.Node constructor(final Class<?> api,
+                                            final DependencyGraph.Traversal traversal,
                                             final DependencyResolver container,
                                             final ContextNode contexts,
                                             final ContextDefinition context,
@@ -258,7 +259,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
         final Annotation[] constructorAnnotations = neverNull(constructor.getAnnotations());
         final Annotation[][] parameterAnnotations = constructor.getParameterAnnotations();
         final Type[] types = constructor.getGenericParameterTypes();
-        final DependencyGraph.Node[] arguments = new DependencyGraph.Node[types.length];
+        final DependencyGraph.Node[] parameters = new DependencyGraph.Node[types.length];
 
         for (int i = 0, length = types.length; i < length; ++i) {
             final int index = i;
@@ -277,7 +278,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
                 }
 
                 public void set(final DependencyGraph.Node node) {
-                    arguments[index] = node;
+                    parameters[index] = node;
                 }
             }));
         }
@@ -298,11 +299,19 @@ final class DependencyInjectorImpl implements DependencyInjector {
                 try {
                     return injectFields(fields, traversal, containers, Exceptions.wrap(String.format("instantiating %s", componentClass), new Exceptions.Command<Object>() {
                         public Object run() throws Exception {
-                            constructor.setAccessible(true);
-                            traversal.instantiating(componentClass);
-                            final Object component = constructor.newInstance(create(constructor.getDeclaringClass(), traversal, containers, arguments));
-                            traversal.instantiated(componentClass, component);
-                            return component;
+                            final Object[] arguments = create(constructor.getDeclaringClass(), traversal, containers, parameters);
+
+                            final Object cached = container.cached(api, componentContext);
+
+                            if (cached == null) {
+                                traversal.instantiating(componentClass);
+                                constructor.setAccessible(true);
+                                final Object component = constructor.newInstance(arguments);
+                                traversal.instantiated(componentClass, component);
+                                return component;
+                            } else {
+                                return cached;
+                            }
                         }
                     }));
                 } finally {
@@ -480,7 +489,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
                         declaringType);
             }
 
-            node = container.resolveGroup(itemType, context.expand(definitions, reference), traversal, dependency.annotations(), reference);
+            node = container.resolveGroup(itemType, context.expand(definitions, reference), traversal, dependencyContext, reference);
         } else {
             node = resolve(dependencyType, new Resolution() {
                 public ComponentContext context() {

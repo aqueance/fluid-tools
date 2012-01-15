@@ -20,7 +20,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.UndeclaredThrowableException;
 
 /**
- * Utilities to allow propagation of checked exceptions through method calls that don't allow those checked exceptions thrown from inside.
+ * A utility that allows propagation of checked exceptions through method calls that don't allow those checked exceptions thrown from inside.
  * <h3>Usage</h3>
  * Let's say some executor expects a {@link Runnable} command to run, in the same thread, and your command needs to be able to throw some checked exceptions
  * back to the caller. Assuming that the executor lets {@link RuntimeException RuntimeExceptions} thrown through:
@@ -51,7 +51,7 @@ import java.lang.reflect.UndeclaredThrowableException;
  *
  * @author Tibor Varga
  */
-public final class Exceptions extends Utilities {
+public final class Exceptions extends Utility {
 
     private Exceptions() { }
 

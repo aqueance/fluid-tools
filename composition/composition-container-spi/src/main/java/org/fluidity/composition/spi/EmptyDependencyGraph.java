@@ -16,6 +16,7 @@
 
 package org.fluidity.composition.spi;
 
+import java.lang.reflect.Array;
 import java.lang.reflect.Type;
 
 /**
@@ -35,7 +36,7 @@ public abstract class EmptyDependencyGraph implements DependencyGraph {
      * {@inheritDoc}
      */
     public final Node resolveComponent(final Class<?> api, final ContextDefinition context, final Traversal traversal) {
-        return resolveComponent(api, context, traversal, api);
+        return resolveComponent(api, context.copy().expand(null, api), traversal, api);
     }
 
     /**
@@ -44,6 +45,6 @@ public abstract class EmptyDependencyGraph implements DependencyGraph {
      * {@inheritDoc}
      */
     public final Node resolveGroup(final Class<?> api, final ContextDefinition context, final Traversal traversal) {
-        return resolveGroup(api, context, traversal, api);
+        return resolveGroup(api, context.copy().expand(null, Array.newInstance(api, 0).getClass()), traversal, api);
     }
 }

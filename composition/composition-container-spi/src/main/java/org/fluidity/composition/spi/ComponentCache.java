@@ -28,7 +28,8 @@ import org.fluidity.composition.ComponentContext;
 public interface ComponentCache {
 
     /**
-     * Looks up, and instantiates if necessary using the supplied command, the cached component.
+     * Looks up, and instantiates if necessary using the supplied command, the cached component. Instantiation only takes place if <code>factory</code> is not
+     * <code>null</code>.
      *
      * @param domain  the object against which component instances are cached; a separate instance will be cached for different domains.
      * @param source  something to identify who is creating instances through this cache; used in log messages emitted by the cache.

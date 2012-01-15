@@ -34,6 +34,7 @@ import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.Internal;
 import org.fluidity.composition.spi.ContextDefinition;
+import org.fluidity.foundation.Deferred;
 import org.fluidity.foundation.Generics;
 
 /**
@@ -44,18 +45,20 @@ final class ContextDefinitionImpl implements ContextDefinition {
     private final Map<Class<? extends Annotation>, Annotation[]> defined = new HashMap<Class<? extends Annotation>, Annotation[]>();
     private final Map<Class<? extends Annotation>, Annotation[]> active = new HashMap<Class<? extends Annotation>, Annotation[]>();
 
-    private int hashCode;
+    private final Deferred.Reference.State<Integer> hashCode = Deferred.state(new Deferred.Factory<Integer>() {
+        public Integer create() {
+            return AnnotationMaps.hashCode(defined);
+        }
+    });
 
     public ContextDefinitionImpl() {
-        hashCode = AnnotationMaps.hashCode(defined);
+        // empty
     }
 
     private ContextDefinitionImpl(final Map<Class<? extends Annotation>, Annotation[]> defined,
                                   final Map<Class<? extends Annotation>, Annotation[]> active) {
         copy(defined, this.defined);
         copy(active, this.active);
-
-        this.hashCode = AnnotationMaps.hashCode(this.defined);
     }
 
     public ContextDefinition expand(final Annotation[] definition, final Type reference) {
@@ -91,7 +94,7 @@ final class ContextDefinitionImpl implements ContextDefinition {
                 defined.put(Component.Reference.class, new Annotation[] { new ComponentReferenceImpl(reference, reference()) });
             }
 
-            hashCode = AnnotationMaps.hashCode(defined);
+            hashCode.invalidate();
         }
 
         return this;
@@ -197,7 +200,7 @@ final class ContextDefinitionImpl implements ContextDefinition {
 
     @Override
     public int hashCode() {
-        return hashCode;
+        return hashCode.get();
     }
 
     @Override
@@ -206,6 +209,7 @@ final class ContextDefinitionImpl implements ContextDefinition {
     }
 
     private static class ComponentReferenceImpl implements Component.Reference {
+
         private final Type reference;
 
         public ComponentReferenceImpl(final Type reference, final Component.Reference inbound) {

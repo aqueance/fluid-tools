@@ -29,7 +29,7 @@ import java.util.Collection;
 /**
  * Utility methods to access parameterized type information.
  */
-public final class Generics extends Utilities {
+public final class Generics extends Utility {
 
     private Generics() { }
 

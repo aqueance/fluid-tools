@@ -271,7 +271,7 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
         expectCallbacks();
 
         replay();
-        assert injector.constructor(traversal, resolver, contexts, context, constructor) != null;
+        assert injector.constructor(ConstructorInjected.class, traversal, resolver, contexts, context, constructor) != null;
         verify();
     }
 
@@ -314,7 +314,7 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
         expectCallbacks();
 
         replay();
-        assert injector.constructor(traversal, resolver, contexts, context, constructor) != null;
+        assert injector.constructor(MissingGroupConsumer.class, traversal, resolver, contexts, context, constructor) != null;
         verify();
     }
 

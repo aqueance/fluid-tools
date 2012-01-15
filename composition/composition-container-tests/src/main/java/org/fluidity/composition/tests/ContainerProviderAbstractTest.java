@@ -104,9 +104,11 @@ public abstract class ContainerProviderAbstractTest extends MockGroupAbstractTes
         final Class<?>[] assemblies = { StandalonePackageBindingsImpl.class };
 
         final PackageBindings bindings = new StandalonePackageBindingsImpl();
-
         final PackageBindings[] instance = { bindings };
-        EasyMock.expect(traversal.follow(EasyMock.<DependencyGraph>notNull(), EasyMock.same(context), EasyMock.<DependencyGraph.Node.Reference>notNull())).andReturn(node);
+
+        EasyMock.expect(context.copy()).andReturn(copy);
+        EasyMock.expect(copy.expand(null, PackageBindings[].class)).andReturn(copy);
+        EasyMock.expect(traversal.follow(EasyMock.<DependencyGraph>notNull(), EasyMock.same(copy), EasyMock.<DependencyGraph.Node.Reference>notNull())).andReturn(node);
 
         EasyMock.expect(node.instance(traversal)).andReturn(instance);
         EasyMock.expect(injector.findConstructor(EasyMock.<Class<?>>notNull())).andReturn(null).anyTimes();
@@ -128,7 +130,9 @@ public abstract class ContainerProviderAbstractTest extends MockGroupAbstractTes
         final DependentPackageBindingsImpl bindings3 = new DependentPackageBindingsImpl(bindings2);
 
         final PackageBindings[] bindings = { bindings1, bindings2, bindings3 };
-        EasyMock.expect(traversal.follow(EasyMock.<DependencyGraph>notNull(), EasyMock.same(context), EasyMock.<DependencyGraph.Node.Reference>notNull())).andReturn(node);
+        EasyMock.expect(context.copy()).andReturn(copy);
+        EasyMock.expect(copy.expand(null, PackageBindings[].class)).andReturn(copy);
+        EasyMock.expect(traversal.follow(EasyMock.<DependencyGraph>notNull(), EasyMock.same(copy), EasyMock.<DependencyGraph.Node.Reference>notNull())).andReturn(node);
         EasyMock.expect(injector.findConstructor(EasyMock.<Class<?>>notNull())).andReturn(null).anyTimes();
 
         EasyMock.expect(node.instance(traversal)).andReturn(bindings);
@@ -140,27 +144,19 @@ public abstract class ContainerProviderAbstractTest extends MockGroupAbstractTes
         assert list.equals(Arrays.asList(bindings)) : list;
     }
 
-    public static class ResponsiblePackageBindingsImpl extends EmptyPackageBindings {
-        // empty
-    }
+    public static class ResponsiblePackageBindingsImpl extends EmptyPackageBindings { }
 
-    public static class StandalonePackageBindingsImpl extends EmptyPackageBindings {
-
-    }
+    public static class StandalonePackageBindingsImpl extends EmptyPackageBindings { }
 
     public static class PackageBindingsImpl extends EmptyPackageBindings {
 
         @SuppressWarnings("UnusedDeclaration")
-        public PackageBindingsImpl(final ResponsiblePackageBindingsImpl dependent) {
-            // empty
-        }
+        public PackageBindingsImpl(final ResponsiblePackageBindingsImpl dependent) { }
     }
 
     public static class DependentPackageBindingsImpl extends EmptyPackageBindings {
 
         @SuppressWarnings("UnusedDeclaration")
-        public DependentPackageBindingsImpl(final PackageBindingsImpl dependent) {
-            // empty
-        }
+        public DependentPackageBindingsImpl(final PackageBindingsImpl dependent) { }
     }
 }

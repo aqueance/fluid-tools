@@ -23,12 +23,12 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import org.fluidity.foundation.Strings;
-import org.fluidity.foundation.Utilities;
+import org.fluidity.foundation.Utility;
 
 /**
  * Convenience methods on maps of arrays of annotations.
  */
-final class AnnotationMaps extends Utilities {
+final class AnnotationMaps extends Utility {
 
     private AnnotationMaps() { }
 

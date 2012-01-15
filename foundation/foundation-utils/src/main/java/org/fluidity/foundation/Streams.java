@@ -25,7 +25,7 @@ import java.io.OutputStream;
  *
  * @author Tibor Varga
  */
-public final class Streams extends Utilities {
+public final class Streams extends Utility {
 
     private Streams() { }
 

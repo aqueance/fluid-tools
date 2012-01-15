@@ -77,4 +77,15 @@ interface ParentContainer extends SimpleContainer {
      * @return the group resolver for the given interface; never <code>null</code>.
      */
     List<GroupResolver> groupResolvers(Class<?> api);
+
+    /**
+     * Checks if an instance has been cached for the given component interface and component context, and returns the instance of found. This method never
+     * instantiates classes.
+     *
+     * @param api     the component interface to check.
+     * @param context the component context to check.
+     *
+     * @return the instance if found cached, <code>null</code> otherwise.
+     */
+    Object cached(Class<?> api, ComponentContext context);
 }

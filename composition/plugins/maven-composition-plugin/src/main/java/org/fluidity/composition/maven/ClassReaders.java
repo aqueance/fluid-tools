@@ -24,7 +24,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.fluidity.foundation.ClassLoaders;
-import org.fluidity.foundation.Utilities;
+import org.fluidity.foundation.Utility;
 
 import org.apache.maven.plugin.MojoExecutionException;
 import org.objectweb.asm.ClassAdapter;
@@ -39,7 +39,7 @@ import org.objectweb.asm.Type;
  *
  * @author Tibor Varga
  */
-public final class ClassReaders extends Utilities implements Opcodes {
+public final class ClassReaders extends Utility implements Opcodes {
 
     private ClassReaders() { }
 

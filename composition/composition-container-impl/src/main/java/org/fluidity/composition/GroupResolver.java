@@ -37,6 +37,8 @@ import org.fluidity.composition.spi.DependencyPath;
 
 /**
  * Component mapping for a component group.
+ * <p/>
+ * TODO: mention that the instantiation order of self referencing group members cannot be established before injecting the group array
  *
  * @author Tibor Varga
  */
@@ -72,7 +74,18 @@ final class GroupResolver {
 
     private final Comparator<Object> order = new Comparator<Object>() {
         public int compare(final Object o1, final Object o2) {
-            return instantiated.get(o1.getClass()).compareTo(instantiated.get(o2.getClass()));
+            final Integer order1 = instantiated.get(o1.getClass());
+            final Integer order2 = instantiated.get(o2.getClass());
+
+            if (order1 == null && order2 == null) {
+                return 0;
+            } else if (order1 == null) {
+                return 1;
+            } else if (order2 == null) {
+                return -1;
+            } else {
+                return order1.compareTo(order2);
+            }
         }
     };
 
@@ -111,12 +124,12 @@ final class GroupResolver {
         return new Node() {
             public Collection<?> instance(final DependencyGraph.Traversal traversal) {
                 final List<Object> instances = new ArrayList<Object>();
+                final DependencyGraph.Traversal observed = traversal.observed(observer);
 
                 for (final DependencyGraph.Node node : nodes) {
-                    instances.add(node.instance(traversal.observed(observer)));
+                    instances.add(node.instance(observed));
                 }
 
-                assert instantiated.size() >= instances.size() : String.format("%s: %d != #%s", api, instances.size(), instantiated);
                 Collections.sort(instances, order);
 
                 return instances;

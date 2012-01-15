@@ -259,17 +259,11 @@ public final class ComponentGroupTests extends AbstractContainerTests {
         }
     }
 
-    public static class Filter1 implements Filter {
+    public static class Filter1 implements Filter { }
 
-    }
+    public static class Filter2 implements Filter { }
 
-    public static class Filter2 implements Filter {
-
-    }
-
-    private static class OrderedFilter1 implements Filter {
-
-    }
+    private static class OrderedFilter1 implements Filter { }
 
     @SuppressWarnings("UnusedDeclaration")
     private static class OrderedFilter2 implements Filter {
@@ -339,29 +333,26 @@ public final class ComponentGroupTests extends AbstractContainerTests {
     @SuppressWarnings("UnusedDeclaration")
     private static class CircularFilter1 implements Filter {
 
-        private CircularFilter1(final CircularFilter2 dependency) {
-        }
+        private CircularFilter1(final CircularFilter2 dependency) { }
     }
 
     @SuppressWarnings("UnusedDeclaration")
     private static class CircularFilter2 implements Filter {
 
-        private CircularFilter2(final CircularFilter3 dependency) {
-        }
+        private CircularFilter2(final CircularFilter3 dependency) { }
     }
 
     @SuppressWarnings("UnusedDeclaration")
     private static class CircularFilter3 implements Filter {
 
-        private CircularFilter3(final CircularFilter1 dependency) {
-        }
+        private CircularFilter3(final CircularFilter1 dependency) { }
     }
 
     @SuppressWarnings("UnusedDeclaration")
     private static class GroupDependentMember implements Filter {
 
         public GroupDependentMember(final @ComponentGroup Filter[] filters) {
-            assert false;
+            assert false : "Group dependent member instantiated";
         }
     }
 

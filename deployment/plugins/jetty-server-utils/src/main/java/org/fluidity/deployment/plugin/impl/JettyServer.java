@@ -18,7 +18,7 @@ package org.fluidity.deployment.plugin.impl;
 
 import java.util.List;
 
-import org.fluidity.foundation.Utilities;
+import org.fluidity.foundation.Utility;
 
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
@@ -33,7 +33,7 @@ import org.eclipse.jetty.webapp.WebAppContext;
  *
  * @author Tibor Varga
  */
-public final class JettyServer extends Utilities {
+public final class JettyServer extends Utility {
 
     private JettyServer() { }
 

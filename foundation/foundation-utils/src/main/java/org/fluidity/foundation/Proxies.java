@@ -24,7 +24,7 @@ import java.util.concurrent.atomic.AtomicReference;
 /**
  * Convenience utilities concerning proxies.
  */
-public final class Proxies extends Utilities {
+public final class Proxies extends Utility {
 
     private Proxies() { }
 

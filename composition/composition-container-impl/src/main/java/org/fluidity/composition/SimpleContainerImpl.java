@@ -341,6 +341,16 @@ final class SimpleContainerImpl extends EmptyDependencyGraph implements ParentCo
                                explicit);
     }
 
+    public Object cached(final Class<?> api, final ComponentContext context) {
+        final ComponentResolver resolver = components.get(api);
+
+        if (resolver == null) {
+            return parent != null ? parent.cached(api, context) : null;
+        } else {
+            return resolver.cached(domain, this, context);
+        }
+    }
+
     public Node resolveComponent(final ParentContainer domain,
                                  final boolean ascend,
                                  final Class<?> api,
@@ -423,6 +433,14 @@ final class SimpleContainerImpl extends EmptyDependencyGraph implements ParentCo
             final Class<?> arrayApi = Array.newInstance(api, 0).getClass();
 
             return traversal.follow(this, context, new Node.Reference() {
+                public Object identity() {
+                    return group;
+                }
+
+                public Class<?> api() {
+                    return arrayApi;
+                }
+
                 public Class<?> type() {
                     return arrayApi;
                 }
@@ -651,6 +669,10 @@ final class SimpleContainerImpl extends EmptyDependencyGraph implements ParentCo
             return emptyList;
         }
 
+        public Object cached(final Class<?> api, final ComponentContext context) {
+            return null;
+        }
+
         public ContextNode contexts(final ParentContainer domain, final Class<?> type, final ContextDefinition context) {
             return platform.containsComponent(type, context) ? noContexts : null;
         }
@@ -743,6 +765,10 @@ final class SimpleContainerImpl extends EmptyDependencyGraph implements ParentCo
                                  final Annotation[] annotations,
                                  final Type reference) {
             return SimpleContainerImpl.this.resolveGroup(domain, api, context, traversal, annotations, reference);
+        }
+
+        public Object cached(final Class<?> api, final ComponentContext context) {
+            return SimpleContainerImpl.this.cached(api, context);
         }
 
         public Node resolveComponent(final Class<?> api, final ContextDefinition context, final Traversal traversal, final Type reference) {

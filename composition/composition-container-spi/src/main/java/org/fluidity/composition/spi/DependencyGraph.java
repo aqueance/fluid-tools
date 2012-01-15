@@ -121,9 +121,23 @@ public interface DependencyGraph {
         interface Reference {
 
             /**
+             * Identifies the reference. This is used to detect circular references.
+             *
+             * @return an object to identify the reference by.
+             */
+            Object identity();
+
+            /**
              * The component interface this node refers to.
              *
              * @return the component interface this node refers to.
+             */
+            Class<?> api();
+
+            /**
+             * The component api to list in instantiation paths.
+             *
+             * @return the component api to list in instantiation paths.
              */
             Class<?> type();
 

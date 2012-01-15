@@ -55,6 +55,14 @@ final class InstanceResolver extends AbstractResolver {
                                         final ContextDefinition context,
                                         final Type reference) {
         return traversal.follow(container, context, new DependencyGraph.Node.Reference() {
+            public Object identity() {
+                return InstanceResolver.this;
+            }
+
+            public Class<?> api() {
+                return api;
+            }
+
             public Class<?> type() {
                 return api;
             }
@@ -67,6 +75,11 @@ final class InstanceResolver extends AbstractResolver {
                 return new DependencyGraph.Node.Constant(instance.getClass(), instance, context.create());
             }
         });
+    }
+
+    @Override
+    public Object cached(final Object domain, final Object container, final ComponentContext context) {
+        return instance;
     }
 
     @Override

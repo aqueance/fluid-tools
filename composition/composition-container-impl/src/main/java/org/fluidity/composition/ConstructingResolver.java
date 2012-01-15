@@ -24,6 +24,7 @@ import org.fluidity.composition.spi.ComponentCache;
 import org.fluidity.composition.spi.ContextDefinition;
 import org.fluidity.composition.spi.DependencyGraph;
 import org.fluidity.composition.spi.DependencyInjector;
+import org.fluidity.foundation.Generics;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**
@@ -68,6 +69,15 @@ final class ConstructingResolver extends AbstractResolver {
                                         final ContextDefinition context,
                                         final Type reference) {
         return traversal.follow(container, context, new DependencyGraph.Node.Reference() {
+            public Object identity() {
+                return ConstructingResolver.this;
+            }
+
+            public Class<?> api() {
+                final Class<?> group = Generics.rawType(Generics.arrayComponentType(reference));
+                return group != null && group.isAssignableFrom(api) ? group : api;
+            }
+
             public Class<?> type() {
                 return api;
             }
@@ -79,7 +89,7 @@ final class ConstructingResolver extends AbstractResolver {
             public DependencyGraph.Node resolve(final DependencyGraph.Traversal traversal, final ContextDefinition context) {
                 return cachingNode(domain,
                                    container,
-                                   injector.constructor(traversal, container.dependencyResolver(domain), ConstructingResolver.this, context, constructor));
+                                   injector.constructor(api,  traversal, container.dependencyResolver(domain), ConstructingResolver.this, context, constructor));
             }
         });
     }

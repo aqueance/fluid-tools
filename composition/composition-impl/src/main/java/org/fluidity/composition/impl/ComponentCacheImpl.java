@@ -35,49 +35,62 @@ final class ComponentCacheImpl implements ComponentCache {
     private final Map<Object, Map<ComponentContext, Object>> caches;
     private final Log log;
 
-    public ComponentCacheImpl(final LogFactory logs, boolean singleton) {
-        this.caches = singleton ? new WeakHashMap<Object, Map<ComponentContext, Object>>() : null;
+    public ComponentCacheImpl(final LogFactory logs, boolean stateless) {
+        this.caches = stateless ? new WeakHashMap<Object, Map<ComponentContext, Object>>() : null;
         this.log = logs.createLog(getClass());
     }
 
     public Object lookup(final Object domain, final Object source, final ComponentContext context, final Class<?> api, final Instantiation factory) {
         assert context != null : api;
-        final boolean singleton = caches == null;
+        final boolean stateful = caches == null;
 
-        Map<ComponentContext, Object> cache = singleton ? new HashMap<ComponentContext, Object>() : caches.get(domain);
+        Map<ComponentContext, Object> cache;
 
-        if (!singleton && !caches.containsKey(domain)) {
-            caches.put(domain, cache = new HashMap<ComponentContext, Object>());
+        if (stateful) {
+            cache = factory == null ? null : new HashMap<ComponentContext, Object>();
+        } else {
+            synchronized (caches) {
+                cache = caches.get(domain);
+
+                if (cache == null && factory != null) {
+                    caches.put(domain, cache = new HashMap<ComponentContext, Object>());
+                }
+            }
         }
 
-        return lookup(cache, source, context, api, factory, log);
+        return cache == null ? null : lookup(cache, source, context, api, factory, log);
     }
 
     private synchronized Object lookup(final Map<ComponentContext, Object> cache,
                                        final Object source,
                                        final ComponentContext context,
                                        final Class<?> api,
-                                       final Instantiation delegate,
+                                       final Instantiation factory,
                                        final Log log) {
         final boolean report = !ComponentFactory.class.isAssignableFrom(api) && log.isInfoEnabled();
 
-        if (!cache.containsKey(context)) {
+        if (factory != null) {
+            if (!cache.containsKey(context)) {
+                final Object component = factory.instantiate();
 
-            // go ahead and create the component and then see if it was actually necessary; context may change as new instantiations take place
-            final Object component = delegate.instantiate();
+                if (component == null) {
+                    throw new ComponentContainer.ResolutionException("Could not create component for %s", api);
+                }
 
-            if (component == null) {
-                throw new ComponentContainer.ResolutionException("Could not create component for %s", api);
+                if (!cache.containsKey(context)) {
+                    cache.put(context, component);
+
+                    log(report, "created", component, context, log, source);
+                } else {
+                    log(report, "reusing", cache.get(context), context, log, source);
+                }
+            } else {
+                log(report, "reusing", cache.get(context), context, log, source);
             }
 
-            cache.put(context, component);
-
-            log(report, "created", component, context, log, source);
-        } else {
-            log(report, "reusing", cache.get(context), context, log, source);
+            assert cache.containsKey(context) : String.format("Component %s not found in context %s", api, context);
         }
 
-        assert cache.containsKey(context) : String.format("Component %s not found in context %s", api, context);
         return cache.get(context);
     }
 

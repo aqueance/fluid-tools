@@ -28,7 +28,7 @@ import java.util.Comparator;
  *
  * @author Tibor Varga
  */
-public final class Strings extends Utilities {
+public final class Strings extends Utility {
 
     private Strings() { }
 

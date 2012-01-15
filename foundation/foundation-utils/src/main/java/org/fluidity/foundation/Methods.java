@@ -24,7 +24,7 @@ import java.lang.reflect.Method;
  *
  * @author Tibor Varga
  */
-public final class Methods extends Utilities {
+public final class Methods extends Utility {
 
     private Methods() { }
 

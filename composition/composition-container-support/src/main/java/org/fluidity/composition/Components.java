@@ -33,7 +33,7 @@ import java.util.Set;
 
 import org.fluidity.composition.spi.ComponentFactory;
 import org.fluidity.foundation.Strings;
-import org.fluidity.foundation.Utilities;
+import org.fluidity.foundation.Utility;
 
 /**
  * Implements the <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Definitions">component interface</a> discovery algorithm for classes added to an
@@ -94,7 +94,7 @@ import org.fluidity.foundation.Utilities;
  * @see ComponentGroup
  * @see ComponentFactory
  */
-public final class Components extends Utilities {
+public final class Components extends Utility {
 
     private Components() { }
 

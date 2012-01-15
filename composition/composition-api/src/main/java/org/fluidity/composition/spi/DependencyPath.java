@@ -44,7 +44,7 @@ public interface DependencyPath {
      *
      * @return the list of component interfaces or classes that comprise the dependency path.
      */
-    List<Element> path();
+    List<? extends Element> path();
 
     /**
      * Returns a string representation of the path.

@@ -20,6 +20,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 
 import org.fluidity.composition.ComponentContainer;
+import org.fluidity.composition.ComponentContext;
 
 /**
  * Capable of resolving component references. A dependency injection container implements this interface for a {@link DependencyInjector} to be able to use the
@@ -58,4 +59,15 @@ public interface DependencyResolver extends DependencyGraph {
      * @return the resolved component group or <code>null</code> if none could be resolved.
      */
     Node resolveGroup(Class<?> api, ContextDefinition context, Traversal traversal, Annotation[] annotations, Type reference);
+
+    /**
+     * Checks if an instance has been cached for the given component interface and component context, and returns the instance of found. This method never
+     * instantiates classes.
+     *
+     * @param api     the component interface to check.
+     * @param context the component context to check.
+     *
+     * @return the instance if found cached, <code>null</code> otherwise.
+     */
+    Object cached(Class<?> api, ComponentContext context);
 }

@@ -20,17 +20,17 @@ package org.fluidity.foundation;
  * Abstract superclass that prevents instantiation of its subclasses.
  * <h3>Usage</h3>
  * <pre>
- * public final MyUtilities extends <span class="hl1">Utilities</span> {
+ * public final MyUtility extends <span class="hl1">Utility</span> {
  *
- *     private MyUtilities() { }
+ *     private MyUtility() { }
  *
  *     ...
  * }
  * </pre>
  */
-public abstract class Utilities {
+public abstract class Utility {
 
-    protected Utilities() {
-        throw new UnsupportedOperationException("No instance allowed");
+    protected Utility() {
+        throw new UnsupportedOperationException(String.format("No instance allowed of %s", getClass()));
     }
 }

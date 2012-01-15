@@ -25,6 +25,7 @@ import java.util.Set;
 
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
+import org.fluidity.foundation.Deferred;
 
 /**
  * @author Tibor Varga
@@ -32,14 +33,17 @@ import org.fluidity.composition.ComponentContext;
 final class ComponentContextImpl implements ComponentContext {
 
     private final Map<Class<? extends Annotation>, Annotation[]> annotations = new HashMap<Class<? extends Annotation>, Annotation[]>();
-    private final int hashCode;
+
+    private final Deferred.Reference<Integer> hashCode = Deferred.reference(new Deferred.Factory<Integer>() {
+        public Integer create() {
+            return AnnotationMaps.hashCode(annotations);
+        }
+    });
 
     public ComponentContextImpl(final Map<Class<? extends Annotation>, Annotation[]> map) {
         for (final Map.Entry<Class<? extends Annotation>, Annotation[]> entry : map.entrySet()) {
             annotations.put(entry.getKey(), entry.getValue().clone());
         }
-
-        hashCode = AnnotationMaps.hashCode(annotations);
     }
 
     @SuppressWarnings({ "unchecked", "SuspiciousSystemArraycopy" })
@@ -89,6 +93,6 @@ final class ComponentContextImpl implements ComponentContext {
 
     @Override
     public int hashCode() {
-        return hashCode;
+        return hashCode.get();
     }
 }

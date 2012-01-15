@@ -28,7 +28,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.fluidity.foundation.Archives;
-import org.fluidity.foundation.Utilities;
+import org.fluidity.foundation.Utility;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.DefaultArtifact;
@@ -61,7 +61,7 @@ import org.sonatype.aether.util.graph.PreorderNodeListGenerator;
  *
  * @author Tibor Vara
  */
-public final class MavenSupport extends Utilities {
+public final class MavenSupport extends Utility {
 
     private MavenSupport() { }
 

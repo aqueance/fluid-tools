@@ -30,7 +30,7 @@ import org.apache.xbean.classloader.JarFileClassLoader;
  *
  * @author Tibor Varga
  */
-public final class ClassLoaders extends Utilities {
+public final class ClassLoaders extends Utility {
 
     private ClassLoaders() { }
 

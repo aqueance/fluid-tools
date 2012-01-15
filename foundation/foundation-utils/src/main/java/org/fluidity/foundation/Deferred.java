@@ -16,13 +16,16 @@
 
 package org.fluidity.foundation;
 
+import java.util.concurrent.atomic.AtomicReference;
+
 /**
  * Double-checked locking with <code>volatile</code> acquire/release semantics.
  * <h3>Usage</h3>
  * <pre>
  * final class LightObject {
  *
- *   private final <span class="hl1">Deferred.Reference</span><span class="hl2">&lt;HeavyObject></span> reference = <span class="hl1">Deferred.reference</span>(new <span class="hl1">Deferred.Factory</span><span class="hl2">&lt;HeavyObject></span>() {
+ *   private final <span class="hl1">Deferred.Reference</span><span class="hl2">&lt;HeavyObject></span> reference = <span
+ * class="hl1">Deferred.reference</span>(new <span class="hl1">Deferred.Factory</span><span class="hl2">&lt;HeavyObject></span>() {
  *     public <span class="hl2">HeavyObject</span> <span class="hl1">create()</span> {
  *       return new HeavyObject(...);
  *     }
@@ -40,7 +43,7 @@ package org.fluidity.foundation;
  *
  * @author Tibor Varga
  */
-public final class Deferred extends Utilities {
+public final class Deferred extends Utility {
 
     private Deferred() { }
 
@@ -57,6 +60,7 @@ public final class Deferred extends Utilities {
      * invoked.
      *
      * @param factory the factory to create the referred to object.
+     * @param <T>     the class of the lazily instantiated object.
      *
      * @return a deferred reference to the object created by the given factory.
      */
@@ -65,7 +69,29 @@ public final class Deferred extends Utilities {
     }
 
     /**
+     * Returns a lazy loading reference to some object. The object is instantiated by the given factory's {@link Factory#create() create()} method, which will
+     * be invoked the first time the returned object's {@link Reference#get() get()} method is invoked, and then its return value will be cached for use in
+     * subsequent invocations until the {@link Deferred.Reference.State#invalidate()} method is called to throw away the cached value.
+     * <p/>
+     * This reference implements the double-check locking logic with volatile acquire/release semantics to lazily create the referenced object. If the factory
+     * returns <code>null</code> instead of an object then the <code>null</code> value will be cached and returned in subsequent queries by the returned
+     * reference.
+     * <p/>
+     * Note: the returned object will maintain a strong reference to the provided factory until it itself is garbage collected.
+     *
+     * @param factory the factory to create the referred to object.
+     * @param <T>     the class of the lazily instantiated object.
+     *
+     * @return a deferred reference to the object created by the given factory.
+     */
+    public static <T> Reference.State<T> state(final Factory<T> factory) {
+        return new StateImpl<T>(factory);
+    }
+
+    /**
      * A factory of some object to be lazily instantiated. This is used by {@link Deferred#reference(Factory)}.
+     *
+     * @param <T> the class of the created object.
      */
     public interface Factory<T> {
 
@@ -79,6 +105,8 @@ public final class Deferred extends Utilities {
 
     /**
      * A reference to some object that is lazily instantiated. Instances are created by {@link Deferred#reference(Factory)}.
+     *
+     * @param <T> the class of the cached object.
      */
     public interface Reference<T> {
 
@@ -95,12 +123,24 @@ public final class Deferred extends Utilities {
          * @return <code>true</code> if the object has already been instantiated, <code>false</code> otherwise.
          */
         boolean resolved();
+
+        /**
+         * Extends the {@link Deferred.Reference} interface with facilities to invalidate the lazily instantiated object to force its lazy instantiation the
+         * next time it is requested by a call to {@link #get()}.
+         *
+         * @param <T> the class of the cached object.
+         */
+        interface State<T> extends Reference<T> {
+
+            void invalidate();
+        }
     }
 
     /**
      * Double-check locking implementation.
      */
     private static class ReferenceImpl<T> implements Reference<T> {
+
         private Factory<T> factory;
         private volatile T delegate;
 
@@ -128,6 +168,29 @@ public final class Deferred extends Utilities {
 
         public boolean resolved() {
             return delegate != null;
+        }
+    }
+
+    private static class StateImpl<T> implements Reference.State<T> {
+
+        private final Factory<T> factory;
+        private final AtomicReference<Reference<T>> state = new AtomicReference<Reference<T>>();
+
+        public StateImpl(final Factory<T> factory) {
+            this.factory = factory;
+            invalidate();
+        }
+
+        public T get() {
+            return state.get().get();
+        }
+
+        public boolean resolved() {
+            return state.get().resolved();
+        }
+
+        public void invalidate() {
+            state.set(Deferred.reference(factory));
         }
     }
 }

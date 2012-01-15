@@ -31,7 +31,7 @@ import sun.misc.ServiceConfigurationError;
  *
  * @author Tibor Varga
  */
-public final class ServiceProviders extends Utilities {
+public final class ServiceProviders extends Utility {
 
     private ServiceProviders() { }
 

@@ -31,7 +31,7 @@ import java.util.jar.Manifest;
 /**
  * Convenience methods to browse and read JAR archives.
  */
-public final class Archives extends Utilities {
+public final class Archives extends Utility {
 
     private Archives() { }
 

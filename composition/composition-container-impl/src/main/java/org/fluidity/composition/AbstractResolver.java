@@ -76,6 +76,10 @@ abstract class AbstractResolver implements ComponentResolver {
         return Collections.unmodifiableCollection(groups);
     }
 
+    public Object cached(final Object domain, final Object container, final ComponentContext context) {
+        return cache == null ? null : cache.lookup(domain, container, context, api, null);
+    }
+
     public boolean isVariantMapping() {
         return false;
     }
