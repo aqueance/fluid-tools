@@ -93,7 +93,7 @@ public class TypeParameterTests extends AbstractContainerTests {
     }
 
     @Component(automatic = false)
-    @Component.Context(typed = true)
+    @Component.Context(Component.Reference.class)
     @SuppressWarnings("UnusedDeclaration")
     private static class TypedComponent1<T> {
 
@@ -111,7 +111,7 @@ public class TypeParameterTests extends AbstractContainerTests {
     }
 
     @Component(automatic = false)
-    @Component.Context(typed = true)
+    @Component.Context(Component.Reference.class)
     private static class TypedComponent2<T> {
 
         @Inject
@@ -120,7 +120,7 @@ public class TypeParameterTests extends AbstractContainerTests {
     }
 
     @Component(automatic = false)
-    @Component.Context(typed = true)
+    @Component.Context(Component.Reference.class)
     @SuppressWarnings("UnusedDeclaration")
     private static class TypedComponent3<T> {
 
@@ -138,7 +138,7 @@ public class TypeParameterTests extends AbstractContainerTests {
     }
 
     @Component(automatic = false)
-    @Component.Context(typed = true)
+    @Component.Context(Component.Reference.class)
     private static class TypedComponent4<T> {
 
         @Inject

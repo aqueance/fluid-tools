@@ -41,7 +41,7 @@ import org.fluidity.composition.spi.CustomComponentFactory;
 import org.fluidity.foundation.spi.PropertyProvider;
 
 @Component(api = Configuration.class)
-@Component.Context(value = { Configuration.Context.class }, typed = true)
+@Component.Context(value = { Configuration.Context.class, Component.Reference.class })
 final class ConfigurationFactory implements CustomComponentFactory {
 
     public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {

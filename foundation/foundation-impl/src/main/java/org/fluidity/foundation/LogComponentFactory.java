@@ -29,7 +29,7 @@ import org.fluidity.foundation.spi.LogFactory;
  * @author Tibor Varga
  */
 @Component(api = Log.class)
-@Component.Context(typed = true)
+@Component.Context(Component.Reference.class)
 final class LogComponentFactory implements CustomComponentFactory {
 
     private final LogFactory factory;

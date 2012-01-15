@@ -109,10 +109,6 @@ final class ContextDefinitionImpl implements ContextDefinition {
             if (annotation != null) {
                 final Set<Class<? extends Annotation>> context = new HashSet<Class<? extends Annotation>>(Arrays.asList(annotation.value()));
 
-                if (annotation.typed()) {
-                    context.add(Component.Reference.class);
-                }
-
                 active.putAll(defined);
                 active.keySet().retainAll(context);
             }

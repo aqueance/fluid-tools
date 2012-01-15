@@ -337,7 +337,7 @@ public final class CustomFactoryTests extends AbstractContainerTests {
     private static class CustomDependency<T> { }
 
     @Component(api = CustomDependency.class)
-    @Component.Context(typed = true)
+    @Component.Context(Component.Reference.class)
     private static class CustomDependencyFactory implements CustomComponentFactory {
 
         public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {

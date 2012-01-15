@@ -94,12 +94,10 @@ public @interface Component {
      * thereby allowing the component to specify the annotation classes that will configure instances of the component at the points of dependency references
      * to the component. Such a configuration could, for instance, contain a database identifier for a database access dependency, etc.
      * <p/>
-     * A special context is the parameterized type of the dependency reference to the context aware component. Since that context is automatically computed,
-     * it is not specified by a context annotation but by turning it on using the {@link #typed()} parameter of this annotation.
+     * A special context is the parameterized type of the dependency reference to the context aware component, {@link Component.Reference @Component.Reference}.
      * <p/>
      * When the {@link #ignore()} parameter is present, it ignores, up to but not including the annotated entity, the specified context annotations for the
      * annotated entity.
-     * <p/>
      *
      * @author Tibor Varga
      */
@@ -120,19 +118,6 @@ public @interface Component {
         Class<? extends Annotation>[] value() default { };
 
         /**
-         * Tells if the component instance depends on the type parameters of the component reference. Specifying <code>@Component.Context(typed = true)</code>
-         * results in expanding the annotated component's context with {@link Component.Reference}. This parameter defaults to <code>false</code>, which means
-         * that type parameters of dependency references to the annotated components will not form part of its component context.
-         * <p/>
-         * This parameter is used only at class level.
-         * <h3>Usage</h3>
-         * See at {@link Component.Reference}.
-         *
-         * @return <code>true</code> if the component instance depends on the type parameters of the component reference, <code>false</code> otherwise.
-         */
-        boolean typed() default false;
-
-        /**
          * Specifies what context annotations should be ignored up to this point in the instantiation path. This parameter can be used when annotating fields
          * and constructor parameters as well as classes.
          *
@@ -148,7 +133,7 @@ public @interface Component {
      * <h3>Usage</h3>
      * <pre>
      * {@linkplain Component @Component}
-     * {@linkplain Component.Context @Component.Context}(<span class="hl1">typed = true</span>)
+     * {@linkplain Component.Context @Component.Context}(<span class="hl1">Component.Reference.class</span>)
      * final class <span class="hl2">MyComponent</span>&lt;T> {
      *
      *   private final Class&lt;?> type;

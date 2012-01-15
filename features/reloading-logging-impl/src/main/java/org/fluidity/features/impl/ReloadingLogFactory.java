@@ -29,7 +29,7 @@ import org.fluidity.foundation.Log;
  * @author Tibor Varga
  */
 @Component(api = ReloadingLog.class)
-@Component.Context(typed = true)
+@Component.Context(Component.Reference.class)
 final class ReloadingLogFactory implements CustomComponentFactory {
 
     public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {

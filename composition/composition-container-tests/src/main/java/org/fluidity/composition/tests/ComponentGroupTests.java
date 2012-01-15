@@ -381,15 +381,15 @@ public final class ComponentGroupTests extends AbstractContainerTests {
     }
 
     @Component(api = DynamicFilter1.class)
-    @Component.Context(typed = true)
+    @Component.Context(Component.Reference.class)
     private static final class DynamicFilter1Factory extends DynamicFilterFactory { }
 
     @Component(api = DynamicFilter2.class)
-    @Component.Context(typed = true)
+    @Component.Context(Component.Reference.class)
     private static final class DynamicFilter2Factory extends DynamicFilterFactory { }
 
     @Component(api = DynamicFilter3.class)
-    @Component.Context(typed = true)
+    @Component.Context(Component.Reference.class)
     private static final class DynamicFilter3Factory extends DynamicFilterFactory { }
 
     @SuppressWarnings("UnusedDeclaration")
