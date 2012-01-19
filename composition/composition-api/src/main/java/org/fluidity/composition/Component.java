@@ -38,10 +38,10 @@ import java.lang.reflect.Type;
  *
  * @author Tibor Varga
  */
-@Internal
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
+@Component.Context(series = Component.Context.Series.NONE)
 public @interface Component {
 
     /**
@@ -98,14 +98,16 @@ public @interface Component {
      * <p/>
      * When the {@link #ignore()} parameter is present, it ignores, up to but not including the annotated entity, the specified context annotations for the
      * annotated entity.
+     * <p/>
+     * When applied to an annotation type, the context's {@link #series} determines how multiple instances of the context annotation are handled.
      *
      * @author Tibor Varga
      */
-    @Internal
     @Documented
     @Inherited
     @Retention(RetentionPolicy.RUNTIME)
-    @Target({ ElementType.TYPE, ElementType.FIELD, ElementType.PARAMETER })
+    @Target({ ElementType.TYPE, ElementType.FIELD, ElementType.PARAMETER, ElementType.ANNOTATION_TYPE })
+    @Component.Context(series = Component.Context.Series.NONE)
     @interface Context {
 
         /**
@@ -124,6 +126,41 @@ public @interface Component {
          * @return an array of annotation classes to ignore.
          */
         Class<? extends Annotation>[] ignore() default {};
+
+        /**
+         * When applied to an annotation type, this parameter determines how multiple instances of the context annotation are handled.
+         *
+         * @return the context's multiplicity specifier.
+         */
+        Series series() default Series.ACCUMULATED;
+
+        /**
+         * Defines the the behaviour of context chains.
+         */
+        enum Series {
+
+            /**
+             * Instances of accumulated context types along an instantiation path are concatenated to form a list of annotation instances when passed to
+             * a component that accepts that context annotation. Identical instances of a context annotation are collapsed into the first occurrence.
+             */
+            ACCUMULATED,
+
+            /**
+             * Only the last instance of inherited context types is passed to a component that accepts that context annotation.
+             */
+            INHERITED,
+
+            /**
+             * The only instance of an immediate type passed to a component that accepts that context annotation is the one annotating the immediate dependency
+             * reference to that component.
+             */
+            IMMEDIATE,
+
+            /**
+             * No instance of this annotation will ever by passed to a component.
+             */
+            NONE
+        }
     }
 
     /**
@@ -162,6 +199,7 @@ public @interface Component {
      *
      * @author Tibor Varga
      */
+    @Component.Context(series = Context.Series.IMMEDIATE)
     interface Reference extends Annotation {
 
         /**

@@ -450,7 +450,7 @@ final class SimpleContainerImpl extends EmptyDependencyGraph implements ParentCo
                 }
 
                 public Node resolve(final Traversal traversal, final ContextDefinition context) {
-                    return groupNode(api, resolveGroup(domain, api, traversal, context.copy().expand(null, reference), reference), context);
+                    return groupNode(api, resolveGroup(domain, api, traversal, context.advance(reference).expand(null), reference), context);
                 }
             });
         }

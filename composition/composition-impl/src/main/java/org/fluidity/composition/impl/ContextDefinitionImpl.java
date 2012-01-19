@@ -25,17 +25,20 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
-import org.fluidity.composition.Internal;
 import org.fluidity.composition.spi.ContextDefinition;
 import org.fluidity.foundation.Deferred;
 import org.fluidity.foundation.Generics;
+import org.fluidity.foundation.Methods;
+import org.fluidity.foundation.Strings;
 
 /**
  * @author Tibor Varga
@@ -51,6 +54,12 @@ final class ContextDefinitionImpl implements ContextDefinition {
         }
     });
 
+    private final Component.Context.Series defaultSeries = (Component.Context.Series) Methods.get(Component.Context.class, new Methods.Invoker<Component.Context>() {
+        public void invoke(final Component.Context capture) throws Throwable {
+            capture.series();
+        }
+    }).getDefaultValue();
+
     public ContextDefinitionImpl() {
         // empty
     }
@@ -61,37 +70,50 @@ final class ContextDefinitionImpl implements ContextDefinition {
         copy(active, this.active);
     }
 
-    public ContextDefinition expand(final Annotation[] definition, final Type reference) {
-        if (definition != null || reference != null) {
-            if (definition != null) {
+    private ContextDefinitionImpl(final Type reference,
+                                  final Map<Class<? extends Annotation>, Annotation[]> defined,
+                                  final Map<Class<? extends Annotation>, Annotation[]> active) {
+        this(defined, active);
 
-                // first remove all ignored context
-                for (final Annotation value : definition) {
-                    if (value instanceof Component.Context) {
-                        for (final Class<? extends Annotation> ignore : ((Component.Context) value).ignore()) {
-                            defined.remove(ignore);
-                        }
-                    }
-                }
+        assert reference != null;
+        final Component.Reference inherited = reference();
 
-                // then extend the context definition
-                for (final Annotation value : definition) {
-                    final Class<? extends Annotation> type = value.annotationType();
+        // remove all non-inherited context
+        for (final Iterator<Class<? extends Annotation>> iterator = this.defined.keySet().iterator(); iterator.hasNext(); ) {
+            if (series(iterator.next()) == Component.Context.Series.IMMEDIATE) {
+                iterator.remove();
+            }
+        }
 
-                    if (!type.isAnnotationPresent(Internal.class)) {
-                        if (defined.containsKey(type)) {
-                            defined.put(type, combine(defined.get(type), value));
-                        } else {
-                            defined.put(type, new Annotation[] { value });
-                        }
+        this.defined.put(Component.Reference.class, new Annotation[] { new ComponentReferenceImpl(reference, inherited) });
+    }
+
+    public ContextDefinition expand(final Annotation[] definition) {
+        if (definition != null && definition.length > 0) {
+
+            // first remove all ignored context
+            for (final Annotation value : definition) {
+                if (value instanceof Component.Context) {
+                    for (final Class<? extends Annotation> ignore : ((Component.Context) value).ignore()) {
+                        defined.remove(ignore);
                     }
                 }
             }
 
-            if (reference != null) {
+            // then extend the context definition
+            for (final Annotation value : definition) {
+                final Class<? extends Annotation> type = value.annotationType();
+                final Component.Context.Series series = series(type);
 
-                // the parameterized dependency type is retained only for the last reference
-                defined.put(Component.Reference.class, new Annotation[] { new ComponentReferenceImpl(reference, reference()) });
+                if (series != Component.Context.Series.NONE) {
+                    final Annotation[] annotations = { value };
+
+                    if (defined.containsKey(type)) {
+                        defined.put(type, series == Component.Context.Series.ACCUMULATED ? combine(defined.get(type), value) : annotations);
+                    } else {
+                        defined.put(type, annotations);
+                    }
+                }
             }
 
             hashCode.invalidate();
@@ -100,10 +122,18 @@ final class ContextDefinitionImpl implements ContextDefinition {
         return this;
     }
 
-    public ContextDefinition accept(final Class<?> type) {
-        if (type != null) {
-            active.clear();
+    public ContextDefinition copy() {
+        return new ContextDefinitionImpl(defined, active);
+    }
 
+    public ContextDefinition advance(final Type reference) {
+        return new ContextDefinitionImpl(reference, defined, active);
+    }
+
+    public ContextDefinition accept(final Class<?> type) {
+        active.clear();
+
+        if (type != null) {
             final Component.Context annotation = type.getAnnotation(Component.Context.class);
 
             if (annotation != null) {
@@ -111,6 +141,12 @@ final class ContextDefinitionImpl implements ContextDefinition {
 
                 active.putAll(defined);
                 active.keySet().retainAll(context);
+
+                for (final Iterator<Annotation[]> iterator = active.values().iterator(); iterator.hasNext(); ) {
+                    if (iterator.next().length == 0) {
+                        iterator.remove();
+                    }
+                }
             }
         }
 
@@ -122,8 +158,6 @@ final class ContextDefinitionImpl implements ContextDefinition {
             collectOne(context);
         }
 
-        active.keySet().retainAll(defined.keySet());
-
         return this;
     }
 
@@ -133,19 +167,34 @@ final class ContextDefinitionImpl implements ContextDefinition {
 
             for (final Map.Entry<Class<? extends Annotation>, Annotation[]> entry : map.entrySet()) {
                 final Class<? extends Annotation> type = entry.getKey();
+                final Component.Context.Series series = series(type);
 
-                // the parameterized dependency type is not propagated backward
-                if (!Component.Reference.class.isAssignableFrom(type)) {
+                if (series != Component.Context.Series.IMMEDIATE && defined.containsKey(type)) {
+                    final List<Annotation> present = Arrays.asList(defined.get(type));
                     final Annotation[] annotations = entry.getValue();
+                    final Set<Annotation> retained = new HashSet<Annotation>(Arrays.asList(annotations));
 
-                    if (active.containsKey(type)) {
-                        active.put(type, combine(active.get(type), annotations));
-                    } else {
-                        active.put(type, annotations);
+                    retained.retainAll(present);
+
+                    if (!retained.isEmpty()) {
+                        if (series == Component.Context.Series.ACCUMULATED) {
+                            final Annotation[] updates = retained.toArray(new Annotation[retained.size()]);
+                            active.put(type, active.containsKey(type) ? combine(active.get(type), updates) : updates);
+                        } else if (series == Component.Context.Series.INHERITED) {
+                            assert present.size() == 1 : present;
+                            active.put(type, annotations);
+                        } else {
+                            assert false : series;
+                        }
                     }
                 }
             }
         }
+    }
+
+    private Component.Context.Series series(final Class<? extends Annotation> type) {
+        final Component.Context annotation = type.getAnnotation(Component.Context.class);
+        return annotation == null ? defaultSeries : annotation.series();
     }
 
     public Map<Class<? extends Annotation>, Annotation[]> active() {
@@ -159,10 +208,6 @@ final class ContextDefinitionImpl implements ContextDefinition {
 
     public boolean isEmpty() {
         return defined.isEmpty();
-    }
-
-    public ContextDefinition copy() {
-        return new ContextDefinitionImpl(defined, active);
     }
 
     public ComponentContext create() {
@@ -242,7 +287,7 @@ final class ContextDefinitionImpl implements ContextDefinition {
 
         @Override
         public String toString() {
-            return String.format("@%s(type=%s)", Component.Reference.class.getName(), reference);
+            return Strings.simpleNotation(this);
         }
     }
 }

@@ -96,7 +96,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
         for (int i = 0, length = types.length; i < length; ++i) {
             final int index = i;
             if (parameters[index] == null && (explicit || contains(parameterAnnotations[index], Inject.class))) {
-                injectDependency(false, traversal, container, contexts, context.copy(), componentClass, new Dependency() {
+                injectDependency(false, traversal, container, contexts, context, componentClass, new Dependency() {
 
                     public Type reference() {
                         return types[index];
@@ -263,7 +263,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
 
         for (int i = 0, length = types.length; i < length; ++i) {
             final int index = i;
-            consumed.add(injectDependency(true, traversal, container, contexts, context.copy(), componentClass, new Dependency() {
+            consumed.add(injectDependency(true, traversal, container, contexts, context, componentClass, new Dependency() {
 
                 public Type reference() {
                     return types[index];
@@ -364,10 +364,10 @@ final class DependencyInjectorImpl implements DependencyInjector {
             if (value instanceof RestrictedContainer) {
                 containers.add((RestrictedContainer) value);
             } else if (value instanceof ComponentContext) {
-                final Component.Reference[] references = ((ComponentContext) value).annotations(Component.Reference.class);
+                final Component.Reference reference = ((ComponentContext) value).annotation(Component.Reference.class, null);
 
-                if (references != null) {
-                    final Type[] variables = Generics.unresolved((references[0]).type());
+                if (reference != null) {
+                    final Type[] variables = Generics.unresolved((reference).type());
 
                     if (variables != null) {
                         throw new ComponentContainer.ResolutionException("Parameterized component of type %s with unresolved type variables: %s",
@@ -417,7 +417,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
 
         processFields(declaringType, new FieldCommand() {
             public void process(final Field field) {
-                consumed.add(injectDependency(false, traversal, container, contexts, context.copy(), declaringType, new Dependency() {
+                consumed.add(injectDependency(false, traversal, container, contexts, context, declaringType, new Dependency() {
 
                     public Type reference() {
                         return field.getGenericType();
@@ -445,10 +445,10 @@ final class DependencyInjectorImpl implements DependencyInjector {
                                        final DependencyGraph.Traversal traversal,
                                        final DependencyResolver container,
                                        final ContextNode contexts,
-                                       final ContextDefinition context,
+                                       final ContextDefinition original,
                                        final Class<?> declaringType,
                                        final Dependency dependency) {
-        final Component.Reference inbound = context.reference();
+        final Component.Reference inbound = original.reference();
         final Type reference = inbound == null ? dependency.reference() : Generics.propagate(inbound.type(), dependency.reference());
 
         final ComponentGroup componentGroup = dependency.annotation(ComponentGroup.class);
@@ -468,6 +468,21 @@ final class DependencyInjectorImpl implements DependencyInjector {
         System.arraycopy(dependencyContext, 0, definitions, typeContext.length, dependencyContext.length);
 
         final DependencyGraph.Node node;
+
+        class Context {
+
+            public ContextDefinition context;
+
+            public Context(final ContextDefinition context) {
+                this.context = context;
+            }
+
+            public ContextDefinition set(final ContextDefinition context) {
+                return this.context = context;
+            }
+        }
+
+        final Context context = new Context(original);
 
         if (componentGroup != null) {
             if (!dependencyType.isArray()) {
@@ -489,26 +504,22 @@ final class DependencyInjectorImpl implements DependencyInjector {
                         declaringType);
             }
 
-            node = container.resolveGroup(itemType, context.expand(definitions, reference), traversal, dependencyContext, reference);
+            node = container.resolveGroup(itemType, context.set(original.advance(reference)).expand(definitions), traversal, dependencyContext, reference);
         } else {
             node = resolve(dependencyType, new Resolution() {
                 public ComponentContext context() {
-
-                    // always reduce the context to what the component accepts to avoid leaking contextual information to the component that it may inadvertently use
-                    // without explicitly declaring it as accepted
-                    return context.expand(definitions, null).accept(contexts.contextConsumer()).create();
+                    return context.set(original.copy()).accept(contexts.contextConsumer()).create();
                 }
 
                 public ComponentContainer container() {
-                    return container.container(context.expand(definitions, null));
+                    return container.container(context.set(original.copy()).expand(definitions));
                 }
 
                 public DependencyGraph.Node regular() {
-                    context.expand(definitions, reference);
-
-                    final ContextNode contexts = container.contexts(dependencyType, context);
+                    final ContextDefinition copy = context.set(original.advance(reference)).expand(definitions);
+                    final ContextNode contexts = container.contexts(dependencyType, copy);
                     return contexts != null
-                           ? container.resolveComponent(dependencyType, context.accept(contexts.contextConsumer()), traversal, reference)
+                           ? container.resolveComponent(dependencyType, copy.accept(contexts.contextConsumer()), traversal, reference)
                            : null;
                 }
 
@@ -521,7 +532,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
 
         dependency.set(new DependencyNode(mandatory, node, declaringType, dependencyType));
 
-        return context;
+        return context.context;
     }
 
     private static Annotation[] neverNull(final Annotation[] array) {

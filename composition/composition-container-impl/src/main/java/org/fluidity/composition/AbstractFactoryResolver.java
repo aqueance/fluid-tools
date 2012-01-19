@@ -95,7 +95,7 @@ abstract class AbstractFactoryResolver extends AbstractResolver {
 
         final List<RestrictedContainer> containers = new ArrayList<RestrictedContainer>();
         final ComponentFactory.Instance instance = factory.resolve(passed, new ComponentFactory.Resolver() {
-            public <T> ComponentFactory.Dependency<T> resolve(final Class<T> api) {
+            public <T> ComponentFactory.Dependency<T> resolve(final Type api) {
                 return new NodeDependency<T>(resolve(api, null), traversal);
             }
 
@@ -116,9 +116,9 @@ abstract class AbstractFactoryResolver extends AbstractResolver {
 
                     public DependencyGraph.Node regular() {
                         traversal.resolving(resolving, type, null, annotations);
-                        final ContextDefinition copy = collected.copy();
+                        final ContextDefinition copy = collected.advance(api);
                         list.add(copy);
-                        return child.resolveComponent(type, copy.expand(annotations, api), traversal, api);
+                        return child.resolveComponent(type, copy.expand(annotations), traversal, api);
                     }
 
                     public void handle(final RestrictedContainer container) {

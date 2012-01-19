@@ -29,8 +29,8 @@ import java.lang.annotation.Target;
  *
  * @author Tibor Varga
  */
-@Internal
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.PARAMETER, ElementType.FIELD })
-public @interface Optional {}
+@Component.Context(series = Component.Context.Series.NONE)
+public @interface Optional { }

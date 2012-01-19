@@ -18,6 +18,7 @@ package org.fluidity.composition.spi;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
@@ -117,7 +118,7 @@ public interface ComponentFactory {
          *                 if (contexts != null) {
          *                     registry.bindInstance(contexts, CreatedContext[].class);
          *                 }
-         I
+         *
          *                 registry.bindComponent(CreatedComponent.class);
          *             }
          *         };
@@ -167,11 +168,10 @@ public interface ComponentFactory {
          * Resolves a component known by its component interface.
          *
          * @param api the component interface to resolve.
-         * @param <T> the component interface to resolve.
          *
          * @return an object that can return an instance of the resolved dependency.
          */
-        <T> Dependency<T> resolve(Class<T> api);
+        <T> Dependency<T> resolve(Type api);
 
         /**
          * Returns a list of dependencies, each corresponding to the parameters of the dependency injectable constructor of the supplied component class. For

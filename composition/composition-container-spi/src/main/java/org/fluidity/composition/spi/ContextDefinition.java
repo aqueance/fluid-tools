@@ -39,9 +39,8 @@ import org.fluidity.composition.ComponentContext;
  * <p/>
  * The above is implemented by<ol>
  * <li>{@linkplain ContainerServices#emptyContext() creating an empty context} definition object at the head of some dependency path</li>
- * <li>{@linkplain #expand(java.lang.annotation.Annotation[], Type) expanding} that context with the context annotations at each node of that path as we move
- * downstream</li>
- * <li>passing downstream a {@linkplain #copy() copy} of the current definition for each dependency of the current component</li>
+ * <li>{@linkplain #advance(Type) advancing} to the next node along that path as we move downstream to each dependency of the current component and {@linkplain
+ * #expand(Annotation[]) expanding} the context with the context annotations at the new node</li>
  * <li>{@linkplain #accept(Class) narrowing} another copy of the definition down to the contexts accepted by the current context that can then be used to<ul>
  * <li>{@linkplain #create() create} the actual context to be injected to the current component upon instantiation</li>
  * <li>as a cache key to map the instantiated stateless component to</li>
@@ -54,8 +53,6 @@ import org.fluidity.composition.ComponentContext;
  * This context tracking algorithm ensures that between the component that defines some context and the ones that consume it, all intermediate components will
  * also have a dedicated instance for the active context. This may not appear intuitive at first but this rule guarantees that context aware components will
  * indeed have a unique instance for each actual context in the application.
- * <p/>
- * TODO: mention that the multiple identical context annotations will be collapsed into one instance
  *
  * @author Tibor Varga
  */
@@ -65,11 +62,10 @@ public interface ContextDefinition {
      * Expands the defined context.
      *
      * @param definition the annotations potentially defining new context.
-     * @param reference  the parameterized type of the reference to the current component.
      *
      * @return the receiver.
      */
-    ContextDefinition expand(Annotation[] definition, Type reference);
+    ContextDefinition expand(Annotation[] definition);
 
     /**
      * Narrows down the defined context set to the annotation classes accepted by the current component in the instantiation path.
@@ -102,6 +98,15 @@ public interface ContextDefinition {
      * @return a new copy of the receiver.
      */
     ContextDefinition copy();
+
+    /**
+     * Makes a copy and removes from it all {@link Component.Context.Series#IMMEDIATE} context annotations.
+     *
+     * @param reference the parameterized type of the reference to the component being advanced to.
+     *
+     * @return the new copy of the receiver.
+     */
+    ContextDefinition advance(Type reference);
 
     /**
      * Returns a component context containing the active context set.

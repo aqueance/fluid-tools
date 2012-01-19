@@ -34,8 +34,8 @@ import java.lang.annotation.Target;
  *
  * @author Tibor Varga
  */
-@Internal
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.FIELD, ElementType.CONSTRUCTOR, ElementType.PARAMETER })
+@Component.Context(series = Component.Context.Series.NONE)
 public @interface Inject { }

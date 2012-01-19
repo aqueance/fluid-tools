@@ -67,11 +67,11 @@ final class AnnotationMaps extends Utility {
         final StringBuilder builder = new StringBuilder();
 
         for (final Map.Entry<Class<? extends Annotation>, Annotation[]> entry : sorted(map).entrySet()) {
-            if (builder.length() > 0) {
-                builder.append(" ");
-            }
-
             for (final Annotation annotation : entry.getValue()) {
+                if (builder.length() > 0) {
+                    builder.append(" ");
+                }
+
                 builder.append(Strings.simpleNotation(annotation));
             }
         }
