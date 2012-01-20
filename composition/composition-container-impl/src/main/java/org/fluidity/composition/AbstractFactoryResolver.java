@@ -82,18 +82,16 @@ abstract class AbstractFactoryResolver extends AbstractResolver {
                                                  final ContextDefinition context,
                                                  final SimpleContainer child,
                                                  final Type reference) {
-        final ContextDefinition reduced = context.copy().accept(contextConsumer());
         final ContextDefinition collected = context.copy().accept(null);
+        final ContextDefinition reduced = context.copy().accept(contextConsumer());
         final ComponentContext passed = reduced.create();
 
         final ComponentFactory factory = factory(container, traversal, context, reference);
-
-        final List<ContextDefinition> list = new ArrayList<ContextDefinition>();
-        list.add(reduced);
-
         final DependencyInjector injector = container.services().dependencyInjector();
 
+        final List<ContextDefinition> contexts = new ArrayList<ContextDefinition>();
         final List<RestrictedContainer> containers = new ArrayList<RestrictedContainer>();
+
         final ComponentFactory.Instance instance = factory.resolve(passed, new ComponentFactory.Resolver() {
             public <T> ComponentFactory.Dependency<T> resolve(final Type api) {
                 return new NodeDependency<T>(resolve(api, null), traversal);
@@ -117,7 +115,7 @@ abstract class AbstractFactoryResolver extends AbstractResolver {
                     public DependencyGraph.Node regular() {
                         traversal.resolving(resolving, type, null, annotations);
                         final ContextDefinition copy = collected.advance(api);
-                        list.add(copy);
+                        contexts.add(copy);
                         return child.resolveComponent(type, copy.expand(annotations), traversal, api);
                     }
 
@@ -141,6 +139,7 @@ abstract class AbstractFactoryResolver extends AbstractResolver {
 
             private ComponentFactory.Dependency<?>[] discover(final Type[] types, final Annotation[][] annotations) {
                 final List<ComponentFactory.Dependency<?>> nodes = new ArrayList<ComponentFactory.Dependency<?>>();
+
                 for (int i = 0, limit = types.length; i < limit; i++) {
                     nodes.add(new NodeDependency<Object>(resolve(Generics.propagate(reference, types[i]), annotations[i]), traversal));
                 }
@@ -149,7 +148,7 @@ abstract class AbstractFactoryResolver extends AbstractResolver {
             }
         });
 
-        final ContextDefinition saved = context.collect(list).copy();
+        final ContextDefinition saved = context.accept(contextConsumer()).collect(contexts).copy();
         final ComponentContext actual = saved.create();
 
         return cachingNode(domain, container, new DependencyGraph.Node() {

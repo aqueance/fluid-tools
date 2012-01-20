@@ -29,7 +29,7 @@ public class DeferredDependencyTest {
         assert container.getComponent(ContextDependent.class) != null;
     }
 
-    @Test(enabled = false)
+    @Test
     public void testReferenceDependency() throws Exception {
         assert container.getComponent(ReferenceDependent.class) != null;
     }
@@ -114,7 +114,7 @@ public class DeferredDependencyTest {
 
             assert deferred1.get() == instance1;
             assert deferred2.get() == instance2;
-            assert (ReferenceDependency) deferred1.get() != (ReferenceDependency) deferred2.get();
+            assert (ReferenceDependency) deferred1.get() != deferred2.get();
 
             assert String.class.equals(deferred1.get().context.annotation(Component.Reference.class, null).parameter(0));
             assert String.class.equals(instance1.context.annotation(Component.Reference.class, null).parameter(0));

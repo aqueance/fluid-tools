@@ -286,7 +286,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
         final Map<Field, DependencyGraph.Node> fields = new IdentityHashMap<Field, DependencyGraph.Node>();
         consumed.addAll(resolveFields(traversal, container, contexts, context, componentClass, fields));
 
-        final ComponentContext componentContext = context.collect(consumed).create();
+        final ComponentContext componentContext = context.accept(contexts.contextConsumer()).collect(consumed).create();
 
         return new DependencyGraph.Node() {
             public Class<?> type() {
@@ -299,15 +299,18 @@ final class DependencyInjectorImpl implements DependencyInjector {
                 try {
                     return injectFields(fields, traversal, containers, Exceptions.wrap(String.format("instantiating %s", componentClass), new Exceptions.Command<Object>() {
                         public Object run() throws Exception {
-                            final Object[] arguments = create(constructor.getDeclaringClass(), traversal, containers, parameters);
+                            final Object[] arguments = arguments(constructor.getDeclaringClass(), traversal, containers, parameters);
 
                             final Object cached = container.cached(api, componentContext);
 
                             if (cached == null) {
                                 traversal.instantiating(componentClass);
+
                                 constructor.setAccessible(true);
                                 final Object component = constructor.newInstance(arguments);
+
                                 traversal.instantiated(componentClass, component);
+
                                 return component;
                             } else {
                                 return cached;
@@ -339,12 +342,14 @@ final class DependencyInjectorImpl implements DependencyInjector {
     }
 
     private Object injectFields(final Map<Field, DependencyGraph.Node> fieldNodes,
-                                final DependencyGraph.Traversal traversal, final List<RestrictedContainer> containers, final Object instance) {
+                                final DependencyGraph.Traversal traversal,
+                                final List<RestrictedContainer> containers,
+                                final Object instance) {
         return Exceptions.wrap(String.format("setting %s fields", instance.getClass()), new Exceptions.Command<Object>() {
             public Object run() throws Exception {
                 for (final Map.Entry<Field, DependencyGraph.Node> entry : fieldNodes.entrySet()) {
                     final Field field = entry.getKey();
-                    field.set(instance, create(field.getDeclaringClass(), traversal, containers, entry.getValue())[0]);
+                    field.set(instance, arguments(field.getDeclaringClass(), traversal, containers, entry.getValue())[0]);
                 }
 
                 return instance;
@@ -352,10 +357,10 @@ final class DependencyInjectorImpl implements DependencyInjector {
         });
     }
 
-    public Object[] create(final Class<?> type,
-                           final DependencyGraph.Traversal traversal,
-                           final List<RestrictedContainer> containers,
-                           final DependencyGraph.Node... nodes) {
+    public Object[] arguments(final Class<?> type,
+                              final DependencyGraph.Traversal traversal,
+                              final List<RestrictedContainer> containers,
+                              final DependencyGraph.Node... nodes) {
         final Object[] values = new Object[nodes.length];
 
         for (int i = 0, limit = nodes.length; i < limit; i++) {
@@ -467,22 +472,9 @@ final class DependencyInjectorImpl implements DependencyInjector {
         System.arraycopy(typeContext, 0, definitions, 0, typeContext.length);
         System.arraycopy(dependencyContext, 0, definitions, typeContext.length, dependencyContext.length);
 
+        final ContextDefinition downstream = original.advance(reference).expand(definitions);
+
         final DependencyGraph.Node node;
-
-        class Context {
-
-            public ContextDefinition context;
-
-            public Context(final ContextDefinition context) {
-                this.context = context;
-            }
-
-            public ContextDefinition set(final ContextDefinition context) {
-                return this.context = context;
-            }
-        }
-
-        final Context context = new Context(original);
 
         if (componentGroup != null) {
             if (!dependencyType.isArray()) {
@@ -504,23 +496,27 @@ final class DependencyInjectorImpl implements DependencyInjector {
                         declaringType);
             }
 
-            node = container.resolveGroup(itemType, context.set(original.advance(reference)).expand(definitions), traversal, dependencyContext, reference);
+            node = container.resolveGroup(itemType, downstream, traversal, dependencyContext, reference);
         } else {
             node = resolve(dependencyType, new Resolution() {
                 public ComponentContext context() {
-                    return context.set(original.copy()).accept(contexts.contextConsumer()).create();
+
+                    // injected context must only contain annotations accepted by the instantiated component
+                    // accepted context depends only on defined context, which is propagated forward
+                    // therefore we have all necessary information right here
+                    return original.copy().accept(contexts.contextConsumer()).create();
                 }
 
                 public ComponentContainer container() {
-                    return container.container(context.set(original.copy()).expand(definitions));
+
+                    // injected container is not interested in accepted contexts, only defined ones
+                    // defined context is propagated forward therefore we have all necessary information
+                    // right here
+                    return container.container(original.copy().expand(definitions));
                 }
 
                 public DependencyGraph.Node regular() {
-                    final ContextDefinition copy = context.set(original.advance(reference)).expand(definitions);
-                    final ContextNode contexts = container.contexts(dependencyType, copy);
-                    return contexts != null
-                           ? container.resolveComponent(dependencyType, copy.accept(contexts.contextConsumer()), traversal, reference)
-                           : null;
+                    return container.resolveComponent(dependencyType, downstream, traversal, reference);
                 }
 
                 public void handle(final RestrictedContainer container) {
@@ -532,7 +528,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
 
         dependency.set(new DependencyNode(mandatory, node, declaringType, dependencyType));
 
-        return context.context;
+        return downstream;
     }
 
     private static Annotation[] neverNull(final Annotation[] array) {
