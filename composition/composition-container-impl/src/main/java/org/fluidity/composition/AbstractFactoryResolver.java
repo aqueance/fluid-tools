@@ -93,30 +93,39 @@ abstract class AbstractFactoryResolver extends AbstractResolver {
         final List<RestrictedContainer> containers = new ArrayList<RestrictedContainer>();
 
         final ComponentFactory.Instance instance = factory.resolve(passed, new ComponentFactory.Resolver() {
-            public <T> ComponentFactory.Dependency<T> resolve(final Type api) {
-                return new NodeDependency<T>(resolve(api, null), traversal);
+            public <T> ComponentFactory.Dependency<T> resolve(final Class<T> api, final Type reference) {
+                if (api == null && reference == null) {
+                    throw new IllegalArgumentException("Both parameters are null");
+                }
+
+                if (api != null && reference != null && !Generics.rawType(reference).isAssignableFrom(api)) {
+                    throw new ComponentContainer.ResolutionException("Type %s cannot be assigned to %s", api, reference);
+                }
+
+                final DependencyGraph.Node node = resolve(api == null ? Generics.rawType(reference) : api, reference == null ? api : reference, null);
+                return node == null ? null : new NodeDependency<T>(node, traversal);
             }
 
-            public DependencyGraph.Node resolve(final Type api, final Annotation[] annotations) {
+            private DependencyGraph.Node resolve(final Class<?> api, final Type reference, final Annotation[] annotations) {
+                assert reference != null : api;
                 final Class<?> resolving = AbstractFactoryResolver.this.api;
-                final Class<?> type = Generics.rawType(api);
 
-                return injector.resolve(type, new DependencyInjector.Resolution() {
+                return injector.resolve(api, new DependencyInjector.Resolution() {
                     public ComponentContext context() {
-                        traversal.resolving(resolving, type, null, null);
+                        traversal.resolving(resolving, api, null, null);
                         return passed;
                     }
 
                     public ComponentContainer container() {
-                        traversal.resolving(resolving, type, null, null);
+                        traversal.resolving(resolving, api, null, null);
                         return new ComponentContainerShell(child, reduced.accept(null), false);
                     }
 
                     public DependencyGraph.Node regular() {
-                        traversal.resolving(resolving, type, null, annotations);
-                        final ContextDefinition copy = collected.advance(api);
+                        traversal.resolving(resolving, api, null, annotations);
+                        final ContextDefinition copy = collected.advance(reference);
                         contexts.add(copy);
-                        return child.resolveComponent(type, copy.expand(annotations), traversal, api);
+                        return child.resolveComponent(api, copy.expand(annotations), traversal, api);
                     }
 
                     public void handle(final RestrictedContainer container) {
@@ -141,7 +150,8 @@ abstract class AbstractFactoryResolver extends AbstractResolver {
                 final List<ComponentFactory.Dependency<?>> nodes = new ArrayList<ComponentFactory.Dependency<?>>();
 
                 for (int i = 0, limit = types.length; i < limit; i++) {
-                    nodes.add(new NodeDependency<Object>(resolve(Generics.propagate(reference, types[i]), annotations[i]), traversal));
+                    final Type type = types[i];
+                    nodes.add(new NodeDependency<Object>(resolve(Generics.rawType(type), Generics.propagate(reference, type), annotations[i]), traversal));
                 }
 
                 return nodes.toArray(new ComponentFactory.Dependency<?>[nodes.size()]);
@@ -158,8 +168,12 @@ abstract class AbstractFactoryResolver extends AbstractResolver {
 
             public Object instance(final DependencyGraph.Traversal traversal) {
                 try {
-                    instance.bind(new RegistryWrapper(api, child));
-                    return child.resolveComponent(api, saved, traversal, reference).instance(traversal);
+                    if (instance == null) {
+                        return null;
+                    } else {
+                        instance.bind(new RegistryWrapper(api, child));
+                        return child.resolveComponent(api, saved, traversal, reference).instance(traversal);
+                    }
                 } finally {
                     for (final RestrictedContainer restricted : containers) {
                         restricted.enable();
@@ -188,8 +202,7 @@ abstract class AbstractFactoryResolver extends AbstractResolver {
         }
 
         public <T> void bindInstance(final T instance, final Class<? super T>... interfaces) throws ComponentContainer.BindingException {
-            assert instance != null;
-            container.bindInstance(instance, Components.inspect((Class<T>) instance.getClass(), interfaces));
+            container.bindInstance(instance, instance == null ? null : Components.inspect((Class<T>) instance.getClass(), interfaces));
         }
 
         public ComponentFactory.Registry makeChildContainer() {

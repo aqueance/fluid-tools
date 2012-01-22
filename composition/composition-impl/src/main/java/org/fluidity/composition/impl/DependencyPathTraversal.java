@@ -169,7 +169,7 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
         }
     }
 
-    Object instantiate(final Class<?> api, final DependencyGraph.Node node, final ActualElement element, final DependencyGraph.Traversal traversal) {
+    private Object instantiate(final Class<?> api, final DependencyGraph.Node node, final ActualElement element, final DependencyGraph.Traversal traversal) {
         final ActualPath path = resolutionPath.get().descend(element, node.context());
 
         return descend(path, new Descent<Object>() {

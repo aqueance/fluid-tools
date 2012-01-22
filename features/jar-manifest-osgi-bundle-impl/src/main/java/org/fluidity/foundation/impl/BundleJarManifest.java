@@ -37,7 +37,7 @@ import org.apache.maven.artifact.Artifact;
 import org.apache.maven.project.MavenProject;
 
 /**
- * Modifies the JAR manifest of the host project's artifact so that an OSGi container finds those embedded JAR files and adds them to the bundle's class path.
+ * Modifies the JAR manifest of the host project's artifact so that an OSGi container finds its embedded JAR files and adds them to the bundle's class path.
  *
  * @author Tibor Varga
  */

@@ -256,17 +256,52 @@ final class DependencyInjectorImpl implements DependencyInjector {
         final List<ContextDefinition> consumed = new ArrayList<ContextDefinition>();
 
         final Class<?> componentClass = constructor.getDeclaringClass();
+
         final Annotation[] constructorAnnotations = neverNull(constructor.getAnnotations());
         final Annotation[][] parameterAnnotations = constructor.getParameterAnnotations();
-        final Type[] types = constructor.getGenericParameterTypes();
-        final DependencyGraph.Node[] parameters = new DependencyGraph.Node[types.length];
 
-        for (int i = 0, length = types.length; i < length; ++i) {
+        final Class[] params = constructor.getParameterTypes();
+        final Type[] types = constructor.getGenericParameterTypes();
+
+        final int hidden = params.length - types.length;        // http://bugs.sun.com/view_bug.do?bug_id=5087240
+
+        int levels = -1;   // top-level class is never static and yet it is an enclosing class
+        for (Class enclosing = componentClass; enclosing != null; enclosing = enclosing.getEnclosingClass()) {
+            if (!Modifier.isStatic(enclosing.getModifiers())) {
+                ++levels;
+            }
+        }
+
+        final int nesting = levels;
+
+        /*
+         * http://bugs.sun.com/view_bug.do?bug_id=5087240:
+         *
+         * Inner class constructor generic types array does not contain the enclosing classes and the closure context.
+         * The enclosing classes are on the beginning of the params array while the closure context are on the end.
+         *
+         * TODO: test this thoroughly
+         */
+        if (hidden > 0) {
+            for (int i = nesting; i < params.length - hidden; ++i) {
+                if (Generics.rawType(types[i - nesting]) != params[i]) {
+                    throw new IllegalStateException(String.format("Could not match parameter types of %s constructor: classes: %s, types: %s)",
+                                                                  componentClass,
+                                                                  Arrays.toString(params),
+                                                                  Arrays.toString(types)));
+                }
+            }
+        }
+
+        final DependencyGraph.Node[] parameters = new DependencyGraph.Node[params.length];
+
+        for (int i = 0, length = params.length; i < length; ++i) {
             final int index = i;
             consumed.add(injectDependency(true, traversal, container, contexts, context, componentClass, new Dependency() {
 
                 public Type reference() {
-                    return types[index];
+                    final int nested = index - nesting;
+                    return hidden == 0 ? types[index] : nested < 0 || nested >= types.length ? params[index] : types[nested];
                 }
 
                 public <T extends Annotation> T annotation(final Class<T> annotationClass) {

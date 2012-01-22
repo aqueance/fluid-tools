@@ -243,7 +243,8 @@ final class SimpleContainerImpl extends EmptyDependencyGraph implements ParentCo
 
     public void bindInstance(final Object instance, final Components.Interfaces interfaces) {
         if (instance == null) {
-            throw new ComponentContainer.BindingException("Component instance for %s is null", interfaces.implementation);
+            throw new ComponentContainer.BindingException("Component instance%s is null",
+                                                          interfaces == null ? "" : String.format(" for %s", interfaces.implementation));
         }
 
         final Class<?> implementation = instance.getClass();

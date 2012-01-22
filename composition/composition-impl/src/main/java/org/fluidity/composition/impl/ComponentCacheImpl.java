@@ -20,7 +20,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.WeakHashMap;
 
-import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.spi.ComponentCache;
 import org.fluidity.composition.spi.ComponentFactory;
@@ -73,19 +72,15 @@ final class ComponentCacheImpl implements ComponentCache {
             if (!cache.containsKey(context)) {
                 final Object component = factory.instantiate();
 
-                if (component == null) {
-                    throw new ComponentContainer.ResolutionException("Could not create component for %s", api);
-                }
-
                 if (!cache.containsKey(context)) {
                     cache.put(context, component);
 
-                    log(report, "created", component, context, log, source);
+                    log(report, "created", api, component, context, log, source);
                 } else {
-                    log(report, "reusing", cache.get(context), context, log, source);
+                    log(report, "reusing", api, cache.get(context), context, log, source);
                 }
             } else {
-                log(report, "reusing", cache.get(context), context, log, source);
+                log(report, "reusing", api, cache.get(context), context, log, source);
             }
 
             assert cache.containsKey(context) : String.format("Component %s not found in context %s", api, context);
@@ -94,14 +89,18 @@ final class ComponentCacheImpl implements ComponentCache {
         return cache.get(context);
     }
 
-    private void log(final boolean note, final String action, final Object component, final ComponentContext context, final Log log, final Object source) {
+    private void log(final boolean note,
+                     final String action,
+                     final Class<?> api,
+                     final Object component,
+                     final ComponentContext context,
+                     final Log log,
+                     final Object source) {
         if (note) {
-            log.debug("%s: %s %s@%x%s",
-                      source,
-                      action,
-                      component.getClass().getName(),
-                      System.identityHashCode(component),
-                      context.types().isEmpty() ? "" : String.format(" for %s", context));
+            final String instance = component == null
+                             ? String.format("no %s", api.getName())
+                             : String.format("%s@%x", component.getClass().getName(), System.identityHashCode(component));
+            log.debug("%s: %s %s%s", source, action, instance, context.types().isEmpty() ? "" : String.format(" for %s", context));
         }
     }
 }

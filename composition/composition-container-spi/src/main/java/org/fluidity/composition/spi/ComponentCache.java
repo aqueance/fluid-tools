@@ -51,7 +51,7 @@ public interface ComponentCache {
         /**
          * Creates and returns a new instance of the component.
          *
-         * @return a new instance of the component; never <code>null</code>.
+         * @return a new instance of the component, or <code>null</code>, which will also be cached.
          */
         Object instantiate();
     }

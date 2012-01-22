@@ -16,7 +16,7 @@ import org.fluidity.composition.spi.CustomComponentFactory;
 final class DeferredReferenceFactory implements CustomComponentFactory {
 
     public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
-        final Dependency<?> dependency = dependencies.resolve(Generics.typeParameter(context.annotation(Component.Reference.class, null).type(), 0));
+        final Dependency<?> dependency = dependencies.resolve(null, Generics.typeParameter(context.annotation(Component.Reference.class, null).type(), 0));
 
         final Deferred.Reference<Object> reference = Deferred.reference(new Deferred.Factory<Object>() {
             public Object create() {

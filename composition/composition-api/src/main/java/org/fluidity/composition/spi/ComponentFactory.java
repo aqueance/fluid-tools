@@ -80,7 +80,7 @@ public interface ComponentFactory {
      *                     its {@link org.fluidity.composition.Component.Context @Component.Context} annotation.
      * @param dependencies the dependency resolver to notify of any dependencies the created class will have.
      *
-     * @return an object that will bind the created components and its dependencies.
+     * @return an object that will bind the created components and its dependencies, or <code>null</code> if no component will be instantiated.
      *
      * @throws ComponentContainer.ResolutionException
      *          when resolution of the component or any of its dependencies fails.
@@ -118,7 +118,7 @@ public interface ComponentFactory {
          *                 if (contexts != null) {
          *                     registry.bindInstance(contexts, CreatedContext[].class);
          *                 }
-         *
+         * I
          *                 registry.bindComponent(CreatedComponent.class);
          *             }
          *         };
@@ -160,18 +160,21 @@ public interface ComponentFactory {
     }
 
     /**
-     * Resolves dependencies without instantiating them.
+     * Allows a {@link ComponentFactory} to resolve dependencies without instantiating them.
      */
     interface Resolver {
 
         /**
-         * Resolves a component known by its component interface.
+         * Resolves a component by its component interface without instantiating the component. The resolved component will see, if it accepts the {@link
+         * org.fluidity.composition.Component.Reference @Component.Reference} context annotation, the specified component interface as the dependency reference
+         * to it unless <code>reference</code> parameter is present. The component interface must be assignable to the reference if it is specified.
          *
-         * @param api the component interface to resolve.
+         * @param api       the component interface to resolve, or <code>null</code> of it can be derived from the <code>reference</code> parameter.
+         * @param reference the reference to use when resolving the component or <code>null</code> to use the component interface.
          *
          * @return an object that can return an instance of the resolved dependency.
          */
-        <T> Dependency<T> resolve(Type api);
+        <T> Dependency<T> resolve(Class<T> api, Type reference);
 
         /**
          * Returns a list of dependencies, each corresponding to the parameters of the dependency injectable constructor of the supplied component class. For

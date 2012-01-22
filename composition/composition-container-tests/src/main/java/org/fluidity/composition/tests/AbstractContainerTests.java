@@ -41,7 +41,7 @@ public abstract class AbstractContainerTests extends MockGroupAbstractTest {
     }
 
     @BeforeMethod
-    public void createContainer() throws Exception {
+    public void resetContainer() throws Exception {
         container = artifacts.createContainer();
         registry = container.getRegistry();
         Value.dependent = null;

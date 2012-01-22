@@ -16,6 +16,8 @@
 
 package org.fluidity.composition.tests;
 
+import java.io.Closeable;
+import java.io.Serializable;
 import java.lang.reflect.Type;
 
 import org.fluidity.composition.Component;
@@ -29,6 +31,7 @@ import org.fluidity.foundation.Generics;
 import org.easymock.EasyMock;
 import org.easymock.IAnswer;
 import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 /**
@@ -177,6 +180,138 @@ public final class CustomFactoryTests extends AbstractContainerTests {
         verify();
     }
 
+    @DataProvider(name = "resolutionVariants")
+    public Object[][] resolutionTypes() {
+        return new Object[][] {
+                new Object[] { 0 },
+                new Object[] { 1 },
+                new Object[] { 2 },
+                new Object[] { 3 },
+                new Object[] { 4 },
+        };
+    }
+
+    @Test(dataProvider = "resolutionVariants")
+    public void testResolver(final int variant) throws Exception {
+
+        @Component(automatic = false)
+        class Main { }
+
+        @Component(api = Secondary.class, automatic = false)
+        @Component.Context(Component.Reference.class)
+        class Secondary implements Serializable {
+            public Secondary(final ComponentContext context) {
+                switch (variant) {
+                case 0:
+                case 1:
+                case 2:
+                    assert context.annotation(Component.Reference.class, null).type() == Secondary.class : context;
+                    break;
+                case 3:
+                    assert context.annotation(Component.Reference.class, null).type() == Serializable.class : context;
+                    break;
+                default:
+                    assert false : variant;
+                }
+            }
+        }
+
+        @Component(api = Main.class, automatic = false)
+        class Factory implements CustomComponentFactory {
+            public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
+                switch (variant) {
+                case 0: {
+                    final Dependency<Secondary> dependency = dependencies.resolve(Secondary.class, null);
+                    assert dependency != null : Secondary.class;
+
+                    return new Instance() {
+                        public void bind(final Registry registry) throws ComponentContainer.BindingException {
+                            registry.bindInstance(dependency.instance());
+                            registry.bindComponent(Main.class);
+                        }
+                    };
+                }
+
+                case 1: {
+                    final Dependency<Secondary> dependency = dependencies.resolve(Secondary.class, Secondary.class);
+                    assert dependency != null : Secondary.class;
+
+                    return new Instance() {
+                        public void bind(final Registry registry) throws ComponentContainer.BindingException {
+                            registry.bindInstance(dependency.instance());
+                            registry.bindComponent(Main.class);
+                        }
+                    };
+                }
+
+                case 2: {
+                    final Dependency<Secondary> dependency = dependencies.resolve(null, Secondary.class);
+                    assert dependency != null : Secondary.class;
+
+                    return new Instance() {
+                        public void bind(final Registry registry) throws ComponentContainer.BindingException {
+                            registry.bindInstance(dependency.instance());
+                            registry.bindComponent(Main.class);
+                        }
+                    };
+                }
+
+                case 3: {
+                    final Dependency<Secondary> dependency = dependencies.resolve(Secondary.class, Serializable.class);
+                    assert dependency != null : Secondary.class;
+
+                    return new Instance() {
+                        public void bind(final Registry registry) throws ComponentContainer.BindingException {
+                            registry.bindInstance(dependency.instance());
+                            registry.bindComponent(Main.class);
+                        }
+                    };
+                }
+
+                case 4: {
+                    try {
+                        dependencies.resolve(Secondary.class, Closeable.class);
+                        assert false : "Should have thrown resolution exception";
+                    } catch (final ComponentContainer.ResolutionException e) {
+                        // that's fine
+                    }
+
+                    return null;
+                }
+
+                default:
+                    assert false : variant;
+                    return null;
+                }
+            }
+        }
+
+
+        registry.bindInstance(this, CustomFactoryTests.class);
+        registry.bindInstance(variant);
+        registry.bindComponent(Secondary.class);
+        registry.bindComponent(Factory.class);
+
+        replay();
+
+        switch (variant) {
+        case 0:
+        case 1:
+        case 2:
+        case 3:
+            assert container.getComponent(Main.class) != null;
+            break;
+        case 4:
+            assert container.getComponent(Main.class) == null;
+            break;
+        default:
+            assert false : variant;
+            break;
+        }
+
+        verify();
+    }
+
     @Component(api = DependentKey.class, automatic = false)
     private static class DependentFactory implements CustomComponentFactory {
 
@@ -268,7 +403,7 @@ public final class CustomFactoryTests extends AbstractContainerTests {
             final ComponentFactory.Resolver resolver = (ComponentFactory.Resolver) EasyMock.getCurrentArguments()[1];
             assert resolver != null : "Received no resolver";
 
-            final ComponentFactory.Dependency<?> dependency = resolver.resolve(checkKey);
+            final ComponentFactory.Dependency<?> dependency = resolver.resolve(checkKey, null);
             assert dependency != null && dependency.instance() == checkValue : "Container does not check up";
 
             return instance;
