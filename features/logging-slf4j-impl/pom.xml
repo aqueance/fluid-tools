@@ -88,6 +88,7 @@ containing top level application wrappers that wish to use SLF4 for logging.
 
     <build>
         <plugins>
+
             <plugin>
                 <groupId>${fluidity.plugin.groupId}</groupId>
                 <artifactId>maven-composition-plugin</artifactId>
@@ -99,6 +100,18 @@ containing top level application wrappers that wish to use SLF4 for logging.
                     </execution>
                 </executions>
             </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>default-test</id>
+                        <phase>none</phase>
+                    </execution>
+                </executions>
+            </plugin>
+
         </plugins>
     </build>
 

@@ -267,7 +267,11 @@ public class StandaloneWarMojo extends AbstractMojo {
                     }
                 }
 
-                assert mainClass != null : bootstrapDependencies;
+                if (mainClass == null) {
+                    throw new MojoExecutionException(String.format("None of the following dependencies specified a main class (manifest entry '%s'): %s",
+                                                                   Attributes.Name.MAIN_CLASS,
+                                                                   bootstrapDependencies));
+                }
 
                 final Set<String> bootLibraries = new HashSet<String>();
 

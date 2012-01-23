@@ -187,12 +187,12 @@ public class BundleJarManifestTest {
 
         properties.setProperty("xxx", "1.0");
         properties.setProperty("y.z", "1.0-beta-1");
-        properties.setProperty("a", "1.0-SNAPSHOT");
         properties.setProperty("whatever", "1.2.3.4.whatever");
+        project.setVersion("1.0-SNAPSHOT");
 
         model.setProperties(properties);
 
-        final String specified = "package.bare,package.%1$s;%1$s=xxx,package.buried;xxx=%1$s;%1$s=1.0-X;y.z=\"a\\;b;%1$s\\\"c\\\\d\";package.range1;%1$s=\"[1.0,a)\",package.range1;%1$s=\"(y.z,whatever]\"";
+        final String specified = "package.bare,package.%1$s;%1$s=$xxx,package.buried;xxx=%1$s;%1$s=1.0-X;y.z=\"a\\;b;%1$s\\\"c\\\\d\";package.range1;%1$s=\"[1.0,$project.version)\",package.range1;%1$s=\"($y.z,$whatever]\"";
         final String expected = "package.bare,package.%1$s;%1$s=1.0,package.buried;xxx=%1$s;%1$s=1.0-X;y.z=\"a\\;b;%1$s\\\"c\\\\d\";package.range1;%1$s=\"[1.0,1.0.0.SNAPSHOT)\",package.range1;%1$s=\"(1.0.0.beta-1,1.2.3.4-whatever]\"";
 
         attributes.putValue(EXPORT_PACKAGE, String.format(specified, VERSION_ATTRIBUTE));

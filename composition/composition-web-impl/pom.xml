@@ -92,6 +92,7 @@ WebApplicationLifecycleListener to be registered as a listener in the host appli
 
     <build>
         <plugins>
+
             <plugin>
                 <groupId>${fluidity.plugin.groupId}</groupId>
                 <artifactId>maven-composition-plugin</artifactId>
@@ -103,6 +104,18 @@ WebApplicationLifecycleListener to be registered as a listener in the host appli
                     </execution>
                 </executions>
             </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>default-test</id>
+                        <phase>none</phase>
+                    </execution>
+                </executions>
+            </plugin>
+
         </plugins>
     </build>
 

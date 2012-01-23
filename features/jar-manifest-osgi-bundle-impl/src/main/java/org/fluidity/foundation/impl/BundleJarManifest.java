@@ -21,9 +21,9 @@ import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.Properties;
 import java.util.jar.Attributes;
 
 import org.fluidity.composition.ComponentGroup;
@@ -36,6 +36,14 @@ import org.fluidity.foundation.Methods;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.project.MavenProject;
+import org.codehaus.plexus.interpolation.InterpolationException;
+import org.codehaus.plexus.interpolation.Interpolator;
+import org.codehaus.plexus.interpolation.PrefixAwareRecursionInterceptor;
+import org.codehaus.plexus.interpolation.PrefixedObjectValueSource;
+import org.codehaus.plexus.interpolation.PrefixedPropertiesValueSource;
+import org.codehaus.plexus.interpolation.PropertiesBasedValueSource;
+import org.codehaus.plexus.interpolation.RecursionInterceptor;
+import org.codehaus.plexus.interpolation.RegexBasedInterpolator;
 import org.osgi.framework.Version;
 
 import static org.osgi.framework.Constants.BUNDLE_ACTIVATOR;
@@ -112,17 +120,30 @@ public class BundleJarManifest implements JarManifest {
             addEntry(attributes, BUNDLE_VERSION, DEFAULT_BUNDLE_VERSION);
         }
 
-        final Properties properties = project.getProperties();
+        final RegexBasedInterpolator interpolator = new RegexBasedInterpolator();
+        final List<String> prefixes = Arrays.asList("project.");
 
-        if (properties != null && !properties.isEmpty()) {
-            parseVersions(attributes, properties, VERSION_ATTRIBUTE, EXPORT_PACKAGE, IMPORT_PACKAGE, DYNAMICIMPORT_PACKAGE);
-            parseVersions(attributes, properties, BUNDLE_VERSION_ATTRIBUTE, FRAGMENT_HOST, IMPORT_PACKAGE, DYNAMICIMPORT_PACKAGE, REQUIRE_BUNDLE);
-            parseVersions(attributes, properties, BUNDLE_NATIVECODE_OSVERSION, BUNDLE_NATIVECODE);
-            parseVersions(attributes, properties, PACKAGE_SPECIFICATION_VERSION, EXPORT_PACKAGE, IMPORT_PACKAGE);
+        interpolator.addValueSource(new PropertiesBasedValueSource(System.getProperties()));
+        interpolator.addValueSource(new PrefixedPropertiesValueSource(prefixes, project.getProperties(), true));
+        interpolator.addValueSource(new PrefixedObjectValueSource(prefixes, project.getModel(), true));
+
+        final RecursionInterceptor interceptor = new PrefixAwareRecursionInterceptor(prefixes, true);
+
+        interpolator.setCacheAnswers(true);
+        interpolator.setReusePatterns(true);
+
+        try {
+            parseVersions(attributes, interpolator, interceptor, VERSION_ATTRIBUTE, EXPORT_PACKAGE, IMPORT_PACKAGE, DYNAMICIMPORT_PACKAGE);
+            parseVersions(attributes, interpolator, interceptor, BUNDLE_VERSION_ATTRIBUTE, FRAGMENT_HOST, IMPORT_PACKAGE, DYNAMICIMPORT_PACKAGE, REQUIRE_BUNDLE);
+            parseVersions(attributes, interpolator, interceptor, BUNDLE_NATIVECODE_OSVERSION, BUNDLE_NATIVECODE);
+            parseVersions(attributes, interpolator, interceptor, PACKAGE_SPECIFICATION_VERSION, EXPORT_PACKAGE, IMPORT_PACKAGE);
+        } catch (final InterpolationException e) {
+            throw new IllegalStateException(e);
         }
 
         if (!dependencies.isEmpty()) {
             ClassLoader classLoader = null;
+
             try {
 
                 // create a class loader that sees the project's compile time dependencies
@@ -199,13 +220,18 @@ public class BundleJarManifest implements JarManifest {
         }
     }
 
-    private String substituteVersion(final Properties map, final String specification) {
-        final String version = map.getProperty(specification);
-        return version == null ? specification : verify(version);
+    private String substituteVersion(final Interpolator interpolator, final RecursionInterceptor interceptor, final String value) throws InterpolationException {
+        final String property = value.startsWith("$") ? String.format("${%s}", value.substring(1)) : null;
+        final String version = property != null ? interpolator.interpolate(property, interceptor) : property;
+        return property == null || property.equals(version) ? value : verify(version);
     }
 
-    private void parseVersions(final Attributes attributes, Properties mapping, final String name, final String... headers) {
-        assert mapping != null;
+    private void parseVersions(final Attributes attributes,
+                               final Interpolator interpolator,
+                               final RecursionInterceptor interceptor,
+                               final String name,
+                               final String... headers) throws InterpolationException {
+        assert interpolator != null;
         final char[] parameter = name.concat("=").toCharArray();
 
         for (final String header : headers) {
@@ -242,7 +268,7 @@ public class BundleJarManifest implements JarManifest {
                     case ')':
                     case ',':
                         if (collecting) {
-                            buffer.append(substituteVersion(mapping, version.toString()));
+                            buffer.append(substituteVersion(interpolator, interceptor, version.toString()));
                             collecting = quoting;
                             version.setLength(0);
                         }
@@ -263,7 +289,7 @@ public class BundleJarManifest implements JarManifest {
                     case ';':
                         if (!quoting && !escaping) {
                             if (collecting) {
-                                buffer.append(substituteVersion(mapping, version.toString()));
+                                buffer.append(substituteVersion(interpolator, interceptor, version.toString()));
                                 collecting = false;
 
                                 buffer.append(c);
@@ -300,7 +326,7 @@ public class BundleJarManifest implements JarManifest {
                 }
 
                 if (collecting) {
-                    buffer.append(substituteVersion(mapping, version.toString()));
+                    buffer.append(substituteVersion(interpolator, interceptor, version.toString()));
                 }
 
                 attributes.putValue(header, buffer.toString());
@@ -323,7 +349,7 @@ public class BundleJarManifest implements JarManifest {
 
                     // part is not numeric
                     partCount = numericVersion(bundleVersion, partCount);
-                    bundleVersion.append('.').append(part);
+                    bundleVersion.append('.').append(part.replaceAll("\\W", "_"));
                 }
             } else {
                 bundleVersion.append(partCount == 3 ? '.' : '-').append(part.replaceAll("\\W", "_"));
@@ -353,7 +379,6 @@ public class BundleJarManifest implements JarManifest {
      * and BundleBootstrap classes can be found in the project's compile time class path.
      */
     public static final class BundleActivatorProcessor implements Command<String, Void> {
-
         public String run(final Void ignored) {
             try {
                 return ContainerBoundary.class != null ? BundleBootstrap.class.getName() : null;
