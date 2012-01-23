@@ -17,6 +17,7 @@
 package org.fluidity.deployment.osgi;
 
 import java.lang.reflect.Constructor;
+import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -104,6 +105,7 @@ public class BundleComponentContainerImplTest extends MockGroupAbstractTest {
     }
 
     @Test
+    @SuppressWarnings({ "unchecked", "RedundantCast" })
     public void testServiceRegistration() throws Exception {
         final Class<Service1> componentClass = Service1.class;
         final Class<ServiceInterface1> serviceInterface = ServiceInterface1.class;
@@ -135,7 +137,7 @@ public class BundleComponentContainerImplTest extends MockGroupAbstractTest {
         // registering the service
         EasyMock.expect(context.registerService(EasyMock.aryEq(new String[] { serviceInterface.getName() }),
                                                 EasyMock.same(service),
-                                                EasyMock.same(properties)))
+                                                (Dictionary) EasyMock.same(properties)))
                 .andReturn(registration);
 
 

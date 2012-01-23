@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
@@ -92,7 +93,6 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
         public final Collection<Class<Managed>> components = new HashSet<Class<Managed>>();
     }
 
-    @SuppressWarnings({ "unchecked", "SuspiciousMethodCalls" })
     public void start() {
         final Map<Class<Managed>, Collection<Components.Interfaces>> clusters = new HashMap<Class<Managed>, Collection<Components.Interfaces>>();
         final Collection<Components.Interfaces> interfaces = new HashSet<Components.Interfaces>();
@@ -106,7 +106,9 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
 
         final Map<Class<?>, Dependencies> dependenciesMap = new HashMap<Class<?>, Dependencies>();
 
+        @SuppressWarnings("unchecked")
         final Collection<Class<Managed>> classes = new HashSet<Class<Managed>>(Arrays.asList(items));
+
         for (final Class<Managed> type : items) {
             final Dependencies dependencies = findDependencies(type, classes);
 
@@ -116,7 +118,10 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
                 for (final Components.Interfaces inspection : interfaces) {
                     for (final Components.Specification specification : inspection.api) {
                         if (specification.api == dependency) {
+
+                            @SuppressWarnings("SuspiciousMethodCalls")
                             final Collection<Components.Interfaces> combined = clusters.get(inspection.implementation);
+
                             combined.addAll(clusters.get(type));
                             clusters.put(type, combined);
                             break;      // the innermost loop
@@ -229,9 +234,10 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
         final Class<T> type = source.clientType();
 
         final ServiceListener listener = new ServiceListener() {
-            @SuppressWarnings("unchecked")
             public void serviceChanged(final ServiceEvent event) {
                 final ServiceReference reference = event.getServiceReference();
+
+                @SuppressWarnings("unchecked")
                 final T service = (T) context.getService(reference);
 
                 switch (event.getType()) {
@@ -289,7 +295,8 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
 
         log.info("Registering %s", serviceMessage);
 
-        final ServiceRegistration registration = context.registerService(classes, service, properties);
+        @SuppressWarnings({ "unchecked", "RedundantCast" })
+        final ServiceRegistration registration = context.registerService(classes, service, (Dictionary) properties);
 
         cleanup(service.getClass().getName(), new Stoppable() {
             public void stop() {
@@ -299,7 +306,6 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
         });
     }
 
-    @SuppressWarnings("unchecked")
     private void resolveDependencies(final Collection<Components.Interfaces> cluster, final Collection<ServiceSpecification> services, final Log listenerLog) {
         if (services.isEmpty()) {
             clusters.putAll(start(cluster));
@@ -339,9 +345,9 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
         }
     }
 
-    @SuppressWarnings({ "unchecked", "MismatchedQueryAndUpdateOfCollection" })
     Map<Managed, Set<Class<?>>> start(final Collection<Components.Interfaces> cluster, final ComponentContainer.Bindings... list) {
         final ComponentContainer child = container.makeChildContainer(new ComponentContainer.Bindings() {
+            @SuppressWarnings("unchecked")
             public void bindComponents(final ComponentContainer.Registry registry) {
                 for (final ComponentContainer.Bindings bindings : list) {
                     bindings.bindComponents(registry);
