@@ -29,7 +29,7 @@ limitations under the License.
 
     <properties>
         <fluid.tools.version>${project.version}</fluid.tools.version>
-        <osgi.specification.version>4.2.0</osgi.specification.version>
+        <osgi.specification.version>${osgi.specification.version}</osgi.specification.version>
         <osgi.import.core>org.osgi.framework;version=1.4</osgi.import.core>
     </properties>
 

@@ -38,10 +38,6 @@
         </license>
     </licenses>
 
-    <properties>
-        <osgi.specification.version>4.2.0</osgi.specification.version>
-    </properties>
-
     <modules>
         <module>cli-bootstrap-spi</module>
         <module>cli-bootstrap</module>

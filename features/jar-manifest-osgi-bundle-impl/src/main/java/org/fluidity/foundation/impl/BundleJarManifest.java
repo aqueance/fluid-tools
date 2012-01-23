@@ -23,6 +23,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Properties;
 import java.util.jar.Attributes;
 
 import org.fluidity.composition.ComponentGroup;
@@ -35,6 +36,28 @@ import org.fluidity.foundation.Methods;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.project.MavenProject;
+import org.osgi.framework.Version;
+
+import static org.osgi.framework.Constants.BUNDLE_ACTIVATOR;
+import static org.osgi.framework.Constants.BUNDLE_CLASSPATH;
+import static org.osgi.framework.Constants.BUNDLE_COPYRIGHT;
+import static org.osgi.framework.Constants.BUNDLE_DESCRIPTION;
+import static org.osgi.framework.Constants.BUNDLE_DOCURL;
+import static org.osgi.framework.Constants.BUNDLE_MANIFESTVERSION;
+import static org.osgi.framework.Constants.BUNDLE_NAME;
+import static org.osgi.framework.Constants.BUNDLE_NATIVECODE;
+import static org.osgi.framework.Constants.BUNDLE_NATIVECODE_OSVERSION;
+import static org.osgi.framework.Constants.BUNDLE_SYMBOLICNAME;
+import static org.osgi.framework.Constants.BUNDLE_VENDOR;
+import static org.osgi.framework.Constants.BUNDLE_VERSION;
+import static org.osgi.framework.Constants.BUNDLE_VERSION_ATTRIBUTE;
+import static org.osgi.framework.Constants.DYNAMICIMPORT_PACKAGE;
+import static org.osgi.framework.Constants.EXPORT_PACKAGE;
+import static org.osgi.framework.Constants.FRAGMENT_HOST;
+import static org.osgi.framework.Constants.IMPORT_PACKAGE;
+import static org.osgi.framework.Constants.PACKAGE_SPECIFICATION_VERSION;
+import static org.osgi.framework.Constants.REQUIRE_BUNDLE;
+import static org.osgi.framework.Constants.VERSION_ATTRIBUTE;
 
 /**
  * Modifies the JAR manifest of the host project's artifact so that an OSGi container finds its embedded JAR files and adds them to the bundle's class path.
@@ -43,24 +66,7 @@ import org.apache.maven.project.MavenProject;
  */
 public class BundleJarManifest implements JarManifest {
 
-    public static final String DEFAULT_BUNDLE_VERSION = "0.0.0";
-
-    public static final String BUNDLE_ACTIVATOR = "Bundle-Activator";
-    public static final String BUNDLE_CLASSPATH = "Bundle-Classpath";
-    public static final String BUNDLE_VERSION = "Bundle-Version";
-    public static final String BUNDLE_NAME = "Bundle-Name";
-    public static final String BUNDLE_DESCRIPTION = "Bundle-Description";
-    public static final String BUNDLE_DOC_URL = "Bundle-DocURL";
-    public static final String BUNDLE_VENDOR = "Bundle-Vendor";
-    public static final String BUNDLE_MANIFEST_VERSION = "Bundle-ManifestVersion";
-    public static final String BUNDLE_SYMBOLIC_NAME = "Bundle-SymbolicName";
-
-    private final Method run = Methods.get(Command.class, new Methods.Invoker<Command>() {
-        @SuppressWarnings("unchecked")
-        public void invoke(final Command capture) {
-            capture.run(null);
-        }
-    });
+    public static final String DEFAULT_BUNDLE_VERSION = Version.emptyVersion.toString();
 
     public boolean needsCompileDependencies() {
         return true;
@@ -84,43 +90,35 @@ public class BundleJarManifest implements JarManifest {
             attributes.putValue(BUNDLE_CLASSPATH, classpath.toString());
         }
 
-        addEntry(attributes, BUNDLE_MANIFEST_VERSION, "2");
-        addEntry(attributes, BUNDLE_VERSION, new Metadata() { public String get() { return project.getVersion(); } });
+        addEntry(attributes, BUNDLE_MANIFESTVERSION, "2");
         addEntry(attributes, BUNDLE_NAME, new Metadata() { public String get() { return project.getName(); } });
+        addEntry(attributes, BUNDLE_SYMBOLICNAME, new Metadata() { public String get() { return project.getArtifactId(); } });
+        addEntry(attributes, BUNDLE_VERSION, new Metadata() { public String get() { return project.getVersion(); } });
         addEntry(attributes, BUNDLE_DESCRIPTION, new Metadata() { public String get() { return project.getDescription(); } });
-        addEntry(attributes, BUNDLE_DOC_URL, new Metadata() { public String get() { return project.getUrl(); } });
+        addEntry(attributes, BUNDLE_DOCURL, new Metadata() { public String get() { return project.getUrl(); } });
         addEntry(attributes, BUNDLE_VENDOR, new Metadata() { public String get() { return project.getOrganization().getName(); } });
-        addEntry(attributes, BUNDLE_SYMBOLIC_NAME, new Metadata() { public String get() { return project.getArtifactId(); } });
-
-        // http://www.osgi.org/javadoc/r4v42/org/osgi/framework/Version.html#Version(java.lang.String)
-        final String setVersion = attributes.getValue(BUNDLE_VERSION);
-        final StringBuilder bundleVersion = new StringBuilder();
-
-        if (setVersion != null) {
-            int partCount = 0;
-            for (final String part : setVersion.split("[\\.-]")) {
-                if (partCount < 3) {
-                    try {
-                        Integer.parseInt(part);   // just checking if part is a number
-                        bundleVersion.append('.').append(part);
-                    } catch (final NumberFormatException e) {
-
-                        // part is not numeric
-                        partCount = numericVersion(bundleVersion, partCount);
-                        bundleVersion.append('.').append(part);
-                    }
-                } else {
-                    bundleVersion.append(partCount == 3 ? '.' : '-').append(part);
-                }
-
-                ++partCount;
+        addEntry(attributes, BUNDLE_COPYRIGHT, new Metadata() {
+            public String get() {
+                final String year = project.getInceptionYear();
+                return year == null ? null : String.format("Copyright %s (c) %s. All rights reserved.", project.getOrganization().getName(), year);
             }
+        });
 
-            numericVersion(bundleVersion, partCount);
+        final String version = attributes.getValue(BUNDLE_VERSION);
 
-            attributes.putValue(BUNDLE_VERSION, bundleVersion.toString().substring(1));
+        if (version != null) {
+            attributes.putValue(BUNDLE_VERSION, verify(version));
         } else {
             addEntry(attributes, BUNDLE_VERSION, DEFAULT_BUNDLE_VERSION);
+        }
+
+        final Properties properties = project.getProperties();
+
+        if (properties != null && !properties.isEmpty()) {
+            parseVersions(attributes, properties, VERSION_ATTRIBUTE, EXPORT_PACKAGE, IMPORT_PACKAGE, DYNAMICIMPORT_PACKAGE);
+            parseVersions(attributes, properties, BUNDLE_VERSION_ATTRIBUTE, FRAGMENT_HOST, IMPORT_PACKAGE, DYNAMICIMPORT_PACKAGE, REQUIRE_BUNDLE);
+            parseVersions(attributes, properties, BUNDLE_NATIVECODE_OSVERSION, BUNDLE_NATIVECODE);
+            parseVersions(attributes, properties, PACKAGE_SPECIFICATION_VERSION, EXPORT_PACKAGE, IMPORT_PACKAGE);
         }
 
         if (!dependencies.isEmpty()) {
@@ -150,7 +148,15 @@ public class BundleJarManifest implements JarManifest {
                 // find the command
                 final Object command = classLoader.loadClass(BundleActivatorProcessor.class.getName()).newInstance();
 
-                // find the method to call
+                // find the method to call in our class loader
+                final Method run = Methods.get(Command.class, new Methods.Invoker<Command>() {
+                    @SuppressWarnings("unchecked")
+                    public void invoke(final Command capture) {
+                        capture.run(null);
+                    }
+                });
+
+                // find the method to call in the other class loader
                 final Method method = classLoader.loadClass(run.getDeclaringClass().getName()).getDeclaredMethod(run.getName(), run.getParameterTypes());
 
                 // see if the class loader can see the ContainerBoundary and BundleBootstrap classes and if so, find the bootstrap activator
@@ -182,6 +188,153 @@ public class BundleJarManifest implements JarManifest {
         }
 
         return false;
+    }
+
+    private String verify(final String version) {
+        try {
+            Version.parseVersion(version);
+            return version;
+        } catch (final IllegalArgumentException ignored) {
+            return correct(version);
+        }
+    }
+
+    private String substituteVersion(final Properties map, final String specification) {
+        final String version = map.getProperty(specification);
+        return version == null ? specification : verify(version);
+    }
+
+    private void parseVersions(final Attributes attributes, Properties mapping, final String name, final String... headers) {
+        assert mapping != null;
+        final char[] parameter = name.concat("=").toCharArray();
+
+        for (final String header : headers) {
+            final String value = attributes.getValue(header);
+
+            if (value != null) {
+                final StringBuilder buffer = new StringBuilder();
+                final StringBuilder version = new StringBuilder();
+                final char[] chars = value.toCharArray();
+
+                boolean quoting = false;
+                boolean escaping = false;
+                boolean collecting = false;
+
+                for (int i = 0, limit = chars.length; i < limit; i++) {
+                    final char c = chars[i];
+                    switch (c) {
+                    case '\\':
+                        escaping = !escaping;
+                        buffer.append(c);
+                        break;
+
+                    case '"':
+                        if (!escaping) {
+                            quoting = !quoting;
+                        }
+
+                        buffer.append(c);
+                        escaping = false;
+
+                        break;
+
+                    case ']':
+                    case ')':
+                    case ',':
+                        if (collecting) {
+                            buffer.append(substituteVersion(mapping, version.toString()));
+                            collecting = quoting;
+                            version.setLength(0);
+                        }
+
+                        buffer.append(c);
+                        escaping = false;
+
+                        break;
+
+                    case '[':
+                    case '(':
+                    case ' ':
+                        buffer.append(c);
+                        escaping = false;
+
+                        break;
+
+                    case ';':
+                        if (!quoting && !escaping) {
+                            if (collecting) {
+                                buffer.append(substituteVersion(mapping, version.toString()));
+                                collecting = false;
+
+                                buffer.append(c);
+                            } else {
+                                buffer.append(c);
+
+                                int matched;
+                                for (matched = 0; matched < parameter.length && chars[++i] == parameter[matched]; ++matched) {
+                                    buffer.append(chars[i]);
+                                }
+
+                                if (matched == parameter.length) {
+                                    version.setLength(0);
+                                    collecting = true;
+                                } else {
+                                    buffer.append(chars[i]);
+                                }
+                            }
+                        } else {
+                            buffer.append(c);
+                        }
+
+                        escaping = false;
+
+                        break;
+
+                    default:
+                        (collecting ? version : buffer).append(c);
+
+                        escaping = false;
+
+                        break;
+                    }
+                }
+
+                if (collecting) {
+                    buffer.append(substituteVersion(mapping, version.toString()));
+                }
+
+                attributes.putValue(header, buffer.toString());
+            }
+        }
+    }
+
+    private String correct(final String version) {
+        final StringBuilder bundleVersion = new StringBuilder();
+
+        int partCount = 0;
+        for (final String part : version.split("[\\.-]")) {
+            if (partCount < 3) {
+                try {
+                    Integer.parseInt(part);   // just checking if part is numeric
+
+                    // part is indeed numeric
+                    bundleVersion.append('.').append(part);
+                } catch (final NumberFormatException e) {
+
+                    // part is not numeric
+                    partCount = numericVersion(bundleVersion, partCount);
+                    bundleVersion.append('.').append(part);
+                }
+            } else {
+                bundleVersion.append(partCount == 3 ? '.' : '-').append(part.replaceAll("\\W", "_"));
+            }
+
+            ++partCount;
+        }
+
+        numericVersion(bundleVersion, partCount);
+
+        return bundleVersion.toString().substring(1);
     }
 
     private void addJarFile(final List<URL> urls, final ClassLoader parent, final Class<?> type) {
@@ -217,6 +370,8 @@ public class BundleJarManifest implements JarManifest {
             try {
                 value = metadata.get();
             } catch (final NullPointerException e) {
+                value = null;
+            } catch (final IndexOutOfBoundsException e) {
                 value = null;
             }
 

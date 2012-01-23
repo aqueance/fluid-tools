@@ -32,7 +32,7 @@ import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 
 /**
- * Bootstraps the dependency injection container in an OSGi bundle. As properly set up OSGi bundle Maven project will automatically set up this class as the
+ * Bootstraps the dependency injection container in an OSGi bundle. A properly set up OSGi bundle Maven project will automatically set up this class as the
  * bundle activator for the project artifact. Thus, you never need to directly deal with this class.
  * <p/>
  * This class must be public with a zero-arg constructor for the OSGi container to be able to instantiate it.
@@ -95,6 +95,7 @@ public final class BundleBootstrap implements BundleActivator {
         private final List<Runnable> tasks = new ArrayList<Runnable>();
 
         @Inject
+        @SuppressWarnings("UnusedDeclaration")
         private Log<BundleShutdownTasks> log;
 
         public void add(final Runnable command) {

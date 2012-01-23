@@ -57,13 +57,12 @@
             <groupId>${fluidity.deployment.groupId}</groupId>
             <artifactId>osgi-bootstrap</artifactId>
             <version>${project.version}</version>
-            <optional>true</optional> <!-- Should not be seen by the invoking plugin -->
         </dependency>
 
         <dependency>
-            <groupId>org.apache.xbean</groupId>
-            <artifactId>xbean-classloader</artifactId>
-            <scope>provided</scope> <!-- provided by the invoking standalone-jar plugin -->
+            <groupId>org.osgi</groupId>
+            <artifactId>org.osgi.core</artifactId>
+            <version>${osgi.specification.version}</version>
         </dependency>
 
         <dependency>
@@ -72,6 +71,12 @@
             <version>${project.version}</version>
             <type>pom</type>
             <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.xbean</groupId>
+            <artifactId>xbean-classloader</artifactId>
+            <scope>provided</scope> <!-- provided by the invoking standalone-jar plugin -->
         </dependency>
 
     </dependencies>

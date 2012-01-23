@@ -19,16 +19,35 @@ package org.fluidity.foundation;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Properties;
 import java.util.jar.Attributes;
 
 import org.fluidity.deployment.plugin.spi.JarManifest;
 import org.fluidity.foundation.impl.BundleJarManifest;
 
 import org.apache.maven.artifact.Artifact;
+import org.apache.maven.model.License;
+import org.apache.maven.model.Model;
 import org.apache.maven.model.Organization;
 import org.apache.maven.project.MavenProject;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+
+import static org.osgi.framework.Constants.BUNDLE_CLASSPATH;
+import static org.osgi.framework.Constants.BUNDLE_COPYRIGHT;
+import static org.osgi.framework.Constants.BUNDLE_DESCRIPTION;
+import static org.osgi.framework.Constants.BUNDLE_DOCURL;
+import static org.osgi.framework.Constants.BUNDLE_NAME;
+import static org.osgi.framework.Constants.BUNDLE_SYMBOLICNAME;
+import static org.osgi.framework.Constants.BUNDLE_VENDOR;
+import static org.osgi.framework.Constants.BUNDLE_VERSION;
+import static org.osgi.framework.Constants.BUNDLE_VERSION_ATTRIBUTE;
+import static org.osgi.framework.Constants.DYNAMICIMPORT_PACKAGE;
+import static org.osgi.framework.Constants.EXPORT_PACKAGE;
+import static org.osgi.framework.Constants.FRAGMENT_HOST;
+import static org.osgi.framework.Constants.IMPORT_PACKAGE;
+import static org.osgi.framework.Constants.VERSION_ATTRIBUTE;
 
 /**
  * @author Tibor Varga
@@ -36,17 +55,23 @@ import org.testng.annotations.Test;
 public class BundleJarManifestTest {
 
     private final JarManifest manifest = new BundleJarManifest();
+    private MavenProject project;
+
+    @BeforeMethod
+    protected void setup() throws Exception {
+        project = new MavenProject(new Model());
+    }
 
     @Test
     public void testEmptyClasspath() throws Exception {
         final Attributes attributes = new Attributes();
         final List<String> dependencies = new ArrayList<String>();
 
-        assert !manifest.processManifest(null, attributes, dependencies, Collections.<Artifact>emptyList());
+        assert !manifest.processManifest(project, attributes, dependencies, Collections.<Artifact>emptyList());
 
-        assert attributes.getValue(BundleJarManifest.BUNDLE_CLASSPATH) == null;
+        assert attributes.getValue(BUNDLE_CLASSPATH) == null;
 
-        final String version = attributes.getValue(BundleJarManifest.BUNDLE_VERSION);
+        final String version = attributes.getValue(BUNDLE_VERSION);
         assert BundleJarManifest.DEFAULT_BUNDLE_VERSION.equals(version) : version;
     }
 
@@ -58,11 +83,11 @@ public class BundleJarManifestTest {
         final String dependency = "dependency.jar";
         dependencies.add(dependency);
 
-        assert !manifest.processManifest(null, attributes, dependencies, Collections.<Artifact>emptyList());
+        assert !manifest.processManifest(project, attributes, dependencies, Collections.<Artifact>emptyList());
 
-        assert dependency.equals(attributes.getValue(BundleJarManifest.BUNDLE_CLASSPATH));
+        assert dependency.equals(attributes.getValue(BUNDLE_CLASSPATH));
 
-        final String version = attributes.getValue(BundleJarManifest.BUNDLE_VERSION);
+        final String version = attributes.getValue(BUNDLE_VERSION);
         assert BundleJarManifest.DEFAULT_BUNDLE_VERSION.equals(version) : version;
     }
 
@@ -79,7 +104,7 @@ public class BundleJarManifestTest {
         dependencies.add(dependency2);
         dependencies.add(dependency3);
 
-        assert !manifest.processManifest(null, attributes, dependencies, Collections.<Artifact>emptyList());
+        assert !manifest.processManifest(project, attributes, dependencies, Collections.<Artifact>emptyList());
 
         final StringBuilder dependencyList = new StringBuilder();
         for (final String dependency : dependencies) {
@@ -90,42 +115,41 @@ public class BundleJarManifestTest {
             dependencyList.append(dependency);
         }
 
-        assert dependencyList.toString().equals(attributes.getValue(BundleJarManifest.BUNDLE_CLASSPATH));
+        assert dependencyList.toString().equals(attributes.getValue(BUNDLE_CLASSPATH));
 
-        final String version = attributes.getValue(BundleJarManifest.BUNDLE_VERSION);
+        final String version = attributes.getValue(BUNDLE_VERSION);
         assert BundleJarManifest.DEFAULT_BUNDLE_VERSION.equals(version) : version;
     }
 
     @DataProvider(name = "bundle-versions")
     public Object[][] versionNumbers() throws Exception {
         return new Object[][] {
-                new Object[] { "1.0", "1.0.0" },
+                new Object[] { "1.0", "1.0" },
                 new Object[] { "1.0.0", "1.0.0" },
-                new Object[] { "1.2", "1.2.0" },
+                new Object[] { "1.2", "1.2" },
                 new Object[] { "1.2.3", "1.2.3" },
                 new Object[] { "1-beta-1", "1.0.0.beta-1" },
                 new Object[] { "1.2-SNAPSHOT", "1.2.0.SNAPSHOT" },
                 new Object[] { "1.2.3-SNAPSHOT", "1.2.3.SNAPSHOT" },
                 new Object[] { "1.2.3.4-SNAPSHOT", "1.2.3.4-SNAPSHOT" },
                 new Object[] { "1.2.3.4.whatever", "1.2.3.4-whatever" },
+                new Object[] { "1-beta-1:2012", "1.0.0.beta-1_2012" },
         };
     }
 
     @Test(dataProvider = "bundle-versions")
-    public void testVersion(final String projectVersion, final String bundleVersion) throws Exception {
+    public void testVersion(final String specified, final String expected) throws Exception {
         final Attributes attributes = new Attributes();
-        attributes.putValue(BundleJarManifest.BUNDLE_VERSION, projectVersion);
+        attributes.putValue(BUNDLE_VERSION, specified);
 
-        assert !manifest.processManifest(null, attributes, new ArrayList<String>(), Collections.<Artifact>emptyList());
+        assert !manifest.processManifest(project, attributes, new ArrayList<String>(), Collections.<Artifact>emptyList());
 
-        final String version = attributes.getValue(BundleJarManifest.BUNDLE_VERSION);
-        assert bundleVersion.equals(version) : version;
+        verify(expected, attributes, BUNDLE_VERSION);
     }
 
     @Test
     public void testProjectMetadata() throws Exception {
         final Attributes attributes = new Attributes();
-        final MavenProject project = new MavenProject();
 
         project.setVersion("1.0-SNAPSHOT");
         project.setName("Project Name");
@@ -133,6 +157,11 @@ public class BundleJarManifestTest {
         project.setUrl("http://www.google.com");
         project.setGroupId("my.company.group");
         project.setArtifactId("my-artifact");
+        project.setInceptionYear("1970");
+
+        final License license = new License();
+        license.setName("Licence X v1.1");
+        project.setLicenses(Collections.singletonList(license));
 
         final Organization organization = new Organization();
         organization.setName("My Organization");
@@ -141,11 +170,47 @@ public class BundleJarManifestTest {
 
         assert !manifest.processManifest(project, attributes, new ArrayList<String>(), Collections.<Artifact>emptyList());
 
-        expect(attributes, BundleJarManifest.BUNDLE_NAME, project.getName());
-        expect(attributes, BundleJarManifest.BUNDLE_DESCRIPTION, project.getDescription());
-        expect(attributes, BundleJarManifest.BUNDLE_DOC_URL, project.getUrl());
-        expect(attributes, BundleJarManifest.BUNDLE_VENDOR, project.getOrganization().getName());
-        expect(attributes, BundleJarManifest.BUNDLE_SYMBOLIC_NAME, project.getArtifactId());
+        expect(attributes, BUNDLE_NAME, project.getName());
+        expect(attributes, BUNDLE_DESCRIPTION, project.getDescription());
+        expect(attributes, BUNDLE_DOCURL, project.getUrl());
+        expect(attributes, BUNDLE_VENDOR, organization.getName());
+        expect(attributes, BUNDLE_SYMBOLICNAME, project.getArtifactId());
+        expect(attributes, BUNDLE_COPYRIGHT, String.format("Copyright %s (c) %s. All rights reserved.", organization.getName(), project.getInceptionYear()));
+    }
+
+    @Test
+    public void testVersionSubstitution() throws Exception {
+        final Attributes attributes = new Attributes();
+
+        final Model model = project.getModel();
+        final Properties properties = new Properties();
+
+        properties.setProperty("xxx", "1.0");
+        properties.setProperty("y.z", "1.0-beta-1");
+        properties.setProperty("a", "1.0-SNAPSHOT");
+        properties.setProperty("whatever", "1.2.3.4.whatever");
+
+        model.setProperties(properties);
+
+        final String specified = "package.bare,package.%1$s;%1$s=xxx,package.buried;xxx=%1$s;%1$s=1.0-X;y.z=\"a\\;b;%1$s\\\"c\\\\d\";package.range1;%1$s=\"[1.0,a)\",package.range1;%1$s=\"(y.z,whatever]\"";
+        final String expected = "package.bare,package.%1$s;%1$s=1.0,package.buried;xxx=%1$s;%1$s=1.0-X;y.z=\"a\\;b;%1$s\\\"c\\\\d\";package.range1;%1$s=\"[1.0,1.0.0.SNAPSHOT)\",package.range1;%1$s=\"(1.0.0.beta-1,1.2.3.4-whatever]\"";
+
+        attributes.putValue(EXPORT_PACKAGE, String.format(specified, VERSION_ATTRIBUTE));
+        attributes.putValue(IMPORT_PACKAGE, String.format(specified, VERSION_ATTRIBUTE));
+        attributes.putValue(DYNAMICIMPORT_PACKAGE, String.format(specified, VERSION_ATTRIBUTE));
+        attributes.putValue(FRAGMENT_HOST, String.format(specified, BUNDLE_VERSION_ATTRIBUTE));
+
+        assert !manifest.processManifest(project, attributes, new ArrayList<String>(), Collections.<Artifact>emptyList());
+
+        verify(String.format(expected, VERSION_ATTRIBUTE), attributes, EXPORT_PACKAGE);
+        verify(String.format(expected, VERSION_ATTRIBUTE), attributes, IMPORT_PACKAGE);
+        verify(String.format(expected, VERSION_ATTRIBUTE), attributes, DYNAMICIMPORT_PACKAGE);
+        verify(String.format(expected, BUNDLE_VERSION_ATTRIBUTE), attributes, FRAGMENT_HOST);
+    }
+
+    private void verify(final String expected, final Attributes attributes, final String header) {
+        final String version = attributes.getValue(header);
+        assert expected.equals(version) : String.format("Expected %s, got %s", expected, version);
     }
 
     private void expect(final Attributes attributes, final String key, final String expected) {
