@@ -32,13 +32,24 @@ import org.apache.maven.project.MavenProject;
  *
  * @author Tibor Varga
  */
+@SuppressWarnings("UnusedDeclaration")
 public class CommandLineJarManifest implements JarManifest {
 
     public boolean needsCompileDependencies() {
         return false;
     }
 
-    public boolean processManifest(final MavenProject project, final Attributes attributes, final List<String> paths, final Collection<Artifact> dependencies) {
+    public Packaging packaging() {
+
+        // TODO: stop unpacking this whole module, we only need the launcher
+        return Packaging.UNPACK;
+    }
+
+    public String dependencyPath() {
+        return null;
+    }
+
+    public void processManifest(final MavenProject project, final Attributes attributes, final List<String> paths, final Collection<Artifact> dependencies) {
         final String originalMainClass = attributes.getValue(JarJarLauncher.ORIGINAL_MAIN_CLASS);
 
         if (originalMainClass == null) {
@@ -63,7 +74,5 @@ public class CommandLineJarManifest implements JarManifest {
         }
 
         attributes.putValue(JarJarLauncher.NESTED_DEPENDENCIES, dependencyList.toString());
-
-        return true;
     }
 }

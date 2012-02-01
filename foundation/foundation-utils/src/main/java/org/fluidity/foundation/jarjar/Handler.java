@@ -25,6 +25,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLDecoder;
 import java.net.URLStreamHandler;
+import java.security.AccessControlException;
 import java.security.Permission;
 import java.util.Arrays;
 import java.util.jar.JarEntry;
@@ -69,9 +70,14 @@ public final class Handler extends URLStreamHandler {
 
         final String packageName = canonicalName.substring(0, dot);
 
-        final String property = System.getProperty(PROTOCOL_HANDLERS_PROPERTY);
-        if (property == null || !Arrays.asList(property.split("|")).contains(packageName)) {
-            System.setProperty(PROTOCOL_HANDLERS_PROPERTY, property == null ? packageName : String.format("%s|%s", packageName, property));
+        try {
+            final String property = System.getProperty(PROTOCOL_HANDLERS_PROPERTY);
+
+            if (property == null || !Arrays.asList(property.split("|")).contains(packageName)) {
+                System.setProperty(PROTOCOL_HANDLERS_PROPERTY, property == null ? packageName : String.format("%s|%s", packageName, property));
+            }
+        } catch (final AccessControlException e) {
+            // fine, we'll just assume our parent package has been registered already
         }
 
         PROTOCOL = canonicalName.substring(dot + 1, canonicalName.lastIndexOf('.'));
@@ -80,8 +86,7 @@ public final class Handler extends URLStreamHandler {
     /**
      * Used by the URL stream handler framework. Do not call this constructor directly.
      */
-    public Handler() {
-    }
+    public Handler() { }
 
     @Override
     protected URLConnection openConnection(final URL url) throws IOException {
@@ -211,9 +216,10 @@ public final class Handler extends URLStreamHandler {
         }
     }
 
+    /**
+     * Lazy instantiation of a {@link Handler} object.
+     */
     private static class Singleton {
-
-        // must come after the static block that registers the this class as an URL stream handler
         public static final Handler INSTANCE = new Handler();
     }
 }

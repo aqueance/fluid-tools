@@ -77,13 +77,20 @@ public class BundleJarManifest implements JarManifest {
     public static final String DEFAULT_BUNDLE_VERSION = Version.emptyVersion.toString();
 
     public boolean needsCompileDependencies() {
+
+        // we want to see if Fluid Tools bootstrap libraries are included in the artifact's dependencies
         return true;
     }
 
-    public boolean processManifest(final MavenProject project,
-                                   final Attributes attributes,
-                                   final List<String> paths,
-                                   final Collection<Artifact> dependencies) {
+    public Packaging packaging() {
+        return Packaging.EXCLUDE;
+    }
+
+    public String dependencyPath() {
+        return null;
+    }
+
+    public void processManifest(final MavenProject project, final Attributes attributes, final List<String> paths, final Collection<Artifact> dependencies) {
         final StringBuilder classpath = new StringBuilder();
 
         for (final String dependency : paths) {
@@ -141,6 +148,7 @@ public class BundleJarManifest implements JarManifest {
             throw new IllegalStateException(e);
         }
 
+        // if embedding other JARs, see if Fluid Tools composition is included and if so, add a bundle activator to bootstrap the system.
         if (!dependencies.isEmpty()) {
             ClassLoader classLoader = null;
 
@@ -180,13 +188,11 @@ public class BundleJarManifest implements JarManifest {
                 // find the method to call in the other class loader
                 final Method method = classLoader.loadClass(run.getDeclaringClass().getName()).getDeclaredMethod(run.getName(), run.getParameterTypes());
 
-                // see if the class loader can see the ContainerBoundary and BundleBootstrap classes and if so, find the bootstrap activator
+                // see if the class loader can see the ContainerBoundary and BundleBootstrap classes and if so, set the bundle activator
                 final String activator = (String) method.invoke(command, (Object) null);
 
                 if (activator != null) {
-                    if (attributes.getValue(BUNDLE_ACTIVATOR) == null) {
-                        addEntry(attributes, BUNDLE_ACTIVATOR, activator);
-                    } else {
+                    if (!addEntry(attributes, BUNDLE_ACTIVATOR, activator)) {
                         throw new IllegalStateException(String.format(
                                 "Bundle activator is already set: add @%s to %s and make sure the composition plugin is active in this project",
                                 ComponentGroup.class.getName(),
@@ -207,8 +213,6 @@ public class BundleJarManifest implements JarManifest {
                 }
             }
         }
-
-        return false;
     }
 
     private String verify(final String version) {
@@ -381,8 +385,12 @@ public class BundleJarManifest implements JarManifest {
     public static final class BundleActivatorProcessor implements Command<String, Void> {
         public String run(final Void ignored) {
             try {
+
+                // try to load the classes from the artifact's compile time dependencies
                 return ContainerBoundary.class != null ? BundleBootstrap.class.getName() : null;
             } catch (final NoClassDefFoundError e) {
+
+                // class could not be found
                 return null;
             }
         }
@@ -406,9 +414,12 @@ public class BundleJarManifest implements JarManifest {
         }
     }
 
-    private void addEntry(final Attributes attributes, final String entry, final String value) {
+    private boolean addEntry(final Attributes attributes, final String entry, final String value) {
         if (attributes.getValue(entry) == null && value != null) {
             attributes.putValue(entry, value);
+            return true;
+        } else {
+            return false;
         }
     }
 

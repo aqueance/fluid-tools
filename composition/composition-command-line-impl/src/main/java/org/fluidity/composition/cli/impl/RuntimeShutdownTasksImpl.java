@@ -30,6 +30,7 @@ import org.fluidity.foundation.Log;
  * @author Tibor Varga
  */
 @Component
+@SuppressWarnings("UnusedDeclaration")
 final class RuntimeShutdownTasksImpl implements ShutdownTasks {
 
     private final List<Runnable> tasks = new ArrayList<Runnable>();

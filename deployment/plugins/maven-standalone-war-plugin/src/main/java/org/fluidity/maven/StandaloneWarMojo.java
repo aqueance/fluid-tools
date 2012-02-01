@@ -20,9 +20,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.List;
@@ -39,7 +37,6 @@ import org.fluidity.foundation.Streams;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.Dependency;
-import org.apache.maven.model.Exclusion;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -71,9 +68,8 @@ import org.sonatype.aether.repository.RemoteRepository;
  * @phase package
  * @threadSafe
  */
+@SuppressWarnings("UnusedDeclaration")
 public class StandaloneWarMojo extends AbstractMojo {
-
-    private static final Set<String> DEPENDENCY_TYPES = Collections.singleton(MavenSupport.JAR_TYPE);
 
     /**
      * Instructs the plugin, when set, to remove from the WEB-INF/lib directory all .jar files that the plugin puts in the WEB-INF/boot directory, effectively
@@ -180,7 +176,7 @@ public class StandaloneWarMojo extends AbstractMojo {
      * @readonly
      */
     @SuppressWarnings({ "UnusedDeclaration", "MismatchedQueryAndUpdateOfCollection" })
-    private List<RemoteRepository> projectRepositories;
+    private List<RemoteRepository> repositories;
 
     public void execute() throws MojoExecutionException {
         if (!MavenSupport.WAR_TYPE.equals(packaging)) {
@@ -192,35 +188,21 @@ public class StandaloneWarMojo extends AbstractMojo {
         final String pluginKey = Plugin.constructKey(pluginGroupId, pluginArtifactId);
         final Artifact pluginArtifact = project.getPluginArtifactMap().get(pluginKey);
 
-        final Collection<Artifact> bootstrapDependencies = MavenSupport.transitiveDependencies(repositorySystem,
-                                                                                               repositorySession,
-                                                                                               projectRepositories,
-                                                                                               WarBootstrapLoader.class,
-                                                                                               pluginArtifact,
-                                                                                               null,
-                                                                                               DEPENDENCY_TYPES);
+        final Collection<Artifact> pluginDependencies = MavenSupport.dependencyClosure(repositorySystem, repositorySession, repositories, pluginArtifact, false, false, null);
+        final Artifact handlerDependency = MavenSupport.artifact(WarBootstrapLoader.class, pluginDependencies);
+        assert handlerDependency != null : WarBootstrapLoader.class;
+
+        final Collection<Artifact> bootstrapDependencies = MavenSupport.dependencyClosure(repositorySystem, repositorySession, repositories, handlerDependency, false, false, null);
+
         final Set<Artifact> serverDependencies = new HashSet<Artifact>();
+
         for (final Dependency dependency : project.getPlugin(pluginKey).getDependencies()) {
             assert !dependency.isOptional() : dependency;
-
-            final List<String> exclusions = new ArrayList<String>();
-
-            for (final Exclusion exclusion : dependency.getExclusions()) {
-                exclusions.add(MavenSupport.artifactSpecification(exclusion));
-            }
-
-            serverDependencies.addAll(MavenSupport.transitiveDependencies(repositorySystem,
-                                                                          repositorySession,
-                                                                          projectRepositories,
-                                                                          MavenSupport.dependencyArtifact(dependency),
-                                                                          false,
-                                                                          false,
-                                                                          DEPENDENCY_TYPES,
-                                                                          exclusions.toArray(new String[exclusions.size()])));
+            serverDependencies.addAll(MavenSupport.dependencyClosure(repositorySystem, repositorySession, repositories, MavenSupport.dependencyArtifact(dependency), false, false, dependency.getExclusions()));
         }
 
-        serverDependencies.removeAll(MavenSupport.transitiveDependencies(repositorySystem, repositorySession, projectRepositories, project.getArtifact(), false, false, DEPENDENCY_TYPES));
-        serverDependencies.removeAll(MavenSupport.transitiveDependencies(repositorySystem, repositorySession, projectRepositories, pluginArtifact, false, false, DEPENDENCY_TYPES));
+        serverDependencies.removeAll(MavenSupport.dependencyClosure(repositorySystem, repositorySession, repositories, project.getArtifact(), false, false, null));
+        serverDependencies.removeAll(pluginDependencies);
         serverDependencies.remove(pluginArtifact);
 
         final Set<String> processedEntries = new HashSet<String>();

@@ -23,6 +23,7 @@ import java.net.URL;
 import java.util.Enumeration;
 
 import org.fluidity.composition.Component;
+import org.fluidity.foundation.ClassLoaders;
 import org.fluidity.foundation.Proxies;
 
 /**
@@ -63,14 +64,11 @@ final class BundleBoundaryImpl implements BundleBoundary {
         }
 
         public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
-            final Thread thread = Thread.currentThread();
-            final ClassLoader saved = thread.getContextClassLoader();
-
-            thread.setContextClassLoader(tunnel);
+            final ClassLoader saved = ClassLoaders.set(tunnel);
             try {
                 return method.invoke(implementation, args);
             } finally {
-                thread.setContextClassLoader(saved);
+                ClassLoaders.set(saved);
             }
         }
     }

@@ -63,11 +63,17 @@ public class BundleJarManifestTest {
     }
 
     @Test
+    public void testMetadata() throws Exception {
+        assert manifest.needsCompileDependencies();
+        assert manifest.packaging() == JarManifest.Packaging.EXCLUDE;
+    }
+
+    @Test
     public void testEmptyClasspath() throws Exception {
         final Attributes attributes = new Attributes();
         final List<String> dependencies = new ArrayList<String>();
 
-        assert !manifest.processManifest(project, attributes, dependencies, Collections.<Artifact>emptyList());
+        manifest.processManifest(project, attributes, dependencies, Collections.<Artifact>emptyList());
 
         assert attributes.getValue(BUNDLE_CLASSPATH) == null;
 
@@ -83,7 +89,7 @@ public class BundleJarManifestTest {
         final String dependency = "dependency.jar";
         dependencies.add(dependency);
 
-        assert !manifest.processManifest(project, attributes, dependencies, Collections.<Artifact>emptyList());
+        manifest.processManifest(project, attributes, dependencies, Collections.<Artifact>emptyList());
 
         assert dependency.equals(attributes.getValue(BUNDLE_CLASSPATH));
 
@@ -104,7 +110,7 @@ public class BundleJarManifestTest {
         dependencies.add(dependency2);
         dependencies.add(dependency3);
 
-        assert !manifest.processManifest(project, attributes, dependencies, Collections.<Artifact>emptyList());
+        manifest.processManifest(project, attributes, dependencies, Collections.<Artifact>emptyList());
 
         final StringBuilder dependencyList = new StringBuilder();
         for (final String dependency : dependencies) {
@@ -142,7 +148,7 @@ public class BundleJarManifestTest {
         final Attributes attributes = new Attributes();
         attributes.putValue(BUNDLE_VERSION, specified);
 
-        assert !manifest.processManifest(project, attributes, new ArrayList<String>(), Collections.<Artifact>emptyList());
+        manifest.processManifest(project, attributes, new ArrayList<String>(), Collections.<Artifact>emptyList());
 
         verify(expected, attributes, BUNDLE_VERSION);
     }
@@ -168,7 +174,7 @@ public class BundleJarManifestTest {
         organization.setUrl("http://my.company.com");
         project.setOrganization(organization);
 
-        assert !manifest.processManifest(project, attributes, new ArrayList<String>(), Collections.<Artifact>emptyList());
+        manifest.processManifest(project, attributes, new ArrayList<String>(), Collections.<Artifact>emptyList());
 
         expect(attributes, BUNDLE_NAME, project.getName());
         expect(attributes, BUNDLE_DESCRIPTION, project.getDescription());
@@ -200,7 +206,7 @@ public class BundleJarManifestTest {
         attributes.putValue(DYNAMICIMPORT_PACKAGE, String.format(specified, VERSION_ATTRIBUTE));
         attributes.putValue(FRAGMENT_HOST, String.format(specified, BUNDLE_VERSION_ATTRIBUTE));
 
-        assert !manifest.processManifest(project, attributes, new ArrayList<String>(), Collections.<Artifact>emptyList());
+        manifest.processManifest(project, attributes, new ArrayList<String>(), Collections.<Artifact>emptyList());
 
         verify(String.format(expected, VERSION_ATTRIBUTE), attributes, EXPORT_PACKAGE);
         verify(String.format(expected, VERSION_ATTRIBUTE), attributes, IMPORT_PACKAGE);

@@ -442,6 +442,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
         }
 
         final Class<?> ancestor = type.getSuperclass();
+
         if (ancestor != null) {
             processFields(ancestor, command);
         }

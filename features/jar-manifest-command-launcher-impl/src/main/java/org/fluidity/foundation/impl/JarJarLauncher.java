@@ -60,16 +60,13 @@ public class JarJarLauncher {
                 urls.add(Handler.formatURL(jarURL, path));
             }
 
-            final URLClassLoader loader = new URLClassLoader(urls.toArray(new URL[urls.size()]), ClassLoaders.findClassLoader(main));
+            final ClassLoader loader = new URLClassLoader(urls.toArray(new URL[urls.size()]), ClassLoaders.findClassLoader(main));
+            final ClassLoader saved = ClassLoaders.set(loader);
 
-            final Thread thread = Thread.currentThread();
-            final ClassLoader saved = thread.getContextClassLoader();
-
-            thread.setContextClassLoader(loader);
             try {
                 loader.loadClass(mainClass).getMethod("main", String[].class).invoke(null, new Object[] { args });
             } finally {
-                thread.setContextClassLoader(saved);
+                ClassLoaders.set(saved);
             }
         } else {
             throw new IllegalStateException(String.format("%s does not point to a jar file", url));

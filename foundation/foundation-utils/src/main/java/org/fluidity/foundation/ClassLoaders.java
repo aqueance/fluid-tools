@@ -146,6 +146,24 @@ public final class ClassLoaders extends Utility {
     }
 
     /**
+     * Sets the given class loader as the {@linkplain Thread#setContextClassLoader(ClassLoader) context class loader} and returns the previous context class
+     * loader.
+     *
+     * @param loader the class loader to set.
+     *
+     * @return the previous class loader.
+     */
+    public static ClassLoader set(final ClassLoader loader) {
+        final Thread thread = Thread.currentThread();
+
+        try {
+            return thread.getContextClassLoader();
+        } finally {
+            thread.setContextClassLoader(loader);
+        }
+    }
+
+    /**
      * This class isolates the xbeans class loader thus prevents it from being loaded if it is not necessary (i.e., when Java 7+ is present)
      */
     private static class XBeansClassLoaders {
