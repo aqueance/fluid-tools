@@ -1,0 +1,14 @@
+grant codebase "file:${standalone.jar}" {
+  permission java.util.PropertyPermission "java.protocol.handler.pkgs", "read,write";
+  permission java.util.PropertyPermission "org.*", "read,write";
+  permission java.util.PropertyPermission "com.*", "read,write";
+  permission java.util.PropertyPermission "net.*", "read,write";
+  permission java.lang.RuntimePermission "getClassLoader";
+  permission java.lang.RuntimePermission "createClassLoader";
+  permission java.lang.RuntimePermission "setContextClassLoader";
+  permission java.lang.RuntimePermission "shutdownHooks";
+  permission java.lang.RuntimePermission "accessDeclaredMembers";
+  permission java.lang.reflect.ReflectPermission "suppressAccessChecks";
+  permission java.net.NetPermission "specifyStreamHandler";
+  permission java.io.FilePermission "${java.io.tmpdir}/-", "read,write,delete";
+};
