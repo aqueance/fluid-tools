@@ -29,12 +29,15 @@ import org.fluidity.foundation.jarjar.Handler;
 
 /**
  * Launches a main class from a JAR file using a class loader that can load classes from JAR files nested inside the main JAR. Nested JAR files must be located
- * in the path denoted by the <code>Dependencies-Path</code> manifest attribute. The main class to be loaded is defined by the <code>Original-Main-Class</code>
- * manifest attribute. The <code>Main-Class</code> manifest attribute has to point to this class, obviously.
+ * in the path denoted by the manifest attribute named in {@link #NESTED_DEPENDENCIES}. The main class to be loaded is defined by the manifest attribute named
+ * in {@link #ORIGINAL_MAIN_CLASS}. The <code>Main-Class</code> manifest attribute has to point to this class, obviously.
+ * <p/>
+ * The above manifest attributes are set by the {@link CommandLineJarManifest} processor when used by the
+ * <code>org.fluidity.maven:maven-standalone-jar-plugin</code> Maven plugin.
  *
  * @author Tibor Varga
  */
-public class JarJarLauncher {
+public final class JarJarLauncher {
 
     public static final String NESTED_DEPENDENCIES = "Nested-Dependencies";
     public static final String ORIGINAL_MAIN_CLASS = "Original-Main-Class";
@@ -61,13 +64,13 @@ public class JarJarLauncher {
             }
 
             final ClassLoader loader = new URLClassLoader(urls.toArray(new URL[urls.size()]), ClassLoaders.findClassLoader(main));
-            final ClassLoader saved = ClassLoaders.set(loader);
 
-            try {
-                loader.loadClass(mainClass).getMethod("main", String[].class).invoke(null, new Object[] { args });
-            } finally {
-                ClassLoaders.set(saved);
-            }
+            ClassLoaders.context(loader, new ClassLoaders.ContextCommand<Void, Exception>() {
+                public Void run(final ClassLoader loader) throws Exception {
+                    loader.loadClass(mainClass).getMethod("main", String[].class).invoke(null, new Object[] { args });
+                    return null;
+                }
+            });
         } else {
             throw new IllegalStateException(String.format("%s does not point to a jar file", url));
         }

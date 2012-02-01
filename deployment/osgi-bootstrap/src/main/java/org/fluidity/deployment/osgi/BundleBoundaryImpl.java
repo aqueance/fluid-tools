@@ -64,12 +64,11 @@ final class BundleBoundaryImpl implements BundleBoundary {
         }
 
         public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
-            final ClassLoader saved = ClassLoaders.set(tunnel);
-            try {
-                return method.invoke(implementation, args);
-            } finally {
-                ClassLoaders.set(saved);
-            }
+            return ClassLoaders.context(tunnel, new ClassLoaders.ContextCommand<Object, Throwable>() {
+                public Object run(final ClassLoader loader) throws Throwable {
+                    return method.invoke(implementation, args);
+                }
+            });
         }
     }
 

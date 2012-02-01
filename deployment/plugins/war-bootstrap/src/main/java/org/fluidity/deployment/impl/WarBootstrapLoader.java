@@ -137,12 +137,12 @@ public final class WarBootstrapLoader {
         final ServerBootstrap server = ServiceProviders.findInstance(ServerBootstrap.class, classLoader);
 
         if (server != null) {
-            final ClassLoader contextLoader = ClassLoaders.set(classLoader);
-            try {
-                server.bootstrap(httpPort, bootApp, managedApps, args);
-            } finally {
-                ClassLoaders.set(contextLoader);
-            }
+            ClassLoaders.context(classLoader, new ClassLoaders.ContextCommand<Void, Exception>() {
+                public Void run(final ClassLoader loader) throws Exception {
+                    server.bootstrap(httpPort, bootApp, managedApps, args);
+                    return null;
+                }
+            });
         } else {
             throw new RuntimeException(String.format("No server bootstrap found (service provider for %s)", ServerBootstrap.class));
         }

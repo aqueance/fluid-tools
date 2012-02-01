@@ -30,6 +30,7 @@ import org.apache.xbean.classloader.JarFileClassLoader;
  *
  * @author Tibor Varga
  */
+@SuppressWarnings("UnusedDeclaration")
 public final class ClassLoaders extends Utility {
 
     private ClassLoaders() { }
@@ -161,6 +162,49 @@ public final class ClassLoaders extends Utility {
         } finally {
             thread.setContextClassLoader(loader);
         }
+    }
+
+    /**
+     * Establishes the given class loader as the {@linkplain Thread#setContextClassLoader(ClassLoader) context class loader}, executes the given command and
+     * the establishes the previous context class loader before returning what the command returned, or throwing what the command threw.
+     *
+     * @param loader  the class loader to set as the context class loader.
+     * @param command the command to execute with the given class loader as the context class loader.
+     * @param <R>     the return type of the command.
+     * @param <E>     the type of the exception thrown by the command.
+     *
+     * @return whatever the command returns.
+     *
+     * @throws E from the command.
+     */
+    public static <R, E extends Throwable> R context(final ClassLoader loader, final ContextCommand<R, E> command) throws E {
+        final ClassLoader saved = set(loader);
+
+        try {
+            return command.run(loader);
+        } finally {
+            set(saved);
+        }
+    }
+
+    /**
+     * A command to execute by {@link ClassLoaders#context(ClassLoader, ClassLoaders.ContextCommand)}.
+     *
+     * @param <R> the return type of the command.
+     * @param <E> the type of the exception thrown by the command.
+     */
+    public interface ContextCommand<R, E extends Throwable> {
+
+        /**
+         * Executes custom code in the {@linkplain ClassLoaders#context(ClassLoader, ClassLoaders.ContextCommand) context} of a class loader.
+         *
+         * @param loader the context class loader.
+         *
+         * @return whatever it wants.
+         *
+         * @throws E whenever it wants to.
+         */
+        R run(ClassLoader loader) throws E;
     }
 
     /**
