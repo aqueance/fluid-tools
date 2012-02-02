@@ -323,7 +323,7 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
                     builder.append(type.definition).append(' ');
                 }
 
-                builder.append(Strings.arrayNotation(true, api ? type.api() : type.type()));
+                builder.append(Strings.printClass(true, api ? type.api() : type.type()));
             }
 
             return builder.insert(0, '[').append(']').toString();

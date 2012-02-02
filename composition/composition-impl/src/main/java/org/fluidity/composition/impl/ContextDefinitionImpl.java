@@ -287,7 +287,7 @@ final class ContextDefinitionImpl implements ContextDefinition {
 
         @Override
         public String toString() {
-            return Strings.simpleNotation(this);
+            return Strings.printAnnotation(this);
         }
     }
 }

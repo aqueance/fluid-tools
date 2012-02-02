@@ -72,7 +72,7 @@ final class AnnotationMaps extends Utility {
                     builder.append(" ");
                 }
 
-                builder.append(Strings.simpleNotation(annotation));
+                builder.append(Strings.printAnnotation(annotation));
             }
         }
 

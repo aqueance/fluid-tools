@@ -33,9 +33,9 @@ public final class Strings extends Utility {
     private Strings() { }
 
     /**
-     * Adds "[]" to the class name once for each step in the depth of the array. For instance:
+     * Prints a class name. For arrays, this method adds "[]" to the class name once for each step in the depth of the array. For instance:
      * <pre>
-     * assert Strings.arrayNotation(Object[][][].class).equals("java.lang.Object[][][]");
+     * assert Strings.printClass(Object[][][].class).equals("java.lang.Object[][][]");
      * </pre>
      *
      * @param full if <code>true</code>, the type's full string representation is used, otherwise only its fully qualified name is used.
@@ -43,14 +43,14 @@ public final class Strings extends Utility {
      *
      * @return the Java array notation corresponding to the given class.
      */
-    public static String arrayNotation(final boolean full, final Class<?> type) {
-        return arrayNotation(full, true, type);
+    public static String printClass(final boolean full, final Class<?> type) {
+        return printClass(full, true, type);
     }
 
     /**
-     * Adds "[]" to the class name once for each step in the depth of the array. For instance:
+     * Prints a class name. For arrays, this method adds "[]" to the class name once for each step in the depth of the array. For instance:
      * <pre>
-     * assert Strings.arrayNotation(Object[][][].class).equals("java.lang.Object[][][]");
+     * assert Strings.printClass(Object[][][].class).equals("java.lang.Object[][][]");
      * </pre>
      *
      * @param full      if <code>true</code>, the type's full string representation is used, otherwise only its name is used.
@@ -60,7 +60,7 @@ public final class Strings extends Utility {
      *
      * @return the Java array notation corresponding to the given class.
      */
-    public static String arrayNotation(final boolean full, final boolean qualified, final Class<?> type) {
+    public static String printClass(final boolean full, final boolean qualified, final Class<?> type) {
         final StringBuilder builder = new StringBuilder();
 
         Class<?> componentType = type;
@@ -97,7 +97,7 @@ public final class Strings extends Utility {
      *
      * @return the Java-like notation for the given annotation.
      */
-    public static String simpleNotation(final Annotation annotation) {
+    public static String printAnnotation(final Annotation annotation) {
         final StringBuilder output = new StringBuilder();
 
         final Class<? extends Annotation> type = annotation.annotationType();
@@ -155,7 +155,7 @@ public final class Strings extends Utility {
 
     private static void appendValue(final StringBuilder output, final Object value) {
         if (value instanceof Class) {
-            output.append(arrayNotation(false, false, (Class) value)).append(".class");
+            output.append(printClass(false, false, (Class) value)).append(".class");
         } else {
             output.append(value.getClass().isArray() ? appendArray(value) : value);
         }

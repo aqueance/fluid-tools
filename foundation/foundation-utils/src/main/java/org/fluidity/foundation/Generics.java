@@ -204,8 +204,8 @@ public final class Generics extends Utility {
         }
     }
 
-    static Object toString(final Type argument) {
-        return argument instanceof Class ? ((Class) argument).getName() : argument;
+    static String toString(final Type argument) {
+        return argument instanceof Class ? Strings.printClass(true, (Class) argument) : String.valueOf(argument);
     }
 
     private static class GenericArrayTypeImpl implements GenericArrayType {

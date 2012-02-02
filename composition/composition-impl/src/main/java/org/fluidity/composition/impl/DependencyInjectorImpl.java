@@ -646,7 +646,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
 
             if (instance == null && mandatory) {
                 throw new ComponentContainer.ResolutionException("Dependency %s of %s cannot be satisfied",
-                                                                 Strings.arrayNotation(true, dependencyType),
+                                                                 Strings.printClass(true, dependencyType),
                                                                  declaringType);
             } else {
                 return instance;

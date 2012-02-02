@@ -35,25 +35,25 @@ public class StringsTest extends MockGroupAbstractTest {
 
     @Test
     public void ordinaryType() throws Exception {
-        final String string = Strings.arrayNotation(true, Object.class);
+        final String string = Strings.printClass(true, Object.class);
         assert Object.class.toString().equals(string) : string;
     }
 
     @Test
     public void ordinaryName() throws Exception {
-        final String string = Strings.arrayNotation(false, Object.class);
+        final String string = Strings.printClass(false, Object.class);
         assert Object.class.getName().equals(string) : string;
     }
 
     @Test
     public void oneDimensionalArray() throws Exception {
-        final String string = Strings.arrayNotation(true, String[].class);
+        final String string = Strings.printClass(true, String[].class);
         assert String.format("%s[]", String.class).equals(string) : string;
     }
 
     @Test
     public void threeDimensionalArray() throws Exception {
-        final String string = Strings.arrayNotation(true, String[][][].class);
+        final String string = Strings.printClass(true, String[][][].class);
         assert String.format("%s[][][]", String.class).equals(string) : string;
     }
 
@@ -64,7 +64,7 @@ public class StringsTest extends MockGroupAbstractTest {
         EasyMock.expect(annotation.annotationType()).andReturn((Class) Documented.class);
 
         replay();
-        final String string = Strings.simpleNotation(annotation);
+        final String string = Strings.printAnnotation(annotation);
         verify();
 
         assert String.format("@%s", Documented.class.getSimpleName()).equals(string) : string;
@@ -78,7 +78,7 @@ public class StringsTest extends MockGroupAbstractTest {
         EasyMock.expect(annotation.value()).andReturn(RetentionPolicy.RUNTIME);
 
         replay();
-        final String string = Strings.simpleNotation(annotation);
+        final String string = Strings.printAnnotation(annotation);
         verify();
 
         assert String.format("@%s(%s)", Retention.class.getSimpleName(), RetentionPolicy.RUNTIME).equals(string) : string;
@@ -94,7 +94,7 @@ public class StringsTest extends MockGroupAbstractTest {
         EasyMock.expect(annotation.value()).andReturn(value);
 
         replay();
-        final String string = Strings.simpleNotation(annotation);
+        final String string = Strings.printAnnotation(annotation);
         verify();
 
         assert String.format("@%s({%s,%s})", Target.class.getSimpleName(), value[0], value[1]).equals(string) : string;
@@ -108,7 +108,7 @@ public class StringsTest extends MockGroupAbstractTest {
         EasyMock.expect(annotation.value()).andReturn(Object[].class);
 
         replay();
-        final String string = Strings.simpleNotation(annotation);
+        final String string = Strings.printAnnotation(annotation);
         verify();
 
         assert String.format("@%s.%s(Object[].class)", getClass().getSimpleName(), ClassValued.class.getSimpleName()).equals(string) : string;
@@ -126,7 +126,7 @@ public class StringsTest extends MockGroupAbstractTest {
         EasyMock.expect(annotation.list()).andReturn(list);
 
         replay();
-        final String string = Strings.simpleNotation(annotation);
+        final String string = Strings.printAnnotation(annotation);
         verify();
 
         assert String.format("@%s.%s(id=%d, list={%s,%s,%s})", getClass().getSimpleName(), MultiValued.class.getSimpleName(), id, list[0], list[1], list[2]).equals(string) : string;
@@ -144,7 +144,7 @@ public class StringsTest extends MockGroupAbstractTest {
         EasyMock.expect(annotation.list()).andReturn(list);
 
         replay();
-        final String string = Strings.simpleNotation(annotation);
+        final String string = Strings.printAnnotation(annotation);
         verify();
 
         assert String.format("@%s.%s([id=%d], [list={}])", getClass().getSimpleName(), MultiValued.class.getSimpleName(), id).equals(string) : string;

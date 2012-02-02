@@ -561,7 +561,7 @@ public interface ComponentContainer {
          * @param path the instantiation path that led to this error.
          */
         public CircularReferencesException(final Class<?> api, final String path) {
-            super("Circular dependency detected while resolving %s: %s", Strings.arrayNotation(true, api), path);
+            super("Circular dependency detected while resolving %s: %s", Strings.printClass(true, api), path);
         }
     }
 
