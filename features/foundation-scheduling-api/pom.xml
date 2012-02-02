@@ -19,16 +19,16 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <parent>
         <groupId>org.fluidity</groupId>
-        <artifactId>fluid-tools</artifactId>
+        <artifactId>features-root</artifactId>
         <version>1.0.0-SNAPSHOT</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
-    <groupId>org.fluidity</groupId>
-    <artifactId>features-root</artifactId>
+    <groupId>org.fluidity.features</groupId>
+    <artifactId>foundation-scheduling-api</artifactId>
     <version>1.0.0-SNAPSHOT</version>
-    <packaging>pom</packaging>
-    <name>Fluid Tools: Feature Modules</name>
+    <packaging>jar</packaging>
+    <name>Features: Scheduling API</name>
 
     <licenses>
         <license>
@@ -38,18 +38,43 @@
         </license>
     </licenses>
 
-    <description><![CDATA[
-This project lists the extra feature modules of Fluid Tools.
-    ]]></description>
+    <dependencies>
 
-    <modules>
-        <module>logging-slf4j-impl</module>
-        <module>logging-commons-impl</module>
-        <module>logging-sink-impl</module>
-        <module>jar-manifest-command-launcher-impl</module>
-        <module>jar-manifest-osgi-bundle-impl</module>
-        <module>foundation-scheduling-api</module>
-        <module>foundation-scheduling-impl</module>
-    </modules>
+        <dependency>
+            <groupId>${fluidity.foundation.groupId}</groupId>
+            <artifactId>foundation-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
+    </dependencies>
+
+    <profiles>
+        <profile>
+            <id>sources</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-assembly-plugin</artifactId>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
+    <build>
+        <plugins>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>default-test</id>
+                        <phase>none</phase>
+                    </execution>
+                </executions>
+            </plugin>
+
+        </plugins>
+    </build>
 </project>
