@@ -60,17 +60,4 @@ containing application wrappers other than command line, web or enterprise appli
 
     </dependencies>
 
-    <profiles>
-        <profile>
-            <id>sources</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <artifactId>maven-assembly-plugin</artifactId>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
-
 </project>

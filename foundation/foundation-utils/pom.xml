@@ -59,19 +59,6 @@ Lowest level utility classes that depend on absolutely no other module.
 
     </dependencies>
 
-    <profiles>
-        <profile>
-            <id>sources</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <artifactId>maven-assembly-plugin</artifactId>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
-
     <build>
         <testResources>
             <testResource>

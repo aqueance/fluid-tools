@@ -53,17 +53,4 @@ that make use of Fluid Tools testing support classes.
 
     </dependencies>
 
-    <profiles>
-        <profile>
-            <id>sources</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <artifactId>maven-assembly-plugin</artifactId>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
-
 </project>

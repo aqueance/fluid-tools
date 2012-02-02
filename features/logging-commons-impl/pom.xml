@@ -73,19 +73,6 @@ containing top level application wrappers that wish to use Apache Commons Loggin
 
     </dependencies>
 
-    <profiles>
-        <profile>
-            <id>sources</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <artifactId>maven-assembly-plugin</artifactId>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
-
     <build>
         <plugins>
 

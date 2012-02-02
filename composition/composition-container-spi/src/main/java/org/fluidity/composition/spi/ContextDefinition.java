@@ -100,7 +100,7 @@ public interface ContextDefinition {
     ContextDefinition copy();
 
     /**
-     * Makes a copy and removes from it all {@link Component.Context.Series#IMMEDIATE} context annotations.
+     * Makes a copy and removes from it all {@link org.fluidity.composition.Component.Context.Series#IMMEDIATE} context annotations.
      *
      * @param reference the parameterized type of the reference to the component being advanced to.
      *
