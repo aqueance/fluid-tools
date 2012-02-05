@@ -37,8 +37,8 @@ import org.fluidity.foundation.Utility;
 
 /**
  * Implements the <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Definitions">component interface</a> discovery algorithm for classes added to an
- * {@link OpenComponentContainer}. This algorithm produces a list of component interfaces for a given class and for each such interface, a list of component
- * group interfaces for any component group that the given class is a member of through that component interface.
+ * {@link org.fluidity.composition.spi.OpenComponentContainer}. This algorithm produces a list of component interfaces for a given class and, for each such
+ * interface, a list of component group interfaces for any component group that the given class is a member of through that component interface.
  * <p/>
  * TODO: Describe the component interface discovery logic in the user guide.
  * <p/>
@@ -88,6 +88,10 @@ import org.fluidity.foundation.Utility;
  * <li>the component class or, in case of a <code>ComponentFactory</code> implementation, the classes referenced in its <code>@Component(api = ...)</code>
  * parameter, are added to the component interface list <em>if</em> component group interfaces have been identified for that class or those classes.</li>
  * </ul>
+ * <h3>Usage</h3>
+ * <pre>
+ * TODO
+ * </pre>
  *
  * @author Tibor Varga
  * @see Component

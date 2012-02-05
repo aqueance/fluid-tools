@@ -18,7 +18,6 @@ package org.fluidity.composition.spi;
 
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.Components;
-import org.fluidity.composition.OpenComponentContainer;
 
 /**
  * Allows registration of component bindings to a backing {@linkplain OpenComponentContainer component container}.

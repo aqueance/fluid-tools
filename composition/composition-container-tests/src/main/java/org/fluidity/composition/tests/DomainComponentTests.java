@@ -20,7 +20,6 @@ import java.util.Arrays;
 
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentGroup;
-import org.fluidity.composition.OpenComponentContainer;
 
 import org.testng.annotations.Test;
 
@@ -38,8 +37,11 @@ public final class DomainComponentTests extends AbstractContainerTests {
     public void testComponentResolution() throws Exception {
         registry.bindComponent(Component.class);
 
-        final OpenComponentContainer domain = container.makeDomainContainer();
-        domain.getRegistry().bindComponent(Dependency.class);
+        final ComponentContainer domain = container.makeDomainContainer(new ComponentContainer.Bindings() {
+            public void bindComponents(final ComponentContainer.Registry registry) {
+                registry.bindComponent(Dependency.class);
+            }
+        });
 
         try {
             container.getComponent(Component.class);
@@ -55,11 +57,17 @@ public final class DomainComponentTests extends AbstractContainerTests {
     public void testDomainIsolation() throws Exception {
         registry.bindComponent(Component.class);
 
-        final OpenComponentContainer domain1 = container.makeDomainContainer();
-        domain1.getRegistry().bindComponent(Dependency.class);
+        final ComponentContainer domain1 = container.makeDomainContainer(new ComponentContainer.Bindings() {
+            public void bindComponents(final ComponentContainer.Registry registry) {
+                registry.bindComponent(Dependency.class);
+            }
+        });
 
-        final OpenComponentContainer domain2 = container.makeDomainContainer();
-        domain2.getRegistry().bindComponent(Dependency.class);
+        final ComponentContainer domain2 = container.makeDomainContainer(new ComponentContainer.Bindings() {
+            public void bindComponents(final ComponentContainer.Registry registry) {
+                registry.bindComponent(Dependency.class);
+            }
+        });
 
         try {
             container.getComponent(Component.class);
@@ -84,9 +92,12 @@ public final class DomainComponentTests extends AbstractContainerTests {
         registry.bindComponent(Root.class);
         registry.bindComponent(Component.class);
 
-        final OpenComponentContainer domain = container.makeDomainContainer();
-        domain.getRegistry().bindComponent(Head.class);
-        domain.getRegistry().bindComponent(Dependency.class);
+        final ComponentContainer domain = container.makeDomainContainer(new ComponentContainer.Bindings() {
+            public void bindComponents(final ComponentContainer.Registry registry) {
+                registry.bindComponent(Head.class);
+                registry.bindComponent(Dependency.class);
+            }
+        });
 
         assert domain.getComponent(Root.class) != null;
     }
@@ -95,7 +106,7 @@ public final class DomainComponentTests extends AbstractContainerTests {
     public void testMissingDependency() throws Exception {
         registry.bindComponent(Component.class);
 
-        final OpenComponentContainer domain = container.makeDomainContainer();
+        final ComponentContainer domain = container.makeDomainContainer();
 
         try {
             domain.getComponent(Component.class);
@@ -108,13 +119,19 @@ public final class DomainComponentTests extends AbstractContainerTests {
     public void testComponentGroups() throws Exception {
         registry.bindComponent(GroupMember1.class);
 
-        final OpenComponentContainer domain1 = container.makeDomainContainer();
-        domain1.getRegistry().bindComponent(Dependency.class);
-        domain1.getRegistry().bindComponent(GroupMember2.class);
+        final ComponentContainer domain1 = container.makeDomainContainer(new ComponentContainer.Bindings() {
+            public void bindComponents(final ComponentContainer.Registry registry) {
+                registry.bindComponent(Dependency.class);
+                registry.bindComponent(GroupMember2.class);
+            }
+        });
 
-        final OpenComponentContainer domain2 = container.makeDomainContainer();
-        domain2.getRegistry().bindComponent(Dependency.class);
-        domain2.getRegistry().bindComponent(GroupMember3.class);
+        final ComponentContainer domain2 = container.makeDomainContainer(new ComponentContainer.Bindings() {
+            public void bindComponents(final ComponentContainer.Registry registry) {
+                registry.bindComponent(Dependency.class);
+                registry.bindComponent(GroupMember3.class);
+            }
+        });
 
         try {
             container.getComponentGroup(GroupApi.class);

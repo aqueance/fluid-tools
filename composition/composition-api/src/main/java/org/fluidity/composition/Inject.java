@@ -31,11 +31,29 @@ import java.lang.annotation.Target;
  * The dependency injection container handles the annotated fields as well. If the component was instantiated by the container, no further action is necessary
  * on the part of the developer. To inject the fields of a manually instantiated component, call {@link ComponentContainer#initialize(Object)} on a suitable
  * container.
+ * <h3>Usage</h3>
+ * <pre>
+ * {@linkplain Component @Component}
+ * public final class <span class="hl2">MyComponent</span> {
+ *
+ *   <span class="hl1">&#64;Inject</span>
+ *   <span class="hl2">MyComponent</span>(final SomeDependency dependency) {
+ *     ...
+ *   }
+ *
+ *   // used for testing
+ *   <span class="hl2">MyComponent</span>() {
+ *     ...
+ *   }
+ *
+ *   ...
+ * }
+ * </pre>
  *
  * @author Tibor Varga
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.FIELD, ElementType.CONSTRUCTOR, ElementType.PARAMETER })
-@Component.Context(series = Component.Context.Series.NONE)
+@Component.Context(collect = Component.Context.Collection.NONE)
 public @interface Inject { }

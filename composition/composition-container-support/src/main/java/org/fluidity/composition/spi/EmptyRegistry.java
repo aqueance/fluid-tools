@@ -18,7 +18,6 @@ package org.fluidity.composition.spi;
 
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.Components;
-import org.fluidity.composition.OpenComponentContainer;
 
 /**
  * Implements basic method relationships and useful functionality to registry implementations.
@@ -31,7 +30,7 @@ final class EmptyRegistry implements ComponentContainer.Registry {
         this.delegate = delegate;
     }
 
-    public OpenComponentContainer makeChildContainer() {
+    public ComponentContainer makeChildContainer() {
         return delegate.makeChildContainer();
     }
 

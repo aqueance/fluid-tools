@@ -101,61 +101,61 @@ public class ContextDefinitionImplTest extends MockGroupAbstractTest {
     }
 
     @Retention(RetentionPolicy.RUNTIME)
-    @Component.Context(series = Component.Context.Series.ACCUMULATED)
+    @Component.Context(collect = Component.Context.Collection.ALL)
     public @interface Accumulated {
 
         String value();
     }
 
     @Retention(RetentionPolicy.RUNTIME)
-    @Component.Context(series = Component.Context.Series.INHERITED)
+    @Component.Context(collect = Component.Context.Collection.LAST)
     public @interface Inherited {
 
         String value();
     }
 
     @Retention(RetentionPolicy.RUNTIME)
-    @Component.Context(series = Component.Context.Series.IMMEDIATE)
+    @Component.Context(collect = Component.Context.Collection.IMMEDIATE)
     public @interface Immediate {
 
         String value();
     }
 
     @Retention(RetentionPolicy.RUNTIME)
-    @Component.Context(series = Component.Context.Series.NONE)
+    @Component.Context(collect = Component.Context.Collection.NONE)
     public @interface None {
 
         String value();
     }
 
     @Component.Context(value = Accumulated.class)
-    private static class Consumer1 {}
+    private static class Consumer1 { }
 
     @Component.Context(value = Inherited.class)
-    private static class Consumer2 {}
+    private static class Consumer2 { }
 
     @Component.Context(value = Immediate.class)
-    private static class Consumer3 {}
+    private static class Consumer3 { }
 
     @Component.Context(value = None.class)
-    private static class Consumer4 {}
+    private static class Consumer4 { }
 
     @Component.Context(value = { Accumulated.class, Inherited.class, Immediate.class, None.class })
-    private static class ConsumerAll {}
+    private static class ConsumerAll { }
 
-    private static class ConsumerNone {}
+    private static class ConsumerNone { }
 
     @Accumulated("accumulated-1")
     @Inherited("inherited-1")
     @Immediate("immediate-1")
     @None("none-1")
-    private static class Definition1 {}
+    private static class Definition1 { }
 
     @Accumulated("accumulated-2")
     @Inherited("inherited-2")
     @Immediate("immediate-2")
     @None("none-2")
-    private static class Definition2 {}
+    private static class Definition2 { }
 
-    private static class Definition3 {}
+    private static class Definition3 { }
 }

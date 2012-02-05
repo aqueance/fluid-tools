@@ -25,6 +25,7 @@ import org.fluidity.composition.spi.ContainerServices;
 import org.fluidity.composition.spi.ContextDefinition;
 import org.fluidity.composition.spi.DependencyGraph;
 import org.fluidity.composition.spi.EmptyComponentContainer;
+import org.fluidity.composition.spi.OpenComponentContainer;
 import org.fluidity.composition.spi.PlatformContainer;
 
 /**
@@ -110,12 +111,12 @@ final class ComponentContainerShell extends EmptyComponentContainer {
         return new ComponentContainerShell(container, context, true, false, observer);
     }
 
-    public OpenComponentContainer makeChildContainer(final Bindings... list) {
+    public ComponentContainer makeChildContainer(final Bindings... list) {
         return new ComponentContainerShell(container, context, true, false, observer).addBindings(list);
     }
 
-    public OpenComponentContainer makeDomainContainer() {
-        return new ComponentContainerShell(container, context, true, true, observer);
+    public ComponentContainer makeDomainContainer(final Bindings... bindings) {
+        return new ComponentContainerShell(container, context, true, true, observer).addBindings(bindings);
     }
 
     public void bindComponent(final Components.Interfaces interfaces) throws BindingException {

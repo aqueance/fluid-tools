@@ -31,6 +31,7 @@ import org.fluidity.composition.spi.ComponentResolutionObserver;
 import org.fluidity.composition.spi.ContainerProvider;
 import org.fluidity.composition.spi.ContainerServices;
 import org.fluidity.composition.spi.ContainerServicesFactory;
+import org.fluidity.composition.spi.OpenComponentContainer;
 import org.fluidity.composition.spi.PlatformContainer;
 import org.fluidity.foundation.spi.LogFactory;
 
@@ -40,16 +41,21 @@ import org.fluidity.foundation.spi.LogFactory;
  * hierarchy of the host application matches the class loader hierarchy. The highest level class loader to have a container is the one that can find the
  * dependencies of this class: {@link ContainerProvider} and {@link ContainerServicesFactory}.
  * <p/>
- * This class bootstraps all parent containers that have not yet been populated. Instances of this class all work against the same data structure, thereby
- * giving classes instantiated by third parties access to the container relevant to their level in the application's class loader hierarchy. Bootstrapping a
- * container hierarchy is performed up in the hierarchy from the requested container and if a higher level container is attempted to add bootstrap bindings or
- * properties to when it has already been bootstrapped due to earlier access to one of its child containers, the bootstrap binding or property registration
- * operation will fail. In such a case it is advised to explicitly bootstrap the higher level container before the lower level container is bootstrapped.
+ * When instantiated, this class bootstraps all parent containers that have not yet been populated. Instances of this class all work against the same data
+ * structure, thereby giving classes instantiated by third parties access to the container relevant to their level in the application's class loader hierarchy.
+ * Bootstrapping a container hierarchy is performed up in the hierarchy from the requested container and if a higher level container is attempted to add
+ * bootstrap bindings or properties to when it has already been bootstrapped due to earlier access to one of its child containers, the bootstrap binding or
+ * property registration operation will fail. In such a case it is advised to explicitly bootstrap the higher level container before the lower level container
+ * is bootstrapped.
  * <p/>
  * This class is a special case in the design since it has to be self-sufficient, depending on nothing that's not always available, and it also has to be
  * visible as it acts as the root object of an application's dependency graph. Thus it has to depend on concrete classes.
  * <p/>
- * Access to instances of this class is thread-safe.
+ * Access to the shared data structure through instances of this class is thread safe.
+ * <h3>Usage</h3>
+ * <pre>
+ * TODO
+ * </pre>
  *
  * @author Tibor Varga
  */
@@ -160,7 +166,8 @@ public final class ContainerBoundary implements ComponentContainer {
      * #instantiate(Class, ComponentContainer.Bindings)}, {@link #makeChildContainer(Bindings...)} or {@link
      * ComponentContainer#makeChildContainer(Bindings...)} methods. Once that happens, this method will throw an {@link IllegalStateException}.
      * <p/>
-     * Calling this method will trigger population of the associated container and its parents.
+     * Calling this method will trigger population of the associated container and its parents but will not prevent further invocations of this method to add
+     * more bindings to the container.
      *
      * @param instance the component instance.
      * @param api      optional list of interfaces to bind the object against.
@@ -175,7 +182,8 @@ public final class ContainerBoundary implements ComponentContainer {
     /**
      * Sets the platform container. The platform container is a bridge between the highest level dependency injection container and the platform's own
      * dependency resolution facilities.
-     * @param platform the object that adapts the platform's native dependency resolution logic to the Fluid Tools dependency injection container concept.
+     *
+     * @param platform the object that adapts the platform's native dependency resolution logic to the Fluid Tools dependency injection model.
      */
     public void setPlatformContainer(final PlatformContainer platform) {
         assert this.platform == null;
@@ -214,7 +222,7 @@ public final class ContainerBoundary implements ComponentContainer {
      * <p/>
      * {@inheritDoc}
      */
-    public OpenComponentContainer makeChildContainer(final Bindings... bindings) {
+    public ComponentContainer makeChildContainer(final Bindings... bindings) {
         return loadedContainer().makeChildContainer(bindings);
     }
 
@@ -223,8 +231,8 @@ public final class ContainerBoundary implements ComponentContainer {
      * <p/>
      * {@inheritDoc}
      */
-    public OpenComponentContainer makeDomainContainer() {
-        return loadedContainer().makeDomainContainer();
+    public ComponentContainer makeDomainContainer(final Bindings... bindings) {
+        return loadedContainer().makeDomainContainer(bindings);
     }
 
     /**

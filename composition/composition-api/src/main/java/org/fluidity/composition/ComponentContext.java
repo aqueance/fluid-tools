@@ -20,18 +20,18 @@ import java.lang.annotation.Annotation;
 import java.util.Set;
 
 /**
- * The <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Component_Context">run-time context</a> for a component. This is the object that components
- * may receive as a dependency to encapsulate the context in which they are being instantiated.
+ * The <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Component_Context">run-time context</a> for a component instance. This is the object that
+ * components may receive as a dependency to encapsulate the context in which they were instantiated.
  * <p/>
  * A context represents configuration at the point of reference to a component, which it elects to receive using the
- * {@link Component.Context @Component.Context} annotation. Contexts are provided by components using custom, user defined, annotations and consumed by
- * components that list the custom annotations' type in their <code>@Component.Context</code> annotation. For example:
+ * {@link Component.Context @Component.Context} annotation. The context is defined by the referring components using custom, user defined, annotations, and are
+ * consumed by referred to components that list the custom annotations' type in their <code>@Component.Context</code> annotation. For example:
  * <pre>
  * &#64;Component
- * &#64;MyContext1
+ * <span class="hl2">&#64;MyContext1</span>
  * public class ContextProvider {
  *
- *     public ContextProvider(final &#64;MyContext2 dependency) {
+ *     public ContextProvider(final <span class="hl2">&#64;MyContext2</span> dependency) {
  *         ...
  *     }
  *
@@ -39,22 +39,23 @@ import java.util.Set;
  * }
  *
  * &#64;Component
- * &#64;Component.Context({ MyContext1.class,  MyContext2.class })
+ * <span class="hl3">{@linkplain Component.Context @Component.Context}</span>({ <span class="hl2">MyContext1</span>.class,  <span class="hl2">MyContext2</span>.class })
  * final class Dependency {
  *
- *     public Dependency(final ComponentContext context) {
+ *     public Dependency(final <span class="hl1">ComponentContext</span> context) {
  *
  *         // all MyContext1 annotations in the instantiation path of this object
- *         MyContext1[] context1s = context.annotations(MyContext1.class);
+ *         <span class="hl1">MyContext1</span>[] context1s = context.annotations(<span class="hl2">MyContext1</span>.class);
  *
  *         // the last MyContext2 annotation in the instantiation path of this object
- *         MyContext2 context2 = context.annotation(MyContext2.class, Dependency.class);
+ *         <span class="hl2">MyContext2</span> context2 = context.<span class="hl1">annotation</span>(<span class="hl2">MyContext2</span>.class, Dependency.class);
  *     }
  * }
  * </pre>
- * Essentially, contexts offer a static configuration mechanism. Components with other means of configuration can be adapted to context based configuration
- * using a {@link org.fluidity.composition.spi.ComponentVariantFactory ComponentVariantFactory}, which, when invoked by the dependency injection container in
- * place of component instantiation, turns the configuration embedded in the instantiation context to configuration understood by the component being adapted.
+ * Essentially, the contexts offers a static configuration mechanism. Components with other means of configuration can be adapted to context based
+ * configuration using a {@link org.fluidity.composition.spi.ComponentVariantFactory ComponentVariantFactory}, which, when invoked by the dependency injection
+ * container in place of component instantiation, translates the configuration embedded in the instantiation context to configuration understood by the
+ * component being adapted.
  *
  * @author Tibor Varga
  */
@@ -63,7 +64,8 @@ public interface ComponentContext {
     /**
      * Returns all context annotation instances of the given type in the instantiation path of the caller that received this object in its constructor.
      * Annotations may be defined at multiple points along a reference path and so multiple annotations may be present for any given type. This method returns
-     * all of them in the order they were encountered in the reference path.
+     * all of the instances according to the annotation's {@linkplain Component.Context#collect() accumulation} setting in the
+     * order they were encountered in the reference path.
      *
      * @param type the annotation type to return instances of.
      *

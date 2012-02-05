@@ -19,10 +19,9 @@ package org.fluidity.composition;
 import org.fluidity.composition.spi.ComponentResolutionObserver;
 
 /**
- * A <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Dependency_Injection_Concept">dependency injection</a>
- * <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Dependency_Injection_Containers">container</a> that offers traversal of static dependencies
- * without instantiating components and dynamic dependencies while resolving and instantiating components. An <code>ObservedComponentContainer</code> instance
- * works together with a client supplied {@link ComponentResolutionObserver} object that it sends component resolution events to.
+ * A dependency injection container that offers traversal of static dependencies without instantiating components, and dynamic dependencies while resolving and
+ * instantiating components. An <code>ObservedComponentContainer</code> instance works together with a client supplied {@link ComponentResolutionObserver}
+ * object that it sends component resolution events to.
  * <h3>Usage</h3>
  * <pre>
  * {@linkplain Component @Component}

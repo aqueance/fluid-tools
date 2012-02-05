@@ -306,6 +306,7 @@
                         <show>public</show>
                         <excludePackageNames>*.impl.*:*.internal.*:*.tests.*:*.maven.*</excludePackageNames>
                         <header><![CDATA[<a href="http://code.google.com/p/fluid-tools/"><b>${project.name}</b></a> ${project.version}<br/><a style="text-align: right;" href="{@docRoot}/resources/license.html">Source Code License</a>]]></header>
+                        <doctitle>${project.name} API ${project.version}</doctitle>
                         <docfilessubdirs>true</docfilessubdirs>
                         <links>
                             <link>http://docs.oracle.com/cd/E17802_01/products/products/servlet/2.5/docs/servlet-2_5-mr2/</link>

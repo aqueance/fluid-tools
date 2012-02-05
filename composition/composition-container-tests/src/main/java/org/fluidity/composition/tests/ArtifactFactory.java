@@ -20,7 +20,7 @@ import java.lang.annotation.Annotation;
 import java.util.Map;
 
 import org.fluidity.composition.ComponentContext;
-import org.fluidity.composition.OpenComponentContainer;
+import org.fluidity.composition.spi.OpenComponentContainer;
 
 /**
  * Internal interface used by {@link ComponentContainerAbstractTest} and its tests.

@@ -19,7 +19,7 @@ package org.fluidity.composition.tests;
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
-import org.fluidity.composition.OpenComponentContainer;
+import org.fluidity.composition.spi.OpenComponentContainer;
 import org.fluidity.tests.MockGroupAbstractTest;
 
 import org.testng.annotations.BeforeMethod;

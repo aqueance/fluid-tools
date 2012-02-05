@@ -24,8 +24,9 @@ import org.fluidity.composition.spi.DependencyPath;
 import org.fluidity.foundation.Strings;
 
 /**
- * The external API of a fully populated <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Dependency_Injection_Concept">dependency injection</a>
- * <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Dependency_Injection_Containers">container</a>.
+ * The external API of a fully populated dependency injection container. Most of your components should never interact directly with this interface. Exceptions
+ * to this are management of objects created by third party tools or components with dynamic dependencies, e.g., dependencies determined based on some run-time
+ * criteria.
  * <p/>
  * Containers in an application may form a hierarchy that matches the class loaders in the application. Containers in a hierarchy co-operate in such a way that
  * if a component is not found in a child container, a look-up is performed in its parent. The act of looking up a dependency by its referenced type is called
@@ -35,9 +36,9 @@ import org.fluidity.foundation.Strings;
  * <p/>
  * In case of a child container bound to a class loader or one returned by the {@link #makeChildContainer(Bindings...)} method, dependencies of a component
  * resolved in a parent container will be resolved in that parent container or its ancestors, never in the original child container. In a child container
- * returned by the {@link #makeDomainContainer()} method, however, transitive dependencies will also be resolved from the original child container and its
+ * returned by the {@link #makeDomainContainer(org.fluidity.composition.ComponentContainer.Bindings...)} method, however, transitive dependencies will also be resolved from the original child container and its
  * ancestry. The latter case allows segregating the application into dependency resolution domains as long as those domains do not overlap, meaning application
- * code reaches out of one domain and into another.
+ * code reaching out of one domain and into another.
  * <p/>
  * Dependency resolution is performed based on the referenced type of the dependency. If there was no explicit binding for the given interface then no
  * component will be injected for that reference.
@@ -48,13 +49,10 @@ import org.fluidity.foundation.Strings;
  * Components instantiated outside a container can still be field injected by the container using its {@link ComponentContainer#initialize(Object)} method.
  * Component instantiation may also be invoked for a component class not in the container using the {@link ComponentContainer#instantiate(Class)} method.
  * <p/>
- * Components may be context aware, meaning that separate instances may be created for different contexts. Entire chains of dependencies, themselves not
- * necessarily context aware, may be instantiated multiple times for different contexts. This is not always what you expect so be aware of this effect when
- * working with context aware components. This is discussed in more detail in the
+ * Components may be context aware, meaning that separate instances may be created for different contexts. Entire chains of dependencies, with components
+ * themselves not necessarily context aware, may be instantiated multiple times for different contexts. This is not always what you expect so be aware of this
+ * effect when working with context aware components. This is discussed in more detail in the
  * <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Component_Context">User Guide</a>.
- * <p/>
- * Most of your components should never interact directly with this interface. Exceptions to this are management of objects created by third party tools or
- * components with dynamic dependencies, e.g., dependencies determined based on some run-time criteria.
  * <p/>
  * Containers can also be used to peek into the static dependency graph of your application. This functionality is provided by the {@link
  * ObservedComponentContainer} object returned by the {@link #observed(ComponentResolutionObserver)} method.
@@ -111,7 +109,7 @@ import org.fluidity.foundation.Strings;
  * <li>If <b>multiple</b> helpers share dependencies specific to this particular use and they also have local dependencies that should <b>not</b> be shared,
  * then
  * <pre>
- * &#47;* ... acquire a child container with the necessary bindings: *&#47;
+ * &#47;* ... acquire a child container with the shared bindings: *&#47;
  *
  * final <span class="hl1">ComponentContainer</span> child = container.<span class="hl1">makeChildContainer(</span>new {@linkplain ComponentContainer.Bindings}() {
  *   public void bindComponents({@linkplain ComponentContainer.Registry} registry) {
@@ -151,7 +149,7 @@ import org.fluidity.foundation.Strings;
  *   ...
  * }
  *
- * final <span class="hl2">InjectableMethods</span> helper = container.<span class="hl1">complete(</span>new MyHelper()</span class="hl1">)</span>;
+ * final <span class="hl2">InjectableMethods</span> helper = container.<span class="hl1">complete(</span>container.instantiate(MyHelper.class)</span class="hl1">)</span>;
  *
  * &#47;* ... pass null for unknown parameters *&#47;
  * final int result = helper.<span class="hl2">someMethod</span>(<span class="hl3">1234</span>, null, null);
@@ -176,7 +174,7 @@ import org.fluidity.foundation.Strings;
  *   result = {@linkplain org.fluidity.foundation.Exceptions}.wrap(new Exceptions.Command&lt;<span class="hl2">Integer</span>>() {
  *     public <span class="hl2">Integer</span> run() throws Throwable {
  *
- *       &#47;* ... pass known parameters as the last method parameters *&#47;
+ *       &#47;* ... pass known parameters as the last parameters to this call*&#47;
  *       return (<span class="hl2">Integer</span>) container.<span class="hl1">invoke</span>(helper, method, <span class="hl3">1234</span>);
  *     }
  *   });
@@ -252,7 +250,7 @@ public interface ComponentContainer {
      *
      * @return a container that defaults to this container for satisfying component dependencies.
      */
-    OpenComponentContainer makeChildContainer(Bindings... bindings);
+    ComponentContainer makeChildContainer(Bindings... bindings);
 
     /**
      * Creates another container whose components' dependencies will be satisfied from itself first, then from this container when the child could find no
@@ -263,10 +261,12 @@ public interface ComponentContainer {
      * is only safe if your application guarantees that the parent container is never used outside a domain container and that domain containers and the
      * components they instantiate never talk to other domain containers or components they instantiated. Hence the term "domain".
      *
+     * @param bindings list of component bindings to add to the child container.
+     *
      * @return a container that defaults to this container for satisfying component dependencies and which will also be used defaulted to by the ancestor
      *         components when they cannot resolve a dependency.
      */
-    OpenComponentContainer makeDomainContainer();
+    ComponentContainer makeDomainContainer(Bindings... bindings);
 
     /**
      * Resolves and injects the {@link Inject @Inject} annotated fields of the given object. You only need to use this method if the supplied component was
@@ -381,11 +381,29 @@ public interface ComponentContainer {
     }
 
     /**
-     * Allows adding components {@linkplain ComponentContainer.Bindings bindings} to a
-     * <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Dependency_Injection_Concept">dependency injection</a>
-     * <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Dependency_Injection_Containers">container</a>.
+     * Allows adding component {@linkplain ComponentContainer.Bindings bindings} to a {@linkplain
+     * org.fluidity.composition.spi.OpenComponentContainer dependency injection container}.
      * <p/>
-     * This interface is mainly used by {@link org.fluidity.composition.spi.PackageBindings} objects to add bindings visible to the various class loaders to
+     * The registry offers several ways to map an implementation to an interface in the host container. Which one you need depends on your requirements. These
+     * methods are mostly invoked from the {@link ComponentContainer.Bindings#bindComponents(ComponentContainer.Registry) bindComponents()}
+     * method of your {@linkplain org.fluidity.composition.spi.PackageBindings binding} implementation.
+     * <ul>
+     * <li>To simply register a component implementation for its component interfaces, use {@link #bindComponent(Class, Class[])
+     * bindComponent()}. This is exactly what the <code>org.fluidity.maven:maven-composition-plugin</code> Maven plugin does for a {@link Component @Component}
+     * annotated class with no {@link Component#automatic() &#64;Component&#40;automatic = false&#41;} setting so if this method is all you need then you
+     * should simply use the plugin instead of creating your own binding class.</li>
+     * <li>To register an already instantiated component implementation for a component interface, use {@link #bindInstance(Object,
+     * Class[]) bindInstance()}. If the implementation is annotated with <code>@Component</code> then its <code>@Component(automatic = ...)</code> parameter
+     * must be set to <code>false</code>.</li>
+     * <li>To register a component implementation when some or all of its dependencies are - by design - not accessible in the same container, use {@link
+     * #isolateComponent(Class, Class[]) makeChildContainer()} method and use the returned container's
+     * {@link org.fluidity.composition.spi.OpenComponentContainer#getRegistry() getRegistry()} method to gain access to the registry in which to bind the
+     * hidden dependencies. If the
+     * implementation is annotated with <code>@Component</code> then its <code>@Component(automatic = ...)</code> parameter must be set to
+     * <code>false</code>.</li>
+     * </ul>
+     * <p/>
+     * This interface is mostly used by {@link org.fluidity.composition.spi.PackageBindings} objects to add bindings visible to the various class loaders to
      * populate the host application's dependency injection container hierarchy.
      * <h3>Usage</h3>
      * <ul>
@@ -418,14 +436,21 @@ public interface ComponentContainer {
      *   ...
      * }
      * </pre></li>
-     * <li>Overriding bindings:
+     * <li>Overriding bindings: as an alternative to using explicitly context aware components as dependencies, you can elect to isolate the dependencies of a
+     * component from the rest of the container, even if some or all of those dependencies could otherwise be found in the container.
      * <pre>
-     * TODO
+     * final class MyPackageBindings extends {@linkplain org.fluidity.composition.spi.EmptyPackageBindings} {
+     *   public void bindComponents(final <span class="hl1">ComponentContainer.Registry</span> registry) {
+     *     final <span class="hl2">ComponentContainer.Registry</span> isolated = registry.<span class="hl2">isolateComponent</span>(<span class="hl3">SomeComponentImpl</span>.class);
+     *     isolated.<span class="hl2">bindComponent</span>(<span class="hl3">AlternateDependencyImpl</span>.class);
+     *   }
+     * }
      * </pre></li>
      * </ul>
      *
      * @author Tibor Varga
      */
+    @SuppressWarnings("JavadocReference")
     interface Registry {
 
         /**
@@ -492,13 +517,13 @@ public interface ComponentContainer {
          *
          * @return an open container, never <code>null</code>.
          */
-        OpenComponentContainer makeChildContainer();
+        ComponentContainer makeChildContainer();
     }
 
     /**
-     * Top level exception for errors related to the dependency injection container.
+     * Top level exception for errors related to the dependency injection.
      */
-    class ContainerException extends RuntimeException {
+    class InjectionException extends RuntimeException {
 
         /**
          * Creates a new instance using the given formatted text and with the given cause.
@@ -507,7 +532,7 @@ public interface ComponentContainer {
          * @param format the Java format specification.
          * @param data   the details to format.
          */
-        public ContainerException(final Throwable cause, final String format, final Object... data) {
+        public InjectionException(final Throwable cause, final String format, final Object... data) {
             super(String.format(format, data), cause);
         }
 
@@ -517,7 +542,7 @@ public interface ComponentContainer {
          * @param format the Java format specification.
          * @param data   the details to format.
          */
-        public ContainerException(final String format, final Object... data) {
+        public InjectionException(final String format, final Object... data) {
             super(String.format(format, data));
         }
     }
@@ -525,7 +550,7 @@ public interface ComponentContainer {
     /**
      * Reports an error that occurred when resolving a component reference to a component.
      */
-    class ResolutionException extends ContainerException {
+    class ResolutionException extends InjectionException {
 
         /**
          * Creates a new instance using the given formatted text and with the cause.
@@ -596,7 +621,7 @@ public interface ComponentContainer {
     /**
      * Reports an error that occurred when binding a component class or instance to its component interfaces.
      */
-    class BindingException extends ContainerException {
+    class BindingException extends InjectionException {
 
         /**
          * Creates a new instance using the given formatted text.

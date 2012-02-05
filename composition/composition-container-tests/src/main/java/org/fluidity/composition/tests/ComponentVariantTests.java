@@ -34,7 +34,6 @@ import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.ComponentGroup;
-import org.fluidity.composition.OpenComponentContainer;
 import org.fluidity.composition.spi.ComponentFactory;
 import org.fluidity.composition.spi.ComponentVariantFactory;
 import org.fluidity.composition.spi.CustomComponentFactory;
@@ -285,19 +284,20 @@ public final class ComponentVariantTests extends AbstractContainerTests {
         registry.bindComponent(DependentValue.class);
         registry.bindComponent(FactoryDependency.class);
 
-        final OpenComponentContainer child = container.makeChildContainer();
-
         final Check check = new Check();
-        final ComponentContainer.Registry childRegistry = child.getRegistry();
 
-        childRegistry.bindComponent(ContextProvider0.class);
-        childRegistry.bindComponent(ContextProvider1.class);
-        childRegistry.bindComponent(ContextProvider2.class);
+        final ComponentContainer child = container.makeChildContainer(new ComponentContainer.Bindings() {
+            public void bindComponents(final ComponentContainer.Registry registry) {
+                registry.bindComponent(ContextProvider1.class);
+                registry.bindComponent(ContextProvider0.class);
+                registry.bindComponent(ContextProvider2.class);
 
-        // dependency binding component was added to the parent container but must still be found from inside the child
-        childRegistry.bindComponent(DependentVariants.class);
+                // dependency binding component was added to the parent container but must still be found from inside the child
+                registry.bindComponent(DependentVariants.class);
 
-        childRegistry.bindInstance(check);
+                registry.bindInstance(check);
+            }
+        });
 
         EasyMock.expect(variants.resolve(EasyMock.<ComponentContext>notNull(), EasyMock.<ComponentFactory.Resolver>notNull())).andAnswer(new VariantContainerCheck(Check.class, check)).anyTimes();
 

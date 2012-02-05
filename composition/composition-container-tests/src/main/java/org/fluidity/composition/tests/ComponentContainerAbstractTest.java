@@ -20,10 +20,10 @@ import java.lang.annotation.Annotation;
 import java.util.Map;
 
 import org.fluidity.composition.ComponentContext;
-import org.fluidity.composition.OpenComponentContainer;
 import org.fluidity.composition.impl.ProductionServicesFactory;
 import org.fluidity.composition.spi.ContainerServices;
 import org.fluidity.composition.spi.ContainerServicesFactory;
+import org.fluidity.composition.spi.OpenComponentContainer;
 import org.fluidity.foundation.NoLogFactory;
 import org.fluidity.foundation.spi.LogFactory;
 import org.fluidity.tests.MockGroupAbstractTest;

@@ -18,7 +18,6 @@ package org.fluidity.composition.tests;
 
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
-import org.fluidity.composition.OpenComponentContainer;
 
 import org.testng.annotations.Test;
 
@@ -71,9 +70,12 @@ public final class ContainerHierarchyTests extends AbstractContainerTests {
     @Test
     public void linkingComponentDependencyResolvesToOtherLinkingComponentAtHigherLevel() throws Exception {
         registry.isolateComponent(DependentValue.class);
-        final OpenComponentContainer child = container.makeChildContainer();
 
-        child.getRegistry().isolateComponent(Value.class);
+        final ComponentContainer child = container.makeChildContainer(new ComponentContainer.Bindings() {
+            public void bindComponents(final ComponentContainer.Registry registry) {
+                registry.isolateComponent(Value.class);
+            }
+        });
 
         verifyComponent(child);
     }
@@ -101,10 +103,11 @@ public final class ContainerHierarchyTests extends AbstractContainerTests {
 
     @Test
     public void childContainerContainsItself() throws Exception {
-        final OpenComponentContainer childContainer = container.makeChildContainer();
-        final ComponentContainer.Registry childRegistry = childContainer.getRegistry();
-
-        childRegistry.bindComponent(ContainerDependent.class);
+        final ComponentContainer childContainer = container.makeChildContainer(new ComponentContainer.Bindings() {
+            public void bindComponents(final ComponentContainer.Registry registry) {
+                registry.bindComponent(ContainerDependent.class);
+            }
+        });
 
         final ContainerDependent component = childContainer.getComponent(ContainerDependent.class);
         assert component != null;

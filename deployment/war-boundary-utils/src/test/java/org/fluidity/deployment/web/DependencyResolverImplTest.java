@@ -17,7 +17,7 @@
 package org.fluidity.deployment.web;
 
 import org.fluidity.composition.Component;
-import org.fluidity.composition.OpenComponentContainer;
+import org.fluidity.composition.spi.OpenComponentContainer;
 import org.fluidity.tests.MockGroupAbstractTest;
 
 import org.easymock.EasyMock;

@@ -28,7 +28,6 @@ import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.ComponentGroup;
-import org.fluidity.composition.OpenComponentContainer;
 import org.fluidity.composition.Optional;
 import org.fluidity.composition.spi.CustomComponentFactory;
 import org.fluidity.foundation.Generics;
@@ -136,18 +135,19 @@ public final class ComponentGroupTests extends AbstractContainerTests {
 
     @Test
     public void testDependentGroupInHierarchy() throws Exception {
-        final OpenComponentContainer child = container.makeChildContainer();
-        final ComponentContainer.Registry nested = child.getRegistry();
+        final ComponentContainer child = container.makeChildContainer(new ComponentContainer.Bindings() {
+            public void bindComponents(final ComponentContainer.Registry registry) {
+                registry.bindComponent(OrderedFilter8.class);
+                registry.bindComponent(OrderedFilter7.class);
+                registry.bindComponent(OrderedFilter6.class);
+                registry.bindComponent(OrderedFilter5.class);
+            }
+        });
 
         registry.bindComponent(OrderedFilter4.class);
         registry.bindComponent(OrderedFilter3.class);
         registry.bindComponent(OrderedFilter2.class);
         registry.bindComponent(OrderedFilter1.class);
-
-        nested.bindComponent(OrderedFilter8.class);
-        nested.bindComponent(OrderedFilter7.class);
-        nested.bindComponent(OrderedFilter6.class);
-        nested.bindComponent(OrderedFilter5.class);
 
         checkComponentOrder(container.getComponentGroup(Filter.class), OrderedFilter1.class, OrderedFilter2.class, OrderedFilter3.class, OrderedFilter4.class);
 
@@ -164,11 +164,13 @@ public final class ComponentGroupTests extends AbstractContainerTests {
 
     @Test
     public void testGroupInHierarchy() throws Exception {
-        final OpenComponentContainer child = container.makeChildContainer();
-        final ComponentContainer.Registry nested = child.getRegistry();
+        final ComponentContainer child = container.makeChildContainer(new ComponentContainer.Bindings() {
+            public void bindComponents(final ComponentContainer.Registry registry) {
+                registry.bindComponent(Filter2.class);
+            }
+        });
 
         registry.bindComponent(Filter1.class);
-        nested.bindComponent(Filter2.class);
 
         checkComponentOrder(container.getComponentGroup(Filter.class), Filter1.class);
         checkComponentOrder(child.getComponentGroup(Filter.class), Filter1.class, Filter2.class);

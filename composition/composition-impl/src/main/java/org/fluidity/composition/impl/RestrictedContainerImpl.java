@@ -23,7 +23,6 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ObservedComponentContainer;
-import org.fluidity.composition.OpenComponentContainer;
 import org.fluidity.composition.spi.ComponentResolutionObserver;
 import org.fluidity.composition.spi.RestrictedContainer;
 import org.fluidity.foundation.Proxies;
@@ -57,12 +56,12 @@ final class RestrictedContainerImpl implements RestrictedContainer {
         return reference.get().getComponent(api, bindings);
     }
 
-    public OpenComponentContainer makeChildContainer(final Bindings... bindings) {
+    public ComponentContainer makeChildContainer(final Bindings... bindings) {
         return reference.get().makeChildContainer(bindings);
     }
 
-    public OpenComponentContainer makeDomainContainer() {
-        return reference.get().makeDomainContainer();
+    public ComponentContainer makeDomainContainer(final Bindings... bindings) {
+        return reference.get().makeDomainContainer(bindings);
     }
 
     public <T> T initialize(final T component) throws ResolutionException {

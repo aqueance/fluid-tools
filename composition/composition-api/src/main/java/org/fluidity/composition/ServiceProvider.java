@@ -29,6 +29,13 @@ import java.lang.annotation.Target;
  * <code>org.fluidity.maven:maven-composition-plugin</code> Maven plugin is used in the host project, such classes can then be discovered in any given class
  * loader by the {@link ClassDiscovery} component, or in case the {@link #type()} parameter is not specified, using the service provider discovery mechanism
  * built in the Java platform.
+ * <h3>Usage</h3>
+ * <pre>
+ * <span class="hl1">&#64;ServiceProvider</span>
+ * public final class MyContractImpl implements Contract {
+ *   ...
+ * }
+ * </pre>
  *
  * @author Tibor Varga
  */
@@ -36,7 +43,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 @Inherited
-@Component.Context(series = Component.Context.Series.NONE)
+@Component.Context(collect = Component.Context.Collection.NONE)
 public @interface ServiceProvider {
 
     /**

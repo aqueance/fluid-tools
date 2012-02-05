@@ -34,7 +34,7 @@ import java.lang.annotation.Target;
  * Components, i.e., classes annotated with the {@link Component @Component} annotation, may, in addition to being a component, implement or extend an
  * interface or class marked with this annotation. In such a case, however, this annotation will only be recognized if inherited via a component interface,
  * i.e., one by which the component can be depended upon. The algorithm for computing the set of component interfaces is described at {@link
- * ComponentContainer.Registry#bindComponent(Class, Class[])}.
+ * org.fluidity.composition.Components}.
  * <h3>Usage</h3>
  * <pre>
  * <span class="hl1">&#64;ComponentGroup</span>
@@ -62,7 +62,8 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.TYPE, ElementType.FIELD, ElementType.PARAMETER })
 @Inherited
-@Component.Context(series = Component.Context.Series.NONE)
+@Component.Context(collect = Component.Context.Collection.NONE)
+@SuppressWarnings("JavadocReference")
 public @interface ComponentGroup {
 
     /**

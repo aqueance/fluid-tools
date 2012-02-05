@@ -26,6 +26,7 @@ import java.util.Properties;
 import org.fluidity.composition.spi.ContainerProvider;
 import org.fluidity.composition.spi.ContainerServices;
 import org.fluidity.composition.spi.ContainerServicesFactory;
+import org.fluidity.composition.spi.OpenComponentContainer;
 import org.fluidity.composition.spi.PlatformContainer;
 import org.fluidity.foundation.NoLogFactory;
 import org.fluidity.foundation.spi.LogFactory;
@@ -360,15 +361,9 @@ public class ContainerBoundaryTest extends MockGroupAbstractTest {
         verify();
     }
 
-    private static class BootComponent1 {
+    private static class BootComponent1 { }
 
-    }
+    private static class BootComponent2 { }
 
-    private static class BootComponent2 {
-
-    }
-
-    private static class BootComponent3 {
-
-    }
+    private static class BootComponent3 { }
 }

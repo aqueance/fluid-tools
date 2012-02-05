@@ -21,6 +21,7 @@ import java.util.Map;
 
 import org.fluidity.composition.spi.ContainerProvider;
 import org.fluidity.composition.spi.ContainerServices;
+import org.fluidity.composition.spi.OpenComponentContainer;
 import org.fluidity.composition.spi.PackageBindings;
 import org.fluidity.composition.spi.PlatformContainer;
 import org.fluidity.foundation.Log;

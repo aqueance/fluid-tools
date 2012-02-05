@@ -21,7 +21,6 @@ import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.ComponentGroup;
 import org.fluidity.composition.Components;
-import org.fluidity.composition.OpenComponentContainer;
 import org.fluidity.tests.MockGroupAbstractTest;
 
 import org.easymock.EasyMock;
@@ -42,7 +41,7 @@ public class EmptyRegistryTest extends MockGroupAbstractTest {
         EasyMock.expect(mock.makeChildContainer()).andReturn(container);
 
         replay();
-        final OpenComponentContainer container = registry.makeChildContainer();
+        final ComponentContainer container = registry.makeChildContainer();
         verify();
 
         assert container == this.container;

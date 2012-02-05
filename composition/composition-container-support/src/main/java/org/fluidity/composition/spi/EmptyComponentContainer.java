@@ -29,7 +29,6 @@ import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.Components;
 import org.fluidity.composition.Inject;
 import org.fluidity.composition.ObservedComponentContainer;
-import org.fluidity.composition.OpenComponentContainer;
 import org.fluidity.foundation.Proxies;
 
 /**

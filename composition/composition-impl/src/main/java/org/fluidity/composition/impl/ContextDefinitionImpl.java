@@ -21,7 +21,6 @@ import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.lang.reflect.WildcardType;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -54,9 +53,9 @@ final class ContextDefinitionImpl implements ContextDefinition {
         }
     });
 
-    private final Component.Context.Series defaultSeries = (Component.Context.Series) Methods.get(Component.Context.class, new Methods.Invoker<Component.Context>() {
+    private final Component.Context.Collection defaultSeries = (Component.Context.Collection) Methods.get(Component.Context.class, new Methods.Invoker<Component.Context>() {
         public void invoke(final Component.Context capture) throws Throwable {
-            capture.series();
+            capture.collect();
         }
     }).getDefaultValue();
 
@@ -80,7 +79,7 @@ final class ContextDefinitionImpl implements ContextDefinition {
 
         // remove all non-inherited context
         for (final Iterator<Class<? extends Annotation>> iterator = this.defined.keySet().iterator(); iterator.hasNext(); ) {
-            if (series(iterator.next()) == Component.Context.Series.IMMEDIATE) {
+            if (series(iterator.next()) == Component.Context.Collection.IMMEDIATE) {
                 iterator.remove();
             }
         }
@@ -103,13 +102,13 @@ final class ContextDefinitionImpl implements ContextDefinition {
             // then extend the context definition
             for (final Annotation value : definition) {
                 final Class<? extends Annotation> type = value.annotationType();
-                final Component.Context.Series series = series(type);
+                final Component.Context.Collection series = series(type);
 
-                if (series != Component.Context.Series.NONE) {
+                if (series != Component.Context.Collection.NONE) {
                     final Annotation[] annotations = { value };
 
                     if (defined.containsKey(type)) {
-                        defined.put(type, series == Component.Context.Series.ACCUMULATED ? combine(defined.get(type), value) : annotations);
+                        defined.put(type, series == Component.Context.Collection.ALL ? combine(defined.get(type), value) : annotations);
                     } else {
                         defined.put(type, annotations);
                     }
@@ -153,7 +152,7 @@ final class ContextDefinitionImpl implements ContextDefinition {
         return this;
     }
 
-    public ContextDefinition collect(final Collection<ContextDefinition> contexts) {
+    public ContextDefinition collect(final java.util.Collection contexts) {
         for (final ContextDefinition context : contexts) {
             collectOne(context);
         }
@@ -167,9 +166,9 @@ final class ContextDefinitionImpl implements ContextDefinition {
 
             for (final Map.Entry<Class<? extends Annotation>, Annotation[]> entry : map.entrySet()) {
                 final Class<? extends Annotation> type = entry.getKey();
-                final Component.Context.Series series = series(type);
+                final Component.Context.Collection series = series(type);
 
-                if (series != Component.Context.Series.IMMEDIATE && defined.containsKey(type)) {
+                if (series != Component.Context.Collection.IMMEDIATE && defined.containsKey(type)) {
                     final List<Annotation> present = Arrays.asList(defined.get(type));
                     final Annotation[] annotations = entry.getValue();
                     final Set<Annotation> retained = new HashSet<Annotation>(Arrays.asList(annotations));
@@ -177,10 +176,10 @@ final class ContextDefinitionImpl implements ContextDefinition {
                     retained.retainAll(present);
 
                     if (!retained.isEmpty()) {
-                        if (series == Component.Context.Series.ACCUMULATED) {
+                        if (series == Component.Context.Collection.ALL) {
                             final Annotation[] updates = retained.toArray(new Annotation[retained.size()]);
                             active.put(type, active.containsKey(type) ? combine(active.get(type), updates) : updates);
-                        } else if (series == Component.Context.Series.INHERITED) {
+                        } else if (series == Component.Context.Collection.LAST) {
                             assert present.size() == 1 : present;
                             active.put(type, annotations);
                         } else {
@@ -192,9 +191,9 @@ final class ContextDefinitionImpl implements ContextDefinition {
         }
     }
 
-    private Component.Context.Series series(final Class<? extends Annotation> type) {
+    private Component.Context.Collection series(final Class<? extends Annotation> type) {
         final Component.Context annotation = type.getAnnotation(Component.Context.class);
-        return annotation == null ? defaultSeries : annotation.series();
+        return annotation == null ? defaultSeries : annotation.collect();
     }
 
     public Map<Class<? extends Annotation>, Annotation[]> active() {
@@ -225,7 +224,7 @@ final class ContextDefinitionImpl implements ContextDefinition {
     }
 
     private Annotation[] combine(final Annotation[] present, final Annotation... addition) {
-        final Collection<Annotation> list = new LinkedHashSet<Annotation>(present.length + addition.length);
+        final java.util.Collection list = new LinkedHashSet<Annotation>(present.length + addition.length);
 
         list.addAll(Arrays.asList(present));
         list.addAll(Arrays.asList(addition));
