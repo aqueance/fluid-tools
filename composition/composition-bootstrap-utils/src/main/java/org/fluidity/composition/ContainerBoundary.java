@@ -54,7 +54,17 @@ import org.fluidity.foundation.spi.LogFactory;
  * Access to the shared data structure through instances of this class is thread safe.
  * <h3>Usage</h3>
  * <pre>
- * TODO
+ * {@linkplain Component @Component}
+ * public final class <span class="hl2">Main</span> {
+ *
+ *   public static void main(final String[] args) throws Exception {
+ *     new <span class="hl1">ContainerBoundary</span>().getComponent(<span class="hl2">Main</span>.class).run(args);
+ *   }
+ *
+ *   public void run(final String[] parameters) throws Exception {
+ *     ...
+ *   }
+ * }
  * </pre>
  *
  * @author Tibor Varga

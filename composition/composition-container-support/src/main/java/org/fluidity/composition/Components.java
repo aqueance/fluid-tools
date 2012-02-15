@@ -36,13 +36,21 @@ import org.fluidity.foundation.Strings;
 import org.fluidity.foundation.Utility;
 
 /**
- * Implements the <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Definitions">component interface</a> discovery algorithm for classes added to an
- * {@link org.fluidity.composition.spi.OpenComponentContainer}. This algorithm produces a list of component interfaces for a given class and, for each such
- * interface, a list of component group interfaces for any component group that the given class is a member of through that component interface.
+ * This utility is used to determine the <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Definitions">component interfaces and group
+ * interfaces</a> a class should be bound to when it is {@linkplain ComponentContainer.Registry#bindComponent(Class, Class[]) bound} to a dependency injection
+ * container.
  * <p/>
- * TODO: Describe the component interface discovery logic in the user guide.
+ * Informally, the logic employed attempts to imitate the obvious choices one would make at first sight. With regard to component interfaces, these are:
+ * <ul>
+ * <li>no {@link Component @Component} annotation is necessary, it is merely there to automate the component binding and to provide parameters thereto</li>
+ * <li>a class implementing no interface and extending no superclass is bound to itself</li>
+ * <li>a class directly implementing some interfaces is bound to those interfaces</li>
+ * </ul>
  * <p/>
- * The rules for discovering the component interfaces are described by the following recursive algorithm:
+ * With regard to component groups, a component class will be bound to all component groups that it inherits via its class ancestry and any interface
+ * implemented by it and any of its ancestors.
+ * <p/>
+ * The formal rules for discovering the component interfaces are described by the following recursive algorithm:
  * <ol>
  * <li>If the class has no {@link Component @Component} annotation, the algorithm returns the <u>class itself</u>, unless the class implements {@link
  * org.fluidity.composition.spi.ComponentFactory}, in which case the algorithm terminates with an {@linkplain
@@ -90,7 +98,17 @@ import org.fluidity.foundation.Utility;
  * </ul>
  * <h3>Usage</h3>
  * <pre>
- * TODO
+ * public interface <span class="hl3">MyComponent</span> {
+ *   ...
+ * }
+ *
+ * {@linkplain Component @Component}
+ * final class <span class="hl2">MyComponentImpl</span> implements <span class="hl3">MyComponent</span> {
+ *
+ *     public <span class="hl2">MyComponentImpl</span>() {
+ *         System.out.printf("My component interfaces: %s%n", <span class="hl1">Components</span>.inspect(<span class="hl2">MyComponentImpl</span>.class));
+ *     }
+ * }
  * </pre>
  *
  * @author Tibor Varga
@@ -350,6 +368,8 @@ public final class Components extends Utility {
      * List of <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Definitions">component interfaces</a> and corresponding
      * <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Definitions">component group interfaces</a> for a component implementation. Instances are
      * produced by {@link Components#inspect(Class, Class[])}.
+     * <h3>Usage</h3>
+     * See {@link Components}
      */
     public static final class Interfaces {
 
@@ -424,6 +444,8 @@ public final class Components extends Utility {
      * A <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Definitions">component interface</a> and the associated
      * <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Definitions">component group interfaces</a>. A list of these objects is returned as part of
      * the {@link Interfaces} by {@link Components#inspect(Class, Class[])}.
+     * <h3>Usage</h3>
+     * See {@link Components}
      */
     public static final class Specification {
 
