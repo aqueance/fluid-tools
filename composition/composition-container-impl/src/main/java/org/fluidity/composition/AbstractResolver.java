@@ -76,8 +76,8 @@ abstract class AbstractResolver implements ComponentResolver {
         return Collections.unmodifiableCollection(groups);
     }
 
-    public Object cached(final Object domain, final Object container, final ComponentContext context) {
-        return cache == null ? null : cache.lookup(domain, container, context, api, null);
+    public Object cached(final Object domain, final String source, final ComponentContext context) {
+        return cache == null ? null : cache.lookup(domain, source, context, api, null);
     }
 
     public boolean isVariantMapping() {
@@ -96,12 +96,12 @@ abstract class AbstractResolver implements ComponentResolver {
 
         private final ParentContainer domain;
         private final DependencyGraph.Node node;
-        private final Object source;
+        private final String source;
 
         public CachingNode(final ParentContainer domain, final DependencyGraph.Node node, final SimpleContainer container) {
             this.domain = domain;
             this.node = node;
-            this.source = container;
+            this.source = container.toString();
         }
 
         public Class<?> type() {
@@ -111,8 +111,8 @@ abstract class AbstractResolver implements ComponentResolver {
         public Object instance(final DependencyGraph.Traversal traversal) {
             final ComponentContext context = node.context();
 
-            return cache.lookup(domain, source, context, api, new ComponentCache.Instantiation() {
-                public Object instantiate() {
+            return cache.lookup(domain, source, context, api, new ComponentCache.Entry() {
+                public Object create() {
                     return node.instance(traversal);
                 }
             });

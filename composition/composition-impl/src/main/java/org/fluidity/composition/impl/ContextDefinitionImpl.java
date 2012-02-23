@@ -21,6 +21,7 @@ import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.lang.reflect.WildcardType;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -152,7 +153,7 @@ final class ContextDefinitionImpl implements ContextDefinition {
         return this;
     }
 
-    public ContextDefinition collect(final java.util.Collection contexts) {
+    public ContextDefinition collect(final Collection<ContextDefinition> contexts) {
         for (final ContextDefinition context : contexts) {
             collectOne(context);
         }
@@ -224,7 +225,7 @@ final class ContextDefinitionImpl implements ContextDefinition {
     }
 
     private Annotation[] combine(final Annotation[] present, final Annotation... addition) {
-        final java.util.Collection list = new LinkedHashSet<Annotation>(present.length + addition.length);
+        final Collection<Annotation> list = new LinkedHashSet<Annotation>(present.length + addition.length);
 
         list.addAll(Arrays.asList(present));
         list.addAll(Arrays.asList(addition));

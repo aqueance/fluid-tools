@@ -33,7 +33,7 @@ import org.fluidity.composition.ServiceProvider;
 import org.fluidity.foundation.ClassLoaders;
 import org.fluidity.foundation.Exceptions;
 import org.fluidity.foundation.Log;
-import org.fluidity.foundation.Methods;
+import org.fluidity.foundation.ServiceProviders;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**
@@ -46,25 +46,21 @@ import org.fluidity.foundation.spi.LogFactory;
 final class ClassDiscoveryImpl implements ClassDiscovery {
 
     private final Log log;
-    private final String defaultType;
 
     public ClassDiscoveryImpl(final LogFactory logs) {
         this.log = logs.createLog(getClass());
-        this.defaultType = (String) Methods.get(ServiceProvider.class, new Methods.Invoker<ServiceProvider>() {
-            public void invoke(final ServiceProvider capture) {
-                capture.type();
-            }
-        }).getDefaultValue();
     }
 
     public <T> Class<T>[] findComponentClasses(final Class<T> api, final ClassLoader classLoader, final boolean strict) {
         final ServiceProvider annotation = api.getAnnotation(ServiceProvider.class);
-        return findComponentClasses(annotation == null ? defaultType : annotation.type(), api, classLoader, strict);
+        return findComponentClasses(annotation == null ? ServiceProviders.TYPE : annotation.type(), api, classLoader, strict);
     }
 
     private <T> Class<T>[] findComponentClasses(final String type, final Class<T> api, final ClassLoader cl, final boolean strict) {
         final ClassLoader classLoader = cl == null ? ClassLoaders.findClassLoader(api) : cl;
         log.debug("Loading '%s' type service provider files for %s using class loader %s", type, api, classLoader);
+
+        final String root = ServiceProviders.location(type).concat("/");
 
         final Collection<Class<T>> componentList = Exceptions.wrap(new Exceptions.Command<Collection<Class<T>>>() {
             public Collection<Class<T>> run() throws Exception {
@@ -72,7 +68,7 @@ final class ClassDiscoveryImpl implements ClassDiscovery {
 
                 final Set<URL> loaded = new HashSet<URL>();
 
-                for (final URL url : Collections.list(classLoader.getResources(ClassLoaders.absoluteResourceName("META-INF/%s/%s", type, api.getName())))) {
+                for (final URL url : Collections.list(classLoader.getResources(ClassLoaders.absoluteResourceName(root.concat(api.getName()))))) {
 
                     /* Some dumb class loaders load JAR files more than once */
                     if (!loaded.contains(url)) {

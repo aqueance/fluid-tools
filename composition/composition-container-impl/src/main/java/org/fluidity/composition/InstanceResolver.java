@@ -78,7 +78,7 @@ final class InstanceResolver extends AbstractResolver {
     }
 
     @Override
-    public Object cached(final Object domain, final Object container, final ComponentContext context) {
+    public Object cached(final Object domain, final String source, final ComponentContext context) {
         return instance;
     }
 

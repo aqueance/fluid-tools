@@ -24,8 +24,24 @@ import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
 
 /**
- * Defines the behavior of component factories. Component instantiation follows a certain protocol and <code>ComponentFactory</code> objects must follow that
- * protocol to integrate well to Fluid Tools. This interface defines the necessary methods and interfaces for that integration.
+ * Creates instances of a component when mere constructor and field injection is not adequate. You don't directly use this interface but use {@link
+ * CustomComponentFactory} or {@link ComponentVariantFactory} instead.
+ * <p/>
+ * Component instantiation follows a certain protocol and <code>ComponentFactory</code> objects must follow that protocol to integrate well to Fluid Tools.
+ * This interface defines the necessary methods and interfaces for that integration.
+ * <p/>
+ * The protocol is as follows:
+ * <ul>
+ * <li>The {@link #resolve(ComponentContext, ComponentFactory.Resolver)} method is called with the context for the new component</li>
+ * <li>The receiver uses the provided {@link ComponentFactory.Resolver resolver} to resolve the dependencies of the to be new component without actually
+ * instantiating anything.</li>
+ * <li>At some point later, the {@link ComponentFactory.Instance#bind(ComponentFactory.Registry)} method is invoked on the returned object to bind, in a
+ * transient container, the component to be instantiated and its local dependencies.</li>
+ * <li>At some point later, the transient container is asked for the component by the component interface the factory is {@linkplain
+ * org.fluidity.composition.Component bound against}.</li>
+ * </ul>
+ * <h3>Usage</h3>
+ * You use this interface via one of its sub-interfaces: {@link CustomComponentFactory} or {@link ComponentVariantFactory}.
  */
 public interface ComponentFactory {
 

@@ -39,7 +39,7 @@ final class ComponentCacheImpl implements ComponentCache {
         this.log = logs.createLog(getClass());
     }
 
-    public Object lookup(final Object domain, final Object source, final ComponentContext context, final Class<?> api, final Instantiation factory) {
+    public Object lookup(final Object domain, final String source, final ComponentContext context, final Class<?> api, final Entry factory) {
         assert context != null : api;
         final boolean stateful = caches == null;
 
@@ -61,16 +61,16 @@ final class ComponentCacheImpl implements ComponentCache {
     }
 
     private synchronized Object lookup(final Map<ComponentContext, Object> cache,
-                                       final Object source,
+                                       final String source,
                                        final ComponentContext context,
                                        final Class<?> api,
-                                       final Instantiation factory,
+                                       final Entry factory,
                                        final Log log) {
         final boolean report = !ComponentFactory.class.isAssignableFrom(api) && log.isInfoEnabled();
 
         if (factory != null) {
             if (!cache.containsKey(context)) {
-                final Object component = factory.instantiate();
+                final Object component = factory.create();
 
                 if (!cache.containsKey(context)) {
                     cache.put(context, component);
@@ -95,7 +95,7 @@ final class ComponentCacheImpl implements ComponentCache {
                      final Object component,
                      final ComponentContext context,
                      final Log log,
-                     final Object source) {
+                     final String source) {
         if (note) {
             final String instance = component == null
                              ? String.format("no %s", api.getName())

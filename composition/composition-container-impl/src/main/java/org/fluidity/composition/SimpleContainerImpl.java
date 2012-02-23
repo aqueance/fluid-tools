@@ -348,7 +348,7 @@ final class SimpleContainerImpl extends EmptyDependencyGraph implements ParentCo
         if (resolver == null) {
             return parent != null ? parent.cached(api, context) : null;
         } else {
-            return resolver.cached(domain, this, context);
+            return resolver.cached(domain, toString(), context);
         }
     }
 

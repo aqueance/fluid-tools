@@ -22,13 +22,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
@@ -36,7 +34,8 @@ import java.util.jar.JarInputStream;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
 
-import org.fluidity.deployment.maven.MavenSupport;
+import org.fluidity.deployment.maven.ArchivesSupport;
+import org.fluidity.deployment.maven.DependenciesSupport;
 import org.fluidity.deployment.plugin.spi.JarManifest;
 import org.fluidity.foundation.Archives;
 import org.fluidity.foundation.ServiceProviders;
@@ -166,7 +165,7 @@ public class StandaloneJarMojo extends AbstractMojo {
     private List<RemoteRepository> repositories;
 
     public void execute() throws MojoExecutionException {
-        if (!MavenSupport.JAR_TYPE.equals(packaging)) {
+        if (!DependenciesSupport.JAR_TYPE.equals(packaging)) {
             throw new MojoExecutionException("This is not a .jar project");
         } else if (!packageFile.exists()) {
             throw new MojoExecutionException(String.format("%s does not exist", packageFile));
@@ -178,19 +177,17 @@ public class StandaloneJarMojo extends AbstractMojo {
             throw new MojoExecutionException(String.format("No %s implementation found", JarManifest.class.getName()));
         }
 
-        final Collection<Artifact> compileDependencies = MavenSupport.compileDependencies(repositorySystem, repositorySession, repositories, project);
-        final Collection<Artifact> runtimeDependencies = MavenSupport.runtimeDependencies(repositorySystem, repositorySession, repositories, project);
+        final Collection<Artifact> compileDependencies = DependenciesSupport.compileDependencies(repositorySystem, repositorySession, repositories, project);
+        final Collection<Artifact> runtimeDependencies = DependenciesSupport.runtimeDependencies(repositorySystem, repositorySession, repositories, project);
 
         // keep only JAR artifacts
         for (final Iterator<Artifact> i = runtimeDependencies.iterator(); i.hasNext();) {
             final Artifact artifact = i.next();
 
-            if (!artifact.getType().equals(MavenSupport.JAR_TYPE)) {
+            if (!artifact.getType().equals(DependenciesSupport.JAR_TYPE)) {
                 i.remove();
             }
         }
-
-        final Set<String> processedEntries = new HashSet<String>();
 
         try {
             final File file = createTempFile();
@@ -210,13 +207,13 @@ public class StandaloneJarMojo extends AbstractMojo {
                     }
                 }
 
-                final Attributes attributes = manifest.getMainAttributes();
+                final Attributes mainAttributes = manifest.getMainAttributes();
 
-                if (attributes.get(Attributes.Name.CLASS_PATH) != null) {
+                if (mainAttributes.get(Attributes.Name.CLASS_PATH) != null) {
                     throw new MojoExecutionException(String.format("Manifest contains %s", Attributes.Name.CLASS_PATH));
                 }
 
-                final String dependencyPath = MavenSupport.META_INF.concat("dependencies/");
+                final String dependencyPath = Archives.META_INF.concat("/dependencies/");
                 final List<String> dependencyList = new ArrayList<String>();
 
                 for (final Artifact artifact : runtimeDependencies) {
@@ -264,9 +261,9 @@ public class StandaloneJarMojo extends AbstractMojo {
 
                     final Collection<Artifact> dependencies = runtime ? compileDependencies : new HashSet<Artifact>(runtimeDependencies);
 
-                    final Artifact handlerArtifact = MavenSupport.dependencyArtifact(MavenSupport.dependency(handlerClass, pluginDependencies));
-                    final Collection<Artifact> unpackedClosure = MavenSupport.dependencyClosure(repositorySystem, unpacked, repositories, handlerArtifact, false, false, null);
-                    final Collection<Artifact> includedClosure = MavenSupport.dependencyClosure(repositorySystem, included, repositories, handlerArtifact, false, false, null);
+                    final Artifact handlerArtifact = DependenciesSupport.dependencyArtifact(DependenciesSupport.dependency(handlerClass, pluginDependencies));
+                    final Collection<Artifact> unpackedClosure = DependenciesSupport.dependencyClosure(repositorySystem, unpacked, repositories, handlerArtifact, false, false, null);
+                    final Collection<Artifact> includedClosure = DependenciesSupport.dependencyClosure(repositorySystem, included, repositories, handlerArtifact, false, false, null);
 
 
                     if (packaging != JarManifest.Packaging.UNPACK) {
@@ -283,9 +280,7 @@ public class StandaloneJarMojo extends AbstractMojo {
                         final String directory = handler.dependencyPath();
 
                         if (directory != null && directory.contains("/")) {
-                            throw new MojoExecutionException(String.format("Directory name '%s' returned by %s must not contain '/'",
-                                                                           directory,
-                                                                           handlerClass));
+                            throw new MojoExecutionException(String.format("Directory name '%s' returned by %s must not contain '/'", directory, handlerClass));
                         }
 
                         final String path = directory == null ? dependencyPath : String.format("%s%s/", dependencyPath, directory);
@@ -309,36 +304,24 @@ public class StandaloneJarMojo extends AbstractMojo {
                         }
                     }
 
-                    handler.processManifest(project, attributes, dependencyList, dependencies);
+                    handler.processManifest(project, mainAttributes, dependencyList, dependencies);
                 }
 
-                final byte buffer[] = new byte[1024 * 16];
+                final byte[] buffer = new byte[1024 * 16];
 
-                // copy all entries except the manifest from all bootstrap artifacts to the new jar file
-                for (final Artifact artifact : unpackedDependencies) {
-                    final JarFile input = new JarFile(artifact.getFile());
+                final Map<String, Attributes> attributesMap = ArchivesSupport.expand(outputStream, buffer, getLog(), new ArchivesSupport.Feed() {
+                    private final Iterator<Artifact> iterator = unpackedDependencies.iterator();
 
-                    try {
-                        for (final Enumeration entries = input.entries(); entries.hasMoreElements();) {
-                            final JarEntry entry = (JarEntry) entries.nextElement();
-                            final String entryName = entry.getName();
-
-                            if (!processedEntries.contains(entryName)) {
-                                if (!entryName.equals(JarFile.MANIFEST_NAME)) {
-                                    outputStream.putNextEntry(entry);
-                                    Streams.copy(input.getInputStream(entry), outputStream, buffer, false);
-                                    processedEntries.add(entryName);
-                                }
-                            }
-                        }
-                    } finally {
-                        try {
-                            input.close();
-                        } catch (final IOException ignored) {
-                            // ignored
+                    public JarFile next() throws IOException {
+                        if (iterator.hasNext()) {
+                            return new JarFile(iterator.next().getFile());
+                        } else {
+                            return null;
                         }
                     }
-                }
+                });
+
+                ArchivesSupport.include(attributesMap, manifest);
 
                 // create the new manifest
                 outputStream.putNextEntry(new JarEntry(JarFile.MANIFEST_NAME));
@@ -365,7 +348,7 @@ public class StandaloneJarMojo extends AbstractMojo {
 
                             // got to check if our project artifact is something we have created in a previous run
                             // i.e., if it contains the project artifact we're about to copy
-                            int copied = Archives.readEntries(dependency.toURI().toURL(), new Archives.EntryReader() {
+                            int processed = Archives.readEntries(dependency.toURI().toURL(), new Archives.EntryReader() {
                                 public boolean matches(final JarEntry entry) throws IOException {
                                     return entryName.equals(entry.getName());
                                 }
@@ -376,7 +359,7 @@ public class StandaloneJarMojo extends AbstractMojo {
                                 }
                             });
 
-                            if (copied > 0) {
+                            if (processed > 0) {
                                 continue;
                             }
                         }
@@ -392,7 +375,7 @@ public class StandaloneJarMojo extends AbstractMojo {
                 }
             }
 
-            MavenSupport.saveArtifact(project, file, finalName, classifier, packaging);
+            DependenciesSupport.saveArtifact(project, file, finalName, classifier, packaging);
         } catch (final IOException e) {
             throw new MojoExecutionException(String.format("Processing %s", packageFile), e);
         }

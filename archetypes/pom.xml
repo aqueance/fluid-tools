@@ -51,18 +51,6 @@
 
     <build>
 
-        <resources>
-            <resource>
-                <directory>src/main/resources</directory>
-                <filtering>false</filtering>
-            </resource>
-            <resource>
-                <directory>src/licenses</directory>
-                <filtering>true</filtering>
-                <targetPath>META-INF</targetPath>
-            </resource>
-        </resources>
-
         <extensions>
             <extension>
                 <groupId>org.apache.maven.archetype</groupId>

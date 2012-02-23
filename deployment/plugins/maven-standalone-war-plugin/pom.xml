@@ -99,7 +99,7 @@ above.
 
         <dependency>
             <groupId>${fluidity.deployment.groupId}</groupId>
-            <artifactId>maven-dependency-utils</artifactId>
+            <artifactId>maven-plugin-support</artifactId>
             <version>${project.version}</version>
         </dependency>
 

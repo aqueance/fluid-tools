@@ -33,6 +33,9 @@ import java.util.jar.Manifest;
  */
 public final class Archives extends Utility {
 
+    public static final String META_INF = "META-INF";
+    public static final String WEB_INF = "WEB-INF";
+
     private Archives() { }
 
     /**

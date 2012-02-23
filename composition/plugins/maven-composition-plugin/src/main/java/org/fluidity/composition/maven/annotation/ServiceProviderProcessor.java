@@ -19,11 +19,10 @@ package org.fluidity.composition.maven.annotation;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.fluidity.composition.ServiceProvider;
 import org.fluidity.composition.maven.ClassReaders;
 import org.fluidity.composition.maven.ClassRepository;
 import org.fluidity.foundation.Exceptions;
-import org.fluidity.foundation.Methods;
+import org.fluidity.foundation.ServiceProviders;
 
 import org.apache.maven.plugin.MojoExecutionException;
 import org.objectweb.asm.AnnotationVisitor;
@@ -37,16 +36,6 @@ import org.objectweb.asm.commons.EmptyVisitor;
  * @author Tibor Varga
  */
 public final class ServiceProviderProcessor extends EmptyVisitor {
-
-    private static final String defaultType;
-
-    static {
-        defaultType = (String) Methods.get(ServiceProvider.class, new Methods.Invoker<ServiceProvider>() {
-            public void invoke(final ServiceProvider capture) {
-                capture.type();
-            }
-        }).getDefaultValue();
-    }
 
     private static final String ATR_API = "api";
     private static final String ATR_TYPE = "type";
@@ -62,9 +51,7 @@ public final class ServiceProviderProcessor extends EmptyVisitor {
         this.repository = repository;
         this.classData = classData;
         this.callback = callback;
-
-        this.type = defaultType;
-        assert type != null;
+        this.type = ServiceProviders.TYPE;
     }
 
     @Override
@@ -133,13 +120,9 @@ public final class ServiceProviderProcessor extends EmptyVisitor {
                 }
 
                 callback.complete(ServiceProviderProcessor.this);
+
                 return null;
             }
         });
     }
-
-    public boolean isDefaultType() {
-        return type.equals(defaultType);
-    }
-
 }

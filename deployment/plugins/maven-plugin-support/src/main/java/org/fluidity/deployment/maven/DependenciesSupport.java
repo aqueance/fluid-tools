@@ -62,15 +62,13 @@ import org.sonatype.aether.util.graph.PreorderNodeListGenerator;
  * @author Tibor Vara
  */
 @SuppressWarnings("UnusedDeclaration")
-public final class MavenSupport extends Utility {
+public final class DependenciesSupport extends Utility {
 
-    private MavenSupport() { }
+    private DependenciesSupport() { }
 
     public static final String POM_TYPE = "pom";
     public static final String JAR_TYPE = "jar";
     public static final String WAR_TYPE = "war";
-    public static final String META_INF = "META-INF/";
-    public static final String WEB_INF = "WEB-INF/";
 
     private static final String MANIFEST_MAVEN_GROUP_ID = "Maven-Group-Id";
     private static final String MANIFEST_MAVEN_ARTIFACT_ID = "Maven-Artifact-Id";

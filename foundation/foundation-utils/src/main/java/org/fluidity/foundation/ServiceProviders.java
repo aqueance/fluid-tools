@@ -33,7 +33,30 @@ import sun.misc.ServiceConfigurationError;
  */
 public final class ServiceProviders extends Utility {
 
+    /**
+     * The name of the subdirectory in JAR files that contains service provider files.
+     */
+    public static final String TYPE = "services";
+
+    /**
+     * The directory in JAR files that contains service provider files.
+     */
+    public static final String LOCATION = String.format("%s/%s", Archives.META_INF, TYPE);
+
     private ServiceProviders() { }
+
+    /**
+     * Returns the directory in JAR files that could contain Fluid Tools {@link org.fluidity.composition.ServiceProvider @ServiceProvider} files of the given
+     * type.
+     *
+     * @param type the service provider type.
+     *
+     * @return a directory name.
+     */
+    @SuppressWarnings("JavadocReference")
+    public static String location(final String type) {
+        return TYPE.equals(type) ? LOCATION : String.format("%s/%s", LOCATION, type);
+    }
 
     /**
      * Returns the first service provider implementation for the given interface.

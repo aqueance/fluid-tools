@@ -109,11 +109,11 @@ interface ComponentResolver extends ContextNode {
     /**
      * Checks if an instance has been cached for the given component context, and returns the instance of found. This method never instantiates classes.
      *
-     * @param domain    the domain container.
-     * @param container the container calling the resolver.
-     * @param context   the component context to check.
+     * @param domain  the domain container.
+     * @param source  identifies the container calling the resolver.
+     * @param context the component context to check.
      *
      * @return the instance if found cached, <code>null</code> otherwise.
      */
-    Object cached(Object domain, Object container, ComponentContext context);
+    Object cached(Object domain, String source, ComponentContext context);
 }

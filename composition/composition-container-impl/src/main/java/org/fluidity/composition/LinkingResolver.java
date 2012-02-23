@@ -70,8 +70,8 @@ final class LinkingResolver extends AbstractResolver {
     }
 
     @Override
-    public Object cached(final Object domain, final Object container, final ComponentContext context) {
-        return delegate.cached(domain, container, context);
+    public Object cached(final Object domain, final String source, final ComponentContext context) {
+        return delegate.cached(domain, source, context);
     }
 
     @Override

@@ -49,6 +49,7 @@ import org.fluidity.composition.spi.PackageBindings;
 import org.fluidity.foundation.ClassLoaders;
 import org.fluidity.foundation.Exceptions;
 import org.fluidity.foundation.Methods;
+import org.fluidity.foundation.ServiceProviders;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.Build;
@@ -170,7 +171,9 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
         for (final Map.Entry<String, Map<String, Collection<String>>> entry : serviceProviderMap.entrySet()) {
             final String type = entry.getKey();
             final Map<String, Collection<String>> providerMap = entry.getValue();
-            final File servicesDirectory = new File(new File(classesDirectory, "META-INF"), type);
+
+            final String root = ServiceProviders.location(type);
+            final File servicesDirectory = new File(classesDirectory, root);
 
             for (final Map.Entry<String, Collection<String>> providerEntry : providerMap.entrySet()) {
                 final Collection<String> list = providerEntry.getValue();
@@ -186,7 +189,8 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
 
             for (final Map.Entry<String, Collection<String>> providerEntry : providerMap.entrySet()) {
                 if (!providerEntry.getValue().isEmpty()) {
-                    log.info(String.format("Service provider descriptor META-INF/%s/%s contains:", type, providerEntry.getKey()));
+                    log.info(String.format("Service provider descriptor %s/%s contains:", root, providerEntry.getKey()));
+
                     final File serviceProviderFile = new File(servicesDirectory, providerEntry.getKey());
                     serviceProviderFile.delete();
 
@@ -418,15 +422,15 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
                                     return new ServiceProviderProcessor(repository, reader, new ProcessorCallback<ServiceProviderProcessor>() {
                                         public void complete(final ServiceProviderProcessor processor) {
                                             final String type = processor.type();
-                                            Set<String> list = serviceProviderApis.get(type);
 
+                                            Set<String> list = serviceProviderApis.get(type);
                                             if (list == null) {
                                                 serviceProviderApis.put(type, list = new HashSet<String>());
                                             }
 
                                             list.addAll(processor.apiSet());
 
-                                            if (processor.isDefaultType()) {
+                                            if (type.equals(ServiceProviders.TYPE)) {
                                                 publicApis.addAll(list);
                                             }
                                         }

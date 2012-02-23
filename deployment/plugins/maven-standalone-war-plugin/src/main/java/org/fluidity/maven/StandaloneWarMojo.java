@@ -23,8 +23,11 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
@@ -32,7 +35,9 @@ import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
 
 import org.fluidity.deployment.impl.WarBootstrapLoader;
-import org.fluidity.deployment.maven.MavenSupport;
+import org.fluidity.deployment.maven.ArchivesSupport;
+import org.fluidity.deployment.maven.DependenciesSupport;
+import org.fluidity.foundation.Archives;
 import org.fluidity.foundation.Streams;
 
 import org.apache.maven.artifact.Artifact;
@@ -179,7 +184,7 @@ public class StandaloneWarMojo extends AbstractMojo {
     private List<RemoteRepository> repositories;
 
     public void execute() throws MojoExecutionException {
-        if (!MavenSupport.WAR_TYPE.equals(packaging)) {
+        if (!DependenciesSupport.WAR_TYPE.equals(packaging)) {
             throw new MojoExecutionException("This is not a WAR project");
         } else if (!packageFile.exists()) {
             throw new MojoExecutionException(String.format("%s does not exist", packageFile));
@@ -188,68 +193,46 @@ public class StandaloneWarMojo extends AbstractMojo {
         final String pluginKey = Plugin.constructKey(pluginGroupId, pluginArtifactId);
         final Artifact pluginArtifact = project.getPluginArtifactMap().get(pluginKey);
 
-        final Collection<Artifact> pluginDependencies = MavenSupport.dependencyClosure(repositorySystem, repositorySession, repositories, pluginArtifact, false, false, null);
-        final Artifact handlerDependency = MavenSupport.artifact(WarBootstrapLoader.class, pluginDependencies);
+        final Collection<Artifact> pluginDependencies = DependenciesSupport.dependencyClosure(repositorySystem, repositorySession, repositories, pluginArtifact, false, false, null);
+        final Artifact handlerDependency = DependenciesSupport.artifact(WarBootstrapLoader.class, pluginDependencies);
         assert handlerDependency != null : WarBootstrapLoader.class;
 
-        final Collection<Artifact> bootstrapDependencies = MavenSupport.dependencyClosure(repositorySystem, repositorySession, repositories, handlerDependency, false, false, null);
+        final Collection<Artifact> bootstrapDependencies = DependenciesSupport.dependencyClosure(repositorySystem, repositorySession, repositories, handlerDependency, false, false, null);
 
         final Set<Artifact> serverDependencies = new HashSet<Artifact>();
 
         for (final Dependency dependency : project.getPlugin(pluginKey).getDependencies()) {
             assert !dependency.isOptional() : dependency;
-            serverDependencies.addAll(MavenSupport.dependencyClosure(repositorySystem, repositorySession, repositories, MavenSupport.dependencyArtifact(dependency), false, false, dependency.getExclusions()));
+            serverDependencies.addAll(DependenciesSupport.dependencyClosure(repositorySystem, repositorySession, repositories, DependenciesSupport.dependencyArtifact(dependency), false, false, dependency.getExclusions()));
         }
 
-        serverDependencies.removeAll(MavenSupport.dependencyClosure(repositorySystem, repositorySession, repositories, project.getArtifact(), false, false, null));
+        serverDependencies.removeAll(DependenciesSupport.dependencyClosure(repositorySystem, repositorySession, repositories, project.getArtifact(), false, false, null));
         serverDependencies.removeAll(pluginDependencies);
         serverDependencies.remove(pluginArtifact);
-
-        final Set<String> processedEntries = new HashSet<String>();
 
         try {
             final File file = createTempFile();
             final JarOutputStream outputStream = new JarOutputStream(new FileOutputStream(file));
-            String mainClass = null;
+            final AtomicReference<String> mainClass = new AtomicReference<String>();
 
             try {
-                boolean manifestFound = false;
                 final byte buffer[] = new byte[1024 * 16];
 
-                for (final Artifact artifact : bootstrapDependencies) {
-                    final JarFile jarInput = new JarFile(artifact.getFile());
+                final Map<String, Attributes> attributesMap = ArchivesSupport.expand(outputStream, buffer, getLog(), new ArchivesSupport.Feed() {
+                    private final Iterator<Artifact> iterator = bootstrapDependencies.iterator();
 
-                    if (mainClass == null) {
-                        mainClass = (String) jarInput.getManifest().getMainAttributes().get(Attributes.Name.MAIN_CLASS);
-                    }
-
-                    try {
-                        for (final Enumeration<JarEntry> entries = jarInput.entries(); entries.hasMoreElements();) {
-                            final JarEntry entry = entries.nextElement();
-                            final String entryName = entry.getName();
-
-                            if (!processedEntries.contains(entryName)) {
-
-                                // copy all entries except the META-INF directory
-                                if (!entryName.startsWith(MavenSupport.META_INF)) {
-                                    outputStream.putNextEntry(entry);
-                                    Streams.copy(jarInput.getInputStream(entry), outputStream, buffer, false);
-                                    processedEntries.add(entryName);
-                                }
-                            } else if (!entryName.endsWith("/")) {
-                                throw new MojoExecutionException(String.format("Duplicate entry: %s", entryName));
-                            }
-                        }
-                    } finally {
-                        try {
-                            jarInput.close();
-                        } catch (final IOException ignored) {
-                            // ignored
+                    public JarFile next() throws IOException {
+                        if (iterator.hasNext()) {
+                            final JarFile jar = new JarFile(iterator.next().getFile());
+                            mainClass.compareAndSet(null, (String) jar.getManifest().getMainAttributes().get(Attributes.Name.MAIN_CLASS));
+                            return jar;
+                        } else {
+                            return null;
                         }
                     }
-                }
+                });
 
-                if (mainClass == null) {
+                if (mainClass.get() == null) {
                     throw new MojoExecutionException(String.format("None of the following dependencies specified a main class (manifest entry '%s'): %s",
                                                                    Attributes.Name.MAIN_CLASS,
                                                                    bootstrapDependencies));
@@ -257,12 +240,12 @@ public class StandaloneWarMojo extends AbstractMojo {
 
                 final Set<String> bootLibraries = new HashSet<String>();
 
-                final String libDirectory = MavenSupport.WEB_INF.concat("lib");
+                final String libDirectory = Archives.WEB_INF.concat("/lib/");
                 for (final Artifact artifact : serverDependencies) {
-                    bootLibraries.add(String.format("%s/%s", libDirectory, artifact.getFile().getName()));
+                    bootLibraries.add(libDirectory.concat(artifact.getFile().getName()));
                 }
 
-                final String bootDirectory = MavenSupport.WEB_INF.concat("boot/");
+                final String bootDirectory = Archives.WEB_INF.concat("/boot/");
                 final JarFile warInput = new JarFile(packageFile);
 
                 try {
@@ -270,14 +253,17 @@ public class StandaloneWarMojo extends AbstractMojo {
                     final Attributes mainAttributes = manifest.getMainAttributes();
 
                     if (mainAttributes.getValue(Attributes.Name.MAIN_CLASS) != null) {
-                        throw new MojoExecutionException(String.format("Manifest already contains %s: %s",
-                                                                       Attributes.Name.MAIN_CLASS,
+                        throw new MojoExecutionException(String.format("Manifest already contains %s: %s", Attributes.Name.MAIN_CLASS,
                                                                        mainAttributes.getValue(Attributes.Name.MAIN_CLASS)));
                     }
 
-                    mainAttributes.putValue(Attributes.Name.MAIN_CLASS.toString(), mainClass);
+                    mainAttributes.putValue(Attributes.Name.MAIN_CLASS.toString(), mainClass.get());
 
-                    for (final Enumeration entries = warInput.entries(); entries.hasMoreElements();) {
+                    ArchivesSupport.include(attributesMap, manifest);
+
+                    boolean manifestFound = false;
+
+                    for (final Enumeration entries = warInput.entries(); entries.hasMoreElements(); ) {
                         final JarEntry entry = (JarEntry) entries.nextElement();
                         final String entryName = entry.getName();
 
@@ -288,7 +274,7 @@ public class StandaloneWarMojo extends AbstractMojo {
                                 manifestFound = true;
                             }
                         } else {
-                            if (!processedEntries.contains(entryName) && !entryName.startsWith(bootDirectory)) {
+                            if (!attributesMap.containsKey(entryName) && !entryName.startsWith(bootDirectory)) {
                                 if (!commandLineOnly || !bootLibraries.contains(entryName)) {
                                     outputStream.putNextEntry(entry);
                                     Streams.copy(warInput.getInputStream(entry), outputStream, buffer, false);
@@ -330,7 +316,7 @@ public class StandaloneWarMojo extends AbstractMojo {
                 }
             }
 
-            MavenSupport.saveArtifact(project, file, finalName, classifier, packaging);
+            DependenciesSupport.saveArtifact(project, file, finalName, classifier, packaging);
         } catch (final IOException e) {
             throw new MojoExecutionException(String.format("Processing %s", packageFile), e);
         }

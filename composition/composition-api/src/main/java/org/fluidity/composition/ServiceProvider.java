@@ -23,6 +23,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import org.fluidity.foundation.ServiceProviders;
+
 /**
  * Declares that the annotated class, or implementing classes of the annotated interface, are service providers in the <a
  * href="http://download.oracle.com/javase/1.5.0/docs/guide/jar/jar.html#Service Provider">JAR File Specification</a>'s sense. As long as the
@@ -58,9 +60,9 @@ public @interface ServiceProvider {
      * Specifies the what type of service provider the annotated class is. The Java platform uses the default value, "services", which adds requirements to the
      * class such as for the class to be public and to have a public zero-argument constructor.
      * <p/>
-     * The default type is understood by {@link java.util.ServiceLoader} while all types can be discovered via {@link ClassDiscovery}.
+     * The default type is understood by {@link java.util.ServiceLoader} while all types are understood by {@link ClassDiscovery}.
      *
      * @return the service provider type.
      */
-    String type() default "services";
+    String type() default ServiceProviders.TYPE;
 }
