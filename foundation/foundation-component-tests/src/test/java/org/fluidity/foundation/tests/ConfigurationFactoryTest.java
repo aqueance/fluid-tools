@@ -41,6 +41,7 @@ public class ConfigurationFactoryTest {
     }
 
     @Component
+    @SuppressWarnings("UnusedDeclaration")
     private static class NoContextConfigured {
 
         private NoContextConfigured(final Configuration<Settings> configuration) {
@@ -53,6 +54,7 @@ public class ConfigurationFactoryTest {
 
     @Component
     @Configuration.Context(ContextConfigured.ROOT)
+    @SuppressWarnings("UnusedDeclaration")
     private static class ContextConfigured {
 
         private static final String ROOT = "root";
@@ -72,6 +74,11 @@ public class ConfigurationFactoryTest {
             assert String.format("%s.%s.%s", ROOT, CONTEXT2, Settings.SOME_PROPERTY).equals(settings2.property()) : settings2.property();
 
             assert configuration1 == configuration3;
+
+            final Settings settings3 = configuration3.settings();
+
+            assert settings3 != null;
+            assert String.format("%s.%s.%s", ROOT, CONTEXT1, Settings.SOME_PROPERTY).equals(settings3.property()) : settings3.property();
         }
     }
 }

@@ -41,13 +41,11 @@ import org.fluidity.composition.spi.CustomComponentFactory;
 import org.fluidity.foundation.spi.PropertyProvider;
 
 @Component(api = Configuration.class)
-@Component.Context(value = { Configuration.Context.class, Component.Reference.class })
+@Component.Context({ Configuration.Context.class, Component.Reference.class })
 final class ConfigurationFactory implements CustomComponentFactory {
 
     public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
         final Component.Reference reference = context.annotation(Component.Reference.class, Configuration.class);
-        final Configuration.Context[] contexts = context.annotations(Configuration.Context.class);
-
         final Class<?> api = reference.parameter(0);
 
         dependencies.discover(ConfigurationImpl.class);
@@ -56,10 +54,6 @@ final class ConfigurationFactory implements CustomComponentFactory {
 
             @SuppressWarnings("unchecked")
             public void bind(final Registry registry) throws ComponentContainer.BindingException {
-                if (contexts != null) {
-                    registry.bindInstance(contexts, Configuration.Context[].class);
-                }
-
                 registry.bindInstance(api, Class.class);
                 registry.bindComponent(ConfigurationImpl.class);
             }
@@ -67,6 +61,7 @@ final class ConfigurationFactory implements CustomComponentFactory {
     }
 
     @Component(automatic = false)
+    @Component.Context(Configuration.Context.class)
     static final class ConfigurationImpl<T> implements Configuration<T> {
 
         private final PropertyProvider provider;
@@ -78,14 +73,11 @@ final class ConfigurationFactory implements CustomComponentFactory {
          * @param api      the settings interface.
          * @param provider provides properties.
          * @param defaults when found, used as the provider of default values for properties missing from <code>provider</code>.
-         * @param contexts used to find the property prefix to apply to properties queried from the <code>provider</code>.
+         * @param context  used to find the property prefix to apply to properties queried from the <code>provider</code>.
          */
-        public ConfigurationImpl(final Class<T> api,
-                                 final @Optional PropertyProvider provider,
-                                 final @Optional T defaults,
-                                 final @Optional Context... contexts) {
+        public ConfigurationImpl(final Class<T> api, final @Optional PropertyProvider provider, final @Optional T defaults, final ComponentContext context) {
             this.provider = provider;
-            this.configuration = Proxies.create(api, new PropertyLoader<T>(api, propertyContexts(contexts), defaults, provider));
+            this.configuration = Proxies.create(api, new PropertyLoader<T>(api, propertyContexts(context.annotations(Context.class)), defaults, provider));
         }
 
         public T settings() {
