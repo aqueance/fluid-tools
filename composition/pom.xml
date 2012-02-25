@@ -40,12 +40,12 @@
 
     <modules>
         <module>composition-api</module>
-        <module>composition-impl</module>
-        <module>composition-container-impl</module>
+        <module>composition-container-support-impl</module>
+        <module>composition-container-simple-impl</module>
         <module>composition-container-tests</module>
         <module>composition-container-spi</module>
         <module>composition-container-support</module>
-        <module>composition-bootstrap-utils</module>
+        <module>composition-bootstrap-support</module>
         <module>composition-command-line-impl</module>
         <module>composition-web-impl</module>
         <module>plugins</module>

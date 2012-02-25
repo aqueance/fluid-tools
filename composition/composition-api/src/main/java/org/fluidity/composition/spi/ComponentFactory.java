@@ -20,6 +20,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 
+import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
 
@@ -37,28 +38,26 @@ import org.fluidity.composition.ComponentContext;
  * instantiating anything.</li>
  * <li>At some point later, the {@link ComponentFactory.Instance#bind(ComponentFactory.Registry)} method is invoked on the returned object to bind, in a
  * transient container, the component to be instantiated and its local dependencies.</li>
- * <li>At some point later, the transient container is asked for the component by the component interface the factory is {@linkplain
- * org.fluidity.composition.Component bound against} and then the transient container is discarded.</li>
+ * <li>At some point later, the transient container is asked for the component by the component interface the factory is {@linkplain Component bound against}
+ * and then the transient container is discarded.</li>
  * </ul>
  * <h3>Usage</h3>
  * <pre>
- * {@linkplain org.fluidity.composition.Component @Component}(api = <span class="hl2">MyComponent</span>.class)
+ * {@linkplain Component @Component}(api = <span class="hl2">MyComponent</span>.class)
  * final MyComponentFactory implements <span class="hl1">{@linkplain CustomComponentFactory}</span> {
  *
- *   public {@linkplain ComponentFactory.Instance Instance} <span class="hl1">resolve</span>(final {@linkplain ComponentContext} context, final {@linkplain
- * ComponentFactory.Resolver Resolver} dependencies) throws {@linkplain org.fluidity.composition.ComponentContainer.ResolutionException} {
+ *   public {@linkplain ComponentFactory.Instance Instance} <span class="hl1">resolve</span>(final {@linkplain ComponentContext} context, final {@linkplain ComponentFactory.Resolver Resolver} dependencies) throws {@linkplain org.fluidity.composition.ComponentContainer.ResolutionException} {
  *     dependencies.discover(<span class="hl3">MyComponentImpl</span>.class);
  *
  *     return new {@linkplain ComponentFactory.Instance Instance}() {
- *       public void bind(final {@linkplain ComponentFactory.Registry Registry} registry) throws {@linkplain
- * org.fluidity.composition.ComponentContainer.ResolutionException} {
+ *       public void bind(final {@linkplain ComponentFactory.Registry Registry} registry) throws {@linkplain org.fluidity.composition.ComponentContainer.ResolutionException} {
  *         registry.bindComponent(<span class="hl3">MyComponentImpl</span>.class);
  *       }
  *     }
  *   }
  * }
  *
- * {@linkplain org.fluidity.composition.Component @Component}(automatic = false)
+ * {@linkplain Component @Component}(automatic = false)
  * final <span class="hl3">MyComponentImpl</span> implements <span class="hl2">MyComponent</span> {
  *   ...
  * }
@@ -70,19 +69,17 @@ import org.fluidity.composition.ComponentContext;
  * ComponentFactory#resolve(ComponentContext, ComponentFactory.Resolver)} all contextual information the created component needs and pass them to the
  * new component as a dependency. For example:
  * <pre>
- * {@linkplain org.fluidity.composition.Component @Component}(api = <span class="hl2">CreatedComponent</span>.class)
+ * {@linkplain Component @Component}(api = <span class="hl2">CreatedComponent</span>.class)
  * {@linkplain org.fluidity.composition.Component.Context @Component.Context}(<span class="hl3">CustomContext</span>.class)
  * final class CustomFactory implements <span class="hl1">{@linkplain CustomComponentFactory}</span> {
  *
- *   public {@linkplain ComponentFactory.Instance Instance} resolve(final {@linkplain ComponentContext} context, final {@linkplain
- * ComponentFactory.Resolver Resolver} dependencies) throws {@linkplain org.fluidity.composition.ComponentContainer.ResolutionException} { {
+ *   public {@linkplain ComponentFactory.Instance Instance} resolve(final {@linkplain ComponentContext} context, final {@linkplain ComponentFactory.Resolver Resolver} dependencies) throws {@linkplain org.fluidity.composition.ComponentContainer.ResolutionException} { {
  *     final <span class="hl3">CustomContext</span>[] contexts = context.annotations(<span class="hl3">CustomContext</span>.class);
  *
  *     dependencies.discover(<span class="hl2">CreatedComponent</span>.class);
  *
  *     return new Instance() {
- *       public void bind(final {@linkplain ComponentFactory.Registry Registry} registry) throws {@linkplain
- * org.fluidity.composition.ComponentContainer.ResolutionException} {
+ *       public void bind(final {@linkplain ComponentFactory.Registry Registry} registry) throws {@linkplain org.fluidity.composition.ComponentContainer.ResolutionException} {
  *         if (contexts != null) {
  *           registry.bindInstance(contexts, <span class="hl3">CustomContext</span>[].class);
  *         }
@@ -106,17 +103,15 @@ import org.fluidity.composition.ComponentContext;
  * the factory must still be complete as that is used to distinguish between one reference to the component from other references to the same
  * component. For example:
  * <pre>
- * {@linkplain org.fluidity.composition.Component @Component}(api = <span class="hl2">CreatedComponent</span>.class)
+ * {@linkplain Component @Component}(api = <span class="hl2">CreatedComponent</span>.class)
  * {@linkplain org.fluidity.composition.Component.Context @Component.Context}(<span class="hl3">CustomContext</span>.class)
  * final class CustomFactory implements <span class="hl1">{@linkplain CustomComponentFactory}</span> {
  *
- *   public {@linkplain ComponentFactory.Instance Instance} resolve(final {@linkplain ComponentContext} context, final {@linkplain
- * ComponentFactory.Resolver Resolver} dependencies) throws {@linkplain org.fluidity.composition.ComponentContainer.ResolutionException} { {
+ *   public {@linkplain ComponentFactory.Instance Instance} resolve(final {@linkplain ComponentContext} context, final {@linkplain ComponentFactory.Resolver Resolver} dependencies) throws {@linkplain org.fluidity.composition.ComponentContainer.ResolutionException} { {
  *     dependencies.discover(<span class="hl2">CreatedComponent</span>.class);
  *
  *     return new Instance() {
- *       public void bind(final {@linkplain ComponentFactory.Registry Registry} registry) throws {@linkplain
- * org.fluidity.composition.ComponentContainer.ResolutionException} {
+ *       public void bind(final {@linkplain ComponentFactory.Registry Registry} registry) throws {@linkplain org.fluidity.composition.ComponentContainer.ResolutionException} {
  *         registry.bindComponent(<span class="hl2">CreatedComponent</span>.class);
  *       }
  *     };
@@ -150,8 +145,7 @@ public interface ComponentFactory {
      *   dependencies.<span class="hl2">discover</span>(<span class="hl3">CreatedComponent</span>.class);
      *
      *   return new {@linkplain ComponentFactory.Instance Instance}() {
-     *     public void bind(final {@linkplain ComponentFactory.Registry Registry} registry) throws {@linkplain
-     * org.fluidity.composition.ComponentContainer.ResolutionException} {
+     *     public void bind(final {@linkplain ComponentFactory.Registry Registry} registry) throws {@linkplain org.fluidity.composition.ComponentContainer.ResolutionException} {
      *       registry.bindComponent(<span class="hl3">CreatedComponent</span>.class);
      *     }
      *   }
@@ -160,15 +154,12 @@ public interface ComponentFactory {
      * <p/>
      * The following code snippet shows the pattern of the implementation in case it has to call the component's constructor:
      * <pre>
-     * public {@linkplain ComponentFactory.Instance Instance} <span class="hl1">resolve</span>(final {@linkplain ComponentContext} context, final {@linkplain
-     * ComponentFactory.Resolver Resolver} dependencies) throws {@linkplain org.fluidity.composition.ComponentContainer.ResolutionException} {
+     * public {@linkplain ComponentFactory.Instance Instance} <span class="hl1">resolve</span>(final {@linkplain ComponentContext} context, final {@linkplain ComponentFactory.Resolver Resolver} dependencies) throws {@linkplain org.fluidity.composition.ComponentContainer.ResolutionException} {
      *   final Dependency&lt;?>[] <span class="hl2">parameters</span> = dependencies.discover(<span class="hl3">CreatedComponent</span>.class);
      *
      *   return new {@linkplain ComponentFactory.Instance Instance}() {
-     *     public void bind(final {@linkplain ComponentFactory.Registry Registry} registry) throws {@linkplain
-     * org.fluidity.composition.ComponentContainer.ResolutionException} {
-     *       registry.bindInstance(new <span class="hl3">CreatedComponent</span>((Dependency1) <span class="hl2">parameters</span>[0], (Dependency2) <span
-     * class="hl2">parameters</span>[2], "some text", 5);
+     *     public void bind(final {@linkplain ComponentFactory.Registry Registry} registry) throws {@linkplain org.fluidity.composition.ComponentContainer.ResolutionException} {
+     *       registry.bindInstance(new <span class="hl3">CreatedComponent</span>((Dependency1) <span class="hl2">parameters</span>[0], (Dependency2) <span class="hl2">parameters</span>[2], "some text", 5);
      *     }
      *   }
      * }
@@ -182,10 +173,8 @@ public interface ComponentFactory {
      *   final Dependency&lt;Dependency2> <span class="hl2">dependency2</span> = dependencies.resolve(Dependency2.class);
      *
      *   return new {@linkplain ComponentFactory.Instance Instance}() {
-     *     public void bind(final {@linkplain ComponentFactory.Registry Registry} registry) throws {@linkplain
-     * org.fluidity.composition.ComponentContainer.ResolutionException} {
-     *       registry.bindInstance(external.create(<span class="hl2">dependency1</span>.instance(), <span class="hl2">dependency2</span>.instance(), "some
-     * text", 5);
+     *     public void bind(final {@linkplain ComponentFactory.Registry Registry} registry) throws {@linkplain org.fluidity.composition.ComponentContainer.ResolutionException} {
+     *       registry.bindInstance(external.create(<span class="hl2">dependency1</span>.instance(), <span class="hl2">dependency2</span>.instance(), "some text", 5);
      *     }
      *   }
      * }
@@ -314,13 +303,13 @@ public interface ComponentFactory {
          * Binds a component class to a list of component interfaces in the container behind this registry.
          *
          * @param implementation see {@link org.fluidity.composition.ComponentContainer.Registry#bindComponent(Class, Class...)
-         *                       ComponentContainer.Registry.bindComponent()}.
+         *                       org.fluidity.composition.ComponentContainer.Registry.bindComponent()}.
          * @param interfaces     see {@link org.fluidity.composition.ComponentContainer.Registry#bindComponent(Class, Class...)
-         *                       ComponentContainer.Registry.bindComponent()}.
+         *                       org.fluidity.composition.ComponentContainer.Registry.bindComponent()}.
          *
          * @throws ComponentContainer.BindingException
          *          see {@link org.fluidity.composition.ComponentContainer.Registry#bindComponent(Class, Class...)
-         *          ComponentContainer.Registry.bindComponent()}.
+         *          org.fluidity.composition.ComponentContainer.Registry.bindComponent()}.
          */
         <T> void bindComponent(Class<T> implementation, Class<? super T>... interfaces) throws ComponentContainer.BindingException;
 
@@ -328,13 +317,13 @@ public interface ComponentFactory {
          * Binds a component instance to a list of component interfaces in the container behind this registry.
          *
          * @param instance   see {@link org.fluidity.composition.ComponentContainer.Registry#bindInstance(Object, Class...)
-         *                   ComponentContainer.Registry.bindInstance()}.
+         *                   org.fluidity.composition.ComponentContainer.Registry.bindInstance()}.
          * @param interfaces see {@link org.fluidity.composition.ComponentContainer.Registry#bindInstance(Object, Class...)
-         *                   ComponentContainer.Registry.bindInstance()}.
+         *                   org.fluidity.composition.ComponentContainer.Registry.bindInstance()}.
          *
          * @throws ComponentContainer.BindingException
          *          see {@link org.fluidity.composition.ComponentContainer.Registry#bindInstance(Object, Class...)
-         *          ComponentContainer.Registry.bindInstance()}.
+         *          org.fluidity.composition.ComponentContainer.Registry.bindInstance()}.
          */
         <T> void bindInstance(T instance, Class<? super T>... interfaces) throws ComponentContainer.BindingException;
 

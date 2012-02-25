@@ -52,7 +52,7 @@ Common classes and components to control an embedded Jetty server.
 
         <dependency>
             <groupId>${fluidity.composition.groupId}</groupId>
-            <artifactId>composition-bootstrap-utils</artifactId>
+            <artifactId>composition-bootstrap-support</artifactId>
             <version>${project.version}</version>
         </dependency>
 

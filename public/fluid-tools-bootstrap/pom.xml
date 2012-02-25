@@ -62,13 +62,13 @@ include this dependency in your projects.
 
         <dependency>
             <groupId>${fluidity.composition.groupId}</groupId>
-            <artifactId>composition-impl</artifactId>
+            <artifactId>composition-container-support-impl</artifactId>
             <version>${project.version}</version>
         </dependency>
 
         <dependency>
             <groupId>${fluidity.composition.groupId}</groupId>
-            <artifactId>composition-container-impl</artifactId>
+            <artifactId>composition-container-simple-impl</artifactId>
             <version>${project.version}</version>
         </dependency>
 

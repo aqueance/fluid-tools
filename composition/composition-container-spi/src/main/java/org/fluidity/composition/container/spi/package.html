@@ -1,0 +1,43 @@
+<!--
+  ~ Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~    http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+    <TITLE>Fluid Tools Package Overview</TITLE>
+</HEAD>
+<BODY>
+<p>
+    Service provider interfaces to be implemented by the dependency injection container implementation.
+</p>
+
+<p>
+    The entry point to the container implementation is a class implementing the {@link org.fluidity.composition.container.spi.ContainerProvider} interface that the
+    implementation must provide. As long as the implementation is built using Maven and the <code>org.fluidity.maven:maven-composition-plugin</code> Maven
+    plugin is used to build the implementation, no action is necessary for Fluid Tools to find the <code>ContainerProvider</code> other than packaging it in a
+    JAR file and making sure that JAR file is loaded by the host application.
+</p>
+
+<p>
+    The {@link org.fluidity.composition.container.spi.OpenComponentContainer} returned by the <code>ContainerProvider</code> should extend {@link
+    org.fluidity.composition.container.spi.EmptyComponentContainer}.
+</p>
+
+<p>
+    The implementation is offered a few basic services in the form of a {@link org.fluidity.composition.container.api.ContainerServices} object given to the
+    <code>ContainerProvider</code> whenever it is invoked.
+</p>
+</BODY>
+</HTML>

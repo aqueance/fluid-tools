@@ -60,13 +60,7 @@ WebApplicationLifecycleListener to be registered as a listener in the host appli
 
         <dependency>
             <groupId>${fluidity.composition.groupId}</groupId>
-            <artifactId>composition-api</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>${fluidity.composition.groupId}</groupId>
-            <artifactId>composition-bootstrap-utils</artifactId>
+            <artifactId>composition-bootstrap-support</artifactId>
             <version>${project.version}</version>
         </dependency>
 

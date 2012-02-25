@@ -16,11 +16,11 @@
 
 package org.fluidity.composition;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.concurrent.atomic.AtomicReference;
 
-import org.fluidity.composition.spi.ComponentResolutionObserver;
-import org.fluidity.composition.spi.DependencyPath;
 import org.fluidity.foundation.Strings;
 
 /**
@@ -55,7 +55,7 @@ import org.fluidity.foundation.Strings;
  * <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Component_Context">User Guide</a>.
  * <p/>
  * Containers can also be used to peek into the static dependency graph of your application. This functionality is provided by the {@link
- * ObservedComponentContainer} object returned by the {@link #observed(ComponentResolutionObserver)} method.
+ * ObservedComponentContainer} object returned by the {@link #observed(org.fluidity.composition.ComponentContainer.Observer)} method.
  * <h3>Usage</h3>
  * All examples below assume the following enclosing boilerplate:
  * <pre>
@@ -199,7 +199,7 @@ public interface ComponentContainer {
      *
      * @return a new container instance backed by this one and using the provided resolution observer.
      */
-    ObservedComponentContainer observed(ComponentResolutionObserver observer);
+    ObservedComponentContainer observed(Observer observer);
 
     /**
      * Returns a component by interface or (super)class. This method is provided for boundary objects (objects created outside the container by third party
@@ -381,26 +381,26 @@ public interface ComponentContainer {
     }
 
     /**
-     * Allows adding component {@linkplain ComponentContainer.Bindings bindings} to a {@linkplain
-     * org.fluidity.composition.spi.OpenComponentContainer dependency injection container}.
+     * Allows adding component {@linkplain ComponentContainer.Bindings bindings} to a {@linkplain org.fluidity.composition.container.spi.OpenComponentContainer
+     * dependency injection container}.
      * <p/>
      * The registry offers several ways to map an implementation to an interface in the host container. Which one you need depends on your requirements. These
-     * methods are mostly invoked from the {@link ComponentContainer.Bindings#bindComponents(ComponentContainer.Registry) bindComponents()}
-     * method of your {@linkplain org.fluidity.composition.spi.PackageBindings binding} implementation.
+     * methods are mostly invoked from the {@link ComponentContainer.Bindings#bindComponents(ComponentContainer.Registry) bindComponents()} method of your
+     * {@linkplain org.fluidity.composition.spi.PackageBindings binding} implementation.
      * <ul>
-     * <li>To simply register a component implementation for its component interfaces, use {@link #bindComponent(Class, Class[])
-     * bindComponent()}. This is exactly what the <code>org.fluidity.maven:maven-composition-plugin</code> Maven plugin does for a {@link Component @Component}
-     * annotated class with no {@link Component#automatic() &#64;Component&#40;automatic = false&#41;} setting so if this method is all you need then you
-     * should simply use the plugin instead of creating your own binding class.</li>
+     * <li>To simply register a component implementation for its component interfaces, use {@link #bindComponent(Class, Class[]) bindComponent()}. This is
+     * exactly what the <code>org.fluidity.maven:maven-composition-plugin</code> Maven plugin does for a {@link Component @Component} annotated class with no
+     * {@link Component#automatic() &#64;Component&#40;automatic = false&#41;} setting so if this method is all you need then you should simply use the plugin
+     * instead of creating your own binding class.</li>
      * <li>To register an already instantiated component implementation for a component interface, use {@link #bindInstance(Object,
-     * Class[]) bindInstance()}. If the implementation is annotated with <code>@Component</code> then its <code>@Component(automatic = ...)</code> parameter
-     * must be set to <code>false</code>.</li>
-     * <li>To register a component implementation when some or all of its dependencies are - by design - not accessible in the same container, use {@link
-     * #isolateComponent(Class, Class[]) makeChildContainer()} method and use the returned container's
-     * {@link org.fluidity.composition.spi.OpenComponentContainer#getRegistry() getRegistry()} method to gain access to the registry in which to bind the
-     * hidden dependencies. If the
-     * implementation is annotated with <code>@Component</code> then its <code>@Component(automatic = ...)</code> parameter must be set to
+     * Class[]) bindInstance()}. If
+     * the implementation is annotated with <code>@Component</code> then its <code>@Component(automatic = ...)</code> parameter must be set to
      * <code>false</code>.</li>
+     * <li>To register a component implementation when some or all of its dependencies are - by design - not accessible in the same container, use {@link
+     * #isolateComponent(Class, Class[]) makeChildContainer()} method and use the returned container's {@link org.fluidity.composition.container.spi
+     * .OpenComponentContainer#getRegistry()
+     * getRegistry()} method to gain access to the registry in which to bind the hidden dependencies. If the implementation is annotated with
+     * <code>@Component</code> then its <code>@Component(automatic = ...)</code> parameter must be set to <code>false</code>.</li>
      * </ul>
      * <p/>
      * This interface is mostly used by {@link org.fluidity.composition.spi.PackageBindings} objects to add bindings visible to the various class loaders to
@@ -518,6 +518,48 @@ public interface ComponentContainer {
          * @return an open container, never <code>null</code>.
          */
         ComponentContainer makeChildContainer();
+    }
+
+    /**
+     * Observes component dependency resolutions.
+     * <h3>Usage</h3>
+     * A {@link ComponentContainer} can be used to explore the static and dynamic dependencies starting at any component interface. See
+     * {@link ObservedComponentContainer} for an example.
+     *
+     * @author Tibor Varga
+     */
+    interface Observer {
+
+        /**
+         * Notifies the receiver that a dependency is being resolved.
+         *
+         * @param declaringType        the class having the dependency to the <code>api</code>.
+         * @param dependencyType       the class with which the <code>declaringType</code> references the dependency.
+         * @param typeAnnotations      the annotations of the declaring class.
+         * @param referenceAnnotations the annotations of the dependency reference.
+         */
+        void resolving(Class<?> declaringType, Class<?> dependencyType, Annotation[] typeAnnotations, Annotation[] referenceAnnotations);
+
+        /**
+         * Notifies the receiver that a dependency has been resolved. The path and type are not final, they may change as circular references are handled. Elements
+         * of the path are reference declarations and may not be the actual classes that will be instantiated for those references.
+         *
+         * @param path the dependency path at which the given type has been resolved.
+         * @param type the type that has been resolved at the given dependency path.
+         */
+        void resolved(DependencyPath path, Class<?> type);
+
+        /**
+         * Notifies the receiver that a dependency has been instantiated. The path and type are final. Elements of the path are actual classes that will be or have
+         * been instantiated.
+         * <p/>
+         * The {@link DependencyPath#head()} returns details about the just instantiated object.
+         *
+         * @param path      the dependency path at which the given type has been instantiated.
+         * @param reference a reference to the component that has just been instantiated. The reference will be set <em>after</em> this method returns to prevent
+         *                  the receiver from wreaking havoc by accessing the just instantiated component.
+         */
+        void instantiated(DependencyPath path, AtomicReference<?> reference);
     }
 
     /**

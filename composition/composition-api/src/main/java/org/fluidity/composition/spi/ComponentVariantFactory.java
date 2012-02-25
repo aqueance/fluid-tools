@@ -17,14 +17,16 @@
 package org.fluidity.composition.spi;
 
 /**
- * A variant factory offers context dependent instance variants of an otherwise singleton component that itself can in some way be configured to adapt to
- * various externally defined contexts. The variant factory lists the context annotations it understands in its {@link
- * org.fluidity.composition.Component.Context @Component.Context} class annotation.
+ * Turns a configurable external component into a contex aware component. A variant factory offers context dependent instance variants of an otherwise
+ * singleton component that itself can in some way be configured to adapt to various externally defined contexts. The variant factory lists the context
+ * annotations it understands in its {@link org.fluidity.composition.Component.Context @Component.Context} class annotation.
  * <p/>
  * A <code>ComponentVariantFactory</code> works in conjunction with an otherwise singleton component independently registered in a dependency injection
- * container and accessible to the factory with a binding that allows new instances to be created, i.e., the component has not been bound by {@link
+ * container and accessible to the factory with a binding that allows new instances to be created, i.e., the component has <b>not</b> been bound by {@link
  * org.fluidity.composition.ComponentContainer.Registry#bindInstance(Object, Class[])}.
+ * <h3>Usage</h3>
+ * See {@link ComponentFactory}.
  *
  * @author Tibor Varga
  */
-public interface ComponentVariantFactory extends ComponentFactory { }
+public interface ComponentVariantFactory extends ComponentFactory {}

@@ -48,7 +48,7 @@
 
         <dependency>
             <groupId>${fluidity.composition.groupId}</groupId>
-            <artifactId>composition-api</artifactId>
+            <artifactId>composition-bootstrap-support</artifactId>
             <version>${project.version}</version>
         </dependency>
 

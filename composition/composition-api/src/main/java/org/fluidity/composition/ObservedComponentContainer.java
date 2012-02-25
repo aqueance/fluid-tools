@@ -16,11 +16,9 @@
 
 package org.fluidity.composition;
 
-import org.fluidity.composition.spi.ComponentResolutionObserver;
-
 /**
  * A dependency injection container that offers traversal of static dependencies without instantiating components, and dynamic dependencies while resolving and
- * instantiating components. An <code>ObservedComponentContainer</code> instance works together with a client supplied {@link ComponentResolutionObserver}
+ * instantiating components. An <code>ObservedComponentContainer</code> instance works together with a client supplied {@link org.fluidity.composition.ComponentContainer.Observer}
  * object that it sends component resolution events to.
  * <h3>Usage</h3>
  * <pre>
@@ -35,7 +33,7 @@ import org.fluidity.composition.spi.ComponentResolutionObserver;
  *   }
  *
  *   private void exampleMethod() {
- *     final <span class="hl1">ObservedComponentContainer</span> observed = container.<span class="hl3">observed(</span>new <span class="hl2">{@linkplain ComponentResolutionObserver}</span>() {
+ *     final <span class="hl1">ObservedComponentContainer</span> observed = container.<span class="hl3">observed(</span>new <span class="hl2">{@linkplain org.fluidity.composition.ComponentContainer.Observer}</span>() {
  *       public void <span class="hl2">resolving</span>(final Class<?> declaringType,
  *                             final Class<?> dependencyType,
  *                             final Annotation[] typeAnnotations,
@@ -43,11 +41,11 @@ import org.fluidity.composition.spi.ComponentResolutionObserver;
  *         ...
  *       }
  *
- *       public void <span class="hl2">resolved</span>(final {@linkplain org.fluidity.composition.spi.DependencyPath} path, final Class&lt;?> type) {
+ *       public void <span class="hl2">resolved</span>(final {@linkplain DependencyPath} path, final Class&lt;?> type) {
  *         ...
  *       }
  *
- *       public void <span class="hl2">instantiated</span>(final {@linkplain org.fluidity.composition.spi.DependencyPath} path, final AtomicReference&lt;?> object) {
+ *       public void <span class="hl2">instantiated</span>(final {@linkplain DependencyPath} path, final AtomicReference&lt;?> object) {
  *         assert object.get() == null; // will return the just instantiated object only <b>after</b> this method completes
  *         ...
  *       }
@@ -56,7 +54,7 @@ import org.fluidity.composition.spi.ComponentResolutionObserver;
  *     &#47;* ... static dependencies only; will invoke <span class="hl2">resolving()</span> and <span class="hl2">resolved()</span>: *&#47;
  *     observed.<span class="hl1">resolveComponent</span>(SomeComponent.class);
  *
- *     &#47;* ... static and dynamic dependencies; will invoke all methods of <span class="hl2">{@linkplain ComponentResolutionObserver}</span>: *&#47;
+ *     &#47;* ... static and dynamic dependencies; will invoke all methods of <span class="hl2">{@linkplain org.fluidity.composition.ComponentContainer.Observer}</span>: *&#47;
  *     observed.<span class="hl1">getComponent</span>(SomeComponent.class);
  *   }
  * }

@@ -53,7 +53,7 @@ import org.fluidity.foundation.Utility;
  * The formal rules for discovering the component interfaces are described by the following recursive algorithm:
  * <ol>
  * <li>If the class has no {@link Component @Component} annotation, the algorithm returns the <u>class itself</u>, unless the class implements {@link
- * org.fluidity.composition.spi.ComponentFactory}, in which case the algorithm terminates with an {@linkplain
+ * ComponentFactory}, in which case the algorithm terminates with an {@linkplain
  * ComponentContainer.BindingException error}.</li>
  * <li>If the class is annotated with <code>@Component</code> and the <code>@Component(api = ...)</code> parameter is given with a non-empty array, the
  * algorithm ignores the annotated class and repeats for each class specified <code>@Component(api = {...})</code>. However, if any of these classes are
@@ -385,7 +385,7 @@ public final class Components extends Utility {
 
         private final int hash;
 
-        Interfaces(final Class<?> implementation, final Specification[] interfaces) {
+        public Interfaces(final Class<?> implementation, final Specification[] interfaces) {
             this.implementation = implementation;
             this.api = interfaces == null ? new Specification[0] : interfaces;
             this.hash = calculateHash();
@@ -459,7 +459,7 @@ public final class Components extends Utility {
          */
         public final Class<?>[] groups;
 
-        Specification(final Class<?> api, final Collection<Class<?>> groups) {
+        public Specification(final Class<?> api, final Collection<Class<?>> groups) {
             this.api = api;
             this.groups = groups == null ? new Class<?>[0] : groups.toArray(new Class<?>[groups.size()]);
         }

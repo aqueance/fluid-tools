@@ -91,7 +91,7 @@ class loader that can load classes from those embedded dependencies.
 
         <dependency>
             <groupId>${fluidity.composition.groupId}</groupId>
-            <artifactId>composition-bootstrap-utils</artifactId>
+            <artifactId>composition-bootstrap-support</artifactId>
             <version>${project.version}</version>
             <optional>true</optional>
         </dependency>

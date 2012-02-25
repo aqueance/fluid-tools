@@ -24,10 +24,10 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
-import org.fluidity.composition.ClassDiscovery;
 import org.fluidity.composition.ComponentContainer;
-import org.fluidity.composition.spi.DependencyInjector;
-import org.fluidity.composition.spi.OpenComponentContainer;
+import org.fluidity.composition.container.api.DependencyInjector;
+import org.fluidity.composition.container.spi.OpenComponentContainer;
+import org.fluidity.composition.support.ClassDiscovery;
 import org.fluidity.foundation.NoLogFactory;
 import org.fluidity.foundation.spi.LogFactory;
 import org.fluidity.tests.MockGroupAbstractTest;
