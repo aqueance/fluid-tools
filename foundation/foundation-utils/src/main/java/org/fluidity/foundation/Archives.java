@@ -31,10 +31,28 @@ import java.util.jar.Manifest;
 /**
  * Convenience methods to browse and read JAR archives.
  */
+@SuppressWarnings("UnusedDeclaration")
 public final class Archives extends Utility {
 
+    /**
+     * Name of the <code>META-INF</code> directory in JAR files.
+     */
     public static final String META_INF = "META-INF";
+
+    /**
+     * Name of the <code>WEB-INF</code> directory in WAR files.
+     */
     public static final String WEB_INF = "WEB-INF";
+
+    /**
+     * Name of the <code>APP-INF</code> directory in WAR files.
+     */
+    public static final String APP_INF = "APP-INF";
+
+    /**
+     * Name of the JAR index file in JAR files.
+     */
+    public static final String INDEX_NAME = String.format("%s/INDEX.LIST", META_INF);
 
     private Archives() { }
 

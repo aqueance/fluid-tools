@@ -1,6 +1,7 @@
 package org.fluidity.deployment.maven;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
@@ -10,6 +11,8 @@ import java.util.jar.JarFile;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
 
+import org.fluidity.foundation.Archives;
+import org.fluidity.foundation.ServiceProviders;
 import org.fluidity.foundation.Streams;
 import org.fluidity.foundation.Utility;
 
@@ -36,6 +39,7 @@ public class ArchivesSupport extends Utility {
      */
     public static Map<String, Attributes> expand(final JarOutputStream output, final byte[] buffer, final Log log, final Feed feed) throws IOException {
         final Map<String, Attributes> attributesMap = new HashMap<String, Attributes>();
+        final Map<String, String[]> providerMap = new HashMap<String, String[]>();
 
         JarFile input;
         while ((input = feed.next()) != null) {
@@ -48,12 +52,30 @@ public class ArchivesSupport extends Utility {
 
                         // copy all entries except the MANIFEST
                         if (!entryName.equals(JarFile.MANIFEST_NAME)) {
+                            if (entryName.equals(Archives.INDEX_NAME)) {
+                                log.warn(String.format("JAR index ignored in %s", input.getName()));
+                                continue;
+                            } else if (entryName.startsWith(Archives.META_INF) && entryName.toUpperCase().endsWith(".SF")) {
+                                throw new IOException(String.format("JAR signatures not supported in %s", input.getName()));
+                            } else if (entryName.startsWith(ServiceProviders.LOCATION) && !entry.isDirectory()) {
+                                final String[] list = Streams.load(input.getInputStream(entry), "UTF-8", buffer).split("[\n\r]+");
+                                final String[] present = providerMap.get(entryName);
+
+                                if (present == null) {
+                                    providerMap.put(entryName, list);
+                                } else {
+                                    final String[] combined = Arrays.copyOf(present, present.length + list.length);
+                                    System.arraycopy(list, 0, combined, present.length, list.length);
+                                    providerMap.put(entryName, combined);
+                                }
+
+                                continue;
+                            }
+
                             output.putNextEntry(entry);
                             Streams.copy(input.getInputStream(entry), output, buffer, false);
                             attributesMap.put(entryName, entry.getAttributes());
                         }
-
-                        // TODO: handle service provider files, indexes, etc.
                     } else if (!entry.isDirectory()) {
                         log.warn(String.format("Duplicate entry: %s", entryName));
                     }
@@ -65,6 +87,17 @@ public class ArchivesSupport extends Utility {
                     // ignored
                 }
             }
+        }
+
+        for (final Map.Entry<String, String[]> entry : providerMap.entrySet()) {
+            final StringBuilder contents = new StringBuilder();
+
+            for (final String line : entry.getValue()) {
+                contents.append(line).append('\n');
+            }
+
+            output.putNextEntry(new JarEntry(entry.getKey()));
+            Streams.store(output, contents.toString(), "UTF-8", buffer, false);
         }
 
         return attributesMap;

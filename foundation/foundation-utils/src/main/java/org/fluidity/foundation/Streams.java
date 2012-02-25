@@ -16,6 +16,8 @@
 
 package org.fluidity.foundation;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -64,5 +66,65 @@ public final class Streams extends Utility {
                 }
             }
         }
+    }
+
+    /**
+     * Loads into a byte array all content from the given <code>stream</code>.
+     *
+     * @param stream the stream to load the contents of.
+     * @param buffer the buffer to use.
+     *
+     * @return the contents of the given <code>stream</code>.
+     *
+     * @throws IOException thrown when reading fails.
+     */
+    public static byte[] load(final InputStream stream, final byte[] buffer) throws IOException {
+        final ByteArrayOutputStream output = new ByteArrayOutputStream();
+        Streams.copy(stream, output, buffer, true);
+        return output.toByteArray();
+    }
+
+    /**
+     * Loads into a text string all content from the given <code>stream</code>.
+     *
+     * @param stream  the stream to load the contents of.
+     * @param charset the character set of the stream.
+     * @param buffer  the buffer to use.
+     *
+     * @return the contents of the given <code>stream</code>.
+     *
+     * @throws IOException thrown when reading fails.
+     */
+    public static String load(final InputStream stream, final String charset, final byte[] buffer) throws IOException {
+        return new String(Streams.load(stream, buffer), charset);
+    }
+
+    /**
+     * Saves the given <code>data</code> to the given <code>stream</code>.
+     *
+     * @param stream the stream to save to.
+     * @param data   the contents to save.
+     * @param buffer the buffer to use.
+     * @param close  closes the output stream if <code>true</code>.
+     *
+     * @throws IOException thrown when writing fails.
+     */
+    public static void store(final OutputStream stream, final byte[] data, final byte[] buffer, final boolean close) throws IOException {
+        Streams.copy(new ByteArrayInputStream(data), stream, buffer, close);
+    }
+
+    /**
+     * Saves the given <code>text</code> to the given <code>stream</code>.
+     *
+     * @param stream  the stream to save to.
+     * @param text    the contents to save.
+     * @param charset the character set of the <code>text</code>.
+     * @param buffer  the buffer to use.
+     * @param close   closes the output stream if <code>true</code>.
+     *
+     * @throws IOException thrown when writing fails.
+     */
+    public static void store(final OutputStream stream, final String text, final String charset, final byte[] buffer, final boolean close) throws IOException {
+        Streams.store(stream, text.getBytes(charset), buffer, close);
     }
 }
