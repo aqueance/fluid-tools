@@ -37,7 +37,7 @@ import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentGroup;
 import org.fluidity.composition.Components;
 import org.fluidity.composition.container.api.DependencyInjector;
-import org.fluidity.composition.support.ClassDiscovery;
+import org.fluidity.foundation.ClassDiscovery;
 import org.fluidity.foundation.Log;
 import org.fluidity.foundation.spi.LogFactory;
 

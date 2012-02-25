@@ -22,7 +22,7 @@ import org.fluidity.composition.container.api.ContainerServices;
 import org.fluidity.composition.container.api.ContextDefinition;
 import org.fluidity.composition.container.api.DependencyInjector;
 import org.fluidity.composition.container.spi.DependencyGraph;
-import org.fluidity.composition.support.ClassDiscovery;
+import org.fluidity.foundation.ClassDiscovery;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**

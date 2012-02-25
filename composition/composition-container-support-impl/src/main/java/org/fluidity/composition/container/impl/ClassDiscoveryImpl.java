@@ -29,7 +29,7 @@ import java.util.Set;
 
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ServiceProvider;
-import org.fluidity.composition.support.ClassDiscovery;
+import org.fluidity.foundation.ClassDiscovery;
 import org.fluidity.foundation.ClassLoaders;
 import org.fluidity.foundation.Exceptions;
 import org.fluidity.foundation.Log;

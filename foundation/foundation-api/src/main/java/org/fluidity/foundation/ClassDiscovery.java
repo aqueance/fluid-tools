@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.fluidity.composition.support;
+package org.fluidity.foundation;
 
 /**
  * Partially implements the <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Service_Providers">service provider</a> discovery mechanism described
@@ -39,6 +39,7 @@ package org.fluidity.composition.support;
  *
  * @author Tibor Varga
  */
+@SuppressWarnings("JavadocReference")
 public interface ClassDiscovery {
 
     /**
