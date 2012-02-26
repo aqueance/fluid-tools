@@ -22,7 +22,25 @@ import org.fluidity.composition.container.ContextDefinition;
 /**
  * Parent container of the root dependency injection container of an application. When available, the implementation is mapped to some dependency injection
  * mechanism of the application container itself.
+ * <h3>Usage</h3>
+ * <pre>
+ * final class MyContainerBootstrapImpl implements {@linkplain org.fluidity.composition.ContainerBootstrap} {
+ *   ...
+ *   public {@linkplain OpenComponentContainer} populateContainer({@linkplain org.fluidity.composition.container.ContainerServices} services,
+ *                                                   {@linkplain ContainerProvider} provider,
+ *                                                   {@linkplain java.util.Map} properties,
+ *                                                   {@linkplain OpenComponentContainer} parent,
+ *                                                   {@linkplain ClassLoader} classLoader,
+ *                                                   <span class="hl1">PlatformContainer</span> platform,
+ *                                                   {@linkplain org.fluidity.composition.ContainerBootstrap.Callback} callback) {
+ *    ...
+ *  }
+ *   ...
+ * }
+ *
+ * </pre>
  */
+@SuppressWarnings("JavadocReference")
 public interface PlatformContainer {
 
     /**

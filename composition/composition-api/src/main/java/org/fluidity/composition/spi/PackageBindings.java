@@ -26,6 +26,8 @@ import org.fluidity.composition.ServiceProvider;
  * <p/>
  * Placing the implementation of this interface in the same package as the components it binds allows those component classes to be package protected and thus
  * makes it possible to hide them from inadvertent use.
+ * <h3>Usage</h3>
+ * See {@link EmptyPackageBindings}.
  *
  * @author Tibor Varga
  */

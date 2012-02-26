@@ -31,12 +31,14 @@ import org.fluidity.composition.container.ContextDefinition;
  * The graph is backed by static and dynamic dependencies between components. Static dependencies are those that can be discovered without instantiating
  * components while dynamic dependencies are those that require component instantiation.
  * <p/>
- * The graph allows the resolution of a component or component group interface to a component class or component classes, respectively, and, while doing so,
- * the traversal of the dependency graph under that component or component group to collect information about the dependency graph(s).
+ * The graph enables the resolution of a component or component group interface to a component class or component classes, respectively, and, while doing so,
+ * the graph also enables the traversal of the dependency graph under that component or component group to collect information about that dependency graph.
  * <p/>
  * This interface is implemented together with the {@link DependencyGraph.Traversal} interface, the implementation of which holds all state concerning the
  * particular graph traversal, and these together allow the implementation of a third interface, {@link org.fluidity.composition.ComponentContainer.Observer}, to act like a visitor by
  * getting its callback methods invoked at certain events during graph traversal.
+ * <h3>Usage</h3>
+ * See {@linkplain EmptyDependencyGraph}.
  *
  * @author Tibor Varga
  */
@@ -89,8 +91,14 @@ public interface DependencyGraph {
     Node resolveGroup(Class<?> api, ContextDefinition context, Traversal traversal, Type reference);
 
     /**
-     * A node in the graph. Nodes are created during traversal of a {@link DependencyGraph} and hold information about the node that enables proper component
-     * instantiation at the node.
+     * A node in a dependency graph. Nodes are created during traversal of a {@link DependencyGraph} and hold information about the node that enables proper
+     * component instantiation at that node.
+     * <h3>Usage</h3>
+     * <pre>
+     * final class MyNodeImpl implements <span class="hl1">DependencyGraph.Node</span> {
+     *   ...
+     * }
+     * </pre>
      *
      * @author Tibor Varga
      */
@@ -122,7 +130,13 @@ public interface DependencyGraph {
         ComponentContext context();
 
         /**
-         * A resolvable reference to a node.
+         * A resolvable reference to a node in a dependency graph.
+         * <h3>Usage</h3>
+         * <pre>
+         * final class MyNodeReferenceImpl implements <span class="hl1">DependencyGraph.Node.Reference</span> {
+         *   ...
+         * }
+         * </pre>
          *
          * @author Tibor Varga
          */
@@ -168,7 +182,12 @@ public interface DependencyGraph {
         }
 
         /**
-         * A node whose instance is known without further resolution.
+         * A node whose instance is known without further resolution, or as a result of such resolution.
+         * <h3>Usage</h3>
+         * <pre>
+         * ...
+         * return new <span class="hl1">DependencyGraph.Node.Constant</span>(..., ..., ...);
+         * </pre>
          *
          * @author Tibor Varga
          */
@@ -206,6 +225,12 @@ public interface DependencyGraph {
     /**
      * A graph traversal that maintains state during traversal such as current path, nodes and component contexts along the path, and handles circular
      * references.
+     * <h3>Usage</h3>
+     * <pre>
+     * final class MyDependencyGraphTraversalImpl implements <span class="hl1">DependencyGraph.Traversal</span> {
+     *   ...
+     * }
+     * </pre>
      *
      * @author Tibor Varga
      */

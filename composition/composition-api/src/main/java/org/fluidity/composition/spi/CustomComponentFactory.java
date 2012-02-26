@@ -26,6 +26,8 @@ package org.fluidity.composition.spi;
  * <p/>
  * If the component is context dependent, the factory class must specify on behalf of the components the valid context annotation classes using the {@link
  * org.fluidity.composition.Component.Context @Component.Context} class annotation.
+ * <h3>Usage</h3>
+ * See {@link ComponentFactory}.
  *
  * @author Tibor Varga
  */

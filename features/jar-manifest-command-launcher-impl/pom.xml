@@ -59,6 +59,12 @@
                     <scope>provided</scope> <!-- provided by the invoking standalone-jar plugin -->
                 </dependency>
 
+                <dependency>
+                    <groupId>${fluidity.deployment.groupId}</groupId>
+                    <artifactId>cli-bootstrap</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+
             </dependencies>
         </profile>
 

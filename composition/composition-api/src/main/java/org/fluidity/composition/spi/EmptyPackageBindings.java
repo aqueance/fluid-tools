@@ -21,6 +21,27 @@ import org.fluidity.composition.ComponentContainer;
 /**
  * Empty package bindings to simplify creation of actual implementations. You don't normally need to implement {@link PackageBindings} yourself but when you
  * do, this abstract implementation will give you empty implementations for all methods so that you don't have to.
+ * <h3>Usage</h3>
+ * <pre>
+ * {@linkplain SuppressWarnings @SuppressWarnings}("UnusedDeclaration")
+ * final class MyCustomBindings extends <span class="hl1">EmptyPackageBindings</span> {
+ *
+ *   {@linkplain Override @Override}
+ *   public void <span class="hl1">bindComponents</span>(final {@linkplain org.fluidity.composition.ComponentContainer.Registry} registry) {
+ *     ...
+ *   }
+ *
+ *   {@linkplain Override @Override}
+ *   public void <span class="hl1">initializeComponents</span>(final {@linkplain ComponentContainer} container) {
+ *     ...
+ *   }
+ *
+ *   {@linkplain Override @Override}
+ *   public void <span class="hl1">shutdownComponents</span>(final {@linkplain ComponentContainer} container) {
+ *     ...
+ *   }
+ * }
+ * </pre>
  *
  * @author Tibor Varga
  */

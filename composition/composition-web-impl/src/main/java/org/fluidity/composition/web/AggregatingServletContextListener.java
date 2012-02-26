@@ -24,6 +24,19 @@ import org.fluidity.composition.ContainerBoundary;
 /**
  * Forwards servlet context listener callbacks to all <code>ServletContextListener</code>s annotated with
  * {@link org.fluidity.composition.ComponentGroup @ComponentGroup}.
+ * <h3>Usage</h3>
+ * This listener is registered in a <code>web.xml</code> descriptor of a web application.
+ * <pre>
+ * &lt;web-app ...>
+ * ...
+ *   &lt;listener>
+ *     &lt;description>Helps to manage a Fluid Tools container life cycle&lt;/description>
+ *     &lt;display-name>Fluid Tools Servlet Context Listener&lt;/display-name>
+ *     &lt;listener-class><span class="hl1">org.fluidity.composition.web.AggregatingServletContextListener</span>&lt;/listener-class>
+ *   &lt;/listener>
+ * ...
+ * &lt;/web-app>
+ * </pre>
  */
 public final class AggregatingServletContextListener implements ServletContextListener {
 

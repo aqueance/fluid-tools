@@ -16,6 +16,9 @@
 
 package org.fluidity.composition.container.spi;
 
+import java.util.Collection;
+import java.util.Collections;
+
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
@@ -119,4 +122,29 @@ public class EmptyRegistryTest extends MockGroupAbstractTest {
             throw new UnsupportedOperationException();
         }
     }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void bindsComponentGroup() throws Exception {
+        final Class<?>[] elements = { GroupComponent1.class, GroupComponent2.class, GroupComponent3.class };
+
+        final Collection<Class<?>> groups = Collections.<Class<?>>singletonList(GroupComponent.class);
+        for (final Class type : elements) {
+            mock.bindComponent(new Components.Interfaces(type, new Components.Specification[] {
+                    new Components.Specification(type, groups)
+            }));
+        }
+
+        replay();
+        registry.bindComponentGroup(GroupComponent.class, (Class<GroupComponent>[]) elements);
+        verify();
+    }
+
+    interface GroupComponent { }
+
+    public static class GroupComponent1 implements GroupComponent { }
+
+    public static class GroupComponent2 implements GroupComponent { }
+
+    public static class GroupComponent3 implements GroupComponent { }
 }

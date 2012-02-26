@@ -19,14 +19,24 @@ package org.fluidity.composition.spi;
 /**
  * Enables tasks to be executed when the application shuts down. A suitable implementation is used by dependency injection containers to provide means to shut
  * down components when the application shuts down.
+ * <p/>
+ * Fluid Tools provides implementation for command line applications, web applications and OSGi bundles. If you use Fluid Tools in an application wrapper not
+ * listed here then you might need to provide an implementation of this interface for Fluid Tools to function.
+ * <h3>Usage</h3>
+ * <pre>
+ * {@linkplain org.fluidity.composition.Component @Component}
+ * final class MyShutdownTasksImpl implements <span class="hl1">ShutdownTasks</span> {
+ *     ...
+ * }
+ * </pre>
  *
  * @author Tibor Varga
  */
 public interface ShutdownTasks {
 
     /**
-     * Adds a task to be run when the application is shut down. Concrete implementations are provided for the various application types, i.e. command line, web,
-     * OSGi bundle, etc.
+     * Adds a task to be run when the application is shut down. Concrete implementations are provided for the various application types, i.e. command line,
+     * web, OSGi bundle, etc.
      *
      * @param command is the command to run prior application shutdown.
      */

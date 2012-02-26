@@ -16,9 +16,7 @@
 
 package org.fluidity.composition.container.tests;
 
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.fluidity.composition.container.ComponentCache;
@@ -28,8 +26,6 @@ import org.fluidity.composition.container.DependencyInjector;
 import org.fluidity.composition.container.spi.ContainerProvider;
 import org.fluidity.composition.container.spi.DependencyGraph;
 import org.fluidity.composition.container.spi.PlatformContainer;
-import org.fluidity.composition.spi.EmptyPackageBindings;
-import org.fluidity.composition.spi.PackageBindings;
 import org.fluidity.foundation.ClassDiscovery;
 import org.fluidity.foundation.NoLogFactory;
 import org.fluidity.foundation.spi.LogFactory;
@@ -96,65 +92,5 @@ public abstract class ContainerProviderAbstractTest extends MockGroupAbstractTes
         replay();
         assert provider.newContainer(services, platform) != null;
         verify();
-    }
-
-    @Test
-    @SuppressWarnings("unchecked")
-    public void standaloneBindings() throws Exception {
-        final Class<?>[] assemblies = { StandalonePackageBindingsImpl.class };
-
-        final PackageBindings bindings = new StandalonePackageBindingsImpl();
-        final PackageBindings[] instance = { bindings };
-
-        EasyMock.expect(context.advance(PackageBindings[].class)).andReturn(copy);
-        EasyMock.expect(traversal.follow(EasyMock.<DependencyGraph>notNull(), EasyMock.same(copy), EasyMock.<DependencyGraph.Node.Reference>notNull())).andReturn(node);
-
-        EasyMock.expect(node.instance(traversal)).andReturn(instance);
-        EasyMock.expect(injector.findConstructor(EasyMock.<Class<?>>notNull())).andReturn(null).anyTimes();
-
-        replay();
-        final List<PackageBindings> list = provider.instantiateBindings(services, map, (Class<PackageBindings>[]) assemblies);
-        verify();
-
-        assert list.equals(Arrays.asList(instance)) : list;
-    }
-
-    @Test
-    @SuppressWarnings("unchecked")
-    public void connectedBindings() throws Exception {
-        final Class<?>[] assemblies = { PackageBindingsImpl.class, DependentPackageBindingsImpl.class, ResponsiblePackageBindingsImpl.class };
-
-        final ResponsiblePackageBindingsImpl bindings1 = new ResponsiblePackageBindingsImpl();
-        final PackageBindingsImpl bindings2 = new PackageBindingsImpl(bindings1);
-        final DependentPackageBindingsImpl bindings3 = new DependentPackageBindingsImpl(bindings2);
-
-        final PackageBindings[] bindings = { bindings1, bindings2, bindings3 };
-        EasyMock.expect(context.advance(PackageBindings[].class)).andReturn(copy);
-        EasyMock.expect(traversal.follow(EasyMock.<DependencyGraph>notNull(), EasyMock.same(copy), EasyMock.<DependencyGraph.Node.Reference>notNull())).andReturn(node);
-        EasyMock.expect(injector.findConstructor(EasyMock.<Class<?>>notNull())).andReturn(null).anyTimes();
-
-        EasyMock.expect(node.instance(traversal)).andReturn(bindings);
-
-        replay();
-        final List<PackageBindings> list = provider.instantiateBindings(services, map, (Class<PackageBindings>[]) assemblies);
-        verify();
-
-        assert list.equals(Arrays.asList(bindings)) : list;
-    }
-
-    public static class ResponsiblePackageBindingsImpl extends EmptyPackageBindings { }
-
-    public static class StandalonePackageBindingsImpl extends EmptyPackageBindings { }
-
-    public static class PackageBindingsImpl extends EmptyPackageBindings {
-
-        @SuppressWarnings("UnusedDeclaration")
-        public PackageBindingsImpl(final ResponsiblePackageBindingsImpl dependent) { }
-    }
-
-    public static class DependentPackageBindingsImpl extends EmptyPackageBindings {
-
-        @SuppressWarnings("UnusedDeclaration")
-        public DependentPackageBindingsImpl(final PackageBindingsImpl dependent) { }
     }
 }

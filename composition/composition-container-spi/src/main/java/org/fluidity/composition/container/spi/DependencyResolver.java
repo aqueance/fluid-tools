@@ -24,22 +24,18 @@ import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.container.ContextDefinition;
 
 /**
- * Capable of resolving component references. A dependency injection container implements this interface for a {@link org.fluidity.composition.container.DependencyInjector} to be able to use the
- * implementation.
+ * Capable of resolving component references. A dependency injection container implements this interface for a {@link
+ * org.fluidity.composition.container.DependencyInjector} to be able to use the implementation.
+ * <h3>Usage</h3>
+ * <pre>
+ * final class MyContainerImpl extends {@linkplain EmptyDependencyGraph} implements <span class="hl1">DependencyResolver</span> {
+ *   ...
+ * }
+ * </pre>
  *
  * @author Tibor Varga
  */
 public interface DependencyResolver extends DependencyGraph {
-
-    /**
-     * Returns the context node for the given component interface.
-     *
-     * @param type    the component interface to return a context node for.
-     * @param context the context prevalent at the reference.
-     *
-     * @return the context node for the given component API or <code>null</code> if not found.
-     */
-    ContextNode contexts(Class<?> type, ContextDefinition context);
 
     /**
      * Returns a new child container with its base context set to the given definition.

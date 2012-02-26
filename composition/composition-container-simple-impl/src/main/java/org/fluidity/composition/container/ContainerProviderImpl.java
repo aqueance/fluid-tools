@@ -16,18 +16,9 @@
 
 package org.fluidity.composition.container;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-
-import org.fluidity.composition.Components;
 import org.fluidity.composition.container.spi.ContainerProvider;
-import org.fluidity.composition.container.spi.DependencyGraph;
 import org.fluidity.composition.container.spi.OpenComponentContainer;
 import org.fluidity.composition.container.spi.PlatformContainer;
-import org.fluidity.composition.spi.PackageBindings;
 
 /**
  * @author Tibor Varga
@@ -36,33 +27,5 @@ final class ContainerProviderImpl implements ContainerProvider {
 
     public OpenComponentContainer newContainer(final ContainerServices services, final PlatformContainer platform) {
         return new ComponentContainerShell(services, platform);
-    }
-
-    @SuppressWarnings("unchecked")
-    public List<PackageBindings> instantiateBindings(final ContainerServices services, final Map properties, final Class<PackageBindings>[] bindings) {
-        final SimpleContainer container = new SimpleContainerImpl(services, null);
-
-        if (properties != null) {
-            container.bindInstance(properties, Components.inspect(properties.getClass(), Map.class));
-        }
-
-        /*
-         * Add each to the container
-         */
-        final Collection<Class<?>> groups = Collections.<Class<?>>singletonList(PackageBindings.class);
-        for (final Class<PackageBindings> binding : bindings) {
-            container.bindComponent(new Components.Interfaces(binding, new Components.Specification[] {
-                    new Components.Specification(binding, groups)
-            }));
-        }
-
-        /*
-         * Get the instances in instantiation order
-         */
-        final DependencyGraph.Traversal traversal = services.graphTraversal();
-        final PackageBindings[] instances = (PackageBindings[]) container.resolveGroup(PackageBindings.class, services.emptyContext(), traversal).instance(
-                traversal);
-        assert instances != null : PackageBindings.class;
-        return Arrays.asList(instances);
     }
 }

@@ -16,16 +16,21 @@
 
 package org.fluidity.composition.container.spi;
 
-import java.util.List;
-import java.util.Map;
-
 import org.fluidity.composition.ServiceProvider;
 import org.fluidity.composition.container.ContainerServices;
-import org.fluidity.composition.spi.PackageBindings;
 
 /**
  * Provides actual dependency injection container instances and related functionality. This is an internal interface to be implemented by dependency injection
  * container implementations.
+ * <h3>Usage</h3>
+ * The only way you might ever interact with this interface is by implementing it:
+ * <pre>
+ * final class MyContainerProviderImpl implements <span class="hl1">ContainerProvider</span> {
+ *   public {@linkplain OpenComponentContainer} newContainer(final {@linkplain ContainerServices} services, final {@linkplain PlatformContainer} platform) {
+ *     return new MyContainerImpl(services, platform);
+ *   }
+ * }
+ * </pre>
  *
  * @author Tibor Varga
  */
@@ -41,15 +46,4 @@ public interface ContainerProvider {
      * @return and empty standalone dependency injection container.
      */
     OpenComponentContainer newContainer(ContainerServices services, PlatformContainer platform);
-
-    /**
-     * Instantiates all {@link org.fluidity.composition.spi.PackageBindings} classes in the given set of bindings and returns the instances in instantiation order.
-     *
-     * @param services   provides service components for containers, in case needed.
-     * @param properties properties to be made available to any {@link org.fluidity.composition.spi.PackageBindings} object that may depend on it.
-     * @param bindings   the collection of classes to instantiate. Some may depend on others in the set and that influences the instantiation order.
-     *
-     * @return the list of {@link org.fluidity.composition.spi.PackageBindings} instances in instantiation order.
-     */
-    List<PackageBindings> instantiateBindings(ContainerServices services, Map properties, Class<PackageBindings>[] bindings);
 }

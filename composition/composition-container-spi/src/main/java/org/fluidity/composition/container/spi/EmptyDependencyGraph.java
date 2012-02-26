@@ -27,6 +27,12 @@ import org.fluidity.composition.container.ContextDefinition;
  * Implements the {@link DependencyGraph#resolveComponent(Class, ContextDefinition, Traversal)} and {@link DependencyGraph#resolveGroup(Class,
  * ContextDefinition, Traversal)} methods to delegate to the {@link DependencyGraph#resolveComponent(Class, ContextDefinition, Traversal, Type)} and
  * {@link DependencyGraph#resolveGroup(Class, ContextDefinition, Traversal, Type)} methods, respectively.
+ * <h3>Usage</h3>
+ * <pre>
+ * final class MyContainerImpl extends <span class="hl1">EmptyDependencyGraph</span> {
+ *   ...
+ * }
+ * </pre>
  *
  * @author Tibor Varga
  */

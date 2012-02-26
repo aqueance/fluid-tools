@@ -29,14 +29,16 @@ import org.fluidity.composition.ComponentContainer;
  * final <span class="h1">OpenComponentContainer</span> domain = container.makeDomainContainer();
  * final {@linkplain org.fluidity.composition.ComponentContainer.Registry} registry = domain.getRegistry();
  *
- * registry.bindComponent(MyComponent.class);
+ * registry.bindComponent(<span class="hl2">MyComponent</span>.class);
  *
- * final MyComponent component = domain.getComponent(MyComponent.class);
+ * final <span class="hl2">MyComponent</span> component = domain.getComponent(<span class="hl2">MyComponent</span>.class);
  * </pre>
  *
  * @author Tibor Varga
  * @see ComponentContainer
+ * @see EmptyComponentContainer
  */
+@SuppressWarnings("JavadocReference")
 public interface OpenComponentContainer extends ComponentContainer {
 
     /**

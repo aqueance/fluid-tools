@@ -20,6 +20,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.jar.Attributes;
 
+import org.fluidity.deployment.impl.CommandLineBootstrap;
 import org.fluidity.deployment.plugin.spi.JarManifest;
 
 import org.apache.maven.artifact.Artifact;
@@ -54,12 +55,7 @@ public class CommandLineJarManifest implements JarManifest {
 
         if (originalMainClass == null) {
             final String mainClass = attributes.getValue(Attributes.Name.MAIN_CLASS);
-
-            if (mainClass == null) {
-                throw new IllegalStateException(String.format("Manifest does not contain %s", Attributes.Name.MAIN_CLASS));
-            }
-
-            attributes.putValue(JarJarLauncher.ORIGINAL_MAIN_CLASS, mainClass);
+            attributes.putValue(JarJarLauncher.ORIGINAL_MAIN_CLASS, mainClass == null ? CommandLineBootstrap.class.getName() : mainClass);
             attributes.put(Attributes.Name.MAIN_CLASS, JarJarLauncher.class.getName());
         }
 

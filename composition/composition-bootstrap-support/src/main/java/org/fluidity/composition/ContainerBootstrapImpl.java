@@ -16,6 +16,7 @@
 
 package org.fluidity.composition;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -60,7 +61,7 @@ final class ContainerBootstrapImpl implements ContainerBootstrap {
         /*
          * Let the container provider instantiate them using an actual container to resolve inter-binding dependencies.
          */
-        final List<PackageBindings> assemblies = provider.instantiateBindings(services, properties, classes);
+        final List<PackageBindings> assemblies = instantiateBindings(provider, services, properties, classes);
         assert assemblies != null;
 
         final ComponentContainer.Registry registry = container.getRegistry();
@@ -78,6 +79,7 @@ final class ContainerBootstrapImpl implements ContainerBootstrap {
         }
 
         final ContainerLifecycle state = new ContainerLifecycle(container, assemblies, callback);
+
         registry.bindInstance(state);
 
         final ContainerLifecycle parentState = parent != null ? parent.getComponent(ContainerLifecycle.class) : null;
@@ -86,6 +88,31 @@ final class ContainerBootstrapImpl implements ContainerBootstrap {
         }
 
         return container;
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<PackageBindings> instantiateBindings(final ContainerProvider provider,
+                                                      final ContainerServices services,
+                                                      final Map properties,
+                                                      final Class<PackageBindings>[] bindings) {
+        final OpenComponentContainer container = provider.newContainer(services, null);
+        final ComponentContainer.Registry registry = container.getRegistry();
+
+        if (properties != null) {
+            registry.bindInstance(properties, Map.class);
+        }
+
+        /*
+         * Add each to the container
+         */
+        registry.bindComponentGroup(PackageBindings.class, bindings);
+
+        /*
+         * Get the instances in instantiation order
+         */
+        final PackageBindings[] instances = container.getComponentGroup(PackageBindings.class);
+        assert instances != null : PackageBindings.class;
+        return Arrays.asList(instances);
     }
 
     public void initializeContainer(final OpenComponentContainer container, final ContainerServices services) {

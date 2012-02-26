@@ -493,6 +493,15 @@ public interface ComponentContainer {
         <T> void bindInstance(T instance, Class<? super T>... interfaces) throws ComponentContainer.BindingException;
 
         /**
+         * Binds all elements of an ad-hoc component group. The group interface need not be annotated with {@link ComponentGroup @ComponentGroup}.
+         *
+         * @param group the component group to bind the elements of.
+         * @param types the elements of the group.
+         * @param <T>   the group interface.
+         */
+        <T> void bindComponentGroup(Class<T> group, Class<T>[] types);
+
+        /**
          * Binds a component class to a list of component interfaces behind this registry and allows, via the returned registry, the caller to add further
          * bindings that will only be visible to the supplied component and each other. These bindings can, for the supplied component, override bindings in
          * the container behind this registry.

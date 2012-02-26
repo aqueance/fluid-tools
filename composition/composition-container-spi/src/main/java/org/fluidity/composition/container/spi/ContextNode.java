@@ -19,23 +19,31 @@ package org.fluidity.composition.container.spi;
 import java.lang.annotation.Annotation;
 
 /**
- * A node in a dependency graph where context annotations may be accepted and/or provided.
+ * A node in a dependency graph where context annotations may be accepted and/or provided. An object implementing this interface is created for every component
+ * class in a container and these objects help in the management of <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Component_Context">component
+ * context</a> when resolving dependencies.
+ * <h3>Usage</h3>
+ * <pre>
+ * final class MyContextNode implements <span class="hl1">ContextNode</span> {
+ *   ...
+ * }
+ * </pre>
  *
  * @author Tibor Varga
  */
 public interface ContextNode {
 
     /**
-     * Returns the class that may accepted context annotations at this node.
+     * Returns the class that may accept context annotations at this node.
      *
-     * @return the class that may accepted context annotations at this node; may be <code>null</code>.
+     * @return the class that may accept context annotations at this node; may be <code>null</code>.
      */
     Class<?> contextConsumer();
 
     /**
      * Returns the list of annotations defined at this node that may comprise the context of some other component.
      *
-     * @return the list of annotations defined at this node or <code>null</code> if none present.
+     * @return the list of annotations defined at this node, or <code>null</code> if none present.
      */
     Annotation[] providedContext();
 }

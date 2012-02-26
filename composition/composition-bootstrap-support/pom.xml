@@ -54,13 +54,7 @@
 
         <dependency>
             <groupId>${fluidity.composition.groupId}</groupId>
-            <artifactId>composition-api</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>${fluidity.composition.groupId}</groupId>
-            <artifactId>composition-container-spi</artifactId>
+            <artifactId>composition-container-support</artifactId>
             <version>${project.version}</version>
         </dependency>
 

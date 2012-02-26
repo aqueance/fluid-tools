@@ -16,6 +16,9 @@
 
 package org.fluidity.composition.container.spi;
 
+import java.util.Collection;
+import java.util.Collections;
+
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.Components;
 
@@ -34,6 +37,16 @@ final class EmptyRegistry implements ComponentContainer.Registry {
         return delegate.makeChildContainer();
     }
 
+    public <T> void bindComponentGroup(final Class<T> group, final Class<T>[] types) {
+        final Collection<Class<?>> groups = Collections.<Class<?>>singletonList(group);
+
+        for (final Class<T> type : types) {
+            delegate.bindComponent(new Components.Interfaces(type, new Components.Specification[] {
+                    new Components.Specification(type, groups)
+            }));
+        }
+    }
+
     @SuppressWarnings("unchecked")
     public final <T> void bindComponent(final Class<T> type, final Class<? super T>... interfaces) throws ComponentContainer.BindingException {
         delegate.bindComponent(Components.inspect(type, interfaces));
@@ -47,7 +60,8 @@ final class EmptyRegistry implements ComponentContainer.Registry {
     }
 
     @SuppressWarnings("unchecked")
-    public final <T> ComponentContainer.Registry isolateComponent(final Class<T> type, final Class<? super T>... interfaces) throws ComponentContainer.BindingException {
+    public final <T> ComponentContainer.Registry isolateComponent(final Class<T> type, final Class<? super T>... interfaces)
+            throws ComponentContainer.BindingException {
         return delegate.makeChildContainer(Components.inspect(type, interfaces)).getRegistry();
     }
 }

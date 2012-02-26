@@ -750,10 +750,6 @@ final class SimpleContainerImpl extends EmptyDependencyGraph implements ParentCo
             this.domain = domain;
         }
 
-        public ContextNode contexts(final Class<?> type, final ContextDefinition context) {
-            return SimpleContainerImpl.this.contexts(domain, type, context);
-        }
-
         public ComponentContainer container(final ContextDefinition context) {
             return SimpleContainerImpl.this.container(context);
         }

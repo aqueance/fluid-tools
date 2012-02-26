@@ -27,6 +27,7 @@ import org.fluidity.features.Scheduler;
  *
  * @author Tibor Varga
  */
+@SuppressWarnings("UnusedDeclaration")
 final class SchedulerBindings extends EmptyPackageBindings {
 
     private final AtomicReference<SchedulerImpl> scheduler = new AtomicReference<SchedulerImpl>();
