@@ -90,7 +90,7 @@ public final class Handler extends URLStreamHandler {
 
     @Override
     protected URLConnection openConnection(final URL url) throws IOException {
-        return new EmbeddedConnection(url);
+        return new Connection(url);
     }
 
     @Override
@@ -156,11 +156,11 @@ public final class Handler extends URLStreamHandler {
     /**
      * An URL connection for the represented URL protocol as required by the URL stream protocol handler framework.
      */
-    private static class EmbeddedConnection extends URLConnection {
+    private static class Connection extends URLConnection {
 
         private final URLConnection root;
 
-        public EmbeddedConnection(final URL url) throws IOException {
+        public Connection(final URL url) throws IOException {
             super(url);
 
             // the host part of our root URL itself is an URL
