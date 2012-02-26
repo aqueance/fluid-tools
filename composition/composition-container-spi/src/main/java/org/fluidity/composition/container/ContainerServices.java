@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.fluidity.composition.container.api;
+package org.fluidity.composition.container;
 
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.container.spi.DependencyGraph;
@@ -23,9 +23,19 @@ import org.fluidity.foundation.spi.LogFactory;
 
 /**
  * Common services for container implementations. This is an internal interface to be used by dependency injection container implementations.
+ * <h3>Usage</h3>
+ * <pre>
+ * final class MyContainerImpl extends {@linkplain org.fluidity.composition.container.spi.EmptyComponentContainer} {
+ *
+ *   public MyContainerImpl(final <span class="hl1">ContainerServices</span> services, final {@linkplain org.fluidity.composition.container.spi.PlatformContainer} platform) {
+ *     ...;
+ *   }
+ * }
+ * </pre>
  *
  * @author Tibor Varga
  */
+@SuppressWarnings("JavadocReference")
 public interface ContainerServices {
 
     /**
@@ -64,6 +74,15 @@ public interface ContainerServices {
      * @return a new graph traversal with the given resolution observer.
      */
     DependencyGraph.Traversal graphTraversal(ComponentContainer.Observer observer);
+
+    /**
+     * Returns an observer that delegates to all of the given observers.
+     *
+     * @param observers the observers to aggregate.
+     *
+     * @return an aggregate observer.
+     */
+    ComponentContainer.Observer aggregateObserver(ComponentContainer.Observer... observers);
 
     /**
      * Returns the logger factory to use by the container.

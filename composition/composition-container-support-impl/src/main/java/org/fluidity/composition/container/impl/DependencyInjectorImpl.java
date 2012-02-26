@@ -38,9 +38,9 @@ import org.fluidity.composition.ComponentGroup;
 import org.fluidity.composition.DependencyPath;
 import org.fluidity.composition.Inject;
 import org.fluidity.composition.Optional;
-import org.fluidity.composition.container.api.ContextDefinition;
-import org.fluidity.composition.container.api.DependencyInjector;
-import org.fluidity.composition.container.api.RestrictedContainer;
+import org.fluidity.composition.container.ContextDefinition;
+import org.fluidity.composition.container.DependencyInjector;
+import org.fluidity.composition.container.RestrictedContainer;
 import org.fluidity.composition.container.spi.ContextNode;
 import org.fluidity.composition.container.spi.DependencyGraph;
 import org.fluidity.composition.container.spi.DependencyResolver;
@@ -423,6 +423,9 @@ final class DependencyInjectorImpl implements DependencyInjector {
         return values;
     }
 
+    /**
+     * @author Tibor Varga
+     */
     private interface FieldCommand {
 
         void process(Field field);
@@ -589,6 +592,8 @@ final class DependencyInjectorImpl implements DependencyInjector {
 
     /**
      * Internal interface describing a dependency of a component.
+     *
+     * @author Tibor Varga
      */
     private interface Dependency {
 
@@ -623,6 +628,9 @@ final class DependencyInjectorImpl implements DependencyInjector {
         void set(DependencyGraph.Node node);
     }
 
+    /**
+     * @author Tibor Varga
+     */
     private static class DependencyNode implements DependencyGraph.Node {
 
         private final boolean mandatory;
@@ -658,6 +666,9 @@ final class DependencyInjectorImpl implements DependencyInjector {
         }
     }
 
+    /**
+     * @author Tibor Varga
+     */
     private static class PathNode implements DependencyGraph.Node {
         public Class<?> type() {
             return DependencyPath.class;

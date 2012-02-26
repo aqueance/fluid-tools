@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.fluidity.composition.container.api;
+package org.fluidity.composition.container;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
@@ -53,6 +53,13 @@ import org.fluidity.composition.ComponentContext;
  * This context tracking algorithm ensures that between the component that defines some context and the ones that consume it, all intermediate components will
  * also have a dedicated instance for the active context. This may not appear intuitive at first but this rule guarantees that context aware components will
  * indeed have a unique instance for each actual context in the application.
+ * <h3>Usage</h3>
+ * <pre>
+ * final {@linkplain ContainerServices} services = ...;
+ * final <span class="hl1">ContextDefinition</span> definition = services.emptyContext();
+ * ...
+ * final {@linkplain ComponentContext} context = definition.create();
+ * </pre>
  *
  * @author Tibor Varga
  */

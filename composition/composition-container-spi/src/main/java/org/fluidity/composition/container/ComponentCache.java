@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.fluidity.composition.container.api;
+package org.fluidity.composition.container;
 
 import org.fluidity.composition.ComponentContext;
 
@@ -81,6 +81,8 @@ public interface ComponentCache {
      * missing.
      * <h3>Usage</h3>
      * See {@link ComponentCache}.
+     *
+     * @author Tibor Varga
      */
     interface Entry {
 

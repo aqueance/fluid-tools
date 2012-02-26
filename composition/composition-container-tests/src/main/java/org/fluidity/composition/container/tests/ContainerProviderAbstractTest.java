@@ -21,10 +21,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.fluidity.composition.container.api.ComponentCache;
-import org.fluidity.composition.container.api.ContainerServices;
-import org.fluidity.composition.container.api.ContextDefinition;
-import org.fluidity.composition.container.api.DependencyInjector;
+import org.fluidity.composition.container.ComponentCache;
+import org.fluidity.composition.container.ContainerServices;
+import org.fluidity.composition.container.ContextDefinition;
+import org.fluidity.composition.container.DependencyInjector;
 import org.fluidity.composition.container.spi.ContainerProvider;
 import org.fluidity.composition.container.spi.DependencyGraph;
 import org.fluidity.composition.container.spi.PlatformContainer;

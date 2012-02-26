@@ -32,7 +32,6 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.DependencyPath;
-import org.fluidity.composition.container.api.ContextDefinition;
 import org.fluidity.composition.container.spi.DependencyGraph;
 
 /**
@@ -124,7 +123,7 @@ final class GroupResolver {
         return new Node() {
             public Collection<?> instance(final DependencyGraph.Traversal traversal) {
                 final List<Object> instances = new ArrayList<Object>();
-                final DependencyGraph.Traversal observed = traversal.observed(observer);
+                final DependencyGraph.Traversal observed = traversal.observed(container.services(), observer);
 
                 for (final DependencyGraph.Node node : nodes) {
                     instances.add(node.instance(observed));

@@ -17,7 +17,7 @@
 package org.fluidity.composition.container.spi;
 
 import org.fluidity.composition.ComponentContainer;
-import org.fluidity.composition.container.api.ContextDefinition;
+import org.fluidity.composition.container.ContextDefinition;
 
 /**
  * Parent container of the root dependency injection container of an application. When available, the implementation is mapped to some dependency injection

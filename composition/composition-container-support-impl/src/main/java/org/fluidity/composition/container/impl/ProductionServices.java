@@ -17,10 +17,10 @@
 package org.fluidity.composition.container.impl;
 
 import org.fluidity.composition.ComponentContainer;
-import org.fluidity.composition.container.api.ComponentCache;
-import org.fluidity.composition.container.api.ContainerServices;
-import org.fluidity.composition.container.api.ContextDefinition;
-import org.fluidity.composition.container.api.DependencyInjector;
+import org.fluidity.composition.container.ComponentCache;
+import org.fluidity.composition.container.ContainerServices;
+import org.fluidity.composition.container.ContextDefinition;
+import org.fluidity.composition.container.DependencyInjector;
 import org.fluidity.composition.container.spi.DependencyGraph;
 import org.fluidity.foundation.ClassDiscovery;
 import org.fluidity.foundation.spi.LogFactory;
@@ -60,6 +60,10 @@ final class ProductionServices implements ContainerServices {
 
     public DependencyGraph.Traversal graphTraversal(final ComponentContainer.Observer observer) {
         return new DependencyPathTraversal(injector, observer);
+    }
+
+    public ComponentContainer.Observer aggregateObserver(final ComponentContainer.Observer... observers) {
+        return CompositeObserver.combine(observers);
     }
 
     public LogFactory logs() {

@@ -29,8 +29,8 @@ import org.fluidity.foundation.ServiceProviders;
  * Declares that the annotated class, or implementing classes of the annotated interface, are service providers in the <a
  * href="http://download.oracle.com/javase/1.5.0/docs/guide/jar/jar.html#Service Provider">JAR File Specification</a>'s sense. As long as the
  * <code>org.fluidity.maven:maven-composition-plugin</code> Maven plugin is used in the host project, such classes can then be discovered in any given class
- * loader by the {@link org.fluidity.composition.support.ClassDiscovery} component, or in case the {@link #type()} parameter is not specified, using the service provider discovery mechanism
- * built in the Java platform.
+ * loader by the {@link org.fluidity.foundation.ClassDiscovery} component, or in case the {@link #type()} parameter is not specified, using the service
+ * provider discovery mechanism built in the Java platform.
  * <h3>Usage</h3>
  * <pre>
  * <span class="hl1">&#64;ServiceProvider</span>
@@ -46,6 +46,7 @@ import org.fluidity.foundation.ServiceProviders;
 @Target(ElementType.TYPE)
 @Inherited
 @Component.Context(collect = Component.Context.Collection.NONE)
+@SuppressWarnings("JavadocReference")
 public @interface ServiceProvider {
 
     /**
@@ -60,7 +61,7 @@ public @interface ServiceProvider {
      * Specifies the what type of service provider the annotated class is. The Java platform uses the default value, "services", which adds requirements to the
      * class such as for the class to be public and to have a public zero-argument constructor.
      * <p/>
-     * The default type is understood by {@link java.util.ServiceLoader} while all types are understood by {@link org.fluidity.composition.support.ClassDiscovery}.
+     * The default type is understood by {@link java.util.ServiceLoader} while all types are understood by {@link org.fluidity.foundation.ClassDiscovery}.
      *
      * @return the service provider type.
      */

@@ -22,8 +22,6 @@ import java.lang.reflect.Method;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.Components;
 import org.fluidity.composition.ObservedComponentContainer;
-import org.fluidity.composition.container.api.ContainerServices;
-import org.fluidity.composition.container.api.ContextDefinition;
 import org.fluidity.composition.container.spi.DependencyGraph;
 import org.fluidity.composition.container.spi.EmptyComponentContainer;
 import org.fluidity.composition.container.spi.OpenComponentContainer;
@@ -133,7 +131,8 @@ final class ComponentContainerShell extends EmptyComponentContainer {
     }
 
     public ObservedComponentContainer observed(final Observer observer) {
-        return observer == null ? this : new ComponentContainerShell(container, context, false, false, CompositeObserver.combine(this.observer, observer));
+        return observer == null ? this : new ComponentContainerShell(container, context, false, false, container.services().aggregateObserver(this.observer,
+                                                                                                                                              observer));
     }
 
     @Override

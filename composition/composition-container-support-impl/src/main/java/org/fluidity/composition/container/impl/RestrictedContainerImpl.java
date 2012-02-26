@@ -23,7 +23,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ObservedComponentContainer;
-import org.fluidity.composition.container.api.RestrictedContainer;
+import org.fluidity.composition.container.RestrictedContainer;
 import org.fluidity.foundation.Proxies;
 
 /**

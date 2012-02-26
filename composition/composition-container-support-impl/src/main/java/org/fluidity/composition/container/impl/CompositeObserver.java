@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package org.fluidity.composition.container;
+package org.fluidity.composition.container.impl;
 
 import java.lang.annotation.Annotation;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -31,16 +30,12 @@ import org.fluidity.composition.DependencyPath;
  *
  * @author Tibor Varga
  */
-public final class CompositeObserver implements ComponentContainer.Observer {
+final class CompositeObserver implements ComponentContainer.Observer {
 
     private final Set<ComponentContainer.Observer> observers = new LinkedHashSet<ComponentContainer.Observer>();
 
     public static ComponentContainer.Observer combine(final ComponentContainer.Observer... observers) {
-        return combine(Arrays.asList(observers));
-    }
-
-    public static ComponentContainer.Observer combine(final Collection<ComponentContainer.Observer> observers) {
-        final Set<ComponentContainer.Observer> list = new LinkedHashSet<ComponentContainer.Observer>(observers.size(), (float) 1.0);
+        final Set<ComponentContainer.Observer> list = new LinkedHashSet<ComponentContainer.Observer>(observers.length, (float) 1.0);
 
         for (final ComponentContainer.Observer observer : observers) {
             if (observer != null) {

@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package org.fluidity.composition.container;
+package org.fluidity.composition.container.impl;
 
 import java.io.Serializable;
-import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.fluidity.composition.ComponentContainer;
@@ -55,7 +54,6 @@ public class CompositeObserverTest extends MockGroupAbstractTest {
     @Test
     public void testMultiple() throws Exception {
         allThree(CompositeObserver.combine(observer1, observer2, observer3));
-        allThree(CompositeObserver.combine(Arrays.asList(observer1, observer2, observer3)));
     }
 
     private void allThree(final ComponentContainer.Observer observer) {

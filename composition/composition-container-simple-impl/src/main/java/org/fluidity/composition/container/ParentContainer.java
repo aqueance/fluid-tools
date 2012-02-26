@@ -21,7 +21,6 @@ import java.lang.reflect.Type;
 import java.util.List;
 
 import org.fluidity.composition.ComponentContext;
-import org.fluidity.composition.container.api.ContextDefinition;
 import org.fluidity.composition.container.spi.ContextNode;
 
 /**

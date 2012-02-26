@@ -21,7 +21,7 @@ import java.util.Map;
 import java.util.WeakHashMap;
 
 import org.fluidity.composition.ComponentContext;
-import org.fluidity.composition.container.api.ComponentCache;
+import org.fluidity.composition.container.ComponentCache;
 import org.fluidity.composition.spi.ComponentFactory;
 import org.fluidity.foundation.Log;
 import org.fluidity.foundation.spi.LogFactory;

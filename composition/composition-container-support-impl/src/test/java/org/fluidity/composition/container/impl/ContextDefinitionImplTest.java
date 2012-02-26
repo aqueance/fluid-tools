@@ -6,7 +6,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.util.Map;
 
 import org.fluidity.composition.Component;
-import org.fluidity.composition.container.api.ContextDefinition;
+import org.fluidity.composition.container.ContextDefinition;
 import org.fluidity.tests.MockGroupAbstractTest;
 
 import org.testng.annotations.Test;

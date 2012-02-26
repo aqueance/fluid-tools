@@ -14,13 +14,22 @@
  * limitations under the License.
  */
 
-package org.fluidity.composition.container.api;
+package org.fluidity.composition.container;
 
 import org.fluidity.composition.ServiceProvider;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**
  * Creates a {@link ContainerServices} object.
+ * <h3>Usage</h3>
+ * The only way you might ever interact with this interface is by implementing it:
+ * <pre>
+ * final MyServicesFactoryImpl implements <span class="hl1">ContainerServicesFactory</span> {
+ *   public {@linkplain ContainerServices} containerServices(final {@linkplain LogFactory} logs) {
+ *     return new ...
+ *   }
+ * }
+ * </pre>
  */
 @ServiceProvider
 public interface ContainerServicesFactory {

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.fluidity.composition.container.api;
+package org.fluidity.composition.container;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -28,6 +28,13 @@ import org.fluidity.composition.container.spi.DependencyResolver;
 
 /**
  * Performs dependency injection. This is an internal interface to be used by dependency injection container implementations.
+ * <h3>Usage</h3>
+ * <pre>
+ * final {@linkplain ContainerServices} services = ...;
+ * final <span class="hl1">DependencyInjector</span> injector = services.dependencyInjector();
+ * ...
+ * final Constructor&lt;<span class="hl2">MyComponent</span>> injector.findConstructor(<span class="hl2">MyComponent</span>.class);
+ * </pre>
  *
  * @author Tibor Varga
  */
@@ -134,6 +141,17 @@ public interface DependencyInjector {
 
     /**
      * Callback methods to resolve the various types of special and regular dependencies.
+     * <h3>Usage</h3>
+     * <pre>
+     * final {@linkplain ContainerServices} services = ...;
+     * final {@linkplain DependencyInjector} injector = services.dependencyInjector();
+     * ...
+     * final {@linkplain org.fluidity.composition.container.spi.DependencyGraph.Node} node = injector.resolve(..., new <span class="hl1">DependencyInjector.Resolution</span>() {
+     *   ...
+     * });
+     * </pre>
+     *
+     * @author Tibor Varga
      */
     public interface Resolution {
 

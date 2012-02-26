@@ -27,8 +27,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
 
-import org.fluidity.composition.container.api.ContainerServices;
-import org.fluidity.composition.container.api.ContainerServicesFactory;
+import org.fluidity.composition.container.ContainerServices;
+import org.fluidity.composition.container.ContainerServicesFactory;
 import org.fluidity.composition.container.spi.ContainerProvider;
 import org.fluidity.composition.container.spi.OpenComponentContainer;
 import org.fluidity.composition.container.spi.PlatformContainer;

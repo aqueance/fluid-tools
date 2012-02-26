@@ -16,7 +16,6 @@
 
 package org.fluidity.composition.container;
 
-import org.fluidity.composition.container.api.ContainerServices;
 import org.fluidity.composition.container.spi.OpenComponentContainer;
 import org.fluidity.composition.container.tests.ComponentContainerAbstractTest;
 

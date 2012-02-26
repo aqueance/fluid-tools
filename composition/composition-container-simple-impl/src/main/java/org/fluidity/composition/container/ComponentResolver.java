@@ -20,7 +20,6 @@ import java.lang.reflect.Type;
 import java.util.Collection;
 
 import org.fluidity.composition.ComponentContext;
-import org.fluidity.composition.container.api.ContextDefinition;
 import org.fluidity.composition.container.spi.ContextNode;
 import org.fluidity.composition.container.spi.DependencyGraph;
 

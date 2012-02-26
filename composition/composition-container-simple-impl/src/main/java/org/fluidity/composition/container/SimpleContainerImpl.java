@@ -35,10 +35,6 @@ import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.Components;
-import org.fluidity.composition.container.api.ComponentCache;
-import org.fluidity.composition.container.api.ContainerServices;
-import org.fluidity.composition.container.api.ContextDefinition;
-import org.fluidity.composition.container.api.DependencyInjector;
 import org.fluidity.composition.container.spi.ContextNode;
 import org.fluidity.composition.container.spi.DependencyResolver;
 import org.fluidity.composition.container.spi.EmptyDependencyGraph;
@@ -314,7 +310,7 @@ final class SimpleContainerImpl extends EmptyDependencyGraph implements ParentCo
 
     public <T> T observe(final ComponentContainer.Observer recent, final Observed<T> command) {
         final Traversal saved = traversal.get();
-        final Traversal current = saved == null ? services.graphTraversal(recent) : saved.observed(recent);
+        final Traversal current = saved == null ? services.graphTraversal(recent) : saved.observed(services, recent);
 
         traversal.set(current);
         try {
@@ -387,7 +383,7 @@ final class SimpleContainerImpl extends EmptyDependencyGraph implements ParentCo
                         }
                     }
 
-                    return node.instance(observers.isEmpty() ? traversal : traversal.observed(CompositeObserver.combine(observers)));
+                    return node.instance(traversal.observed(services, observers.toArray(new ComponentContainer.Observer[observers.size()])));
                 }
 
                 public ComponentContext context() {

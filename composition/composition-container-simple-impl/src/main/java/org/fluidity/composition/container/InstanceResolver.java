@@ -20,7 +20,6 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 
 import org.fluidity.composition.ComponentContext;
-import org.fluidity.composition.container.api.ContextDefinition;
 import org.fluidity.composition.container.spi.DependencyGraph;
 import org.fluidity.foundation.spi.LogFactory;
 

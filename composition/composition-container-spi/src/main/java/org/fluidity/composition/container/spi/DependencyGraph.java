@@ -22,7 +22,8 @@ import java.lang.reflect.Type;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.DependencyPath;
-import org.fluidity.composition.container.api.ContextDefinition;
+import org.fluidity.composition.container.ContainerServices;
+import org.fluidity.composition.container.ContextDefinition;
 
 /**
  * A dependency graph of components and component groups. This is an internal interface used by dependency injection container implementations.
@@ -90,6 +91,8 @@ public interface DependencyGraph {
     /**
      * A node in the graph. Nodes are created during traversal of a {@link DependencyGraph} and hold information about the node that enables proper component
      * instantiation at the node.
+     *
+     * @author Tibor Varga
      */
     interface Node {
 
@@ -120,6 +123,8 @@ public interface DependencyGraph {
 
         /**
          * A resolvable reference to a node.
+         *
+         * @author Tibor Varga
          */
         interface Reference {
 
@@ -164,6 +169,8 @@ public interface DependencyGraph {
 
         /**
          * A node whose instance is known without further resolution.
+         *
+         * @author Tibor Varga
          */
         class Constant implements Node {
 
@@ -199,6 +206,8 @@ public interface DependencyGraph {
     /**
      * A graph traversal that maintains state during traversal such as current path, nodes and component contexts along the path, and handles circular
      * references.
+     *
+     * @author Tibor Varga
      */
     interface Traversal {
 
@@ -218,11 +227,12 @@ public interface DependencyGraph {
          * Returns a new instance, one that invokes the given observer in addition to invoking the observer this object already has. The returned traversal
          * maintains the same path as the one handling this method call.
          *
-         * @param observer the new observer to invoke.
+         * @param services the container services to aggregate observers with.
+         * @param observers the observers to invoke.
          *
          * @return the new traversal.
          */
-        Traversal observed(ComponentContainer.Observer observer);
+        Traversal observed(ContainerServices services, ComponentContainer.Observer... observers);
 
         /**
          * Notifies the traversal about the actual class of the object being instantiated.
@@ -256,18 +266,5 @@ public interface DependencyGraph {
          * @param referenceAnnotations see {@link org.fluidity.composition.ComponentContainer.Observer#resolving(Class, Class, Annotation[], Annotation[]) ComponentResolutionObserver}.
          */
         void resolving(Class<?> declaringType, Class<?> dependencyType, Annotation[] typeAnnotations, Annotation[] referenceAnnotations);
-
-        /**
-         * A dependency path that can be advanced on.
-         */
-        interface Trail extends DependencyPath {
-
-            /**
-             * Advances on the dependency path.
-             *
-             * @return the node resolved by advancing on the dependency path.
-             */
-            Node advance();
-        }
     }
 }

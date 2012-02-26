@@ -25,6 +25,8 @@ import java.util.Set;
  * and to {@linkplain ComponentContainer.InstantiationException instantiation exception} handlers. A dependency path is a list of
  * components that depend on one another, each on the next in the path, up to the {@linkplain #head() head} of the path, which represents the "current"
  * component.
+ * <h3>Usage</h3>
+ * TODO
  *
  * @author Tibor Varga
  */
@@ -57,6 +59,10 @@ public interface DependencyPath {
 
     /**
      * Dependency path element. A sequence of objects implementing this interface comprise a {@link DependencyPath}.
+     * <h3>Usage</h3>
+     * TODO
+     *
+     * @author Tibor Varga
      */
     interface Element {
 

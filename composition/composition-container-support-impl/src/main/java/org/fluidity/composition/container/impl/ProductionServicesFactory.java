@@ -16,8 +16,8 @@
 
 package org.fluidity.composition.container.impl;
 
-import org.fluidity.composition.container.api.ContainerServices;
-import org.fluidity.composition.container.api.ContainerServicesFactory;
+import org.fluidity.composition.container.ContainerServices;
+import org.fluidity.composition.container.ContainerServicesFactory;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**
@@ -25,6 +25,9 @@ import org.fluidity.foundation.spi.LogFactory;
  */
 public final class ProductionServicesFactory implements ContainerServicesFactory {
 
+    /**
+     * {@inheritDoc}
+     */
     public ContainerServices containerServices(final LogFactory logs) {
         assert logs != null : LogFactory.class;
         return new ProductionServices(logs);

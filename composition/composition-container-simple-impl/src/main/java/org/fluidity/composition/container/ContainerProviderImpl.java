@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.fluidity.composition.Components;
-import org.fluidity.composition.container.api.ContainerServices;
 import org.fluidity.composition.container.spi.ContainerProvider;
 import org.fluidity.composition.container.spi.DependencyGraph;
 import org.fluidity.composition.container.spi.OpenComponentContainer;

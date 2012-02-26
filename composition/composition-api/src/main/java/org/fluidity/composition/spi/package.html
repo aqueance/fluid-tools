@@ -20,17 +20,15 @@
 </HEAD>
 <BODY>
 <p>
-    Service provider interfaces to be used by the dependency injection container implementation.
+    Service provider interfaces to handle special cases of software composition.
 </p>
 
 <p>
-    The implementation is offered a few basic services in the form of a {@link org.fluidity.composition.container.api.ContainerServices} object given to the
-    <code>ContainerProvider</code> whenever it is invoked. These basic services include:
-    <ul>
-    <li>{@linkplain org.fluidity.composition.container.api.ComponentCache component caching}</li>
-    <li>{@linkplain org.fluidity.composition.container.api.DependencyInjector dependency injection}</li>
-    <li>{@linkplain org.fluidity.composition.container.api.ContextDefinition context definition}</li>
-    <li>{@linkplain org.fluidity.composition.container.api.RestrictedContainer restricted container}</li>
+    This package offers means to integrate into Fluid Tools composition:<ul>
+    <li>{@linkplain org.fluidity.composition.spi.ComponentFactory custom component instantiation}</li>
+    <li>{@linkplain org.fluidity.composition.spi.ComponentVariantFactory configurable external components}</li>
+    <li>{@linkplain org.fluidity.composition.spi.PackageBindings custom component life cycle management}</li>
+    <li>{@linkplain org.fluidity.composition.spi.ShutdownTasks custom application life cycle management}</li>
     </ul>
 </p>
 </BODY>

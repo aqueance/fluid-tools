@@ -21,8 +21,6 @@ import java.lang.reflect.Type;
 
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
-import org.fluidity.composition.container.api.ComponentCache;
-import org.fluidity.composition.container.api.ContextDefinition;
 import org.fluidity.composition.container.spi.DependencyGraph;
 import org.fluidity.composition.spi.ComponentVariantFactory;
 import org.fluidity.foundation.spi.LogFactory;

@@ -22,8 +22,6 @@ import java.lang.reflect.Type;
 
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.Components;
-import org.fluidity.composition.container.api.ContainerServices;
-import org.fluidity.composition.container.api.ContextDefinition;
 import org.fluidity.composition.container.spi.DependencyGraph;
 import org.fluidity.composition.container.spi.DependencyResolver;
 
@@ -199,6 +197,8 @@ interface SimpleContainer extends DependencyGraph {
      * A command that is executed while some resolution observer is active.
      *
      * @param <T> the return value type of the command.
+     *
+     * @author Tibor Varga
      */
     interface Observed<T> {
 

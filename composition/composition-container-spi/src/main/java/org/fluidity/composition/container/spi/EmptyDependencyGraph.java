@@ -19,7 +19,7 @@ package org.fluidity.composition.container.spi;
 import java.lang.reflect.Array;
 import java.lang.reflect.Type;
 
-import org.fluidity.composition.container.api.ContextDefinition;
+import org.fluidity.composition.container.ContextDefinition;
 
 /**
  * Implements basic method relationships and functionality useful for dependency graph implementations.

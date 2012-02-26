@@ -34,7 +34,7 @@ import java.util.Set;
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
-import org.fluidity.composition.container.api.ContextDefinition;
+import org.fluidity.composition.container.ContextDefinition;
 import org.fluidity.foundation.Deferred;
 import org.fluidity.foundation.Generics;
 import org.fluidity.foundation.Methods;

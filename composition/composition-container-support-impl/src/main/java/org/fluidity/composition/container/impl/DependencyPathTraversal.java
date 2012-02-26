@@ -32,9 +32,9 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.DependencyPath;
-import org.fluidity.composition.container.CompositeObserver;
-import org.fluidity.composition.container.api.ContextDefinition;
-import org.fluidity.composition.container.api.DependencyInjector;
+import org.fluidity.composition.container.ContainerServices;
+import org.fluidity.composition.container.ContextDefinition;
+import org.fluidity.composition.container.DependencyInjector;
 import org.fluidity.composition.container.spi.DependencyGraph;
 import org.fluidity.foundation.Deferred;
 import org.fluidity.foundation.Proxies;
@@ -44,6 +44,8 @@ import org.fluidity.foundation.Strings;
  * Detects and handles circular reference when possible.
  * <p/>
  * This object keeps state, do not use it concurrently or if its API method terminates abnormally (i.e., throws an exception).
+ *
+ * @author Tibor Varga
  */
 final class DependencyPathTraversal implements DependencyGraph.Traversal {
 
@@ -65,8 +67,18 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
         this.observer = observer;
     }
 
+    /**
+     * TODO: documentation...
+     *
+     * @param <T>
+     *
+     * @author Tibor Varga
+     */
     private interface Descent<T> {
 
+        /**
+         * TODO: documentation
+         */
         T perform();
     }
 
@@ -140,8 +152,15 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
         }
     }
 
-    public DependencyGraph.Traversal observed(final ComponentContainer.Observer observer) {
-        return new DependencyPathTraversal(resolutionPath, injector, CompositeObserver.combine(this.observer, observer));
+    public DependencyGraph.Traversal observed(final ContainerServices services, final ComponentContainer.Observer... observers) {
+        if (observers.length > 0) {
+            final ComponentContainer.Observer[] list = new ComponentContainer.Observer[observers.length + 1];
+            list[0] = this.observer;
+            System.arraycopy(observers, 0, list, 1, observers.length);
+            return new DependencyPathTraversal(resolutionPath, injector, services.aggregateObserver(list));
+        } else {
+            return this;
+        }
     }
 
     public void instantiating(final Class<?> type) {
@@ -224,6 +243,9 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
         }
     }
 
+    /**
+     * @author Tibor Varga
+     */
     private class ResolvedNode implements DependencyGraph.Node {
 
         private final Class<?> api;
@@ -251,6 +273,8 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
 
     /**
      * Maintains a potentially circular dependency path.
+     *
+     * @author Tibor Varga
      */
     private static class ActualPath implements DependencyPath {
 
@@ -330,6 +354,9 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
         }
     }
 
+    /**
+     * @author Tibor Varga
+     */
     private static final class ActualElement implements DependencyPath.Element {
 
         public final Class<?> api;
@@ -402,6 +429,9 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
         }
     }
 
+    /**
+     * @author Tibor Varga
+     */
     private static class CircularityDescriptor {
 
         public final Class<?> api;
@@ -425,6 +455,9 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
         }
     }
 
+    /**
+     * @author Tibor Varga
+     */
     private static final class CircularReferencesException extends ComponentContainer.CircularReferencesException {
 
         private final CircularityDescriptor descriptor;
@@ -449,6 +482,9 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
         }
     }
 
+    /**
+     * @author Tibor Varga
+     */
     private static class ProxyContext {
         private final Class<?> api;
         private final ContextDefinition context;
@@ -479,6 +515,9 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
         }
     }
 
+    /**
+     * @author Tibor Varga
+     */
     private class ProxyNode implements DependencyGraph.Node {
 
         private final ProxyContext context;

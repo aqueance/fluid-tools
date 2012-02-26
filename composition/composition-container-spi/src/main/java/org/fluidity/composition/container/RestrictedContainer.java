@@ -14,12 +14,18 @@
  * limitations under the License.
  */
 
-package org.fluidity.composition.container.api;
+package org.fluidity.composition.container;
 
 import org.fluidity.composition.ComponentContainer;
 
 /**
- * Wraps another container and denies access to it until {@link #enable()} is invoked.
+ * Wraps another container and denies access to it until {@linkplain #enable() enabled}.
+ * <h3>Usage</h3>
+ * <pre>
+ * final <span class="hl1">RestrictedContainer</span> container = ...;
+ * ...
+ * container.<span class="hl1">enable</span>();
+ * </pre>
  *
  * @author Tibor Varga
  */

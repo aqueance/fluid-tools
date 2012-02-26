@@ -22,7 +22,6 @@ import java.util.HashSet;
 
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
-import org.fluidity.composition.container.api.ComponentCache;
 import org.fluidity.composition.container.spi.DependencyGraph;
 import org.fluidity.foundation.Log;
 import org.fluidity.foundation.spi.LogFactory;

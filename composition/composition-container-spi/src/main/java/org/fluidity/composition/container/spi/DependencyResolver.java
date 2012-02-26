@@ -21,11 +21,13 @@ import java.lang.reflect.Type;
 
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
-import org.fluidity.composition.container.api.ContextDefinition;
+import org.fluidity.composition.container.ContextDefinition;
 
 /**
- * Capable of resolving component references. A dependency injection container implements this interface for a {@link org.fluidity.composition.container.api.DependencyInjector} to be able to use the
+ * Capable of resolving component references. A dependency injection container implements this interface for a {@link org.fluidity.composition.container.DependencyInjector} to be able to use the
  * implementation.
+ *
+ * @author Tibor Varga
  */
 public interface DependencyResolver extends DependencyGraph {
 
