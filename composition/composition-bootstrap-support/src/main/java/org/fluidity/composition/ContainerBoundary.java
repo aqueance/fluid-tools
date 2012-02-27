@@ -29,9 +29,9 @@ import java.util.WeakHashMap;
 
 import org.fluidity.composition.container.ContainerServices;
 import org.fluidity.composition.container.ContainerServicesFactory;
+import org.fluidity.composition.container.PlatformContainer;
 import org.fluidity.composition.container.spi.ContainerProvider;
 import org.fluidity.composition.container.spi.OpenComponentContainer;
-import org.fluidity.composition.container.spi.PlatformContainer;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**

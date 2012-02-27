@@ -14,30 +14,18 @@
  * limitations under the License.
  */
 
-package org.fluidity.composition.container.spi;
+package org.fluidity.composition.container;
 
 import org.fluidity.composition.ComponentContainer;
-import org.fluidity.composition.container.ContextDefinition;
 
 /**
- * Parent container of the root dependency injection container of an application. When available, the implementation is mapped to some dependency injection
- * mechanism of the application container itself.
+ * Parent container of the root dependency injection container of an application. When available, the implementation integrates the Fluid Tools dependency
+ * injection framework to a legacy dependency injection framework prevalent in the rest of the application.
  * <h3>Usage</h3>
  * <pre>
- * final class MyContainerBootstrapImpl implements {@linkplain org.fluidity.composition.ContainerBootstrap} {
+ * new {@linkplain org.fluidity.composition.ContainerBoundary}().setPlatformContainer(new <span class="hl1">PlatformContainer</span>() {
  *   ...
- *   public {@linkplain OpenComponentContainer} populateContainer({@linkplain org.fluidity.composition.container.ContainerServices} services,
- *                                                   {@linkplain ContainerProvider} provider,
- *                                                   {@linkplain java.util.Map} properties,
- *                                                   {@linkplain OpenComponentContainer} parent,
- *                                                   {@linkplain ClassLoader} classLoader,
- *                                                   <span class="hl1">PlatformContainer</span> platform,
- *                                                   {@linkplain org.fluidity.composition.ContainerBootstrap.Callback} callback) {
- *    ...
- *  }
- *   ...
- * }
- *
+ * });
  * </pre>
  */
 @SuppressWarnings("JavadocReference")

@@ -19,9 +19,9 @@ package org.fluidity.composition;
 import java.util.Map;
 
 import org.fluidity.composition.container.ContainerServices;
+import org.fluidity.composition.container.PlatformContainer;
 import org.fluidity.composition.container.spi.ContainerProvider;
 import org.fluidity.composition.container.spi.OpenComponentContainer;
-import org.fluidity.composition.container.spi.PlatformContainer;
 
 /**
  * Bootstraps the component container provided by a {@link ContainerProvider}.
@@ -61,7 +61,7 @@ interface ContainerBootstrap {
      * to call the {@link org.fluidity.composition.spi.PackageBindings#shutdownComponents(ComponentContainer)} method on the bindings, in reverse order.
      *
      * @param container the container, returned by the {@link #populateContainer(ContainerServices, org.fluidity.composition.container.spi.ContainerProvider,
-     *                  java.util.Map, OpenComponentContainer, ClassLoader, org.fluidity.composition.container.spi.PlatformContainer, ContainerBootstrap.Callback)}
+     *                  java.util.Map, OpenComponentContainer, ClassLoader, org.fluidity.composition.container.PlatformContainer, ContainerBootstrap.Callback)}
      *                  method, to initialize.
      * @param services  provides basic services for containers
      */

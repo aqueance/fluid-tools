@@ -18,7 +18,6 @@ package org.fluidity.composition.container;
 
 import org.fluidity.composition.container.spi.ContainerProvider;
 import org.fluidity.composition.container.spi.OpenComponentContainer;
-import org.fluidity.composition.container.spi.PlatformContainer;
 
 /**
  * @author Tibor Varga

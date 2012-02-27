@@ -25,7 +25,6 @@ import org.fluidity.composition.ObservedComponentContainer;
 import org.fluidity.composition.container.spi.DependencyGraph;
 import org.fluidity.composition.container.spi.EmptyComponentContainer;
 import org.fluidity.composition.container.spi.OpenComponentContainer;
-import org.fluidity.composition.container.spi.PlatformContainer;
 
 /**
  * This is a shell around a {@link SimpleContainer} object.

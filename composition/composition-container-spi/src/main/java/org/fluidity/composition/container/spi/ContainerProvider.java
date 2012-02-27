@@ -18,19 +18,13 @@ package org.fluidity.composition.container.spi;
 
 import org.fluidity.composition.ServiceProvider;
 import org.fluidity.composition.container.ContainerServices;
+import org.fluidity.composition.container.PlatformContainer;
 
 /**
  * Provides actual dependency injection container instances and related functionality. This is an internal interface to be implemented by dependency injection
  * container implementations.
  * <h3>Usage</h3>
- * The only way you might ever interact with this interface is by implementing it:
- * <pre>
- * final class MyContainerProviderImpl implements <span class="hl1">ContainerProvider</span> {
- *   public {@linkplain OpenComponentContainer} newContainer(final {@linkplain ContainerServices} services, final {@linkplain PlatformContainer} platform) {
- *     return new MyContainerImpl(services, platform);
- *   }
- * }
- * </pre>
+ * You don't interact with an internal interface.
  *
  * @author Tibor Varga
  */

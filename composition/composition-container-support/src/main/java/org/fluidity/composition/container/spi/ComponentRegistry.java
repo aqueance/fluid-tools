@@ -23,7 +23,7 @@ import org.fluidity.composition.Components;
  * Allows registration of component bindings to a backing {@linkplain org.fluidity.composition.container.spi.OpenComponentContainer component container}. This is an internal interface used by
  * dependency injection container implementations via {@link EmptyComponentContainer}.
  * <h3>Usage</h3>
- * See {@link EmptyComponentContainer}.
+ * You don't interact with an internal interface.
  *
  * @author Tibor Varga
  */

@@ -27,11 +27,7 @@ import org.fluidity.composition.container.ContextDefinition;
  * Capable of resolving component references. A dependency injection container implements this interface for a {@link
  * org.fluidity.composition.container.DependencyInjector} to be able to use the implementation.
  * <h3>Usage</h3>
- * <pre>
- * final class MyContainerImpl extends {@linkplain EmptyDependencyGraph} implements <span class="hl1">DependencyResolver</span> {
- *   ...
- * }
- * </pre>
+ * You don't interact with an internal interface.
  *
  * @author Tibor Varga
  */

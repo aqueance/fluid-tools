@@ -23,11 +23,7 @@ import java.lang.annotation.Annotation;
  * class in a container and these objects help in the management of <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Component_Context">component
  * context</a> when resolving dependencies.
  * <h3>Usage</h3>
- * <pre>
- * final class MyContextNode implements <span class="hl1">ContextNode</span> {
- *   ...
- * }
- * </pre>
+ * You don't interact with an internal interface.
  *
  * @author Tibor Varga
  */

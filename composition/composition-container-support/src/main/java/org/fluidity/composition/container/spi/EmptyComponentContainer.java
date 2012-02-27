@@ -34,11 +34,7 @@ import org.fluidity.foundation.Proxies;
 /**
  * Implements basic method relationships and functionality useful for container and registry implementations.
  * <h3>Usage</h3>
- * <pre>
- * final class MyContainerShell extends {@linkplain EmptyComponentContainer} {
- *   ...
- * }
- * </pre>
+ * You don't interact with an internal interface.
  *
  * @author Tibor Varga
  */
