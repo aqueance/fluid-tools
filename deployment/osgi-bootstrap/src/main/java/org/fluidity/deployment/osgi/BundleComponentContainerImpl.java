@@ -210,13 +210,7 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
             final Managed component = entry.getKey();
             final Set<Class<?>> types = entry.getValue();
 
-            for (final Observer listener : listeners) {
-                for (final Class<?> type : listener.types()) {
-                    if (types.contains(type)) {
-                        listener.stopping(type, component);
-                    }
-                }
-            }
+            observe(component, entry.getValue(), new Stopping(component));
 
             iterator.remove();
         }
@@ -375,32 +369,38 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
             }
         }
 
-        for (final Iterator<Managed> iterator = components.keySet().iterator(); iterator.hasNext(); ) {
-            final Managed component = iterator.next();
-            final String name = component.getClass().getName();
+        for (final Iterator<Map.Entry<Managed, Set<Class<?>>>> iterator = components.entrySet().iterator(); iterator.hasNext(); ) {
+            final Map.Entry<Managed, Set<Class<?>>> entry = iterator.next();
+            final Managed component = entry.getKey();
 
             try {
                 start(component.getClass().getName(), component);
+
+                observe(component, entry.getValue(), new Started(component));
             } catch (final Exception e) {
                 iterator.remove();
-                log.error(e, "starting %s", name);
-            }
-        }
 
-        for (final Map.Entry<Managed, Set<Class<?>>> entry : components.entrySet()) {
-            final Managed component = entry.getKey();
-            final Set<Class<?>> types = entry.getValue();
+                log.error(e, "starting %s", component.getClass().getName());
 
-            for (final Observer listener : listeners) {
-                for (final Class<?> type : listener.types()) {
-                    if (types.contains(type)) {
-                        listener.started(type, component);
-                    }
-                }
+                observe(component, entry.getValue(), new Failed(component));
             }
         }
 
         return components;
+    }
+
+    private void observe(final Managed component, final Set<Class<?>> types, final Observation observation) {
+        for (final Observer listener : listeners) {
+            for (final Class<?> type : listener.types()) {
+                if (types.contains(type)) {
+                    try {
+                        observation.observe(listener, type, component);
+                    } catch (final Exception e) {
+                        log.warning(e, "Observer failure");
+                    }
+                }
+            }
+        }
     }
 
     private String serviceFilter(final ServiceSpecification[] dependencies) {
@@ -543,21 +543,12 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
         }
 
         private void suspend() {
-            for (final Map.Entry<Managed, Set<Class<?>>> entry : components.entrySet()) {
+            for (final Iterator<Map.Entry<Managed, Set<Class<?>>>> iterator = components.entrySet().iterator(); iterator.hasNext(); ) {
+                final Map.Entry<Managed, Set<Class<?>>> entry = iterator.next();
                 final Managed component = entry.getKey();
-                final Set<Class<?>> types = entry.getValue();
 
-                for (final Observer listener : listeners) {
-                    for (final Class<?> type : listener.types()) {
-                        if (types.contains(type)) {
-                            listener.stopping(type, component);
-                        }
-                    }
-                }
-            }
+                observe(component, entry.getValue(), new Stopping(component));
 
-            for (final Iterator<Managed> iterator = components.keySet().iterator(); iterator.hasNext(); ) {
-                final Managed component = iterator.next();
                 try {
                     component.stop();
                     log.info("%s stopped", name);
@@ -587,6 +578,77 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
         public void stop() {
             context.removeServiceListener(this);
             suspend();
+        }
+    }
+
+    /**
+     * Managed object life cycle observer callback interface.
+     *
+     * @author Tibor Varga
+     */
+    interface Observation {
+
+        /**
+         * Invokes the callback functionality.
+         *
+         * @param observer the observer to invoke.
+         * @param type     the component type being observed.
+         * @param instance the component being observed.
+         */
+        void observe(Observer observer, Class<?> type, Object instance);
+    }
+
+    /**
+     * Managed object has been started.
+     *
+     * @author Tibor Varga
+     */
+    private static class Started implements Observation {
+
+        private final Managed component;
+
+        public Started(final Managed component) {
+            this.component = component;
+        }
+
+        public void observe(final Observer observer, final Class<?> type, final Object instance) {
+            observer.started(type, component);
+        }
+    }
+
+    /**
+     * Managed object is about to be stopped.
+     *
+     * @author Tibor Varga
+     */
+    private static class Stopping implements Observation {
+
+        private final Managed component;
+
+        public Stopping(final Managed component) {
+            this.component = component;
+        }
+
+        public void observe(final Observer observer, final Class<?> type, final Object instance) {
+            observer.stopping(type, component);
+        }
+    }
+
+    /**
+     * Managed object failed to start.
+     *
+     * @author Tibor Varga
+     */
+    private static class Failed implements Observation {
+
+        private final Managed component;
+
+        public Failed(final Managed component) {
+            this.component = component;
+        }
+
+        public void observe(final Observer observer, final Class<?> type, final Object instance) {
+            observer.failed(type, component);
         }
     }
 }

@@ -49,9 +49,37 @@ import org.fluidity.composition.ServiceProvider;
  * When all of the OSGi services depended on become available, the component is instantiated and its {@link Managed#start() start()} method is invoked to start
  * the component. The {@link Stoppable#stop() stop()} method of the component will be invoked when any of those OSGi services becomes unavailable and then the
  * component instance is discarded.
+ * <pre>
+ * {@linkplain org.fluidity.composition.Component @Component}
+ * final MyComponent implements <span class="hl1">BundleComponentContainer.Managed</span> {
+ *
+ *   public MyComponent(final {@linkplain Service @Service} SomeService service, final SomeDependency dependency) {
+ *     ...
+ *   }
+ *
+ *   public void start() throws Exception {
+ *     ...
+ *   }
+ *
+ *   public void stop() throws Exception {
+ *     ...
+ *   }
+ *   ...
+ * }
+ * </pre>
  * <h3>Getting registered as OSGi Service</h3>
  * {@link Registration} components are <code>Managed</code> components that are registered as OSGi services when all OSGi services they depend on become
  * available, and get unregistered when any of those become unavailable.
+ * <pre>
+ * {@linkplain org.fluidity.composition.Component @Component}
+ * final MyComponent implements <span class="hl1">BundleComponentContainer.Registration</span> {
+ *
+ *   public MyComponent(final {@linkplain Service @Service} SomeService service, final SomeDependency dependency) {
+ *     ...
+ *   }
+ *   ...
+ * }
+ * </pre>
  * <h3>Notification about OSGi Service Registration Events</h3>
  * {@link Registration.Listener} components are <code>Managed</code> components that receive notifications about OSGi service registration events via the
  * {@link Registration.Listener#clientAdded(Object, Properties) clientAdded()} method and un-registration events via the {@link
@@ -59,10 +87,26 @@ import org.fluidity.composition.ServiceProvider;
  * <p/>
  * A managed component may at the same time be a registered OSGi service and may receive notifications about OSGi service registration events by implementing
  * both {@link Registration} and {@link Registration.Listener}.
+ * <pre>
+ * {@linkplain org.fluidity.composition.Component @Component}
+ * final MyComponent implements <span class="hl1">BundleComponentContainer.Registration.Listener</span> {
+ *
+ *   public MyComponent(final {@linkplain Service @Service} SomeService service, final SomeDependency dependency) {
+ *     ...
+ *   }
+ *   ...
+ * }
+ * </pre>
  * <h3>Observing Component Management</h3>
  * This container will also find and load all implementations of the {@link Observer} interface. <code>Observer</code> components get notified when any of a
  * set of components it {@linkplain Observer#types() declares} to be interested in gets {@linkplain Observer#started(Class, Object) started} or {@linkplain
  * Observer#stopping(Class, Object) stopped}.
+ * <pre>
+ * {@linkplain org.fluidity.composition.Component @Component}
+ * final MyComponent implements <span class="hl1">BundleComponentContainer.Observer</span> {
+ *   ...
+ * }
+ * </pre>
  *
  * @author Tibor Varga
  */
@@ -80,9 +124,9 @@ public interface BundleComponentContainer {
 
     /**
      * A component that gets notified by a {@link BundleComponentContainer} when a {@link BundleComponentContainer.Managed} component gets {@linkplain
-     * #started(Class, Object) started} or {@linkplain #stopping(Class, Object) stopped}.
+     * #started(Class, Object) started} or {@linkplain #stopping(Class, Object) stopped}, or when it {@linkplain #failed(Class, Object) fails to start}.
      * <p/>
-     * TODO: add start failure notification
+     * TODO: allow observers to depend on OSGi services
      */
     @ComponentGroup
     interface Observer {
@@ -109,6 +153,14 @@ public interface BundleComponentContainer {
          * @param component the component that is about to be stopped.
          */
         void stopping(Class<?> type, Object component);
+
+        /**
+         * Notifies the receiver that the given managed component failed when started.
+         *
+         * @param type      the component type as listed by {@link #types()}, the supplied instance of which failed.
+         * @param component the component that failed.
+         */
+        void failed(Class<?> type, Object component);
     }
 
     /**
