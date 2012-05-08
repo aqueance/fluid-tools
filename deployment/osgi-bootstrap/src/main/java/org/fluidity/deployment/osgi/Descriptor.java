@@ -15,17 +15,21 @@ abstract class Descriptor {
         this.type = type;
     }
 
-    public void started(final boolean successful) {
+    public void failed(final boolean successful) {
         // empty
     }
 
     public final void started(final Object instance) {
         this.instance.set(instance);
-        started(true);
+        failed(false);
     }
 
     public final Object stopped() {
-        return instance.getAndSet(null);
+        try {
+            return instance.getAndSet(null);
+        } finally {
+            failed(false);
+        }
     }
 
     public final Object instance() {

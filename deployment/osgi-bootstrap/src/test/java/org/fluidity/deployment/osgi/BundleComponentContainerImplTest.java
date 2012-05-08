@@ -79,6 +79,11 @@ public class BundleComponentContainerImplTest extends MockGroupAbstractTest {
     private final BundleComponentContainer.Managed component3 = mock(BundleComponentContainer.Managed.class);
     private final BundleComponentContainer.Managed component4 = mock(BundleComponentContainer.Managed.class);
     private final BundleComponentContainer.Managed component5 = mock(BundleComponentContainer.Managed.class);
+    private final BundleComponentContainer.Managed component6 = mock(BundleComponentContainer.Managed.class);
+
+    private final ServiceInterface1 service3 = mock(ServiceInterface1.class);
+    private final ServiceReference reference3 = mock(ServiceReference.class);
+    private final ServiceInterface1 wrappedService3 = mock(ServiceInterface1.class);
 
     private ComponentContainer container;
 
@@ -613,18 +618,17 @@ public class BundleComponentContainerImplTest extends MockGroupAbstractTest {
 
         assertFailed();
         assertActive(StatusCheck.class);
-        assertInactive(inactive(dependencies1, dependencies2, dependencies3, dependencies4, dependencies5));
+        assertInactive(collect(dependencies1, dependencies2, dependencies3, dependencies4, dependencies5));
 
         // add ServiceInterface1
         EasyMock.expect(context.getServiceReferences(ServiceInterface1.class.getName(), null)).andReturn(new ServiceReference[] { reference1 });
         EasyMock.expect(context.getService(reference1)).andReturn(service1);
+        EasyMock.expect(border.imported(ServiceInterface1.class, service1)).andReturn(wrappedService1);
 
         // start components that require service 1 only
 
         Component3Service1.delegate.start();
         Component4Service1.delegate.start();
-
-        EasyMock.expect(border.imported(ServiceInterface1.class, service1)).andReturn(wrappedService1);
 
         replay();
         listener1.listener().serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED, reference1));
@@ -632,11 +636,12 @@ public class BundleComponentContainerImplTest extends MockGroupAbstractTest {
 
         assertFailed();
         assertActive(StatusCheck.class, Component3Service1.class, Component4Service1.class);
-        assertInactive(inactive(dependencies1, dependencies2, dependencies5), annotation1);
+        assertInactive(collect(dependencies1, dependencies2, dependencies5), annotation1);
 
         // add ServiceInterface2
         EasyMock.expect(context.getServiceReferences(ServiceInterface2.class.getName(), null)).andReturn(new ServiceReference[] { reference2 });
         EasyMock.expect(context.getService(reference2)).andReturn(service2);
+        EasyMock.expect(border.imported(ServiceInterface2.class, service2)).andReturn(wrappedService2);
 
         // start components that require service 2 only
 
@@ -646,8 +651,6 @@ public class BundleComponentContainerImplTest extends MockGroupAbstractTest {
         // start components that require both services
 
         Component1Service12.delegate.start();
-
-        EasyMock.expect(border.imported(ServiceInterface2.class, service2)).andReturn(wrappedService2);
 
         replay();
         listener2.listener().serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED, reference2));
@@ -676,11 +679,12 @@ public class BundleComponentContainerImplTest extends MockGroupAbstractTest {
 
         assertFailed();
         assertActive(StatusCheck.class, Component2Service2.class, Component5Service2.class);
-        assertInactive(inactive(dependencies1, dependencies3, dependencies4), annotation2);
+        assertInactive(collect(dependencies1, dependencies3, dependencies4), annotation2);
 
         // add ServiceInterface1
         EasyMock.expect(context.getServiceReferences(ServiceInterface1.class.getName(), null)).andReturn(new ServiceReference[] { reference1 });
         EasyMock.expect(context.getService(reference1)).andReturn(service1);
+        EasyMock.expect(border.imported(ServiceInterface1.class, service1)).andReturn(wrappedService1);
 
         // start components that require service 1 only
 
@@ -690,8 +694,6 @@ public class BundleComponentContainerImplTest extends MockGroupAbstractTest {
         // start components that require both services
 
         Component1Service12.delegate.start();
-
-        EasyMock.expect(border.imported(ServiceInterface1.class, service1)).andReturn(wrappedService1);
 
         replay();
         listener1.listener().serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED, reference1));
@@ -720,7 +722,7 @@ public class BundleComponentContainerImplTest extends MockGroupAbstractTest {
 
         assertFailed();
         assertActive(StatusCheck.class, Component3Service1.class, Component4Service1.class);
-        assertInactive(inactive(dependencies1, dependencies2, dependencies5), annotation1);
+        assertInactive(collect(dependencies1, dependencies2, dependencies5), annotation1);
 
         // remove ServiceInterface1
         EasyMock.expect(context.getServiceReferences(ServiceInterface1.class.getName(), null)).andReturn(null);
@@ -735,18 +737,17 @@ public class BundleComponentContainerImplTest extends MockGroupAbstractTest {
 
         assertFailed();
         assertActive(StatusCheck.class);
-        assertInactive(inactive(dependencies1, dependencies2, dependencies3, dependencies4, dependencies5));
+        assertInactive(collect(dependencies1, dependencies2, dependencies3, dependencies4, dependencies5));
 
         // add ServiceInterface2
         EasyMock.expect(context.getServiceReferences(ServiceInterface2.class.getName(), null)).andReturn(new ServiceReference[] { reference2 });
         EasyMock.expect(context.getService(reference2)).andReturn(service2);
+        EasyMock.expect(border.imported(ServiceInterface2.class, service2)).andReturn(wrappedService2);
 
         // start components that require service 2 only
 
         Component2Service2.delegate.start();
         Component5Service2.delegate.start();
-
-        EasyMock.expect(border.imported(ServiceInterface2.class, service2)).andReturn(wrappedService2);
 
         replay();
         listener2.listener().serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED, reference2));
@@ -754,7 +755,7 @@ public class BundleComponentContainerImplTest extends MockGroupAbstractTest {
 
         assertFailed();
         assertActive(StatusCheck.class, Component2Service2.class, Component5Service2.class);
-        assertInactive(inactive(dependencies1, dependencies3, dependencies4), annotation2);
+        assertInactive(collect(dependencies1, dependencies3, dependencies4), annotation2);
 
         // stop
         context.removeServiceListener(listener1.listener());
@@ -774,8 +775,255 @@ public class BundleComponentContainerImplTest extends MockGroupAbstractTest {
         verify();
     }
 
-    // TODO: test failed components
-    // TODO: test multiple references to same service interface with different filter
+    @Test
+    public void testFailingComponents() throws Exception {
+        FailingComponent.delegate = component6;
+
+        final BundleComponentContainer services = discover(StatusCheck.class, FailingComponent.class, Component4Service1.class);
+
+        final ServiceImpl annotation = new ServiceImpl(ServiceInterface1.class);
+        final Map.Entry<Class<?>, Set<Service>> dependencies1 = dependencies(FailingComponent.class, annotation);
+        final Map.Entry<Class<?>, Set<Service>> dependencies2 = dependencies(Component4Service1.class, annotation);
+
+        // one listener per service specification
+        final ListenerSpec listener = expectListenerRegistration();
+
+        // no services yet
+        EasyMock.expect(context.getServiceReferences(ServiceInterface1.class.getName(), null)).andReturn(null);
+
+        replay();
+        services.start();
+        verify();
+
+        assertFailed();
+        assertActive(StatusCheck.class);
+        assertInactive(collect(dependencies1, dependencies2));
+
+        // add ServiceInterface1
+        EasyMock.expect(context.getServiceReferences(ServiceInterface1.class.getName(), null)).andReturn(new ServiceReference[] { reference1 });
+        EasyMock.expect(context.getService(reference1)).andReturn(service1);
+        EasyMock.expect(border.imported(ServiceInterface1.class, service1)).andReturn(wrappedService1);
+
+        // start components that require service 1 only
+
+        Component4Service1.delegate.start();
+
+        replay();
+        listener.listener().serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED, reference1));
+        verify();
+
+        assertFailed(FailingComponent.class);
+        assertActive(StatusCheck.class, Component4Service1.class);
+        assertInactive(Collections.<Class<?>, Set<Service>>emptyMap());
+
+        // remove ServiceInterface1
+        EasyMock.expect(context.getServiceReferences(ServiceInterface1.class.getName(), null)).andReturn(null);
+        EasyMock.expect(context.ungetService(reference1)).andReturn(false);
+
+        Component4Service1.delegate.stop();
+
+        replay();
+        listener.listener().serviceChanged(new ServiceEvent(ServiceEvent.UNREGISTERING, reference1));
+        verify();
+
+        assertFailed();
+        assertActive(StatusCheck.class);
+        assertInactive(collect(dependencies1, dependencies2));
+
+        // add ServiceInterface1
+        EasyMock.expect(context.getServiceReferences(ServiceInterface1.class.getName(), null)).andReturn(new ServiceReference[] { reference1 });
+        EasyMock.expect(context.getService(reference1)).andReturn(service1);
+        EasyMock.expect(border.imported(ServiceInterface1.class, service1)).andReturn(wrappedService1);
+
+        // start components that require service 1 only
+
+        Component4Service1.delegate.start();
+
+        replay();
+        listener.listener().serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED, reference1));
+        verify();
+
+        assertFailed(FailingComponent.class);
+        assertActive(StatusCheck.class, Component4Service1.class);
+        assertInactive(Collections.<Class<?>, Set<Service>>emptyMap());
+
+        // stop
+        context.removeServiceListener(listener.listener());
+
+        Component4Service1.delegate.stop();
+
+        replay();
+        services.stop();
+        verify();
+
+        // no more action at second invocation
+
+        replay();
+        services.stop();
+        verify();
+    }
+
+    @Test
+    public void testFilterDependency() throws Exception {
+        MultipleServiceFiltersComponent.delegate = component6;
+
+        final String selector1 = "filter-1";
+        final String selector2 = "filter-2";
+
+        final BundleComponentContainer services = discover(Arrays.asList(selector1, selector2), StatusCheck.class, MultipleServiceFiltersComponent.class);
+
+        final ServiceImpl annotation1 = new ServiceImpl(ServiceInterface1.class, selector1);
+        final ServiceImpl annotation2 = new ServiceImpl(ServiceInterface1.class, selector2);
+        final Map.Entry<Class<?>, Set<Service>> dependencies = dependencies(MultipleServiceFiltersComponent.class, annotation1, annotation2);
+
+        // one listener per service specification
+        final List<ListenerSpec> listeners = Arrays.asList(expectListenerRegistration(), expectListenerRegistration());
+
+        // no services yet
+        EasyMock.expect(context.getServiceReferences(ServiceInterface1.class.getName(), selector1)).andReturn(null);
+        EasyMock.expect(context.getServiceReferences(ServiceInterface1.class.getName(), selector2)).andReturn(null);
+
+        replay();
+        services.start();
+        verify();
+
+        final ListenerSpec listener1 = find(listeners, ServiceInterface1.class, selector1);
+        final ListenerSpec listener2 = find(listeners, ServiceInterface1.class, selector2);
+
+        assertFailed();
+        assertActive(StatusCheck.class);
+        assertInactive(collect(dependencies));
+
+        // add service with filter 1
+        EasyMock.expect(context.getServiceReferences(ServiceInterface1.class.getName(), selector1)).andReturn(new ServiceReference[] { reference1 });
+        EasyMock.expect(context.getService(reference1)).andReturn(service1);
+        EasyMock.expect(border.imported(ServiceInterface1.class, service1)).andReturn(wrappedService1);
+
+        replay();
+        listener1.listener().serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED, reference1));
+        verify();
+
+        assertFailed();
+        assertActive(StatusCheck.class);
+        assertInactive(collect(dependencies), annotation1);
+
+        // add service with filter 2
+        EasyMock.expect(context.getServiceReferences(ServiceInterface1.class.getName(), selector2)).andReturn(new ServiceReference[] { reference3 });
+        EasyMock.expect(context.getService(reference3)).andReturn(service3);
+        EasyMock.expect(border.imported(ServiceInterface1.class, service3)).andReturn(wrappedService3);
+
+        // start the component
+        MultipleServiceFiltersComponent.delegate.start();
+
+        replay();
+        listener2.listener().serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED, reference3));
+        verify();
+
+        assertFailed();
+        assertActive(StatusCheck.class, MultipleServiceFiltersComponent.class);
+        assertInactive(Collections.<Class<?>, Set<Service>>emptyMap());
+
+        // remove service with filter 1
+        EasyMock.expect(context.getServiceReferences(ServiceInterface1.class.getName(), selector1)).andReturn(null);
+        EasyMock.expect(context.ungetService(reference1)).andReturn(false);
+
+        MultipleServiceFiltersComponent.delegate.stop();
+
+        replay();
+        listener1.listener().serviceChanged(new ServiceEvent(ServiceEvent.UNREGISTERING, reference1));
+        verify();
+
+        assertFailed();
+        assertActive(StatusCheck.class);
+        assertInactive(collect(dependencies), annotation2);
+
+        // add service with filter 1
+        EasyMock.expect(context.getServiceReferences(ServiceInterface1.class.getName(), selector1)).andReturn(new ServiceReference[] { reference1 });
+        EasyMock.expect(context.getService(reference1)).andReturn(service1);
+        EasyMock.expect(border.imported(ServiceInterface1.class, service1)).andReturn(wrappedService1);
+
+        // start the component
+        MultipleServiceFiltersComponent.delegate.start();
+
+        replay();
+        listener1.listener().serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED, reference1));
+        verify();
+
+        assertFailed();
+        assertActive(StatusCheck.class, MultipleServiceFiltersComponent.class);
+        assertInactive(Collections.<Class<?>, Set<Service>>emptyMap());
+
+        // remove service with filter 2
+        EasyMock.expect(context.getServiceReferences(ServiceInterface1.class.getName(), selector2)).andReturn(null);
+        EasyMock.expect(context.ungetService(reference3)).andReturn(false);
+
+        MultipleServiceFiltersComponent.delegate.stop();
+
+        replay();
+        listener2.listener().serviceChanged(new ServiceEvent(ServiceEvent.UNREGISTERING, reference3));
+        verify();
+
+        assertFailed();
+        assertActive(StatusCheck.class);
+        assertInactive(collect(dependencies), annotation1);
+
+        // remove service with filter 1
+        EasyMock.expect(context.getServiceReferences(ServiceInterface1.class.getName(), selector1)).andReturn(null);
+        EasyMock.expect(context.ungetService(reference1)).andReturn(false);
+
+        replay();
+        listener1.listener().serviceChanged(new ServiceEvent(ServiceEvent.UNREGISTERING, reference1));
+        verify();
+
+        assertFailed();
+        assertActive(StatusCheck.class);
+        assertInactive(collect(dependencies));
+
+        // add service with filter 2
+        EasyMock.expect(context.getServiceReferences(ServiceInterface1.class.getName(), selector2)).andReturn(new ServiceReference[] { reference3 });
+        EasyMock.expect(context.getService(reference3)).andReturn(service3);
+        EasyMock.expect(border.imported(ServiceInterface1.class, service3)).andReturn(wrappedService3);
+
+        replay();
+        listener2.listener().serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED, reference3));
+        verify();
+
+        assertFailed();
+        assertActive(StatusCheck.class);
+        assertInactive(collect(dependencies), annotation2);
+
+        // add service with filter 1
+        EasyMock.expect(context.getServiceReferences(ServiceInterface1.class.getName(), selector1)).andReturn(new ServiceReference[] { reference1 });
+        EasyMock.expect(context.getService(reference1)).andReturn(service1);
+        EasyMock.expect(border.imported(ServiceInterface1.class, service1)).andReturn(wrappedService1);
+
+        // start the component
+        MultipleServiceFiltersComponent.delegate.start();
+
+        replay();
+        listener1.listener().serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED, reference1));
+        verify();
+
+        assertFailed();
+        assertActive(StatusCheck.class, MultipleServiceFiltersComponent.class);
+        assertInactive(Collections.<Class<?>, Set<Service>>emptyMap());
+
+        // stop
+        context.removeServiceListener(listener1.listener());
+        context.removeServiceListener(listener2.listener());
+
+        MultipleServiceFiltersComponent.delegate.stop();
+
+        replay();
+        services.stop();
+        verify();
+
+        // no more action at second invocation
+
+        replay();
+        services.stop();
+        verify();
+    }
 
     private ListenerSpec find(final List<ListenerSpec> listeners, final Class<?> service, final String filter) {
         for (final ListenerSpec listener : listeners) {
@@ -808,7 +1056,7 @@ public class BundleComponentContainerImplTest extends MockGroupAbstractTest {
         return new AbstractMap.SimpleEntry<Class<?>, Set<Service>>(component, new HashSet<Service>(Arrays.asList(services)));
     }
 
-    private Map<Class<?>, Set<Service>> inactive(final Map.Entry<Class<?>, Set<Service>>... entries) {
+    private Map<Class<?>, Set<Service>> collect(final Map.Entry<Class<?>, Set<Service>>... entries) {
         final Map<Class<?>, Set<Service>> map = new HashMap<Class<?>, Set<Service>>();
 
         for (final Map.Entry<Class<?>, Set<Service>> entry : entries) {
@@ -847,7 +1095,7 @@ public class BundleComponentContainerImplTest extends MockGroupAbstractTest {
         }
     }
 
-    private BundleComponentContainer discover(final Class... types) throws NoSuchMethodException {
+    private BundleComponentContainer discover(final Class... types) throws Exception {
         EasyMock.expect(discovery.findComponentClasses(BundleComponentContainer.Managed.class, BundleComponentContainerImpl.class.getClassLoader(), false)).andReturn(types);
 
         replay();
@@ -1106,6 +1354,41 @@ public class BundleComponentContainerImplTest extends MockGroupAbstractTest {
 
         public Component5Service2(final @Service ServiceInterface2 service2) {
             // empty
+        }
+
+        public void start() throws Exception {
+            delegate.start();
+        }
+
+        public void stop() throws Exception {
+            delegate.stop();
+        }
+    }
+
+    @SuppressWarnings("UnusedParameters")
+    public static class FailingComponent implements BundleComponentContainer.Managed {
+
+        @SuppressWarnings("UnusedDeclaration")
+        private static BundleComponentContainer.Managed delegate;
+
+        public FailingComponent(final @Service ServiceInterface1 service1) { }
+
+        public void start() throws Exception {
+            throw new UnsupportedOperationException("Failed");
+        }
+
+        public void stop() throws Exception {
+            throw new UnsupportedOperationException("Failed");
+        }
+    }
+
+    public static class MultipleServiceFiltersComponent implements BundleComponentContainer.Managed {
+
+        private static BundleComponentContainer.Managed delegate;
+
+        public MultipleServiceFiltersComponent(final @Service(filter = "filter-1") ServiceInterface1 service1,
+                                               final @Service(filter = "filter-2") ServiceInterface1 service2) {
+            assert service1 != service2;
         }
 
         public void start() throws Exception {

@@ -251,7 +251,7 @@ public interface BundleComponentContainer {
         Collection<Class<?>> active();
 
         /**
-         * Returns the list of components that are waiting for OSGi services to start, along with the list of service specification they each are waiting to
+         * Returns the list of components that are waiting for OSGi services to start, along with the descriptor of the services they each are waiting to
          * start.
          *
          * @return a list of <code>Class</code> objects.

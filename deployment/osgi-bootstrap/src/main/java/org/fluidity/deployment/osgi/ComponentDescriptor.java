@@ -30,12 +30,12 @@ final class ComponentDescriptor extends Descriptor {
         dependencies.addAll(services);
     }
 
-    public Class<? super BundleComponentContainer.Managed>[] interfaces() {
+    public Class<?>[] interfaces() {
         return api;
     }
 
-    public void started(final boolean successful) {
-        failed = !successful;
+    public void failed(final boolean flag) {
+        failed = flag;
     }
 
     public boolean failed() {

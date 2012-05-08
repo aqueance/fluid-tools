@@ -154,7 +154,7 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
                     final ComponentDescriptor descriptor = new ComponentDescriptor(type, interfaces);
                     components.put(type, descriptor);
 
-                    registry.bindComponent(type, descriptor.interfaces());
+                    registry.bindComponent((Class) type, descriptor.interfaces());
                 }
             }
         });
@@ -186,7 +186,7 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
                             }
                         }
 
-                        break;     // it was an OSGi service: we're done
+                        break;     // it was an OSGi service dependency: we're done
                     }
                 }
             }
@@ -400,32 +400,29 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
         service.stopped();
 
         final Set<ServiceDescriptor> servicesUp = activeServices();
-        final Set<ComponentDescriptor> unresolved = new HashSet<ComponentDescriptor>();
 
         for (final ComponentDescriptor descriptor : components) {
-            if (descriptor.instance() != null && !resolved(servicesUp, descriptor)) {
-                unresolved.add(descriptor);
-            }
-        }
+            if ((descriptor.instance() != null || descriptor.failed()) && !resolved(servicesUp, descriptor)) {
+                final Managed component = (Managed) descriptor.stopped();
 
-        for (final Descriptor descriptor : unresolved) {
-            final Managed component = (Managed) descriptor.stopped();
-            assert component != null;   // we just checked above
-
-            try {
-                component.stop();
-            } catch (final Exception e) {
-                log.error(e, "Stopping %s", descriptor.toString());
+                if (component != null) {
+                    try {
+                        component.stop();
+                    } catch (final Exception e) {
+                        log.error(e, "Stopping %s", descriptor.toString());
+                    }
+                }
             }
         }
     }
 
-    private synchronized void started(final ServiceDescriptor service, final Object component) {
+    private void started(final ServiceDescriptor service, final Object component) {
         service.started(component);
+
         startResolved();
     }
 
-    private void startResolved() {
+    private synchronized void startResolved() {
         final Set<ServiceDescriptor> servicesUp = activeServices();
         final Set<ComponentDescriptor> resolved = new HashSet<ComponentDescriptor>();
         final Set<ComponentDescriptor> running = new HashSet<ComponentDescriptor>();
@@ -452,7 +449,7 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
                     }
 
                     for (final ComponentDescriptor descriptor : running) {
-                        for (final Class<? super Managed> api : descriptor.interfaces()) {
+                        for (final Class<?> api : descriptor.interfaces()) {
                             registry.bindInstance(descriptor.instance(), (Class) api);
                         }
                     }
@@ -460,8 +457,8 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
                     for (final ComponentDescriptor descriptor : resolved) {
                         final Class<? extends Managed> type = (Class<? extends Managed>) descriptor.type;
 
-                        for (final Class<? super Managed> api : descriptor.interfaces()) {
-                            registry.bindComponent(type, api);
+                        for (final Class<?> api : descriptor.interfaces()) {
+                            registry.bindComponent((Class) type, api);
                         }
                     }
                 }
@@ -487,22 +484,22 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
                     descriptor.started(instance);
                 } catch (final Exception e) {
                     log.error(e, "Failed to start %s", name);
-                    descriptor.started(false);
+                    descriptor.failed(true);
                 }
             }
         }
     }
 
     private Set<ServiceDescriptor> activeServices() {
-        final Set<ServiceDescriptor> services = new HashSet<ServiceDescriptor>();
+        final Set<ServiceDescriptor> active = new HashSet<ServiceDescriptor>();
 
-        for (final ServiceDescriptor descriptor : this.services) {
+        for (final ServiceDescriptor descriptor : services) {
             if (descriptor.instance() != null) {
-                services.add(descriptor);
+                active.add(descriptor);
             }
         }
 
-        return services;
+        return active;
     }
 
     private boolean resolved(final Set<ServiceDescriptor> servicesUp, final ComponentDescriptor descriptor) {
