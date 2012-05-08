@@ -94,13 +94,13 @@
             <dependency>
                 <groupId>org.easymock</groupId>
                 <artifactId>easymock</artifactId>
-                <version>3.0</version>
+                <version>3.1</version>
             </dependency>
 
             <dependency>
                 <groupId>org.testng</groupId>
                 <artifactId>testng</artifactId>
-                <version>6.2</version>
+                <version>6.5.2</version>
 
                 <exclusions>
                     <exclusion>
@@ -318,7 +318,7 @@
 
                 <plugin>
                     <groupId>${fluidity.plugin.groupId}</groupId>
-                    <artifactId>maven-composition-plugin</artifactId>
+                    <artifactId>composition-maven-plugin</artifactId>
                     <version>${project.version}</version>
                 </plugin>
 

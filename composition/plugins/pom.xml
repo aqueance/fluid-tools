@@ -39,8 +39,8 @@
     </licenses>
 
     <modules>
-        <module>maven-composition-plugin</module>
-        <module>maven-composition-plugin-tests</module>
+        <module>composition-maven-plugin</module>
+        <module>composition-maven-plugin-tests</module>
     </modules>
 
 </project>

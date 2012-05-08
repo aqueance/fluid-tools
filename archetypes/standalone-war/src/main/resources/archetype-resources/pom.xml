@@ -63,7 +63,7 @@ limitations under the License.
 
             <plugin>
                 <groupId>org.fluidity.maven</groupId>
-                <artifactId>maven-composition-plugin</artifactId>
+                <artifactId>composition-maven-plugin</artifactId>
                 <version>${symbol_dollar}{fluid.tools.version}</version>
                 <executions>
                     <execution>
@@ -77,7 +77,7 @@ limitations under the License.
 
             <plugin>
                 <groupId>org.fluidity.maven</groupId>
-                <artifactId>maven-standalone-war-plugin</artifactId>
+                <artifactId>standalone-war-maven-plugin</artifactId>
                 <version>${symbol_dollar}{fluid.tools.version}</version>
 
 <!-- Uncomment to support executable WAR only; trims some off the WAR size

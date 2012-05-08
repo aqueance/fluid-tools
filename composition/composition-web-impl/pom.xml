@@ -76,7 +76,7 @@ WebApplicationLifecycleListener to be registered as a listener in the host appli
 
             <plugin>
                 <groupId>${fluidity.plugin.groupId}</groupId>
-                <artifactId>maven-composition-plugin</artifactId>
+                <artifactId>composition-maven-plugin</artifactId>
                 <executions>
                     <execution>
                         <goals>

@@ -100,7 +100,7 @@ limitations under the License.
 
                 <plugin>
                     <groupId>org.fluidity.maven</groupId>
-                    <artifactId>maven-composition-plugin</artifactId>
+                    <artifactId>composition-maven-plugin</artifactId>
                     <version>${symbol_dollar}{fluid.tools.version}</version>
                 </plugin>
 
