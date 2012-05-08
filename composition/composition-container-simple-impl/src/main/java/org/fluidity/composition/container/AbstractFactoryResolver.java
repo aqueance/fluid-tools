@@ -111,20 +111,32 @@ abstract class AbstractFactoryResolver extends AbstractResolver {
 
                 return injector.resolve(api, new DependencyInjector.Resolution() {
                     public ComponentContext context() {
-                        traversal.resolving(resolving, api, null, null);
-                        return passed;
+                        traversal.descend(resolving, api, null, null);
+                        try {
+                            return passed;
+                        } finally {
+                            traversal.ascend(resolving, api);
+                        }
                     }
 
                     public ComponentContainer container() {
-                        traversal.resolving(resolving, api, null, null);
-                        return new ComponentContainerShell(child, reduced.accept(null), false);
+                        traversal.descend(resolving, api, null, null);
+                        try {
+                            return new ComponentContainerShell(child, reduced.accept(null), false);
+                        } finally {
+                            traversal.ascend(resolving, api);
+                        }
                     }
 
                     public DependencyGraph.Node regular() {
-                        traversal.resolving(resolving, api, null, annotations);
-                        final ContextDefinition copy = collected.advance(reference);
-                        contexts.add(copy);
-                        return child.resolveComponent(api, copy.expand(annotations), traversal, api);
+                        traversal.descend(resolving, api, null, annotations);
+                        try {
+                            final ContextDefinition copy = collected.advance(reference);
+                            contexts.add(copy);
+                            return child.resolveComponent(api, copy.expand(annotations), traversal, api);
+                        } finally {
+                            traversal.ascend(resolving, api);
+                        }
                     }
 
                     public void handle(final RestrictedContainer container) {

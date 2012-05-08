@@ -154,7 +154,7 @@ public class BundleJarManifest implements JarManifest {
 
             try {
 
-                // create a class loader that sees the project's compile time dependencies
+                // create a class loader that sees the project's compile-time dependencies
                 final List<URL> urls = new ArrayList<URL>();
 
                 final String skippedId = project.getArtifact().getId();
@@ -379,14 +379,14 @@ public class BundleJarManifest implements JarManifest {
     }
 
     /**
-     * This class is loaded from a bespoke class loader defined on the compile time dependencies of the host project. It checks if the ContainerBoundary
-     * and BundleBootstrap classes can be found in the project's compile time class path.
+     * This class is loaded from a bespoke class loader defined on the compile-time dependencies of the host project. It checks if the ContainerBoundary
+     * and BundleBootstrap classes can be found in the project's compile-time class path.
      */
     public static final class BundleActivatorProcessor implements Command<String, Void> {
         public String run(final Void ignored) {
             try {
 
-                // try to load the classes from the artifact's compile time dependencies
+                // try to load the classes from the artifact's compile-time dependencies
                 return ContainerBoundary.class != null ? BundleBootstrap.class.getName() : null;
             } catch (final NoClassDefFoundError e) {
 

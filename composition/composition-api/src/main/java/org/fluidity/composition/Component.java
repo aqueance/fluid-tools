@@ -27,14 +27,14 @@ import java.lang.reflect.Type;
 
 /**
  * Specifies the <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Definitions">component interface(s)</a> that a class implements and thus should
- * resolve to the annotated class at run-time by a dependency injection container.
+ * resolve to the annotated class at run time by a dependency injection container.
  * <p/>
  * On its own, this implementation is a marker use by the <code>org.fluidity.maven:maven-composition-plugin</code> Maven plugin to make carefree dependency
  * injection possible.
  * <p/>
  * For any class marked with this annotation and without having automatic processing disabled, i.e., without {@link #automatic() @Component(automatic =
  * false)}, the <code>maven-composition-plugin</code> Maven plugin will generate at build time the necessary metadata that the dependency injection container
- * will need to pick up and process the annotated class at run-time.
+ * will need to pick up and process the annotated class at run time.
  * <h3>Usage</h3>
  * <pre>
  * <span class="hl1">&#64;Component</span>
@@ -62,7 +62,7 @@ import java.lang.reflect.Type;
 public @interface Component {
 
     /**
-     * Specifies the interfaces or classes that should resolve to the annotated class at run-time.
+     * Specifies the interfaces or classes that should resolve to the annotated class at run time.
      * <p/>
      * In case of {@link org.fluidity.composition.spi.ComponentFactory}, the value applies to the component the factory creates, not the factory itself.
      * <p/>
@@ -81,7 +81,7 @@ public @interface Component {
      * pick up, such as a {@link org.fluidity.composition.spi.ComponentFactory} implementation.
      * <p/>
      * If manually processed, the developer either has to provide a suitable {@link org.fluidity.composition.spi.PackageBindings} object or explicitly add the
-     * class to some child container at run-time, or have another component's <code>@Component</code> annotation refer to the annotated class.
+     * class to some child container at run time, or have another component's <code>@Component</code> annotation refer to the annotated class.
      *
      * @return <code>true</code> if this component should be automatically processed.
      *

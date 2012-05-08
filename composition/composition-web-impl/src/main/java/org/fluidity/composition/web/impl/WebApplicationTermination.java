@@ -19,12 +19,13 @@ package org.fluidity.composition.web.impl;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
+
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentGroup;
-import org.fluidity.composition.spi.ShutdownTasks;
+import org.fluidity.composition.spi.ContainerTermination;
 import org.fluidity.foundation.Log;
 
 /**
@@ -38,16 +39,16 @@ import org.fluidity.foundation.Log;
  */
 @Component
 @ComponentGroup(api = ServletContextListener.class)
-final class WebApplicationShutdownTasksImpl implements ShutdownTasks, ServletContextListener {
+final class WebApplicationTermination implements ContainerTermination, ServletContextListener {
 
     private final List<Runnable> tasks = new ArrayList<Runnable>();
     private final Log log;
 
-    public WebApplicationShutdownTasksImpl(final Log<WebApplicationShutdownTasksImpl> log) {
+    public WebApplicationTermination(final Log<WebApplicationTermination> log) {
         this.log = log;
     }
 
-    public void add(final Runnable command) {
+    public void run(final Runnable command) {
         tasks.add(command);
     }
 

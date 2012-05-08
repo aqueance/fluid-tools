@@ -332,7 +332,9 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
     }
 
     private void expectCallbacks() {
-        traversal.resolving(EasyMock.<Class<?>>notNull(), EasyMock.<Class<?>>notNull(), EasyMock.<Annotation[]>notNull(), EasyMock.<Annotation[]>notNull());
+        traversal.descend(EasyMock.<Class<?>>notNull(), EasyMock.<Class<?>>notNull(), EasyMock.<Annotation[]>notNull(), EasyMock.<Annotation[]>notNull());
+        EasyMock.expectLastCall().anyTimes();
+        traversal.ascend(EasyMock.<Class<?>>notNull(), EasyMock.<Class<?>>notNull());
         EasyMock.expectLastCall().anyTimes();
     }
 

@@ -73,6 +73,14 @@
         </dependency>
 
         <dependency>
+            <groupId>${fluidity.public.groupId}</groupId>
+            <artifactId>fluid-tools-cli-application</artifactId>
+            <version>${project.version}</version>
+            <type>pom</type>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
             <groupId>org.osgi</groupId>
             <artifactId>org.osgi.core</artifactId>
             <version>${osgi.specification.version}</version>

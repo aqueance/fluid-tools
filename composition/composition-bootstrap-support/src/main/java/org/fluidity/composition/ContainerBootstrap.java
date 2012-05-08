@@ -39,7 +39,7 @@ interface ContainerBootstrap {
      *
      * @param services    provides basic services for containers
      * @param provider    is the provider of actual dependency injection containers and related functionality.
-     * @param properties  is the properties to bind to the container as a means to configure binding instances at run-time.
+     * @param properties  is the properties to bind to the container as a means to configure binding instances at run time.
      * @param parent      is the container to use as the parent of the one returned; can be <code>null</code>, in which case a standalone container is
      *                    returned.
      * @param classLoader is the class loader to use to discover package bindings. Package bindings found in the class loader ancestry are ignored when the

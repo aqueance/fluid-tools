@@ -504,65 +504,72 @@ final class DependencyInjectorImpl implements DependencyInjector {
         final Annotation[] dependencyContext = neverNull(dependency.annotations());
 
         if (resolving) {
-            traversal.resolving(declaringType, dependencyType, typeContext, dependencyContext);
+            traversal.descend(declaringType, dependencyType, typeContext, dependencyContext);
         }
 
-        final Annotation[] definitions = new Annotation[typeContext.length + dependencyContext.length];
-        System.arraycopy(typeContext, 0, definitions, 0, typeContext.length);
-        System.arraycopy(dependencyContext, 0, definitions, typeContext.length, dependencyContext.length);
-
-        final ContextDefinition downstream = original.advance(reference).expand(definitions);
-
+        final ContextDefinition downstream;
         final DependencyGraph.Node node;
 
-        if (componentGroup != null) {
-            if (!dependencyType.isArray()) {
-                throw new ComponentContainer.ResolutionException("Group dependency %s of %s must be an array", dependencyType, declaringType);
+        try {
+            final Annotation[] definitions = new Annotation[typeContext.length + dependencyContext.length];
+            System.arraycopy(typeContext, 0, definitions, 0, typeContext.length);
+            System.arraycopy(dependencyContext, 0, definitions, typeContext.length, dependencyContext.length);
+
+            downstream = original.advance(reference).expand(definitions);
+
+            if (componentGroup != null) {
+                if (!dependencyType.isArray()) {
+                    throw new ComponentContainer.ResolutionException("Group dependency %s of %s must be an array", dependencyType, declaringType);
+                }
+
+                final Class<?> itemType = dependencyType.getComponentType();
+                if (itemType.isArray()) {
+                    throw new ComponentContainer.ResolutionException("Group dependency %s of %s must be an array of non-arrays", dependencyType, declaringType);
+                }
+
+                final Class<?> groupType = componentGroup.api() == null || componentGroup.api().length != 1 ? itemType : componentGroup.api()[0];
+
+                if (!itemType.isAssignableFrom(groupType)) {
+                    throw new ComponentContainer.ResolutionException(
+                            "The component type of dependency specified in the %s annotation is not assignable to the dependency type %s of %s",
+                            dependencyType,
+                            ComponentGroup.class,
+                            declaringType);
+                }
+
+                node = container.resolveGroup(itemType, downstream, traversal, dependencyContext, reference);
+            } else {
+                node = resolve(dependencyType, new Resolution() {
+                    public ComponentContext context() {
+
+                        // injected context must only contain annotations accepted by the instantiated component
+                        // accepted context depends only on defined context, which is propagated forward
+                        // therefore we have all necessary information right here
+                        return original.copy().accept(contexts.contextConsumer()).create();
+                    }
+
+                    public ComponentContainer container() {
+
+                        // injected container is not interested in accepted contexts, only defined ones
+                        // defined context is propagated forward therefore we have all necessary information
+                        // right here
+                        return container.container(original.copy().expand(definitions));
+                    }
+
+                    public DependencyGraph.Node regular() {
+                        return container.resolveComponent(dependencyType, downstream, traversal, reference);
+                    }
+
+                    public void handle(final RestrictedContainer container) {
+                        // empty
+                    }
+                });
+
             }
-
-            final Class<?> itemType = dependencyType.getComponentType();
-            if (itemType.isArray()) {
-                throw new ComponentContainer.ResolutionException("Group dependency %s of %s must be an array of non-arrays", dependencyType, declaringType);
+        } finally {
+            if (resolving) {
+                traversal.ascend(declaringType, dependencyType);
             }
-
-            final Class<?> groupType = componentGroup.api() == null || componentGroup.api().length != 1 ? itemType : componentGroup.api()[0];
-
-            if (!itemType.isAssignableFrom(groupType)) {
-                throw new ComponentContainer.ResolutionException(
-                        "The component type of dependency specified in the %s annotation is not assignable to the dependency type %s of %s",
-                        dependencyType,
-                        ComponentGroup.class,
-                        declaringType);
-            }
-
-            node = container.resolveGroup(itemType, downstream, traversal, dependencyContext, reference);
-        } else {
-            node = resolve(dependencyType, new Resolution() {
-                public ComponentContext context() {
-
-                    // injected context must only contain annotations accepted by the instantiated component
-                    // accepted context depends only on defined context, which is propagated forward
-                    // therefore we have all necessary information right here
-                    return original.copy().accept(contexts.contextConsumer()).create();
-                }
-
-                public ComponentContainer container() {
-
-                    // injected container is not interested in accepted contexts, only defined ones
-                    // defined context is propagated forward therefore we have all necessary information
-                    // right here
-                    return container.container(original.copy().expand(definitions));
-                }
-
-                public DependencyGraph.Node regular() {
-                    return container.resolveComponent(dependencyType, downstream, traversal, reference);
-                }
-
-                public void handle(final RestrictedContainer container) {
-                    // empty
-                }
-            });
-
         }
 
         dependency.set(new DependencyNode(mandatory, node, declaringType, dependencyType));

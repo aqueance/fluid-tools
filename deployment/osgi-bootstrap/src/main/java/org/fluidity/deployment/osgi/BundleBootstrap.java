@@ -25,7 +25,7 @@ import org.fluidity.composition.ComponentGroup;
 import org.fluidity.composition.ContainerBoundary;
 import org.fluidity.composition.Inject;
 import org.fluidity.composition.Optional;
-import org.fluidity.composition.spi.ShutdownTasks;
+import org.fluidity.composition.spi.ContainerTermination;
 import org.fluidity.foundation.ClassLoaders;
 import org.fluidity.foundation.Log;
 
@@ -42,7 +42,7 @@ import org.osgi.framework.BundleContext;
  */
 public final class BundleBootstrap implements BundleActivator {
 
-    private final BundleShutdownTasks shutdown = new BundleShutdownTasks();
+    private final BundleTermination termination = new BundleTermination();
     private Activators activators;
     private BundleComponentContainer container;
 
@@ -65,10 +65,10 @@ public final class BundleBootstrap implements BundleActivator {
 
         final ContainerBoundary boundary = new ContainerBoundary();
 
-        boundary.bindBootComponent(shutdown);
+        boundary.bindBootComponent(termination);
         boundary.bindBootComponent(context, BundleContext.class);
 
-        boundary.initialize(shutdown);
+        boundary.initialize(termination);
 
         container = boundary.getComponent(BundleComponentContainer.class);
         container.start();
@@ -88,18 +88,18 @@ public final class BundleBootstrap implements BundleActivator {
     public void stop(final BundleContext context) throws Exception {
         activators.stop();
         container.stop();
-        shutdown.stop();
+        termination.stop();
     }
 
     @Component(automatic = false)
-    private static class BundleShutdownTasks implements ShutdownTasks {
+    private static class BundleTermination implements ContainerTermination {
         private final List<Runnable> tasks = new ArrayList<Runnable>();
 
         @Inject
         @SuppressWarnings("UnusedDeclaration")
-        private Log<BundleShutdownTasks> log;
+        private Log<BundleTermination> log;
 
-        public void add(final Runnable command) {
+        public void run(final Runnable command) {
             tasks.add(command);
         }
 

@@ -128,7 +128,7 @@ import org.fluidity.foundation.spi.PropertyProvider;
  * </ul>
  * In contrast, a custom class:
  * <ul>
- * <li>provides no means to vary at run-time the property queried for a given field,</li>
+ * <li>provides no means to vary at run time the property queried for a given field,</li>
  * <li>honours the equality defined by its {@link Object#equals(Object)} method,</li>
  * <li>will have the same property value in its fields regardless of when they are accessed (until you change those values, of course).</li>
  * </ul>

@@ -17,29 +17,31 @@
 package org.fluidity.deployment.osgi;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
+import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.ComponentGroup;
 import org.fluidity.composition.Components;
-import org.fluidity.composition.container.DependencyInjector;
+import org.fluidity.composition.DependencyPath;
+import org.fluidity.composition.ObservedComponentContainer;
+import org.fluidity.composition.ServiceProvider;
+import org.fluidity.composition.spi.CustomComponentFactory;
 import org.fluidity.foundation.ClassDiscovery;
+import org.fluidity.foundation.Generics;
 import org.fluidity.foundation.Log;
-import org.fluidity.foundation.spi.LogFactory;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
@@ -55,93 +57,192 @@ import org.osgi.framework.ServiceRegistration;
 @Component
 final class BundleComponentContainerImpl implements BundleComponentContainer {
 
-    private final Set<Stoppable> cleanup = new HashSet<Stoppable>();
-    private final Map<Managed, Set<Class<?>>> clusters = new HashMap<Managed, Set<Class<?>>>();
+    private final List<Stoppable> cleanup = new ArrayList<Stoppable>();
 
     private final Log log;
     private final BundleContext context;
     private final ComponentContainer container;
-    private final DependencyInjector injector;
     private final BundleBoundary border;
 
-    private final Class<Managed>[] items;
-    private final Observer[] listeners;
+    private final ServiceDescriptor[] services;
+    private final ComponentDescriptor[] components;
 
-    private final Log listenerLog;
+    private final ServiceComponentFactory serviceFactory;
 
-    public BundleComponentContainerImpl(final BundleContext context,
-                                        final ComponentContainer container,
-                                        final LogFactory logs,
-                                        final DependencyInjector injector,
-                                        final BundleBoundary border,
-                                        final ClassDiscovery discovery,
-                                        final @ComponentGroup Observer... listeners) {
-        this.context = context;
-        this.container = container;
-        this.injector = injector;
-        this.border = border;
-        this.log = logs.createLog(BundleComponentContainerImpl.class);
+    @SuppressWarnings("unchecked")
+    private final Status status = new Status() {
 
-        this.items = discovery.findComponentClasses(Managed.class, getClass().getClassLoader(), false);
-        this.listeners = listeners;
+        public Collection<Class<?>> active() {
+            final Collection<Class<?>> list = new ArrayList<Class<?>>();
 
-        this.listenerLog = logs.createLog(ServiceChangeListener.class);
-    }
+            for (final ComponentDescriptor component : components) {
+                if (component.instance() != null) {
+                    list.addAll(Arrays.asList(component.interfaces()));
+                }
+            }
 
-    private static class Dependencies {
-        public final Collection<ServiceSpecification> services = new HashSet<ServiceSpecification>();
-        public final Collection<Class<Managed>> components = new HashSet<Class<Managed>>();
-    }
-
-    public void start() {
-        final Map<Class<Managed>, Collection<Components.Interfaces>> clusters = new HashMap<Class<Managed>, Collection<Components.Interfaces>>();
-        final Collection<Components.Interfaces> interfaces = new HashSet<Components.Interfaces>();
-
-        for (final Class<Managed> type : items) {
-            final Components.Interfaces inspection = inspect(type);
-            assert inspection.implementation == type : type;
-            interfaces.add(inspection);
-            clusters.put(type, new HashSet<Components.Interfaces>(Collections.singleton(inspection)));
+            return list;
         }
 
-        final Map<Class<?>, Dependencies> dependenciesMap = new HashMap<Class<?>, Dependencies>();
+        public Map<Class<?>, Collection<Service>> inactive() {
+            final Map<Class<?>, Collection<Service>> map = new HashMap<Class<?>, Collection<Service>>();
+            final Set<ServiceDescriptor> services = activeServices();
 
-        @SuppressWarnings("unchecked")
-        final Collection<Class<Managed>> classes = new HashSet<Class<Managed>>(Arrays.asList(items));
+            for (final ComponentDescriptor component : components) {
+                if (component.instance() == null && !component.failed()) {
+                    final Set<ServiceDescriptor> dependencies = new HashSet<ServiceDescriptor>(component.dependencies());
+                    dependencies.removeAll(services);
 
-        for (final Class<Managed> type : items) {
-            final Dependencies dependencies = findDependencies(type, classes);
+                    final Collection<Service> list = new ArrayList<Service>();
 
-            dependenciesMap.put(type, dependencies);
+                    for (final ServiceDescriptor dependency : dependencies) {
+                        list.add(dependency.annotation);
+                    }
 
-            for (final Class<Managed> dependency : dependencies.components) {
-                for (final Components.Interfaces inspection : interfaces) {
-                    for (final Components.Specification specification : inspection.api) {
-                        if (specification.api == dependency) {
-
-                            @SuppressWarnings("SuspiciousMethodCalls")
-                            final Collection<Components.Interfaces> combined = clusters.get(inspection.implementation);
-
-                            combined.addAll(clusters.get(type));
-                            clusters.put(type, combined);
-                            break;      // the innermost loop
-                        }
+                    for (final Class<?> type : component.interfaces()) {
+                        map.put(type, list);
                     }
                 }
             }
+
+            return map;
         }
 
-        // wrapping in a hash set removes duplicates
-        for (final Collection<Components.Interfaces> cluster : new HashSet<Collection<Components.Interfaces>>(clusters.values())) {
-            final Collection<ServiceSpecification> services = new HashSet<ServiceSpecification>();
+        public Collection<Class<?>> failed() {
+            final Collection<Class<?>> list = new ArrayList<Class<?>>();
 
-            for (final Components.Interfaces type : cluster) {
-                final Dependencies dependencies = dependenciesMap.get(type.implementation);
-                services.addAll(dependencies.services);
+            for (final ComponentDescriptor component : components) {
+                if (component.failed()) {
+                    list.addAll(Arrays.asList(component.interfaces()));
+                }
             }
 
-            resolveDependencies(cluster, services, listenerLog);
+            return list;
         }
+    };
+
+    public BundleComponentContainerImpl(final BundleContext context,
+                                        final ComponentContainer container,
+                                        final Log<BundleComponentContainerImpl> log,
+                                        final BundleBoundary border,
+                                        final ClassDiscovery discovery) {
+        this.context = context;
+        this.container = container;
+        this.border = border;
+        this.log = log;
+
+        // find all managed component classes
+        final Class<Managed>[] items = discovery.findComponentClasses(Managed.class, getClass().getClassLoader(), false);
+
+        final Map<Class<Managed>, ComponentDescriptor> components = new HashMap<Class<Managed>, ComponentDescriptor>();
+
+        final ComponentContainer pool = container.makeChildContainer(new ComponentContainer.Bindings() {
+            @SuppressWarnings("unchecked")
+            public void bindComponents(final ComponentContainer.Registry registry) {
+                for (final Class<Managed> type : items) {
+                    final List<Class<? super BundleComponentContainer.Managed>> interfaces = new ArrayList<Class<? super BundleComponentContainer.Managed>>();
+
+                    for (final Components.Specification specification : inspect(type).api) {
+                        final Class<? super BundleComponentContainer.Managed> api = (Class<? super BundleComponentContainer.Managed>) specification.api;
+
+                        // we can't bind to service provider interfaces (group interfaces are not present in the iterated list)
+                        if (api == type || !isServiceProvider(api)) {
+                            interfaces.add(api);
+                        }
+                    }
+
+                    final ComponentDescriptor descriptor = new ComponentDescriptor(type, interfaces);
+                    components.put(type, descriptor);
+
+                    registry.bindComponent(type, descriptor.interfaces());
+                }
+            }
+        });
+
+        final AtomicReference<Set<ServiceDescriptor>> dependencies = new AtomicReference<Set<ServiceDescriptor>>();
+
+        // collects the OSGi service dependencies encountered during dependency resolution
+        final ObservedComponentContainer observed = pool.observed(new ComponentContainer.Observer() {
+            public void descend(final Class<?> declaringType,
+                                final Class<?> dependencyType,
+                                final Annotation[] typeAnnotations,
+                                final Annotation[] referenceAnnotations) {
+                for (final Annotation annotation : referenceAnnotations) {
+                    if (annotation.annotationType() == Service.class) {
+                        final ServiceDescriptor descriptor = new ServiceDescriptor(dependencyType, (Service) annotation);
+
+                        if (dependencies.get().add(descriptor)) {
+                            final String filter = descriptor.filter;
+
+                            if (filter != null) {
+
+                                // fail fast: verify the OSGi service filter
+
+                                try {
+                                    context.createFilter(filter);
+                                } catch (final InvalidSyntaxException e) {
+                                    throw new ComponentContainer.BindingException(e, "Invalid OSGi service filter at dependency %s of %s: %s", dependencyType, declaringType, filter);
+                                }
+                            }
+                        }
+
+                        break;     // it was an OSGi service: we're done
+                    }
+                }
+            }
+
+            public void ascend(final Class<?> declaringType, final Class<?> dependencyType) {
+                // empty
+            }
+
+            public void circular(final DependencyPath path) {
+                // empty
+            }
+
+            public void resolved(final DependencyPath path, final Class<?> type) {
+                // empty
+            }
+
+            public void instantiated(final DependencyPath path, final AtomicReference<?> reference) {
+                // empty
+            }
+        });
+
+        final Set<ServiceDescriptor> services = new HashSet<ServiceDescriptor>();
+
+        // get the observer methods invoked
+        for (final Class<Managed> type : items) {
+            final ComponentDescriptor descriptor = components.get(type);
+            final Set<ServiceDescriptor> collected = new HashSet<ServiceDescriptor>();
+
+            dependencies.set(collected);
+            for (final Class<?> api : descriptor.interfaces()) {
+                observed.resolveComponent(api);
+            }
+
+            descriptor.dependencies(collected);
+
+            services.addAll(collected);
+        }
+
+        this.components = components.values().toArray(new ComponentDescriptor[components.size()]);
+        this.services = services.toArray(new ServiceDescriptor[services.size()]);
+
+        this.serviceFactory = new ServiceComponentFactory(this.services);
+    }
+
+    private boolean isServiceProvider(final Class<?> type) {
+        if (type.isAnnotationPresent(ServiceProvider.class)) {
+            return true;
+        }
+
+        for (final Class<?> api : type.getInterfaces()) {
+            if (isServiceProvider(api)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     @SuppressWarnings("unchecked")
@@ -150,81 +251,59 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
         if (componentAnnotation != null && componentAnnotation.automatic()) {
             throw new IllegalStateException(String.format("Managed component %s may not have @%s(automatic = true)", type, Component.class));
         } else if (componentAnnotation == null && type.isAnnotationPresent(ComponentGroup.class)) {
-            throw new IllegalStateException(String.format("Managed component %s may not have @%s without @%s(automatic = false)",
-                                                          type,
-                                                          ComponentGroup.class,
-                                                          Component.class));
+            throw new IllegalStateException(String.format("Managed component %s may not have @%s without @%s(automatic = false)", type, ComponentGroup.class, Component.class));
         } else {
             return Components.inspect(type);
         }
     }
 
-    @SuppressWarnings("unchecked")
-    private Dependencies findDependencies(final Class<Managed> type, final Collection<?> components) {
-        final Dependencies dependencies = new Dependencies();
+    public void start() {
+        startResolved();
 
-        final Constructor<?> constructor = injector.findConstructor(type);
+        for (final ServiceDescriptor service : services) {
+            final ServiceChangeListener listener = new ServiceChangeListener(service);
+            final String filter = serviceFilter(service);
 
-        final Class<?>[] parameterTypes = constructor.getParameterTypes();
-        final Annotation[][] parameterAnnotations = constructor.getParameterAnnotations();
-
-        for (int i = 0, limit = parameterAnnotations.length; i < limit; i++) {
-            final Class<?> parameterType = parameterTypes[i];
-            final Annotation[] annotations = parameterAnnotations[i];
-
-            boolean isService = false;
-            for (final Annotation annotation : annotations) {
-                if (annotation instanceof Service) {
-                    final Service service = (Service) annotation;
-                    dependencies.services.add(new ServiceSpecification(parameterType, service));
-                    isService = true;
-                    break;
-                }
+            try {
+                context.addServiceListener(listener, filter);
+            } catch (final InvalidSyntaxException e) {
+                throw new IllegalStateException(filter, e);     // filter has already been verified when the listener was created
             }
 
-            if (!isService && components.contains(parameterType)) {
-                dependencies.components.add((Class<Managed>) parameterType);
+            cleanup(String.format("service listener for %s %s", service.type, filter), listener);
+
+            listener.servicesChanged(ServiceEvent.MODIFIED);
+        }
+    }
+
+    public void stop() {
+        for (final Iterator<Stoppable> iterator = cleanup.iterator(); iterator.hasNext(); ) {
+            final Stoppable stoppable = iterator.next();
+
+            try {
+                stoppable.stop();
+            } catch (final Exception e) {
+                assert false : e;
+            } finally {
+                iterator.remove();
             }
         }
-
-        return dependencies;
     }
 
     private void cleanup(final String name, final Stoppable stoppable) {
         cleanup.add(new Stoppable() {
             public void stop() {
-                if (cleanup.remove(this)) {
-                    try {
-                        stoppable.stop();
-                    } catch (final Exception e) {
-                        log.error(e, "Stopping %s", name);
-                    }
+                try {
+                    stoppable.stop();
+                } catch (final Exception e) {
+                    log.error(e, "Stopping %s", name);
                 }
             }
         });
     }
 
-    public void stop() {
-        for (final Iterator<Map.Entry<Managed, Set<Class<?>>>> iterator = clusters.entrySet().iterator(); iterator.hasNext(); ) {
-            final Map.Entry<Managed, Set<Class<?>>> entry = iterator.next();
-            final Managed component = entry.getKey();
-            final Set<Class<?>> types = entry.getValue();
-
-            observe(component, entry.getValue(), new Stopping(component));
-
-            iterator.remove();
-        }
-
-        for (final Stoppable stoppable : new HashSet<Stoppable>(cleanup)) {
-            try {
-                stoppable.stop();
-            } catch (final Exception e) {
-                log.error(e, "Stopping a managed component");
-            }
-        }
-    }
-
     private <T> void register(final Registration.Listener<T> source) {
+        final String name = context.getBundle().getSymbolicName();
         final Class<T> type = source.clientType();
 
         final ServiceListener listener = new ServiceListener() {
@@ -263,6 +342,8 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
         try {
             context.addServiceListener(listener, String.format("(%s=%s)", Constants.OBJECTCLASS, type.getName()));
 
+            log.info("%s accepting %s components", name, source.getClass());
+
             final ServiceReference[] references = context.getServiceReferences(type.getName(), null);
             if (references != null) {
                 for (final ServiceReference reference : references) {
@@ -273,9 +354,10 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
             assert false : e;
         }
 
-        cleanup(source.getClass().getName(), new Stoppable() {
+        cleanup(String.format("service listener for %s", source.getClass().getName()), new Stoppable() {
             public void stop() {
                 context.removeServiceListener(listener);
+                log.info("%s dropping %s components", name, source.getClass());
             }
         });
     }
@@ -300,31 +382,6 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
         });
     }
 
-    private void resolveDependencies(final Collection<Components.Interfaces> cluster, final Collection<ServiceSpecification> services, final Log listenerLog) {
-        if (services.isEmpty()) {
-            clusters.putAll(start(cluster));
-
-            for (final Managed managed : clusters.keySet()) {
-                cleanup(managed.getClass().getName(), managed);
-            }
-        } else {
-            final ServiceSpecification[] dependencies = services.toArray(new ServiceSpecification[services.size()]);
-            final ServiceChangeListener listener = new ServiceChangeListener(cluster, dependencies, listenerLog);
-
-            final String filter = serviceFilter(dependencies);
-
-            try {
-                context.addServiceListener(listener, filter);
-            } catch (final InvalidSyntaxException e) {
-                throw new IllegalArgumentException(filter, e);
-            }
-
-            listener.servicesChanged(ServiceEvent.MODIFIED);
-
-            cleanup("service listener", listener);
-        }
-    }
-
     private void start(final String name, final Managed component) throws Exception {
         component.start();
 
@@ -339,100 +396,142 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
         }
     }
 
-    Map<Managed, Set<Class<?>>> start(final Collection<Components.Interfaces> cluster, final ComponentContainer.Bindings... list) {
-        final ComponentContainer child = container.makeChildContainer(new ComponentContainer.Bindings() {
-            @SuppressWarnings("unchecked")
-            public void bindComponents(final ComponentContainer.Registry registry) {
-                for (final ComponentContainer.Bindings bindings : list) {
-                    bindings.bindComponents(registry);
-                }
+    private synchronized void stopped(final ServiceDescriptor service) {
+        service.stopped();
 
-                for (final Components.Interfaces interfaces : cluster) {
-                    registry.bindComponent(interfaces.implementation);
-                }
-            }
-        });
+        final Set<ServiceDescriptor> servicesUp = activeServices();
+        final Set<ComponentDescriptor> unresolved = new HashSet<ComponentDescriptor>();
 
-        final Map<Managed, Set<Class<?>>> components = new HashMap<Managed, Set<Class<?>>>();
-
-        for (final Components.Interfaces interfaces : cluster) {
-            for (final Components.Specification specification : interfaces.api) {
-                final Managed component = (Managed) child.getComponent(specification.api);
-
-                Set<Class<?>> api = components.get(component);
-
-                if (api == null) {
-                    components.put(component, api = new HashSet<Class<?>>());
-                }
-
-                api.add(specification.api);
+        for (final ComponentDescriptor descriptor : components) {
+            if (descriptor.instance() != null && !resolved(servicesUp, descriptor)) {
+                unresolved.add(descriptor);
             }
         }
 
-        for (final Iterator<Map.Entry<Managed, Set<Class<?>>>> iterator = components.entrySet().iterator(); iterator.hasNext(); ) {
-            final Map.Entry<Managed, Set<Class<?>>> entry = iterator.next();
-            final Managed component = entry.getKey();
+        for (final Descriptor descriptor : unresolved) {
+            final Managed component = (Managed) descriptor.stopped();
+            assert component != null;   // we just checked above
 
             try {
-                start(component.getClass().getName(), component);
-
-                observe(component, entry.getValue(), new Started(component));
+                component.stop();
             } catch (final Exception e) {
-                iterator.remove();
+                log.error(e, "Stopping %s", descriptor.toString());
+            }
+        }
+    }
 
-                log.error(e, "starting %s", component.getClass().getName());
+    private synchronized void started(final ServiceDescriptor service, final Object component) {
+        service.started(component);
+        startResolved();
+    }
 
-                observe(component, entry.getValue(), new Failed(component));
+    private void startResolved() {
+        final Set<ServiceDescriptor> servicesUp = activeServices();
+        final Set<ComponentDescriptor> resolved = new HashSet<ComponentDescriptor>();
+        final Set<ComponentDescriptor> running = new HashSet<ComponentDescriptor>();
+
+        for (final ComponentDescriptor descriptor : components) {
+            final Object instance = descriptor.instance();
+
+            if (instance != null) {
+                running.add(descriptor);
+            } else if (resolved(servicesUp, descriptor)) {
+                resolved.add(descriptor);
             }
         }
 
-        return components;
-    }
+        if (!resolved.isEmpty()) {
+            final ComponentContainer child = container.makeChildContainer(new ComponentContainer.Bindings() {
+                @SuppressWarnings("unchecked")
+                public void bindComponents(final ComponentContainer.Registry registry) {
+                    registry.bindInstance(status);
 
-    private void observe(final Managed component, final Set<Class<?>> types, final Observation observation) {
-        for (final Observer listener : listeners) {
-            for (final Class<?> type : listener.types()) {
-                if (types.contains(type)) {
-                    try {
-                        observation.observe(listener, type, component);
-                    } catch (final Exception e) {
-                        log.warning(e, "Observer failure");
+                    final Class<?>[] services = serviceFactory.api();
+                    if (services.length > 0) {
+                        registry.bindFactory(serviceFactory, services); // will ONLY be valid when services.length > 0
                     }
+
+                    for (final ComponentDescriptor descriptor : running) {
+                        for (final Class<? super Managed> api : descriptor.interfaces()) {
+                            registry.bindInstance(descriptor.instance(), (Class) api);
+                        }
+                    }
+
+                    for (final ComponentDescriptor descriptor : resolved) {
+                        final Class<? extends Managed> type = (Class<? extends Managed>) descriptor.type;
+
+                        for (final Class<? super Managed> api : descriptor.interfaces()) {
+                            registry.bindComponent(type, api);
+                        }
+                    }
+                }
+            });
+
+            for (final ComponentDescriptor descriptor : resolved) {
+                final String name = descriptor.toString();
+                final Managed instance = (Managed) child.getComponent(descriptor.interfaces()[0]);
+
+                try {
+                    start(name, instance);
+
+                    cleanup(name, new Stoppable() {
+                        public void stop() throws Exception {
+                            final Managed component = (Managed) descriptor.stopped();
+
+                            if (component != null) {
+                                component.stop();
+                            }
+                        }
+                    });
+
+                    descriptor.started(instance);
+                } catch (final Exception e) {
+                    log.error(e, "Failed to start %s", name);
+                    descriptor.started(false);
                 }
             }
         }
     }
 
-    private String serviceFilter(final ServiceSpecification[] dependencies) {
+    private Set<ServiceDescriptor> activeServices() {
+        final Set<ServiceDescriptor> services = new HashSet<ServiceDescriptor>();
+
+        for (final ServiceDescriptor descriptor : this.services) {
+            if (descriptor.instance() != null) {
+                services.add(descriptor);
+            }
+        }
+
+        return services;
+    }
+
+    private boolean resolved(final Set<ServiceDescriptor> servicesUp, final ComponentDescriptor descriptor) {
+        final Set<ServiceDescriptor> dependenciesUp = new HashSet<ServiceDescriptor>(descriptor.dependencies());
+
+        dependenciesUp.retainAll(servicesUp);
+
+        return dependenciesUp.containsAll(descriptor.dependencies());
+    }
+
+    private String serviceFilter(final ServiceDescriptor service) {
         final StringBuilder parsed = new StringBuilder();
-        final boolean multiple = dependencies.length > 1;
         final String prefix = String.format("(%s=", Constants.OBJECTCLASS);
 
-        if (multiple) {
-            parsed.append("(|");
+        final Class<?> dependency = service.type;
+        final String filter = service.filter;
+
+        final boolean filtered = filter != null && filter.length() > 0;
+
+        if (filtered) {
+            parsed.append("(&");
         }
 
-        for (final ServiceSpecification service : dependencies) {
-            final Class<?> dependency = service.api;
-            final String filter = service.filter;
-
-            final boolean filtered = filter != null && filter.length() > 0;
-
-            if (filtered) {
-                parsed.append("(&");
-            }
-
-            if (!filtered || !filter.contains(prefix)) {
-                parsed.append(prefix).append(dependency.getName()).append(')');
-            }
-
-            if (filtered) {
-                parsed.append(filter).append(")");
-            }
+        if (!filtered || !filter.contains(prefix)) {
+            parsed.append(prefix).append(dependency.getName()).append(')');
         }
 
-        if (multiple) {
-            parsed.append(')');
+        if (filtered) {
+            parsed.append(filter).append(")");
         }
 
         return parsed.toString();
@@ -448,35 +547,59 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
         return names;
     }
 
+    @Component(automatic = false)
+    @Component.Context({ Service.class, Component.Reference.class})
+    private static final class ServiceComponentFactory implements CustomComponentFactory {
+
+        private final Map<String, ServiceDescriptor> services;
+        private final Class<?>[] api;
+
+        public ServiceComponentFactory(final ServiceDescriptor[] services) {
+            final Map<String, ServiceDescriptor> map = new HashMap<String, ServiceDescriptor>();
+            final Set<Class<?>> types = new HashSet<Class<?>>();
+
+            for (final ServiceDescriptor descriptor : services) {
+                final String filter = descriptor.filter;
+                map.put(String.format("%s:%s", descriptor.type, filter == null ? "" : filter), descriptor);
+                types.add(descriptor.type);
+            }
+
+            this.services = map;
+            this.api = types.toArray(new Class[types.size()]);
+        }
+
+        public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
+            final Service annotation = context.annotation(Service.class, null);
+            final Component.Reference reference = context.annotation(Component.Reference.class, null);
+            final Class<?> type = annotation.api();
+            final ServiceDescriptor descriptor = services.get(String.format("%s:%s", type == Object.class ? Generics.rawType(reference.type()) : type, annotation.filter()));
+
+            if (descriptor.instance() == null) {
+                throw new ComponentContainer.ResolutionException(descriptor.toString());
+            } else {
+                return new Instance() {
+                    @SuppressWarnings("unchecked")
+                    public void bind(final Registry registry) throws ComponentContainer.BindingException {
+                        registry.bindInstance(descriptor.instance(), (Class<Object>) descriptor.type);
+                    }
+                };
+            }
+        }
+
+        public Class<?>[] api() {
+            return api;
+        }
+    }
+
     private class ServiceChangeListener implements ServiceListener, Stoppable {
 
-        private final Map<ServiceSpecification, ServiceReference> referenceMap = new HashMap<ServiceSpecification, ServiceReference>();
-        private final Map<ServiceSpecification, Object> dependencyMap = new HashMap<ServiceSpecification, Object>();
+        private final String name = context.getBundle().getSymbolicName();
+        private final ServiceDescriptor descriptor;
 
-        private final Collection<Components.Interfaces> cluster;
-        private final Log log;
+        private ServiceReference reference;
 
-        private final String name;
-        private final Map<Managed, Set<Class<?>>> components = new IdentityHashMap<Managed, Set<Class<?>>>();
-
-        public ServiceChangeListener(final Collection<Components.Interfaces> cluster, final ServiceSpecification[] dependencies, final Log log) {
-            this.cluster = cluster;
-            this.log = log;
-
-            final StringBuilder builder = new StringBuilder();
-            for (final Components.Interfaces interfaces : this.cluster) {
-                if (builder.length() > 0) {
-                    builder.append(", ");
-                }
-
-                builder.append(interfaces.implementation.getName());
-            }
-
-            this.name = builder.toString();
-
-            for (final ServiceSpecification dependency : dependencies) {
-                dependencyMap.put(dependency, null);
-            }
+        public ServiceChangeListener(final ServiceDescriptor descriptor) {
+            this.descriptor = descriptor;
         }
 
         @SuppressWarnings("unchecked")
@@ -485,78 +608,34 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
             final boolean modified = eventType == ServiceEvent.MODIFIED;
             final boolean unregistering = eventType == ServiceEvent.UNREGISTERING;
 
+            final ServiceReference[] references = references(descriptor);
+
             if (modified || unregistering) {
-                for (final ServiceSpecification service : new HashSet<ServiceSpecification>(dependencyMap.keySet())) {
-                    final ServiceReference[] references = references(service);
-                    final ServiceReference check = referenceMap.get(service);
+                boolean found = reference == null;      // reference == null: nothing to stop
 
-                    boolean found = check == null;      // no reference: we have found it...
+                for (int i = 0, limit = references.length; !found && i < limit; i++) {
+                    found = reference == references[i];     // TODO: we assume that if the reference is unregistering it will not be returned by the context
+                }
 
-                    for (int i = 0, limit = references.length; !found && i < limit; i++) {
-                        found = check == references[i];     // TODO: we assume that if the reference is unregistered it will not be returned by the context
-                    }
-
-                    if (!found) {
-                        suspend();
-                        dependencyMap.put(service, null);
-                        context.ungetService(referenceMap.remove(service));
-                    }
+                if (!found) {
+                    stopped(descriptor);
+                    context.ungetService(reference);
+                    reference = null;
                 }
             }
 
-            final boolean stopped = dependencyMap.size() != referenceMap.size();
+            final boolean stopped = reference == null;
 
             if (stopped && (modified || registered)) {
-                for (final ServiceSpecification service : new HashSet<ServiceSpecification>(dependencyMap.keySet())) {
-                    final ServiceReference[] references = references(service);
-
-                    for (int i = 0, limit = references.length; !referenceMap.containsKey(service) && i < limit; i++) {
-                        final ServiceReference reference = references[i];
-                        referenceMap.put(service, reference);
-                        dependencyMap.put(service, border.imported((Class) service.api, context.getService(reference)));
-                    }
+                if (references != null && references.length > 0) {
+                    reference = references[0];
+                    final Object instance = context.getService(reference);
+                    started(descriptor, descriptor.type.isInterface() ? border.imported((Class) descriptor.type, instance) : instance);
                 }
             }
 
-            if (stopped && dependencyMap.size() == referenceMap.size()) {
-                assert components.isEmpty();
-                components.putAll(start(cluster, new ComponentContainer.Bindings() {
-                    public void bindComponents(final ComponentContainer.Registry registry) {
-                        for (final Map.Entry<ServiceSpecification, Object> entry : dependencyMap.entrySet()) {
-                            registry.bindInstance(entry.getValue(), (Class<Object>) entry.getKey().api);
-                        }
-                    }
-                }));
-            }
-
-            if (log.isInfoEnabled() && dependencyMap.size() != referenceMap.size()) {
-                final List<ServiceSpecification> services = new ArrayList<ServiceSpecification>();
-
-                for (final ServiceSpecification service : dependencyMap.keySet()) {
-                    if (!referenceMap.containsKey(service)) {
-                        services.add(service);
-                    }
-                }
-
-                log.info("%s %s waiting for services: %s", name, components.size() > 1 ? "are" : "is", services);
-            }
-        }
-
-        private void suspend() {
-            for (final Iterator<Map.Entry<Managed, Set<Class<?>>>> iterator = components.entrySet().iterator(); iterator.hasNext(); ) {
-                final Map.Entry<Managed, Set<Class<?>>> entry = iterator.next();
-                final Managed component = entry.getKey();
-
-                observe(component, entry.getValue(), new Stopping(component));
-
-                try {
-                    component.stop();
-                    log.info("%s stopped", name);
-                } catch (final Exception e) {
-                    log.error(e, "stopping %s", name);
-                } finally {
-                    iterator.remove();
-                }
+            if (log.isInfoEnabled() && reference == null) {
+                log.info("%s waiting for: %s", name, descriptor);
             }
         }
 
@@ -564,11 +643,11 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
             servicesChanged(event.getType());
         }
 
-        private ServiceReference[] references(final ServiceSpecification service) {
+        private ServiceReference[] references(final ServiceDescriptor service) {
             final String filter = service.filter;
 
             try {
-                final ServiceReference[] references = context.getServiceReferences(service.api.getName(), filter == null || filter.length() == 0 ? null : filter);
+                final ServiceReference[] references = context.getServiceReferences(service.type.getName(), filter);
                 return references == null ? new ServiceReference[0] : references;
             } catch (final InvalidSyntaxException e) {
                 throw new IllegalStateException(filter, e);   // filter has already been used when the listener was created
@@ -577,78 +656,6 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
 
         public void stop() {
             context.removeServiceListener(this);
-            suspend();
-        }
-    }
-
-    /**
-     * Managed object life cycle observer callback interface.
-     *
-     * @author Tibor Varga
-     */
-    interface Observation {
-
-        /**
-         * Invokes the callback functionality.
-         *
-         * @param observer the observer to invoke.
-         * @param type     the component type being observed.
-         * @param instance the component being observed.
-         */
-        void observe(Observer observer, Class<?> type, Object instance);
-    }
-
-    /**
-     * Managed object has been started.
-     *
-     * @author Tibor Varga
-     */
-    private static class Started implements Observation {
-
-        private final Managed component;
-
-        public Started(final Managed component) {
-            this.component = component;
-        }
-
-        public void observe(final Observer observer, final Class<?> type, final Object instance) {
-            observer.started(type, component);
-        }
-    }
-
-    /**
-     * Managed object is about to be stopped.
-     *
-     * @author Tibor Varga
-     */
-    private static class Stopping implements Observation {
-
-        private final Managed component;
-
-        public Stopping(final Managed component) {
-            this.component = component;
-        }
-
-        public void observe(final Observer observer, final Class<?> type, final Object instance) {
-            observer.stopping(type, component);
-        }
-    }
-
-    /**
-     * Managed object failed to start.
-     *
-     * @author Tibor Varga
-     */
-    private static class Failed implements Observation {
-
-        private final Managed component;
-
-        public Failed(final Managed component) {
-            this.component = component;
-        }
-
-        public void observe(final Observer observer, final Class<?> type, final Object instance) {
-            observer.failed(type, component);
         }
     }
 }

@@ -22,8 +22,8 @@ import java.util.ListIterator;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.fluidity.composition.spi.ContainerTermination;
 import org.fluidity.composition.spi.PackageBindings;
-import org.fluidity.composition.spi.ShutdownTasks;
 import org.fluidity.foundation.Log;
 
 /**
@@ -73,12 +73,13 @@ final class ContainerLifecycle {
                 callback.containerInitialized(container);
             }
 
-            final ShutdownTasks shutdown = container.getComponent(ShutdownTasks.class);
-            if (shutdown == null) {
-                throw new RuntimeException(String.format("%s requires a %s component to function", container, ShutdownTasks.class.getName()));
+            final ContainerTermination termination = container.getComponent(ContainerTermination.class);
+
+            if (termination == null) {
+                throw new RuntimeException(String.format("%s requires a %s component to function", container, ContainerTermination.class.getName()));
             }
 
-            shutdown.add(new Runnable() {
+            termination.run(new Runnable() {
                 public void run() {
                     shutdown(log);
                 }

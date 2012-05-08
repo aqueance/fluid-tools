@@ -22,6 +22,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import org.fluidity.composition.Component;
+
 /**
  * Annotates method parameters of a {@link BundleComponentContainer.Managed} component that require an OSGi service instance to resolve. Parameters not so
  * annotated are resolved from the in-bundle dependency injection container(s). See {@link BundleComponentContainer} for details on managed components.
@@ -32,6 +34,7 @@ import java.lang.annotation.Target;
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.PARAMETER)
+@Component.Context(collect = Component.Context.Collection.IMMEDIATE)
 public @interface Service {
 
     /**

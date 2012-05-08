@@ -100,6 +100,10 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
 
         final ActualPath path = resolutionPath.get().descend(new ActualElement(reference.type(), id, context, null));
 
+        if (path.repeating && observer != null) {
+            observer.circular(path);
+        }
+
         final Descent<DependencyGraph.Node> descent = new Descent<DependencyGraph.Node>() {
             public DependencyGraph.Node perform() {
                 final CircularReferencesException error = deferring.get();
@@ -179,12 +183,18 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
         return resolutionPath.get();
     }
 
-    public void resolving(final Class<?> declaringType,
-                          final Class<?> dependencyType,
-                          final Annotation[] typeAnnotations,
-                          final Annotation[] referenceAnnotations) {
+    public void descend(final Class<?> declaringType,
+                        final Class<?> dependencyType,
+                        final Annotation[] typeAnnotations,
+                        final Annotation[] referenceAnnotations) {
         if (observer != null) {
-            observer.resolving(declaringType, dependencyType, typeAnnotations, referenceAnnotations);
+            observer.descend(declaringType, dependencyType, typeAnnotations, referenceAnnotations);
+        }
+    }
+
+    public void ascend(final Class<?> declaringType, final Class<?> dependencyType) {
+        if (observer != null) {
+            observer.ascend(declaringType, dependencyType);
         }
     }
 

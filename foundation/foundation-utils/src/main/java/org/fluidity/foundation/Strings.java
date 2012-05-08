@@ -156,8 +156,10 @@ public final class Strings extends Utility {
     private static void appendValue(final StringBuilder output, final Object value) {
         if (value instanceof Class) {
             output.append(printClass(false, false, (Class) value)).append(".class");
-        } else {
+        } else if (value != null) {
             output.append(value.getClass().isArray() ? appendArray(value) : value);
+        } else {
+            output.append((Object) null);
         }
     }
 

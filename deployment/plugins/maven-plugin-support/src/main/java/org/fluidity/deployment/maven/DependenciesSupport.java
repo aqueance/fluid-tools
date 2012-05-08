@@ -141,7 +141,7 @@ public final class DependenciesSupport extends Utility {
      * @param session      a Maven component of the respective type.
      * @param repositories a Maven component of the respective type.
      * @param artifact     the artifact to find the transitive dependencies of.
-     * @param compile      tells if compile time dependencies (<code>true</code>) or run-time dependencies (<code>false</code>) should be found.
+     * @param compile      tells if compile-time dependencies (<code>true</code>) or run-time dependencies (<code>false</code>) should be found.
      * @param optionals    tells if optional dependencies and transitive dependencies thereof (<code>true</code>) should be included or not
      *                     (<code>false</code>).
      * @param exclusions   the list of "artifactId:groupId" specifications of the dependencies of the given artifact not to descend into.

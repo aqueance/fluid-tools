@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.ListIterator;
 
 import org.fluidity.composition.Component;
-import org.fluidity.composition.spi.ShutdownTasks;
+import org.fluidity.composition.spi.ContainerTermination;
 import org.fluidity.foundation.Log;
 
 /**
@@ -31,11 +31,11 @@ import org.fluidity.foundation.Log;
  */
 @Component
 @SuppressWarnings("UnusedDeclaration")
-final class RuntimeShutdownTasksImpl implements ShutdownTasks {
+final class RuntimeTermination implements ContainerTermination {
 
     private final List<Runnable> tasks = new ArrayList<Runnable>();
 
-    public RuntimeShutdownTasksImpl(final Log<RuntimeShutdownTasksImpl> log) {
+    public RuntimeTermination(final Log<RuntimeTermination> log) {
         Runtime.getRuntime().addShutdownHook(new Thread("Container shutdown") {
             @Override
             public void run() {
@@ -54,7 +54,7 @@ final class RuntimeShutdownTasksImpl implements ShutdownTasks {
         });
     }
 
-    public void add(final Runnable command) {
+    public void run(final Runnable command) {
         tasks.add(command);
     }
 }

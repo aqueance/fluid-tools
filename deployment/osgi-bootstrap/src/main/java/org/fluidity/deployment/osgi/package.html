@@ -31,8 +31,12 @@
     org.fluidity.deployment.osgi.BundleComponentContainer.Registration.Listener} components.
 </p>
 <p>
-    Bundle and service dependent component life cycle observers are also recognized as {@link org.fluidity.deployment.osgi.BundleComponentContainer.Observer}
-    components and {@link org.fluidity.composition.ComponentGroup @ComponentGroup} annotated {@link org.osgi.framework.BundleActivator} components.
+    Bundle life cycle observers are also recognized as {@link org.fluidity.composition.ComponentGroup @ComponentGroup} annotated {@link
+    org.osgi.framework.BundleActivator} components.
+</p>
+<p>
+    Service dependent managed component status can be queried using the {@link org.fluidity.deployment.osgi.BundleComponentContainer.Status} OSGi service that
+    each bundle hosting a {@code BundleComponentContainer} exports.
 </p>
 </BODY>
 </HTML>

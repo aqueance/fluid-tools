@@ -26,9 +26,9 @@ import org.fluidity.composition.container.ContainerServices;
 import org.fluidity.composition.container.PlatformContainer;
 import org.fluidity.composition.container.spi.ContainerProvider;
 import org.fluidity.composition.container.spi.OpenComponentContainer;
+import org.fluidity.composition.spi.ContainerTermination;
 import org.fluidity.composition.spi.EmptyPackageBindings;
 import org.fluidity.composition.spi.PackageBindings;
-import org.fluidity.composition.spi.ShutdownTasks;
 import org.fluidity.foundation.ClassDiscovery;
 import org.fluidity.foundation.NoLogFactory;
 import org.fluidity.foundation.spi.LogFactory;
@@ -51,7 +51,7 @@ public final class ContainerBootstrapImplTest extends MockGroupAbstractTest {
     private final ContainerProvider provider = mock(ContainerProvider.class);
     private final ContainerServices services = mock(ContainerServices.class);
     private final ClassDiscovery discovery = mock(ClassDiscovery.class);
-    private final ShutdownTasks shutdown = mock(ShutdownTasks.class);
+    private final ContainerTermination shutdown = mock(ContainerTermination.class);
     private final OpenComponentContainer parent = mock(OpenComponentContainer.class);
     private final OpenComponentContainer container = mock(OpenComponentContainer.class);
     private final ComponentContainer.Registry registry = mock(ComponentContainer.Registry.class);
@@ -126,10 +126,10 @@ public final class ContainerBootstrapImplTest extends MockGroupAbstractTest {
 
         final Object object = populateContainer(classes, instances);
 
-        EasyMock.expect(container.getComponent(ShutdownTasks.class)).andReturn(shutdown);
+        EasyMock.expect(container.getComponent(ContainerTermination.class)).andReturn(shutdown);
         EasyMock.expect(container.getComponent(EasyMock.<Class<?>>anyObject())).andReturn(object);
 
-        shutdown.add(EasyMock.<Runnable>anyObject());
+        shutdown.run(EasyMock.<Runnable>anyObject());
         EasyMock.expectLastCall().andAnswer(new IAnswer<Object>() {
             public Object answer() throws Throwable {
                 Object[] args = EasyMock.getCurrentArguments();
@@ -159,11 +159,11 @@ public final class ContainerBootstrapImplTest extends MockGroupAbstractTest {
     }
 
     @SuppressWarnings("unchecked")
-    @Test(expectedExceptions = RuntimeException.class, expectedExceptionsMessageRegExp = ".*require.*ShutdownTasks.*")
+    @Test(expectedExceptions = RuntimeException.class, expectedExceptionsMessageRegExp = ".*require.*ContainerTermination.*")
     public void missingShutdownHook() throws Exception {
         final Object object = populateContainer(new Class[0], new PackageBindings[0]);
 
-        EasyMock.expect(container.getComponent(ShutdownTasks.class)).andReturn(null);
+        EasyMock.expect(container.getComponent(ContainerTermination.class)).andReturn(null);
         EasyMock.expect(container.getComponent(EasyMock.<Class>anyObject())).andReturn(object);
         callback.containerInitialized(container);
 

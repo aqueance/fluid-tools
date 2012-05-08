@@ -77,10 +77,10 @@ public interface JarManifest {
     }
 
     /**
-     * Tells if the last parameter of the {@link #processManifest(MavenProject, Attributes, List, Collection) processManifest()} method needs compile time
+     * Tells if the last parameter of the {@link #processManifest(MavenProject, Attributes, List, Collection) processManifest()} method needs compile-time
      * (<code>true</code>) or run-time (<code>false</code>) dependencies.
      *
-     * @return <code>true</code> if compile time dependencies are required, <code>false</code> if run-time dependencies are.
+     * @return <code>true</code> if compile-time dependencies are required, <code>false</code> if run-time dependencies are.
      */
     boolean needsCompileDependencies();
 
@@ -108,7 +108,7 @@ public interface JarManifest {
      * Transforms the provided main manifest attributes of the given Maven project. The <code>org.fluidity.maven:maven-standalone-jar-plugin</code> Maven
      * plugin packages the host project's run-time dependencies into the project artifact, including the original project artifact itself, before invoking this
      * method. The method receives in its <code>paths</code> parameter the paths, relative to the project artifact, to the packaged run-time dependencies, and
-     * in its <code>dependencies</code> parameter the run-time or compile time dependencies of the host project.
+     * in its <code>dependencies</code> parameter the run-time or compile-time dependencies of the host project.
      *
      * @param project      the Maven project to extract metadata from.
      * @param attributes   the main manifest attributes.

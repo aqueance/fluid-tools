@@ -33,9 +33,9 @@ limitations under the License.
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>${groupId}</groupId>
-    <artifactId>${artifactId}</artifactId>
-    <version>${version}</version>
+    <groupId>\${groupId}</groupId>
+    <artifactId>\${artifactId}</artifactId>
+    <version>\${version}</version>
     <packaging>war</packaging>
 
     <name>My Web Application</name>
@@ -44,7 +44,7 @@ limitations under the License.
     <dependencies>
 
         <dependency>
-            <groupId>myproject</groupId>
+            <groupId>${symbol_dollar}{project.groupId}</groupId>
             <artifactId>my-impl</artifactId>
             <version>${symbol_dollar}{project.version}</version>
         </dependency>

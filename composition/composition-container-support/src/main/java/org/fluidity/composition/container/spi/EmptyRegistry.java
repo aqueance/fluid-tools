@@ -21,6 +21,7 @@ import java.util.Collections;
 
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.Components;
+import org.fluidity.composition.spi.ComponentFactory;
 
 /**
  * Implements basic method relationships and useful functionality to registry implementations.
@@ -33,8 +34,14 @@ final class EmptyRegistry implements ComponentContainer.Registry {
         this.delegate = delegate;
     }
 
-    public ComponentContainer makeChildContainer() {
-        return delegate.makeChildContainer();
+    public final <T> void bindComponent(final Class<T> type, final Class<? super T>... interfaces) throws ComponentContainer.BindingException {
+        delegate.bindComponent(Components.inspect(type, interfaces));
+    }
+
+    @SuppressWarnings("unchecked")
+    public final <T> void bindInstance(final T instance, final Class<? super T>... interfaces) throws ComponentContainer.BindingException {
+        assert instance != null;
+        delegate.bindInstance(instance, Components.inspect((Class<T>) instance.getClass(), interfaces));
     }
 
     public <T> void bindComponentGroup(final Class<T> group, final Class<T>[] types) {
@@ -47,21 +54,19 @@ final class EmptyRegistry implements ComponentContainer.Registry {
         }
     }
 
+    // TODO: test this method
     @SuppressWarnings("unchecked")
-    public final <T> void bindComponent(final Class<T> type, final Class<? super T>... interfaces) throws ComponentContainer.BindingException {
-        delegate.bindComponent(Components.inspect(type, interfaces));
+    public void bindFactory(final ComponentFactory factory, final Class<?>... interfaces) throws ComponentContainer.BindingException {
+        assert factory != null;
+        delegate.bindInstance(factory, Components.inspect((Class) factory.getClass(), interfaces));
     }
 
-    @SuppressWarnings("unchecked")
-    public final <T> void bindInstance(final T instance, final Class<? super T>... interfaces) throws ComponentContainer.BindingException {
-        assert instance != null;
-        final Class<T> implementation = (Class<T>) instance.getClass();
-        delegate.bindInstance(instance, Components.inspect(implementation, interfaces));
-    }
-
-    @SuppressWarnings("unchecked")
     public final <T> ComponentContainer.Registry isolateComponent(final Class<T> type, final Class<? super T>... interfaces)
             throws ComponentContainer.BindingException {
         return delegate.makeChildContainer(Components.inspect(type, interfaces)).getRegistry();
+    }
+
+    public ComponentContainer makeChildContainer() {
+        return delegate.makeChildContainer();
     }
 }

@@ -21,6 +21,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.fluidity.composition.spi.ComponentFactory;
 import org.fluidity.foundation.Strings;
 
 /**
@@ -340,7 +341,7 @@ public interface ComponentContainer {
      * <p/>
      * Bindings are mostly used when automatically populating an application's dependency injection container hierarchy. At build time, the
      * <code>org.fluidity.maven:maven-composition-plugin</code> produces bindings to capture the list of {@link Component @Component} annotated classes in a
-     * module as component bindings, while at run-time Fluid Tools finds these bindings and loads them before the first query is made to a dependency injection
+     * module as component bindings, while at run time Fluid Tools finds these bindings and loads them before the first query is made to a dependency injection
      * container.
      * <h3>Usage</h3>
      * Programmatic use of bindings allows working with components not automatically bound by design. For example, some library may want to capture the
@@ -502,6 +503,23 @@ public interface ComponentContainer {
         <T> void bindComponentGroup(Class<T> group, Class<T>[] types);
 
         /**
+         * Binds a component factory instance to a list of component interfaces in the container behind this registry. Use this method when the list component
+         * interfaces that the factory can provide an implementation for is computed at run time.
+         * <p/>
+         * The receiver must support the factory functionality as described in the <code>ComponentFactory</code> documentation.
+         * <p/>
+         * When the <code>interfaces</code> parameter is empty, the list of interfaces that resolve to the component will be determined by the algorithm
+         * documented at {@link Components}.
+         *
+         * @param factory    the component factory instance.
+         * @param interfaces optional list of interfaces that should resolve to the supplied component class.
+         *
+         * @throws ComponentContainer.BindingException
+         *          when component registration fails.
+         */
+        void bindFactory(ComponentFactory factory, Class<?>... interfaces) throws ComponentContainer.BindingException;
+
+        /**
          * Binds a component class to a list of component interfaces behind this registry and allows, via the returned registry, the caller to add further
          * bindings that will only be visible to the supplied component and each other. These bindings can, for the supplied component, override bindings in
          * the container behind this registry.
@@ -540,14 +558,31 @@ public interface ComponentContainer {
     interface Observer {
 
         /**
-         * Notifies the receiver that a dependency is being resolved.
+         * Notifies the receiver that a dependency is being resolved. Calls to this method are balanced by calls to {@link #ascend(Class, Class)}.
          *
          * @param declaringType        the class having the dependency to the <code>api</code>.
          * @param dependencyType       the class with which the <code>declaringType</code> references the dependency.
          * @param typeAnnotations      the annotations of the declaring class.
          * @param referenceAnnotations the annotations of the dependency reference.
          */
-        void resolving(Class<?> declaringType, Class<?> dependencyType, Annotation[] typeAnnotations, Annotation[] referenceAnnotations);
+        void descend(Class<?> declaringType, Class<?> dependencyType, Annotation[] typeAnnotations, Annotation[] referenceAnnotations);
+
+        /**
+         * Notifies the receiver that a dependency has been resolved. A call to this method balances a previous call to {@link #descend(Class, Class,
+         * Annotation[], Annotation[])}.
+         *
+         * @param declaringType        the class having the dependency to the <code>api</code>.
+         * @param dependencyType       the class with which the <code>declaringType</code> references the dependency.
+         */
+        void ascend(Class<?> declaringType, Class<?> dependencyType);
+
+        /**
+         * Notifies the receiver that a loop has been detected in the dependency graph. Invoked for static dependencies only and at the point when the loop
+         * refers back to a component in the path. The {@link DependencyPath#head()} returns the component that depends on another in its reference path.
+         *
+         * @param path the dependency path that is circular.
+         */
+        void circular(DependencyPath path);
 
         /**
          * Notifies the receiver that a dependency has been resolved. The path and type are not final, they may change as circular references are handled. Elements
@@ -673,6 +708,17 @@ public interface ComponentContainer {
      * Reports an error that occurred when binding a component class or instance to its component interfaces.
      */
     class BindingException extends InjectionException {
+
+        /**
+         * Creates a new instance using the given formatted text and cause exception.
+         *
+         * @param cause  the exception that triggered this one.
+         * @param format the Java format specification.
+         * @param data   the details to format.
+         */
+        public BindingException(final Throwable cause, final String format, final Object... data) {
+            super(cause, format, data);
+        }
 
         /**
          * Creates a new instance using the given formatted text.

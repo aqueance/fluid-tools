@@ -131,7 +131,7 @@ public final class Components extends Utility {
         assert ComponentGroup.class.getAnnotation(Retention.class).value() == RetentionPolicy.RUNTIME;
         assert ComponentGroup.class.isAnnotationPresent(Target.class);
         assert Arrays.asList(ComponentGroup.class.getAnnotation(Target.class).value()).contains(ElementType.TYPE);
-        assert ComponentGroup.class.isAnnotationPresent(Inherited.class);
+        assert !ComponentGroup.class.isAnnotationPresent(Inherited.class);
     }
 
     /**
@@ -329,6 +329,8 @@ public final class Components extends Utility {
                 if (type.isInterface()) {
                     groups.add(type);
                 } else {
+                    groups.addAll(groups(type.getSuperclass()));
+
                     final Class<?>[] direct = type.getInterfaces();
 
                     if (direct.length > 0) {

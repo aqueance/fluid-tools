@@ -16,6 +16,7 @@
 
 package org.fluidity.foundation.impl;
 
+import java.lang.reflect.Method;
 import java.net.JarURLConnection;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -25,6 +26,7 @@ import java.util.jar.Attributes;
 
 import org.fluidity.foundation.Archives;
 import org.fluidity.foundation.ClassLoaders;
+import org.fluidity.foundation.Exceptions;
 import org.fluidity.foundation.jarjar.Handler;
 
 /**
@@ -65,12 +67,22 @@ public final class JarJarLauncher {
 
             final ClassLoader loader = new URLClassLoader(urls.toArray(new URL[urls.size()]), ClassLoaders.findClassLoader(main));
 
-            ClassLoaders.context(loader, new ClassLoaders.ContextCommand<Void, Exception>() {
-                public Void run(final ClassLoader loader) throws Exception {
-                    loader.loadClass(mainClass).getMethod("main", String[].class).invoke(null, new Object[] { args });
-                    return null;
-                }
-            });
+            try {
+                ClassLoaders.context(loader, new ClassLoaders.ContextCommand<Void, Exception>() {
+                    public Void run(final ClassLoader loader) throws Exception {
+                        final Method main = loader.loadClass(mainClass).getMethod("main", String[].class);
+
+                        return Exceptions.wrap(new Exceptions.Command<Void>() {
+                            public Void run() throws Throwable {
+                                main.invoke(null, new Object[] { args });
+                                return null;
+                            }
+                        });
+                    }
+                });
+            } catch (final Exceptions.Wrapper wrapper) {
+                throw wrapper.rethrow(Exception.class);
+            }
         } else {
             throw new IllegalStateException(String.format("%s does not point to a jar file", url));
         }

@@ -16,9 +16,10 @@
 
 package org.fluidity.deployment.osgi;
 
+import java.util.Collection;
+import java.util.Map;
 import java.util.Properties;
 
-import org.fluidity.composition.ComponentGroup;
 import org.fluidity.composition.ServiceProvider;
 
 /**
@@ -50,7 +51,6 @@ import org.fluidity.composition.ServiceProvider;
  * the component. The {@link Stoppable#stop() stop()} method of the component will be invoked when any of those OSGi services becomes unavailable and then the
  * component instance is discarded.
  * <pre>
- * {@linkplain org.fluidity.composition.Component @Component}
  * final MyComponent implements <span class="hl1">BundleComponentContainer.Managed</span> {
  *
  *   public MyComponent(final {@linkplain Service @Service} SomeService service, final SomeDependency dependency) {
@@ -71,7 +71,6 @@ import org.fluidity.composition.ServiceProvider;
  * {@link Registration} components are <code>Managed</code> components that are registered as OSGi services when all OSGi services they depend on become
  * available, and get unregistered when any of those become unavailable.
  * <pre>
- * {@linkplain org.fluidity.composition.Component @Component}
  * final MyComponent implements <span class="hl1">BundleComponentContainer.Registration</span> {
  *
  *   public MyComponent(final {@linkplain Service @Service} SomeService service, final SomeDependency dependency) {
@@ -88,7 +87,6 @@ import org.fluidity.composition.ServiceProvider;
  * A managed component may at the same time be a registered OSGi service and may receive notifications about OSGi service registration events by implementing
  * both {@link Registration} and {@link Registration.Listener}.
  * <pre>
- * {@linkplain org.fluidity.composition.Component @Component}
  * final MyComponent implements <span class="hl1">BundleComponentContainer.Registration.Listener</span> {
  *
  *   public MyComponent(final {@linkplain Service @Service} SomeService service, final SomeDependency dependency) {
@@ -97,14 +95,24 @@ import org.fluidity.composition.ServiceProvider;
  *   ...
  * }
  * </pre>
- * <h3>Observing Component Management</h3>
- * This container will also find and load all implementations of the {@link Observer} interface. <code>Observer</code> components get notified when any of a
- * set of components it {@linkplain Observer#types() declares} to be interested in gets {@linkplain Observer#started(Class, Object) started} or {@linkplain
- * Observer#stopping(Class, Object) stopped}.
+ * <h3>managed Component Status</h3>
+ * This container export an implementations of the OSGi service {@link Status}. OSGi service clients can query that service about active, inactive and failed
+ * components managed by this container.
  * <pre>
- * {@linkplain org.fluidity.composition.Component @Component}
- * final MyComponent implements <span class="hl1">BundleComponentContainer.Observer</span> {
+ * final MyComponent implements <span class="hl2">BundleComponentContainer.Registration</span> {
+ *
+ *   private final <span class="hl1">BundleComponentContainer.Status</span> status;
+ *
+ *   public MyComponent(final {@linkplain Service @Service} <span class="hl1">BundleComponentContainer.Status</span> status) {
+ *     this.status = status;
+ *   }
+ *
  *   ...
+ *
+ *   public void check() {
+ *       final Collection<Class&lt;?> failed = status.<span class="hl1">failedComponents</span>();
+ *       ...
+ *   }
  * }
  * </pre>
  *
@@ -123,47 +131,6 @@ public interface BundleComponentContainer {
     void stop();
 
     /**
-     * A component that gets notified by a {@link BundleComponentContainer} when a {@link BundleComponentContainer.Managed} component gets {@linkplain
-     * #started(Class, Object) started} or {@linkplain #stopping(Class, Object) stopped}, or when it {@linkplain #failed(Class, Object) fails to start}.
-     * <p/>
-     * TODO: allow observers to depend on OSGi services
-     */
-    @ComponentGroup
-    interface Observer {
-
-        /**
-         * Returns the component interfaces this object will be notified about.
-         *
-         * @return the component interfaces this object will be notified about.
-         */
-        Class<?>[] types();
-
-        /**
-         * Notifies the receiver that the given managed component has been started and is ready to be used.
-         *
-         * @param type      the component type as listed by {@link #types()}, the supplied instance of which has just been started.
-         * @param component the component that has just been started.
-         */
-        void started(Class<?> type, Object component);
-
-        /**
-         * Notifies the receiver that the given managed component is about to be stopped and is thus no longer usable.
-         *
-         * @param type      the component type as listed by {@link #types()}, the supplied instance of which is about to be stopped.
-         * @param component the component that is about to be stopped.
-         */
-        void stopping(Class<?> type, Object component);
-
-        /**
-         * Notifies the receiver that the given managed component failed when started.
-         *
-         * @param type      the component type as listed by {@link #types()}, the supplied instance of which failed.
-         * @param component the component that failed.
-         */
-        void failed(Class<?> type, Object component);
-    }
-
-    /**
      * A managed component that will be discovered and added to the container.
      * <p/>
      * Managed components may have two kinds of dependencies: OSGi service interfaces annotated with {@link Service @Service} and ordinary types denoting
@@ -172,6 +139,8 @@ public interface BundleComponentContainer {
      * When all OSGi services dependencies of a managed component become available, the component is instantiated and its {@link #start() start()} method is
      * invoked. The {@link #stop() stop()} method of the component is invoked to stop the component if any of the services become unavailable and then the
      * instance is discarded.
+     *
+     * @author Tibor Varga
      */
     @ServiceProvider(type = "bundle-components")
     interface Managed extends Stoppable {
@@ -212,6 +181,8 @@ public interface BundleComponentContainer {
          * An event source that wishes to receive notifications about event consumer registration as per the Whiteboard pattern.
          * <p/>
          * An event source is a {@link Managed} component thus the start / stop logic described therein applies.
+         *
+         * @author Tibor Varga
          */
         interface Listener<T> extends Managed {
 
@@ -245,6 +216,8 @@ public interface BundleComponentContainer {
      * <p/>
      * You never use this interface directly but through more specific interfaces such as {@link Managed}, {@link Registration} and
      * {@link Registration.Listener}.
+     *
+     * @author Tibor Varga
      */
     interface Stoppable {
 
@@ -254,5 +227,42 @@ public interface BundleComponentContainer {
          * @throws Exception if anything goes wrong.
          */
         void stop() throws Exception;
+    }
+
+    /**
+     * OSGi service to query about component states in this bundle. Each bundle that uses the {@link BundleComponentContainer} to manage OSGi related
+     * components will register an instance for this service interface, identifying the instance using the {@link #ID} property with the bundle's symbolic
+     * name as its value.
+     *
+     * @author Tibor Varga
+     */
+    interface Status {
+
+        /**
+         * Used as a service registration property to identify the instance of this service for a particular bundle.
+         */
+        String ID = "bundle-symbolic-name";
+
+        /**
+         * Returns the list of active components.
+         *
+         * @return a list of <code>Class</code> objects.
+         */
+        Collection<Class<?>> active();
+
+        /**
+         * Returns the list of components that are waiting for OSGi services to start, along with the list of service specification they each are waiting to
+         * start.
+         *
+         * @return a list of <code>Class</code> objects.
+         */
+        Map<Class<?>, Collection<Service>> inactive();
+
+        /**
+         * Returns the list of components that failed to start.
+         *
+         * @return a list of <code>Class</code> objects.
+         */
+        Collection<Class<?>> failed();
     }
 }

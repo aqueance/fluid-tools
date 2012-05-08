@@ -50,10 +50,18 @@ final class GroupResolver {
     private final Map<Class<?>, Integer> instantiated = new HashMap<Class<?>, Integer>();
 
     private final ComponentContainer.Observer observer = new ComponentContainer.Observer() {
-        public void resolving(final Class<?> declaringType,
-                              final Class<?> dependencyType,
-                              final Annotation[] typeAnnotations,
-                              final Annotation[] referenceAnnotations) {
+        public void descend(final Class<?> declaringType,
+                            final Class<?> dependencyType,
+                            final Annotation[] typeAnnotations,
+                            final Annotation[] referenceAnnotations) {
+            // ignore
+        }
+
+        public void ascend(final Class<?> declaringType, final Class<?> dependencyType) {
+            // ignore
+        }
+
+        public void circular(final DependencyPath path) {
             // ignore
         }
 

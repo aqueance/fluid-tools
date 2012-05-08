@@ -263,10 +263,18 @@ public final class BasicResolutionTests extends AbstractContainerTests {
         final List<Class<?>> instantiated = new ArrayList<Class<?>>();
 
         final ObservedComponentContainer observed = container.observed(new ComponentContainer.Observer() {
-            public void resolving(final Class<?> declaringType,
-                                  final Class<?> dependencyType,
-                                  final Annotation[] typeAnnotations,
-                                  final Annotation[] referenceAnnotations) {
+            public void descend(final Class<?> declaringType,
+                                final Class<?> dependencyType,
+                                final Annotation[] typeAnnotations,
+                                final Annotation[] referenceAnnotations) {
+                // empty
+            }
+
+            public void ascend(final Class<?> declaringType, final Class<?> dependencyType) {
+                // empty
+            }
+
+            public void circular(final DependencyPath path) {
                 // empty
             }
 

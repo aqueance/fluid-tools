@@ -42,7 +42,7 @@ public interface BundleBoundary {
     /**
      * Wraps the given object from another bundle to allow it to find classes in this bundle.
      * <p/>
-     * The given object must implement the given interface and the given interface must be represented at run-time by the same class in both bundles; i.e., it
+     * The given object must implement the given interface and the given interface must be represented at run time by the same class in both bundles; i.e., it
      * must be exported by one bundle and imported by the others.
      *
      * @param type   the Java interface of the remote object.
@@ -56,7 +56,7 @@ public interface BundleBoundary {
      * Wraps the given local object to allow it to load classes from the bundle of the provided remote object. If the remote object is not known, the receiver
      * of our local object must use the {@link #imported(Class, Object)} method instead.
      * <p/>
-     * The given object must implement the given interface and the given interface must be represented at run-time by the same class in both bundles; i.e., it
+     * The given object must implement the given interface and the given interface must be represented at run time by the same class in both bundles; i.e., it
      * must be exported by one bundle and imported by the others.
      *
      * @param type   the Java interface of the local object.

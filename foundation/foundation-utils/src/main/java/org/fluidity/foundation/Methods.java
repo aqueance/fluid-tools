@@ -29,7 +29,7 @@ public final class Methods extends Utility {
     private Methods() { }
 
     /**
-     * Finds a method object in a refactoring friendly way. Let's say you need to find the {@link java.io.Closeable#close()} method at run-time. Here's how you
+     * Finds a method object in a refactoring friendly way. Let's say you need to find the {@link java.io.Closeable#close()} method at run time. Here's how you
      * do that with this method:
      * <pre>
      *  final Method closeMethod = Methods.get(Closeable.class, new Methods.Invoker&lt;Closeable>() {
