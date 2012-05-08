@@ -60,7 +60,7 @@
 
         <dependency>
             <groupId>${fluidity.deployment.groupId}</groupId>
-            <artifactId>osgi-bootstrap-spi</artifactId>
+            <artifactId>osgi-composition-api</artifactId>
             <version>${project.version}</version>
         </dependency>
 

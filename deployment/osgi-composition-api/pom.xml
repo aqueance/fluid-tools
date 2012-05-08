@@ -25,10 +25,10 @@
 
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.fluidity.deployment</groupId>
-    <artifactId>osgi-bootstrap-spi</artifactId>
+    <artifactId>osgi-composition-api</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>jar</packaging>
-    <name>Deployment: OSGi Deployment API</name>
+    <name>Deployment: OSGi Composition API</name>
 
     <licenses>
         <license>
