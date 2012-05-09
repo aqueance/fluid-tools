@@ -322,13 +322,13 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
                         properties.setProperty(key, property.getClass().isArray() ? Arrays.toString((Object[]) property) : String.valueOf(property));
                     }
 
-                    source.clientAdded(service, properties);
+                    source.serviceAdded(service, properties);
                     log.info("%s (%s) added to %s", service.getClass(), properties, source.getClass());
 
                     break;
 
                 case ServiceEvent.UNREGISTERING:
-                    source.clientRemoved(service);
+                    source.serviceRemoved(service);
                     log.info("%s removed from %s", service.getClass(), source.getClass());
                     break;
 

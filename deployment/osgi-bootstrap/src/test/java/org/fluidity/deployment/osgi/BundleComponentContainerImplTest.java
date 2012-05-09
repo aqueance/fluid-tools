@@ -438,7 +438,7 @@ public class BundleComponentContainerImplTest extends MockGroupAbstractTest {
         EasyMock.expect(context.getService(reference1)).andReturn(consumer1);
         EasyMock.expect(reference1.getPropertyKeys()).andReturn(new String[0]);
 
-        Source.delegate.clientAdded(EasyMock.same(consumer1), EasyMock.<Properties>eq(new Properties()));
+        Source.delegate.serviceAdded(EasyMock.same(consumer1), EasyMock.<Properties>eq(new Properties()));
 
         replay();
         spec.listener().serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED, reference1));
@@ -452,7 +452,7 @@ public class BundleComponentContainerImplTest extends MockGroupAbstractTest {
         EasyMock.expect(reference2.getPropertyKeys()).andReturn(new String[] { "xxx" });
         EasyMock.expect(reference2.getProperty("xxx")).andReturn(properties.getProperty("xxx"));
 
-        Source.delegate.clientAdded(EasyMock.same(consumer2), EasyMock.<Properties>eq(properties));
+        Source.delegate.serviceAdded(EasyMock.same(consumer2), EasyMock.<Properties>eq(properties));
 
         replay();
         spec.listener().serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED, reference2));
@@ -461,7 +461,7 @@ public class BundleComponentContainerImplTest extends MockGroupAbstractTest {
         // response to disappearance of first consumer
         EasyMock.expect(context.getService(reference1)).andReturn(consumer1);
 
-        Source.delegate.clientRemoved(EasyMock.same(consumer1));
+        Source.delegate.serviceRemoved(EasyMock.same(consumer1));
 
         replay();
         spec.listener().serviceChanged(new ServiceEvent(ServiceEvent.UNREGISTERING, reference1));
@@ -471,7 +471,7 @@ public class BundleComponentContainerImplTest extends MockGroupAbstractTest {
         EasyMock.expect(context.getService(reference1)).andReturn(consumer1);
         EasyMock.expect(reference1.getPropertyKeys()).andReturn(new String[0]);
 
-        Source.delegate.clientAdded(EasyMock.same(consumer1), EasyMock.eq(new Properties()));
+        Source.delegate.serviceAdded(EasyMock.same(consumer1), EasyMock.eq(new Properties()));
 
         replay();
         spec.listener().serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED, reference1));
@@ -480,7 +480,7 @@ public class BundleComponentContainerImplTest extends MockGroupAbstractTest {
         // response to disappearance of second consumer
         EasyMock.expect(context.getService(reference2)).andReturn(consumer2);
 
-        Source.delegate.clientRemoved(EasyMock.same(consumer2));
+        Source.delegate.serviceRemoved(EasyMock.same(consumer2));
 
         replay();
         spec.listener().serviceChanged(new ServiceEvent(ServiceEvent.UNREGISTERING, reference2));
@@ -489,7 +489,7 @@ public class BundleComponentContainerImplTest extends MockGroupAbstractTest {
         // response to disappearance of first consumer
         EasyMock.expect(context.getService(reference1)).andReturn(consumer1);
 
-        Source.delegate.clientRemoved(EasyMock.same(consumer1));
+        Source.delegate.serviceRemoved(EasyMock.same(consumer1));
 
         replay();
         spec.listener().serviceChanged(new ServiceEvent(ServiceEvent.UNREGISTERING, reference1));
@@ -527,7 +527,7 @@ public class BundleComponentContainerImplTest extends MockGroupAbstractTest {
         EasyMock.expect(reference1.getPropertyKeys()).andReturn(new String[0]);
 
         EasyMock.expect(source.clientType()).andReturn(Consumer.class);
-        source.clientAdded(EasyMock.same(consumer1), EasyMock.<Properties>notNull());
+        source.serviceAdded(EasyMock.same(consumer1), EasyMock.<Properties>notNull());
 
         Source.delegate.start();
 
@@ -543,7 +543,7 @@ public class BundleComponentContainerImplTest extends MockGroupAbstractTest {
         EasyMock.expect(context.getService(reference2)).andReturn(consumer2);
         EasyMock.expect(reference2.getPropertyKeys()).andReturn(new String[0]);
 
-        Source.delegate.clientAdded(EasyMock.same(consumer2), EasyMock.eq(new Properties()));
+        Source.delegate.serviceAdded(EasyMock.same(consumer2), EasyMock.eq(new Properties()));
 
         replay();
         spec.listener().serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED, reference2));
@@ -552,7 +552,7 @@ public class BundleComponentContainerImplTest extends MockGroupAbstractTest {
         // response to disappearance of first consumer
         EasyMock.expect(context.getService(reference1)).andReturn(consumer1);
 
-        Source.delegate.clientRemoved(EasyMock.same(consumer1));
+        Source.delegate.serviceRemoved(EasyMock.same(consumer1));
 
         replay();
         spec.listener().serviceChanged(new ServiceEvent(ServiceEvent.UNREGISTERING, reference1));
@@ -562,7 +562,7 @@ public class BundleComponentContainerImplTest extends MockGroupAbstractTest {
         EasyMock.expect(context.getService(reference1)).andReturn(consumer1);
         EasyMock.expect(reference1.getPropertyKeys()).andReturn(new String[0]);
 
-        Source.delegate.clientAdded(EasyMock.same(consumer1), EasyMock.eq(new Properties()));
+        Source.delegate.serviceAdded(EasyMock.same(consumer1), EasyMock.eq(new Properties()));
 
         replay();
         spec.listener().serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED, reference1));
@@ -1258,12 +1258,12 @@ public class BundleComponentContainerImplTest extends MockGroupAbstractTest {
             return delegate.clientType();
         }
 
-        public void clientAdded(final Consumer component, final Properties properties) {
-            delegate.clientAdded(component, properties);
+        public void serviceAdded(final Consumer component, final Properties properties) {
+            delegate.serviceAdded(component, properties);
         }
 
-        public void clientRemoved(final Consumer component) {
-            delegate.clientRemoved(component);
+        public void serviceRemoved(final Consumer component) {
+            delegate.serviceRemoved(component);
         }
 
         public void start() throws Exception {

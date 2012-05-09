@@ -44,7 +44,7 @@ import org.fluidity.composition.ComponentContext;
  * <h3>Usage</h3>
  * <pre>
  * {@linkplain Component @Component}(api = <span class="hl2">MyComponent</span>.class)
- * final MyComponentFactory implements <span class="hl1">{@linkplain CustomComponentFactory}</span> {
+ * final class MyComponentFactory implements <span class="hl1">{@linkplain CustomComponentFactory}</span> {
  *
  *   public {@linkplain ComponentFactory.Instance Instance} <span class="hl1">resolve</span>(final {@linkplain ComponentContext} context, final {@linkplain ComponentFactory.Resolver Resolver} dependencies) throws {@linkplain org.fluidity.composition.ComponentContainer.ResolutionException} {
  *     dependencies.discover(<span class="hl3">MyComponentImpl</span>.class);

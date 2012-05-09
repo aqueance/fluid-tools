@@ -31,27 +31,24 @@ import org.fluidity.composition.ServiceProvider;
  * </ul>
  * </li>
  * <li>get registered as {@linkplain Registration OSGi service}</li>
- * <li>get notified when OSGi services become {@linkplain Registration.Listener#clientAdded(Object, Properties) available} and
- * {@linkplain Registration.Listener#clientRemoved(Object) unavailable}</li>
+ * <li>get notified when OSGi services become {@linkplain Registration.Listener#serviceAdded available} and
+ * {@linkplain Registration.Listener#serviceRemoved unavailable}</li>
  * </ul>
- * This container automatically finds, loads and manages all implementations of the {@link Managed Managed} interface visible to its class loader, which is the
- * OSGi bundle class loader. Implementations of the <code>Managed</code> interface include more specific components that implement {@link
- * Registration Registration} and {@link Registration.Listener Registration.Listener}.
+ * This container automatically finds, loads, and manages all implementations of the {@link Managed Managed} interface visible to its class loader, which is
+ * the OSGi bundle class loader. Implementations of the <code>Managed</code> interface include more specific components that implement {@link Registration
+ * Registration} and {@link Registration.Listener Registration.Listener}.
  * <p/>
  * By design, you never directly use this interface; rather, you implement your bundle as a collection of components managed by this container.
  * <h3>Depending on OSGi Services</h3>
- * <code>Managed</code> components with direct dependencies - i.e., those without the {@link Service @Service} annotation - to one another are grouped and
- * their combined set of {@link Service @Service} dependencies are consulted to determine when to instantiate or discard all components in the group.
- * Independent component groups are instantiated and discarded independently.
+ * The constructor parameters of <code>Managed</code> components annotated with the {@link Service @Service} are dependencies to OSGi services while parameters
+ * not so annotated are ordinary dependencies.
  * <p/>
- * The parameters of constructor of these components that are annotated with <code>@Service</code> are dependencies to OSGi services while parameters not so
- * annotated are ordinary dependencies.
- * <p/>
- * When all of the OSGi services depended on become available, the component is instantiated and its {@link Managed#start() start()} method is invoked to start
- * the component. The {@link Stoppable#stop() stop()} method of the component will be invoked when any of those OSGi services becomes unavailable and then the
- * component instance is discarded.
+ * When all of the OSGi services depended on, directly or indirectly through other <code>Managed</code> components, become available, the component is
+ * instantiated and its {@link Managed#start() start()} method is invoked to start the component. The {@link Stoppable#stop() stop()} method of the component
+ * will be invoked when any of those OSGi services becomes unavailable and then the component instance is discarded.
+ * <h4>Example</h4>
  * <pre>
- * final MyComponent implements <span class="hl1">BundleComponentContainer.Managed</span> {
+ * final class MyComponent implements <span class="hl1">BundleComponentContainer.Managed</span> {
  *
  *   public MyComponent(final {@linkplain Service @Service} SomeService service, final SomeDependency dependency) {
  *     ...
@@ -70,8 +67,9 @@ import org.fluidity.composition.ServiceProvider;
  * <h3>Getting registered as OSGi Service</h3>
  * {@link Registration} components are <code>Managed</code> components that are registered as OSGi services when all OSGi services they depend on become
  * available, and get unregistered when any of those become unavailable.
+ * <h4>Example</h4>
  * <pre>
- * final MyComponent implements <span class="hl1">BundleComponentContainer.Registration</span> {
+ * final class MyComponent implements <span class="hl1">BundleComponentContainer.Registration</span> {
  *
  *   public MyComponent(final {@linkplain Service @Service} SomeService service, final SomeDependency dependency) {
  *     ...
@@ -81,13 +79,14 @@ import org.fluidity.composition.ServiceProvider;
  * </pre>
  * <h3>Notification about OSGi Service Registration Events</h3>
  * {@link Registration.Listener} components are <code>Managed</code> components that receive notifications about OSGi service registration events via the
- * {@link Registration.Listener#clientAdded(Object, Properties) clientAdded()} method and un-registration events via the {@link
- * Registration.Listener#clientRemoved(Object) clientRemoved()} method.
+ * {@link Registration.Listener#serviceAdded serviceAdded()} method and un-registration events via the {@link
+ * Registration.Listener#serviceRemoved serviceRemoved()} method.
  * <p/>
- * A managed component may at the same time be a registered OSGi service and may receive notifications about OSGi service registration events by implementing
- * both {@link Registration} and {@link Registration.Listener}.
+ * A <code>Managed</code> component may, at the same time, be a registered OSGi service and may receive notifications about OSGi service registration events by
+ * implementing both {@link Registration} and {@link Registration.Listener}.
+ * <h4>Example</h4>
  * <pre>
- * final MyComponent implements <span class="hl1">BundleComponentContainer.Registration.Listener</span> {
+ * final class MyComponent implements <span class="hl1">BundleComponentContainer.Registration.Listener</span> {
  *
  *   public MyComponent(final {@linkplain Service @Service} SomeService service, final SomeDependency dependency) {
  *     ...
@@ -95,11 +94,15 @@ import org.fluidity.composition.ServiceProvider;
  *   ...
  * }
  * </pre>
- * <h3>managed Component Status</h3>
- * This container export an implementations of the OSGi service {@link Status}. OSGi service clients can query that service about active, inactive and failed
- * components managed by this container.
+ * <h3><Code>Managed</Code> Component Status</h3>
+ * This container exports an implementations of the OSGi service {@link Status}. OSGi service clients can query that service about active, inactive and failed
+ * components managed by this container. The exported service uses the <code>bundle-symbolic-name</code> service property to distinguish these service
+ * instances from one another.
+ * <h4>Example</h4>
+ * This example shows how to use the exported service when there's only one bundle exporting it. If there may be multiple such bundles, it is better to
+ * implement the {@link BundleComponentContainer.Registration.Listener} interface and get notified about all exported service instances.
  * <pre>
- * final MyComponent implements <span class="hl2">BundleComponentContainer.Registration</span> {
+ * final class MyComponent implements <span class="hl2">BundleComponentContainer.Registration</span> {
  *
  *   private final <span class="hl1">BundleComponentContainer.Status</span> status;
  *
@@ -110,7 +113,7 @@ import org.fluidity.composition.ServiceProvider;
  *   ...
  *
  *   public void check() {
- *       final Collection<Class&lt;?> failed = status.<span class="hl1">failedComponents</span>();
+ *       final Collection&lt;Class&lt;?>> failed = status.<span class="hl1">failedComponents</span>();
  *       ...
  *   }
  * }
@@ -200,14 +203,14 @@ public interface BundleComponentContainer {
              * @param component  the event consumer.
              * @param properties the registration properties of the event consumer.
              */
-            void clientAdded(T component, Properties properties);
+            void serviceAdded(T component, Properties properties);
 
             /**
              * Notifies the event source that an event consumer has been removed.
              *
              * @param component the event consumer that has been removed.
              */
-            void clientRemoved(T component);
+            void serviceRemoved(T component);
         }
     }
 

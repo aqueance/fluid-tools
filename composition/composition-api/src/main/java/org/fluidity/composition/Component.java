@@ -229,7 +229,7 @@ public @interface Component {
      *    *&#47;
      *   private final Class&lt;?> type;
      *
-     *   public final MyComponent(final {@linkplain ComponentContext} context) {
+     *   public MyComponent(final {@linkplain ComponentContext} context) {
      *     final <span class="hl1">Component.Reference</span> reference = context.annotation(<span class="hl1">Component.Reference</span>.class, null);
      *     this.type = reference.parameter(0);
      *     ...
