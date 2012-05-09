@@ -21,6 +21,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 
 import org.apache.xbean.classloader.JarFileClassLoader;
@@ -75,8 +77,7 @@ public final class ClassLoaders extends Utility {
 
     /**
      * Finds the named resource in the class loader appropriate for the given class. See {@link #findClassLoader(Class)} for the definition of
-     * <em>appropriate</em>. The resource name is
-     * computed from a format string and its parameters.
+     * <em>appropriate</em>. The resource name is computed from a format string and its parameters.
      *
      * @param sourceClass the class to use the appropriate class loader for.
      * @param format      the format string.
@@ -86,6 +87,34 @@ public final class ClassLoaders extends Utility {
      */
     public static URL findResource(final Class sourceClass, final String format, final Object... params) {
         return findClassLoader(sourceClass).getResource(absoluteResourceName(format, params));
+    }
+
+    /**
+     * Finds the named resources in the class loader appropriate for the given class. See {@link #findClassLoader(Class)} for the definition of
+     * <em>appropriate</em>. The resource name is computed from a format string and its parameters.
+     *
+     * @param sourceClass the class to use the appropriate class loader for.
+     * @param format      the format string.
+     * @param params      the parameters of the format string.
+     *
+     * @return the list of URLs for the resource; possibly empty.
+     */
+    public static List<URL> findResources(final Class sourceClass, final String format, final Object... params) throws IOException {
+        return Collections.list(findClassLoader(sourceClass).getResources(absoluteResourceName(format, params)));
+    }
+
+    /**
+     * Finds the named resource in the class loader appropriate for the given class and returns an input stream to read its contents. See {@link
+     * #findClassLoader(Class)} for the definition of <em>appropriate</em>. The resource name is computed from a format string and its parameters.
+     *
+     * @param sourceClass the class to use the appropriate class loader for.
+     * @param format      the format string.
+     * @param params      the parameters of the format string.
+     *
+     * @return the input stream for the resource, or <code>null</code> if the resource could not be found.
+     */
+    public static InputStream readResource(final Class sourceClass, final String format, final Object... params) {
+        return findClassLoader(sourceClass).getResourceAsStream(absoluteResourceName(format, params));
     }
 
     /**

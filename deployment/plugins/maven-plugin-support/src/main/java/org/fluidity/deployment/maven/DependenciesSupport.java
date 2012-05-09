@@ -38,6 +38,7 @@ import org.apache.maven.artifact.versioning.VersionRange;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Exclusion;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
 import org.sonatype.aether.RepositorySystem;
 import org.sonatype.aether.RepositorySystemSession;
@@ -342,7 +343,12 @@ public final class DependenciesSupport extends Utility {
         return dependencyClosure(system, session, repositories, project.getArtifact(), true, true, null);
     }
 
-    public static void saveArtifact(final MavenProject project, final File file, final String finalName, final String classifier, final String packaging) throws MojoExecutionException {
+    public static void saveArtifact(final MavenProject project,
+                                    final File file,
+                                    final String finalName,
+                                    final String classifier,
+                                    final String packaging,
+                                    final Log log) throws MojoExecutionException {
         final Artifact artifact = project.getArtifact();
         final File artifactFile = artifact.getFile();
 
@@ -354,6 +360,8 @@ public final class DependenciesSupport extends Utility {
             if (!file.renameTo(artifactFile)) {
                 throw new MojoExecutionException(String.format("Could not create %s", artifactFile));
             }
+
+            log.info(String.format("Updating %s: %s", packaging, artifactFile.getAbsoluteFile()));
         } else {
             final File attachmentFile = new File(String.format("%s-%s.%s", finalName, classifier, packaging));
 
@@ -364,6 +372,8 @@ public final class DependenciesSupport extends Utility {
             if (!file.renameTo(attachmentFile)) {
                 throw new MojoExecutionException(String.format("Could not create %s", attachmentFile));
             }
+
+            log.info(String.format("Saving %s: %s", packaging, attachmentFile.getAbsoluteFile()));
 
             final DefaultArtifact attachment = new DefaultArtifact(artifact.getGroupId(),
                                                                    artifact.getArtifactId(),

@@ -316,7 +316,7 @@ public class StandaloneWarMojo extends AbstractMojo {
                 }
             }
 
-            DependenciesSupport.saveArtifact(project, file, finalName, classifier, packaging);
+            DependenciesSupport.saveArtifact(project, file, finalName, classifier, packaging, getLog());
         } catch (final IOException e) {
             throw new MojoExecutionException(String.format("Processing %s", packageFile), e);
         }
