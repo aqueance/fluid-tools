@@ -19,4 +19,4 @@ package org.fluidity.tests.osgi;
 /**
  * Service to be exported by one bundle and used by another.
  */
-public interface ExportedService1 { }
+public interface ExportedService2 { }

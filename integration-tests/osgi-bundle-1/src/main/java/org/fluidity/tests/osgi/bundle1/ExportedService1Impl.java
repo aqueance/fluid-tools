@@ -14,9 +14,33 @@
  * limitations under the License.
  */
 
-package org.fluidity.tests.osgi;
+package org.fluidity.tests.osgi.bundle1;
+
+import java.util.Properties;
+
+import org.fluidity.deployment.osgi.BundleComponentContainer;
+import org.fluidity.tests.osgi.ExportedService1;
 
 /**
- * Service to be exported by one bundle and used by another.
+ * Just an OSGi service.
+ *
+ * @author Tibor Varga
  */
-public interface ExportedService1 { }
+final class ExportedService1Impl implements ExportedService1, BundleComponentContainer.Registration {
+
+    public Class<?>[] types() {
+        return new Class<?>[] { ExportedService1.class };
+    }
+
+    public Properties properties() {
+        return null;
+    }
+
+    public void start() throws Exception {
+        // empty
+    }
+
+    public void stop() throws Exception {
+        // empty
+    }
+}

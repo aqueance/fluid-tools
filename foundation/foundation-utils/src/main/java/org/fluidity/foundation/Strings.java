@@ -20,8 +20,11 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.List;
 
 /**
  * Common string related utilities.
@@ -176,5 +179,31 @@ public final class Strings extends Utility {
 
         output.insert(0, '{').append('}');
         return output.toString();
+    }
+
+    /**
+     * For proxies, it returns <code>"proxy@&lt;identity hash code>[&lt;list of interfaces>]"</code>; for ordinary classes, it returns <code>"&lt;fully
+     * qualified class name>@&lt;identity hash code>"</code>; arrays are printed as described at {@link #printClass(boolean, Class)}.
+     *
+     * @param object the object to print; never <code>null</code>.
+     * @return the proxy friendly run-time identity of the given object.
+     */
+    public static String printObjectId(final Object object) {
+        assert object != null;
+        final Class<?> type = object.getClass();
+
+        return Proxy.isProxyClass(type)
+               ? String.format("proxy@%x%s", System.identityHashCode(object), interfaces(type))
+               : String.format("%s@%x", printClass(false, type), System.identityHashCode(object));
+    }
+
+    private static List<String> interfaces(final Class<?> type) {
+        final List<String> list = new ArrayList<String>();
+
+        for (final Class<?> api : type.getInterfaces()) {
+            list.add(printClass(false, api));
+        }
+
+        return list;
     }
 }

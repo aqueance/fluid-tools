@@ -18,18 +18,33 @@ package org.fluidity.tests.osgi.bundle2;
 
 import java.util.Properties;
 
-import org.fluidity.deployment.osgi.BundleComponentContainer;
+import org.fluidity.deployment.osgi.Service;
+import org.fluidity.tests.osgi.BundleTest;
 import org.fluidity.tests.osgi.ExportedService1;
 
+import org.testng.annotations.Test;
+
 /**
- * Just an independent OSGi service.
- *
  * @author Tibor Varga
  */
-final class ExportedService1Impl implements ExportedService1, BundleComponentContainer.Registration {
+public class RemoteDependenciesTest implements BundleTest {
+
+    private final ExportedService1 service;
+
+    public RemoteDependenciesTest(final @Service ExportedService1 service) {
+        this.service = service;
+    }
+
+    @Test
+    public void test() throws Exception {
+        assert service != null;
+    }
+
+    @Test
+
 
     public Class<?>[] types() {
-        return new Class<?>[] { ExportedService1.class };
+        return new Class<?>[] { BundleTest.class };
     }
 
     public Properties properties() {

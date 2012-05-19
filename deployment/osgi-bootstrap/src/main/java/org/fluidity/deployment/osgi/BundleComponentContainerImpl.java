@@ -639,7 +639,7 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
                 }
 
                 if (reference == null) {
-                    log.info("[%s] Waiting for %s", bundleName, descriptor);
+                    log.info("[%s] Waiting for %s to start", bundleName, descriptor);
                 }
             }
 

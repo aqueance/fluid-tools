@@ -249,8 +249,8 @@ final class SimpleContainerImpl extends EmptyDependencyGraph implements ParentCo
         final boolean isFallback = componentSpec != null && !componentSpec.primary();
 
         final String value = instance instanceof String || instance instanceof Number
-                             ? ('\'' + String.valueOf(instance) + '\'')
-                             : (String.format("%s@%x", Strings.printClass(false, implementation), System.identityHashCode(implementation)));
+                             ? String.format("'%s'", instance)
+                             : Strings.printObjectId(instance);
 
         log.debug("%s: binding %s to %s (%s)", this, value, interfaces, isFallback ? "fallback" : "primary");
 

@@ -14,37 +14,28 @@
  * limitations under the License.
  */
 
-package org.fluidity.tests.osgi.bundle1;
+package org.fluidity.tests.osgi.bundle2;
 
 import java.util.Properties;
 
+import org.fluidity.deployment.osgi.BundleComponentContainer;
 import org.fluidity.deployment.osgi.Service;
-import org.fluidity.tests.osgi.BundleTest;
+import org.fluidity.tests.osgi.ExportedService1;
 import org.fluidity.tests.osgi.ExportedService2;
 
-import org.testng.annotations.Test;
-
 /**
+ * Just an OSGi service.
+ *
  * @author Tibor Varga
  */
-public class RemoteDependenciesTest implements BundleTest {
+final class ExportedService2Impl implements ExportedService2, BundleComponentContainer.Registration {
 
-    private final ExportedService2 service;
-
-    public RemoteDependenciesTest(final @Service ExportedService2 service) {
-        this.service = service;
-    }
-
-    @Test
-    public void test() throws Exception {
+    public ExportedService2Impl(final @Service ExportedService1 service) {
         assert service != null;
     }
 
-    @Test
-
-
     public Class<?>[] types() {
-        return new Class<?>[] { BundleTest.class };
+        return new Class<?>[] { ExportedService2.class };
     }
 
     public Properties properties() {

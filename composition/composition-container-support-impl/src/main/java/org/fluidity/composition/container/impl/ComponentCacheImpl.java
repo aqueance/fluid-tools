@@ -24,6 +24,7 @@ import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.container.ComponentCache;
 import org.fluidity.composition.spi.ComponentFactory;
 import org.fluidity.foundation.Log;
+import org.fluidity.foundation.Strings;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**
@@ -97,10 +98,11 @@ final class ComponentCacheImpl implements ComponentCache {
                      final Log log,
                      final String source) {
         if (note) {
-            final String instance = component == null
-                             ? String.format("no %s", api.getName())
-                             : String.format("%s@%x", component.getClass().getName(), System.identityHashCode(component));
-            log.debug("%s: %s %s%s", source, action, instance, context.types().isEmpty() ? "" : String.format(" for %s", context));
+            log.debug("%s: %s %s%s",
+                      source,
+                      action,
+                      component == null ? String.format("no %s", api.getName()) : Strings.printObjectId(component),
+                      context.types().isEmpty() ? "" : String.format(" for %s", context));
         }
     }
 }
