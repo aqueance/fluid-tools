@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2011 Tibor Adam Varga (tibor.adam.varga on gmail)
+ * Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ContainerBoundary;
 import org.fluidity.foundation.Log;
+
 import org.testng.annotations.Test;
 
 /**
