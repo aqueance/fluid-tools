@@ -27,15 +27,15 @@ import org.fluidity.foundation.ServiceProviders;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
-import org.objectweb.asm.commons.EmptyVisitor;
 
 /**
  * Processes a {@link org.fluidity.composition.ServiceProvider @ServiceProvider} annotation.
  *
  * @author Tibor Varga
  */
-public final class ServiceProviderProcessor extends EmptyVisitor {
+public final class ServiceProviderProcessor extends AnnotationVisitor {
 
     private static final String ATR_API = "api";
     private static final String ATR_TYPE = "type";
@@ -48,6 +48,7 @@ public final class ServiceProviderProcessor extends EmptyVisitor {
     private String type;
 
     public ServiceProviderProcessor(final ClassRepository repository, final ClassReader classData, final ProcessorCallback<ServiceProviderProcessor> callback) {
+        super(Opcodes.ASM4);
         this.repository = repository;
         this.classData = classData;
         this.callback = callback;
@@ -67,24 +68,13 @@ public final class ServiceProviderProcessor extends EmptyVisitor {
     public AnnotationVisitor visitArray(final String name) {
         assert ATR_API.equals(name) : name;
 
-        return new EmptyVisitor() {
-
+        return new AnnotationVisitor(api) {
             @Override
             public void visit(final String ignore, final Object value) {
                 assert ignore == null : ignore;
                 apiSet.add(((Type) value).getClassName());
             }
         };
-    }
-
-    @Override
-    public AnnotationVisitor visitAnnotation(final String desc, final boolean visible) {
-        return null;
-    }
-
-    @Override
-    public AnnotationVisitor visitParameterAnnotation(final int parameter, final String desc, final boolean visible) {
-        return null;
     }
 
     public Set<String> apiSet() {

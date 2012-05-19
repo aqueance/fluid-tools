@@ -66,7 +66,6 @@ import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
-import org.objectweb.asm.commons.EmptyVisitor;
 
 /**
  * Mojos that find in a bunch of class files all implementations of a service provider interface, create a service provider file as per the JAR file
@@ -265,7 +264,7 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
         generator.visit(V1_5, ACC_FINAL | ACC_PUBLIC, ClassReaders.internalName(className), null, EMPTY_BINDINGS_CLASS_NAME, null);
 
         {
-            final String constructorDesc = Type.getMethodDescriptor(Type.getType(Void.TYPE), new Type[0]);
+            final String constructorDesc = Type.getMethodDescriptor(Type.getType(Void.TYPE));
             final MethodVisitor method = generator.visitMethod(ACC_PUBLIC, ClassReaders.CONSTRUCTOR_METHOD_NAME, constructorDesc, null, null);
             method.visitCode();
 
@@ -387,7 +386,7 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
 
                 final AnnotationsFactory annotations = new AnnotationsFactory() {
                     public ClassVisitor visitor(final ClassReader reader) {
-                        return new EmptyVisitor() {
+                        return new ClassVisitor(ASM4) {
                             private final Type serviceProviderType = Type.getType(ServiceProvider.class);
                             private final Type componentType = Type.getType(Component.class);
                             private final Type componentGroupType = Type.getType(ComponentGroup.class);
@@ -418,6 +417,7 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
                             @Override
                             public AnnotationVisitor visitAnnotation(final String desc, final boolean visible) {
                                 final Type type = Type.getType(desc);
+
                                 if (serviceProviderType.equals(type)) {
                                     return new ServiceProviderProcessor(repository, reader, new ProcessorCallback<ServiceProviderProcessor>() {
                                         public void complete(final ServiceProviderProcessor processor) {

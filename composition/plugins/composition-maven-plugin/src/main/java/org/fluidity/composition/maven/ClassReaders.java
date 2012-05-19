@@ -27,8 +27,8 @@ import org.fluidity.foundation.ClassLoaders;
 import org.fluidity.foundation.Utility;
 
 import org.apache.maven.plugin.MojoExecutionException;
-import org.objectweb.asm.ClassAdapter;
 import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -64,7 +64,7 @@ public final class ClassReaders extends Utility implements Opcodes {
         final AtomicBoolean constructorFound = new AtomicBoolean(false);
 
         // make class and its default constructor public
-        reader.accept(new ClassAdapter(writer) {
+        reader.accept(new ClassVisitor(ASM4, writer) {
 
             @Override
             public void visit(final int version,

@@ -17,14 +17,14 @@
 package org.fluidity.composition.maven.annotation;
 
 import org.objectweb.asm.AnnotationVisitor;
-import org.objectweb.asm.commons.EmptyVisitor;
+import org.objectweb.asm.Opcodes;
 
 /**
  * Processes a {@link org.fluidity.composition.Component @Component} annotation.
  *
  * @author Tibor Varga
  */
-public final class ComponentProcessor extends EmptyVisitor {
+public final class ComponentProcessor extends AnnotationVisitor {
 
     private static final String ATR_AUTOMATIC = "automatic";
 
@@ -33,22 +33,8 @@ public final class ComponentProcessor extends EmptyVisitor {
     private boolean automatic = true;
 
     public ComponentProcessor(final ProcessorCallback<ComponentProcessor> callback) {
+        super(Opcodes.ASM4);
         this.callback = callback;
-    }
-
-    @Override
-    public AnnotationVisitor visitAnnotation(final String desc, final boolean visible) {
-        return null;
-    }
-
-    @Override
-    public AnnotationVisitor visitParameterAnnotation(final int parameter, final String desc, final boolean visible) {
-        return null;
-    }
-
-    @Override
-    public AnnotationVisitor visitArray(final String desc) {
-        return null;
     }
 
     @Override
