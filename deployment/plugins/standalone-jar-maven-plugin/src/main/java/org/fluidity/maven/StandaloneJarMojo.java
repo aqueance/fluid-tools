@@ -86,7 +86,7 @@ public class StandaloneJarMojo extends AbstractMojo {
     /**
      * The project artifact file.
      *
-     * @parameter expression="${project.build.directory}/${project.build.finalName}.${project.packaging}"
+     * @parameter expression="${project.build.directory}/${project.build.finalName}.jar"
      * @required
      * @readonly
      */
@@ -102,15 +102,6 @@ public class StandaloneJarMojo extends AbstractMojo {
      */
     @SuppressWarnings("UnusedDeclaration")
     private String finalName;
-
-    /**
-     * Packaging type of the artifact to be installed. Retrieved from POM file if specified
-     *
-     * @parameter expression="${project.packaging}"
-     * @readonly
-     */
-    @SuppressWarnings("UnusedDeclaration")
-    private String packaging;
 
     /**
      * @parameter expression="${plugin.groupId}"
@@ -165,9 +156,7 @@ public class StandaloneJarMojo extends AbstractMojo {
     private List<RemoteRepository> repositories;
 
     public void execute() throws MojoExecutionException {
-        if (!DependenciesSupport.JAR_TYPE.equals(packaging)) {
-            throw new MojoExecutionException("This is not a .jar project");
-        } else if (!packageFile.exists()) {
+        if (!packageFile.exists()) {
             throw new MojoExecutionException(String.format("%s does not exist", packageFile));
         }
 
@@ -375,7 +364,7 @@ public class StandaloneJarMojo extends AbstractMojo {
                 }
             }
 
-            DependenciesSupport.saveArtifact(project, file, finalName, classifier, packaging, getLog());
+            DependenciesSupport.saveArtifact(project, file, finalName, classifier, DependenciesSupport.JAR_TYPE, getLog());
         } catch (final IOException e) {
             throw new MojoExecutionException(String.format("Processing %s", packageFile), e);
         }

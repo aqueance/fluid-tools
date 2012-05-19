@@ -51,7 +51,7 @@ final class ServiceComponentFactory implements CustomComponentFactory {
             return new Instance() {
                 @SuppressWarnings("unchecked")
                 public void bind(final Registry registry) throws ComponentContainer.BindingException {
-                    registry.bindInstance(descriptor.instance(), (Class<Object>) descriptor.type);
+                    registry.bindInstance(descriptor.instance(), (Class) descriptor.type);
                 }
             };
         }

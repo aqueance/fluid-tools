@@ -159,13 +159,30 @@ public final class Archives extends Utility {
      * @param type the class whose source JAR is to be processed.
      * @param names  the list of attribute names to load.
      *
-     * @return an array of strings, each being the value of the attribute name at the same index in the <code>names</code> parameter.
+     * @return an array of strings, each being the value of the attribute name at the same index in the <code>names</code> parameter or <code>null</code>.
      */
     public static String[] manifestAttributes(final Class<?> type, final String... names) {
-        final URL url = ClassLoaders.findClassResource(type);
+        return manifestAttributes(ClassLoaders.findClassResource(type),
+                                  String.format("Can't find class loader for %s", type),
+                                  String.format("Class %s was not loaded from a JAR file: %s", type.getName(), ClassLoaders.findClassResource(type)),
+                                  names);
+    }
 
+    /**
+     * Loads manifest attributes from the JAR file where the given resource was loaded from.
+     *
+     * @param url   the resource whose source JAR is to be processed.
+     * @param names the list of attribute names to load.
+     *
+     * @return an array of strings, each being the value of the attribute name at the same index in the <code>names</code> parameter or <code>null</code>.
+     */
+    public static String[] manifestAttributes(final URL url, final String... names) {
+        return manifestAttributes(url, "Resource URL is null", String.format("Resource was not loaded from a JAR file: %s", url), names);
+    }
+
+    private static String[] manifestAttributes(final URL url, final String nullURL, final String notJAR, final String... names) {
         if (url == null) {
-            throw new IllegalArgumentException(String.format("Can't find class loader for %s", type));
+            throw new IllegalArgumentException(nullURL);
         }
 
         try {
@@ -181,7 +198,7 @@ public final class Archives extends Utility {
 
                 return list.toArray(new String[list.size()]);
             } else {
-                throw new IllegalArgumentException(String.format("Class %s was not loaded from a JAR file: %s", type.getName(), url));
+                throw new IllegalArgumentException(notJAR);
             }
         } catch (final IOException e) {
             throw new IllegalArgumentException(e);

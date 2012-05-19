@@ -15,7 +15,7 @@ abstract class Descriptor {
         this.type = type;
     }
 
-    public void failed(final boolean successful) {
+    public void failed(final boolean flag) {
         // empty
     }
 
@@ -24,11 +24,11 @@ abstract class Descriptor {
         failed(false);
     }
 
-    public final Object stopped() {
+    public final Object stopped(final boolean failed) {
         try {
             return instance.getAndSet(null);
         } finally {
-            failed(false);
+            failed(failed);
         }
     }
 

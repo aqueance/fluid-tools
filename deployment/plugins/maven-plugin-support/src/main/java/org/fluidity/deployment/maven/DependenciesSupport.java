@@ -349,10 +349,17 @@ public final class DependenciesSupport extends Utility {
                                     final String classifier,
                                     final String packaging,
                                     final Log log) throws MojoExecutionException {
+        final boolean classified = classifier == null || classifier.isEmpty();
+        final String outputName = classified ? String.format("%s.%s", finalName, packaging) : String.format("%s-%s.%s", finalName, classifier, packaging);
+
         final Artifact artifact = project.getArtifact();
+        assert artifact != null;
+
         final File artifactFile = artifact.getFile();
 
-        if (classifier == null || classifier.length() == 0) {
+        if (artifactFile != null && artifactFile.getAbsolutePath().equals(outputName)) {
+            log.info(String.format("Replacing %s: %s", packaging, artifactFile.getAbsolutePath()));
+
             if (!artifactFile.delete()) {
                 throw new MojoExecutionException(String.format("Could not delete %s", artifactFile));
             }
@@ -360,10 +367,8 @@ public final class DependenciesSupport extends Utility {
             if (!file.renameTo(artifactFile)) {
                 throw new MojoExecutionException(String.format("Could not create %s", artifactFile));
             }
-
-            log.info(String.format("Updating %s: %s", packaging, artifactFile.getAbsoluteFile()));
         } else {
-            final File attachmentFile = new File(String.format("%s-%s.%s", finalName, classifier, packaging));
+            final File attachmentFile = new File(outputName);
 
             if (attachmentFile.exists() && !attachmentFile.delete()) {
                 throw new MojoExecutionException(String.format("Could not delete %s", attachmentFile));
@@ -373,13 +378,13 @@ public final class DependenciesSupport extends Utility {
                 throw new MojoExecutionException(String.format("Could not create %s", attachmentFile));
             }
 
-            log.info(String.format("Saving %s: %s", packaging, attachmentFile.getAbsoluteFile()));
+            log.info(String.format("Saving %s: %s", packaging, attachmentFile.getAbsolutePath()));
 
-            final DefaultArtifact attachment = new DefaultArtifact(artifact.getGroupId(),
-                                                                   artifact.getArtifactId(),
-                                                                   artifact.getVersion(),
+            final DefaultArtifact attachment = new DefaultArtifact(project.getGroupId(),
+                                                                   project.getArtifactId(),
+                                                                   project.getVersion(),
                                                                    artifact.getScope(),
-                                                                   artifact.getType(),
+                                                                   packaging,
                                                                    classifier,
                                                                    artifact.getArtifactHandler());
             attachment.setFile(attachmentFile);

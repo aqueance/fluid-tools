@@ -71,6 +71,7 @@
         <module>archetypes</module>
         <module>features</module>
         <module>public</module>
+        <module>integration-tests</module>
     </modules>
 
     <!--

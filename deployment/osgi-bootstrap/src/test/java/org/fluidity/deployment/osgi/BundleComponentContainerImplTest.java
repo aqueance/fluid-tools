@@ -374,10 +374,6 @@ public class BundleComponentContainerImplTest extends MockGroupAbstractTest {
 
         final BundleComponentContainer services = discover(Arrays.asList(selector1, selector2), StatusCheck.class, componentClass);
 
-        final Service annotation1 = new ServiceImpl(ServiceInterface1.class, selector1);
-        final Service annotation2 = new ServiceImpl(ServiceInterface2.class, selector2);
-        final Map.Entry<Class<?>, Set<Service>> dependencies = dependencies(ServiceDependent2.class, annotation1, annotation2);
-
         final List<ListenerSpec> listeners = Arrays.asList(expectListenerRegistration(), expectListenerRegistration());
 
         EasyMock.expect(context.getServiceReferences(ServiceInterface1.class.getName(), selector1)).andReturn(new ServiceReference[] { reference1 });
@@ -1071,11 +1067,15 @@ public class BundleComponentContainerImplTest extends MockGroupAbstractTest {
     }
 
     private BundleComponentContainer discover(final Class... types) throws Exception {
+        EasyMock.expect(context.getBundle()).andReturn(bundle);
+        EasyMock.expect(bundle.getSymbolicName()).andReturn("test-bundle");
         EasyMock.expect(discovery.findComponentClasses(BundleComponentContainer.Managed.class, BundleComponentContainerImpl.class.getClassLoader(), false)).andReturn(types);
         return new BundleComponentContainerImpl(context, container, log, border, discovery);
     }
 
     private BundleComponentContainer discover(final List<String> filters, final Class... types) throws Exception {
+        EasyMock.expect(context.getBundle()).andReturn(bundle);
+        EasyMock.expect(bundle.getSymbolicName()).andReturn("test-bundle");
         EasyMock.expect(discovery.findComponentClasses(BundleComponentContainer.Managed.class, BundleComponentContainerImpl.class.getClassLoader(), false)).andReturn(types);
 
         for (final String filter : filters) {
@@ -1096,10 +1096,8 @@ public class BundleComponentContainerImplTest extends MockGroupAbstractTest {
     }
 
     private ListenerSpec expectListenerRegistration() throws Exception {
-        EasyMock.expect(context.getBundle()).andReturn(bundle);
-        EasyMock.expect(bundle.getSymbolicName()).andReturn("test-bundle");
-
         final ListenerSpecImpl spec = new ListenerSpecImpl();
+
         context.addServiceListener(EasyMock.<ServiceListener>notNull(), EasyMock.<String>notNull());
         EasyMock.expectLastCall().andAnswer(new IAnswer<Object>() {
             public Object answer() throws Throwable {

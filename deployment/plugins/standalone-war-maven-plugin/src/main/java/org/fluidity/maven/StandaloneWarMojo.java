@@ -108,7 +108,7 @@ public class StandaloneWarMojo extends AbstractMojo {
     /**
      * The project artifact file.
      *
-     * @parameter expression="${project.build.directory}/${project.build.finalName}.${project.packaging}"
+     * @parameter expression="${project.build.directory}/${project.build.finalName}.war"
      * @required
      * @readonly
      */
@@ -138,14 +138,6 @@ public class StandaloneWarMojo extends AbstractMojo {
      */
     @SuppressWarnings("UnusedDeclaration")
     private String pluginArtifactId;
-
-    /**
-     * Packaging type of the artifact to be installed. Retrieved from POM file if specified
-     *
-     * @parameter expression="${project.packaging}"
-     */
-    @SuppressWarnings("UnusedDeclaration")
-    private String packaging;
 
     /**
      * The Maven project.
@@ -184,9 +176,7 @@ public class StandaloneWarMojo extends AbstractMojo {
     private List<RemoteRepository> repositories;
 
     public void execute() throws MojoExecutionException {
-        if (!DependenciesSupport.WAR_TYPE.equals(packaging)) {
-            throw new MojoExecutionException("This is not a WAR project");
-        } else if (!packageFile.exists()) {
+        if (!packageFile.exists()) {
             throw new MojoExecutionException(String.format("%s does not exist", packageFile));
         }
 
@@ -316,7 +306,7 @@ public class StandaloneWarMojo extends AbstractMojo {
                 }
             }
 
-            DependenciesSupport.saveArtifact(project, file, finalName, classifier, packaging, getLog());
+            DependenciesSupport.saveArtifact(project, file, finalName, classifier, DependenciesSupport.WAR_TYPE, getLog());
         } catch (final IOException e) {
             throw new MojoExecutionException(String.format("Processing %s", packageFile), e);
         }

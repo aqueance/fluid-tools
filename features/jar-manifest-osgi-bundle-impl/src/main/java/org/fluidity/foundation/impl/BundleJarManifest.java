@@ -37,6 +37,7 @@ import org.fluidity.foundation.Methods;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.interpolation.InterpolationException;
+import org.codehaus.plexus.interpolation.InterpolationPostProcessor;
 import org.codehaus.plexus.interpolation.Interpolator;
 import org.codehaus.plexus.interpolation.PrefixAwareRecursionInterceptor;
 import org.codehaus.plexus.interpolation.PrefixedObjectValueSource;
@@ -54,18 +55,14 @@ import static org.osgi.framework.Constants.BUNDLE_DOCURL;
 import static org.osgi.framework.Constants.BUNDLE_MANIFESTVERSION;
 import static org.osgi.framework.Constants.BUNDLE_NAME;
 import static org.osgi.framework.Constants.BUNDLE_NATIVECODE;
-import static org.osgi.framework.Constants.BUNDLE_NATIVECODE_OSVERSION;
 import static org.osgi.framework.Constants.BUNDLE_SYMBOLICNAME;
 import static org.osgi.framework.Constants.BUNDLE_VENDOR;
 import static org.osgi.framework.Constants.BUNDLE_VERSION;
-import static org.osgi.framework.Constants.BUNDLE_VERSION_ATTRIBUTE;
 import static org.osgi.framework.Constants.DYNAMICIMPORT_PACKAGE;
 import static org.osgi.framework.Constants.EXPORT_PACKAGE;
 import static org.osgi.framework.Constants.FRAGMENT_HOST;
 import static org.osgi.framework.Constants.IMPORT_PACKAGE;
-import static org.osgi.framework.Constants.PACKAGE_SPECIFICATION_VERSION;
 import static org.osgi.framework.Constants.REQUIRE_BUNDLE;
-import static org.osgi.framework.Constants.VERSION_ATTRIBUTE;
 
 /**
  * Modifies the JAR manifest of the host project's artifact so that an OSGi container finds its embedded JAR files and adds them to the bundle's class path.
@@ -139,11 +136,15 @@ public class BundleJarManifest implements JarManifest {
         interpolator.setCacheAnswers(true);
         interpolator.setReusePatterns(true);
 
+        interpolator.addPostProcessor(new InterpolationPostProcessor() {
+            public Object execute(final String expression, final Object value) {
+                return verify((String) value);
+            }
+        });
+
         try {
-            parseVersions(attributes, interpolator, interceptor, VERSION_ATTRIBUTE, EXPORT_PACKAGE, IMPORT_PACKAGE, DYNAMICIMPORT_PACKAGE);
-            parseVersions(attributes, interpolator, interceptor, BUNDLE_VERSION_ATTRIBUTE, FRAGMENT_HOST, IMPORT_PACKAGE, DYNAMICIMPORT_PACKAGE, REQUIRE_BUNDLE);
-            parseVersions(attributes, interpolator, interceptor, BUNDLE_NATIVECODE_OSVERSION, BUNDLE_NATIVECODE);
-            parseVersions(attributes, interpolator, interceptor, PACKAGE_SPECIFICATION_VERSION, EXPORT_PACKAGE, IMPORT_PACKAGE);
+            interpolateHeaders(attributes, interpolator, interceptor,
+                               EXPORT_PACKAGE, IMPORT_PACKAGE, DYNAMICIMPORT_PACKAGE, FRAGMENT_HOST, REQUIRE_BUNDLE, BUNDLE_NATIVECODE);
         } catch (final InterpolationException e) {
             throw new IllegalStateException(e);
         }
@@ -224,116 +225,17 @@ public class BundleJarManifest implements JarManifest {
         }
     }
 
-    private String substituteVersion(final Interpolator interpolator, final RecursionInterceptor interceptor, final String value) throws InterpolationException {
-        final String property = value.startsWith("$") ? String.format("${%s}", value.substring(1)) : null;
-        final String version = property != null ? interpolator.interpolate(property, interceptor) : property;
-        return property == null || property.equals(version) ? value : verify(version);
-    }
-
-    private void parseVersions(final Attributes attributes,
-                               final Interpolator interpolator,
-                               final RecursionInterceptor interceptor,
-                               final String name,
-                               final String... headers) throws InterpolationException {
+    private void interpolateHeaders(final Attributes attributes,
+                                    final Interpolator interpolator,
+                                    final RecursionInterceptor interceptor,
+                                    final String... headers) throws InterpolationException {
         assert interpolator != null;
-        final char[] parameter = name.concat("=").toCharArray();
 
         for (final String header : headers) {
             final String value = attributes.getValue(header);
 
             if (value != null) {
-                final StringBuilder buffer = new StringBuilder();
-                final StringBuilder version = new StringBuilder();
-                final char[] chars = value.toCharArray();
-
-                boolean quoting = false;
-                boolean escaping = false;
-                boolean collecting = false;
-
-                for (int i = 0, limit = chars.length; i < limit; i++) {
-                    final char c = chars[i];
-                    switch (c) {
-                    case '\\':
-                        escaping = !escaping;
-                        buffer.append(c);
-                        break;
-
-                    case '"':
-                        if (!escaping) {
-                            quoting = !quoting;
-                        }
-
-                        buffer.append(c);
-                        escaping = false;
-
-                        break;
-
-                    case ']':
-                    case ')':
-                    case ',':
-                        if (collecting) {
-                            buffer.append(substituteVersion(interpolator, interceptor, version.toString()));
-                            collecting = quoting;
-                            version.setLength(0);
-                        }
-
-                        buffer.append(c);
-                        escaping = false;
-
-                        break;
-
-                    case '[':
-                    case '(':
-                    case ' ':
-                        buffer.append(c);
-                        escaping = false;
-
-                        break;
-
-                    case ';':
-                        if (!quoting && !escaping) {
-                            if (collecting) {
-                                buffer.append(substituteVersion(interpolator, interceptor, version.toString()));
-                                collecting = false;
-
-                                buffer.append(c);
-                            } else {
-                                buffer.append(c);
-
-                                int matched;
-                                for (matched = 0; matched < parameter.length && chars[++i] == parameter[matched]; ++matched) {
-                                    buffer.append(chars[i]);
-                                }
-
-                                if (matched == parameter.length) {
-                                    version.setLength(0);
-                                    collecting = true;
-                                } else {
-                                    buffer.append(chars[i]);
-                                }
-                            }
-                        } else {
-                            buffer.append(c);
-                        }
-
-                        escaping = false;
-
-                        break;
-
-                    default:
-                        (collecting ? version : buffer).append(c);
-
-                        escaping = false;
-
-                        break;
-                    }
-                }
-
-                if (collecting) {
-                    buffer.append(substituteVersion(interpolator, interceptor, version.toString()));
-                }
-
-                attributes.putValue(header, buffer.toString());
+                attributes.putValue(header, interpolator.interpolate(value, interceptor));
             }
         }
     }
