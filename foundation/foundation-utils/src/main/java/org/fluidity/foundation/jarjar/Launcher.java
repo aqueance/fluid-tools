@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.fluidity.foundation.impl;
+package org.fluidity.foundation.jarjar;
 
 import java.lang.reflect.Method;
 import java.net.JarURLConnection;
@@ -27,25 +27,25 @@ import java.util.jar.Attributes;
 import org.fluidity.foundation.Archives;
 import org.fluidity.foundation.ClassLoaders;
 import org.fluidity.foundation.Exceptions;
-import org.fluidity.foundation.jarjar.Handler;
 
 /**
  * Launches a main class from a JAR file using a class loader that can load classes from JAR files nested inside the main JAR. Nested JAR files must be located
  * in the path denoted by the manifest attribute named in {@link #NESTED_DEPENDENCIES}. The main class to be loaded is defined by the manifest attribute named
  * in {@link #ORIGINAL_MAIN_CLASS}. The <code>Main-Class</code> manifest attribute has to point to this class, obviously.
  * <p/>
- * The above manifest attributes are set by the {@link CommandLineJarManifest} processor when used by the
+ * The above manifest attributes are set by the appropriate {@link org.fluidity.deployment.plugin.spi.JarManifest} processor when used by the
  * <code>org.fluidity.maven:maven-standalone-jar-plugin</code> Maven plugin.
  *
  * @author Tibor Varga
  */
-public final class JarJarLauncher {
+@SuppressWarnings("JavadocReference")
+public final class Launcher {
 
     public static final String NESTED_DEPENDENCIES = "Nested-Dependencies";
     public static final String ORIGINAL_MAIN_CLASS = "Original-Main-Class";
 
     public static void main(final String[] args) throws Exception {
-        final Class<?> main = JarJarLauncher.class;
+        final Class<?> main = Launcher.class;
 
         final URL url = ClassLoaders.findClassResource(main);
         final JarURLConnection jar = Archives.jarFile(url);

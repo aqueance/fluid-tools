@@ -22,6 +22,7 @@ import java.util.jar.Attributes;
 
 import org.fluidity.deployment.impl.CommandLineBootstrap;
 import org.fluidity.deployment.plugin.spi.JarManifest;
+import org.fluidity.foundation.jarjar.Launcher;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.project.MavenProject;
@@ -41,9 +42,7 @@ public final class CommandLineJarManifest implements JarManifest {
     }
 
     public Packaging packaging() {
-
-        // TODO: stop unpacking this whole module, we only need the launcher
-        return Packaging.UNPACK;
+        return Packaging.EXCLUDE;
     }
 
     public String dependencyPath() {
@@ -51,12 +50,12 @@ public final class CommandLineJarManifest implements JarManifest {
     }
 
     public void processManifest(final MavenProject project, final Attributes attributes, final List<String> paths, final Collection<Artifact> dependencies) {
-        final String originalMainClass = attributes.getValue(JarJarLauncher.ORIGINAL_MAIN_CLASS);
+        final String originalMainClass = attributes.getValue(Launcher.ORIGINAL_MAIN_CLASS);
 
         if (originalMainClass == null) {
             final String mainClass = attributes.getValue(Attributes.Name.MAIN_CLASS);
-            attributes.putValue(JarJarLauncher.ORIGINAL_MAIN_CLASS, mainClass == null ? CommandLineBootstrap.class.getName() : mainClass);
-            attributes.put(Attributes.Name.MAIN_CLASS, JarJarLauncher.class.getName());
+            attributes.putValue(Launcher.ORIGINAL_MAIN_CLASS, mainClass == null ? CommandLineBootstrap.class.getName() : mainClass);
+            attributes.put(Attributes.Name.MAIN_CLASS, Launcher.class.getName());
         }
 
         final StringBuilder dependencyList = new StringBuilder();
@@ -69,6 +68,6 @@ public final class CommandLineJarManifest implements JarManifest {
             dependencyList.append(dependency);
         }
 
-        attributes.putValue(JarJarLauncher.NESTED_DEPENDENCIES, dependencyList.toString());
+        attributes.putValue(Launcher.NESTED_DEPENDENCIES, dependencyList.toString());
     }
 }
