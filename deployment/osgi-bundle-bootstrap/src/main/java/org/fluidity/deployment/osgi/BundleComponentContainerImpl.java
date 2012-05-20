@@ -386,10 +386,12 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
                 }
             };
 
+            final String sourceName = source.getClass().getName();
+
             try {
                 context.addServiceListener(listener, String.format("(%s=%s)", Constants.OBJECTCLASS, type.getName()));
 
-                log.info("[%s] Accepting %s components", bundleName, source.getClass());
+                log.info("[%s] Accepting %s components", bundleName, sourceName);
 
                 final ServiceReference[] references = context.getServiceReferences(type.getName(), null);
                 if (references != null) {
@@ -401,10 +403,10 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
                 assert false : e;
             }
 
-            cleanup(String.format("service listener for %s", source.getClass().getName()), new Stoppable() {
+            cleanup(String.format("service listener for %s", sourceName), new Stoppable() {
                 public void stop() {
                     context.removeServiceListener(listener);
-                    log.info("[%s] Ignoring %s components", bundleName, source.getClass());
+                    log.info("[%s] Ignoring %s components", bundleName, sourceName);
                 }
             });
         }

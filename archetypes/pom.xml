@@ -44,6 +44,7 @@
         <module>impl-module</module>
         <module>standalone-jar</module>
         <module>standalone-war</module>
+        <module>standalone-osgi</module>
         <module>multi-project-sample</module>
         <module>osgi-bundle</module>
     </modules>

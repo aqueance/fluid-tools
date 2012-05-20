@@ -33,7 +33,7 @@ public interface ServerBootstrap {
      * Bootstraps a web server and deploys a list of WAR files.
      *
      * @param httpPort    The HTTP port to listen on. If == 0 then no HTTP listener is needed.
-     * @param bootApp     The web application WAR file used to establish the boot class path. The list of .jar files to be added to the boot class path will
+     * @param bootApp     The web application WAR file used to establish the boot class path. The list of JAR files to be added to the boot class path will
      *                    be found under <code>WEB-INF/boot</code> of this WAR file. This WAR file shall be deployed under the root (<code>/</code>)
      *                    context.
      * @param managedApps The web application WAR files to deploy. These WAR files shall be deployed under a context that is derived from the WAR name

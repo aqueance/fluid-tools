@@ -34,7 +34,7 @@ import org.apache.maven.project.MavenProject;
  * @author Tibor Varga
  */
 @SuppressWarnings("UnusedDeclaration")
-public class CommandLineJarManifest implements JarManifest {
+public final class CommandLineJarManifest implements JarManifest {
 
     public boolean needsCompileDependencies() {
         return false;

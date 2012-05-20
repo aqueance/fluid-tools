@@ -144,8 +144,8 @@ public final class ContainerBootstrapImplTest extends MockGroupAbstractTest {
             }
         });
 
-        callback.containerInitialized(container);
-        callback.containerShutdown(container);
+        callback.containerInitialized();
+        callback.containerShutdown();
 
         this.bindings.initializeComponents(container);
         EasyMock.expectLastCall().times(2);
@@ -165,7 +165,7 @@ public final class ContainerBootstrapImplTest extends MockGroupAbstractTest {
 
         EasyMock.expect(container.getComponent(ContainerTermination.class)).andReturn(null);
         EasyMock.expect(container.getComponent(EasyMock.<Class>anyObject())).andReturn(object);
-        callback.containerInitialized(container);
+        callback.containerInitialized();
 
         replay();
 

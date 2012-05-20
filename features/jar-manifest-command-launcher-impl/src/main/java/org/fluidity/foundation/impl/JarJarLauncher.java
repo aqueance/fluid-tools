@@ -84,7 +84,7 @@ public final class JarJarLauncher {
                 throw wrapper.rethrow(Exception.class);
             }
         } else {
-            throw new IllegalStateException(String.format("%s does not point to a jar file", url));
+            throw new IllegalStateException(String.format("%s does not point to a JAR file", url));
         }
     }
 

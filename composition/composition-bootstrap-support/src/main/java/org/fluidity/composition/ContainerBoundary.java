@@ -26,6 +26,7 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.fluidity.composition.container.ContainerServices;
 import org.fluidity.composition.container.ContainerServicesFactory;
@@ -74,24 +75,6 @@ public final class ContainerBoundary implements ComponentContainer {
     private static final Map<ClassLoader, Map> propertiesMap = new WeakHashMap<ClassLoader, Map>();
     private static final Set<ComponentContainer> lockedContainers = new HashSet<ComponentContainer>();
     private static final Object stateLock = new Object();
-
-    private static final ContainerBootstrap.Callback CONTAINER_LOCK_CALLBACK = new ContainerBootstrap.Callback() {
-        public void containerInitialized(final ComponentContainer container) {
-            synchronized (stateLock) {
-                lockedContainers.add(container);
-            }
-        }
-
-        public void containerShutdown(final ComponentContainer container) {
-            synchronized (stateLock) {
-                lockedContainers.remove(container);
-
-                if (lockedContainers.isEmpty()) {
-                    reset();
-                }
-            }
-        }
-    };
 
     /**
      * The component that can discover the above dependencies for us. The point is to have one single dependency for unit tests to override. This class is not
@@ -311,10 +294,6 @@ public final class ContainerBoundary implements ComponentContainer {
         this.containerProvider = null;
         this.platform = null;
 
-        reset();
-    }
-
-    private static void reset() {
         ContainerBoundary.populatedContainers.clear();
         ContainerBoundary.propertiesMap.clear();
         ContainerBoundary.lockedContainers.clear();
@@ -374,15 +353,34 @@ public final class ContainerBoundary implements ComponentContainer {
 
                     final Map map = propertiesMap.get(loader);
                     final OpenComponentContainer parent = populatedContainers.get(loader.getParent());
-                    final OpenComponentContainer container = containerBootstrap.populateContainer(containerServices,
-                                                                                                  containerProvider,
-                                                                                                  map == null ? new HashMap() : map,
-                                                                                                  parent,
-                                                                                                  loader,
-                                                                                                  platform,
-                                                                                                  CONTAINER_LOCK_CALLBACK);
 
-                    populatedContainers.put(loader, container);
+                    final AtomicReference<OpenComponentContainer> container = new AtomicReference<OpenComponentContainer>();
+
+                    final ContainerBootstrap.Callback callback = new ContainerBootstrap.Callback() {
+                        public void containerInitialized() {
+                            synchronized (stateLock) {
+                                lockedContainers.add(container.get());
+                            }
+                        }
+
+                        public void containerShutdown() {
+                            synchronized (stateLock) {
+                                populatedContainers.remove(loader);
+                                propertiesMap.remove(loader);
+                                lockedContainers.remove(container.get());
+                            }
+                        }
+                    };
+
+                    container.set(containerBootstrap.populateContainer(containerServices,
+                                                                       containerProvider,
+                                                                       map == null ? new HashMap() : map,
+                                                                       parent,
+                                                                       loader,
+                                                                       platform,
+                                                                       callback));
+
+                    populatedContainers.put(loader, container.get());
                 } else {
                     populatedContainers.put(loader, null);
                 }
@@ -419,9 +417,9 @@ public final class ContainerBoundary implements ComponentContainer {
             final List<OpenComponentContainer> containers = makeContainer();
 
             boolean first = true;
-            OpenComponentContainer initialized = null;
+            ComponentContainer initialized = null;
 
-            for (final OpenComponentContainer container : containers) {
+            for (final ComponentContainer container : containers) {
                 if (lock) {
                     if (initialized == null && !lockedContainers.contains(container)) {
                         initialized = container;

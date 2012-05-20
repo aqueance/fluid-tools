@@ -21,12 +21,12 @@ import java.util.List;
 import java.util.ListIterator;
 
 import org.fluidity.composition.Component;
+import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentGroup;
 import org.fluidity.composition.ContainerBoundary;
 import org.fluidity.composition.Inject;
 import org.fluidity.composition.Optional;
 import org.fluidity.composition.spi.ContainerTermination;
-import org.fluidity.foundation.ClassLoaders;
 import org.fluidity.foundation.Log;
 
 import org.osgi.framework.BundleActivator;
@@ -43,13 +43,19 @@ import org.osgi.framework.BundleContext;
 public final class BundleBootstrap implements BundleActivator {
 
     private final BundleTermination termination = new BundleTermination();
+    private final ContainerBoundary bootstrap = new ContainerBoundary(BundleBootstrap.class.getClassLoader());
+
+    private BundleComponentContainer components;
     private Activators activators;
-    private BundleComponentContainer container;
 
     /**
      * Default constructor.
      */
-    public BundleBootstrap() { }
+    @SuppressWarnings("unchecked")
+    public BundleBootstrap() {
+        bootstrap.bindBootComponent(this.termination);
+        bootstrap.initialize(this.termination);
+    }
 
     /**
      * Loads a {@link BundleComponentContainer} and calls {@link BundleActivator#start(BundleContext)} on all {@link ComponentGroup @ComponentGroup} annotated
@@ -61,19 +67,16 @@ public final class BundleBootstrap implements BundleActivator {
      */
     @SuppressWarnings("unchecked")
     public void start(final BundleContext context) throws Exception {
-        ClassLoaders.set(getClass().getClassLoader());
+        final ComponentContainer container = bootstrap.makeDomainContainer(new ComponentContainer.Bindings() {
+            public void bindComponents(final ComponentContainer.Registry registry) {
+                registry.bindInstance(context, BundleContext.class);
+            }
+        });
 
-        final ContainerBoundary boundary = new ContainerBoundary();
+        components = container.getComponent(BundleComponentContainer.class);
+        components.start();
 
-        boundary.bindBootComponent(termination);
-        boundary.bindBootComponent(context, BundleContext.class);
-
-        boundary.initialize(termination);
-
-        container = boundary.getComponent(BundleComponentContainer.class);
-        container.start();
-
-        activators = boundary.getComponent(Activators.class);
+        activators = container.getComponent(Activators.class);
         activators.start();
     }
 
@@ -87,7 +90,7 @@ public final class BundleBootstrap implements BundleActivator {
      */
     public void stop(final BundleContext context) throws Exception {
         activators.stop();
-        container.stop();
+        components.stop();
         termination.stop();
     }
 

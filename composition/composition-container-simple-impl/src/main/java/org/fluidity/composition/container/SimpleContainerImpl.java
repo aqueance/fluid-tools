@@ -671,6 +671,10 @@ final class SimpleContainerImpl extends EmptyDependencyGraph implements ParentCo
             return null;
         }
 
+        public ComponentContainer container(final ContextDefinition context) {
+            return null;
+        }
+
         public ContextNode contexts(final ParentContainer domain, final Class<?> type, final ContextDefinition context) {
             return platform.containsComponent(type, context) ? noContexts : null;
         }
@@ -750,7 +754,7 @@ final class SimpleContainerImpl extends EmptyDependencyGraph implements ParentCo
         }
 
         public ComponentContainer container(final ContextDefinition context) {
-            return SimpleContainerImpl.this.container(context);
+            return domain.container(context);
         }
 
         public Node resolveGroup(final Class<?> api,

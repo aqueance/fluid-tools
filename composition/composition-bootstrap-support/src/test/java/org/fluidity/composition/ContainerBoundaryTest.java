@@ -113,7 +113,7 @@ public class ContainerBoundaryTest extends MockGroupAbstractTest {
         bootstrap.initializeContainer(container, services);
         EasyMock.expectLastCall().andAnswer(new IAnswer<Object>() {
             public Object answer() throws Throwable {
-                callback[0].containerInitialized(container);
+                callback[0].containerInitialized();
                 return null;
             }
         });
@@ -187,7 +187,7 @@ public class ContainerBoundaryTest extends MockGroupAbstractTest {
         bootstrap.initializeContainer(container, services);
         EasyMock.expectLastCall().andAnswer(new IAnswer<Object>() {
             public Object answer() throws Throwable {
-                callback[0].containerInitialized(container);
+                callback[0].containerInitialized();
                 return null;
             }
         });
@@ -256,7 +256,7 @@ public class ContainerBoundaryTest extends MockGroupAbstractTest {
             bootstrap.initializeContainer(container, services);
             EasyMock.expectLastCall().andAnswer(new IAnswer<Object>() {
                 public Object answer() throws Throwable {
-                    callback[0].containerInitialized(container);
+                    callback[0].containerInitialized();
                     return null;
                 }
             });
@@ -335,7 +335,7 @@ public class ContainerBoundaryTest extends MockGroupAbstractTest {
         bootstrap.initializeContainer(container, services);
         EasyMock.expectLastCall().andAnswer(new IAnswer<Object>() {
             public Object answer() throws Throwable {
-                callback[0].containerInitialized(container);
+                callback[0].containerInitialized();
                 return null;
             }
         });

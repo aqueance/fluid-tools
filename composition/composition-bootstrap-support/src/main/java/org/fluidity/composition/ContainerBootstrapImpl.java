@@ -115,7 +115,7 @@ final class ContainerBootstrapImpl implements ContainerBootstrap {
         return Arrays.asList(instances);
     }
 
-    public void initializeContainer(final OpenComponentContainer container, final ContainerServices services) {
+    public void initializeContainer(final ComponentContainer container, final ContainerServices services) {
         final Log log = services.logs().createLog(getClass());
         final ContainerLifecycle lifecycle = container.getComponent(ContainerLifecycle.class);
 

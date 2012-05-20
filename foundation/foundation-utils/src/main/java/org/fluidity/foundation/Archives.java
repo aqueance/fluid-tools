@@ -189,11 +189,12 @@ public final class Archives extends Utility {
             final URL jar = jarFile(url).getJarFileURL();
 
             if (jar != null) {
-                final Attributes manifest = loadManifest(jar).getMainAttributes();
+                final Manifest manifest = loadManifest(jar);
+                final Attributes attributes = manifest == null ? null : manifest.getMainAttributes();
 
                 final List<String> list = new ArrayList<String>();
                 for (final String name : names) {
-                    list.add(manifest.getValue(name));
+                    list.add(attributes == null ? null : attributes.getValue(name));
                 }
 
                 return list.toArray(new String[list.size()]);

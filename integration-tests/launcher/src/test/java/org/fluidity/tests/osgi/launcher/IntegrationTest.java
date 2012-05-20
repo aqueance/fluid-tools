@@ -46,6 +46,7 @@ import org.osgi.framework.launch.Framework;
 import org.osgi.framework.launch.FrameworkFactory;
 import org.testng.annotations.AfterSuite;
 import org.testng.annotations.Factory;
+import org.testng.annotations.Test;
 
 /**
  * Launches an OSGi framework, and loads and starts integration test bundles.
@@ -85,13 +86,13 @@ public final class IntegrationTest {
 
         // find all JAR manifests visible to our class loader
         final List<URL> manifests = ClassLoaders.findResources(IntegrationTest.class, JarFile.MANIFEST_NAME);
-        for (final URL jar : manifests) {
+        for (final URL manifest : manifests) {
 
             // find and install those JAR files that have both an OSGi bundle symbolic name and our integration test marker
-            final String[] markers = Archives.manifestAttributes(jar, INTEGRATION_TEST_MARKER, Constants.BUNDLE_SYMBOLICNAME);
+            final String[] markers = Archives.manifestAttributes(manifest, INTEGRATION_TEST_MARKER, Constants.BUNDLE_SYMBOLICNAME);
 
             if (markers[0] != null && markers[1] != null) {
-                final Bundle bundle = system.installBundle(Archives.jarFile(jar).getJarFileURL().toExternalForm());
+                final Bundle bundle = system.installBundle(Archives.jarFile(manifest).getJarFileURL().toExternalForm());
 
                 if (bundle.getHeaders().get(Constants.FRAGMENT_HOST) == null) {
                     bundles.add(bundle);
@@ -160,6 +161,21 @@ public final class IntegrationTest {
         }
 
         return properties;
+    }
+
+    @Test
+    public void testRestartingBundles() throws Exception {
+        for (final Bundle bundle : framework.getBundleContext().getBundles()) {
+            if (bundle.getBundleId() > 0) {
+                bundle.stop();
+            }
+        }
+
+        for (final Bundle bundle : framework.getBundleContext().getBundles()) {
+            if (bundle.getBundleId() > 0) {
+                bundle.start();
+            }
+        }
     }
 
     @AfterSuite(alwaysRun = true)

@@ -20,6 +20,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.util.List;
 
+import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.container.spi.ContextNode;
 
@@ -88,4 +89,13 @@ interface ParentContainer extends SimpleContainer {
      * @return the instance if found cached, <code>null</code> otherwise.
      */
     Object cached(Class<?> api, ComponentContext context);
+
+    /**
+     * Wraps this container around a new context.
+     *
+     * @param context the new context to wrap.
+     *
+     * @return this container with the new context.
+     */
+    ComponentContainer container(ContextDefinition context);
 }

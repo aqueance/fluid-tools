@@ -16,7 +16,7 @@
 
 package org.fluidity.deployment.impl;
 
-import org.fluidity.composition.Component;
+import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ContainerBoundary;
 import org.fluidity.deployment.cli.Application;
 
@@ -28,7 +28,6 @@ import org.fluidity.deployment.cli.Application;
  *
  * @author Tibor Varga
  */
-@Component
 public final class CommandLineBootstrap {
 
     private final Application application;
@@ -42,6 +41,11 @@ public final class CommandLineBootstrap {
     }
 
     public static void main(final String[] args) throws Exception {
-        new ContainerBoundary().getComponent(CommandLineBootstrap.class).run(args);
+        new ContainerBoundary().getComponent(CommandLineBootstrap.class, new ComponentContainer.Bindings() {
+            @SuppressWarnings("unchecked")
+            public void bindComponents(final ComponentContainer.Registry registry) {
+                registry.bindComponent(CommandLineBootstrap.class);
+            }
+        }).run(args);
     }
 }

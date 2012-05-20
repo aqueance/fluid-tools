@@ -60,12 +60,11 @@ interface ContainerBootstrap {
      * Calls the {@link org.fluidity.composition.spi.PackageBindings#initializeComponents(ComponentContainer)} method on all bindings and adds shutdown tasks
      * to call the {@link org.fluidity.composition.spi.PackageBindings#shutdownComponents(ComponentContainer)} method on the bindings, in reverse order.
      *
-     * @param container the container, returned by the {@link #populateContainer(ContainerServices, org.fluidity.composition.container.spi.ContainerProvider,
-     *                  java.util.Map, OpenComponentContainer, ClassLoader, org.fluidity.composition.container.PlatformContainer, ContainerBootstrap.Callback)}
-     *                  method, to initialize.
+     * @param container the container, returned by the {@link #populateContainer(ContainerServices, ContainerProvider, Map, OpenComponentContainer,
+     *                  ClassLoader, PlatformContainer, ContainerBootstrap.Callback)} method, to initialize.
      * @param services  provides basic services for containers
      */
-    void initializeContainer(OpenComponentContainer container, ContainerServices services);
+    void initializeContainer(ComponentContainer container, ContainerServices services);
 
     /**
      * Notification receiver concerning container initialization / shutdown.
@@ -77,15 +76,13 @@ interface ContainerBootstrap {
         /**
          * Notifies the receiver that the given container has been initialized.
          *
-         * @param container the container.
          */
-        void containerInitialized(ComponentContainer container);
+        void containerInitialized();
 
         /**
          * Notifies the receiver that the given container has been shut down.
          *
-         * @param container the container.
          */
-        void containerShutdown(ComponentContainer container);
+        void containerShutdown();
     }
 }

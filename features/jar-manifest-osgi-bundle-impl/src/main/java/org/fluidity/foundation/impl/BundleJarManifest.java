@@ -69,7 +69,7 @@ import static org.osgi.framework.Constants.REQUIRE_BUNDLE;
  *
  * @author Tibor Varga
  */
-public class BundleJarManifest implements JarManifest {
+public final class BundleJarManifest implements JarManifest {
 
     public static final String DEFAULT_BUNDLE_VERSION = Version.emptyVersion.toString();
 
@@ -161,7 +161,7 @@ public class BundleJarManifest implements JarManifest {
                 final String skippedId = project.getArtifact().getId();
                 for (final Artifact dependency : dependencies) {
 
-                    // we don't need the project artifact and opening it may cause Windows to lock the file and prevent the caller to overwrite it
+                    // we don't need the project artifact and opening it may cause Windows to lock the file and prevent the caller from overwriting it
                     if (!skippedId.equals(dependency.getId())) {
                         urls.add(dependency.getFile().toURI().toURL());
                     }
@@ -276,7 +276,7 @@ public class BundleJarManifest implements JarManifest {
         if (jar != null) {
             urls.add(jar);
         } else {
-            throw new IllegalArgumentException(String.format("Class %s was not loaded from a jar file: %s", type.getName(), source));
+            throw new IllegalArgumentException(String.format("Class %s was not loaded from a JAR file: %s", type.getName(), source));
         }
     }
 

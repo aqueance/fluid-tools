@@ -99,7 +99,7 @@ public final class Handler extends URLStreamHandler {
         final int delimiter = string.indexOf(DELIMITER);
 
         if (delimiter < 0) {
-            throw new IllegalStateException(new MalformedURLException(String.format("%s is not an embedded jar file.", spec)));
+            throw new IllegalStateException(new MalformedURLException(String.format("%s is not an embedded JAR file.", spec)));
         }
 
         setURL(url, url.getProtocol(), string.substring(0, delimiter), -1, null, null, string.substring(delimiter), null, null);

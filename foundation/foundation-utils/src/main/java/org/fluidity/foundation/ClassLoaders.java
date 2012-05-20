@@ -183,7 +183,7 @@ public final class ClassLoaders extends Utility {
      *
      * @return the previous class loader.
      */
-    public static ClassLoader set(final ClassLoader loader) {
+    private static ClassLoader set(final ClassLoader loader) {
         final Thread thread = Thread.currentThread();
 
         try {
@@ -191,6 +191,19 @@ public final class ClassLoaders extends Utility {
         } finally {
             thread.setContextClassLoader(loader);
         }
+    }
+
+    /**
+     * Sets as the {@linkplain Thread#setContextClassLoader(ClassLoader) context class loader} the one that loaded the given class and returns the previous
+     * context class loader.
+     *
+     * @param type the class loader to set.
+     *
+     * @return the previous class loader.
+     */
+    public static ClassLoader set(final Class type) {
+        final ClassLoader loader = type.getClassLoader();
+        return set(loader == null ? ClassLoader.getSystemClassLoader() : loader);
     }
 
     /**

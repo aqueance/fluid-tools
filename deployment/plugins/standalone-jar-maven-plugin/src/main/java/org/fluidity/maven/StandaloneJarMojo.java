@@ -330,30 +330,34 @@ public class StandaloneJarMojo extends AbstractMojo {
                     for (final Artifact artifact : list) {
                         final File dependency = artifact.getFile();
 
-                        final String entryName = path.concat(dependency.getName());
-                        outputStream.putNextEntry(new JarEntry(entryName));
+                        if (dependency.isDirectory()) {
+                            getLog().warn(String.format("Ignoring non JAR dependency %s", dependency));
+                        } else {
+                            final String entryName = path.concat(dependency.getName());
+                            outputStream.putNextEntry(new JarEntry(entryName));
 
-                        if (artifact.getId().equals(projectId)) {
+                            if (artifact.getId().equals(projectId)) {
 
-                            // got to check if our project artifact is something we have created in a previous run
-                            // i.e., if it contains the project artifact we're about to copy
-                            int processed = Archives.readEntries(dependency.toURI().toURL(), new Archives.EntryReader() {
-                                public boolean matches(final JarEntry entry) throws IOException {
-                                    return entryName.equals(entry.getName());
+                                // got to check if our project artifact is something we have created in a previous run
+                                // i.e., if it contains the project artifact we're about to copy
+                                int processed = Archives.readEntries(dependency.toURI().toURL(), new Archives.EntryReader() {
+                                    public boolean matches(final JarEntry entry) throws IOException {
+                                        return entryName.equals(entry.getName());
+                                    }
+
+                                    public boolean read(final JarEntry entry, final JarInputStream stream) throws IOException {
+                                        Streams.copy(stream, outputStream, buffer, false);
+                                        return false;
+                                    }
+                                });
+
+                                if (processed > 0) {
+                                    continue;
                                 }
-
-                                public boolean read(final JarEntry entry, final JarInputStream stream) throws IOException {
-                                    Streams.copy(stream, outputStream, buffer, false);
-                                    return false;
-                                }
-                            });
-
-                            if (processed > 0) {
-                                continue;
                             }
-                        }
 
-                        Streams.copy(new FileInputStream(dependency), outputStream, buffer, false);
+                            Streams.copy(new FileInputStream(dependency), outputStream, buffer, false);
+                        }
                     }
                 }
             } finally {

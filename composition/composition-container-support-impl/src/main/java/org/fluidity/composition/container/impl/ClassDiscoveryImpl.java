@@ -113,7 +113,7 @@ final class ClassDiscoveryImpl implements ClassDiscovery {
                                         }
                                     }
                                 } catch (final ClassNotFoundException e) {
-                                    log.error("Invalid class name: %s", line);
+                                    log.error(e, "Invalid class name: %s", line);
                                 }
                             }
                         } finally {

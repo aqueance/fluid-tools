@@ -33,6 +33,7 @@ import org.fluidity.foundation.Log;
  * @author Tibor Varga
  */
 final class ContainerLifecycle {
+
     private ContainerBootstrap.Callback callback;
 
     private final ComponentContainer container;
@@ -70,7 +71,7 @@ final class ContainerLifecycle {
 
         if (init) {
             if (callback != null) {
-                callback.containerInitialized(container);
+                callback.containerInitialized();
             }
 
             final ContainerTermination termination = container.getComponent(ContainerTermination.class);
@@ -109,7 +110,7 @@ final class ContainerLifecycle {
             }
 
             if (callback != null) {
-                callback.containerShutdown(container);
+                callback.containerShutdown();
             }
 
             log.debug("%s shut down", container);
