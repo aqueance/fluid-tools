@@ -53,7 +53,7 @@ containing OSGi bundles.
 
         <dependency>
             <groupId>${fluidity.deployment.groupId}</groupId>
-            <artifactId>osgi-bootstrap</artifactId>
+            <artifactId>osgi-bundle-bootstrap</artifactId>
             <version>${project.version}</version>
         </dependency>
 
