@@ -154,7 +154,7 @@ public class OsgiApplicationBootstrap {
         }
 
         for (final Bundle bundle : bundles) {
-            log.info("Installing bundle %s", bundle.getSymbolicName());
+            log.info("Starting bundle %s", bundle.getSymbolicName());
 
             bundle.start();
         }

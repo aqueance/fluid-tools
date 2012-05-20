@@ -51,12 +51,6 @@ containing application wrappers other than command line, web or enterprise appli
             <type>pom</type>
         </dependency>
 
-        <dependency>
-            <groupId>${fluidity.foundation.groupId}</groupId>
-            <artifactId>foundation-impl</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
     </dependencies>
 
 </project>
