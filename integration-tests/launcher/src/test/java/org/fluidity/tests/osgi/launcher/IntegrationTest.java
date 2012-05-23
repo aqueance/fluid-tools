@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.jar.JarFile;
 
 import org.fluidity.deployment.osgi.BundleComponentContainer;
@@ -57,6 +58,7 @@ public final class IntegrationTest {
 
     public static final String INTEGRATION_TEST_MARKER = "Integration-Test";
     private Framework framework;
+    private final AtomicReference<Throwable> error = new AtomicReference<Throwable>();
 
     @Factory
     public Object[] startContainer() throws Exception {
@@ -65,89 +67,94 @@ public final class IntegrationTest {
          * Embedding OSGi: http://njbartlett.name/2011/03/07/embedding-osgi.html
          */
 
-        final ClassLoader loader = ClassLoaders.findClassLoader(IntegrationTest.class);
-        final Properties properties = loadProperties("system.properties");
+        try {
+            final ClassLoader loader = ClassLoaders.findClassLoader(IntegrationTest.class);
+            final Properties properties = loadProperties("system.properties");
 
-        final Map<String, String> config = new HashMap<String, String>();
+            final Map<String, String> config = new HashMap<String, String>();
 
-        for (final Map.Entry entry : properties.entrySet()) {
-            config.put((String) entry.getKey(), (String) entry.getValue());
-        }
+            for (final Map.Entry entry : properties.entrySet()) {
+                config.put((String) entry.getKey(), (String) entry.getValue());
+            }
 
-        config.put(Constants.FRAMEWORK_BUNDLE_PARENT, Constants.FRAMEWORK_BUNDLE_PARENT_APP);
+            config.put(Constants.FRAMEWORK_BUNDLE_PARENT, Constants.FRAMEWORK_BUNDLE_PARENT_APP);
 
-        final FrameworkFactory factory = ServiceProviders.findInstance(FrameworkFactory.class, loader);
+            final FrameworkFactory factory = ServiceProviders.findInstance(FrameworkFactory.class, loader);
 
-        framework = factory.newFramework(config);
-        framework.start();
+            framework = factory.newFramework(config);
+            framework.start();
 
-        final BundleContext system = framework.getBundleContext();
-        final List<Bundle> bundles = new ArrayList<Bundle>();
+            final BundleContext system = framework.getBundleContext();
+            final List<Bundle> bundles = new ArrayList<Bundle>();
 
-        // find all JAR manifests visible to our class loader
-        final List<URL> manifests = ClassLoaders.findResources(IntegrationTest.class, JarFile.MANIFEST_NAME);
-        for (final URL manifest : manifests) {
+            // find all JAR manifests visible to our class loader
+            final List<URL> manifests = ClassLoaders.findResources(IntegrationTest.class, JarFile.MANIFEST_NAME);
+            for (final URL manifest : manifests) {
 
-            // find and install those JAR files that have both an OSGi bundle symbolic name and our integration test marker
-            final String[] markers = Archives.manifestAttributes(manifest, INTEGRATION_TEST_MARKER, Constants.BUNDLE_SYMBOLICNAME);
+                // find and install those JAR files that have both an OSGi bundle symbolic name and our integration test marker
+                final String[] markers = Archives.manifestAttributes(manifest, INTEGRATION_TEST_MARKER, Constants.BUNDLE_SYMBOLICNAME);
 
-            if (markers[0] != null && markers[1] != null) {
-                final Bundle bundle = system.installBundle(Archives.jarFile(manifest).getJarFileURL().toExternalForm());
+                if (markers[0] != null && markers[1] != null) {
+                    final Bundle bundle = system.installBundle(Archives.jarFile(manifest).getJarFileURL().toExternalForm());
 
-                if (bundle.getHeaders().get(Constants.FRAGMENT_HOST) == null) {
-                    bundles.add(bundle);
+                    if (bundle.getHeaders().get(Constants.FRAGMENT_HOST) == null) {
+                        bundles.add(bundle);
+                    }
                 }
             }
-        }
 
-        final CountDownLatch starting = new CountDownLatch(bundles.size());
+            final CountDownLatch starting = new CountDownLatch(bundles.size());
 
-        final BundleListener bundleListener = new BundleListener() {
-            public void bundleChanged(final BundleEvent event) {
-                if (event.getType() == BundleEvent.STARTED) {
-                    starting.countDown();
+            final BundleListener bundleListener = new BundleListener() {
+                public void bundleChanged(final BundleEvent event) {
+                    if (event.getType() == BundleEvent.STARTED) {
+                        starting.countDown();
+                    }
                 }
+            };
+
+            system.addBundleListener(bundleListener);
+
+            for (final Bundle bundle : bundles) {
+                bundle.start();
             }
-        };
 
-        system.addBundleListener(bundleListener);
+            final boolean started = starting.await(1, TimeUnit.MINUTES);
 
-        for (final Bundle bundle : bundles) {
-            bundle.start();
+            system.removeBundleListener(bundleListener);
+
+            assert started : "Not all bundles started";
+
+            final ServiceReference[] statuses = system.getServiceReferences(BundleComponentContainer.Status.class.getName(), null);
+
+            assert statuses != null : String.format("No component status services registered (%s)", BundleComponentContainer.Status.class.getName());
+            assert statuses.length == bundles.size() : String.format("Component status service count (%d) != bundle count (%d)", statuses.length, bundles.size());
+
+            for (final ServiceReference reference : statuses) {
+                final BundleComponentContainer.Status status = (BundleComponentContainer.Status) system.getService(reference);
+
+                final String bundleName = reference.getBundle().getSymbolicName();
+                final Collection<Class<?>> failed = status.failed();
+                assert failed.isEmpty() : String.format("Failed components in bundle %s: %s", bundleName, failed);
+
+                final Map<Class<?>, Collection<Service>> inactive = status.inactive();
+                assert inactive.isEmpty() : String.format("Inactive components in bundle %s: %s", bundleName, inactive);
+            }
+
+            final List<BundleTest> tests = new ArrayList<BundleTest>();
+
+            final ServiceReference[] references = system.getServiceReferences(BundleTest.class.getName(), null);
+            assert references != null && references.length > 0: String.format("No integration tests found (%s)", BundleTest.class.getName());
+
+            for (final ServiceReference reference : references) {
+                tests.add((BundleTest) system.getService(reference));
+            }
+
+            return tests.toArray(new BundleTest[tests.size()]);
+        } catch (final Throwable problem) {
+            error.set(problem);
+            return new BundleTest[0];
         }
-
-        final boolean started = starting.await(1, TimeUnit.MINUTES);
-
-        system.removeBundleListener(bundleListener);
-
-        assert started : "Not all bundles started";
-
-        final ServiceReference[] statuses = system.getServiceReferences(BundleComponentContainer.Status.class.getName(), null);
-
-        assert statuses != null : String.format("No component status services registered (%s)", BundleComponentContainer.Status.class.getName());
-        assert statuses.length == bundles.size() : String.format("Component status service count (%d) != bundle count (%d)", statuses.length, bundles.size());
-
-        for (final ServiceReference reference : statuses) {
-            final BundleComponentContainer.Status status = (BundleComponentContainer.Status) system.getService(reference);
-
-            final String bundleName = reference.getBundle().getSymbolicName();
-            final Collection<Class<?>> failed = status.failed();
-            assert failed.isEmpty() : String.format("Failed components in bundle %s: %s", bundleName, failed);
-
-            final Map<Class<?>, Collection<Service>> inactive = status.inactive();
-            assert inactive.isEmpty() : String.format("Inactive components in bundle %s: %s", bundleName, inactive);
-        }
-
-        final List<BundleTest> tests = new ArrayList<BundleTest>();
-
-        final ServiceReference[] references = system.getServiceReferences(BundleTest.class.getName(), null);
-        assert references != null && references.length > 0: String.format("No integration tests found (%s)", BundleTest.class.getName());
-
-        for (final ServiceReference reference : references) {
-            tests.add((BundleTest) system.getService(reference));
-        }
-
-        return tests.toArray(new BundleTest[tests.size()]);
     }
 
     private Properties loadProperties(final String name) throws IOException {
@@ -165,6 +172,11 @@ public final class IntegrationTest {
 
     @Test
     public void testRestartingBundles() throws Exception {
+
+        @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
+        final Throwable problem = error.get();
+        assert problem == null : problem;
+
         for (final Bundle bundle : framework.getBundleContext().getBundles()) {
             if (bundle.getBundleId() > 0) {
                 bundle.stop();
