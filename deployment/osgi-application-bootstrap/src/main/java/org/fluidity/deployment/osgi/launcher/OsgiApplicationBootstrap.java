@@ -40,6 +40,10 @@ import org.fluidity.foundation.ClassLoaders;
 import org.fluidity.foundation.Log;
 import org.fluidity.foundation.ServiceProviders;
 
+import org.codehaus.plexus.interpolation.PropertiesBasedValueSource;
+import org.codehaus.plexus.interpolation.RecursionInterceptor;
+import org.codehaus.plexus.interpolation.RegexBasedInterpolator;
+import org.codehaus.plexus.interpolation.SimpleRecursionInterceptor;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
@@ -54,7 +58,7 @@ import org.osgi.framework.launch.FrameworkFactory;
  *
  * @author Tibor Varga
  */
-public class OsgiApplicationBootstrap {
+public final class OsgiApplicationBootstrap {
 
     public static final String APPLICATION_PROPERTIES = "application.properties";
     public static final String DEPLOYMENT_PROPERTIES = "deployment.properties";
@@ -87,11 +91,21 @@ public class OsgiApplicationBootstrap {
 
         final Map<String, String> config = new HashMap<String, String>();
 
+        final RegexBasedInterpolator interpolator = new RegexBasedInterpolator();
+
+        interpolator.addValueSource(new PropertiesBasedValueSource(System.getProperties()));
+        interpolator.addValueSource(new PropertiesBasedValueSource(properties));
+
+        final RecursionInterceptor interceptor = new SimpleRecursionInterceptor();
+
+        interpolator.setCacheAnswers(true);
+        interpolator.setReusePatterns(true);
+
         @SuppressWarnings("unchecked")
         final List<String> keys = Collections.list((Enumeration<String>) properties.propertyNames());
 
         for (final String property : keys) {
-            config.put(property, properties.getProperty(property));
+            config.put(property, interpolator.interpolate(properties.getProperty(property), interceptor));
         }
 
         config.put(Constants.FRAMEWORK_BUNDLE_PARENT, Constants.FRAMEWORK_BUNDLE_PARENT_FRAMEWORK);

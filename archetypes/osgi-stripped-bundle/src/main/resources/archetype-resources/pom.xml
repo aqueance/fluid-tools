@@ -84,7 +84,7 @@ limitations under the License.
                     <archive>
                         <manifestEntries>
                             <Import-Package>${symbol_dollar}{osgi.import.core}</Import-Package>
-                            <Export-Package>${package}</Export-Package>
+                            <Export-Package>${package}${symbol_dollar}{version:project.version}</Export-Package>
                             <Bundle-RequiredExecutionEnvironment>J2SE-1.5</Bundle-RequiredExecutionEnvironment>
                         </manifestEntries>
                     </archive>

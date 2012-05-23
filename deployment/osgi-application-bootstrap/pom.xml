@@ -40,6 +40,12 @@
     <dependencies>
 
         <dependency>
+            <groupId>org.codehaus.plexus</groupId>
+            <artifactId>plexus-interpolation</artifactId>
+            <version>1.15</version>
+        </dependency>
+
+        <dependency>
             <groupId>${fluidity.composition.groupId}</groupId>
             <artifactId>composition-bootstrap-support</artifactId>
             <version>${project.version}</version>

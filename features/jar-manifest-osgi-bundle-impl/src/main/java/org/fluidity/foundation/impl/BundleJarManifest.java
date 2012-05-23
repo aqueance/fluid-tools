@@ -72,6 +72,7 @@ import static org.osgi.framework.Constants.REQUIRE_BUNDLE;
 public final class BundleJarManifest implements JarManifest {
 
     public static final String DEFAULT_BUNDLE_VERSION = Version.emptyVersion.toString();
+    public static final String VERSION_PREFIX = "version:";
 
     public boolean needsCompileDependencies() {
 
@@ -235,7 +236,7 @@ public final class BundleJarManifest implements JarManifest {
             final String value = attributes.getValue(header);
 
             if (value != null) {
-                attributes.putValue(header, interpolator.interpolate(value, interceptor));
+                attributes.putValue(header, interpolator.interpolate(value, VERSION_PREFIX, interceptor));
             }
         }
     }

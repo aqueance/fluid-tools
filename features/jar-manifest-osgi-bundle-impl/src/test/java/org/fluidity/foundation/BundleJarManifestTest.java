@@ -198,13 +198,13 @@ public class BundleJarManifestTest {
 
         model.setProperties(properties);
 
-        final String specified = "package.bare,package.%1$s;%1$s=${xxx},package.buried;xxx=%1$s;%1$s=1.0-X;y.z=\"a\\;b;%1$s\\\"c\\\\d\";package.range1;%1$s=\"[1.0,${project.version})\",package.range1;%1$s=\"(${y.z},${whatever}]\"";
+        final String specified = "package.bare,package.%1$s;%1$s=${%2$sxxx},package.buried;xxx=%1$s;%1$s=1.0-X;y.z=\"a\\;b;%1$s\\\"c\\\\d\";package.range1;%1$s=\"[1.0,${%2$sproject.version})\",package.range1;%1$s=\"(${%2$sy.z},${%2$swhatever}]\"";
         final String expected = "package.bare,package.%1$s;%1$s=1.0,package.buried;xxx=%1$s;%1$s=1.0-X;y.z=\"a\\;b;%1$s\\\"c\\\\d\";package.range1;%1$s=\"[1.0,1.0.0.SNAPSHOT)\",package.range1;%1$s=\"(1.0.0.beta-1,1.2.3.4-whatever]\"";
 
-        attributes.putValue(EXPORT_PACKAGE, String.format(specified, VERSION_ATTRIBUTE));
-        attributes.putValue(IMPORT_PACKAGE, String.format(specified, VERSION_ATTRIBUTE));
-        attributes.putValue(DYNAMICIMPORT_PACKAGE, String.format(specified, VERSION_ATTRIBUTE));
-        attributes.putValue(FRAGMENT_HOST, String.format(specified, BUNDLE_VERSION_ATTRIBUTE));
+        attributes.putValue(EXPORT_PACKAGE, String.format(specified, VERSION_ATTRIBUTE, BundleJarManifest.VERSION_PREFIX));
+        attributes.putValue(IMPORT_PACKAGE, String.format(specified, VERSION_ATTRIBUTE, BundleJarManifest.VERSION_PREFIX));
+        attributes.putValue(DYNAMICIMPORT_PACKAGE, String.format(specified, VERSION_ATTRIBUTE, BundleJarManifest.VERSION_PREFIX));
+        attributes.putValue(FRAGMENT_HOST, String.format(specified, BUNDLE_VERSION_ATTRIBUTE, BundleJarManifest.VERSION_PREFIX));
 
         manifest.processManifest(project, attributes, new ArrayList<String>(), Collections.<Artifact>emptyList());
 
