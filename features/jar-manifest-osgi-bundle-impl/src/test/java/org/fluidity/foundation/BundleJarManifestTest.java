@@ -148,7 +148,7 @@ public class BundleJarManifestTest {
         final Attributes attributes = new Attributes();
         attributes.putValue(BUNDLE_VERSION, specified);
 
-        manifest.processManifest(project, attributes, new ArrayList<String>(), Collections.<Artifact>emptyList());
+        manifest.processManifest(project, attributes, Collections.<String>emptyList(), Collections.<Artifact>emptyList());
 
         verify(expected, attributes, BUNDLE_VERSION);
     }
@@ -174,7 +174,7 @@ public class BundleJarManifestTest {
         organization.setUrl("http://my.company.com");
         project.setOrganization(organization);
 
-        manifest.processManifest(project, attributes, new ArrayList<String>(), Collections.<Artifact>emptyList());
+        manifest.processManifest(project, attributes, Collections.<String>emptyList(), Collections.<Artifact>emptyList());
 
         expect(attributes, BUNDLE_NAME, project.getName());
         expect(attributes, BUNDLE_DESCRIPTION, project.getDescription());
@@ -206,7 +206,7 @@ public class BundleJarManifestTest {
         attributes.putValue(DYNAMICIMPORT_PACKAGE, String.format(specified, VERSION_ATTRIBUTE, BundleJarManifest.VERSION_PREFIX));
         attributes.putValue(FRAGMENT_HOST, String.format(specified, BUNDLE_VERSION_ATTRIBUTE, BundleJarManifest.VERSION_PREFIX));
 
-        manifest.processManifest(project, attributes, new ArrayList<String>(), Collections.<Artifact>emptyList());
+        manifest.processManifest(project, attributes, Collections.<String>emptyList(), Collections.<Artifact>emptyList());
 
         verify(String.format(expected, VERSION_ATTRIBUTE), attributes, EXPORT_PACKAGE);
         verify(String.format(expected, VERSION_ATTRIBUTE), attributes, IMPORT_PACKAGE);
