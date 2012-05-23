@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
 #*
 Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
 
@@ -16,64 +15,33 @@ limitations under the License.
 *#
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
+
     <groupId>\${groupId}</groupId>
     <artifactId>\${artifactId}</artifactId>
-    <version>\${version}</version>
     <packaging>jar</packaging>
+    <version>\${version}</version>
 
     <name>\${projectName}</name>
 
-    #set( $symbol_dollar = '$' )
+#set( $symbol_dollar = '$' )
     <dependencies>
 
-        <!--
-        Add dependencies for your bundles, e.g.:
-
         <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>my-osgi-bundle</artifactId>
-            <version>${project.version}</version>
-            <classifier>bundle</classifier>
-            <scope>runtime</scope>
-
-            <exclusions>
-                <exclusion>
-                    <groupId>${fluidity.deployment.groupId}</groupId>
-                    <artifactId>osgi-bundle-bootstrap</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>${fluidity.public.groupId}</groupId>
-                    <artifactId>fluid-tools-osgi-bundle</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        -->
-
-        <dependency>
-            <groupId>${fluidity.public.groupId}</groupId>
-            <artifactId>fluid-tools-cli-application</artifactId>
+            <groupId>org.fluidity.public</groupId>
+            <artifactId>fluid-tools-osgi-bundle</artifactId>
             <version>${symbol_dollar}{fluid.tools.version}</version>
             <type>pom</type>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
-            <groupId>${fluidity.deployment.groupId}</groupId>
-            <artifactId>osgi-application-bootstrap</artifactId>
+            <groupId>org.fluidity.deployment</groupId>
+            <artifactId>osgi-bundle-bootstrap</artifactId>
             <version>${symbol_dollar}{fluid.tools.version}</version>
         </dependency>
 
         <dependency>
-            <!--
-            Manual download from http://download.eclipse.org/equinox/
-            Empty POM will suffice.
-            -->
-            <groupId>org.eclipse</groupId>
-            <artifactId>equinox</artifactId>
-            <version>3.7.2</version>
-        </dependency>
-
-        <dependency>
-            <groupId>${fluidity.features.groupId}</groupId>
+            <groupId>org.fluidity.features</groupId>
             <artifactId>logging-commons-impl</artifactId>
             <version>${symbol_dollar}{fluid.tools.version}</version>
         </dependency>
@@ -84,13 +52,20 @@ limitations under the License.
             <version>1.1.1</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.osgi</groupId>
+            <artifactId>org.osgi.core</artifactId>
+            <version>${symbol_dollar}{osgi.specification.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
     </dependencies>
 
     <build>
         <plugins>
 
             <plugin>
-                <groupId>${fluidity.plugin.groupId}</groupId>
+                <groupId>org.fluidity.maven</groupId>
                 <artifactId>composition-maven-plugin</artifactId>
                 <version>${symbol_dollar}{fluid.tools.version}</version>
                 <executions>
@@ -105,32 +80,39 @@ limitations under the License.
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
-                <version>2.3.2</version>
                 <configuration>
                     <archive>
-                        <manifest>
-                            <mainClass>org.fluidity.deployment.osgi.launcher.OsgiApplicationBootstrap</mainClass>
-                        </manifest>
+                        <manifestEntries>
+                            <Import-Package>${symbol_dollar}{osgi.import.core}</Import-Package>
+                            <Export-Package>${package}</Export-Package>
+                            <Bundle-RequiredExecutionEnvironment>J2SE-1.5</Bundle-RequiredExecutionEnvironment>
+                        </manifestEntries>
                     </archive>
                 </configuration>
             </plugin>
 
             <plugin>
-                <groupId>${fluidity.plugin.groupId}</groupId>
+                <groupId>org.fluidity.maven</groupId>
                 <artifactId>standalone-jar-maven-plugin</artifactId>
                 <version>${symbol_dollar}{fluid.tools.version}</version>
+
                 <executions>
                     <execution>
                         <goals>
                             <goal>package</goal>
                         </goals>
+<!--
+                        <configuration>
+                            <classifier>bundle</classifier>
+                        </configuration>
+-->
                     </execution>
                 </executions>
 
                 <dependencies>
                     <dependency>
-                        <groupId>${fluidity.features.groupId}</groupId>
-                        <artifactId>jar-manifest-command-launcher-impl</artifactId>
+                        <groupId>org.fluidity.features</groupId>
+                        <artifactId>jar-manifest-osgi-bundle-impl</artifactId>
                         <version>${symbol_dollar}{fluid.tools.version}</version>
                     </dependency>
                 </dependencies>
@@ -138,4 +120,5 @@ limitations under the License.
 
         </plugins>
     </build>
+
 </project>

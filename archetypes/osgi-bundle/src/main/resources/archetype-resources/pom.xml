@@ -28,7 +28,7 @@ limitations under the License.
 
         <dependency>
             <groupId>org.fluidity.public</groupId>
-            <artifactId>fluid-tools-osgi-application</artifactId>
+            <artifactId>fluid-tools-osgi-bundle</artifactId>
             <version>${symbol_dollar}{fluid.tools.version}</version>
             <type>pom</type>
         </dependency>

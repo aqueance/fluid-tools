@@ -164,11 +164,14 @@ public final class ContainerBoundary implements ComponentContainer {
      * @param instance the component instance.
      * @param api      optional list of interfaces to bind the object against.
      *
+     * @return the supplied component instance.
+     *
      * @throws IllegalStateException if the container is made read only by getting any component out of it.
      */
     @SuppressWarnings("unchecked")
-    public <T> void bindBootComponent(final T instance, final Class<? super T>... api) {
+    public <T> T bindBootComponent(final T instance, final Class<? super T>... api) {
         loadContainer(false).getRegistry().bindInstance(instance, api);
+        return instance;
     }
 
     /**
@@ -234,6 +237,19 @@ public final class ContainerBoundary implements ComponentContainer {
      */
     public <T> T initialize(final T component) {
         return loadedContainer().initialize(component);
+    }
+
+    /**
+     * Initializes all of the given component instances.
+     *
+     * @param components the list of components to initialize.
+     */
+    public void initialize(final Object... components) {
+        final ComponentContainer container = loadedContainer();
+
+        for (final Object component : components) {
+            container.initialize(component);
+        }
     }
 
     /**

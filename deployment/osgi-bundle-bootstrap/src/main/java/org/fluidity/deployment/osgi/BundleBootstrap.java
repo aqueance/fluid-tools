@@ -42,8 +42,9 @@ import org.osgi.framework.BundleContext;
  */
 public final class BundleBootstrap implements BundleActivator {
 
-    private final BundleTermination termination = new BundleTermination();
+    // this dependence on the bundle class loader requires this class to be loaded by that bundle class loader
     private final ContainerBoundary bootstrap = new ContainerBoundary(BundleBootstrap.class.getClassLoader());
+    private final BundleTermination termination = new BundleTermination();
 
     private BundleComponentContainer components;
     private Activators activators;

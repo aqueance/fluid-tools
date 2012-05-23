@@ -43,12 +43,18 @@
             <groupId>${fluidity.composition.groupId}</groupId>
             <artifactId>composition-bootstrap-support</artifactId>
             <version>${project.version}</version>
+
+            <!-- Stripped bundles should not embed this dependency -->
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>${fluidity.deployment.groupId}</groupId>
             <artifactId>osgi-composition-api</artifactId>
             <version>${project.version}</version>
+
+            <!-- Stripped bundles should not embed this dependency -->
+            <scope>provided</scope>
         </dependency>
 
         <dependency>

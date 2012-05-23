@@ -65,12 +65,6 @@
                 </dependency>
 
                 <dependency>
-                    <groupId>${fluidity.deployment.groupId}</groupId>
-                    <artifactId>osgi-bundle-bootstrap</artifactId>
-                    <version>${project.version}</version>
-                </dependency>
-
-                <dependency>
                     <!-- TODO: get rid of this -->
                     <groupId>org.apache.xbean</groupId>
                     <artifactId>xbean-classloader</artifactId>
@@ -81,6 +75,24 @@
                     <groupId>org.osgi</groupId>
                     <artifactId>org.osgi.core</artifactId>
                     <version>${osgi.specification.version}</version>
+                </dependency>
+
+                <dependency>
+                    <groupId>${fluidity.deployment.groupId}</groupId>
+                    <artifactId>osgi-bundle-bootstrap</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+
+                <dependency>
+                    <groupId>${fluidity.foundation.groupId}</groupId>
+                    <artifactId>foundation-utils</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+
+                <dependency>
+                    <groupId>${fluidity.composition.groupId}</groupId>
+                    <artifactId>composition-bootstrap-support</artifactId>
+                    <version>${project.version}</version>
                 </dependency>
 
                 <dependency>

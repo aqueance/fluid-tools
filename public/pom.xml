@@ -47,7 +47,7 @@ This project lists the public modules of Fluid Tools.
         <module>fluid-tools-bootstrap</module>
         <module>fluid-tools-generic-application</module>
         <module>fluid-tools-cli-application</module>
-        <module>fluid-tools-osgi-application</module>
+        <module>fluid-tools-osgi-bundle</module>
         <module>fluid-tools-tests</module>
         <module>fluid-tools-web-application</module>
     </modules>

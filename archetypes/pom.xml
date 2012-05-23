@@ -47,6 +47,7 @@
         <module>standalone-osgi</module>
         <module>multi-project-sample</module>
         <module>osgi-bundle</module>
+        <module>osgi-stripped-bundle</module>
     </modules>
 
     <build>
