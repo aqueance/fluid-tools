@@ -79,6 +79,27 @@ final class SimpleContainerImpl extends EmptyDependencyGraph implements ParentCo
             super((Class<ComponentInterceptor>) interceptor.getClass());
             this.interceptor = interceptor;
         }
+
+        @Override
+        public String toString() {
+            return toString(true);
+        }
+
+        public String toString(final boolean full) {
+            final StringBuilder annotations = new StringBuilder();
+
+            if (full) {
+                for (final Class<? extends Annotation> type : context) {
+                    if (annotations.length() > 0) {
+                        annotations.append(", ");
+                    }
+
+                    annotations.append('@').append(Strings.printClass(false, false, type));
+                }
+            }
+
+            return annotations.length() == 0 ? Strings.printClass(false, false, type) : String.format("%s (%s)", Strings.printClass(false, false, type), annotations);
+        }
     }
 
     private final Deferred.Reference<InterceptorDescriptor[]> interceptors = Deferred.reference(new Deferred.Factory<InterceptorDescriptor[]>() {
@@ -98,6 +119,8 @@ final class SimpleContainerImpl extends EmptyDependencyGraph implements ParentCo
                     for (int i = 0, limit = descriptors.length; i < limit; i++) {
                         descriptors[i] = new InterceptorDescriptor(instances[i]);
                     }
+
+                    log.debug("%s: found interceptors %s", SimpleContainerImpl.this, Arrays.toString(descriptors));
 
                     return descriptors;
                 } finally {
@@ -123,6 +146,10 @@ final class SimpleContainerImpl extends EmptyDependencyGraph implements ParentCo
     }
 
     public Node replace(final ContextDefinition context, final Traversal traversal, final Type reference, final Node node) {
+        if (node == null) {
+            return node;
+        }
+
         final InterceptorDescriptor[] interceptors = context.filter(this.interceptors.get());
 
         if (interceptors.length > 0) {
@@ -134,9 +161,20 @@ final class SimpleContainerImpl extends EmptyDependencyGraph implements ParentCo
                 }
             });
 
+            final List<String> applied = new ArrayList<String>();
+
             for (final InterceptorDescriptor descriptor : interceptors) {
-                next.set(descriptor.interceptor.replace(reference, context.copy().accept(descriptor.type).create(), next.get()));
+                final ComponentInterceptor.Dependency dependency = descriptor.interceptor.replace(reference, context.copy().accept(descriptor.type).create(), next.get());
+
+                if (dependency == null) {
+                    return null;
+                }
+
+                next.set(dependency);
+                applied.add(descriptor.toString(false));
             }
+
+            log.debug("%s: %s interceptors: %s", this, context, applied);
 
             return new Node() {
                 public Class<?> type() {
@@ -146,7 +184,7 @@ final class SimpleContainerImpl extends EmptyDependencyGraph implements ParentCo
                 public Object instance(final Traversal traversal) {
                     last.set(new ComponentInterceptor.Dependency() {
                         public Object create() {
-                            return node == null ? null : node.instance(traversal);
+                            return node.instance(traversal);
                         }
                     });
 

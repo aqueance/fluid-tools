@@ -63,13 +63,14 @@ import org.fluidity.composition.ComponentGroup;
 public interface ComponentInterceptor {
 
     /**
-     * Replaces some dependency with a type compatible replacement.
+     * Replaces some dependency with a type compatible replacement. The interceptor is never invoked with a <code>null</code> dependency and returning a
+     * <code>null</code> dependency will short-cut the interceptor chain and result in an unresolved dependency.
      *
      * @param reference  the fully specified reference to the dependency, including type parameters, if any.
      * @param context    the component context at the dependency reference.
-     * @param dependency the original, uninstantiated, dependency to replace.
+     * @param dependency the original, uninstantiated, dependency to replace; never <code>null</code>.
      *
-     * @return the replaced dependency.
+     * @return the replaced dependency; may be <code>null</code>.
      */
     Dependency replace(Type reference, ComponentContext context, Dependency dependency);
 
@@ -84,7 +85,7 @@ public interface ComponentInterceptor {
         /**
          * Instantiates if necessary, and returns the dependency instance.
          *
-         * @return the dependency instance; may be <code>null</code>.
+         * @return the dependency instance; never <code>null</code>.
          */
         Object create();
     }

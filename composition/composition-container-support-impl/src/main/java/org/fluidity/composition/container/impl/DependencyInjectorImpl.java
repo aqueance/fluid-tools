@@ -310,7 +310,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
 
                 public Annotation[] annotations() {
                     final int nested = index - nesting;
-                    return parameterAnnotations(constructorAnnotations, nested < 0 || nested >= parameterAnnotations.length ? parameterAnnotations[index] : parameterAnnotations[nested]);
+                    return parameterAnnotations(constructorAnnotations, nested < 0 || nested >= parameterAnnotations.length ? null : parameterAnnotations[nested]);
                 }
 
                 public void set(final DependencyGraph.Node node) {
