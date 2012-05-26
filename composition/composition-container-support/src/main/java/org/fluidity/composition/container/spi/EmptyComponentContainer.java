@@ -29,6 +29,7 @@ import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.Components;
 import org.fluidity.composition.Inject;
 import org.fluidity.composition.ObservedComponentContainer;
+import org.fluidity.composition.spi.ComponentInterceptor;
 import org.fluidity.foundation.Proxies;
 
 /**
@@ -162,6 +163,17 @@ public abstract class EmptyComponentContainer implements OpenComponentContainer,
                 }
 
                 return inject ? EmptyComponentContainer.this.invoke(component, false, method, args) : method.invoke(component, args);
+            }
+        });
+    }
+
+    public final ComponentContainer intercepting(final ComponentInterceptor... interceptors) {
+        return makeDomainContainer(new Bindings() {
+            @SuppressWarnings("unchecked")
+            public void bindComponents(final Registry registry) {
+                for (final ComponentInterceptor interceptor : interceptors) {
+                    registry.bindInstance(interceptor);
+                }
             }
         });
     }

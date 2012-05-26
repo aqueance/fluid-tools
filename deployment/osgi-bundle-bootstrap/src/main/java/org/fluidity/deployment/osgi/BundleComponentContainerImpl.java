@@ -57,18 +57,15 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
     private final BundleContext context;
     private final ComponentContainer container;
     private final Log<BundleComponentContainerImpl> log;
-    private final BundleBoundary border;
     private final ClassDiscovery discovery;
 
     public BundleComponentContainerImpl(final BundleContext context,
                                         final ComponentContainer container,
                                         final Log<BundleComponentContainerImpl> log,
-                                        final BundleBoundary border,
                                         final ClassDiscovery discovery) {
         this.context = context;
         this.container = container;
         this.log = log;
-        this.border = border;
         this.discovery = discovery;
     }
 
@@ -76,7 +73,7 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
     private final AtomicReference<BundleComponentContainer> logic = new AtomicReference<BundleComponentContainer>();
 
     public void start() {
-        logic.set(new Logic(context, container, log, border, discovery));
+        logic.set(new Logic(context, container, log, discovery));
         logic.get().start();
     }
 
@@ -91,7 +88,6 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
         private final Log log;
         private final BundleContext context;
         private final ComponentContainer container;
-        private final BundleBoundary border;
 
         private final String bundleName;
 
@@ -155,11 +151,9 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
         public Logic(final BundleContext context,
                      final ComponentContainer container,
                      final Log<BundleComponentContainerImpl> log,
-                     final BundleBoundary border,
                      final ClassDiscovery discovery) {
             this.context = context;
             this.container = container;
-            this.border = border;
             this.log = log;
 
             this.bundleName = context.getBundle().getSymbolicName();
@@ -634,9 +628,8 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
                 if (stopped && (modified || registered)) {
                     if (references != null && references.length > 0) {
                         reference = references[0];
-                        final Object instance = context.getService(reference);
                         log.info("[%s] Learned of %s having started", bundleName, descriptor);
-                        started(descriptor, descriptor.type.isInterface() ? border.imported((Class) descriptor.type, instance) : instance);
+                        started(descriptor, context.getService(reference));
                     }
                 }
 

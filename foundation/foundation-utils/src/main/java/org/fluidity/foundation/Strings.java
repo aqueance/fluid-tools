@@ -183,18 +183,38 @@ public final class Strings extends Utility {
 
     /**
      * For proxies, it returns <code>"proxy@&lt;identity hash code>[&lt;list of interfaces>]"</code>; for ordinary classes, it returns <code>"&lt;fully
-     * qualified class name>@&lt;identity hash code>"</code>; arrays are printed as described at {@link #printClass(boolean, Class)}.
+     * qualified class name>@&lt;identity hash code>"</code>; arrays are printed as described at {@link #printClass(boolean, Class)}. Arrays are printed as
+     * the list of individual items, surrounded with brackets.
      *
-     * @param object the object to print; never <code>null</code>.
+     * @param object the object to print; may be <code>null</code>.
      * @return the proxy friendly run-time identity of the given object.
      */
     public static String printObjectId(final Object object) {
-        assert object != null;
-        final Class<?> type = object.getClass();
+        if (object == null) {
+            return String.valueOf(object);
+        } else {
+            final Class<?> type = object.getClass();
 
-        return Proxy.isProxyClass(type)
-               ? String.format("proxy@%x%s", System.identityHashCode(object), interfaces(type))
-               : String.format("%s@%x", printClass(false, type), System.identityHashCode(object));
+            if (type.isArray()) {
+                final StringBuilder text = new StringBuilder();
+
+                for (int i = 0, limit = Array.getLength(object); i < limit; ++i) {
+                    final Object item = Array.get(object, i);
+
+                    if (text.length() > 0) {
+                        text.append(", ");
+                    }
+
+                    text.append(Strings.printObjectId(item));
+                }
+
+                return text.insert(0, '[').append(']').toString();
+            } else {
+                return Proxy.isProxyClass(type)
+                       ? String.format("proxy@%x%s", System.identityHashCode(object), interfaces(type))
+                       : String.format("%s@%x", printClass(false, type), System.identityHashCode(object));
+            }
+        }
     }
 
     private static List<String> interfaces(final Class<?> type) {

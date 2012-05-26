@@ -24,6 +24,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ObservedComponentContainer;
 import org.fluidity.composition.container.RestrictedContainer;
+import org.fluidity.composition.spi.ComponentInterceptor;
 import org.fluidity.foundation.Proxies;
 
 /**
@@ -35,7 +36,7 @@ final class RestrictedContainerImpl implements RestrictedContainer {
             = new AtomicReference<ComponentContainer>((ComponentContainer) Proxies.create(ComponentContainer.class, new AccessDenied()));
     private final ComponentContainer delegate;
 
-    RestrictedContainerImpl(final ComponentContainer delegate) {
+    public RestrictedContainerImpl(final ComponentContainer delegate) {
         this.delegate = delegate;
     }
 
@@ -61,6 +62,10 @@ final class RestrictedContainerImpl implements RestrictedContainer {
 
     public ComponentContainer makeDomainContainer(final Bindings... bindings) {
         return reference.get().makeDomainContainer(bindings);
+    }
+
+    public ComponentContainer intercepting(final ComponentInterceptor... interceptors) {
+        return reference.get().intercepting(interceptors);
     }
 
     public <T> T initialize(final T component) throws ResolutionException {

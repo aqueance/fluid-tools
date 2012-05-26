@@ -100,6 +100,8 @@ abstract class AbstractResolver implements ComponentResolver {
         private final String source;
 
         public CachingNode(final ParentContainer domain, final DependencyGraph.Node node, final SimpleContainer container) {
+            assert cache != null : api;
+            assert node != null : api;
             this.domain = domain;
             this.node = node;
             this.source = container.toString();
@@ -110,9 +112,7 @@ abstract class AbstractResolver implements ComponentResolver {
         }
 
         public Object instance(final DependencyGraph.Traversal traversal) {
-            final ComponentContext context = node.context();
-
-            return cache.lookup(domain, source, context, api, new ComponentCache.Entry() {
+            return cache.lookup(domain, source, node.context(), api, new ComponentCache.Entry() {
                 public Object create() {
                     return node.instance(traversal);
                 }

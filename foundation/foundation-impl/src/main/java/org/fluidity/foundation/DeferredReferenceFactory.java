@@ -22,7 +22,8 @@ import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.spi.CustomComponentFactory;
 
 /**
- * This factory makes it possible to depend on a lazy instantiated component.
+ * This factory makes it possible to depend on a lazy instantiated component when the deferred reference itself needs to be exposed. Use the {@link
+ * Component.Deferred @Component.Deferred} annotation when the deferred reference itself is irrelevant.
  *
  * @author Tibor Varga
  */

@@ -51,7 +51,7 @@ abstract class FactoryResolver extends AbstractFactoryResolver {
                                         final SimpleContainer container,
                                         final ContextDefinition context,
                                         final Type reference) {
-        return resolve(domain, traversal, container, context, container.newChildContainer(false), reference);
+        return resolve(domain, traversal, container, context, container.newChildContainer(false), reference, api);
     }
 
     @Override

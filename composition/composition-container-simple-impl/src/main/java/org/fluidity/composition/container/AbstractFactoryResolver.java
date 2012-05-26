@@ -72,6 +72,7 @@ abstract class AbstractFactoryResolver extends AbstractResolver {
      * @param context   the current component context.
      * @param child     the child of the original container to pass to the factory.
      * @param reference the parameterized type of the dependency reference.
+     * @param api       the component interface of the dependency to resolve.
      *
      * @return the graph node for the component.
      */
@@ -80,18 +81,62 @@ abstract class AbstractFactoryResolver extends AbstractResolver {
                                                  final SimpleContainer container,
                                                  final ContextDefinition context,
                                                  final SimpleContainer child,
-                                                 final Type reference) {
-        final ContextDefinition collected = context.copy().accept(null);
-        final ContextDefinition reduced = context.copy().accept(contextConsumer());
-        final ComponentContext passed = reduced.create();
+                                                 final Type reference,
+                                                 final Class<?> api) {
+        final List<RestrictedContainer> containers = new ArrayList<RestrictedContainer>();
+        final List<ContextDefinition> contexts = new ArrayList<ContextDefinition>();
 
         final ComponentFactory factory = factory(container, traversal, context, reference);
-        final DependencyInjector injector = container.services().dependencyInjector();
+        final Class<?> consumer = contextConsumer();
 
-        final List<ContextDefinition> contexts = new ArrayList<ContextDefinition>();
-        final List<RestrictedContainer> containers = new ArrayList<RestrictedContainer>();
+        final ComponentFactory.Instance instance = resolve(traversal, context, child, reference, containers, contexts, factory, consumer);
 
-        final ComponentFactory.Instance instance = factory.resolve(passed, new ComponentFactory.Resolver() {
+        final ContextDefinition saved = context.accept(consumer).collect(contexts).copy();
+        final ComponentFactory.Registry registry = new RegistryWrapper(child);
+
+        return cachingNode(domain, container, new DependencyGraph.Node() {
+            private final ComponentContext actual = saved.create();
+
+            public Class<?> type() {
+                return api;
+            }
+
+            public Object instance(final DependencyGraph.Traversal traversal) {
+                try {
+                    if (instance == null) {
+                        return null;
+                    } else {
+                        instance.bind(registry);
+                        return child.resolveComponent(api, saved, traversal, reference).instance(traversal);
+                    }
+                } finally {
+                    for (final RestrictedContainer restricted : containers) {
+                        restricted.enable();
+                    }
+                }
+            }
+
+            public ComponentContext context() {
+                return actual;
+            }
+        });
+    }
+
+    private ComponentFactory.Instance resolve(final DependencyGraph.Traversal traversal,
+                                              final ContextDefinition context,
+                                              final SimpleContainer child,
+                                              final Type reference,
+                                              final List<RestrictedContainer> containers,
+                                              final List<ContextDefinition> contexts,
+                                              final ComponentFactory factory,
+                                              final Class<?> consumer) {
+        final DependencyInjector injector = child.services().dependencyInjector();
+
+        final ContextDefinition collected = context.copy().accept(null);
+        final ContextDefinition reduced = context.copy().accept(consumer);
+        final ComponentContext passed = reduced.create();
+
+        return factory.resolve(passed, new ComponentFactory.Resolver() {
             public <T> ComponentFactory.Dependency<T> resolve(final Class<T> api, final Type reference) {
                 if (api == null && reference == null) {
                     throw new IllegalArgumentException("Both parameters are null");
@@ -168,43 +213,14 @@ abstract class AbstractFactoryResolver extends AbstractResolver {
                 return nodes.toArray(new ComponentFactory.Dependency<?>[nodes.size()]);
             }
         });
-
-        final ContextDefinition saved = context.accept(contextConsumer()).collect(contexts).copy();
-        final ComponentContext actual = saved.create();
-
-        return cachingNode(domain, container, new DependencyGraph.Node() {
-            public Class<?> type() {
-                return api;
-            }
-
-            public Object instance(final DependencyGraph.Traversal traversal) {
-                try {
-                    if (instance == null) {
-                        return null;
-                    } else {
-                        instance.bind(new RegistryWrapper(api, child));
-                        return child.resolveComponent(api, saved, traversal, reference).instance(traversal);
-                    }
-                } finally {
-                    for (final RestrictedContainer restricted : containers) {
-                        restricted.enable();
-                    }
-                }
-            }
-
-            public ComponentContext context() {
-                return actual;
-            }
-        });
     }
 
     @SuppressWarnings("unchecked")
     private static class RegistryWrapper implements ComponentFactory.Registry {
-        private final Class<?> api;
+
         private final SimpleContainer container;
 
-        public RegistryWrapper(final Class<?> api, final SimpleContainer container) {
-            this.api = api;
+        public RegistryWrapper(final SimpleContainer container) {
             this.container = container;
         }
 
@@ -217,7 +233,7 @@ abstract class AbstractFactoryResolver extends AbstractResolver {
         }
 
         public ComponentFactory.Registry makeChildContainer() {
-            return new RegistryWrapper(api, container.newChildContainer(false));
+            return new RegistryWrapper(container.newChildContainer(false));
         }
     }
 

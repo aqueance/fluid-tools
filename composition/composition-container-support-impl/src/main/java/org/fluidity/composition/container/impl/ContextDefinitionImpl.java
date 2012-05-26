@@ -17,23 +17,28 @@
 package org.fluidity.composition.container.impl;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Array;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.lang.reflect.WildcardType;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
+import org.fluidity.composition.container.ComponentContextDescriptor;
 import org.fluidity.composition.container.ContextDefinition;
 import org.fluidity.foundation.Deferred;
 import org.fluidity.foundation.Generics;
@@ -45,8 +50,27 @@ import org.fluidity.foundation.Strings;
  */
 final class ContextDefinitionImpl implements ContextDefinition {
 
-    private final Map<Class<? extends Annotation>, Annotation[]> defined = new HashMap<Class<? extends Annotation>, Annotation[]>();
+    private final Map<Class<? extends Annotation>, Annotation[]> defined = new LinkedHashMap<Class<? extends Annotation>, Annotation[]>();
     private final Map<Class<? extends Annotation>, Annotation[]> active = new HashMap<Class<? extends Annotation>, Annotation[]>();
+
+    private final Map<Class<? extends Annotation>, Integer> indexes = new HashMap<Class<? extends Annotation>, Integer>();
+
+    private final Comparator<? extends ComponentContextDescriptor> comparator = new Comparator<ComponentContextDescriptor<?>>() {
+        public int compare(final ComponentContextDescriptor<?> d1, final ComponentContextDescriptor<?> d2) {
+            return max(d2).compareTo(max(d1));
+        }
+
+        private Integer max(final ComponentContextDescriptor<?> d1) {
+            int value = -1;
+
+            for (final Class<? extends Annotation> annotation : d1.context) {
+                final Integer index = indexes.get(annotation);
+                value = index != null && value < index ? index : value;
+            }
+
+            return value;
+        }
+    };
 
     private final Deferred.Reference.State<Integer> hashCode = Deferred.state(new Deferred.Factory<Integer>() {
         public Integer create() {
@@ -114,6 +138,13 @@ final class ContextDefinitionImpl implements ContextDefinition {
                         defined.put(type, annotations);
                     }
                 }
+            }
+
+            indexes.clear();
+
+            int index = 0;
+            for (final Class<? extends Annotation> annotation : defined.keySet()) {
+                indexes.put(annotation, index++);
             }
 
             hashCode.invalidate();
@@ -208,6 +239,23 @@ final class ContextDefinitionImpl implements ContextDefinition {
 
     public boolean isEmpty() {
         return defined.isEmpty();
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T extends ComponentContextDescriptor> T[] filter(final T[] descriptors) {
+        if (descriptors != null) {
+            final Set<T> sorted = new TreeSet<T>((Comparator<T>) comparator);
+
+            for (final T descriptor : descriptors) {
+                if (copy().accept(descriptor.type).create().types().containsAll(descriptor.context)) {
+                    sorted.add(descriptor);
+                }
+            }
+
+            return sorted.toArray((T[]) Array.newInstance(descriptors.getClass().getComponentType(), sorted.size()));
+        } else {
+            return null;
+        }
     }
 
     public ComponentContext create() {

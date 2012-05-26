@@ -46,6 +46,8 @@ import org.fluidity.composition.ServiceProvider;
  * When all of the OSGi services depended on, directly or indirectly through other <code>Managed</code> components, become available, the component is
  * instantiated and its {@link Managed#start() start()} method is invoked to start the component. The {@link Stoppable#stop() stop()} method of the component
  * will be invoked when any of those OSGi services becomes unavailable and then the component instance is discarded.
+ * <p/>
+ * An OSGi service referenced as a Java interface will be able to see classes in the local OSGi bundle as well as the bundle that exports it.
  * <h4>Example</h4>
  * <pre>
  * final class MyComponent implements <span class="hl1">BundleComponentContainer.Managed</span> {

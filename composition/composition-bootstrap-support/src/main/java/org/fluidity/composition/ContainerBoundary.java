@@ -33,6 +33,8 @@ import org.fluidity.composition.container.ContainerServicesFactory;
 import org.fluidity.composition.container.PlatformContainer;
 import org.fluidity.composition.container.spi.ContainerProvider;
 import org.fluidity.composition.container.spi.OpenComponentContainer;
+import org.fluidity.composition.spi.ComponentInterceptor;
+import org.fluidity.foundation.ClassLoaders;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**
@@ -235,6 +237,15 @@ public final class ContainerBoundary implements ComponentContainer {
      * <p/>
      * {@inheritDoc}
      */
+    public ComponentContainer intercepting(final ComponentInterceptor... interceptors) {
+        return loadedContainer().intercepting(interceptors);
+    }
+
+    /**
+     * Delegates to the enclosed container.
+     * <p/>
+     * {@inheritDoc}
+     */
     public <T> T initialize(final T component) {
         return loadedContainer().initialize(component);
     }
@@ -388,13 +399,17 @@ public final class ContainerBoundary implements ComponentContainer {
                         }
                     };
 
-                    container.set(containerBootstrap.populateContainer(containerServices,
-                                                                       containerProvider,
-                                                                       map == null ? new HashMap() : map,
-                                                                       parent,
-                                                                       loader,
-                                                                       platform,
-                                                                       callback));
+                    container.set(ClassLoaders.context(loader, new ClassLoaders.ContextCommand<OpenComponentContainer, RuntimeException>() {
+                        public OpenComponentContainer run(final ClassLoader loader) {
+                            return containerBootstrap.populateContainer(containerServices,
+                                                                        containerProvider,
+                                                                        map == null ? new HashMap() : map,
+                                                                        parent,
+                                                                        loader,
+                                                                        platform,
+                                                                        callback);
+                        }
+                    }));
 
                     populatedContainers.put(loader, container.get());
                 } else {

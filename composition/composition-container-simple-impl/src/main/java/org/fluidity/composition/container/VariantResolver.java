@@ -55,6 +55,7 @@ abstract class VariantResolver extends AbstractFactoryResolver {
 
         if (resolver.isVariantMapping()) {
             final VariantResolver variants = (VariantResolver) resolver;
+
             if (variants == this) {
                 return false;
             } else if (check == priority()) {
@@ -132,7 +133,7 @@ abstract class VariantResolver extends AbstractFactoryResolver {
                                         final Type reference) {
         final SimpleContainer child = container.newChildContainer(false);
         child.bindResolver(api, findDelegate());
-        return resolve(domain, traversal, container, context, child, reference);
+        return resolve(domain, traversal, container, context, child, reference, api);
     }
 
     @Override

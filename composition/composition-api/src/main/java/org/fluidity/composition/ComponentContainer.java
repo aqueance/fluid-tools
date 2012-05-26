@@ -22,6 +22,7 @@ import java.lang.reflect.Method;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.fluidity.composition.spi.ComponentFactory;
+import org.fluidity.composition.spi.ComponentInterceptor;
 import org.fluidity.foundation.Strings;
 
 /**
@@ -268,6 +269,15 @@ public interface ComponentContainer {
      *         components when they cannot resolve a dependency.
      */
     ComponentContainer makeDomainContainer(Bindings... bindings);
+
+    /**
+     * Returns a child container with the given component interceptors active.
+     *
+     * @param interceptors the component interceptors to activate in the child.
+     *
+     * @return a new child container.
+     */
+    ComponentContainer intercepting(ComponentInterceptor... interceptors);
 
     /**
      * Resolves and injects the {@link Inject @Inject} annotated fields of the given object. You only need to use this method if the supplied component was

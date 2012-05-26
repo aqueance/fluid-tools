@@ -192,7 +192,7 @@ public final class Components extends Utility {
         for (final Map.Entry<Class<?>, Set<Class<?>>> entry : interfaceMap.entrySet()) {
             final Class<?> type = entry.getKey();
 
-            if (ComponentFactory.class.isAssignableFrom(type)) {
+            if (isFactory(type)) {
                 throw new ComponentContainer.BindingException("Component interface for %s is the factory interface itself: %s", componentClass, type);
             }
 

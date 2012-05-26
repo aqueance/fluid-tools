@@ -154,8 +154,9 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
                 EasyMock.expect(copy.expand(EasyMock.aryEq(definitions))).andReturn(copy);
                 EasyMock.expect(resolver.container(copy)).andReturn(container);
             } else {
-                EasyMock.expect(resolver.resolveComponent(dependencyType, copy, traversal, dependencyType))
-                        .andReturn(new DependencyGraph.Node.Constant(dependencyType, component, null));
+                final DependencyGraph.Node.Constant node = new DependencyGraph.Node.Constant(dependencyType, component, null);
+                EasyMock.expect(resolver.resolveComponent(dependencyType, copy, traversal, dependencyType)).andReturn(node);
+                EasyMock.expect(resolver.replace(copy, traversal, dependencyType, node)).andReturn(node);
             }
         }
 

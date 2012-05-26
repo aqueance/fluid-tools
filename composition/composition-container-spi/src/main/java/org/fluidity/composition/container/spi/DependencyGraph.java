@@ -91,6 +91,18 @@ public interface DependencyGraph {
     Node resolveGroup(Class<?> api, ContextDefinition context, Traversal traversal, Type reference);
 
     /**
+     * Replaces the given node with another, or simply returns the original.
+     *
+     * @param context   the component context for the node.
+     * @param traversal the graph traversal to use.
+     * @param reference the parameterized type of the dependency reference.
+     * @param node      the node to replace.
+     *
+     * @return the replaced or the original node.
+     */
+    Node replace(ContextDefinition context, Traversal traversal, Type reference, Node node);
+
+    /**
      * A node in a dependency graph. Nodes are created during traversal of a {@link DependencyGraph} and hold information about the node that enables proper
      * component instantiation at that node.
      * <h3>Usage</h3>
@@ -257,8 +269,10 @@ public interface DependencyGraph {
          *
          * @param type      the type just instantiated.
          * @param component the component that has just been instantiated.
+         *
+         * @return the component
          */
-        void instantiated(Class<?> type, Object component);
+        Object instantiated(Class<?> type, Object component);
 
         /**
          * Returns the current resolution or instantiation path.

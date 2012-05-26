@@ -171,12 +171,18 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
         resolutionPath.get().head.type = type;
     }
 
-    public void instantiated(final Class<?> type, final Object component) {
+    public Object instantiated(final Class<?> type, final Object component) {
         if (observer != null) {
             final AtomicReference<Object> reference = new AtomicReference<Object>();
-            observer.instantiated(resolutionPath.get(), reference);
-            reference.set(component);
+
+            try {
+                observer.instantiated(resolutionPath.get(), reference);
+            } finally {
+                reference.set(component);
+            }
         }
+
+        return component;
     }
 
     public DependencyPath path() {

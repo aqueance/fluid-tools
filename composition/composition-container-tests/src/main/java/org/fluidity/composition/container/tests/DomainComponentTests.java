@@ -151,6 +151,7 @@ public final class DomainComponentTests extends AbstractContainerTests {
         assert Arrays.equals(members2, domain2.getComponentGroup(GroupApi.class));
     }
 
+    @SuppressWarnings("UnusedDeclaration")
     private static class Root {
 
         private Root(final Component dependency) {
@@ -158,6 +159,7 @@ public final class DomainComponentTests extends AbstractContainerTests {
         }
     }
 
+    @SuppressWarnings("UnusedDeclaration")
     private static class Head {
 
         private Head(final Component dependency) {
@@ -165,6 +167,7 @@ public final class DomainComponentTests extends AbstractContainerTests {
         }
     }
 
+    @SuppressWarnings("UnusedDeclaration")
     private static class Component {
 
         private Component(final Dependency dependency) {

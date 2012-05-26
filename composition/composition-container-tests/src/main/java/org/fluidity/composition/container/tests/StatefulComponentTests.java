@@ -70,6 +70,7 @@ public final class StatefulComponentTests extends AbstractContainerTests {
 
         public final StatefulComponent dependency;
 
+        @SuppressWarnings("UnusedDeclaration")
         private StatelessComponent1(final StatefulComponent dependency) {
             this.dependency = dependency;
         }
@@ -80,6 +81,7 @@ public final class StatefulComponentTests extends AbstractContainerTests {
 
         public final StatefulComponent dependency;
 
+        @SuppressWarnings("UnusedDeclaration")
         private StatelessComponent2(final StatefulComponent dependency) {
             this.dependency = dependency;
         }

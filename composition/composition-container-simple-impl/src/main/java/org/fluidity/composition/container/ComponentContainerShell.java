@@ -109,8 +109,8 @@ final class ComponentContainerShell extends EmptyComponentContainer {
         return new ComponentContainerShell(container, context, true, false, observer);
     }
 
-    public ComponentContainer makeChildContainer(final Bindings... list) {
-        return new ComponentContainerShell(container, context, true, false, observer).addBindings(list);
+    public ComponentContainer makeChildContainer(final Bindings... bindings) {
+        return new ComponentContainerShell(container, context, true, false, observer).addBindings(bindings);
     }
 
     public ComponentContainer makeDomainContainer(final Bindings... bindings) {
@@ -130,8 +130,9 @@ final class ComponentContainerShell extends EmptyComponentContainer {
     }
 
     public ObservedComponentContainer observed(final Observer observer) {
-        return observer == null ? this : new ComponentContainerShell(container, context, false, false, container.services().aggregateObserver(this.observer,
-                                                                                                                                              observer));
+        return observer == null
+               ? this
+               : new ComponentContainerShell(container, context, false, false, container.services().aggregateObserver(this.observer, observer));
     }
 
     @Override

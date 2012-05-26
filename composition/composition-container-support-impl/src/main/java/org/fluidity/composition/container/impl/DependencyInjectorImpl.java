@@ -309,7 +309,8 @@ final class DependencyInjectorImpl implements DependencyInjector {
                 }
 
                 public Annotation[] annotations() {
-                    return parameterAnnotations(constructorAnnotations, parameterAnnotations[index]);
+                    final int nested = index - nesting;
+                    return parameterAnnotations(constructorAnnotations, nested < 0 || nested >= parameterAnnotations.length ? parameterAnnotations[index] : parameterAnnotations[nested]);
                 }
 
                 public void set(final DependencyGraph.Node node) {
@@ -340,16 +341,32 @@ final class DependencyInjectorImpl implements DependencyInjector {
 
                             if (cached == null) {
                                 traversal.instantiating(componentClass);
-
-                                constructor.setAccessible(true);
-                                final Object component = constructor.newInstance(arguments);
-
-                                traversal.instantiated(componentClass, component);
-
-                                return component;
+                                return traversal.instantiated(componentClass, construct(arguments));
                             } else {
                                 return cached;
                             }
+                        }
+
+                        private Object construct(final Object[] arguments) {
+                            final Object component;
+
+                            try {
+                                try {
+                                    component = Exceptions.wrap(new Exceptions.Command<Object>() {
+                                        public Object run() throws Throwable {
+                                            constructor.setAccessible(true);
+                                            return constructor.newInstance(arguments);
+                                        }
+                                    });
+                                } catch (final Exceptions.Wrapper wrapper) {
+                                    throw wrapper.rethrow(ComponentContainer.InjectionException.class);
+                                }
+                            } catch (final ComponentContainer.InjectionException e) {
+                                throw e;
+                            } catch (final Exception e) {
+                                throw new IllegalStateException(String.format("Invoking %s with %s", constructor, Strings.printObjectId(arguments)), e);
+                            }
+                            return component;
                         }
                     }));
                 } finally {
@@ -485,13 +502,13 @@ final class DependencyInjectorImpl implements DependencyInjector {
         return consumed;
     }
 
-    ContextDefinition injectDependency(final boolean resolving,
-                                       final DependencyGraph.Traversal traversal,
-                                       final DependencyResolver container,
-                                       final ContextNode contexts,
-                                       final ContextDefinition original,
-                                       final Class<?> declaringType,
-                                       final Dependency dependency) {
+    private ContextDefinition injectDependency(final boolean resolving,
+                                               final DependencyGraph.Traversal traversal,
+                                               final DependencyResolver container,
+                                               final ContextNode contexts,
+                                               final ContextDefinition original,
+                                               final Class<?> declaringType,
+                                               final Dependency dependency) {
         final Component.Reference inbound = original.reference();
         final Type reference = inbound == null ? dependency.reference() : Generics.propagate(inbound.type(), dependency.reference());
 
@@ -542,22 +559,22 @@ final class DependencyInjectorImpl implements DependencyInjector {
                 node = resolve(dependencyType, new Resolution() {
                     public ComponentContext context() {
 
-                        // injected context must only contain annotations accepted by the instantiated component
+                        // injected context must only contain annotations accepted by the instantiated component;
                         // accepted context depends only on defined context, which is propagated forward
-                        // therefore we have all necessary information right here
+                        // therefore we have all necessary information in the original context
                         return original.copy().accept(contexts.contextConsumer()).create();
                     }
 
                     public ComponentContainer container() {
 
-                        // injected container is not interested in accepted contexts, only defined ones
+                        // injected container is not interested in accepted contexts, only defined ones;
                         // defined context is propagated forward therefore we have all necessary information
-                        // right here
+                        // in the original context
                         return container.container(original.copy().expand(definitions));
                     }
 
                     public DependencyGraph.Node regular() {
-                        return container.resolveComponent(dependencyType, downstream, traversal, reference);
+                        return container.replace(downstream, traversal, reference, container.resolveComponent(dependencyType, downstream, traversal, reference));
                     }
 
                     public void handle(final RestrictedContainer container) {

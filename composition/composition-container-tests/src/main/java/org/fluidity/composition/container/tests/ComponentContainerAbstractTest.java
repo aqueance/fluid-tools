@@ -80,6 +80,7 @@ public abstract class ComponentContainerAbstractTest extends MockGroupAbstractTe
                 new StatefulComponentTests(containers),
                 new DomainComponentTests(containers),
                 new TypeParameterTests(containers),
+                new ComponentInterceptorTests(containers),
         };
     }
 

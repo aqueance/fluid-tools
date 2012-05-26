@@ -137,7 +137,7 @@ public final class Exceptions extends Utility {
         }
 
         /**
-         * If the wrapped exception is of the given type, it is thrown, otherwise this instance is returned. The intended usage is:
+         * If the wrapped exception is of the given type, it is thrown, otherwise this instance is returned.
          *
          * @param accept the class of the exception to check.
          * @param <T>    the type of the exception to check.

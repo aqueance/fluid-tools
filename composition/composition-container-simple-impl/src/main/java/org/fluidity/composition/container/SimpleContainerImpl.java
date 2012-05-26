@@ -30,6 +30,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
@@ -38,8 +40,10 @@ import org.fluidity.composition.Components;
 import org.fluidity.composition.container.spi.ContextNode;
 import org.fluidity.composition.container.spi.DependencyResolver;
 import org.fluidity.composition.container.spi.EmptyDependencyGraph;
+import org.fluidity.composition.spi.ComponentInterceptor;
 import org.fluidity.composition.spi.ComponentVariantFactory;
 import org.fluidity.composition.spi.CustomComponentFactory;
+import org.fluidity.foundation.Deferred;
 import org.fluidity.foundation.Log;
 import org.fluidity.foundation.Strings;
 import org.fluidity.foundation.spi.LogFactory;
@@ -48,6 +52,8 @@ import org.fluidity.foundation.spi.LogFactory;
  * @author Tibor Varga
  */
 final class SimpleContainerImpl extends EmptyDependencyGraph implements ParentContainer {
+
+    private static final InterceptorDescriptor[] NO_DESCRIPTORS = new InterceptorDescriptor[0];
 
     // allows traversal path to propagate between containers
     private static final ThreadLocal<Traversal> traversal = new InheritableThreadLocal<Traversal>();
@@ -64,6 +70,45 @@ final class SimpleContainerImpl extends EmptyDependencyGraph implements ParentCo
     private final DependencyInjector injector;
     private final LogFactory logs;
 
+    private static class InterceptorDescriptor extends ComponentContextDescriptor<ComponentInterceptor> {
+
+        public final ComponentInterceptor interceptor;
+
+        @SuppressWarnings("unchecked")
+        public InterceptorDescriptor(final ComponentInterceptor interceptor) {
+            super((Class<ComponentInterceptor>) interceptor.getClass());
+            this.interceptor = interceptor;
+        }
+    }
+
+    private final Deferred.Reference<InterceptorDescriptor[]> interceptors = Deferred.reference(new Deferred.Factory<InterceptorDescriptor[]>() {
+
+        // recursion guard: no interception of dependencies of interceptors
+        private final AtomicBoolean resolving = new AtomicBoolean(false);
+
+        public InterceptorDescriptor[] create() {
+            if (resolving.compareAndSet(false, true)) {
+                try {
+                    final Traversal traversal = services.graphTraversal();
+                    final Node group = resolveGroup(ComponentInterceptor.class, services.emptyContext(), traversal);
+
+                    final ComponentInterceptor[] instances = group == null ? new ComponentInterceptor[0] : (ComponentInterceptor[]) group.instance(traversal);
+                    final InterceptorDescriptor[] descriptors = new InterceptorDescriptor[instances.length];
+
+                    for (int i = 0, limit = descriptors.length; i < limit; i++) {
+                        descriptors[i] = new InterceptorDescriptor(instances[i]);
+                    }
+
+                    return descriptors;
+                } finally {
+                    resolving.set(false);
+                }
+            } else {
+                return NO_DESCRIPTORS;
+            }
+        }
+    });
+
     public SimpleContainerImpl(final ContainerServices services, final PlatformContainer platform) {
         this(platform == null ? null : new SuperContainer(platform), null, services);
     }
@@ -75,6 +120,46 @@ final class SimpleContainerImpl extends EmptyDependencyGraph implements ParentCo
         this.log = this.services.logs().createLog(getClass());
         this.injector = this.services.dependencyInjector();
         this.logs = this.services.logs();
+    }
+
+    public Node replace(final ContextDefinition context, final Traversal traversal, final Type reference, final Node node) {
+        final InterceptorDescriptor[] interceptors = context.filter(this.interceptors.get());
+
+        if (interceptors.length > 0) {
+            final AtomicReference<ComponentInterceptor.Dependency> last = new AtomicReference<ComponentInterceptor.Dependency>();
+
+            final AtomicReference<ComponentInterceptor.Dependency> next = new AtomicReference<ComponentInterceptor.Dependency>(new ComponentInterceptor.Dependency() {
+                public Object create() {
+                    return last.get().create();
+                }
+            });
+
+            for (final InterceptorDescriptor descriptor : interceptors) {
+                next.set(descriptor.interceptor.replace(reference, context.copy().accept(descriptor.type).create(), next.get()));
+            }
+
+            return new Node() {
+                public Class<?> type() {
+                    return node.type();
+                }
+
+                public Object instance(final Traversal traversal) {
+                    last.set(new ComponentInterceptor.Dependency() {
+                        public Object create() {
+                            return node == null ? null : node.instance(traversal);
+                        }
+                    });
+
+                    return next.get().create();
+                }
+
+                public ComponentContext context() {
+                    return node.context();
+                }
+            };
+        } else {
+            return node;
+        }
     }
 
     public ContainerServices services() {
@@ -358,9 +443,11 @@ final class SimpleContainerImpl extends EmptyDependencyGraph implements ParentCo
         final ComponentResolver resolver = components.get(api);
 
         if (resolver == null) {
-            return !ascend ? null : parent == null
-                                    ? domain == null || domain == this ? null : domain.resolveComponent(null, false, api, context, traversal, reference)
-                                    : parent.resolveComponent(domain, true, api, context, traversal, reference);
+            return !ascend
+                   ? null
+                   : parent == null
+                     ? domain == null || domain == this ? null : domain.resolveComponent(null, false, api, context, traversal, reference)
+                     : parent.resolveComponent(domain, true, api, context, traversal, reference);
         } else {
             final Node node = resolver.resolve(domain, traversal, SimpleContainerImpl.this, context, reference);
 
@@ -369,11 +456,11 @@ final class SimpleContainerImpl extends EmptyDependencyGraph implements ParentCo
                     return node.type();
                 }
 
-                // whenever a component is instantiated, all groups it belongs to are notified
                 public Object instance(final Traversal traversal) {
                     final Collection<Class<?>> interfaces = resolver.groups();
                     final Set<ComponentContainer.Observer> observers = new HashSet<ComponentContainer.Observer>();
 
+                    // whenever a component is instantiated, all groups it belongs to are notified
                     for (final Class<?> api : interfaces) {
                         final List<GroupResolver> resolvers = groupResolvers(api);
 
@@ -536,7 +623,7 @@ final class SimpleContainerImpl extends EmptyDependencyGraph implements ParentCo
         boolean isVariantFactory();
 
         /**
-         * Tells if we are processing an ordinary factory.
+         * Tells if we are processing an custom component factory.
          *
          * @return <code>true</code> if we are processing an ordinary factory, <code>false</code> otherwise.
          */
@@ -551,27 +638,27 @@ final class SimpleContainerImpl extends EmptyDependencyGraph implements ParentCo
          *
          * @return a component resolver that will resolve, and cache if necessary, a single instance of the component.
          */
-        ComponentResolver component(Class<?> api, final ComponentCache cache, final boolean resolvesFactory);
+        ComponentResolver component(Class<?> api, ComponentCache cache, boolean resolvesFactory);
 
         /**
-         * Creates a variant factory for the component being processed.
+         * Creates a variant factory resolver for the factory being processed.
          *
          * @param api   the interface to which the variant factory will be bound.
          * @param cache the cache to use for the variant factory.
          *
-         * @return a variant resolver that will produce, and cache if necessary, a single instance of a variant factory.
+         * @return a variant resolver that will produce, and cache if necessary, a single instance of the variant factory.
          */
-        VariantResolver variant(Class<?> api, final ComponentCache cache);
+        VariantResolver variant(Class<?> api, ComponentCache cache);
 
         /**
-         * Creates a component factory for the component being processed.
+         * Creates a component factory resolver for the factory being processed.
          *
          * @param api   the interface to which the factory will be bound.
          * @param cache the cache to use for the factory.
          *
-         * @return a component resolver that will produce, and cache if necessary, a single instance of a component factory.
+         * @return a component resolver that will produce, and cache if necessary, a single instance of the component factory.
          */
-        FactoryResolver factory(Class<?> api, final ComponentCache cache);
+        FactoryResolver factory(Class<?> api, ComponentCache cache);
     }
 
     private class InstanceDescriptor implements ContextNode {
@@ -675,6 +762,10 @@ final class SimpleContainerImpl extends EmptyDependencyGraph implements ParentCo
             return null;
         }
 
+        public Node replace(final ContextDefinition context, final Traversal traversal, final Type reference, final Node node) {
+            return node;
+        }
+
         public ContextNode contexts(final ParentContainer domain, final Class<?> type, final ContextDefinition context) {
             return platform.containsComponent(type, context) ? noContexts : null;
         }
@@ -767,6 +858,10 @@ final class SimpleContainerImpl extends EmptyDependencyGraph implements ParentCo
 
         public Object cached(final Class<?> api, final ComponentContext context) {
             return SimpleContainerImpl.this.cached(api, context);
+        }
+
+        public Node replace(final ContextDefinition context, final Traversal traversal, final Type reference, final Node node) {
+            return domain.replace(context, traversal, reference, node);
         }
 
         public Node resolveComponent(final Class<?> api, final ContextDefinition context, final Traversal traversal, final Type reference) {

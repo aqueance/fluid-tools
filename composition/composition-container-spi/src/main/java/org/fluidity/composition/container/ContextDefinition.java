@@ -144,4 +144,23 @@ public interface ContextDefinition {
      * @return <code>true</code> if there is no context annotation in the receiver; <code>false</code> otherwise.
      */
     boolean isEmpty();
+
+    /**
+     * Returns only those descriptors from the provided ones whose context annotations are all present in this context definition. The returned descriptors are
+     * sorted by the relative declaration distance of their context annotation that is closest to the current dependency reference.
+     * <p/>
+     * For example, let us say that contexts <code>@A, @B, @C, and @D</code> are defined in that order along the dependency path, and three descriptors are
+     * given with the following annotations, respectively:<ul>
+     * <li><code>A, C</code></li>
+     * <li><code>B, D</code></li>
+     * <li><code>D, E</code></li>
+     * </ul>
+     * In the above case, the first two descriptors will be returned in reverse order, because the closest context annotation of the second descriptor,
+     * <code>D</code>, is nearer to the current reference than the closest context annotation of the first descriptor, <code>C</code>.
+     *
+     * @param descriptors the descriptors to filter and sort; may be <code>null</code>.
+     * @param <T>         the actual type of the descriptors.
+     * @return the filtered and sorted list of descriptors; possible empty, <code>null</code> only if the descriptor parameter was <code>null</code>
+     */
+    <T extends ComponentContextDescriptor> T[] filter(T[] descriptors);
 }
