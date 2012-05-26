@@ -353,11 +353,10 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
         }
 
         public String toString(final boolean api) {
-            final StringBuilder builder = new StringBuilder();
+            final Strings.Listing text = Strings.delimited();
+
             for (final ActualElement type : list) {
-                if (builder.length() > 0) {
-                    builder.append(", ");
-                }
+                final StringBuilder builder = text.next();
 
                 if (!type.definition.isEmpty()) {
                     builder.append(type.definition).append(' ');
@@ -366,7 +365,7 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
                 builder.append(Strings.printClass(true, api ? type.api() : type.type()));
             }
 
-            return builder.insert(0, '[').append(']').toString();
+            return text.builder.insert(0, '[').append(']').toString();
         }
     }
 

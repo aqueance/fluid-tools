@@ -395,25 +395,17 @@ public final class Components extends Utility {
 
         @Override
         public String toString() {
-            final StringBuilder text = new StringBuilder();
+            final Strings.Listing text = Strings.delimited();
 
-            boolean multiple = false;
             for (final Components.Specification specification : api) {
-                final Class<?> type = specification.api;
-
-                if (text.length() > 0) {
-                    text.append(", ");
-                    multiple = true;
-                }
-
-                text.append(Strings.printClass(true, type));
+                text.add(Strings.printClass(true, specification.api));
 
                 if (specification.groups.length > 0) {
-                    text.append(" group ").append(Arrays.toString(specification.groups));
+                    text.builder.append(" group ").append(Arrays.toString(specification.groups));
                 }
             }
 
-            return (multiple ? text.insert(0, '[').append(']') : text).toString();
+            return (api.length > 1 ? text.builder.insert(0, '[').append(']') : text).toString();
         }
 
         @Override

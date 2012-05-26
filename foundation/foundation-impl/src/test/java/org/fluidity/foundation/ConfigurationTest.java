@@ -747,17 +747,13 @@ public class ConfigurationTest extends MockGroupAbstractTest {
     }
 
     private static String array(final Object actual) {
-        final StringBuilder text = new StringBuilder();
+        final Strings.Listing text = Strings.delimited();
 
         for (int i = 0, length = Array.getLength(actual); i < length; ++i) {
-            if (text.length() > 0) {
-                text.append(", ");
-            }
-
-            text.append(Array.get(actual, i));
+            text.next().append(Array.get(actual, i));
         }
 
-        return text.insert(0, "[").append("]").toString();
+        return text.builder.insert(0, "[").append("]").toString();
     }
 
     private static void collectionCheck(final Object expected, final Object actual) {

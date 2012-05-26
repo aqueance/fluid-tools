@@ -22,6 +22,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
 
+import org.fluidity.foundation.Strings;
+
 import org.testng.annotations.Test;
 
 /**
@@ -32,17 +34,7 @@ public class HandlerTest {
     private final String container = "level0.jar";
 
     private String path(final String... elements) {
-        final StringBuilder builder = new StringBuilder();
-
-        for (final String element : elements) {
-            if (builder.length() > 0) {
-                builder.append(Handler.DELIMITER);
-            }
-
-            builder.append(element);
-        }
-
-        return builder.toString();
+        return Strings.delimited(Handler.DELIMITER, elements);
     }
 
     @Test

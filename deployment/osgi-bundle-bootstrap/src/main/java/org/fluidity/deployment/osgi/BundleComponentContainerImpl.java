@@ -163,7 +163,7 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
 
             final Map<Class<Managed>, ComponentDescriptor> components = new HashMap<Class<Managed>, ComponentDescriptor>();
 
-            log.info("[%s] Discovering service dependencies", bundleName);
+            log.debug("[%s] Discovering service dependencies", bundleName);
 
             final ComponentContainer pool = container.makeChildContainer(new ComponentContainer.Bindings() {
                 @SuppressWarnings("unchecked")
@@ -364,13 +364,13 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
                         }
 
                         source.serviceAdded(service, properties);
-                        log.info("[%s] %s (%s) added to %s", bundleName, service.getClass(), properties, source.getClass());
+                        log.debug("[%s] %s (%s) added to %s", bundleName, service.getClass(), properties, source.getClass());
 
                         break;
 
                     case ServiceEvent.UNREGISTERING:
                         source.serviceRemoved(service);
-                        log.info("[%s] %s removed from %s", bundleName, service.getClass(), source.getClass());
+                        log.debug("[%s] %s removed from %s", bundleName, service.getClass(), source.getClass());
                         break;
 
                     default:
@@ -385,7 +385,7 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
             try {
                 context.addServiceListener(listener, String.format("(%s=%s)", Constants.OBJECTCLASS, type.getName()));
 
-                log.info("[%s] Accepting %s components", bundleName, sourceName);
+                log.debug("[%s] Accepting %s components", bundleName, sourceName);
 
                 final ServiceReference[] references = context.getServiceReferences(type.getName(), null);
                 if (references != null) {
@@ -400,7 +400,7 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
             cleanup(String.format("service listener for %s", sourceName), new Stoppable() {
                 public void stop() {
                     context.removeServiceListener(listener);
-                    log.info("[%s] Ignoring %s components", bundleName, sourceName);
+                    log.debug("[%s] Ignoring %s components", bundleName, sourceName);
                 }
             });
         }
@@ -412,7 +412,7 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
             final String propertyMessage = properties == null ? "no properties" : String.format("properties %s", properties);
             final String serviceMessage = String.format("service for %s with %s", Arrays.toString(classes), propertyMessage);
 
-            log.info("[%s] Registering %s", bundleName, serviceMessage);
+            log.debug("[%s] Registering %s", bundleName, serviceMessage);
 
             @SuppressWarnings({ "unchecked", "RedundantCast" }) // OSGi 4.3 complains about the unchecked cast
             final ServiceRegistration registration = context.registerService(classes, service, (Dictionary) properties);
@@ -420,7 +420,7 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
             cleanup(service.getClass().getName(), new Stoppable() {
                 public void stop() {
                     registration.unregister();
-                    log.info("[%s] Unregistered %s", bundleName, serviceMessage);
+                    log.debug("[%s] Unregistered %s", bundleName, serviceMessage);
                 }
             });
         }
@@ -428,7 +428,7 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
         private void start(final String name, final Managed component) throws Exception {
             component.start();
 
-            log.info("[%s] Started %s", bundleName, name);
+            log.debug("[%s] Started %s", bundleName, name);
 
             if (component instanceof Registration.Listener) {
                 register((Registration.Listener<?>) component);
@@ -481,7 +481,7 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
             }
 
             if (!resolved.isEmpty()) {
-                log.info("[%s] Starting components: %s", bundleName, resolved);
+                log.debug("[%s] Starting components: %s", bundleName, resolved);
 
                 final ComponentContainer child = container.makeChildContainer(new ComponentContainer.Bindings() {
                     @SuppressWarnings("unchecked")
@@ -616,7 +616,7 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
                     }
 
                     if (!found) {
-                        log.info("[%s] Learned of %s stopping", bundleName, descriptor);
+                        log.debug("[%s] Learned of %s stopping", bundleName, descriptor);
                         stopped(descriptor);
                         context.ungetService(reference);
                         reference = null;
@@ -628,13 +628,13 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
                 if (stopped && (modified || registered)) {
                     if (references != null && references.length > 0) {
                         reference = references[0];
-                        log.info("[%s] Learned of %s having started", bundleName, descriptor);
+                        log.debug("[%s] Learned of %s having started", bundleName, descriptor);
                         started(descriptor, context.getService(reference));
                     }
                 }
 
                 if (reference == null) {
-                    log.info("[%s] Waiting for %s to start", bundleName, descriptor);
+                    log.debug("[%s] Waiting for %s to start", bundleName, descriptor);
                 }
             }
 

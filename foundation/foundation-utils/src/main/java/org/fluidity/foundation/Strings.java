@@ -23,6 +23,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 
@@ -167,17 +168,13 @@ public final class Strings extends Utility {
     }
 
     private static String appendArray(final Object value) {
-        final StringBuilder output = new StringBuilder();
+        final Listing output = new Listing(",");
 
         for (int i = 0, length = Array.getLength(value); i < length; ++i) {
-            if (i > 0) {
-                output.append(',');
-            }
-
-            appendValue(output, Array.get(value, i));
+            appendValue(output.next(), Array.get(value, i));
         }
 
-        output.insert(0, '{').append('}');
+        output.builder.insert(0, '{').append('}');
         return output.toString();
     }
 
@@ -196,19 +193,13 @@ public final class Strings extends Utility {
             final Class<?> type = object.getClass();
 
             if (type.isArray()) {
-                final StringBuilder text = new StringBuilder();
+                final Listing text = new Listing(",");
 
                 for (int i = 0, limit = Array.getLength(object); i < limit; ++i) {
-                    final Object item = Array.get(object, i);
-
-                    if (text.length() > 0) {
-                        text.append(", ");
-                    }
-
-                    text.append(Strings.printObjectId(item));
+                    text.add(Strings.printObjectId(Array.get(object, i)));
                 }
 
-                return text.insert(0, '[').append(']').toString();
+                return text.builder.insert(0, '[').append(']').toString();
             } else {
                 return Proxy.isProxyClass(type)
                        ? String.format("proxy@%x%s", System.identityHashCode(object), interfaces(type))
@@ -225,5 +216,139 @@ public final class Strings extends Utility {
         }
 
         return list;
+    }
+
+    /**
+     * Returns a comma delimited {@linkplain Strings.Listing string listing} tool.
+     *
+     * @return a comma delimited {@linkplain Strings.Listing string listing} tool.
+     */
+    public static Listing delimited() {
+        return delimited(", ");
+    }
+
+    /**
+     * Returns a comma delimited list of the given items.
+     *
+     * @return a comma delimited list of the given items.
+     */
+    public static String delimited(final Collection<String> items) {
+        return delimited().list(items).toString();
+    }
+
+    /**
+     * Returns a comma delimited list of the given items.
+     *
+     * @return a comma delimited list of the given items.
+     */
+    public static String delimited(final String[] items) {
+        return delimited().list(items).toString();
+    }
+
+    /**
+     * Returns {@linkplain Strings.Listing string listing} tool with the given delimiter.
+     *
+     * @return {@linkplain Strings.Listing string listing} tool with the given delimiter.
+     */
+    public static Listing delimited(final String delimiter) {
+        return new Listing(delimiter);
+    }
+
+    /**
+     * Returns a delimited list of the given items.
+     *
+     * @return a delimited list of the given items.
+     */
+    public static String delimited(final String delimiter, final Collection<String> items) {
+        return new Listing(delimiter).list(items).toString();
+    }
+
+    /**
+     * Returns a delimited list of the given items.
+     *
+     * @return a delimited list of the given items.
+     */
+    public static String delimited(final String delimiter, final String[] items) {
+        return new Listing(delimiter).list(items).toString();
+    }
+
+    /**
+     * A string listing tool that makes working with a {@link StringBuilder} simpler when collecting list items.
+     */
+    public static class Listing {
+
+        /**
+         * The underlying {@link StringBuilder} object.
+         */
+        public final StringBuilder builder = new StringBuilder();
+
+        private final String delimiter;
+
+        /**
+         * Creates a new string listing tool with the given delimiter.
+         *
+         * @param delimiter the delimiter.
+         */
+        protected Listing(final String delimiter) {
+            this.delimiter = delimiter;
+        }
+
+        /**
+         * Appends the delimiter to the string builder if it is not empty.
+         *
+         * @return the underlying {@link StringBuilder} object.
+         */
+        public final StringBuilder next() {
+            return builder.length() > 0 ? builder.append(delimiter) : builder;
+        }
+
+        /**
+         * Collects the given text, appending the delimiter to the string builder if it is not empty.
+         *
+         * @return the underlying {@link StringBuilder} object.
+         */
+        public final StringBuilder add(final String text) {
+            return next().append(text);
+        }
+
+        /**
+         * Collects the given list of texts, appending the delimiter as necessary.
+         *
+         * @return the underlying {@link StringBuilder} object.
+         */
+        public final StringBuilder list(final Collection<String> list) {
+            for (final String text : list) {
+                next().append(text);
+            }
+
+            return builder;
+        }
+
+        /**
+         * Collects the given list of texts, appending the delimiter as necessary.
+         *
+         * @return the underlying {@link StringBuilder} object.
+         */
+        public final StringBuilder list(final String... list) {
+            for (final String text : list) {
+                next().append(text);
+            }
+
+            return builder;
+        }
+
+        /**
+         * Tells if the underlying {@link StringBuilder} is empty.
+         *
+         * @return <code>true</code> if the underlying {@link StringBuilder} is empty; <code>false</code> otherwise.
+         */
+        public boolean isEmpty() {
+            return builder.length() == 0;
+        }
+
+        @Override
+        public String toString() {
+            return builder.toString();
+        }
     }
 }

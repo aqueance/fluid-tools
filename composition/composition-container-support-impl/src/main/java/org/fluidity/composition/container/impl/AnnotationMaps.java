@@ -64,15 +64,11 @@ final class AnnotationMaps extends Utility {
     }
 
     public static String toString(final Map<Class<? extends Annotation>, Annotation[]> map) {
-        final StringBuilder builder = new StringBuilder();
+        final Strings.Listing builder = Strings.delimited(" ");
 
-        for (final Map.Entry<Class<? extends Annotation>, Annotation[]> entry : sorted(map).entrySet()) {
-            for (final Annotation annotation : entry.getValue()) {
-                if (builder.length() > 0) {
-                    builder.append(" ");
-                }
-
-                builder.append(Strings.printAnnotation(annotation));
+        for (final Annotation[] annotations : sorted(map).values()) {
+            for (final Annotation annotation : annotations) {
+                builder.add(Strings.printAnnotation(annotation));
             }
         }
 

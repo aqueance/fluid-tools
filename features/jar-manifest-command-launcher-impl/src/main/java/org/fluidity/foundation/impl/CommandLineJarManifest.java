@@ -22,6 +22,7 @@ import java.util.jar.Attributes;
 
 import org.fluidity.deployment.impl.CommandLineBootstrap;
 import org.fluidity.deployment.plugin.spi.JarManifest;
+import org.fluidity.foundation.Strings;
 import org.fluidity.foundation.jarjar.Launcher;
 
 import org.apache.maven.artifact.Artifact;
@@ -58,16 +59,6 @@ public final class CommandLineJarManifest implements JarManifest {
             attributes.put(Attributes.Name.MAIN_CLASS, Launcher.class.getName());
         }
 
-        final StringBuilder dependencyList = new StringBuilder();
-
-        for (final String dependency : paths) {
-            if (dependencyList.length() > 0) {
-                dependencyList.append(' ');
-            }
-
-            dependencyList.append(dependency);
-        }
-
-        attributes.putValue(Launcher.NESTED_DEPENDENCIES, dependencyList.toString());
+        attributes.putValue(Launcher.NESTED_DEPENDENCIES, Strings.delimited(" ", paths));
     }
 }

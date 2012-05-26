@@ -112,16 +112,7 @@ public class BundleJarManifestTest {
 
         manifest.processManifest(project, attributes, dependencies, Collections.<Artifact>emptyList());
 
-        final StringBuilder dependencyList = new StringBuilder();
-        for (final String dependency : dependencies) {
-            if (dependencyList.length() > 0) {
-                dependencyList.append(',');
-            }
-
-            dependencyList.append(dependency);
-        }
-
-        assert dependencyList.toString().equals(attributes.getValue(BUNDLE_CLASSPATH));
+        assert Strings.delimited(",", dependencies).equals(attributes.getValue(BUNDLE_CLASSPATH));
 
         final String version = attributes.getValue(BUNDLE_VERSION);
         assert BundleJarManifest.DEFAULT_BUNDLE_VERSION.equals(version) : version;

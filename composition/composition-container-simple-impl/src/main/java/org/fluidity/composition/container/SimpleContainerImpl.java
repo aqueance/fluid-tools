@@ -86,19 +86,15 @@ final class SimpleContainerImpl extends EmptyDependencyGraph implements ParentCo
         }
 
         public String toString(final boolean full) {
-            final StringBuilder annotations = new StringBuilder();
+            final Strings.Listing annotations = Strings.delimited();
 
             if (full) {
                 for (final Class<? extends Annotation> type : context) {
-                    if (annotations.length() > 0) {
-                        annotations.append(", ");
-                    }
-
-                    annotations.append('@').append(Strings.printClass(false, false, type));
+                    annotations.add("@").append(Strings.printClass(false, false, type));
                 }
             }
 
-            return annotations.length() == 0 ? Strings.printClass(false, false, type) : String.format("%s (%s)", Strings.printClass(false, false, type), annotations);
+            return annotations.isEmpty() ? Strings.printClass(false, false, type) : String.format("%s (%s)", Strings.printClass(false, false, type), annotations);
         }
     }
 

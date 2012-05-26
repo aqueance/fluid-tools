@@ -121,10 +121,7 @@ public final class Generics extends Utility {
         } else if (reference instanceof Class) {
             final String name = variable.getName();
 
-            final TypeVariable[] parameters = ((Class) reference).getTypeParameters();
-            for (int i = 0, limit = parameters.length; i < limit; i++) {
-                final TypeVariable parameter = parameters[i];
-
+            for (final TypeVariable parameter : ((Class) reference).getTypeParameters()) {
                 if (name.equals(parameter.getName())) {
                     return rawType(parameter);
                 }
@@ -142,9 +139,8 @@ public final class Generics extends Utility {
         } else if (reference instanceof ParameterizedType) {
             final ParameterizedType original = (ParameterizedType) reference;
 
-            final Type[] arguments = original.getActualTypeArguments();
-            for (int i = 0, limit = arguments.length; i < limit; i++) {
-                unresolved(arguments[i], list);
+            for (final Type argument : original.getActualTypeArguments()) {
+                unresolved(argument, list);
             }
 
             return list;
@@ -291,14 +287,10 @@ public final class Generics extends Utility {
 
         @Override
         public String toString() {
-            final StringBuilder parameters = new StringBuilder();
+            final Strings.Listing parameters = Strings.delimited();
 
             for (final Type argument : arguments) {
-                if (parameters.length() > 0) {
-                    parameters.append(", ");
-                }
-
-                parameters.append(Generics.toString(argument));
+                parameters.add(Generics.toString(argument));
             }
 
             return String.format("%s<%s>", Generics.toString(getRawType()), parameters);
