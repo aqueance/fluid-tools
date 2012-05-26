@@ -76,7 +76,7 @@ final class ComponentCacheImpl implements ComponentCache {
                 if (!cache.containsKey(context)) {
                     cache.put(context, component);
 
-                    log(report, "created", api, component, context, log, source);
+                    log(report, "caching", api, component, context, log, source);
                 } else {
                     log(report, "reusing", api, cache.get(context), context, log, source);
                 }
