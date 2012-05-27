@@ -18,6 +18,7 @@ package org.fluidity.foundation.tests;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
@@ -48,6 +49,15 @@ public class DeferredDependencyTest {
     @Test
     public void testReferenceDependency() throws Exception {
         assert container.getComponent(ReferenceDependent.class) != null;
+    }
+
+    @Test
+    public void testAnnotatedDependency() throws Exception {
+        AnnotatedDependencyImpl.instances.set(0);
+        assert container.getComponent(AnnotatedDependent1.class) != null;
+
+        AnnotatedDependencyImpl.instances.set(0);
+        assert container.getComponent(AnnotatedDependent2.class) != null;
     }
 
     @Retention(RetentionPolicy.RUNTIME)
@@ -137,6 +147,91 @@ public class DeferredDependencyTest {
 
             assert Long.class.equals(deferred2.get().context.annotation(Component.Reference.class, null).parameter(0));
             assert Long.class.equals(instance2.context.annotation(Component.Reference.class, null).parameter(0));
+        }
+    }
+
+    private interface AnnotatedDependency {
+
+        ComponentContext context();
+
+        AnnotatedDependency instance();
+    }
+
+    @Component
+    @Component.Context(Data.class)
+    @SuppressWarnings("UnusedDeclaration")
+    private static class AnnotatedDependencyImpl implements AnnotatedDependency {
+
+        public static AtomicInteger instances = new AtomicInteger(0);
+
+        public final ComponentContext context;
+
+        private AnnotatedDependencyImpl(final ComponentContext context) {
+            this.context = context;
+            instances.incrementAndGet();
+        }
+
+        public ComponentContext context() {
+            return context;
+        }
+
+        public AnnotatedDependency instance() {
+            return this;
+        }
+    }
+
+    @Component
+    private static class AnnotatedDependent1 {
+
+        public AnnotatedDependent1(final @Data("1") @Component.Deferred AnnotatedDependency deferred1,
+                                   final @Data("2") @Component.Deferred AnnotatedDependency deferred2,
+                                   final @Data("1") AnnotatedDependency instance1,
+                                   final @Data("2") AnnotatedDependency instance2) {
+            assert deferred1 != null;
+            assert deferred2 != null;
+
+            assert AnnotatedDependencyImpl.instances.get() == 2 : AnnotatedDependencyImpl.instances.get();
+
+            assert deferred1.instance() == instance1;
+
+            assert AnnotatedDependencyImpl.instances.get() == 2 : AnnotatedDependencyImpl.instances.get();
+
+            assert deferred2.instance() == instance2;
+
+            assert AnnotatedDependencyImpl.instances.get() == 2 : AnnotatedDependencyImpl.instances.get();
+
+            assert deferred1.instance() != deferred2.instance();
+
+            assert AnnotatedDependencyImpl.instances.get() == 2 : AnnotatedDependencyImpl.instances.get();
+
+            assert "1".equals(deferred1.context().annotation(Data.class, null).value());
+            assert "1".equals(instance1.context().annotation(Data.class, null).value());
+
+            assert "2".equals(deferred2.context().annotation(Data.class, null).value());
+            assert "2".equals(instance2.context().annotation(Data.class, null).value());
+
+            assert AnnotatedDependencyImpl.instances.get() == 2 : AnnotatedDependencyImpl.instances.get();
+        }
+    }
+
+    @Component
+    private static class AnnotatedDependent2 {
+
+        public AnnotatedDependent2(final @Data("3") @Component.Deferred AnnotatedDependency deferred1,
+                                   final @Data("4") @Component.Deferred AnnotatedDependency deferred2) {
+            assert deferred1 != null;
+            assert deferred2 != null;
+
+            assert AnnotatedDependencyImpl.instances.get() == 0 : AnnotatedDependencyImpl.instances.get();
+
+            assert deferred1.instance() != deferred2.instance();
+
+            assert AnnotatedDependencyImpl.instances.get() == 2 : AnnotatedDependencyImpl.instances.get();
+
+            assert "3".equals(deferred1.context().annotation(Data.class, null).value());
+            assert "4".equals(deferred2.context().annotation(Data.class, null).value());
+
+            assert AnnotatedDependencyImpl.instances.get() == 2 : AnnotatedDependencyImpl.instances.get();
         }
     }
 }

@@ -184,6 +184,7 @@ public final class BundleJarManifest implements JarManifest {
                 final Method method = classLoader.loadClass(run.getDeclaringClass().getName()).getDeclaredMethod(run.getName(), run.getParameterTypes());
 
                 // see if the class loader can see the ContainerBoundary and BundleBootstrap classes and if so, set the bundle activator
+                method.setAccessible(true);
                 final String activator = (String) method.invoke(command, (Object) null);
 
                 if (activator != null) {

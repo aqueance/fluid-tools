@@ -74,6 +74,7 @@ public final class Launcher {
 
                         return Exceptions.wrap(new Exceptions.Command<Void>() {
                             public Void run() throws Throwable {
+                                main.setAccessible(true);
                                 main.invoke(null, new Object[] { args });
                                 return null;
                             }

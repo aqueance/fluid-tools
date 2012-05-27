@@ -324,7 +324,6 @@ public abstract class MockGroupAbstractTest {
 
                         assert proxy != null : method;
                         try {
-                            method.setAccessible(true);
                             return method.invoke(proxy, args);
                         } catch (final InvocationTargetException e) {
                             throw e.getCause();

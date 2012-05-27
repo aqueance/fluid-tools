@@ -113,6 +113,7 @@ public final class Strings extends Utility {
         final Method[] methods = type.getDeclaredMethods();
         try {
             if (methods.length == 1 && methods[0].getName().equals("value")) {
+                methods[0].setAccessible(true);
                 appendValue(builder, methods[0].invoke(annotation));
             } else {
                 Arrays.sort(methods, new Comparator<Method>() {
@@ -122,7 +123,9 @@ public final class Strings extends Utility {
                 });
 
                 for (final Method method : methods) {
-                    if (method.getParameterTypes().length == 0) {
+
+                    // not every Annotation class is an annotation...
+                    if (method.getParameterTypes().length == 0 && method.getReturnType() != Void.TYPE) {
                         if (builder.length() > 0) {
                             builder.append(", ");
                         }
@@ -130,6 +133,7 @@ public final class Strings extends Utility {
                         final StringBuilder parameter = new StringBuilder();
                         parameter.append(method.getName()).append('=');
 
+                        method.setAccessible(true);
                         final Object value = method.invoke(annotation);
                         appendValue(parameter, value);
 
