@@ -16,93 +16,114 @@
 
 package org.fluidity.composition.container.impl;
 
-import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ObservedComponentContainer;
 import org.fluidity.composition.container.RestrictedContainer;
 import org.fluidity.composition.spi.ComponentInterceptor;
-import org.fluidity.foundation.Proxies;
 
 /**
  * @author Tibor Varga
  */
 final class RestrictedContainerImpl implements RestrictedContainer {
 
-    private final AtomicReference<ComponentContainer> reference
-            = new AtomicReference<ComponentContainer>((ComponentContainer) Proxies.create(ComponentContainer.class, new AccessDenied()));
+    private final AccessGuard guard;
     private final ComponentContainer delegate;
 
     public RestrictedContainerImpl(final ComponentContainer delegate) {
+        this(new AccessGuard(), delegate);
+    }
+
+    private RestrictedContainerImpl(final AccessGuard guard, final ComponentContainer delegate) {
+        this.guard = guard;
         this.delegate = delegate;
     }
 
     public ObservedComponentContainer observed(final Observer observer) {
-        return reference.get().observed(observer);
+        return new RestrictedContainerImpl(guard, delegate.observed(observer));
     }
 
     public <T> T getComponent(final Class<T> api) throws ResolutionException {
-        return reference.get().getComponent(api);
+        return guard.access(delegate).getComponent(api);
     }
 
     public <T> T[] getComponentGroup(final Class<T> api) {
-        return reference.get().getComponentGroup(api);
+        return guard.access(delegate).getComponentGroup(api);
     }
 
     public <T> T getComponent(final Class<T> api, final Bindings... bindings) throws ResolutionException {
-        return reference.get().getComponent(api, bindings);
+        return guard.access(delegate).getComponent(api, bindings);
     }
 
     public ComponentContainer makeChildContainer(final Bindings... bindings) {
-        return reference.get().makeChildContainer(bindings);
+        return new RestrictedContainerImpl(guard, delegate.makeChildContainer(bindings));
     }
 
     public ComponentContainer makeDomainContainer(final Bindings... bindings) {
-        return reference.get().makeDomainContainer(bindings);
+        return new RestrictedContainerImpl(guard, delegate.makeDomainContainer(bindings));
     }
 
     public ComponentContainer intercepting(final ComponentInterceptor... interceptors) {
-        return reference.get().intercepting(interceptors);
+        return new RestrictedContainerImpl(guard, delegate.intercepting(interceptors));
     }
 
     public <T> T initialize(final T component) throws ResolutionException {
-        return reference.get().initialize(component);
+        return guard.access(delegate).initialize(component);
     }
 
     public Object invoke(final Object component, final Method method, final Object... arguments) throws ResolutionException, InvocationTargetException {
-        return reference.get().invoke(component, method, arguments);
+        return guard.access(delegate).invoke(component, method, arguments);
     }
 
     public <T> T complete(final T component, final Class<? super T>... api) throws ResolutionException {
-        return reference.get().complete(component, api);
+        return guard.access(delegate).complete(component, api);
     }
 
     public <T> T instantiate(final Class<T> componentClass) throws ResolutionException {
-        return reference.get().instantiate(componentClass);
+        return guard.access(delegate).instantiate(componentClass);
     }
 
     public <T> T instantiate(final Class<T> componentClass, final Bindings bindings) throws ResolutionException {
-        return reference.get().instantiate(componentClass, bindings);
+        return guard.access(delegate).instantiate(componentClass, bindings);
+    }
+
+    public void resolveComponent(final Class<?> api) {
+        ((ObservedComponentContainer) guard.access(delegate)).resolveComponent(api);
+    }
+
+    public void resolveGroup(final Class<?> api) {
+        ((ObservedComponentContainer) guard.access(delegate)).resolveGroup(api);
     }
 
     public void enable() {
-        reference.set(delegate);
+        guard.enable();
     }
 
-    private static class AccessDenied implements InvocationHandler {
-        private RuntimeException denied() {
-            return new ResolutionException("No dynamic dependencies allowed, use a CustomComponentFactory if you need such functionality");
+    private static class AccessGuard {
+
+        private final AtomicBoolean enabled;
+
+        private AccessGuard() {
+            this(new AtomicBoolean(false));
         }
 
-        public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
-            if (method.getDeclaringClass() == Object.class) {
-                return method.invoke(this, args);
+        private AccessGuard(final AtomicBoolean enabled) {
+            this.enabled = enabled;
+        }
+
+        public ComponentContainer access(final ComponentContainer valid) {
+            if (enabled.get()) {
+                return valid;
             } else {
-                throw denied();
+                throw new ResolutionException("No dynamic dependencies allowed, use a CustomComponentFactory if you need such functionality");
             }
+        }
+
+        public void enable() {
+            enabled.set(true);
         }
     }
 }

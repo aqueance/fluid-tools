@@ -16,10 +16,10 @@
 
 package org.fluidity.composition.container;
 
-import org.fluidity.composition.ComponentContainer;
+import org.fluidity.composition.ObservedComponentContainer;
 
 /**
- * Wraps another container and denies access to it until {@linkplain #enable() enabled}.
+ * Wraps another container and denies access to it's resolution functions until {@linkplain #enable() enabled}.
  * <h3>Usage</h3>
  * <pre>
  * final <span class="hl1">RestrictedContainer</span> container = ...;
@@ -29,7 +29,7 @@ import org.fluidity.composition.ComponentContainer;
  *
  * @author Tibor Varga
  */
-public interface RestrictedContainer extends ComponentContainer {
+public interface RestrictedContainer extends ObservedComponentContainer {
 
     /**
      * Enables the wrapped container.
