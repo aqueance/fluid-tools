@@ -24,7 +24,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Uses SLF4J as the underlying logging framework.
  */
-final class Slf4jLogImpl extends AbstractLog<Logger> {
+final class Slf4jLogImpl<T> extends AbstractLog<Logger, T> {
 
     public Slf4jLogImpl(final Class<?> source) {
         super(LoggerFactory.getLogger(source), new Levels<Logger>() {

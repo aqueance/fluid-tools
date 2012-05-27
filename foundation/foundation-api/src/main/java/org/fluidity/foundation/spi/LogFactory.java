@@ -47,5 +47,5 @@ public interface LogFactory {
      *
      * @return a log sink.
      */
-    Log createLog(Class<?> source);
+    <T> Log<T> createLog(Class<T> source);
 }

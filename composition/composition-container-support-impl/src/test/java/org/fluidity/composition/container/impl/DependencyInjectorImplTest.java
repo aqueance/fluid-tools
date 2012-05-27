@@ -45,6 +45,7 @@ import org.testng.annotations.Test;
  */
 public class DependencyInjectorImplTest extends MockGroupAbstractTest {
 
+    private final DependencyInterceptors interceptors = mock(DependencyInterceptors.class);
     private final DependencyGraph.Traversal traversal = mock(DependencyGraph.Traversal.class);
     private final DependencyResolver resolver = mock(DependencyResolver.class);
     private final ContextDefinition context = mock(ContextDefinition.class);
@@ -52,7 +53,7 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
     private final Component.Reference reference = mock(Component.Reference.class);
     private final ContextNode contexts = mock(ContextNode.class);
 
-    private final DependencyInjector injector = new DependencyInjectorImpl();
+    private final DependencyInjector injector = new DependencyInjectorImpl(interceptors);
 
     private static Annotation[] neverNull(final Annotation[] array) {
         return array == null ? new Annotation[0] : array;
@@ -156,7 +157,7 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
             } else {
                 final DependencyGraph.Node.Constant node = new DependencyGraph.Node.Constant(dependencyType, component, null);
                 EasyMock.expect(resolver.resolveComponent(dependencyType, copy, traversal, dependencyType)).andReturn(node);
-                EasyMock.expect(resolver.replace(copy, traversal, dependencyType, node)).andReturn(node);
+                EasyMock.expect(interceptors.replace(resolver, copy, traversal, dependencyType, node)).andReturn(node);
             }
         }
 

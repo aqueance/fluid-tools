@@ -25,7 +25,6 @@ import org.fluidity.composition.container.ContainerServicesFactory;
 import org.fluidity.composition.container.impl.ProductionServicesFactory;
 import org.fluidity.composition.container.spi.OpenComponentContainer;
 import org.fluidity.foundation.NoLogFactory;
-import org.fluidity.foundation.spi.LogFactory;
 import org.fluidity.tests.MockGroupAbstractTest;
 
 import org.testng.annotations.Factory;
@@ -51,8 +50,7 @@ public abstract class ComponentContainerAbstractTest extends MockGroupAbstractTe
     @Factory
     public Object[] tests() {
         final ContainerServicesFactory factory = new ProductionServicesFactory();
-        final LogFactory logs = new NoLogFactory();
-        final ContainerServices services = factory.containerServices(logs);
+        final ContainerServices services = factory.containerServices(new NoLogFactory());
 
         final ArtifactFactory containers = new ArtifactFactory() {
 

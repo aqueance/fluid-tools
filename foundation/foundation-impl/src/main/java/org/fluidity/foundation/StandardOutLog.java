@@ -27,7 +27,7 @@ import java.util.Date;
  *
  * @author Tibor Varga
  */
-final class StandardOutLog implements Log {
+final class StandardOutLog<T> implements Log<T> {
 
     private final DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
 

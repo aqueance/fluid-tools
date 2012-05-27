@@ -28,9 +28,9 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.fluidity.foundation.ClassLoaders;
+import org.fluidity.foundation.Log;
 import org.fluidity.foundation.NoLogFactory;
 import org.fluidity.foundation.Streams;
-import org.fluidity.foundation.spi.LogFactory;
 import org.fluidity.tests.MockGroupAbstractTest;
 
 import org.testng.annotations.Test;
@@ -41,7 +41,7 @@ import org.testng.annotations.Test;
 @SuppressWarnings({ "unchecked", "ResultOfMethodCallIgnored" })
 public class ClassDiscoveryImplTest extends MockGroupAbstractTest {
 
-    private final LogFactory logs = new NoLogFactory();
+    private final Log<ClassDiscoveryImpl> log = NoLogFactory.consume(ClassDiscoveryImpl.class);
 
     @Test
     public void findsClassesInAnyClassLoader() throws Exception {
@@ -70,7 +70,7 @@ public class ClassDiscoveryImplTest extends MockGroupAbstractTest {
             loader = ClassLoaders.create(getClass().getClassLoader(), classDir.toURI().toURL());
 
             replay();
-            final Class[] classes = new ClassDiscoveryImpl(logs).findComponentClasses(Interface.class, loader, false);
+            final Class[] classes = new ClassDiscoveryImpl(log).findComponentClasses(Interface.class, loader, false);
             verify();
 
             assert new ArrayList<Class>(Arrays.asList(Impl1.class, Impl2.class, Impl3.class)).equals(new ArrayList<Class>(Arrays.asList(classes)));
@@ -121,7 +121,7 @@ public class ClassDiscoveryImplTest extends MockGroupAbstractTest {
             classLoader2 = ClassLoaders.create(classLoader1, classDir2.toURI().toURL());
 
             replay();
-            final Class[] classes = new ClassDiscoveryImpl(logs).findComponentClasses(classLoader1.loadClass(Interface.class.getName()), classLoader2, true);
+            final Class[] classes = new ClassDiscoveryImpl(log).findComponentClasses(classLoader1.loadClass(Interface.class.getName()), classLoader2, true);
             verify();
 
             assert new ArrayList<Class>(Arrays.asList(classLoader2.loadClass(Impl1.class.getName()))).equals(new ArrayList<Class>(Arrays.asList(classes)));

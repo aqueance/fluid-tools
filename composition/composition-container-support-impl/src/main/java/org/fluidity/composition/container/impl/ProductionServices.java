@@ -23,6 +23,7 @@ import org.fluidity.composition.container.ContextDefinition;
 import org.fluidity.composition.container.DependencyInjector;
 import org.fluidity.composition.container.spi.DependencyGraph;
 import org.fluidity.foundation.ClassDiscovery;
+import org.fluidity.foundation.Log;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**
@@ -35,11 +36,13 @@ final class ProductionServices implements ContainerServices {
     private final LogFactory logs;
     private final ClassDiscovery discovery;
     private final DependencyInjector injector;
+    private final Log<ComponentCacheImpl> cacheLog;
 
     public ProductionServices(final LogFactory logs) {
         this.logs = logs;
-        this.discovery = new ClassDiscoveryImpl(logs);
-        this.injector = new DependencyInjectorImpl();
+        this.cacheLog = logs.createLog(ComponentCacheImpl.class);
+        this.discovery = new ClassDiscoveryImpl(logs.createLog(ClassDiscoveryImpl.class));
+        this.injector = new DependencyInjectorImpl(new DependencyInterceptorsImpl(logs.createLog(DependencyInterceptorsImpl.class)));
     }
 
     public ContextDefinition emptyContext() {
@@ -71,6 +74,6 @@ final class ProductionServices implements ContainerServices {
     }
 
     public ComponentCache newCache(final boolean stateless) {
-        return new ComponentCacheImpl(logs, stateless);
+        return new ComponentCacheImpl(cacheLog, stateless);
     }
 }

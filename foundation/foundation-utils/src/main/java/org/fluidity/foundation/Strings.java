@@ -80,7 +80,7 @@ public final class Strings extends Utility {
             typeName = componentType.getName();
         } else {
             final String name = componentType.getName();
-            typeName = name.substring(name.lastIndexOf(".") + 1).replace('$', '.');
+            typeName = name.contains(".") ? name.substring(name.lastIndexOf(".") + 1).replace('$', '.') : name;
         }
 
         return builder.insert(0, typeName).toString();

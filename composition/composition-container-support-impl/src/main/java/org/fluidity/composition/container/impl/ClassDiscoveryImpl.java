@@ -34,7 +34,6 @@ import org.fluidity.foundation.ClassLoaders;
 import org.fluidity.foundation.Exceptions;
 import org.fluidity.foundation.Log;
 import org.fluidity.foundation.ServiceProviders;
-import org.fluidity.foundation.spi.LogFactory;
 
 /**
  * The component is instantiated by {@link ProductionServices} and picked up at container bootstrap to be made available as a component. This implementation
@@ -47,8 +46,8 @@ final class ClassDiscoveryImpl implements ClassDiscovery {
 
     private final Log log;
 
-    public ClassDiscoveryImpl(final LogFactory logs) {
-        this.log = logs.createLog(getClass());
+    public ClassDiscoveryImpl(final Log<ClassDiscoveryImpl> log) {
+        this.log = log;
     }
 
     public <T> Class<T>[] findComponentClasses(final Class<T> api, final ClassLoader classLoader, final boolean strict) {

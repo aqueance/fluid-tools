@@ -104,7 +104,21 @@ public final class NoLogFactory implements LogFactory {
     /**
      * {@inheritDoc}
      */
-    public Log createLog(final Class<?> ignored) {
-        return sink;
+    @SuppressWarnings("unchecked")
+    public <T> Log<T> createLog(final Class<T> ignored) {
+        return (Log<T>) sink;
+    }
+
+    /**
+     * Returns the log sink for the given class.
+     *
+     * @param ignored the class to use the log sink.
+     * @param <T>     the type of the class.
+     *
+     * @return the log sink.
+     */
+    @SuppressWarnings({ "unchecked", "UnusedParameters" })
+    public static <T> Log<T> consume(final Class<T> ignored) {
+        return (Log<T>) sink;
     }
 }

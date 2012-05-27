@@ -27,12 +27,13 @@ import org.fluidity.foundation.spi.LogFactory;
  */
 @ServiceProvider
 @Component(primary = false)
+@SuppressWarnings("UnusedDeclaration")
 final class StandardOutLogFactory implements LogFactory {
 
     /**
      * {@inheritDoc}
      */
-    public Log createLog(final Class<?> source) {
-        return new StandardOutLog(source);
+    public <T> Log<T> createLog(final Class<T> source) {
+        return new StandardOutLog<T>(source);
     }
 }

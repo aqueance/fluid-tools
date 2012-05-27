@@ -24,9 +24,9 @@ import org.apache.commons.logging.LogFactory;
 /**
  * Uses commons-logging as the underlying logging framework.
  */
-final class CommonsLogImpl extends AbstractLog<Log> {
+final class CommonsLogImpl<T> extends AbstractLog<Log, T> {
 
-    public CommonsLogImpl(final Class<?> source) {
+    public CommonsLogImpl(final Class<T> source) {
         super(LogFactory.getLog(source), new Levels<Log>() {
             public boolean trace(final Log log) {
                 return log.isTraceEnabled();

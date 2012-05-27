@@ -76,7 +76,7 @@ import org.fluidity.foundation.Log;
  * @param <T> the underlying log type.
  * @author Tibor Varga
  */
-public abstract class AbstractLog<T> implements Log<T> {
+public abstract class AbstractLog<T, L> implements Log<L> {
 
     /**
      * The external log instance passed to the constructor.

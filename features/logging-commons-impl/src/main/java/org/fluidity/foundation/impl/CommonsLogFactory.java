@@ -33,7 +33,7 @@ final class CommonsLogFactory implements LogFactory {
     /**
      * {@inheritDoc}
      */
-    public Log createLog(final Class<?> source) {
-        return new CommonsLogImpl(source);
+    public <T> Log<T> createLog(final Class<T> source) {
+        return new CommonsLogImpl<T>(source);
     }
 }

@@ -83,9 +83,8 @@ public class BundleComponentContainerImplTest extends MockGroupAbstractTest {
 
     private ComponentContainer container;
 
-    @SuppressWarnings("unchecked")
     private final BundleComponentContainer.Registration.Listener<Consumer> source = mock(BundleComponentContainer.Registration.Listener.class);
-    private Log log = new NoLogFactory().createLog(null);
+    private Log<BundleComponentContainerImpl> log = NoLogFactory.consume(BundleComponentContainerImpl.class);
 
     @BeforeMethod
     public void setup() throws Exception {

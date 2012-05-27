@@ -55,6 +55,12 @@ import org.fluidity.foundation.Strings;
  */
 final class DependencyInjectorImpl implements DependencyInjector {
 
+    private final DependencyInterceptors interceptors;
+
+    public DependencyInjectorImpl(final DependencyInterceptors interceptors) {
+        this.interceptors = interceptors;
+    }
+
     public <T> T fields(final T instance,
                         final DependencyGraph.Traversal traversal,
                         final DependencyResolver container,
@@ -574,7 +580,11 @@ final class DependencyInjectorImpl implements DependencyInjector {
                     }
 
                     public DependencyGraph.Node regular() {
-                        return container.replace(downstream, traversal, reference, container.resolveComponent(dependencyType, downstream, traversal, reference));
+                        return interceptors.replace(container,
+                                                    downstream,
+                                                    traversal,
+                                                    reference,
+                                                    container.resolveComponent(dependencyType, downstream, traversal, reference));
                     }
 
                     public void handle(final RestrictedContainer container) {

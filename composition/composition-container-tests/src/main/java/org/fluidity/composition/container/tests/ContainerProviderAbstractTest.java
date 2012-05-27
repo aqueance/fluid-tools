@@ -16,9 +16,6 @@
 
 package org.fluidity.composition.container.tests;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.fluidity.composition.container.ComponentCache;
 import org.fluidity.composition.container.ContainerServices;
 import org.fluidity.composition.container.ContextDefinition;
@@ -47,21 +44,15 @@ public abstract class ContainerProviderAbstractTest extends MockGroupAbstractTes
     private final ContainerServices services = mock(ContainerServices.class);
     private final ClassDiscovery classDiscovery = mock(ClassDiscovery.class);
     private final DependencyGraph.Traversal traversal = mock(DependencyGraph.Traversal.class);
-    private final DependencyGraph.Node node = mock(DependencyGraph.Node.class);
     private final DependencyInjector injector = mock(DependencyInjector.class);
     private final ComponentCache componentCache = mock(ComponentCache.class);
     private final ContextDefinition context = mock(ContextDefinition.class);
     private final ContextDefinition copy = mock(ContextDefinition.class);
 
-    private final Map<String, String> map = new HashMap<String, String>();
-
     private final ContainerProvider provider;      // to be provided by subclasses
 
     public ContainerProviderAbstractTest(final ContainerProvider provider) {
         this.provider = provider;
-
-        map.clear();
-        map.put("key", "value");
     }
 
     @BeforeMethod

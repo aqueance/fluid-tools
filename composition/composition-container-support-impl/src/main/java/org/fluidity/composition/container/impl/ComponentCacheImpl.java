@@ -25,19 +25,18 @@ import org.fluidity.composition.container.ComponentCache;
 import org.fluidity.composition.spi.ComponentFactory;
 import org.fluidity.foundation.Log;
 import org.fluidity.foundation.Strings;
-import org.fluidity.foundation.spi.LogFactory;
 
 /**
  * @author Tibor Varga
  */
 final class ComponentCacheImpl implements ComponentCache {
 
-    private final Map<Object, Map<ComponentContext, Object>> caches;
     private final Log log;
+    private final Map<Object, Map<ComponentContext, Object>> caches;
 
-    public ComponentCacheImpl(final LogFactory logs, boolean stateless) {
+    public ComponentCacheImpl(final Log<ComponentCacheImpl> log, boolean stateless) {
+        this.log = log;
         this.caches = stateless ? new WeakHashMap<Object, Map<ComponentContext, Object>>() : null;
-        this.log = logs.createLog(getClass());
     }
 
     public Object lookup(final Object domain, final String source, final ComponentContext context, final Class<?> api, final Entry factory) {
