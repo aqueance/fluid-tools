@@ -27,6 +27,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
@@ -48,6 +49,8 @@ public final class ComponentInterceptorTests extends AbstractContainerTests {
     @BeforeMethod
     public void setUp() throws Exception {
         Interceptor.list.clear();
+        Interceptor2.instances.set(0);
+        Interceptor6.instances.set(0);
     }
 
     private ComponentContainer child(final ComponentContainer container, final ComponentContainer.Bindings... bindings) {
@@ -81,9 +84,9 @@ public final class ComponentInterceptorTests extends AbstractContainerTests {
                 registry.bindComponent(Interceptor1.class);
                 registry.bindComponent(Interceptor2.class);
                 registry.bindComponent(Interceptor3.class);
-                registry.bindComponent(Interceptor4.class);
+                registry.bindInstance(new Interceptor4());
                 registry.bindComponent(Interceptor5.class);
-                registry.bindInstance(new Interceptor6());
+                registry.bindComponent(Interceptor6.class);
             }
         };
 
@@ -114,6 +117,9 @@ public final class ComponentInterceptorTests extends AbstractContainerTests {
         check(Dependency13.class, Interceptor3.class, Interceptor4.class, Interceptor1.class, Interceptor6.class);
         check(Dependency2.class, Interceptor2.class, Interceptor6.class);
         check(Dependency21.class, Interceptor3.class, Interceptor4.class, Interceptor5.class, Interceptor6.class);
+
+        assert Interceptor2.instances.get() == 1;
+        assert Interceptor6.instances.get() > 1;
     }
 
     @Test
@@ -132,7 +138,7 @@ public final class ComponentInterceptorTests extends AbstractContainerTests {
             @SuppressWarnings("unchecked")
             public void bindComponents(final ComponentContainer.Registry registry) {
                 registry.bindComponent(Interceptor5.class);
-                registry.bindInstance(new Interceptor6());
+                registry.bindComponent(Interceptor6.class);
             }
         };
 
@@ -140,7 +146,7 @@ public final class ComponentInterceptorTests extends AbstractContainerTests {
             @SuppressWarnings("unchecked")
             public void bindComponents(final ComponentContainer.Registry registry) {
                 registry.bindComponent(Interceptor3.class);
-                registry.bindComponent(Interceptor4.class);
+                registry.bindInstance(new Interceptor4());
             }
         };
 
@@ -171,6 +177,9 @@ public final class ComponentInterceptorTests extends AbstractContainerTests {
         check(Dependency13.class, Interceptor3.class, Interceptor4.class, Interceptor1.class, Interceptor6.class);
         check(Dependency2.class, Interceptor2.class, Interceptor6.class);
         check(Dependency21.class, Interceptor3.class, Interceptor4.class, Interceptor5.class, Interceptor6.class);
+
+        assert Interceptor2.instances.get() == 1;
+        assert Interceptor6.instances.get() > 1;
     }
 
     @Test
@@ -209,6 +218,9 @@ public final class ComponentInterceptorTests extends AbstractContainerTests {
         check(Dependency13.class, Interceptor3.class, Interceptor4.class, Interceptor1.class, Interceptor6.class);
         check(Dependency2.class, Interceptor2.class, Interceptor6.class);
         check(Dependency21.class, Interceptor3.class, Interceptor4.class, Interceptor5.class, Interceptor6.class);
+
+        assert Interceptor2.instances.get() == 1;
+        assert Interceptor6.instances.get() == 1;
     }
 
     @Test
@@ -221,9 +233,9 @@ public final class ComponentInterceptorTests extends AbstractContainerTests {
                 registry.bindComponent(Interceptor1.class);
                 registry.bindComponent(Interceptor2.class);
                 registry.bindComponent(Interceptor3.class);
-                registry.bindComponent(Interceptor4.class);
+                registry.bindInstance(new Interceptor4());
                 registry.bindComponent(Interceptor5.class);
-                registry.bindInstance(new Interceptor6());
+                registry.bindComponent(Interceptor6.class);
                 registry.bindComponent(RemovingInterceptor.class);
             }
         };
@@ -252,6 +264,9 @@ public final class ComponentInterceptorTests extends AbstractContainerTests {
         check(Dependency12.class);
         check(Dependency13.class);
         check(Dependency21.class, Interceptor3.class, Interceptor4.class, RemovingInterceptor.class);
+
+        assert Interceptor2.instances.get() == 1;
+        assert Interceptor6.instances.get() > 1;
     }
 
     @Annotation01
@@ -317,13 +332,21 @@ public final class ComponentInterceptorTests extends AbstractContainerTests {
     private static class Interceptor1 extends Interceptor { }
 
     @Component.Context({ Annotation01.class, Annotation2.class })
-    private static class Interceptor2 extends Interceptor { }
+    private static class Interceptor2 extends Interceptor {
+
+        public static final AtomicInteger instances = new AtomicInteger(0);
+
+        private Interceptor2() {
+            Interceptor2.instances.incrementAndGet();
+        }
+    }
 
     @Component.Context({ Annotation02.class, Annotation3.class })
     private static class Interceptor3 extends Interceptor { }
 
+    // non-static for testing purposes
     @Component.Context(Annotation4.class)
-    private static class Interceptor4 extends Interceptor { }
+    private class Interceptor4 extends Interceptor { }
 
     @Component.Context(Annotation5.class)
     @SuppressWarnings("UnusedParameters")
@@ -332,8 +355,15 @@ public final class ComponentInterceptorTests extends AbstractContainerTests {
         private Interceptor5(final @Annotation5 InterceptorDependency dependency) { }
     }
 
-    // non-static for testing purposes
-    private class Interceptor6 extends Interceptor { }
+    @Component(stateful = true)
+    private static class Interceptor6 extends Interceptor {
+
+        public static final AtomicInteger instances = new AtomicInteger(0);
+
+        private Interceptor6() {
+            Interceptor6.instances.incrementAndGet();
+        }
+    }
 
     @Component.Context(Remove.class)
     private static class RemovingInterceptor extends Interceptor {
