@@ -314,7 +314,7 @@ public final class ComponentInterceptorTests extends AbstractContainerTests {
 
         public static Map<Class<?>, Collection<Class<?>>> list = new HashMap<Class<?>, Collection<Class<?>>>();
 
-        public Dependency replace(final Type reference, final ComponentContext context, final Dependency dependency) {
+        public Dependency intercept(final Type reference, final ComponentContext context, final Dependency dependency) {
             final Class<?> type = Generics.rawType(reference);
 
             Collection<Class<?>> list = Interceptor.list.get(type);
@@ -369,8 +369,8 @@ public final class ComponentInterceptorTests extends AbstractContainerTests {
     private static class RemovingInterceptor extends Interceptor {
 
         @Override
-        public Dependency replace(final Type reference, final ComponentContext context, final Dependency dependency) {
-            super.replace(reference, context, dependency);
+        public Dependency intercept(final Type reference, final ComponentContext context, final Dependency dependency) {
+            super.intercept(reference, context, dependency);
             return null;
         }
     }

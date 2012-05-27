@@ -17,7 +17,9 @@
 package org.fluidity.composition.container.impl;
 
 import java.io.Serializable;
+import java.lang.reflect.Type;
 
+import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.container.ComponentContextDescriptor;
 import org.fluidity.composition.container.ContextDefinition;
@@ -35,7 +37,6 @@ import org.testng.annotations.Test;
  * @author Tibor Varga
  */
 public class DependencyInterceptorsTest extends MockGroupAbstractTest {
-
 
     private final ContextDefinition context = mock(ContextDefinition.class);
     private final ContextDefinition copy = mock(ContextDefinition.class);
@@ -135,9 +136,9 @@ public class DependencyInterceptorsTest extends MockGroupAbstractTest {
             EasyMock.expect(copy.accept(interceptor.getClass())).andReturn(accepted);
             EasyMock.expect(accepted.create()).andReturn(passed);
 
-            EasyMock.expect(interceptor.replace(EasyMock.same(Serializable.class),
-                                                EasyMock.same(passed),
-                                                dependencies[i] == null ? EasyMock.<ComponentInterceptor.Dependency>notNull() : EasyMock.same(dependencies[i])))
+            EasyMock.expect(interceptor.intercept(EasyMock.same(Serializable.class),
+                                                  EasyMock.same(passed),
+                                                  dependencies[i] == null ? EasyMock.<ComponentInterceptor.Dependency>notNull() : EasyMock.same(dependencies[i])))
                     .andReturn(dependencies[i + 1]);
         }
 
@@ -159,7 +160,7 @@ public class DependencyInterceptorsTest extends MockGroupAbstractTest {
 
         final Object value = new Object();
 
-        EasyMock.expect(dependencies[dependencies.length - 1].create()).andReturn(value);
+        EasyMock.expect(dependencies[found.length].create()).andReturn(value);
 
         replay();
         assert replacement.instance(traversal) == value;
@@ -191,9 +192,9 @@ public class DependencyInterceptorsTest extends MockGroupAbstractTest {
             EasyMock.expect(accepted.create()).andReturn(passed);
 
             final boolean last = i == dependencies.length - 1;
-            EasyMock.expect(interceptor.replace(EasyMock.same(Serializable.class),
-                                                EasyMock.same(passed),
-                                                dependencies[i] == null ? EasyMock.<ComponentInterceptor.Dependency>notNull() : EasyMock.same(dependencies[i])))
+            EasyMock.expect(interceptor.intercept(EasyMock.same(Serializable.class),
+                                                  EasyMock.same(passed),
+                                                  dependencies[i] == null ? EasyMock.<ComponentInterceptor.Dependency>notNull() : EasyMock.same(dependencies[i])))
                     .andReturn(last ? null : dependencies[i + 1]);
 
             if (last) {
@@ -204,6 +205,56 @@ public class DependencyInterceptorsTest extends MockGroupAbstractTest {
         replay();
         assert  interceptors.replace(resolver, context, traversal, Serializable.class, node) == null;
         verify();
+    }
+
+    @Test(expectedExceptions = ComponentContainer.ResolutionException.class, expectedExceptionsMessageRegExp = ".*intercept.*")
+    public void testPrematureDereference() throws Exception {
+        EasyMock.expect(resolver.resolveGroup(EasyMock.same(ComponentInterceptor.class),
+                                              EasyMock.<ContextDefinition>notNull(),
+                                              EasyMock.same(traversal)))
+                .andReturn(group);
+
+        final ComponentInterceptor[] found = {
+                new ComponentInterceptor() {
+                    public Dependency intercept(final Type reference, final ComponentContext context, final Dependency dependency) {
+                        try {
+                            return interceptor1.intercept(reference, context, dependency);
+                        } finally {
+                            dependency.create();
+                            assert false : "Should not have reached this point.";
+                        }
+                    }
+                },
+                interceptor2
+        };
+        final ComponentInterceptor.Dependency[] dependencies = {
+                null,
+                dependency1,
+                dependency2
+        };
+
+        assert dependencies.length == found.length + 1;
+
+        EasyMock.expect(group.instance(traversal)).andReturn(found);
+        EasyMock.expect(context.filter(EasyMock.<ComponentContextDescriptor[]>notNull())).andAnswer(filter(false, found));
+
+        final ComponentInterceptor interceptor = found[0];
+
+        EasyMock.expect(context.copy()).andReturn(copy);
+        EasyMock.expect(copy.accept(interceptor.getClass())).andReturn(accepted);
+        EasyMock.expect(accepted.create()).andReturn(passed);
+
+        EasyMock.expect(interceptor1.intercept(EasyMock.same(Serializable.class),
+                                               EasyMock.same(passed),
+                                               dependencies[0] == null ? EasyMock.<ComponentInterceptor.Dependency>notNull() : EasyMock.same(dependencies[0])))
+                .andReturn(dependencies[1]);
+
+        replay();
+        try {
+            interceptors.replace(resolver, context, traversal, Serializable.class, node);
+        } finally {
+            verify();
+        }
     }
 
     private IAnswer<ComponentContextDescriptor[]> filter(final boolean empty, final ComponentInterceptor... interceptors) {

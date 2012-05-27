@@ -55,7 +55,7 @@ final class ServiceImportInterceptor implements ComponentInterceptor {
         this.border = border;
     }
 
-    public Dependency replace(final Type reference, final ComponentContext context, final Dependency dependency) {
+    public Dependency intercept(final Type reference, final ComponentContext context, final Dependency dependency) {
         final Class<?> type = Generics.rawType(reference);
 
         return new Dependency() {

@@ -33,7 +33,7 @@ import org.fluidity.composition.spi.ComponentInterceptor;
 @SuppressWarnings("UnusedDeclaration")
 final class DeferredReferenceInterceptor implements ComponentInterceptor {
 
-    public Dependency replace(final Type reference, final ComponentContext context, final Dependency dependency) {
+    public Dependency intercept(final Type reference, final ComponentContext context, final Dependency dependency) {
         final Deferred.Reference<?> deferred = Deferred.reference(new Deferred.Factory<Object>() {
             public Object create() {
                 return dependency.create();

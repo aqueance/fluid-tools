@@ -65,17 +65,19 @@ public interface ComponentInterceptor {
     /**
      * Replaces some dependency with a type compatible replacement. The interceptor is never invoked with a <code>null</code> dependency and returning a
      * <code>null</code> dependency will short-cut the interceptor chain and result in an unresolved dependency.
+     * <p/>
+     * The interceptor cannot invoke {@link ComponentInterceptor.Dependency#create()} in this method.
      *
      * @param reference  the fully specified reference to the dependency, including type parameters, if any.
      * @param context    the component context at the dependency reference.
-     * @param dependency the original, uninstantiated, dependency to replace; never <code>null</code>.
+     * @param dependency the dependency to intercept; never <code>null</code>.
      *
      * @return the replaced dependency; may be <code>null</code>.
      */
-    Dependency replace(Type reference, ComponentContext context, Dependency dependency);
+    Dependency intercept(Type reference, ComponentContext context, Dependency dependency);
 
     /**
-     * A dependency instance that can be replaced by {@link ComponentInterceptor#replace(Type, ComponentContext, ComponentInterceptor.Dependency)}. See {@link
+     * A dependency instance that can be replaced by {@link ComponentInterceptor#intercept}. See {@link
      * ComponentInterceptor} for details.
      *
      * @author Tibor Varga
@@ -83,7 +85,7 @@ public interface ComponentInterceptor {
     interface Dependency {
 
         /**
-         * Instantiates if necessary, and returns the dependency instance.
+         * Instantiates if necessary, and returns the dependency instance. This method may only be invoked from the same method of another object.
          *
          * @return the dependency instance; never <code>null</code>.
          */

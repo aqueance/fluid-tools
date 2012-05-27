@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.fluidity.composition.Component;
+import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.container.ComponentContextDescriptor;
 import org.fluidity.composition.container.ContextDefinition;
@@ -96,14 +97,22 @@ final class DependencyInterceptorsImpl implements DependencyInterceptors {
 
             final AtomicReference<ComponentInterceptor.Dependency> next = new AtomicReference<ComponentInterceptor.Dependency>(new ComponentInterceptor.Dependency() {
                 public Object create() {
-                    return last.get().create();
+                    final ComponentInterceptor.Dependency dependency = last.get();
+
+                    if (dependency == null) {
+                        throw new ComponentContainer.ResolutionException("Illegal interception during dependency replacement");
+                    }
+
+                    return dependency.create();
                 }
             });
 
             final List<String> applied = new ArrayList<String>();
 
             for (final InterceptorDescriptor descriptor : interceptors) {
-                final ComponentInterceptor.Dependency dependency = descriptor.interceptor.replace(reference, context.copy().accept(descriptor.type).create(), next.get());
+                final ComponentInterceptor.Dependency dependency = descriptor.interceptor.intercept(reference,
+                                                                                                    context.copy().accept(descriptor.type).create(),
+                                                                                                    next.get());
 
                 if (dependency == null) {
                     return null;
