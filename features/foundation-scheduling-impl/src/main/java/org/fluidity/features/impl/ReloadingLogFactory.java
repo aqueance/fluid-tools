@@ -30,6 +30,7 @@ import org.fluidity.foundation.Log;
  */
 @Component(api = ReloadingLog.class)
 @Component.Context(Component.Reference.class)
+@SuppressWarnings("UnusedDeclaration")
 final class ReloadingLogFactory implements CustomComponentFactory {
 
     public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {

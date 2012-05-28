@@ -124,11 +124,7 @@
 
         <profile>
             <id>integration-tests</id>
-            <activation>
-                <property>
-                    <name>integration-tests</name>
-                </property>
-            </activation>
+            <activation><property><name>integration-tests</name></property></activation>
 
             <build>
                 <plugins>

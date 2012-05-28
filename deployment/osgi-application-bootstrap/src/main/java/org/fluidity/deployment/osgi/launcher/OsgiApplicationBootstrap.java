@@ -93,7 +93,8 @@ public final class OsgiApplicationBootstrap {
 
         final RegexBasedInterpolator interpolator = new RegexBasedInterpolator();
 
-        interpolator.addValueSource(new PropertiesBasedValueSource(System.getProperties()));
+        final Properties global = System.getProperties();
+        interpolator.addValueSource(new PropertiesBasedValueSource(global));
         interpolator.addValueSource(new PropertiesBasedValueSource(properties));
 
         final RecursionInterceptor interceptor = new SimpleRecursionInterceptor();
@@ -105,7 +106,7 @@ public final class OsgiApplicationBootstrap {
         final List<String> keys = Collections.list((Enumeration<String>) properties.propertyNames());
 
         for (final String property : keys) {
-            config.put(property, interpolator.interpolate(properties.getProperty(property), interceptor));
+            config.put(property, interpolator.interpolate((global.containsKey(property) ? global : properties).getProperty(property), interceptor));
         }
 
         config.put(Constants.FRAMEWORK_BUNDLE_PARENT, Constants.FRAMEWORK_BUNDLE_PARENT_FRAMEWORK);
