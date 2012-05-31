@@ -33,22 +33,68 @@ import org.fluidity.foundation.Proxies;
 final class BundleBoundaryImpl implements BundleBoundary {
 
     public <T> T imported(final Class<T> type, final T remote) {
-        return tunnel(type, remote, this);
+        return tunnel(remote, this, new Tunnel<T, RuntimeException>() {
+            public T run(final boolean internal, final DelegatingClassLoader loader) {
+                return internal ? remote : Proxies.create(type, new ServiceInvocation(remote, loader));
+            }
+        });
     }
 
     public <T> T exported(final Class<T> type, final Object remote, final T local) {
-        return tunnel(type, local, remote);
+        return tunnel(local, remote, new Tunnel<T, RuntimeException>() {
+            public T run(final boolean internal, final DelegatingClassLoader loader) {
+                return internal ? local : Proxies.create(type, new ServiceInvocation(local, loader));
+            }
+        });
     }
 
-    private <T> T tunnel(final Class<T> type, final T remote, final Object local) {
-        final ClassLoader remoteCL = remote.getClass().getClassLoader();
-        final ClassLoader localCL = (local instanceof Class ? (Class) local : local.getClass()).getClassLoader();
+    public <T, E extends Throwable> T invoke(final Object remote, final Object local, final Command<T, E> command) throws E {
+        return tunnel(remote, local, new Tunnel<T, E>() {
+            public T run(final boolean internal, final DelegatingClassLoader loader) throws E {
+                return internal ? command.run() : ClassLoaders.context(loader, new ClassLoaders.ContextCommand<T, E>() {
+                    public T run(final ClassLoader loader) throws E {
+                        return command.run();
+                    }
+                });
+            }
+        });
+    }
 
-        return remoteCL == localCL ? remote : Proxies.create(type, new ServiceInvocation(remote, new DelegatingClassLoader(remoteCL, localCL)));
+    private <T, E extends Throwable> T tunnel(final Object remote, final Object local, final Tunnel<T, E> command) throws E {
+        final ClassLoader remoteCL = loader(remote);
+        final ClassLoader localCL = loader(local);
+
+        return command.run(remoteCL == localCL, new DelegatingClassLoader(remoteCL, localCL));
+    }
+
+    private ClassLoader loader(final Object remote) {
+        return (remote instanceof Class ? (Class) remote : remote.getClass()).getClassLoader();
     }
 
     /**
-     * Proxy invocation handler that wraps all methods calls to set and reset the calling thread's context class loader to allow the invoked method to load
+     * Internal interface to invoke with a tunneling class loader.
+     *
+     * @param <T> the return type of the command.
+     * @param <E> the return type of the command.
+     *
+     * @author Tibor Varga
+     */
+    public interface Tunnel<T, E extends Throwable> {
+
+        /**
+         * Run caller logic with the given tunneling class loader.
+         *
+         * @param internal <code>true</code> if the local and remote classes were loaded by the same bundle,
+         *                 <code>false</code> otherwise.
+         * @param loader   the class loader.
+         *
+         * @return the result of the caller logic.
+         */
+        T run(boolean internal, DelegatingClassLoader loader) throws E;
+    }
+
+    /**
+     * Proxy invocation handler that wraps all method calls to set and reset the calling thread's context class loader to allow the invoked method to load
      * classes both from the local bundle and from the one from which the invocation was made.
      *
      * @author Tibor Varga

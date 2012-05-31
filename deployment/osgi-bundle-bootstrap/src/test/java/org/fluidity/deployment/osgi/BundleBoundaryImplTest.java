@@ -18,6 +18,9 @@ package org.fluidity.deployment.osgi;
 
 import java.lang.reflect.Constructor;
 
+import org.fluidity.deployment.osgi.isolated.ServiceConsumerImpl;
+import org.fluidity.deployment.osgi.isolated.ServiceProviderImpl;
+
 import org.testng.annotations.Test;
 
 /**
@@ -26,9 +29,9 @@ import org.testng.annotations.Test;
 public class BundleBoundaryImplTest {
 
     @Test
-    public void testClassLoading() throws Exception {
-        final IsolatedClassLoader bundle1 = new IsolatedClassLoader("service", BundleBoundaryImplTest.class, BundleBoundary.class, ServiceProvider.class);
-        final IsolatedClassLoader bundle2 = new IsolatedClassLoader("client", BundleBoundaryImplTest.class, BundleBoundary.class, ServiceProvider.class);
+    public void testLocalWrapping() throws Exception {
+        final IsolatedClassLoader bundle1 = new IsolatedClassLoader("service", ServiceConsumerImpl.class);
+        final IsolatedClassLoader bundle2 = new IsolatedClassLoader("client");
 
         final Class<?> providerClass = bundle1.loadClass(ServiceProviderImpl.class.getName());
         final Class<?> consumerClass = bundle2.loadClass(ServiceConsumerImpl.class.getName());
@@ -47,8 +50,57 @@ public class BundleBoundaryImplTest {
         checkClassLoader(bundle2, (ServiceConsumer) constructor.newInstance(customs(bundle1).exported(ServiceProvider.class, consumerClass, provider)));
     }
 
+    @Test
+    public void testGlobalWrapping() throws Exception {
+        final IsolatedClassLoader bundle1 = new IsolatedClassLoader("service", ServiceConsumerImpl.class);
+        final IsolatedClassLoader bundle2 = new IsolatedClassLoader("client");
+
+        final Class<?> providerClass = bundle1.loadClass(ServiceProviderImpl.class.getName());
+        final Class<?> consumerClass = bundle2.loadClass(ServiceConsumerImpl.class.getName());
+
+        assert providerClass.getClassLoader() == bundle1;
+        assert consumerClass.getClassLoader() == bundle2;
+
+        final ServiceProvider provider = (ServiceProvider) providerClass.newInstance();
+
+        final Constructor<?> constructor = consumerClass.getDeclaredConstructor(ServiceProvider.class);
+
+        final ServiceConsumer consumer = (ServiceConsumer) constructor.newInstance(customs(bundle2).imported(ServiceProvider.class, provider));
+
+        checkClassLoader(bundle2, consumer);
+        checkClassLoader(bundle2, (ServiceConsumer) constructor.newInstance(customs(bundle1).exported(ServiceProvider.class, consumer, provider)));
+        checkClassLoader(bundle2, (ServiceConsumer) constructor.newInstance(customs(bundle1).exported(ServiceProvider.class, consumerClass, provider)));
+    }
+
+    @Test
+    public void testInvocation() throws Exception {
+        final IsolatedClassLoader bundle1 = new IsolatedClassLoader("service", ServiceConsumerImpl.class);
+        final IsolatedClassLoader bundle2 = new IsolatedClassLoader("client");
+
+        final Class<?> providerClass = bundle1.loadClass(ServiceProviderImpl.class.getName());
+        final Class<?> consumerClass = bundle2.loadClass(ServiceConsumerImpl.class.getName());
+
+        assert providerClass.getClassLoader() == bundle1;
+        assert consumerClass.getClassLoader() == bundle2;
+
+        final ServiceProvider provider = (ServiceProvider) providerClass.newInstance();
+
+        final Constructor<?> constructor = consumerClass.getDeclaredConstructor(ServiceProvider.class);
+
+        final ServiceConsumer consumer = (ServiceConsumer) constructor.newInstance(customs(bundle2).imported(ServiceProvider.class, provider));
+
+        checkClassLoader(bundle2, customs(bundle1).invoke(consumer, provider, new BundleBoundary.Command<String, Exception>() {
+            public String run() throws Exception {
+                return provider.callback(ServiceConsumerImpl.CallbackImpl.class.getName());
+            }
+        }));
+    }
+
     private void checkClassLoader(final IsolatedClassLoader expected, final ServiceConsumer consumer) throws Exception {
-        final String name = consumer.call();
+        checkClassLoader(expected, consumer.call());
+    }
+
+    private void checkClassLoader(IsolatedClassLoader expected, String name) {
         assert expected.name().equals(name) : name;
     }
 
@@ -57,5 +109,4 @@ public class BundleBoundaryImplTest {
         borders.setAccessible(true);
         return (BundleBoundary) borders.newInstance();
     }
-
 }

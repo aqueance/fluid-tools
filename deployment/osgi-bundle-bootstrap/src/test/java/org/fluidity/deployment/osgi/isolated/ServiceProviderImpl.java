@@ -14,18 +14,25 @@
  * limitations under the License.
  */
 
-package org.fluidity.deployment.osgi;
+package org.fluidity.deployment.osgi.isolated;
+
+import java.util.Properties;
+
+import org.fluidity.deployment.osgi.BundleComponentContainer;
+import org.fluidity.deployment.osgi.ServiceProvider;
+import org.fluidity.foundation.ClassLoaders;
 
 /**
- * An OSGi service consumer that passes to a service the name of a class not visible to the service and expects the service to instantiate the class. This is
- * used to verify the container's ability to make services able to load classes visible only to the calling bundle.
+ * @author Tibor Varga
  */
-public final class ServiceConsumerImpl implements ServiceConsumer, BundleComponentContainer.Managed {
+public final class ServiceProviderImpl implements ServiceProvider, BundleComponentContainer.Registration {
 
-    private final ServiceProvider provider;
+    public Class<?>[] types() {
+        return new Class<?>[] { ServiceProvider.class };
+    }
 
-    public ServiceConsumerImpl(final @Service ServiceProvider provider) {
-        this.provider = provider;
+    public Properties properties() {
+        return null;
     }
 
     public void start() throws Exception {
@@ -36,7 +43,7 @@ public final class ServiceConsumerImpl implements ServiceConsumer, BundleCompone
         // empty
     }
 
-    public String call() throws Exception {
-        return provider.callback(ServiceCallbackImpl.class.getName());
+    public String callback(String className) throws Exception {
+        return ((Callback) ClassLoaders.findClassLoader(getClass()).loadClass(className).newInstance()).invoke();
     }
 }

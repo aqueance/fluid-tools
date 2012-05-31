@@ -17,7 +17,6 @@
 package org.fluidity.deployment.osgi;
 
 import java.io.BufferedInputStream;
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -26,29 +25,23 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.Opcodes;
-
 /**
  * @author Tibor Varga
  */
 public class IsolatedClassLoader extends ClassLoader {
 
     private final Map<String, Class> loaded = new ConcurrentHashMap<String, Class>();
-    private final Set<String> shared = new HashSet<String>();
+    private final Set<String> invisible = new HashSet<String>();
 
     private final String name;
 
-    public IsolatedClassLoader(final String name, final Class... shared) {
+    public IsolatedClassLoader(final String name, final Class... invisible) {
         super(BundleComponentContainerImplTest.class.getClassLoader());
-
         this.name = name;
 
-        for (final Class type : shared) {
-            this.shared.add(type.getName());
+        for (final Class type : invisible) {
+            this.invisible.add(type.getName());
         }
-
-        this.shared.add(getClass().getName());
     }
 
     @Override
@@ -62,61 +55,52 @@ public class IsolatedClassLoader extends ClassLoader {
 
     @Override
     protected Class<?> loadClass(final String name, final boolean resolve) throws ClassNotFoundException {
-        final Class type = loaded.containsKey(name) ? loaded.get(name) : findClass(name);
-
-        if (resolve) {
-            resolveClass(type);
+        for (final String type : invisible) {
+            if (name.startsWith(type)) {
+                throw new ClassNotFoundException(name);
+            }
         }
 
-        return type;
-    }
+        if (name.startsWith(BundleBoundaryImpl.class.getName()) || name.contains(".isolated.")) {
+            synchronized (loaded) {
+                if (loaded.containsKey(name)) {
+                    return loaded.get(name);
+                } else {
+                    final ByteArrayOutputStream output = new ByteArrayOutputStream();
+                    final byte[] buffer = new byte[1024];
 
-    @Override
-    public Class<?> loadClass(final String name) throws ClassNotFoundException {
-        if (shared.contains(name)) {
-            return super.loadClass(name, false);
-        } else {
-            if (loaded.containsKey(name)) {
-                return loaded.get(name);
-            } else {
-                synchronized (loaded) {
-                    if (loaded.containsKey(name)) {
-                        return loaded.get(name);
-                    } else {
-                        final ByteArrayOutputStream output = new ByteArrayOutputStream();
-                        final byte[] buffer = new byte[1024];
+                    final InputStream input = new BufferedInputStream(getResourceAsStream(name.replaceAll("\\.", "/").concat(".class")));
 
-                        final InputStream input = new BufferedInputStream(getResourceAsStream(name.replaceAll("\\.", "/").concat(".class")));
-
-                        try {
-                            int read;
-                            while ((read = input.read(buffer)) > 0) {
-                                output.write(buffer, 0, read);
-                            }
-
-                            final byte[] bytes = output.toByteArray();
-
-                            final ClassReader reader = new ClassReader(new ByteArrayInputStream(bytes));
-
-                            if ((reader.getAccess() & Opcodes.ACC_INTERFACE) != 0 || reader.getClassName().startsWith("java/")) {
-                                loaded.put(name, super.loadClass(name, false));
-                            } else {
-                                loaded.put(name, defineClass(name, bytes, 0, bytes.length));
-                            }
-                        } catch (final IOException e) {
-                            throw new ClassNotFoundException(name, e);
-                        } finally {
-                            try {
-                                input.close();
-                            } catch (final IOException e) {
-                                // ignore
-                            }
+                    try {
+                        int read;
+                        while ((read = input.read(buffer)) > 0) {
+                            output.write(buffer, 0, read);
                         }
 
-                        return loaded.get(name);
+                        final byte[] bytes = output.toByteArray();
+
+                        final Class<?> type = defineClass(name, bytes, 0, bytes.length);
+
+                        loaded.put(name, type);
+
+                        if (resolve) {
+                            resolveClass(type);
+                        }
+
+                        return type;
+                    } catch (final IOException e) {
+                        throw new ClassNotFoundException(name, e);
+                    } finally {
+                        try {
+                            input.close();
+                        } catch (final IOException e) {
+                            // ignore
+                        }
                     }
                 }
             }
+        } else {
+            return super.loadClass(name, resolve);
         }
     }
 }
