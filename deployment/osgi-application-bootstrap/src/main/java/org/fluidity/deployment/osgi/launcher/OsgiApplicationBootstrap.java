@@ -34,7 +34,9 @@ import java.util.jar.JarFile;
 
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ContainerBoundary;
+import org.fluidity.composition.Optional;
 import org.fluidity.composition.spi.ContainerTermination;
+import org.fluidity.deployment.osgi.StartLevels;
 import org.fluidity.foundation.Archives;
 import org.fluidity.foundation.ClassLoaders;
 import org.fluidity.foundation.Log;
@@ -46,9 +48,12 @@ import org.codehaus.plexus.interpolation.RegexBasedInterpolator;
 import org.codehaus.plexus.interpolation.SimpleRecursionInterceptor;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
 import org.osgi.framework.launch.Framework;
 import org.osgi.framework.launch.FrameworkFactory;
+import org.osgi.framework.startlevel.BundleStartLevel;
+import org.osgi.framework.startlevel.FrameworkStartLevel;
 
 /**
  * A command line main class that bootstraps the application's dependency injection container, bootstraps an OSGi container, installs all JAR files as bundles
@@ -65,10 +70,12 @@ public final class OsgiApplicationBootstrap {
 
     private final Log<OsgiApplicationBootstrap> log;
     private final ContainerTermination termination;
+    private final StartLevels levels;
 
-    public OsgiApplicationBootstrap(final Log<OsgiApplicationBootstrap> log, final ContainerTermination termination) {
+    public OsgiApplicationBootstrap(final Log<OsgiApplicationBootstrap> log, final ContainerTermination termination, final @Optional StartLevels levels) {
         this.log = log;
         this.termination = termination;
+        this.levels = levels;
     }
 
     private void run() throws Exception {
@@ -142,16 +149,29 @@ public final class OsgiApplicationBootstrap {
 
         termination.run(new Runnable() {
             public void run() {
-                if (framework.getState() == Framework.ACTIVE) {
-                    try {
-                        log.info("Stopping the OSGi container");
-                        framework.stop(0);
-                        framework.waitForStop(0);
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                    } catch (final Exception e) {
-                        log.error(e, "Could not stop the OSGi container");
+                try {
+                    switch (framework.getState()) {
+                    case Framework.ACTIVE:
+                    case Framework.STARTING:
+                        try {
+                            framework.stop(0);
+                        } catch (final BundleException e) {
+                            log.error(e, "Could not stop the OSGi container");
+                        }
+
+                        // fall through
+                    case Framework.STOPPING:
+                        try {
+                            framework.waitForStop(0);
+                        } catch (final InterruptedException e) {
+                            Thread.currentThread().interrupt();
+                        }
+
+                    default:
+                        break;
                     }
+                } catch (final Exception e) {
+                    log.error(e, "Error stopping the OSGi container");
                 }
             }
         });
@@ -168,10 +188,49 @@ public final class OsgiApplicationBootstrap {
             }
         }
 
-        for (final Bundle bundle : bundles) {
-            log.info("Starting bundle %s", bundle.getSymbolicName());
+        final FrameworkStartLevel startLevel = framework.adapt(FrameworkStartLevel.class);
 
-            bundle.start();
+        if (startLevel == null) {
+            throw new IllegalStateException("OSGi framework does not provide start level management");
+        }
+
+        final List<List<Bundle>> order = new ArrayList<List<Bundle>>();
+
+        if (levels != null) {
+            final List<Bundle> remaining = new ArrayList<Bundle>(bundles);
+
+            // start level 0: framework stopped
+            // start level 1: framework started
+            // start level 2+ : bundle start levels
+            for (int level = 2; !remaining.isEmpty(); ++level) {
+
+                // list could be linked: unlink it
+                final List<Bundle> list = new ArrayList<Bundle>(levels.bundles(level, remaining));
+
+                // make sure no extra bundle has been added
+                list.retainAll(remaining);
+
+                // no bundle to start at this level: discard the rest
+                if (list.isEmpty()) {
+                    break;
+                }
+
+                remaining.removeAll(list);
+                order.add(list);
+
+                for (final Bundle bundle : list) {
+                    bundle.adapt(BundleStartLevel.class).setStartLevel(level);
+                }
+            }
+        }
+
+        for (final Bundle bundle : bundles) {
+            bundle.start(Bundle.START_ACTIVATION_POLICY);
+        }
+
+        if (levels != null) {
+            final int limit = order.size() + 1;
+            startLevel.setStartLevel(Math.max(1, Math.min(limit, levels.initial(limit))), null);
         }
 
         framework.waitForStop(0);

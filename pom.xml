@@ -46,7 +46,7 @@
         <fluidity.features.groupId>${fluidity.groupId}.features</fluidity.features.groupId>
         <fluidity.public.groupId>${fluidity.groupId}.public</fluidity.public.groupId>
 
-        <osgi.specification.version>4.2.0</osgi.specification.version>
+        <osgi.specification.version>4.3.0</osgi.specification.version>
         <maven.api.version>3.0.3</maven.api.version>
         <aether.version>1.13</aether.version>
         <asm.version>4.0</asm.version>
