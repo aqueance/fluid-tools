@@ -100,7 +100,7 @@ final class DependencyInterceptorsImpl implements DependencyInterceptors {
                     final ComponentInterceptor.Dependency dependency = last.get();
 
                     if (dependency == null) {
-                        throw new ComponentContainer.ResolutionException("Illegal interception during dependency replacement");
+                        throw new ComponentContainer.ResolutionException("Dependency access during interception");
                     }
 
                     return dependency.create();

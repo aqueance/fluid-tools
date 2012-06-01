@@ -148,7 +148,7 @@ public class DependencyInterceptorsTest extends MockGroupAbstractTest {
 
         assert replacement != node;
 
-        final ComponentContext context = mock(ComponentContext.class);
+        final ComponentContext context = localMock(ComponentContext.class);
 
         EasyMock.expect((Class) node.type()).andReturn(Serializable.class);
         EasyMock.expect(node.context()).andReturn(context);
@@ -203,7 +203,7 @@ public class DependencyInterceptorsTest extends MockGroupAbstractTest {
         }
 
         replay();
-        assert  interceptors.replace(resolver, context, traversal, Serializable.class, node) == null;
+        assert interceptors.replace(resolver, context, traversal, Serializable.class, node) == null;
         verify();
     }
 

@@ -295,7 +295,7 @@ public final class ComponentInterceptorTests extends AbstractContainerTests {
     @SuppressWarnings("UnusedDeclaration")
     private class Dependency2 {
 
-        private Dependency2(final @Optional @Annotation5 @Remove @Annotation4 @Annotation3 Dependency21 dependency3) { }
+        private Dependency2(final @Optional @Annotation5 @Remove @Annotation4 @Annotation3 Dependency21 dependency) { }
     }
 
     @Component(automatic = false)
