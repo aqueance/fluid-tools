@@ -31,7 +31,7 @@ import org.fluidity.composition.ComponentGroup;
  * invoked.
  * <p/>
  * If present, the {@linkplain org.fluidity.composition.Component.Context @Component.Context} annotation of the interceptor is consulted to determine
- * what dependency references will the interceptor be invoked for: it will be invoked for all dependency references that have all listed context annotations
+ * what dependency references will the interceptor be invoked for: it will be invoked for those dependency references that have all listed context annotations
  * present. Context annotations used by an interceptor do not implicitly become part of the context of any component unless it is explicitly listed by that
  * component as a context annotation.
  * <p/>
@@ -77,8 +77,7 @@ public interface ComponentInterceptor {
     Dependency intercept(Type reference, ComponentContext context, Dependency dependency);
 
     /**
-     * A dependency instance that can be replaced by {@link ComponentInterceptor#intercept}. See {@link
-     * ComponentInterceptor} for details.
+     * A dependency instance that can be replaced by {@link ComponentInterceptor#intercept}. See {@link ComponentInterceptor} for details.
      *
      * @author Tibor Varga
      */
