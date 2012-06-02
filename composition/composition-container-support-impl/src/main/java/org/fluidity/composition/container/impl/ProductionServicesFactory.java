@@ -17,7 +17,7 @@
 package org.fluidity.composition.container.impl;
 
 import org.fluidity.composition.container.ContainerServices;
-import org.fluidity.composition.container.ContainerServicesFactory;
+import org.fluidity.composition.container.internal.ContainerServicesFactory;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**

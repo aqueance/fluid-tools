@@ -77,7 +77,7 @@ public interface ComponentInterceptor {
     Dependency intercept(Type reference, ComponentContext context, Dependency dependency);
 
     /**
-     * A dependency instance that can be replaced by {@link ComponentInterceptor#intercept}. See {@link ComponentInterceptor} for details.
+     * A dependency that can be replaced by a {@link ComponentInterceptor}.
      *
      * @author Tibor Varga
      */

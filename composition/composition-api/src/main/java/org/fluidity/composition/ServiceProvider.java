@@ -27,7 +27,7 @@ import org.fluidity.foundation.ServiceProviders;
 
 /**
  * Declares that the annotated class, or implementing classes of the annotated interface, are service providers in the <a
- * href="http://download.oracle.com/javase/1.5.0/docs/guide/jar/jar.html#Service Provider">JAR File Specification</a>'s sense. As long as the
+ * href="http://download.oracle.com/javase/1.5.0/docs/guide/jar/jar.html#Service Provider">JAR File Specification</a>'s meaning of the term. As long as the
  * <code>org.fluidity.maven:maven-composition-plugin</code> Maven plugin is used in the host project, such classes can then be discovered in any given class
  * loader by the {@link org.fluidity.foundation.ClassDiscovery} component, or in case the {@link #type()} parameter is not specified, using the service
  * provider discovery mechanism built in the Java platform.

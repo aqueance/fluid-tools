@@ -17,9 +17,8 @@
 package org.fluidity.foundation;
 
 /**
- * Log interface to use by Fluid Tools components. An instance is provided to your component via dependency injection. You must use a parameterized reference
- * as
- * the dependency on this interface to specify the class that will be the name of the injected logger. For instance:
+ * Log interface to use by dependency injected components. An instance is provided to your component via dependency injection. You must use a parameterized
+ * reference as the dependency on this interface to specify the class that will be the name of the injected logger. For instance:
  * <pre>
  * &#64;Component
  * public class MyComponent {

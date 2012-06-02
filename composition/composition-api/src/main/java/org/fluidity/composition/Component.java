@@ -26,10 +26,10 @@ import java.lang.annotation.Target;
 import java.lang.reflect.Type;
 
 /**
- * Specifies the <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Definitions">component interface(s)</a> that a class implements and thus should
+ * Specifies the <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Definitions">component interface(s)</a> that a class implements, which should
  * resolve to the annotated class at run time by a dependency injection container.
  * <p/>
- * On its own, this implementation is a marker use by the <code>org.fluidity.maven:maven-composition-plugin</code> Maven plugin to make carefree dependency
+ * On its own, this implementation is a marker used by the <code>org.fluidity.maven:maven-composition-plugin</code> Maven plugin to make carefree dependency
  * injection possible.
  * <p/>
  * For any class marked with this annotation and without having automatic processing disabled, i.e., without {@link #automatic() @Component(automatic =
@@ -107,9 +107,10 @@ public @interface Component {
     boolean stateful() default false;
 
     /**
-     * Lists the <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Component_Context">context annotations</a> accepted by the annotated class,
-     * thereby allowing the component to specify the annotation classes that will configure instances of the component at the points of dependency references
-     * to the component. Such a configuration could, for instance, contain a database identifier for a database access dependency, etc.
+     * Lists the <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Component_Context">context annotations</a> accepted by the annotated component
+     * class. These annotations distinguish instances of the same component class from one another. Such a annotation could, for instance, specify a database
+     * identifier for a database access dependency, etc. The component receives, as a {@link ComponentContext} parameter of its constructor, the instances of
+     * its accepted annotations prevalent at the point of reference to the component.
      * <p/>
      * A special context is the parameterized type of the dependency reference to the context aware component, {@link Component.Reference @Component.Reference}.
      * <p/>
@@ -177,8 +178,8 @@ public @interface Component {
         Collection collect() default Collection.ALL;
 
         /**
-         * Defines how a chain of instances of the same context annotations along an instantiation path is handled. Used in {@link
-         * org.fluidity.composition.Component.Context#collect @Component.Context(collect = ...)}.
+         * Defines how a chain of instances of the same context annotation along an instantiation path is handled. Used in {@link
+         * Component.Context#collect @Component.Context(collect = ...)}.
          * <h3>Usage</h3>
          * <pre>
          * {@linkplain Documented @Documented}
@@ -273,7 +274,7 @@ public @interface Component {
     }
 
     /**
-     * Marks a dependency on an interface for lazy instantiation. If the dependency is not an interface, an exception is thrown.
+     * Marks a dependency for lazy instantiation. If the dependency reference is not to an interface, an {@link IllegalArgumentException} is thrown.
      * <h3>Usage</h3>
      * <pre>
      * {@linkplain Component @Component}

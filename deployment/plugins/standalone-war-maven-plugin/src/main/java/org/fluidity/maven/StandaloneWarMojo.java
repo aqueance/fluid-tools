@@ -34,7 +34,7 @@ import java.util.jar.JarFile;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
 
-import org.fluidity.deployment.impl.WarBootstrapLoader;
+import org.fluidity.deployment.launcher.WebApplicationBootstrap;
 import org.fluidity.deployment.maven.ArchivesSupport;
 import org.fluidity.deployment.maven.DependenciesSupport;
 import org.fluidity.foundation.Archives;
@@ -51,7 +51,7 @@ import org.sonatype.aether.RepositorySystemSession;
 import org.sonatype.aether.repository.RemoteRepository;
 
 /**
- * Adds code to the project WAR file that allows it to be run as a .jar file, e.g. <code>$ java -jar &lt;file name>.war</code>. More .war files can be
+ * Adds code to the project WAR file that allows it to be run as a JAR file; e.g. <code>$ java -jar &lt;file name>.war</code>. More WAR files can be
  * specified in the command line and all will be deployed to the same application server.
  * <p/>
  * <b>Technical Details</b>
@@ -184,8 +184,8 @@ public class StandaloneWarMojo extends AbstractMojo {
         final Artifact pluginArtifact = project.getPluginArtifactMap().get(pluginKey);
 
         final Collection<Artifact> pluginDependencies = DependenciesSupport.dependencyClosure(repositorySystem, repositorySession, repositories, pluginArtifact, false, false, null);
-        final Artifact handlerDependency = DependenciesSupport.artifact(WarBootstrapLoader.class, pluginDependencies);
-        assert handlerDependency != null : WarBootstrapLoader.class;
+        final Artifact handlerDependency = DependenciesSupport.artifact(WebApplicationBootstrap.class, pluginDependencies);
+        assert handlerDependency != null : WebApplicationBootstrap.class;
 
         final Collection<Artifact> bootstrapDependencies = DependenciesSupport.dependencyClosure(repositorySystem, repositorySession, repositories, handlerDependency, false, false, null);
 

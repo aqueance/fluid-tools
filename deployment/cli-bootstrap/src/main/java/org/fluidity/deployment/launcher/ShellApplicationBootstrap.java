@@ -28,11 +28,11 @@ import org.fluidity.deployment.cli.Application;
  *
  * @author Tibor Varga
  */
-public final class CommandLineBootstrap {
+public final class ShellApplicationBootstrap {
 
     private final Application application;
 
-    public CommandLineBootstrap(final Application application) throws Exception {
+    public ShellApplicationBootstrap(final Application application) throws Exception {
         this.application = application;
     }
 
@@ -41,10 +41,10 @@ public final class CommandLineBootstrap {
     }
 
     public static void main(final String[] args) throws Exception {
-        new ContainerBoundary().getComponent(CommandLineBootstrap.class, new ComponentContainer.Bindings() {
+        new ContainerBoundary().getComponent(ShellApplicationBootstrap.class, new ComponentContainer.Bindings() {
             @SuppressWarnings("unchecked")
             public void bindComponents(final ComponentContainer.Registry registry) {
-                registry.bindComponent(CommandLineBootstrap.class);
+                registry.bindComponent(ShellApplicationBootstrap.class);
             }
         }).run(args);
     }

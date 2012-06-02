@@ -25,6 +25,9 @@ package org.fluidity.deployment.cli;
  * The application exits when the call to the {@link #run(String[]) run()} method returns unless the developer has started and failed to stop non-daemon
  * threads.
  * <h3>Usage</h3>
+ * <h4>POM</h4>
+ * Use the <code>org.fluidity.maven:fluidity-archetype-standalone-jar</code> Maven archetype to generate the command line application wrapper project.
+ * <h4>Code</h4>
  * <pre>
  * {@linkplain org.fluidity.composition.Component @Component}
  * final MyApplication implements <span class="hl1">Application</span> {
@@ -33,40 +36,6 @@ package org.fluidity.deployment.cli;
  *     ...
  *   }
  * }
- * </pre>
- * The above code snippet assumes that the Maven POM for the host project contains the following snippet:
- * <pre>
- * ...
- * &lt;build>
- *   ...
- *   &lt;plugins>
- *     ...
- *     &lt;plugin>
- *       &lt;groupId>org.fluidity.maven&lt;/groupId>
- *       &lt;artifactId>maven-standalone-jar-plugin&lt;/artifactId>
- *       &lt;version>${fluid.tools.version}&lt;/version>
- *
- *       &lt;executions>
- *         &lt;execution>
- *           &lt;goals>
- *             &lt;goal>package&lt;/goal>
- *           &lt;/goals>
- *         &lt;/execution>
- *       &lt;/executions>
- *
- *       &lt;dependencies>
- *         &lt;dependency>
- *           &lt;groupId>org.fluidity.features&lt;/groupId>
- *           &lt;artifactId>jar-manifest-command-launcher-impl&lt;/artifactId>
- *           &lt;version>${fluid.tools.version}&lt;/version>
- *         &lt;/dependency>
- *       &lt;/dependencies>
- *     &lt;/plugin>
- *     ...
- *   &lt;/plugins>
- *   ...
- * &lt;/build>
- * ...
  * </pre>
  */
 public interface Application {

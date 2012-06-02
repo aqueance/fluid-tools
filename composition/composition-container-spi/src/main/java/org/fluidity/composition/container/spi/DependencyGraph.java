@@ -212,7 +212,7 @@ public interface DependencyGraph {
     }
 
     /**
-     * A graph traversal that maintains state during traversal such as current path, nodes and component contexts along the path, and handles circular
+     * A graph traversal that maintains, during graph traversal, state such as current path, nodes and component contexts along the path, and handles circular
      * references.
      * <h3>Usage</h3>
      * You don't interact with an internal interface.

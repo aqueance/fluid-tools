@@ -82,7 +82,7 @@ public interface BundleBoundary {
     <T, E extends Throwable> T invoke(Object remote, Object local, Command<T, E> command) throws E;
 
     /**
-     * A command to be invoked by {@link BundleBoundary#invoke(Object, Object, BundleBoundary.Command)}.
+     * A command to be invoked by {@link BundleBoundary#invoke(Object, Object, BundleBoundary.Command) BundleBoundary.invoke()}.
      *
      * @param <T> the return type of the {@link #run()} method.
      * @param <E> the exception type thrown by the {@link #run()} method.

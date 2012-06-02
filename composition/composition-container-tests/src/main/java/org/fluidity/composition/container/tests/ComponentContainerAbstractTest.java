@@ -21,8 +21,8 @@ import java.util.Map;
 
 import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.container.ContainerServices;
-import org.fluidity.composition.container.ContainerServicesFactory;
 import org.fluidity.composition.container.impl.ProductionServicesFactory;
+import org.fluidity.composition.container.internal.ContainerServicesFactory;
 import org.fluidity.composition.container.spi.OpenComponentContainer;
 import org.fluidity.foundation.NoLogFactory;
 import org.fluidity.tests.MockGroupAbstractTest;

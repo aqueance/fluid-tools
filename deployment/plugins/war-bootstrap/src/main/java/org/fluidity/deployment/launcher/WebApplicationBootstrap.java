@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.fluidity.deployment.impl;
+package org.fluidity.deployment.launcher;
 
 import java.io.File;
 import java.io.IOException;
@@ -36,21 +36,23 @@ import org.fluidity.foundation.ServiceProviders;
 import org.fluidity.foundation.jarjar.Handler;
 
 /**
- * Prepares the web container bootstrap process, e.g. creating a work directory, setting up the boot classpath and loading and invoking the bootstrap
- * component.
+ * A command line main class that prepares the web container bootstrap process, e.g., creating a work directory, setting up the boot classpath and loading and
+ * invoking a supplied {@linkplain ServerBootstrap bootstrap} component.
+ * <p/>
+ * <b>NOTE</b>: This class is public <em>only</em> so that its main method can be found by the Java launcher.
  *
  * @author Tibor Varga
  */
-public final class WarBootstrapLoader {
+public final class WebApplicationBootstrap {
 
     private final Pattern warFilePattern = Pattern.compile("^(jar:)?file:(.+?.war)(\\!/.*)?");
 
     public static void main(final String[] args) throws Exception {
-        new WarBootstrapLoader().boot(args);
+        new WebApplicationBootstrap().boot(args);
     }
 
     private void boot(final String[] args) throws Exception {
-        final Class<? extends WarBootstrapLoader> bootstrapClass = getClass();
+        final Class<? extends WebApplicationBootstrap> bootstrapClass = getClass();
         final String name = ClassLoaders.classResourceName(bootstrapClass);
         final ClassLoader bootstrapLoader = bootstrapClass.getClassLoader();
         final String bootUrl = URLDecoder.decode(bootstrapLoader.getResource(name).toExternalForm(), "UTF-8");
@@ -91,7 +93,7 @@ public final class WarBootstrapLoader {
                     params.add(param);
                 }
             }
-            final URL url = ClassLoaders.findClassResource(WarBootstrapLoader.class);
+            final URL url = ClassLoaders.findClassResource(WebApplicationBootstrap.class);
             final JarURLConnection jar = Archives.jarFile(url);
 
             if (jar != null) {

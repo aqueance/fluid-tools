@@ -17,9 +17,10 @@
 package org.fluidity.composition;
 
 /**
- * A dependency injection container that offers traversal of static dependencies without instantiating components, and dynamic dependencies while resolving and
- * instantiating components. An <code>ObservedComponentContainer</code> instance works together with a client supplied {@link org.fluidity.composition.ComponentContainer.Observer}
- * object that it sends component resolution events to.
+ * A dependency injection container that exposes to {@linkplain ComponentContainer.Observer application components} the static dependencies in a dependency
+ * graph without instantiating components, and the dynamic dependencies while resolving and instantiating components. An
+ * <code>ObservedComponentContainer</code> instance works together with a client supplied {@link ComponentContainer.Observer} object that it sends component
+ * resolution events to.
  * <h3>Usage</h3>
  * <pre>
  * {@linkplain Component @Component}

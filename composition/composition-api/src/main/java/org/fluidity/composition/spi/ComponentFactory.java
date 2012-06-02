@@ -25,7 +25,7 @@ import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
 
 /**
- * Creates instances of a component when mere constructor and field injection is not adequate. You don't directly use this interface but use {@link
+ * Creates instances of a component when mere constructor and field injection is not adequate. You don't directly use this interface; rather, you use {@link
  * CustomComponentFactory} or {@link ComponentVariantFactory} instead.
  * <p/>
  * Component instantiation follows a certain protocol and <code>ComponentFactory</code> objects must follow that protocol to integrate well to Fluid Tools.

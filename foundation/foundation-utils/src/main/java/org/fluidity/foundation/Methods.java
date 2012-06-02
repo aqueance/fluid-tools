@@ -63,7 +63,7 @@ public final class Methods extends Utility {
     }
 
     /**
-     * Allows the caller of {@link Methods#get(Class, Invoker)} to find a method without referring to it by name.
+     * Allows the caller of {@link Methods#get(Class, Invoker) Methods.get()} to find a method without referring to it by name.
      */
     public interface Invoker<T> {
 

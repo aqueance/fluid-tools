@@ -20,7 +20,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.jar.Attributes;
 
-import org.fluidity.deployment.launcher.CommandLineBootstrap;
+import org.fluidity.deployment.launcher.ShellApplicationBootstrap;
 import org.fluidity.deployment.plugin.spi.JarManifest;
 import org.fluidity.foundation.Strings;
 import org.fluidity.foundation.jarjar.Launcher;
@@ -55,7 +55,7 @@ public final class CommandLineJarManifest implements JarManifest {
 
         if (originalMainClass == null) {
             final String mainClass = attributes.getValue(Attributes.Name.MAIN_CLASS);
-            attributes.putValue(Launcher.ORIGINAL_MAIN_CLASS, mainClass == null ? CommandLineBootstrap.class.getName() : mainClass);
+            attributes.putValue(Launcher.ORIGINAL_MAIN_CLASS, mainClass == null ? ShellApplicationBootstrap.class.getName() : mainClass);
             attributes.put(Attributes.Name.MAIN_CLASS, Launcher.class.getName());
         }
 

@@ -21,8 +21,8 @@ import org.fluidity.composition.ServiceProvider;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**
- * Log factory that gobbles up messages. This log implementation is meant to be used when you don't want any log
- * message actually emitted, e.g., in test cases.
+ * Log factory that to produce loggers that gobble up messages. This log implementation is meant to be used when you don't want any log message actually
+ * emitted, e.g., in test cases.
  *
  * @author Tibor Varga
  */

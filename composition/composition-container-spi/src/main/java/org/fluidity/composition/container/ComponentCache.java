@@ -19,8 +19,8 @@ package org.fluidity.composition.container;
 import org.fluidity.composition.ComponentContext;
 
 /**
- * Caches components by <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Component_Context">context</a> in a domain. Instances of this cache are
- * provided for dependency injection container implementations to cache instantiated components.
+ * Caches components by <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Component_Context">context</a> on behalf of a container. Instances of this
+ * cache are provided for dependency injection container implementations to cache instantiated components.
  * <p/>
  * A domain is a mirror of the dependency injection container hierarchy of the application that is isolated from other domains. Caching of component instances
  * are performed in each domain separately from other domains.
@@ -77,8 +77,8 @@ public interface ComponentCache {
     Object lookup(Object domain, String source, ComponentContext context, Class<?> api, Entry factory);
 
     /**
-     * A command to create some component instance. This interface is used to tell a {@link ComponentCache} how to instantiate the cached component if it's
-     * missing.
+     * A factory to provide a component instance at cache miss. This interface is used to tell a {@link ComponentCache} how to instantiate the cached component
+     * when it's missing from the cache.
      * <h3>Usage</h3>
      * See {@link ComponentCache}.
      *

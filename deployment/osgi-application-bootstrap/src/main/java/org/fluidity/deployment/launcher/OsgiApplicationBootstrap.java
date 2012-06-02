@@ -67,7 +67,7 @@ import org.osgi.framework.startlevel.FrameworkStartLevel;
  * With OSGi version earlier than 4.2, bundle and framework start levels are set to 1 and no fine tuning is possible.
  * <h3>Usage</h3>
  * <h4>POM</h4>
- * Use the <code>org.fluidity.maven:fluidity-archetype-standalone-osgi</code> archetype to create the project.
+ * Use the <code>org.fluidity.maven:fluidity-archetype-standalone-osgi</code> Maven archetype to create the standalone OSGi application wrapper project.
  * <h4>Start Levels</h4>
  * See {@link StartLevels} for details.
  *

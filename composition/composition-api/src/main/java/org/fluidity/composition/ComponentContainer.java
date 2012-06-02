@@ -687,7 +687,7 @@ public interface ComponentContainer {
     }
 
     /**
-     * Reports an error that occurred while trying to instantiate a component class during dependency resolution.
+     * Reports an error that occurred while trying to instantiate a component during dependency resolution.
      */
     class InstantiationException extends ResolutionException {
 

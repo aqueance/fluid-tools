@@ -21,10 +21,10 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * A dependency path. Objects implementing this interface are created and provided to {@linkplain ComponentContainer.Observer component resolution observers}
- * and to {@linkplain ComponentContainer.InstantiationException instantiation exception} handlers. A dependency path is a list of
- * components that depend on one another, each on the next in the path, up to the {@linkplain #head() head} of the path, which represents the "current"
- * component.
+ * A dependency path used when {@linkplain ObservedComponentContainer observing} dependency resolutions. Objects implementing this interface are created and
+ * provided to {@linkplain ComponentContainer.Observer component resolution observers} and to {@linkplain ComponentContainer.InstantiationException
+ * instantiation exception} handlers. A dependency path is a list of components that depend on one another, each on the next in the path, up to the {@linkplain
+ * #head() head} of the path, which represents the "current" component.
  * <h3>Usage</h3>
  * TODO
  *
@@ -58,7 +58,7 @@ public interface DependencyPath {
     String toString(boolean api);
 
     /**
-     * Dependency path element. A sequence of objects implementing this interface comprise a {@link DependencyPath}.
+     * Details about one element in a dependency path. A sequence of objects implementing this interface comprise a {@link DependencyPath}.
      * <h3>Usage</h3>
      * TODO
      *

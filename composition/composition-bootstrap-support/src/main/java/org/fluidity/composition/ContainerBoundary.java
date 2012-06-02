@@ -29,8 +29,8 @@ import java.util.WeakHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.fluidity.composition.container.ContainerServices;
-import org.fluidity.composition.container.ContainerServicesFactory;
 import org.fluidity.composition.container.PlatformContainer;
+import org.fluidity.composition.container.internal.ContainerServicesFactory;
 import org.fluidity.composition.container.spi.ContainerProvider;
 import org.fluidity.composition.container.spi.OpenComponentContainer;
 import org.fluidity.composition.spi.ComponentInterceptor;
@@ -38,10 +38,10 @@ import org.fluidity.foundation.ClassLoaders;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**
- * Static access to a class loader specific <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Dependency_Injection_Concept">dependency injection</a>
- * <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Dependency_Injection_Containers">container</a>. This utility class ensures that the container
- * hierarchy of the host application matches the class loader hierarchy. The highest level class loader to have a container is the one that can find the
- * dependencies of this class: {@link ContainerProvider} and {@link ContainerServicesFactory}.
+ * External access to a class loader specific <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Dependency_Injection_Concept">dependency
+ * injection</a> <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Dependency_Injection_Containers">container</a>. This utility class ensures that
+ * the container hierarchy of the host application matches the class loader hierarchy. The highest level class loader to have a container is the one that can
+ * find the dependencies of this class: {@link ContainerProvider} and {@link ContainerBootstrap}.
  * <p/>
  * When instantiated, this class bootstraps all parent containers that have not yet been populated. Instances of this class all work against the same data
  * structure, thereby giving classes instantiated by third parties access to the container relevant to their level in the application's class loader hierarchy.

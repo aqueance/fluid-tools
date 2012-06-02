@@ -77,7 +77,7 @@ Contains the class that loads an embedded Jetty and deploys one or more war arti
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>org.fluidity.deployment.impl.WarBootstrapLoader</mainClass>
+                            <mainClass>org.fluidity.deployment.launcher.WebApplicationBootstrap</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

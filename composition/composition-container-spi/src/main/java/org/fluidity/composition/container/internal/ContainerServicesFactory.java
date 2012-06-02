@@ -14,28 +14,21 @@
  * limitations under the License.
  */
 
-package org.fluidity.composition.container;
+package org.fluidity.composition.container.internal;
 
 import org.fluidity.composition.ServiceProvider;
+import org.fluidity.composition.container.ContainerServices;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**
- * Creates a {@link ContainerServices} object.
- * <h3>Usage</h3>
- * The only way you might ever interact with this interface is by implementing it:
- * <pre>
- * final MyServicesFactoryImpl implements <span class="hl1">ContainerServicesFactory</span> {
- *   public {@linkplain ContainerServices} containerServices(final {@linkplain LogFactory} logs) {
- *     return new ...
- *   }
- * }
- * </pre>
+ * An internal component not intended for any sort of interaction with application or service provider logic. This factory allows testing the
+ * <code>ContainerBoundary</code> class without having an actual container in place.
  */
 @ServiceProvider
 public interface ContainerServicesFactory {
 
     /**
-     * Creates a {@link ContainerServices} object.
+     * Creates a {@link org.fluidity.composition.container.ContainerServices} object.
      *
      * @param logs the logger factory to use.
      *

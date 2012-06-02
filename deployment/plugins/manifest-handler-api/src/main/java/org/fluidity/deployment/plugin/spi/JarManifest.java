@@ -24,7 +24,7 @@ import org.apache.maven.artifact.Artifact;
 import org.apache.maven.project.MavenProject;
 
 /**
- * Implements some JAR manifest file transformation. The <code>org.fluidity.maven:maven-standalone-jar-plugin</code> Maven plugin can be configured with an
+ * Implements some JAR manifest transformation. The <code>org.fluidity.maven:maven-standalone-jar-plugin</code> Maven plugin can be configured with an
  * implementation of this interface to transform the manifest file of the host project.
  * <p/>
  * The implementation must be accompanied by a JAR service provider file for the above plugin to find the implementation.
@@ -118,9 +118,9 @@ public interface JarManifest {
     void processManifest(MavenProject project, Attributes attributes, List<String> paths, Collection<Artifact> dependencies);
 
     /**
-     * Allows delegating some computation to a command loaded by a different class loader than the one that loaded this interface. This is intended to be used
-     * by {@link JarManifest} implementations to allow them to load classes for example from the host project without requiring further dependencies to be
-     * added to the plugin itself.
+     * Allows delegating some computation to a command loaded by a class loader that is different from the one that loaded this interface. This is intended to
+     * be used by {@link JarManifest} implementations to allow them to load classes for example from the host project without requiring further dependencies to
+     * be added to the plugin itself.
      */
     interface Command<R, P> {
 

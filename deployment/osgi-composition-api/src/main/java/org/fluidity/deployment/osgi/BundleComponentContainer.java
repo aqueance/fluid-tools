@@ -217,9 +217,9 @@ public interface BundleComponentContainer {
     }
 
     /**
-     * Allows an item managed by the container to be explicitly removed from the container. This is also done automatically when the owning bundle is stopped.
+     * Super-interface for the various managed component interfaces.
      * <p/>
-     * You never use this interface directly but through more specific interfaces such as {@link Managed}, {@link Registration} and
+     * <b>NOTE</b>: You never use this interface directly but through more specific interfaces such as {@link Managed}, {@link Registration}, and
      * {@link Registration.Listener}.
      *
      * @author Tibor Varga
