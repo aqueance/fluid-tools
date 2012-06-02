@@ -36,8 +36,8 @@ import org.osgi.framework.Bundle;
 public interface StartLevels {
 
     /**
-     * Returns the list of bundles to start at the given level. This method is called for each level starting from 2 progressively until the returned list
-     * contains no more of the remaining bundles.
+     * Returns the list of bundles to start at the given level. This method is called for each level starting from <code>2</code> progressively until the
+     * returned list contains no more of the remaining bundles.
      *
      * @param level   the start level to return the list of bundles to start at.
      * @param bundles the list of bundles not yet assigned a start level.

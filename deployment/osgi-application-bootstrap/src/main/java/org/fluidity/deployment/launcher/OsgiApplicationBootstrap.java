@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.fluidity.deployment.osgi.launcher;
+package org.fluidity.deployment.launcher;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -56,10 +56,20 @@ import org.osgi.framework.startlevel.BundleStartLevel;
 import org.osgi.framework.startlevel.FrameworkStartLevel;
 
 /**
- * A command line main class that bootstraps the application's dependency injection container, bootstraps an OSGi container, installs all JAR files as bundles
- * from <code>META-INF/bundles/</code>, starts all non-fragment bundles, and then waits for the OSGi framework to stop.
+ * A command line main class that populates the application's dependency injection container, bootstraps an OSGi framework, installs all bundle JAR files
+ * visible to its class loader, starts all non-fragment bundles, and then waits for the OSGi framework to stop.
  * <p/>
- * This class is public for its main method to be found by the Java launcher.
+ * <b>NOTE</b>: This class is public <em>only</em> so that its main method can be found by the Java launcher.
+ * <p/>
+ * With OSGi version 4.3 or later, bundle and framework start levels default to 2 to enable starting and stopping all bundles by simply setting the framework
+ * start level. Fine tuning of start levels is possible through an optional implementation of the {@link StartLevels} interface.
+ * <p/>
+ * With OSGi version earlier than 4.2, bundle and framework start levels are set to 1 and no fine tuning is possible.
+ * <h3>Usage</h3>
+ * <h4>POM</h4>
+ * Use the <code>org.fluidity.maven:fluidity-archetype-standalone-osgi</code> archetype to create the project.
+ * <h4>Start Levels</h4>
+ * See {@link StartLevels} for details.
  *
  * @author Tibor Varga
  */
@@ -156,7 +166,7 @@ public final class OsgiApplicationBootstrap {
                         try {
                             framework.stop(0);
                         } catch (final BundleException e) {
-                            log.error(e, "Could not stop the OSGi container");
+                            log.error(e, "Could not stop the OSGi framework");
                         }
 
                         // fall through
@@ -171,7 +181,7 @@ public final class OsgiApplicationBootstrap {
                         break;
                     }
                 } catch (final Exception e) {
-                    log.error(e, "Error stopping the OSGi container");
+                    log.error(e, "Error stopping the OSGi framework");
                 }
             }
         });
@@ -188,15 +198,11 @@ public final class OsgiApplicationBootstrap {
             }
         }
 
-        final FrameworkStartLevel startLevel = framework.adapt(FrameworkStartLevel.class);
-
-        if (startLevel == null) {
-            throw new IllegalStateException("OSGi framework does not provide start level management");
-        }
+        final FrameworkStartLevel startLevel = levels == null ? null : framework.adapt(FrameworkStartLevel.class);
 
         final List<List<Bundle>> order = new ArrayList<List<Bundle>>();
 
-        if (levels != null) {
+        if (startLevel != null) {
             final List<Bundle> remaining = new ArrayList<Bundle>(bundles);
 
             // start level 0: framework stopped
@@ -228,7 +234,7 @@ public final class OsgiApplicationBootstrap {
             bundle.start(Bundle.START_ACTIVATION_POLICY);
         }
 
-        if (levels != null) {
+        if (startLevel != null) {
             final int limit = order.size() + 1;
             startLevel.setStartLevel(Math.max(1, Math.min(limit, levels.initial(limit))), null);
         }

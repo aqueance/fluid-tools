@@ -27,12 +27,16 @@ import org.fluidity.foundation.ClassLoaders;
 import org.fluidity.foundation.Proxies;
 
 /**
+ * <b>NOTE</b>: This class <em>must be</em> loaded by the class loader of the bundle it is expected to import services into.
+ *
  * @author Tibor Varga
  */
 @Component
 final class BundleBoundaryImpl implements BundleBoundary {
 
     public <T> T imported(final Class<T> type, final T remote) {
+
+        // the use of "this" requires this class to be loaded by the class loader of the bundle importing the remote object into
         return tunnel(remote, this, new Tunnel<T, RuntimeException>() {
             public T run(final boolean internal, final DelegatingClassLoader loader) {
                 return internal ? remote : Proxies.create(type, new ServiceInvocation(remote, loader));

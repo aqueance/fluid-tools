@@ -38,6 +38,8 @@
     </licenses>
 
     <properties>
+
+        <!-- Equinox versions earlier than 3.7 cannot be embedded, apparently -->
         <equinox.version>3.7.2</equinox.version>
     </properties>
 

@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-package org.fluidity.deployment.impl;
+package org.fluidity.deployment.launcher;
 
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ContainerBoundary;
 import org.fluidity.deployment.cli.Application;
 
 /**
- * A command line main class that bootstraps the application's dependency injection container, invokes {@link Application#run(String[])} to load and run the
- * application supplied main loop.
+ * A command line main class that populates the application's dependency injection container and invokes {@link Application#run(String[])} on the application
+ * supplied implementation to load and run the application's main loop.
  * <p/>
- * This class is public for its main method to be found by the Java launcher.
+ * <b>NOTE</b>: This class is public <em>only</em> so that its main method can be found by the Java launcher.
  *
  * @author Tibor Varga
  */

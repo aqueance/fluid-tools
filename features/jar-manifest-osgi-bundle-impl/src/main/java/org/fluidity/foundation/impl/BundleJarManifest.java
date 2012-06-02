@@ -66,7 +66,9 @@ import static org.osgi.framework.Constants.IMPORT_PACKAGE;
 import static org.osgi.framework.Constants.REQUIRE_BUNDLE;
 
 /**
- * Modifies the JAR manifest of the host project's artifact so that an OSGi container finds its embedded JAR files and adds them to the bundle's class path.
+ * Modifies the JAR manifest of the host project's artifact to make the artifact a self-containing OSGi bundle. That is, the project's dependencies will be
+ * embedded in the produced artifact and the proper OSGi manifest headers will be generated for the OSGi framework to treat those dependencies as part of the
+ * bundle.
  *
  * @author Tibor Varga
  */

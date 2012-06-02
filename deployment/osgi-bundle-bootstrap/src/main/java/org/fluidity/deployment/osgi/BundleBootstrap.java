@@ -34,9 +34,11 @@ import org.osgi.framework.BundleContext;
 
 /**
  * Bootstraps the dependency injection container in an OSGi bundle. A properly set up OSGi bundle Maven project will automatically set up this class as the
- * bundle activator for the project artifact. Thus, you never need to directly deal with this class.
+ * bundle activator for the project artifact. Thus, you should never need to directly deal with this class.
  * <p/>
- * This class must be public with a zero-arg constructor for the OSGi container to be able to instantiate it.
+ * <b>NOTE 1</b>: This class <em>must be</em> public with a zero-arg constructor for the OSGi container to be able to instantiate it.
+ * <p/>
+ * <b>NOTE 2</b>: This class <em>must be</em> loaded by the class loader of the bundle it is expected to bootstrap.
  *
  * @author Tibor Varga
  */

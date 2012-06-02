@@ -70,7 +70,6 @@
         <module>archetypes</module>
         <module>features</module>
         <module>public</module>
-        <module>integration-tests</module>
     </modules>
 
     <!--
@@ -165,7 +164,17 @@
     <profiles>
 
         <profile>
+            <id>normal</id>
+            <activation><property><name>!distribution</name></property></activation>
+
+            <modules>
+                <module>integration-tests</module>
+            </modules>
+        </profile>
+
+        <profile>
             <id>sources</id>
+            <activation><property><name>distribution</name></property></activation>
             <build>
                 <plugins>
 
@@ -189,6 +198,7 @@
 
         <profile>
             <id>javadoc</id>
+            <activation><property><name>distribution</name></property></activation>
             <build>
                 <plugins>
 

@@ -20,7 +20,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.jar.Attributes;
 
-import org.fluidity.deployment.impl.CommandLineBootstrap;
+import org.fluidity.deployment.launcher.CommandLineBootstrap;
 import org.fluidity.deployment.plugin.spi.JarManifest;
 import org.fluidity.foundation.Strings;
 import org.fluidity.foundation.jarjar.Launcher;

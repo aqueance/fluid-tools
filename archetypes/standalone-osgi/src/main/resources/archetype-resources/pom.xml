@@ -66,6 +66,8 @@ limitations under the License.
             <!--
             Manual download from http://download.eclipse.org/equinox/
             Empty POM will suffice.
+
+            Equinox versions earlier than 3.7 cannot be embedded.
             -->
             <groupId>org.eclipse</groupId>
             <artifactId>equinox</artifactId>
@@ -115,7 +117,7 @@ limitations under the License.
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>org.fluidity.deployment.osgi.launcher.OsgiApplicationBootstrap</mainClass>
+                            <mainClass>org.fluidity.deployment.launcher.OsgiApplicationBootstrap</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
