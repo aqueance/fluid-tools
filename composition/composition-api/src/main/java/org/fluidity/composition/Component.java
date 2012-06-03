@@ -29,11 +29,11 @@ import java.lang.reflect.Type;
  * Specifies the <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Definitions">component interface(s)</a> that a class implements, which should
  * resolve to the annotated class at run time by a dependency injection container.
  * <p/>
- * On its own, this implementation is a marker used by the <code>org.fluidity.maven:maven-composition-plugin</code> Maven plugin to make carefree dependency
+ * On its own, this implementation is a marker used by the <code>org.fluidity.maven:composition-maven-plugin</code> Maven plugin to make carefree dependency
  * injection possible.
  * <p/>
  * For any class marked with this annotation and without having automatic processing disabled, i.e., without {@link #automatic() @Component(automatic =
- * false)}, the <code>maven-composition-plugin</code> Maven plugin will generate at build time the necessary metadata that the dependency injection container
+ * false)}, the <code>composition-maven-plugin</code> Maven plugin will generate at build time the necessary metadata that the dependency injection container
  * will need to pick up and process the annotated class at run time.
  * <h3>Usage</h3>
  * <pre>
@@ -74,7 +74,7 @@ public @interface Component {
     Class<?>[] api() default { };
 
     /**
-     * Tells whether the annotated class can be processed by the <code>org.fluidity.maven:maven-composition-plugin</code> Maven plugin. The default value is
+     * Tells whether the annotated class can be processed by the <code>org.fluidity.maven:composition-maven-plugin</code> Maven plugin. The default value is
      * <code>true</code>, which means the class can be processed by the plugin.
      * <p/>
      * Setting this property to <code>false</code> allows the class to be manually processed or to merely to define a list of interfaces for another class to
@@ -217,8 +217,8 @@ public @interface Component {
 
     /**
      * <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Component_Context">Context annotation</a> that captures the parameterized type of a
-     * component reference. This is not an actual annotation from the Java syntax point of view but simply a run-time representation of an annotation to convey
-     * type information. A Java annotation would not allow <code>Type</code> as the type of a parameter.
+     * component reference. This is not an actual annotation from the Java syntax point of view &ndash; a Java annotation would not allow <code>Type</code> as
+     * the type of a parameter &ndash; but simply a run-time representation of an annotation to convey type information.
      * <h3>Usage</h3>
      * <pre>
      * {@linkplain Component @Component}
@@ -245,7 +245,7 @@ public @interface Component {
      * final class MyReferrer {
      *
      *   public MyReferrer(final <span class="hl2">MyComponent</span><span class="hl3">&lt;MyType></span> dependency) {
-     *     assert dependency.<span class="hl2">type()</span> == <span class="hl3">MyType</span>.class : MyComponent.class;
+     *     assert dependency.<span class="hl2">type()</span> == <span class="hl3">MyType</span>.class : <span class="hl2">MyComponent</span>.class;
      *     ...
      *   }
      * }

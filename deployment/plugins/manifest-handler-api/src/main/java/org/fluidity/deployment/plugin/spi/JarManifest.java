@@ -24,7 +24,7 @@ import org.apache.maven.artifact.Artifact;
 import org.apache.maven.project.MavenProject;
 
 /**
- * Implements some JAR manifest transformation. The <code>org.fluidity.maven:maven-standalone-jar-plugin</code> Maven plugin can be configured with an
+ * Implements some JAR manifest transformation. The <code>org.fluidity.maven:standalone-jar-maven-plugin</code> Maven plugin can be configured with an
  * implementation of this interface to transform the manifest file of the host project.
  * <p/>
  * The implementation must be accompanied by a JAR service provider file for the above plugin to find the implementation.
@@ -105,7 +105,7 @@ public interface JarManifest {
     String dependencyPath();
 
     /**
-     * Transforms the provided main manifest attributes of the given Maven project. The <code>org.fluidity.maven:maven-standalone-jar-plugin</code> Maven
+     * Transforms the provided main manifest attributes of the given Maven project. The <code>org.fluidity.maven:standalone-jar-maven-plugin</code> Maven
      * plugin packages the host project's run-time dependencies into the project artifact, including the original project artifact itself, before invoking this
      * method. The method receives in its <code>paths</code> parameter the paths, relative to the project artifact, to the packaged run-time dependencies, and
      * in its <code>dependencies</code> parameter the run-time or compile-time dependencies of the host project.

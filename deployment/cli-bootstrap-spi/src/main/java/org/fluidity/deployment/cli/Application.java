@@ -20,7 +20,7 @@ package org.fluidity.deployment.cli;
  * Command line application root object. For Fluid Tools based command line applications, this interface takes the place of the public static <code>main</code>
  * method. The command line application simply provides an implementation of this interface that is annotated with {@link
  * org.fluidity.composition.Component @Component}, in a JAR file produced by Maven and processed by the
- * <code>org.fluidity.maven:maven-composition-plugin</code> Maven plugin.
+ * <code>org.fluidity.maven:composition-maven-plugin</code> Maven plugin.
  * <p/>
  * The application exits when the call to the {@link #run(String[]) run()} method returns unless the developer has started and failed to stop non-daemon
  * threads.

@@ -34,7 +34,7 @@ import org.fluidity.foundation.Exceptions;
  * in {@link #ORIGINAL_MAIN_CLASS}. The <code>Main-Class</code> manifest attribute has to point to this class, obviously.
  * <p/>
  * The above manifest attributes are set by the appropriate {@link org.fluidity.deployment.plugin.spi.JarManifest} processor when used by the
- * <code>org.fluidity.maven:maven-standalone-jar-plugin</code> Maven plugin.
+ * <code>org.fluidity.maven:standalone-jar-maven-plugin</code> Maven plugin.
  *
  * @author Tibor Varga
  */

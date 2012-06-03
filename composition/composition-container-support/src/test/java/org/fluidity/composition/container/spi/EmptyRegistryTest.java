@@ -41,17 +41,6 @@ public class EmptyRegistryTest extends MockGroupAbstractTest {
     private final ComponentContainer.Registry registry = new EmptyRegistry(mock);
 
     @Test
-    public void childContainer() throws Exception {
-        EasyMock.expect(mock.makeChildContainer()).andReturn(container);
-
-        replay();
-        final ComponentContainer container = registry.makeChildContainer();
-        verify();
-
-        assert container == this.container;
-    }
-
-    @Test
     public void linkingContainer() throws Exception {
         EasyMock.expect(mock.makeChildContainer(Components.inspect(MarkedGroupComponent.class))).andReturn(container);
         EasyMock.expect(container.getRegistry()).andReturn(registry);

@@ -272,18 +272,18 @@ public interface DependencyGraph {
         /**
          * Notifies the observer registered with the receiver that a dependency is being resolved. See {@link org.fluidity.composition.ComponentContainer.Observer} for details.
          *
-         * @param declaringType        see {@link org.fluidity.composition.ComponentContainer.Observer#descend(Class, Class, Annotation[], Annotation[]) ComponentResolutionObserver}.
-         * @param dependencyType       see {@link org.fluidity.composition.ComponentContainer.Observer#descend(Class, Class, Annotation[], Annotation[]) ComponentResolutionObserver}.
-         * @param typeAnnotations      see {@link org.fluidity.composition.ComponentContainer.Observer#descend(Class, Class, Annotation[], Annotation[]) ComponentResolutionObserver}.
-         * @param referenceAnnotations see {@link org.fluidity.composition.ComponentContainer.Observer#descend(Class, Class, Annotation[], Annotation[]) ComponentResolutionObserver}.
+         * @param declaringType        see {@link org.fluidity.composition.ComponentContainer.Observer#descending(Class, Class, Annotation[], Annotation[]) ComponentResolutionObserver}.
+         * @param dependencyType       see {@link org.fluidity.composition.ComponentContainer.Observer#descending(Class, Class, Annotation[], Annotation[]) ComponentResolutionObserver}.
+         * @param typeAnnotations      see {@link org.fluidity.composition.ComponentContainer.Observer#descending(Class, Class, Annotation[], Annotation[]) ComponentResolutionObserver}.
+         * @param referenceAnnotations see {@link org.fluidity.composition.ComponentContainer.Observer#descending(Class, Class, Annotation[], Annotation[]) ComponentResolutionObserver}.
          */
         void descend(Class<?> declaringType, Class<?> dependencyType, Annotation[] typeAnnotations, Annotation[] referenceAnnotations);
 
         /**
          * Notifies the observer registered with the receiver that a dependency has been resolved. See {@link org.fluidity.composition.ComponentContainer.Observer} for details.
          *
-         * @param declaringType        see {@link org.fluidity.composition.ComponentContainer.Observer#descend(Class, Class, java.lang.annotation.Annotation[], java.lang.annotation.Annotation[]) ComponentResolutionObserver}.
-         * @param dependencyType       see {@link org.fluidity.composition.ComponentContainer.Observer#descend(Class, Class, java.lang.annotation.Annotation[], java.lang.annotation.Annotation[]) ComponentResolutionObserver}.
+         * @param declaringType        see {@link org.fluidity.composition.ComponentContainer.Observer#descending(Class, Class, Annotation[], Annotation[]) ComponentResolutionObserver}.
+         * @param dependencyType       see {@link org.fluidity.composition.ComponentContainer.Observer#descending(Class, Class, Annotation[], Annotation[]) ComponentResolutionObserver}.
          */
         void ascend(Class<?> declaringType, Class<?> dependencyType);
     }

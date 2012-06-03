@@ -59,18 +59,18 @@ final class CompositeObserver implements ComponentContainer.Observer {
         }
     }
 
-    public void descend(final Class<?> declaringType,
-                        final Class<?> dependencyType,
-                        final Annotation[] typeAnnotations,
-                        final Annotation[] referenceAnnotations) {
+    public void descending(final Class<?> declaringType,
+                           final Class<?> dependencyType,
+                           final Annotation[] typeAnnotations,
+                           final Annotation[] referenceAnnotations) {
         for (final ComponentContainer.Observer observer : observers) {
-            observer.descend(declaringType, dependencyType, typeAnnotations, referenceAnnotations);
+            observer.descending(declaringType, dependencyType, typeAnnotations, referenceAnnotations);
         }
     }
 
-    public void ascend(final Class<?> declaringType, final Class<?> dependencyType) {
+    public void ascending(final Class<?> declaringType, final Class<?> dependencyType) {
         for (final ComponentContainer.Observer observer : observers) {
-            observer.ascend(declaringType, dependencyType);
+            observer.ascending(declaringType, dependencyType);
         }
     }
 

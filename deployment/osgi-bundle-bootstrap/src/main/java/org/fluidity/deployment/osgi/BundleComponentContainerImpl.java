@@ -192,10 +192,10 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
 
             // collects the OSGi service dependencies encountered during dependency resolution
             final ObservedComponentContainer observed = pool.observed(new ComponentContainer.Observer() {
-                public void descend(final Class<?> declaringType,
-                                    final Class<?> dependencyType,
-                                    final Annotation[] typeAnnotations,
-                                    final Annotation[] referenceAnnotations) {
+                public void descending(final Class<?> declaringType,
+                                       final Class<?> dependencyType,
+                                       final Annotation[] typeAnnotations,
+                                       final Annotation[] referenceAnnotations) {
                     for (final Annotation annotation : referenceAnnotations) {
                         if (annotation.annotationType() == Service.class) {
                             final ServiceDescriptor descriptor = new ServiceDescriptor(dependencyType, (Service) annotation);
@@ -220,7 +220,7 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
                     }
                 }
 
-                public void ascend(final Class<?> declaringType, final Class<?> dependencyType) {
+                public void ascending(final Class<?> declaringType, final Class<?> dependencyType) {
                     // empty
                 }
 

@@ -194,13 +194,13 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
                         final Annotation[] typeAnnotations,
                         final Annotation[] referenceAnnotations) {
         if (observer != null) {
-            observer.descend(declaringType, dependencyType, typeAnnotations, referenceAnnotations);
+            observer.descending(declaringType, dependencyType, typeAnnotations, referenceAnnotations);
         }
     }
 
     public void ascend(final Class<?> declaringType, final Class<?> dependencyType) {
         if (observer != null) {
-            observer.ascend(declaringType, dependencyType);
+            observer.ascending(declaringType, dependencyType);
         }
     }
 

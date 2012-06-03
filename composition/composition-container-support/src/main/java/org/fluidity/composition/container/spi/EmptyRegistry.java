@@ -65,8 +65,4 @@ final class EmptyRegistry implements ComponentContainer.Registry {
             throws ComponentContainer.BindingException {
         return delegate.makeChildContainer(Components.inspect(type, interfaces)).getRegistry();
     }
-
-    public ComponentContainer makeChildContainer() {
-        return delegate.makeChildContainer();
-    }
 }

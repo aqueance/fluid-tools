@@ -168,7 +168,7 @@ public abstract class EmptyComponentContainer implements OpenComponentContainer,
     }
 
     public final ComponentContainer intercepting(final ComponentInterceptor... interceptors) {
-        return makeDomainContainer(new Bindings() {
+        return makeChildContainer(new Bindings() {
             @SuppressWarnings("unchecked")
             public void bindComponents(final Registry registry) {
                 for (final ComponentInterceptor interceptor : interceptors) {
