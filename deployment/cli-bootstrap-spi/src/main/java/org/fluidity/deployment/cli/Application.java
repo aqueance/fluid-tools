@@ -33,7 +33,7 @@ package org.fluidity.deployment.cli;
  * final MyApplication implements <span class="hl1">Application</span> {
  *
  *   public void <span class="hl1">run</span>(final {@linkplain String}[] args) throws {@linkplain Exception} {
- *     ...
+ *     &hellip;
  *   }
  * }
  * </pre>

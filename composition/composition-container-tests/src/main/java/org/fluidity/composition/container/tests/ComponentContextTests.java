@@ -923,7 +923,8 @@ public final class ComponentContextTests extends AbstractContainerTests {
     @Target({ ElementType.TYPE, ElementType.FIELD, ElementType.PARAMETER })
     public static @interface Setting3 {
 
-        @SuppressWarnings("UnusedDeclaration") String value();
+        @SuppressWarnings("UnusedDeclaration")
+        String value();
     }
 
     // TODO: various context series

@@ -24,7 +24,7 @@ import org.fluidity.composition.ComponentContainer;
  * ComponentContainer#makeDomainContainer(ComponentContainer.Bindings...) domain containers}.
  * <h3>Usage</h3>
  * <pre>
- * final {@linkplain ComponentContainer} container = ...; // got this one from somewhere
+ * final {@linkplain ComponentContainer} container = &hellip;; // got this one from somewhere
  *
  * final <span class="h1">OpenComponentContainer</span> domain = container.makeDomainContainer();
  * final {@linkplain org.fluidity.composition.ComponentContainer.Registry} registry = domain.getRegistry();

@@ -29,7 +29,7 @@ import java.lang.reflect.Type;
  * Specifies the <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Definitions">component interface(s)</a> that a class implements, which should
  * resolve to the annotated class at run time by a dependency injection container.
  * <p/>
- * On its own, this implementation is a marker used by the <code>org.fluidity.maven:composition-maven-plugin</code> Maven plugin to make carefree dependency
+ * This annotation is also a marker for the <code>org.fluidity.maven:composition-maven-plugin</code> Maven plugin to make configuration-free dependency
  * injection possible.
  * <p/>
  * For any class marked with this annotation and without having automatic processing disabled, i.e., without {@link #automatic() @Component(automatic =
@@ -41,15 +41,15 @@ import java.lang.reflect.Type;
  * public final class MyComponent {
  *
  *   public MyComponent(final <span class="hl2">MyDependency</span> dependency) {
- *     ...
+ *     &hellip;
  *   }
  *
- *   ...
+ *   &hellip;
  * }
  *
  * <span class="hl1">&#64;Component</span>
  * final class MyDependencyImpl implements <span class="hl2">MyDependency</span> {
- *   ...
+ *   &hellip;
  * }
  * </pre>
  *
@@ -80,8 +80,9 @@ public @interface Component {
      * Setting this property to <code>false</code> allows the class to be manually processed or to merely to define a list of interfaces for another class to
      * pick up, such as a {@link org.fluidity.composition.spi.ComponentFactory} implementation.
      * <p/>
-     * If manually processed, the developer either has to provide a suitable {@link org.fluidity.composition.spi.PackageBindings} object or explicitly add the
-     * class to some child container at run time, or have another component's <code>@Component</code> annotation refer to the annotated class.
+     * If manually processed, for the annotation to have any effect the developer either has to provide a suitable {@link
+     * org.fluidity.composition.spi.PackageBindings} object or explicitly add the class to some child container at run time, or have another component's
+     * <code>@Component</code> annotation refer to the annotated class.
      *
      * @return <code>true</code> if this component should be automatically processed.
      *
@@ -109,7 +110,7 @@ public @interface Component {
     /**
      * Lists the <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Component_Context">context annotations</a> accepted by the annotated component
      * class. These annotations distinguish instances of the same component class from one another. Such a annotation could, for instance, specify a database
-     * identifier for a database access dependency, etc. The component receives, as a {@link ComponentContext} parameter of its constructor, the instances of
+     * identifier for a database access component, etc. The component receives, as a {@link ComponentContext} argument of its constructor, the instances of
      * its accepted annotations prevalent at the point of reference to the component.
      * <p/>
      * A special context is the parameterized type of the dependency reference to the context aware component, {@link Component.Reference @Component.Reference}.
@@ -117,7 +118,7 @@ public @interface Component {
      * When the {@link #ignore()} parameter is present, it causes all definitions, up to but not including the annotated entity, of the specified context
      * annotations to be ignored by the annotated entity.
      * <p/>
-     * When applied to an annotation type, the context's {@link #collect} parameter determines how multiple instances of the context annotation are handled.
+     * When applied to an annotation type, the {@link #collect} parameter determines how multiple instances of the context annotation are handled.
      * <h3>Usage</h3>
      * <pre>
      * {@linkplain Component @Component}
@@ -125,10 +126,10 @@ public @interface Component {
      * public final class MyComponent {
      *
      *   public MyComponent(final <span class="hl2">&#64;MyContext</span>(value = "2") <span class="hl3">MyDependency</span> dependency) {
-     *     ...
+     *     &hellip;
      *   }
      *
-     *   ...
+     *   &hellip;
      * }
      *
      * {@linkplain Component @Component}
@@ -137,10 +138,10 @@ public @interface Component {
      *
      *   public MyDependencyImpl(final {@linkplain ComponentContext} context) {
      *     final <span class="hl2">MyContext</span>[] annotations = context.annotations(<span class="hl2">MyContext</span>.class);
-     *     ...
+     *     &hellip;
      *   }
      *
-     *   ...
+     *   &hellip;
      * }
      * </pre>
      *
@@ -178,8 +179,8 @@ public @interface Component {
         Collection collect() default Collection.ALL;
 
         /**
-         * Defines how a chain of instances of the same context annotation along an instantiation path is handled. Used in {@link
-         * Component.Context#collect @Component.Context(collect = ...)}.
+         * Defines how a chain of occurrences of the same context annotation along an instantiation path is handled. Used in {@link
+         * Component.Context#collect @Component.Context(collect = &hellip;)}.
          * <h3>Usage</h3>
          * <pre>
          * {@linkplain Documented @Documented}
@@ -233,7 +234,7 @@ public @interface Component {
      *   public MyComponent(final {@linkplain ComponentContext} context) {
      *     final <span class="hl1">Component.Reference</span> reference = context.annotation(<span class="hl1">Component.Reference</span>.class, null);
      *     this.type = reference.parameter(0);
-     *     ...
+     *     &hellip;
      *   }
      *
      *   public Class&lt;?> <span class="hl2">type()</span> {
@@ -246,7 +247,7 @@ public @interface Component {
      *
      *   public MyReferrer(final <span class="hl2">MyComponent</span><span class="hl3">&lt;MyType></span> dependency) {
      *     assert dependency.<span class="hl2">type()</span> == <span class="hl3">MyType</span>.class : <span class="hl2">MyComponent</span>.class;
-     *     ...
+     *     &hellip;
      *   }
      * }
      * </pre>
@@ -281,14 +282,14 @@ public @interface Component {
      * public final class MyComponent {
      *
      *   public MyComponent(final <span class="hl1">&#64;Component.Deferred</span> <span class="hl2">SomeDependency</span> dependency) {
-     *     ...
+     *     &hellip;
      *   }
      *
-     *   ...
+     *   &hellip;
      * }
      *
      * public <b>interface</b> <span class="hl2">SomeDependency</span> {
-     *   ...
+     *   &hellip;
      * }
      * </pre>
      *

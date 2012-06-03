@@ -43,7 +43,7 @@ import org.fluidity.foundation.spi.PropertyProvider;
  *   <span class="hl1">&#64;{@linkplain Property}(key = </span>"property.<span class="hl3">%d</span>"<span class="hl1">, undefined = </span>"default value <span class="hl3">%d</span>"<span class="hl1">)</span>
  *   String <span class="hl2">property(</span><span class="hl3">int item</span><span class="hl2">)</span>;
  *
- *   ...
+ *   &hellip;
  * }
  *
  * // The configured component
@@ -51,14 +51,14 @@ import org.fluidity.foundation.spi.PropertyProvider;
  * final class MyComponent {
  *
  *   public MyComponent(final <span class="hl1">Configuration</span><span class="hl2">&lt;MySettings></span> configuration) {
- *     ...
+ *     &hellip;
  *     final <span class="hl2">MySettings</span> settings = configuration<span class="hl1">.settings()</span>;
- *     ...
+ *     &hellip;
  *     final String property123 = settings.<span class="hl2">property(</span><span class="hl3">123</span><span class="hl2">)</span>;
- *     ...
+ *     &hellip;
  *   }
  *
- *   ...
+ *   &hellip;
  * }
  * </pre>
  * <h4>Query Methods</h4>
@@ -234,7 +234,7 @@ public interface Configuration<T> {
         /**
          * For map or multidimensional collection valued properties, this string specifies the character pairs that enclose elements of one dimension.
          * <p/>
-         * For instance, <code>@Configuration.Property(key = "..." split = ',' grouping="()")</code> with property value "(1, 2, 3), (4, 5, 6), (7, 8, 9)"
+         * For instance, <code>@Configuration.Property(key = "&hellip;" split = ',' grouping="()")</code> with property value "(1, 2, 3), (4, 5, 6), (7, 8, 9)"
          * results in a 2-dimensional array that is equivalent to the following Java array initializer:  <code>{ {1, 2, 3}, {4, 5, 6}, {7, 8, 9} }</code>.
          *
          * @return the grouping characters that surround collection elements.
@@ -254,10 +254,10 @@ public interface Configuration<T> {
          * In the above case, you would need the following method to read the list of items as an array of <code>String</code> objects:
          * <pre>
          * interface Settings {
-         *     ...
+         *     &hellip;
          *     &#64;Configuration.Property(key = "item", ids="list")
          *     String[] items();
-         *     ...
+         *     &hellip;
          * }
          * </pre>
          *
@@ -276,20 +276,20 @@ public interface Configuration<T> {
          * In the above case, you would need the following method to read the list of items as an array of <code>String</code> objects:
          * <pre>
          * interface Settings {
-         *     ...
+         *     &hellip;
          *     &#64;Configuration.Property(key = "item", ids="list", list="item.%%s.value")
          *     String[] items();
-         *     ...
+         *     &hellip;
          * }
          * </pre>
          * </p>
          * <b>Note</b>: the placeholder used in this parameter is <code>"%%s"</code> to allow for interpolating the method parameters. For instance:
          * <pre>
          * interface Settings {
-         *     ...
+         *     &hellip;
          *     &#64;Configuration.Property(key = "item.%s", ids="list", list="item.%s.%%s.value")
          *     String[] items(String type);
-         *     ...
+         *     &hellip;
          * }
          * </pre>
          * The above would allow one to query either the <code>item.long</code> or <code>item.short</code> list by calling <code>items("long")</code> or

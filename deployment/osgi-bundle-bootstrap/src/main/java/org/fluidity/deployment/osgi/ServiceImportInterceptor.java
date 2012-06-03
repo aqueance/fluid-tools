@@ -32,14 +32,14 @@ import org.fluidity.foundation.Generics;
  * public final class MyComponent implements {@linkplain BundleComponentContainer.Managed BundleComponentContainer.Managed} {
  *
  *   public MyComponent(final <span class="hl1">&#64;Service</span> <span class="hl2">SomeService</span> service) {
- *     ...
+ *     &hellip;
  *   }
  *
- *   ...
+ *   &hellip;
  * }
  *
  * public <b>interface</b> <span class="hl2">SomeService</span> {
- *   ...
+ *   &hellip;
  * }
  * </pre>
  *

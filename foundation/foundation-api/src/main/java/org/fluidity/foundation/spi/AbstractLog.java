@@ -57,7 +57,7 @@ import org.fluidity.foundation.Log;
  *         }
  *     }
  *
- *     ...
+ *     &hellip;
  * }
  * </pre>
  * <p/>

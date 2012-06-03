@@ -45,14 +45,14 @@ import org.fluidity.composition.ComponentGroup;
  * <pre>
  * {@linkplain org.fluidity.composition.Component.Context @Component.Context}(<span class="hl2">MyAnnotation</span>.class)
  * final class MyInterceptor implements <span class="hl1">ComponentInterceptor</span> {
- *   ...
+ *   &hellip;
  * }
  *
  * {@linkplain org.fluidity.composition.Component @Component}
  * final class MyComponent {
  *
  *   public MyComponent(final <span class="hl2">@MyAnnotation</span> MyDependency dependency) {
- *     ...
+ *     &hellip;
  *   }
  * }
  * </pre>

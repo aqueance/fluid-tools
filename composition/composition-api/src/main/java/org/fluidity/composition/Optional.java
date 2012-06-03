@@ -32,10 +32,10 @@ import java.lang.annotation.Target;
  * public final class MyComponent {
  *
  *   public MyComponent(final <span class="hl1">&#64;Optional</span> SomeDependency optional) {
- *     ...
+ *     &hellip;
  *   }
  *
- *   ...
+ *   &hellip;
  * }
  * </pre>
  *

@@ -21,8 +21,7 @@ import org.fluidity.composition.container.ContainerServices;
 import org.fluidity.composition.container.PlatformContainer;
 
 /**
- * Provides actual dependency injection container instances and related functionality. This is an internal interface to be implemented by dependency injection
- * container implementations.
+ * Creates dependency injection container instances. This is an internal interface to be implemented by dependency injection container implementations.
  * <h3>Usage</h3>
  * You don't interact with an internal interface.
  *

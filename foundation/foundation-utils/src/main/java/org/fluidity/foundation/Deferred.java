@@ -27,11 +27,11 @@ import java.util.concurrent.atomic.AtomicReference;
  *   private final <span class="hl1">Deferred.Reference</span><span class="hl2">&lt;HeavyObject></span> reference = <span
  * class="hl1">Deferred.reference</span>(new <span class="hl1">Deferred.Factory</span><span class="hl2">&lt;HeavyObject></span>() {
  *     public <span class="hl2">HeavyObject</span> <span class="hl1">create()</span> {
- *       return new HeavyObject(...);
+ *       return new HeavyObject(&hellip;);
  *     }
  *   });
  *
- *   ...
+ *   &hellip;
  *
  *   private void someMethod() {
  *     final <span class="hl2">HeavyObject</span> object = reference.<span class="hl1">get()</span>;

@@ -28,8 +28,8 @@ package org.fluidity.deployment.osgi;
  * Fluid Tool uses this component internally to inject an OSGi service as a dependency of a {@linkplain BundleComponentContainer.Managed managed component}.
  * Manual use of this component would only be necessary if you don't use such managed components.
  * <pre>
- * final <span class="hl1">BundleBoundary</span> customs = ...;
- * final {@linkplain org.osgi.framework.BundleContext} context = ...;
+ * final <span class="hl1">BundleBoundary</span> customs = &hellip;
+ * final {@linkplain org.osgi.framework.BundleContext} context = &hellip;
  * final {@linkplain org.osgi.framework.ServiceReference} reference = context.getServiceReferences(<span class="hl2">RemoteComponent</span>.class.getName());
  * final <span class="hl2">RemoteComponent</span> component = (<span class="hl2">RemoteComponent</span>) customs.<span class="hl1">import</span>(<span class="hl2">RemoteComponent</span>.class, context.getService(reference));
  *

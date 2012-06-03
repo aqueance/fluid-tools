@@ -26,23 +26,21 @@ import java.util.Set;
  * instantiation exception} handlers. A dependency path is a list of components that depend on one another, each on the next in the path, up to the {@linkplain
  * #head() head} of the path, which represents the "current" component.
  * <h3>Usage</h3>
- * TODO
+ * See {@link ObservedComponentContainer}.
  *
  * @author Tibor Varga
  */
 public interface DependencyPath {
 
     /**
-     * The component interface at the head of the path.
+     * The component interface at the head of the dependency path.
      *
-     *
-     * @return the component interface at the head of the path.
+     * @return the component interface at the head of the dependency path.
      */
     Element head();
 
     /**
      * The list of component interfaces or classes that comprise the dependency path.
-     *
      *
      * @return the list of component interfaces or classes that comprise the dependency path.
      */
@@ -60,7 +58,13 @@ public interface DependencyPath {
     /**
      * Details about one element in a dependency path. A sequence of objects implementing this interface comprise a {@link DependencyPath}.
      * <h3>Usage</h3>
-     * TODO
+     * <pre>
+     * final {@linkplain DependencyPath} dependencies = &hellip;; // acquired from somewhere
+     *
+     * for (final <span class="hl1">DependencyPath.Element</span> element : dependencies.path()) {
+     *   &hellip;
+     * }
+     * </pre>
      *
      * @author Tibor Varga
      */
@@ -83,7 +87,7 @@ public interface DependencyPath {
         /**
          * Returns the annotations defined for this element.
          *
-         * @return the annotations defined for this element.
+         * @return the annotations defined for this element; never <code>null</code>.
          */
         Set<Annotation> annotations();
 

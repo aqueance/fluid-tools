@@ -30,32 +30,41 @@ package org.fluidity.composition;
  *
  *   public MyComponent(final <span class="hl3">{@linkplain ComponentContainer}</span> container) {
  *     this.container = container;
- *     ...
+ *     &hellip;
  *   }
  *
  *   private void exampleMethod() {
  *     final <span class="hl1">ObservedComponentContainer</span> observed = container.<span class="hl3">observed(</span>new <span class="hl2">{@linkplain org.fluidity.composition.ComponentContainer.Observer}</span>() {
- *       public void <span class="hl2">resolving</span>(final Class<?> declaringType,
- *                             final Class<?> dependencyType,
- *                             final Annotation[] typeAnnotations,
- *                             final Annotation[] referenceAnnotations) {
- *         ...
+ *       public void <span class="hl2">descending</span>(final {@linkplain Class}&lt;?> declaringType,
+ *                              final {@linkplain Class}&lt;?> dependencyType,
+ *                              final {@linkplain java.lang.annotation.Annotation}[] typeAnnotations,
+ *                              final {@linkplain java.lang.annotation.Annotation}[] referenceAnnotations) {
+ *         &hellip;
  *       }
  *
- *       public void <span class="hl2">resolved</span>(final {@linkplain DependencyPath} path, final Class&lt;?> type) {
- *         ...
+ *       public void <span class="hl2">ascending</span>(final {@linkplain Class}&lt;?> declaringType,
+ *                             final {@linkplain Class}&lt;?> dependencyType) {
+ *         &hellip;
  *       }
  *
- *       public void <span class="hl2">instantiated</span>(final {@linkplain DependencyPath} path, final AtomicReference&lt;?> object) {
+ *       public void <span class="hl2">circular</span>(final {@linkplain DependencyPath} path) {
+ *         &hellip;
+ *       }
+ *
+ *       public void <span class="hl2">resolved</span>(final {@linkplain DependencyPath} path, final {@linkplain Class}&lt;?> type) {
+ *         &hellip;
+ *       }
+ *
+ *       public void <span class="hl2">instantiated</span>(final {@linkplain DependencyPath} path, final {@linkplain java.util.concurrent.atomic.AtomicReference}&lt;?> object) {
  *         assert object.get() == null; // will return the just instantiated object only <b>after</b> this method completes
- *         ...
+ *         &hellip;
  *       }
  *     }<span class="hl3">)</span>;
  *
- *     &#47;* ... static dependencies only; will invoke <span class="hl2">resolving()</span> and <span class="hl2">resolved()</span>: *&#47;
+ *     &#47;* &hellip; static dependencies only; will invoke all methods of <span class="hl2">{@linkplain org.fluidity.composition.ComponentContainer.Observer}</span> except <span class="hl2">instantiated()</span>: *&#47;
  *     observed.<span class="hl1">resolveComponent</span>(SomeComponent.class);
  *
- *     &#47;* ... static and dynamic dependencies; will invoke all methods of <span class="hl2">{@linkplain org.fluidity.composition.ComponentContainer.Observer}</span>: *&#47;
+ *     &#47;* &hellip; static and dynamic dependencies; will invoke all methods of <span class="hl2">{@linkplain org.fluidity.composition.ComponentContainer.Observer}</span>: *&#47;
  *     observed.<span class="hl1">getComponent</span>(SomeComponent.class);
  *   }
  * }

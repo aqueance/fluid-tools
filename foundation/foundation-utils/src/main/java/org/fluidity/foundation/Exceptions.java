@@ -31,7 +31,7 @@ import java.lang.reflect.UndeclaredThrowableException;
  *       public void run() {
  *         <span class="hl1">Exceptions.wrap</span>(new <span class="hl1">{@linkplain Exceptions.Command}</span>&lt;Void>() {
  *           public Void <span class="hl1">run</span>() throws Throwable {
- *             ...
+ *             &hellip;
  *             throw new <span class="hl2">CheckedException2</span>();
  *           }
  *         }<span class="hl1">)</span>;

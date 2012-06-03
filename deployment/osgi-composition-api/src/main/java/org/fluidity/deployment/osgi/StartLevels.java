@@ -27,7 +27,7 @@ import org.osgi.framework.Bundle;
  *   {@linkplain org.fluidity.composition.Component @Component}
  *   final class MyStartLevels implements <span class="hl1">StartLevels</span> {
  *
- *      ...
+ *      &hellip;
  *   }
  * </pre>
  *

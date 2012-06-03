@@ -375,19 +375,17 @@ public final class BasicResolutionTests extends AbstractContainerTests {
     private static class MultipleInterfaces implements Interface1, Interface2, Interface3 { }
 
     @Component(automatic = false)
+    @SuppressWarnings("UnusedDeclaration")
     private static class DependencyChain1 {
 
-        @SuppressWarnings("UnusedDeclaration")
-        private DependencyChain1(final DependencyChain2 dependency) {
-        }
+        private DependencyChain1(final DependencyChain2 dependency) { }
     }
 
     @Component(automatic = false)
+    @SuppressWarnings("UnusedDeclaration")
     private static class DependencyChain2 {
 
-        @SuppressWarnings("UnusedDeclaration")
-        private DependencyChain2(final DependencyChain3 dependency) {
-        }
+        private DependencyChain2(final DependencyChain3 dependency) { }
     }
 
     @Component(automatic = false)

@@ -29,7 +29,7 @@ package org.fluidity.composition.spi;
  * <pre>
  * {@linkplain org.fluidity.composition.Component @Component}
  * final class MyContainerTerminationImpl implements <span class="hl1">ContainerTermination</span> {
- *     ...
+ *     &hellip;
  * }
  * </pre>
  *

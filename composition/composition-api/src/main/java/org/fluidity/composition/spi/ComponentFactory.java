@@ -59,7 +59,7 @@ import org.fluidity.composition.ComponentContext;
  *
  * {@linkplain Component @Component}(automatic = false)
  * final <span class="hl3">MyComponentImpl</span> implements <span class="hl2">MyComponent</span> {
- *   ...
+ *   &hellip;
  * }
  * </pre>
  * <h4>Context Awareness</h4>
@@ -92,9 +92,8 @@ import org.fluidity.composition.ComponentContext;
  *
  * final class <span class="hl2">CreatedComponent</span> {
  *
- *   public <span class="hl2">CreatedComponent</span>(final {@linkplain org.fluidity.composition.Optional @Optional} <span
- * class="hl2">CustomContext</span>[] contexts) {
- *     ....
+ *   public <span class="hl2">CreatedComponent</span>(final {@linkplain org.fluidity.composition.Optional @Optional} <span class="hl2">CustomContext</span>[] contexts) {
+ *     &hellip;
  *   }
  * }
  * </pre></li>
@@ -123,7 +122,7 @@ import org.fluidity.composition.ComponentContext;
  *
  *   public <span class="hl2">CreatedComponent</span>(final {@linkplain ComponentContext} context) {
  *     final <span class="hl3">CustomContext</span>[] contexts = context.annotations(<span class="hl3">CustomContext</span>.class);
- *     ....
+ *     &hellip;
  *   }
  * }
  * </pre></li>

@@ -40,7 +40,7 @@ import org.fluidity.foundation.Utility;
  * interfaces</a> a class should be bound to when it is {@linkplain ComponentContainer.Registry#bindComponent(Class, Class[]) bound} to a dependency injection
  * container.
  * <p/>
- * Informally, the logic employed attempts to imitate the obvious choices one would make at first sight. With regard to component interfaces, these are:
+ * Informally, the logic employed attempts to imitate the obvious choices one would make at a cursory glance. With regard to component interfaces, these are:
  * <ul>
  * <li>no {@link Component @Component} annotation is necessary, it is merely there to automate the component binding and to provide parameters thereto</li>
  * <li>a class implementing no interface and extending no superclass is bound to itself</li>
@@ -50,42 +50,39 @@ import org.fluidity.foundation.Utility;
  * With regard to component groups, a component class will be bound to all component groups that it inherits via its class ancestry and any interface
  * implemented by it and any of its ancestors.
  * <p/>
- * The formal rules for discovering the component interfaces are described by the following recursive algorithm:
+ * The formal rules for discovering the component interfaces are described by the following recursive algorithm. The term <em>original class</em> denotes the
+ * class the algorithm was originally invoked with, while the term <em>the class</em> denotes the class currently under examination by the recursive algorithm.
  * <ol>
- * <li>If the class has no {@link Component @Component} annotation, the algorithm returns the <u>class itself</u>, unless the class implements {@link
+ * <li>If the class has no {@link Component @Component} annotation, the algorithm returns the <u>original class</u>, unless the class implements {@link
  * ComponentFactory}, in which case the algorithm terminates with an {@linkplain
  * ComponentContainer.BindingException error}.</li>
- * <li>If the class is annotated with <code>@Component</code> and the <code>@Component(api = ...)</code> parameter is given with a non-empty array, the
- * algorithm ignores the annotated class and repeats for each class specified <code>@Component(api = {...})</code>. However, if any of these classes are
+ * <li>If the class is annotated with <code>@Component</code> and the <code>@Component(api = &hellip;)</code> parameter is given with a non-empty array, the
+ * algorithm ignores the annotated class and repeats for each class specified in <code>@Component(api = {&hellip;})</code>. However, if any of these classes are
  * themselves <code>@Component</code> annotated classes with no <code>@Component(automatic = false)</code>, or if the current class does not extend or
  * implement either all of the listed classes and interfaces or <code>ComponentFactory</code>, the algorithm terminates with an {@linkplain
  * ComponentContainer.BindingException error}.</li>
  * <li>If the super class is annotated with <code>@Component</code> but with no <code>@Component(automatic = false)</code>, the algorithm terminates with an
  * {@linkplain ComponentContainer.BindingException error}.</li>
- * <li>If the class implements no interfaces directly and its super class is <code>Object</code> then the algorithm returns the <u>annotated class</u>.</li>
- * <li>If the class implements no interfaces directly and its super class is not <code>Object</code> then this algorithm repeats for the super class with the
- * difference that the algorithm returns this class rather than the super class.</li>
+ * <li>If the class implements no interfaces directly and its super class is <code>Object</code> then the algorithm returns the <u>original class</u>.</li>
+ * <li>If the class implements no interfaces directly and its super class is not <code>Object</code> then this algorithm repeats for the super class.</li>
  * <li>If the class directly implements one or more interfaces then the algorithm returns <u>those interfaces</u>.</li>
  * </ol>
  * <p/>
- * Once the above algorithm has completed, the followings take place:
- * <ul>
- * <li>For each class returned, the list of group interfaces is calculated using the algorithm below.</li>
- * <li>Any component interface that is also a component group interface is removed from the list of component interfaces.</li>
- * </ul>
+ * Once the above algorithm has completed, the list of group interfaces is calculated using the algorithm below for each class returned by the algorithm.
  * <p/>
- * For the component class itself and each component interface found above, the rules for component group interface discovery are described by the following
- * recursive algorithm:
+ * The rules for component group interface discovery are described by the following recursive algorithm. The algorithm is triggered individually for the
+ * original class and each component interfaces identified by the recursive algorithm above, and the terms <em>original class</em> and <em>this class</em> will
+ * be understood relative to each individual invocation of the algorithm.
  * <ol>
- * <li>If the class is annotated with {@link ComponentGroup @ComponentGroup} with a non-empty <code>@ComponentGroup(api = ...)</code> parameter, the
+ * <li>If the class is annotated with {@link ComponentGroup @ComponentGroup} with a non-empty <code>@ComponentGroup(api = &hellip;)</code> parameter, the
  * algorithm returns <u>the classes specified</u> therein. However, if the class does not extend or implement either all of those classes and interfaces or
  * <code>ComponentFactory</code>, the algorithm terminates with an {@linkplain ComponentContainer.BindingException error}.</li>
- * <li>If the class is annotated with <code>@ComponentGroup</code> with no <code>@ComponentGroup(api = ...)</code> parameter, then
+ * <li>If the class is annotated with <code>@ComponentGroup</code> with no <code>@ComponentGroup(api = &hellip;)</code> parameter, then
  * <ol>
- * <li>if the class is an interface, the algorithm returns <u>the annotated class</u>.</li>
+ * <li>if the class is an interface, the algorithm returns the <u>original class</u>.</li>
  * <li>if the class directly implements interfaces, the algorithm repeats for those interfaces and if they produce a list of groups the algorithm returns
  * that list, otherwise the algorithm returns <u>the interfaces</u> themselves.</li>
- * <li>if the class is not final, the algorithm returns <u>the annotated class</u>.</li>
+ * <li>if the class is not final, the algorithm returns the <u>original class</u>.</li>
  * </ol></li>
  * <li>The algorithm repeats for each directly implemented interface and the super class.</li>
  * <li>If the class is <code>Object</code>, the algorithm returns <u>nothing</u>.</li>
@@ -93,20 +90,21 @@ import org.fluidity.foundation.Utility;
  * <p/>
  * Once the above algorithm has completed, the following adjustments are made to the final result:
  * <ul>
- * <li>the component class or, in case of a <code>ComponentFactory</code> implementation, the classes referenced in its <code>@Component(api = ...)</code>
- * parameter, are added to the component interface list <em>if</em> component group interfaces have been identified for that class or those classes.</li>
+ * <li>the component class or, in case of a <code>ComponentFactory</code> implementation, the classes referenced in its <code>@Component(api = &hellip;)</code>
+ * parameter, are added to the component interface list <em>if</em> component group interfaces have been identified for that class or those classes;</li>
+ * <li>all component interfaces that are also a component group interface are removed from the list of component interfaces.</li>
  * </ul>
  * <h3>Usage</h3>
  * <pre>
  * public interface <span class="hl3">MyComponent</span> {
- *   ...
+ *   &hellip;
  * }
  *
  * {@linkplain Component @Component}
  * final class <span class="hl2">MyComponentImpl</span> implements <span class="hl3">MyComponent</span> {
  *
  *     public <span class="hl2">MyComponentImpl</span>() {
- *         System.out.printf("My component interfaces: %s%n", <span class="hl1">Components</span>.inspect(<span class="hl2">MyComponentImpl</span>.class));
+ *         System.out.printf("My component interfaces: %s%n", <span class="hl1">Components</span>.inspect(getClass());
  *     }
  * }
  * </pre>
@@ -135,11 +133,11 @@ public final class Components extends Utility {
     }
 
     /**
-     * Returns the list of component interfaces that should resolve to the given component class, with a list of component group interfaces for each component
-     * interface that the component may be a member of through that component interface.
+     * Returns the list of component interfaces that should resolve to the given component class, and for each component interface a list of component group
+     * interfaces that the component is a member of through that component interface.
      *
      * @param componentClass the component class to inspect.
-     * @param restrictions   optional list of interfaces to use instead of whatever the algorithm would find.
+     * @param restrictions   optional list of component interfaces to use instead of whatever the algorithm would find.
      * @param <T>            the component class.
      *
      * @return an object listing all component interfaces and the set of component group interfaces for each.
@@ -368,8 +366,8 @@ public final class Components extends Utility {
 
     /**
      * List of <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Definitions">component interfaces</a> and corresponding
-     * <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Definitions">component group interfaces</a> for a component implementation. Instances are
-     * produced by {@link Components#inspect(Class, Class[])}.
+     * <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Definitions">component group interfaces</a> for a component class. Instances are produced
+     * by {@link Components#inspect(Class, Class[]) Components.inspect()}.
      * <h3>Usage</h3>
      * See {@link Components}
      */
@@ -437,7 +435,7 @@ public final class Components extends Utility {
     /**
      * A <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Definitions">component interface</a> and the associated
      * <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Definitions">component group interfaces</a>. A list of these objects is returned as part of
-     * the {@link Interfaces} by {@link Components#inspect(Class, Class[])}.
+     * the {@link Interfaces} by {@link Components#inspect(Class, Class[]) Components.inspect()}.
      * <h3>Usage</h3>
      * See {@link Components}
      */

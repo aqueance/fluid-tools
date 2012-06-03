@@ -61,7 +61,8 @@ public class ReloadingConfigurationFactoryTest {
     @Configuration.Context(ContextConfigured.ROOT)
     private static class ContextConfigured {
 
-        private static final String ROOT = "root";
+        public static final String ROOT = "root";
+
         private static final String CONTEXT1 = "context1";
         private static final String CONTEXT2 = "context2";
 

@@ -53,17 +53,17 @@ import org.fluidity.composition.ServiceProvider;
  * final class MyComponent implements <span class="hl1">BundleComponentContainer.Managed</span> {
  *
  *   public MyComponent(final {@linkplain Service @Service} SomeService service, final SomeDependency dependency) {
- *     ...
+ *     &hellip;
  *   }
  *
  *   public void start() throws Exception {
- *     ...
+ *     &hellip;
  *   }
  *
  *   public void stop() throws Exception {
- *     ...
+ *     &hellip;
  *   }
- *   ...
+ *   &hellip;
  * }
  * </pre>
  * <h3>Getting registered as OSGi Service</h3>
@@ -74,9 +74,9 @@ import org.fluidity.composition.ServiceProvider;
  * final class MyComponent implements <span class="hl1">BundleComponentContainer.Registration</span> {
  *
  *   public MyComponent(final {@linkplain Service @Service} SomeService service, final SomeDependency dependency) {
- *     ...
+ *     &hellip;
  *   }
- *   ...
+ *   &hellip;
  * }
  * </pre>
  * <h3>Notification about OSGi Service Registration Events</h3>
@@ -91,9 +91,9 @@ import org.fluidity.composition.ServiceProvider;
  * final class MyComponent implements <span class="hl1">BundleComponentContainer.Registration.Listener</span> {
  *
  *   public MyComponent(final {@linkplain Service @Service} SomeService service, final SomeDependency dependency) {
- *     ...
+ *     &hellip;
  *   }
- *   ...
+ *   &hellip;
  * }
  * </pre>
  * <h3><Code>Managed</Code> Component Status</h3>
@@ -112,11 +112,11 @@ import org.fluidity.composition.ServiceProvider;
  *     this.status = status;
  *   }
  *
- *   ...
+ *   &hellip;
  *
  *   public void check() {
  *       final Collection&lt;Class&lt;?>> failed = status.<span class="hl1">failedComponents</span>();
- *       ...
+ *       &hellip;
  *   }
  * }
  * </pre>

@@ -28,17 +28,17 @@ import org.fluidity.composition.ComponentContainer;
  *
  *   {@linkplain Override @Override}
  *   public void <span class="hl1">bindComponents</span>(final {@linkplain org.fluidity.composition.ComponentContainer.Registry} registry) {
- *     ...
+ *     &hellip;
  *   }
  *
  *   {@linkplain Override @Override}
  *   public void <span class="hl1">initializeComponents</span>(final {@linkplain ComponentContainer} container) {
- *     ...
+ *     &hellip;
  *   }
  *
  *   {@linkplain Override @Override}
  *   public void <span class="hl1">shutdownComponents</span>(final {@linkplain ComponentContainer} container) {
- *     ...
+ *     &hellip;
  *   }
  * }
  * </pre>

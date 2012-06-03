@@ -23,9 +23,9 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * This annotation marks interfaces or classes that are expected to have several implementations, which are used together as a group by some component. All
+ * This annotation marks interfaces or classes that are expected to have several implementations that are used together as a group by some component. All
  * classes implementing or extending such an interface or class will be provided as a whole, in the form of an array of the marked type, to components that
- * depend on such an array or that use {@link ComponentContainer#getComponentGroup(Class)} to get one.
+ * depend on such an array or that use {@link ComponentContainer#getComponentGroup(Class) ComponentContainer.getComponentGroup()} to get one.
  * <p/>
  * When the group interface or class is not available to annotate, actual implementations may also be annotated with this class but in that case only those
  * implementations that are actually annotated will be found and provided as a component group.
@@ -37,22 +37,23 @@ import java.lang.annotation.Target;
  * <h3>Usage</h3>
  * <pre>
  * <span class="hl1">&#64;ComponentGroup</span>
- * public interface <span class="hl2">ImageFilter</span> { ... }
+ * public interface <span class="hl2">ImageFilter</span> { &hellip; }
  *
- * &#64;Component
+ * {@linkplain Component @Component}
  * final class ImageProcessor {
  *
  *   public ImageProcessor(final <span class="hl1">&#64;ComponentGroup</span> <span class="hl2">ImageFilter</span>[] filters) {
  *     assert filters != null : ImageFilter.class;
- *     ...
+ *     assert filters.length == 3 : ImageFilter.class;
+ *     &hellip;
  *   }
  * }
  *
- * final class ImageFilter1 implements <span class="hl2">ImageFilter</span> { ... }
+ * final class ImageFilter1 implements <span class="hl2">ImageFilter</span> { &hellip; }
  *
- * final class ImageFilter2 implements <span class="hl2">ImageFilter</span> { ... }
+ * final class ImageFilter2 implements <span class="hl2">ImageFilter</span> { &hellip; }
  *
- * final class ImageFilter3 implements <span class="hl2">ImageFilter</span> { ... }
+ * final class ImageFilter3 implements <span class="hl2">ImageFilter</span> { &hellip; }
  * </pre>
  *
  * @author Tibor Varga

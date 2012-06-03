@@ -30,12 +30,12 @@ import javax.servlet.ServletResponse;
  * instantiated in the {@link #init(FilterConfig)}  method and discarded in the {@link #destroy()} method..
  * <p/>
  * Example <code>web.xml</code>:<pre>
- * &lt;web-app>
- *   ...
+ * &lt;web-app &hellip;>
+ *   &hellip;
  *   &lt;filter>
- *     ...
+ *     &hellip;
  *     &lt;filter-class>org.fluidity.deployment.web.DependencyResolverFilter&lt;/filter-class>
- *     ...
+ *     &hellip;
  *     &lt;init-param>
  *       &lt;param-name>component-key&lt;/param-name>
  *       &lt;param-value><em>the class name of this filter's delegate</em>&lt;/param-value>

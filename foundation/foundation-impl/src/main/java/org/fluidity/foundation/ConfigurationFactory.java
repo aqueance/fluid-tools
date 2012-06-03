@@ -103,16 +103,16 @@ final class ConfigurationFactory implements CustomComponentFactory {
         /*
          * Computes the property prefixes that will be traversed for any property in order until a value is found in the underlying property provider.
          *
-         * Assuming N context annotations, c1, c2, c3, ..., cN-2, cN-1, cN, the property prefixes will be as follows:
-         *  - c1.c2.c3 ... .cN-2.cN-1.cN.
-         *  - c2.c3 ... .cN-2.cN-1.cN.
-         *  - c3. ... .cN-2.cN-1.cN.
-         *  - ...
+         * Assuming N context annotations, c1, c2, c3, &hellip;, cN-2, cN-1, cN, the property prefixes will be as follows:
+         *  - c1.c2.c3 &hellip; .cN-2.cN-1.cN.
+         *  - c2.c3 &hellip; .cN-2.cN-1.cN.
+         *  - c3. &hellip; .cN-2.cN-1.cN.
+         *  - &hellip;
          *  - cN-2.cN-1.cN.
          *  - cN-1.cN.
          *  - cN.
-         *  - c1.c2.c3 ... .cN-2.
-         *  - ...
+         *  - c1.c2.c3 &hellip; .cN-2.
+         *  - &hellip;
          *  - c1.c2.c3.
          *  - c1.c2.
          *  - c1.
@@ -698,7 +698,8 @@ final class ConfigurationFactory implements CustomComponentFactory {
     private static Map<Class<?>, PrimitiveType> PRIMITIVE_TYPES = new HashMap<Class<?>, PrimitiveType>();
 
     static {
-        @SuppressWarnings({ "MismatchedReadAndWriteOfArray", "UnusedDeclaration" }) PrimitiveType[] types = PrimitiveType.values();
+        @SuppressWarnings({ "MismatchedReadAndWriteOfArray", "UnusedDeclaration" })
+        PrimitiveType[] types = PrimitiveType.values();
     }
 
     private enum PrimitiveType {

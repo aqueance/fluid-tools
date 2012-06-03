@@ -323,8 +323,8 @@ public final class ComponentGroupTests extends AbstractContainerTests {
         }
     }
 
-    @SuppressWarnings("UnusedDeclaration")
     @Component(api = Serializable.class, automatic = false)
+    @SuppressWarnings("UnusedDeclaration")
     private static class OrderedFilter9 implements Filter, Serializable {
 
         private OrderedFilter9(final OrderedFilter1 dependency) {
@@ -394,8 +394,8 @@ public final class ComponentGroupTests extends AbstractContainerTests {
     @Component.Context(Component.Reference.class)
     private static final class DynamicFilter3Factory extends DynamicFilterFactory { }
 
-    @SuppressWarnings("UnusedDeclaration")
     @Component(automatic = false)
+    @SuppressWarnings("UnusedDeclaration")
     private static class DynamicFilter1 implements Filter {
 
         private DynamicFilter1(final DynamicFilter3 dependency1, final OrderedFilter4 dependency2) { }

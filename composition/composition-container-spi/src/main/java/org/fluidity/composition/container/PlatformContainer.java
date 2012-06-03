@@ -24,7 +24,7 @@ import org.fluidity.composition.ComponentContainer;
  * <h3>Usage</h3>
  * <pre>
  * new {@linkplain org.fluidity.composition.ContainerBoundary}().setPlatformContainer(new <span class="hl1">PlatformContainer</span>() {
- *   ...
+ *   &hellip;
  * });
  * </pre>
  */

@@ -24,7 +24,7 @@ package org.fluidity.foundation;
  *
  *     private MyUtility() { }
  *
- *     ...
+ *     &hellip;
  * }
  * </pre>
  */

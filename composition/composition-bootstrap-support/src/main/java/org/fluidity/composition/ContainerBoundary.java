@@ -41,17 +41,14 @@ import org.fluidity.foundation.spi.LogFactory;
  * External access to a class loader specific <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Dependency_Injection_Concept">dependency
  * injection</a> <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Dependency_Injection_Containers">container</a>. This utility class ensures that
  * the container hierarchy of the host application matches the class loader hierarchy. The highest level class loader to have a container is the one that can
- * find the dependencies of this class: {@link ContainerProvider} and {@link ContainerBootstrap}.
+ * find the single dependency of this class: {@link ContainerProvider}.
  * <p/>
  * When instantiated, this class bootstraps all parent containers that have not yet been populated. Instances of this class all work against the same data
  * structure, thereby giving classes instantiated by third parties access to the container relevant to their level in the application's class loader hierarchy.
- * Bootstrapping a container hierarchy is performed up in the hierarchy from the requested container and if a higher level container is attempted to add
- * bootstrap bindings or properties to when it has already been bootstrapped due to earlier access to one of its child containers, the bootstrap binding or
- * property registration operation will fail. In such a case it is advised to explicitly bootstrap the higher level container before the lower level container
- * is bootstrapped.
  * <p/>
- * This class is a special case in the design since it has to be self-sufficient, depending on nothing that's not always available, and it also has to be
- * visible as it acts as the root object of an application's dependency graph. Thus it has to depend on concrete classes.
+ * Bootstrapping a container hierarchy is performed from the requested container up. Adding bootstrap bindings to a container may fail in cases when the
+ * container has already been populated as the ancestor of a lower level container. In such a case it is advised to explicitly bootstrap the higher level
+ * container before the lower level container is bootstrapped.
  * <p/>
  * Access to the shared data structure through instances of this class is thread safe.
  * <h3>Usage</h3>
@@ -64,7 +61,7 @@ import org.fluidity.foundation.spi.LogFactory;
  *   }
  *
  *   public void run(final String[] parameters) throws Exception {
- *     ...
+ *     &hellip;
  *   }
  * }
  * </pre>

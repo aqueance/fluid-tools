@@ -25,44 +25,45 @@ import java.util.Set;
  * <p/>
  * A context represents configuration at the point of reference to a component, which it elects to receive using the
  * {@link Component.Context @Component.Context} annotation. The context is defined by the referring components using custom, user defined, annotations, and are
- * consumed by referred to components that list the custom annotations' type in their <code>@Component.Context</code> annotation. For example:
+ * consumed by referred to components that list the custom annotations' type in their <code>@Component.Context</code> annotation.
+ * <p/>
+ * Since contexts offer a static configuration mechanism, components with other means of configuration can be adapted to context based configuration
+ * using a {@link org.fluidity.composition.spi.ComponentVariantFactory ComponentVariantFactory}, which essentially translates the configuration embedded in the
+ * instantiation context to configuration understood by the component being adapted.
+ * <h3>Usage</h3>
  * <pre>
- * &#64;Component
  * <span class="hl2">&#64;MyContext1</span>
+ * {@linkplain Component @Component}
  * public class ContextProvider {
  *
  *     public ContextProvider(final <span class="hl2">&#64;MyContext2</span> dependency) {
- *         ...
+ *         &hellip;
  *     }
  *
- *     ...
+ *     &hellip;
  * }
  *
- * &#64;Component
- * <span class="hl3">{@linkplain Component.Context @Component.Context}</span>({ <span class="hl2">MyContext1</span>.class,  <span class="hl2">MyContext2</span>.class })
- * final class Dependency {
+ * {@linkplain Component @Component}
+ * <span class="hl1">{@linkplain Component.Context @Component.Context}</span>({ <span class="hl2">MyContext1</span>.class,  <span class="hl2">MyContext2</span>.class })
+ * final class <span class="hl3">Dependency</span> {
  *
- *     public Dependency(final <span class="hl1">ComponentContext</span> context) {
+ *     public <span class="hl3">Dependency</span>(final <span class="hl1">ComponentContext</span> context) {
  *
  *         // all MyContext1 annotations in the instantiation path of this object
- *         <span class="hl1">MyContext1</span>[] context1s = context.annotations(<span class="hl2">MyContext1</span>.class);
+ *         <span class="hl2">MyContext1</span>[] context1s = context.annotations(<span class="hl2">MyContext1</span>.class);
  *
  *         // the last MyContext2 annotation in the instantiation path of this object
- *         <span class="hl2">MyContext2</span> context2 = context.<span class="hl1">annotation</span>(<span class="hl2">MyContext2</span>.class, Dependency.class);
+ *         <span class="hl2">MyContext2</span> context2 = context.<span class="hl1">annotation</span>(<span class="hl2">MyContext2</span>.class, <span class="hl3">Dependency</span>.class);
  *     }
  * }
  * </pre>
- * Essentially, the contexts offers a static configuration mechanism. Components with other means of configuration can be adapted to context based
- * configuration using a {@link org.fluidity.composition.spi.ComponentVariantFactory ComponentVariantFactory}, which, when invoked by the dependency injection
- * container in place of component instantiation, translates the configuration embedded in the instantiation context to configuration understood by the
- * component being adapted.
  *
  * @author Tibor Varga
  */
 public interface ComponentContext {
 
     /**
-     * Returns all context annotation instances of the given type in the instantiation path of the caller that received this object in its constructor.
+     * Returns all instances of the given context annotation type in the instantiation path of the component that received this object in its constructor.
      * Annotations may be defined at multiple points along a reference path and so multiple annotations may be present for any given type. This method returns
      * all of the instances according to the annotation's {@linkplain Component.Context#collect() accumulation} setting in the
      * order they were encountered in the reference path.
@@ -76,8 +77,9 @@ public interface ComponentContext {
     <T extends Annotation> T[] annotations(Class<T> type);
 
     /**
-     * Returns the last context annotation instance of the given type in the instantiation path of the caller that received this object, which may also be
-     * passed as the second parameter. If given and no annotation of the given type is found, an exception is thrown.
+     * Returns the last instance of the given context annotation type in the instantiation path of the component that received this object in its constructor.
+     * If an optional <code>caller</code> argument is supplied and no annotation of the given type is found, an exception mentioning the given
+     * <code>caller</code> is thrown.
      *
      * @param type   the annotation type to return instances of.
      * @param caller the optional caller to mention in the exception thrown when no annotation of the given type is present; may be <code>null</code>.
@@ -95,7 +97,7 @@ public interface ComponentContext {
      *
      * @param type the annotation type to check the existence of instances of.
      *
-     * @return <code>true</code> if there is at least one annotation of the given type, <code>false</code> otherwise.
+     * @return <code>true</code> if least one instance of the annotation of the given type is found, <code>false</code> otherwise.
      */
     boolean defines(Class<? extends Annotation> type);
 

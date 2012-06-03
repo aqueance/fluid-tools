@@ -68,11 +68,11 @@ import org.fluidity.foundation.Strings;
  *
  *   public MyComponent(final <span class="hl1">ComponentContainer</span> container) {
  *     this.container = container;
- *     ...
+ *     &hellip;
  *   }
  *
  *   private void myMethod() throws throws <b>MyCheckedException</b> {
- *     <i>... example code snippet from below ...</i>
+ *     <i>&hellip; example code snippet from below &hellip;</i>
  *   }
  * }
  * </pre>
@@ -88,50 +88,50 @@ import org.fluidity.foundation.Strings;
  * final <span class="hl2">MyHelper</span> helper = container.<span class="hl1">instantiate(</span><span class="hl2">MyHelper</span>.class, new {@linkplain ComponentContainer.Bindings}() {
  *   public void bindComponents({@linkplain ComponentContainer.Registry} registry) {
  *     registry.bindInstance("local context", String.class);
- *     ...
+ *     &hellip;
  *   }
  * }<span class="hl1">)</span>;
  * </pre></li>
  * <li>If <b>multiple</b> helpers share dependencies specific to this particular use:
  * <pre>
- * &#47;* ... acquire a child container with the necessary bindings: *&#47;
+ * &#47;* &hellip; acquire a child container with the necessary bindings: *&#47;
  *
  * final <span class="hl1">ComponentContainer</span> child = container.<span class="hl1">makeChildContainer(</span>new {@linkplain ComponentContainer.Bindings}() {
  *   public void bindComponents({@linkplain ComponentContainer.Registry} registry) {
  *     registry.bindInstance("local context", String.class);
- *     ...
+ *     &hellip;
  *   }
  * }<span class="hl1">)</span>;
  *
- * &#47;* ... and get your helpers instantiated: *&#47;
+ * &#47;* &hellip; and get your helpers instantiated: *&#47;
  *
  * final <span class="hl2">MyHelper1</span> helper1 = child.<span class="hl1">instantiate(</span><span class="hl2">MyHelper1</span>.class<span class="hl1">)</span>;
  * final <span class="hl2">MyHelper2</span> helper2 = child.<span class="hl1">instantiate(</span><span class="hl2">MyHelper2</span>.class<span class="hl1">)</span>;
  * </pre></li>
  * <li>If <b>multiple</b> helpers share dependencies specific to this particular use and they also have local dependencies that should <b>not</b> be shared:
  * <pre>
- * &#47;* ... acquire a child container with the shared bindings: *&#47;
+ * &#47;* &hellip; acquire a child container with the shared bindings: *&#47;
  *
  * final <span class="hl1">ComponentContainer</span> child = container.<span class="hl1">makeChildContainer(</span>new {@linkplain ComponentContainer.Bindings}() {
  *   public void bindComponents({@linkplain ComponentContainer.Registry} registry) {
  *     registry.bindInstance("local context", String.class);
- *     ...
+ *     &hellip;
  *   }
  * }<span class="hl1">)</span>;
  *
- * &#47;* ... and get your helpers instantiated with the bindings not shared: *&#47;
+ * &#47;* &hellip; and get your helpers instantiated with the bindings not shared: *&#47;
  *
  * final <span class="hl2">MyHelper1</span> helper1 = child.<span class="hl1">instantiate(</span><span class="hl2">MyHelper1</span>.class, new {@linkplain ComponentContainer.Bindings}() {
  *   public void bindComponents({@linkplain ComponentContainer.Registry} registry) {
  *     registry.bindInstance(1234, Integer.TYPE);
- *     ...
+ *     &hellip;
  *   }
  * }<span class="hl1">)</span>;
  *
  * final <span class="hl2">MyHelper2</span> helper2 = child.<span class="hl1">instantiate(</span><span class="hl2">MyHelper2</span>.class, new {@linkplain ComponentContainer.Bindings}() {
  *   public void bindComponents({@linkplain ComponentContainer.Registry} registry) {
  *     registry.bindInstance(5678, Integer.TYPE);
- *     ...
+ *     &hellip;
  *   }
  * }<span class="hl1">)</span>;
  * </pre></li>
@@ -144,25 +144,25 @@ import org.fluidity.foundation.Strings;
  * <pre>
  * <span class="hl1">{@linkplain Component @Component}(automatic = false)</span>
  * final class MyHelper implements <span class="hl2">InjectableMethods</span> {
- *   ...
+ *   &hellip;
  *   int <span class="hl2">someMethod</span>(final <span class="hl3">int given</span>, final <span class="hl1">{@linkplain Inject @Inject}</span> MyDependency1 mandatory, <span class="hl1">{@linkplain Inject @Inject}</span> {@linkplain Optional @Optional} MyDependency2 optional)
  *     throws SomeCheckedException;
- *   ...
+ *   &hellip;
  * }
  *
  * final <span class="hl2">InjectableMethods</span> helper = container.<span class="hl1">complete(</span>container.instantiate(MyHelper.class)</span class="hl1">)</span>;
  *
- * &#47;* ... pass null for unknown parameters *&#47;
+ * &#47;* &hellip; pass null for unknown parameters *&#47;
  * final int result = helper.<span class="hl2">someMethod</span>(<span class="hl3">1234</span>, null, null);
  * </pre></li>
  * <li><b>ad-hoc method invocation</b>: any method parameter not provided a value will be injected; if a method parameter cannot be
  * resolved and it is not annotated with {@link Optional @Optional} then a {@link ResolutionException} is thrown.
  * <pre>
  * final class <span class="hl2">MyHelper</span> {
- *   ...
+ *   &hellip;
  *   <span class="hl2">int</span> <span class="hl2">someMethod</span>(final <span class="hl3">int given</span>, final MyDependency1 mandatory, {@linkplain Optional @Optional} MyDependency2 optional);
  *     throws SomeCheckedException;
- *   ...
+ *   &hellip;
  * }
  *
  * final <span class="hl2">MyHelper</span> helper = new <span class="hl2">MyHelper()</span>;
@@ -171,11 +171,11 @@ import org.fluidity.foundation.Strings;
  * final <span class="hl2">int</span> result;
  * try {
  *
- *   &#47;* ... handle checked exceptions ... *&#47;
+ *   &#47;* &hellip; handle checked exceptions ... *&#47;
  *   result = {@linkplain org.fluidity.foundation.Exceptions}.wrap(new Exceptions.Command&lt;<span class="hl2">Integer</span>>() {
  *     public <span class="hl2">Integer</span> run() throws Throwable {
  *
- *       &#47;* ... pass known parameters as the last parameters to this call*&#47;
+ *       &#47;* &hellip; pass known parameters as the last parameters to this call*&#47;
  *       return (<span class="hl2">Integer</span>) container.<span class="hl1">invoke</span>(helper, method, <span class="hl3">1234</span>);
  *     }
  *   });
@@ -374,10 +374,10 @@ public interface ComponentContainer {
      * final class <span class="hl2">MyComponentImpl</span> implements <span class="hl2">MyComponent</span> {
      *
      *   public <span class="hl2">MyComponentImpl</span>(final <span class="hl3">MyLocalDependency</span> local, final MyGlobalDependency global) {
-     *     ...
+     *     &hellip;
      *   }
      *
-     *   ...
+     *   &hellip;
      * }
      * </pre>
      */
@@ -422,26 +422,26 @@ public interface ComponentContainer {
      *   // some component
      *   {@linkplain Component @Component}<span class="hl1">(automatic = false)</span>
      *   class <span class="hl3">MyComponentImpl</span> implements <span class="hl3">MyComponent</span> {
-     *     ...
+     *     &hellip;
      *   }
      *
      *   // some list of bindings
      *   final <span class="hl2">{@linkplain ComponentContainer.Bindings}</span> bindings = new <span class="hl2">{@linkplain ComponentContainer.Bindings}</span>() {
      *     public void <span class="hl2">bindComponents</span>(final <span class="hl1">ComponentContainer.Registry</span> registry) {
      *       registry.<span class="hl1">bindComponent</span>(<span class="hl3">MyComponentImpl</span>.class);
-     *       ...
+     *       &hellip;
      *     }
      *   }
      *
      *   // a container received from somewhere
-     *   final <span class="hl2">{@linkplain ComponentContainer}</span> container = ...;
+     *   final <span class="hl2">{@linkplain ComponentContainer}</span> container = &hellip;;
      *
      *   final <span class="hl2">{@linkplain ComponentContainer}</span> child = container.<span class="hl2">makeChildContainer</span>(bindings);
      *
      *   // use the child to get a component instance
      *   final <span class="hl3">MyComponent</span> component = child.getComponent(<span class="hl3">MyComponent</span>.class);
      *
-     *   ...
+     *   &hellip;
      * }
      * </pre></li>
      * <li>Overriding bindings: as an alternative to using explicitly context aware components as dependencies, you can elect to isolate the dependencies of a
@@ -553,8 +553,8 @@ public interface ComponentContainer {
     /**
      * Observes component dependency resolutions.
      * <h3>Usage</h3>
-     * A {@link ComponentContainer} can be used to explore the static and dynamic dependencies starting at any component interface. See
-     * {@link ObservedComponentContainer} for an example.
+     * A {@link ComponentContainer} can be used to explore the static and dynamic dependencies starting at any component interface. See {@link
+     * ObservedComponentContainer} for an example.
      *
      * @author Tibor Varga
      */

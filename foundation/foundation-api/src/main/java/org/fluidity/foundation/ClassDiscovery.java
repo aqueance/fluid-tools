@@ -32,7 +32,7 @@ package org.fluidity.foundation;
  *     final ClassLoader loader = getClass().getClassLoader();
  *     final Class&lt;<span class="hl2">MyProvider</span>>[] classes = discovery.<span class="hl1">findComponentClasses</span>(<span class="hl2">MyProvider</span>.class, loader, false);
  *     assert classes != null : MyProvider.class;
- *     ...
+ *     &hellip;
  *   }
  * }
  * </pre>

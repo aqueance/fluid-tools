@@ -27,14 +27,14 @@ import org.fluidity.composition.ContainerBoundary;
  * <h3>Usage</h3>
  * This listener is registered in a <code>web.xml</code> descriptor of a web application.
  * <pre>
- * &lt;web-app ...>
- * ...
+ * &lt;web-app &hellip;>
+ * &hellip;
  *   &lt;listener>
  *     &lt;description>Helps to manage a Fluid Tools container life cycle&lt;/description>
  *     &lt;display-name>Fluid Tools Servlet Context Listener&lt;/display-name>
  *     &lt;listener-class><span class="hl1">org.fluidity.composition.web.AggregatingServletContextListener</span>&lt;/listener-class>
  *   &lt;/listener>
- * ...
+ * &hellip;
  * &lt;/web-app>
  * </pre>
  */

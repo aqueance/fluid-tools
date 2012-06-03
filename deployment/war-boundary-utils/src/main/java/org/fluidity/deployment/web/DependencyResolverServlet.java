@@ -29,12 +29,12 @@ import javax.servlet.ServletResponse;
  * instantiated in the {@link #init(ServletConfig)} method and discarded in the {@link #destroy()} method..
  * <p/>
  * Example <code>web.xml</code>:<pre>
- * &lt;web-app>
- *   ...
+ * &lt;web-app &hellip;>
+ *   &hellip;
  *   &lt;servlet>
- *     ...
+ *     &hellip;
  *     &lt;servlet-class>org.fluidity.deployment.web.DependencyResolverServlet&lt;/servlet-class>
- *     ...
+ *     &hellip;
  *     &lt;init-param>
  *       &lt;param-name>component-key&lt;/param-name>
  *       &lt;param-value><em>the class name of this servlet's delegate</em>&lt;/param-value>
