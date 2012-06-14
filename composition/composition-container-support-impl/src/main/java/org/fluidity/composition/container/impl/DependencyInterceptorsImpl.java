@@ -16,7 +16,6 @@
 
 package org.fluidity.composition.container.impl;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,7 +24,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
-import org.fluidity.composition.container.ComponentContextDescriptor;
 import org.fluidity.composition.container.ContextDefinition;
 import org.fluidity.composition.container.spi.DependencyGraph;
 import org.fluidity.composition.container.spi.DependencyResolver;
@@ -39,7 +37,7 @@ import org.fluidity.foundation.Strings;
 @Component(automatic = false)
 final class DependencyInterceptorsImpl implements DependencyInterceptors {
 
-    public static final InterceptorDescriptor[] NO_INTERCEPTORS = new InterceptorDescriptor[0];
+    public static final ComponentInterceptor[] NO_INTERCEPTORS = new ComponentInterceptor[0];
 
     // recursion guard: no interception of dependencies of interceptors
     private final ThreadLocal<Boolean> intercepting = new ThreadLocal<Boolean>() {
@@ -49,36 +47,27 @@ final class DependencyInterceptorsImpl implements DependencyInterceptors {
         }
     };
 
+    private final InterceptorFilter annotations;
     private final Log log;
 
-    public DependencyInterceptorsImpl(final Log log) {
+    public DependencyInterceptorsImpl(final InterceptorFilter annotations, final Log log) {
+        this.annotations = annotations;
         this.log = log;
     }
 
-    private InterceptorDescriptor[] interceptors(final DependencyResolver container, final DependencyGraph.Traversal traversal) {
+    private ComponentInterceptor[] interceptors(final DependencyResolver container, final DependencyGraph.Traversal traversal) {
         if (!intercepting.get()) {
             intercepting.set(true);
 
             try {
                 final DependencyGraph.Node group = container.resolveGroup(ComponentInterceptor.class, new ContextDefinitionImpl(), traversal);
-                return descriptors(group == null ? null : (ComponentInterceptor[]) group.instance(traversal));
+                return group == null ? NO_INTERCEPTORS : (ComponentInterceptor[]) group.instance(traversal);
             } finally {
                 intercepting.set(false);
             }
         } else {
             return NO_INTERCEPTORS;
         }
-    }
-
-    @SuppressWarnings("ConstantConditions")
-    static InterceptorDescriptor[] descriptors(final ComponentInterceptor... instances) {
-        final InterceptorDescriptor[] descriptors = new InterceptorDescriptor[instances == null ? 0 : instances.length];
-
-        for (int i = 0, limit = descriptors.length; i < limit; i++) {
-            descriptors[i] = new InterceptorDescriptor(instances[i]);
-        }
-
-        return descriptors;
     }
 
     public DependencyGraph.Node replace(final DependencyResolver container,
@@ -90,7 +79,7 @@ final class DependencyInterceptorsImpl implements DependencyInterceptors {
             return node;
         }
 
-        final InterceptorDescriptor[] interceptors = context.filter(interceptors(container, traversal));
+        final ComponentInterceptor[] interceptors = annotations.filter(context, interceptors(container, traversal));
 
         if (interceptors.length > 0) {
             final AtomicReference<ComponentInterceptor.Dependency> last = new AtomicReference<ComponentInterceptor.Dependency>();
@@ -109,20 +98,20 @@ final class DependencyInterceptorsImpl implements DependencyInterceptors {
 
             final List<String> applied = new ArrayList<String>();
 
-            for (final InterceptorDescriptor descriptor : interceptors) {
-                final ComponentInterceptor.Dependency dependency = descriptor.interceptor.intercept(reference,
-                                                                                                    context.copy().accept(descriptor.type).create(),
-                                                                                                    next.get());
+            for (final ComponentInterceptor interceptor : interceptors) {
+                final ComponentInterceptor.Dependency dependency = interceptor.intercept(reference,
+                                                                                         context.copy().accept(interceptor.getClass()).create(),
+                                                                                         next.get());
 
                 if (dependency == null) {
                     return null;
                 }
 
                 next.set(dependency);
-                applied.add(descriptor.toString(false));
+                applied.add(Strings.printClass(false, false, interceptor.getClass()));
             }
 
-            log.debug("%s: interceptors for %s: %s", this, context, applied);
+            log.debug("%s: interceptors for %s: %s", container, context, applied);
 
             return new DependencyGraph.Node() {
                 public Class<?> type() {
@@ -145,36 +134,6 @@ final class DependencyInterceptorsImpl implements DependencyInterceptors {
             };
         } else {
             return node;
-        }
-    }
-
-    static class InterceptorDescriptor extends ComponentContextDescriptor<ComponentInterceptor> {
-
-        public final ComponentInterceptor interceptor;
-
-        @SuppressWarnings("unchecked")
-        public InterceptorDescriptor(final ComponentInterceptor interceptor) {
-            super((Class<ComponentInterceptor>) interceptor.getClass());
-            this.interceptor = interceptor;
-        }
-
-        @Override
-        public String toString() {
-            return toString(true);
-        }
-
-        public String toString(final boolean full) {
-            final Strings.Listing annotations = Strings.delimited();
-
-            if (full) {
-                for (final Class<? extends Annotation> type : context) {
-                    annotations.add("@").append(Strings.printClass(false, false, type));
-                }
-            }
-
-            return annotations.isEmpty()
-                   ? Strings.printClass(false, false, type)
-                   : String.format("%s (%s)", Strings.printClass(false, false, type), annotations);
         }
     }
 }

@@ -42,7 +42,7 @@ final class ProductionServices implements ContainerServices {
         this.logs = logs;
         this.cacheLog = logs.createLog(ComponentCacheImpl.class);
         this.discovery = new ClassDiscoveryImpl(logs.createLog(ClassDiscoveryImpl.class));
-        this.injector = new DependencyInjectorImpl(new DependencyInterceptorsImpl(logs.createLog(DependencyInterceptorsImpl.class)));
+        this.injector = new DependencyInjectorImpl(new DependencyInterceptorsImpl(new InterceptorFilterImpl(), logs.createLog(DependencyInterceptorsImpl.class)));
     }
 
     public ContextDefinition emptyContext() {

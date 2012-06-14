@@ -42,14 +42,15 @@ public interface DependencyInjector {
 
     /**
      * Resolves all parameters of the given constructor and returns a dependency graph node representing the component instance that would be produced by that
-     * constructor. The returned node's {@link org.fluidity.composition.container.spi.DependencyGraph.Node#instance(org.fluidity.composition.container.spi.DependencyGraph.Traversal)} method will instantiate the component and also inject
-     * its {@link org.fluidity.composition.Inject @Inject} annotated fields.
+     * constructor. The returned node's {@link
+     * org.fluidity.composition.container.spi.DependencyGraph.Node#instance(DependencyGraph.Traversal) DependencyGraph.Node.instance()} method will instantiate
+     * the component and also inject its {@link org.fluidity.composition.Inject @Inject} annotated fields.
      *
      * @param api         the component interface of the component to construct.
      * @param traversal   the current graph traversal.
      * @param container   the container to resolve dependencies of the component.
      * @param contexts    context node corresponding to the constructor's owning component.
-     * @param context     the component context of the component.
+     * @param context     the current context definition.
      * @param constructor the constructor to resolve the arguments of.
      *
      * @return a dependency graph node.
@@ -64,13 +65,13 @@ public interface DependencyInjector {
     /**
      * Injects all {@link org.fluidity.composition.Inject @Inject} annotated fields of the received component. Useful for components instantiated by means
      * other than calling {@link #constructor(Class, DependencyGraph.Traversal, DependencyResolver, ContextNode, ContextDefinition, Constructor)
-     * constructor(&hellip;)}.
+     * DependencyInjector.constructor()}.
      *
      * @param instance  the object to inject the fields of.
      * @param traversal the current graph traversal.
      * @param container the container to resolve dependencies of the component.
      * @param contexts  context node corresponding to the component.
-     * @param context   the component context of the provided instance.
+     * @param context   the current context definition.
      *
      * @return the received component.
      */
@@ -85,7 +86,7 @@ public interface DependencyInjector {
      * @param traversal the graph traversal to use.
      * @param container the container to resolve method parameters.
      * @param contexts  context node corresponding to the component.
-     * @param context   the component context of the given component.
+     * @param context   the current context definition.
      * @param explicit  tells whether all method arguments are subject to injection (<code>true</code>) or only those annotated with {@link
      *                  org.fluidity.composition.Inject @Inject}.
      *
@@ -128,9 +129,9 @@ public interface DependencyInjector {
     Constructor<?> findConstructor(Class<?> componentClass) throws ComponentContainer.ResolutionException;
 
     /**
-     * Invokes the appropriate method of provided resolution object based on the type of the given dependency. Implements the special handling of non-regular
-     * dependencies of a component. A dependency to a {@link ComponentContainer} will be <em>restricted</em>, meaning that it will only accept method calls
-     * after it has been {@link RestrictedContainer#enable() enabled}.
+     * Handles the various special and regular dependency types by invokes the appropriate method of the provided resolution object based on the type of the
+     * given dependency. A dependency to a {@link ComponentContainer} will be <em>restricted</em>, meaning that it will only resolve components and component
+     * groups after it has been {@link RestrictedContainer#enable() enabled}.
      *
      * @param api        the dependency type.
      * @param resolution resolves the various dependency types.
@@ -146,7 +147,8 @@ public interface DependencyInjector {
      * final {@linkplain ContainerServices} services = &hellip;
      * final {@linkplain DependencyInjector} injector = services.dependencyInjector();
      * &hellip;
-     * final {@linkplain org.fluidity.composition.container.spi.DependencyGraph.Node} node = injector.resolve(&hellip;, new <span class="hl1">DependencyInjector.Resolution</span>() {
+     * final {@linkplain org.fluidity.composition.container.spi.DependencyGraph.Node} node = injector.resolve(&hellip;, new <span
+     * class="hl1">DependencyInjector.Resolution</span>() {
      *   &hellip;
      * });
      * </pre>
@@ -156,21 +158,21 @@ public interface DependencyInjector {
     public interface Resolution {
 
         /**
-         * A {@link org.fluidity.composition.ComponentContext} is being depended on.
+         * Resolves a {@link org.fluidity.composition.ComponentContext}.
          *
          * @return the resolved component context.
          */
         ComponentContext context();
 
         /**
-         * A {@link ComponentContainer} is being depended on.
+         * Resolves a {@link ComponentContainer} is being depended on.
          *
          * @return the resolved component container.
          */
         ComponentContainer container();
 
         /**
-         * A regular dependency is being depended on.
+         * Resolves a regular dependency.
          *
          * @return the resolved dependency.
          */

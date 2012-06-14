@@ -33,6 +33,8 @@ import org.fluidity.foundation.spi.LogFactory;
  * }
  * </pre>
  *
+ * @see org.fluidity.composition.container.spi.ContainerProvider
+ *
  * @author Tibor Varga
  */
 @SuppressWarnings("JavadocReference")
@@ -41,37 +43,37 @@ public interface ContainerServices {
     /**
      * Creates an empty context definition.
      *
-     * @return an empty context definition.
+     * @return an empty context definition; never <code>null</code>.
      */
     ContextDefinition emptyContext();
 
     /**
-     * Returns the service to find classes implementing some interface.
+     * Returns the service to use to find classes implementing some interface.
      *
-     * @return the service to find classes implementing some interface.
+     * @return the class discovery service; never <code>null</code>.
      */
     ClassDiscovery classDiscovery();
 
     /**
-     * Returns the component that can perform dependency injection to constructors or fields.
+     * Returns the component that can perform dependency injection to constructors, fields, and methods.
      *
-     * @return the component that can perform dependency injection to constructors or fields.
+     * @return the dependency injector; never <code>null</code>.
      */
     DependencyInjector dependencyInjector();
 
     /**
      * Returns a new graph traversal.
      *
-     * @return a new graph traversal.
+     * @return a new graph traversal; never <code>null</code>.
      */
     DependencyGraph.Traversal graphTraversal();
 
     /**
-     * Returns a new graph traversal with the given resolution observer.
+     * Returns a new graph traversal initialized with the given resolution observer.
      *
      * @param observer the object to notify when a component interface gets resolved to a class.
      *
-     * @return a new graph traversal with the given resolution observer.
+     * @return a new graph traversal; never <code>null</code>.
      */
     DependencyGraph.Traversal graphTraversal(ComponentContainer.Observer observer);
 
@@ -80,14 +82,14 @@ public interface ContainerServices {
      *
      * @param observers the observers to aggregate.
      *
-     * @return an aggregate observer.
+     * @return an aggregate observer; never <code>null</code>.
      */
     ComponentContainer.Observer aggregateObserver(ComponentContainer.Observer... observers);
 
     /**
      * Returns the logger factory to use by the container.
      *
-     * @return the logger factory to use by the container.
+     * @return the logger factory to use by the container; never <code>null</code>.
      */
     LogFactory logs();
 
@@ -96,7 +98,7 @@ public interface ContainerServices {
      *
      * @param stateless specifies whether the component can actually be cached or not. Value <code>true</code> means the component can be cached.
      *
-     * @return a new component cache instance.
+     * @return a new component cache instance; never <code>null</code>.
      */
     ComponentCache newCache(boolean stateless);
 }

@@ -35,13 +35,15 @@ import org.fluidity.composition.ComponentContext;
  * The active set is computed as we go backward on the instantiation path by adding context annotations from the defined set that are accepted by components
  * on the path and removing them as we pass their definition.
  * <p/>
- * The active set is then used as a cache key for stateless (i.e., cacheable) components regardless of whether they themselves are context aware or not.
+ * The active set is the component context that is passed to context aware components and used also as a {@linkplain ComponentCache cache} key for stateless
+ * (i.e., cacheable) components regardless of whether they themselves are context aware or not.
  * <p/>
  * The above is implemented by<ol>
  * <li>{@linkplain ContainerServices#emptyContext() creating an empty context} definition object at the head of some dependency path</li>
  * <li>{@linkplain #advance(Type) advancing} to the next node along that path as we move downstream to each dependency of the current component and {@linkplain
- * #expand(Annotation[]) expanding} the context with the context annotations at the new node</li>
- * <li>{@linkplain #accept(Class) narrowing} another copy of the definition down to the contexts accepted by the current context that can then be used to<ul>
+ * #expand(Annotation[]) expanding} the context with the context annotations present at the new node</li>
+ * <li>{@linkplain #accept(Class) narrowing} a <em>copy</em> of the definition down to the contexts accepted by the current context that can then be used
+ * to<ul>
  * <li>{@linkplain #create() create} the actual context to be injected to the current component upon instantiation</li>
  * <li>as a cache key to map the instantiated stateless component to</li>
  * </ul></li>
@@ -51,8 +53,8 @@ import org.fluidity.composition.ComponentContext;
  * </ol>
  * <p/>
  * This context tracking algorithm ensures that between the component that defines some context and the ones that consume it, all intermediate components will
- * also have a dedicated instance for the active context. This may not appear intuitive at first but this rule guarantees that context aware components will
- * indeed have a unique instance for each actual context in the application.
+ * also have a dedicated instance for the active context. This may appear counter-intuitive at first but this rule guarantees that context aware components
+ * will indeed have a unique and isolated instance for each actual context in the application.
  * <h3>Usage</h3>
  * <pre>
  * final {@linkplain ContainerServices} services = &hellip;
@@ -66,7 +68,7 @@ import org.fluidity.composition.ComponentContext;
 public interface ContextDefinition {
 
     /**
-     * Expands the defined context.
+     * Expands the <em>defined</em> context with the supplied annotations.
      *
      * @param definition the annotations potentially defining new context.
      *
@@ -75,7 +77,8 @@ public interface ContextDefinition {
     ContextDefinition expand(Annotation[] definition);
 
     /**
-     * Narrows down the defined context set to the annotation classes accepted by the current component in the instantiation path.
+     * Narrows down the <em>active</em> context set to the annotation classes accepted by the given component. If the <code>consumer</code> argument is
+     * <code>null</code>, the active set is simply cleared.
      *
      * @param consumer the class that may accept some context annotations; may be <code>null</code>.
      *
@@ -84,7 +87,7 @@ public interface ContextDefinition {
     ContextDefinition accept(Class<?> consumer);
 
     /**
-     * Expands the active context set with annotations consumed by dependencies of the component at the current node in the instantiation path.
+     * Expands the <em>active</em> context set with annotations consumed by dependencies of the component at the current node in the instantiation path.
      *
      * @param contexts the context definitions carrying the active component set from the dependencies of the current component.
      *
@@ -93,7 +96,14 @@ public interface ContextDefinition {
     ContextDefinition collect(Collection<ContextDefinition> contexts);
 
     /**
-     * Returns the active context set.
+     * Returns the <em>defined</em> context set in definition order.
+     *
+     * @return the defined context set.
+     */
+    Map<Class<? extends Annotation>, Annotation[]> defined();
+
+    /**
+     * Returns the <em>active</em> context set.
      *
      * @return the active context set.
      */
@@ -132,9 +142,9 @@ public interface ContextDefinition {
     ComponentContext create(Map<Class<? extends Annotation>, Annotation[]> map);
 
     /**
-     * Returns the component reference.
+     * Returns the current component reference.
      *
-     * @return the component reference.
+     * @return the current component reference.
      */
     Component.Reference reference();
 
@@ -144,23 +154,4 @@ public interface ContextDefinition {
      * @return <code>true</code> if there is no context annotation in the receiver; <code>false</code> otherwise.
      */
     boolean isEmpty();
-
-    /**
-     * Returns only those descriptors from the provided ones whose context annotations are all present in this context definition. The returned descriptors are
-     * sorted by the relative declaration distance of their context annotation that is closest to the current dependency reference.
-     * <p/>
-     * For example, let us say that contexts <code>@A, @B, @C, and @D</code> are defined in that order along the dependency path, and three descriptors are
-     * given with the following annotations, respectively:<ul>
-     * <li><code>A, C</code></li>
-     * <li><code>B, D</code></li>
-     * <li><code>D, E</code></li>
-     * </ul>
-     * In the above case, the first two descriptors will be returned in reverse order, because the closest context annotation of the second descriptor,
-     * <code>D</code>, is nearer to the current reference than the closest context annotation of the first descriptor, <code>C</code>.
-     *
-     * @param descriptors the descriptors to filter and sort; may be <code>null</code>.
-     * @param <T>         the actual type of the descriptors.
-     * @return the filtered and sorted list of descriptors; possible empty, <code>null</code> only if the descriptor parameter was <code>null</code>
-     */
-    <T extends ComponentContextDescriptor> T[] filter(T[] descriptors);
 }

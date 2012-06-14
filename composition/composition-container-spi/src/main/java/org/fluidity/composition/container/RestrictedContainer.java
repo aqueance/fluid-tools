@@ -32,7 +32,7 @@ import org.fluidity.composition.ObservedComponentContainer;
 public interface RestrictedContainer extends ObservedComponentContainer {
 
     /**
-     * Enables the wrapped container.
+     * Enables the resolution functions of the wrapped container.
      */
     void enable();
 }

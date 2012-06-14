@@ -19,6 +19,8 @@ package org.fluidity.composition.container.impl;
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Map;
 
 import org.fluidity.composition.Component;
@@ -30,6 +32,7 @@ import org.testng.annotations.Test;
 /**
  * @author Tibor Varga
  */
+@SuppressWarnings("UnusedDeclaration")
 public class ContextDefinitionImplTest extends MockGroupAbstractTest {
 
     @Test
@@ -116,6 +119,26 @@ public class ContextDefinitionImplTest extends MockGroupAbstractTest {
         }
     }
 
+    @Test
+    public void testAnnotationOrder() throws Exception {
+        final Map<Class<? extends Annotation>, Annotation[]> map1 = new ContextDefinitionImpl()
+                .expand(Definition4.class.getAnnotations())
+                .expand(Definition4.class.getField("field").getAnnotations())
+                .expand(Definition5.class.getField("field").getAnnotations())
+                .expand(Definition6.class.getField("field").getAnnotations())
+                .expand(Definition7.class.getAnnotations())
+                .expand(Definition7.class.getField("field").getAnnotations())
+                .expand(Definition8.class.getField("field").getAnnotations())
+                .expand(Definition9.class.getField("field").getAnnotations())
+                .defined();
+
+        assert new ArrayList<Class>(map1.keySet()).equals(Arrays.asList((Class) Annotation5.class,
+                                                                        (Class) Annotation4.class,
+                                                                        (Class) Annotation3.class,
+                                                                        (Class) Annotation2.class,
+                                                                        (Class) Annotation1.class)) : map1.keySet();
+    }
+
     @Retention(RetentionPolicy.RUNTIME)
     @Component.Context(collect = Component.Context.Collection.ALL)
     public @interface Accumulated {
@@ -143,6 +166,26 @@ public class ContextDefinitionImplTest extends MockGroupAbstractTest {
 
         String value();
     }
+
+    @Retention(RetentionPolicy.RUNTIME)
+    @Component.Context(collect = Component.Context.Collection.ALL)
+    public @interface Annotation1 { }
+
+    @Retention(RetentionPolicy.RUNTIME)
+    @Component.Context(collect = Component.Context.Collection.ALL)
+    public @interface Annotation2 { }
+
+    @Retention(RetentionPolicy.RUNTIME)
+    @Component.Context(collect = Component.Context.Collection.ALL)
+    public @interface Annotation3 { }
+
+    @Retention(RetentionPolicy.RUNTIME)
+    @Component.Context(collect = Component.Context.Collection.ALL)
+    public @interface Annotation4 { }
+
+    @Retention(RetentionPolicy.RUNTIME)
+    @Component.Context(collect = Component.Context.Collection.ALL)
+    public @interface Annotation5 { }
 
     @Component.Context(value = Accumulated.class)
     private static class Consumer1 { }
@@ -174,4 +217,36 @@ public class ContextDefinitionImplTest extends MockGroupAbstractTest {
     private static class Definition2 { }
 
     private static class Definition3 { }
+
+    @Annotation1
+    private static class Definition4 {
+        @Annotation5
+        public Void field;
+    }
+
+    private static class Definition5 {
+        @Annotation2
+        public Void field;
+    }
+
+    private static class Definition6 {
+        @Annotation1
+        public Void field;
+    }
+
+    @Annotation4
+    private static class Definition7 {
+        @Annotation3
+        public Void field;
+    }
+
+    private static class Definition8 {
+        @Annotation2
+        public Void field;
+    }
+
+    private static class Definition9 {
+        @Annotation1
+        public Void field;
+    }
 }

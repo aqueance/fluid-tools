@@ -22,9 +22,6 @@ import org.fluidity.composition.ComponentContext;
  * Caches components by <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Component_Context">context</a> on behalf of a container. Instances of this
  * cache are provided for dependency injection container implementations to cache instantiated components.
  * <p/>
- * A domain is a mirror of the dependency injection container hierarchy of the application that is isolated from other domains. Caching of component instances
- * are performed in each domain separately from other domains.
- * <p/>
  * This cache is thread safe.
  * <u3>Usage</u3>
  * <pre>
@@ -62,23 +59,23 @@ import org.fluidity.composition.ComponentContext;
 public interface ComponentCache {
 
     /**
-     * Looks up, and instantiates if necessary using the supplied command, the cached component. Instantiation only takes place if <code>factory</code> is not
-     * <code>null</code>.
+     * Looks up, and instantiates if necessary using the supplied factory, the cached component. If <code>factory</code> is <code>null</code>, only lookup is
+     * done with no instantiation on cache miss.
      *
      * @param domain  the object that segregates cached instances, or <code>null</code>; a separate instance will be cached for different domains.
      * @param source  identifies in log messages the entity that is creating instances through this cache.
      * @param context the context for the component to cache against.
      * @param api     the interface the component implements.
      * @param factory the command that performs instantiation of the component if it was not yet found in the cache; if <code>null</code>, only a lookup is
-     *                made, otherwise instantiation is attempted if the no cached instance is found.
+     *                done, otherwise instantiation is attempted if the no cached instance is found.
      *
      * @return the component instance or <code>null</code>.
      */
     Object lookup(Object domain, String source, ComponentContext context, Class<?> api, Entry factory);
 
     /**
-     * A factory to provide a component instance at cache miss. This interface is used to tell a {@link ComponentCache} how to instantiate the cached component
-     * when it's missing from the cache.
+     * A factory to provide a component instance on {@linkplain ComponentCache cache} miss. This interface is used to tell a {@link ComponentCache} how to
+     * instantiate the cached component when it's missing from the cache.
      * <h3>Usage</h3>
      * See {@link ComponentCache}.
      *

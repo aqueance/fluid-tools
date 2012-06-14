@@ -72,9 +72,9 @@ final class SimpleContainerImpl extends EmptyDependencyGraph implements ParentCo
         this.parent = parent;
         this.domain = domain == null ? this : domain;
         this.services = services;
-        this.log = this.services.logs().createLog(getClass());
         this.injector = this.services.dependencyInjector();
         this.logs = this.services.logs();
+        this.log = this.logs.createLog(getClass());
     }
 
     public ContainerServices services() {
@@ -777,6 +777,11 @@ final class SimpleContainerImpl extends EmptyDependencyGraph implements ParentCo
 
         public Node resolveGroup(final Class<?> api, final ContextDefinition context, final Traversal traversal, final Type reference) {
             return SimpleContainerImpl.this.resolveGroup(domain, api, context, traversal, null, reference);
+        }
+
+        @Override
+        public String toString() {
+            return SimpleContainerImpl.this.toString();
         }
     }
 }

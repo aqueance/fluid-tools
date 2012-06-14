@@ -21,7 +21,6 @@ import java.lang.reflect.Type;
 
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
-import org.fluidity.composition.container.ComponentContextDescriptor;
 import org.fluidity.composition.container.ContextDefinition;
 import org.fluidity.composition.container.spi.DependencyGraph;
 import org.fluidity.composition.container.spi.DependencyResolver;
@@ -38,6 +37,7 @@ import org.testng.annotations.Test;
  */
 public class DependencyInterceptorsTest extends MockGroupAbstractTest {
 
+    private final InterceptorFilter annotations = mock(InterceptorFilter.class);
     private final ContextDefinition context = mock(ContextDefinition.class);
     private final ContextDefinition copy = mock(ContextDefinition.class);
     private final ContextDefinition accepted = mock(ContextDefinition.class);
@@ -57,7 +57,7 @@ public class DependencyInterceptorsTest extends MockGroupAbstractTest {
     private final ComponentInterceptor interceptor3 = mock(ComponentInterceptor.class);
     private final ComponentInterceptor.Dependency dependency3 = mock(ComponentInterceptor.Dependency.class);
 
-    private final DependencyInterceptors interceptors = new DependencyInterceptorsImpl(NoLogFactory.consume(DependencyInterceptorsImpl.class));
+    private final DependencyInterceptors interceptors = new DependencyInterceptorsImpl(annotations, NoLogFactory.consume(DependencyInterceptorsImpl.class));
 
     @Test
     public void testNoNode() throws Exception {
@@ -73,7 +73,7 @@ public class DependencyInterceptorsTest extends MockGroupAbstractTest {
                                               EasyMock.same(traversal)))
                 .andReturn(null);
 
-        EasyMock.expect(context.filter(EasyMock.aryEq(DependencyInterceptorsImpl.NO_INTERCEPTORS))).andReturn(DependencyInterceptorsImpl.NO_INTERCEPTORS);
+        EasyMock.expect(annotations.filter(EasyMock.same(context), EasyMock.aryEq(DependencyInterceptorsImpl.NO_INTERCEPTORS))).andReturn(DependencyInterceptorsImpl.NO_INTERCEPTORS);
 
         replay();
         assert interceptors.replace(resolver, context, traversal, Serializable.class, node) == node;
@@ -86,7 +86,7 @@ public class DependencyInterceptorsTest extends MockGroupAbstractTest {
                 .andReturn(group);
 
         EasyMock.expect(group.instance(traversal)).andReturn(new ComponentInterceptor[0]);
-        EasyMock.expect(context.filter(EasyMock.aryEq(DependencyInterceptorsImpl.NO_INTERCEPTORS))).andReturn(DependencyInterceptorsImpl.NO_INTERCEPTORS);
+        EasyMock.expect(annotations.filter(EasyMock.same(context), EasyMock.aryEq(DependencyInterceptorsImpl.NO_INTERCEPTORS))).andReturn(DependencyInterceptorsImpl.NO_INTERCEPTORS);
 
         replay();
         assert interceptors.replace(resolver, context, traversal, Serializable.class, node) == node;
@@ -103,7 +103,7 @@ public class DependencyInterceptorsTest extends MockGroupAbstractTest {
         final ComponentInterceptor[] found = { interceptor1 };
 
         EasyMock.expect(group.instance(traversal)).andReturn(found);
-        EasyMock.expect(context.filter(EasyMock.<ComponentContextDescriptor[]>notNull())).andAnswer(filter(true, found));
+        EasyMock.expect(annotations.filter(EasyMock.same(context), EasyMock.<ComponentInterceptor[]>notNull())).andAnswer(filter(true, found));
 
         replay();
         assert interceptors.replace(resolver, context, traversal, Serializable.class, node) == node;
@@ -128,7 +128,7 @@ public class DependencyInterceptorsTest extends MockGroupAbstractTest {
         assert dependencies.length == found.length + 1;
 
         EasyMock.expect(group.instance(traversal)).andReturn(found);
-        EasyMock.expect(context.filter(EasyMock.<ComponentContextDescriptor[]>notNull())).andAnswer(filter(false, found));
+        EasyMock.expect(annotations.filter(EasyMock.same(context), EasyMock.<ComponentInterceptor[]>notNull())).andAnswer(filter(false, found));
 
         for (int i = 0, limit = found.length; i < limit; i++) {
             final ComponentInterceptor interceptor = found[i];
@@ -183,7 +183,7 @@ public class DependencyInterceptorsTest extends MockGroupAbstractTest {
         assert dependencies.length < found.length + 1;
 
         EasyMock.expect(group.instance(traversal)).andReturn(found);
-        EasyMock.expect(context.filter(EasyMock.<ComponentContextDescriptor[]>notNull())).andAnswer(filter(false, found));
+        EasyMock.expect(annotations.filter(EasyMock.same(context), EasyMock.<ComponentInterceptor[]>notNull())).andAnswer(filter(false, found));
 
         for (int i = 0, limit = found.length; i < limit; i++) {
             final ComponentInterceptor interceptor = found[i];
@@ -236,7 +236,7 @@ public class DependencyInterceptorsTest extends MockGroupAbstractTest {
         assert dependencies.length == found.length + 1;
 
         EasyMock.expect(group.instance(traversal)).andReturn(found);
-        EasyMock.expect(context.filter(EasyMock.<ComponentContextDescriptor[]>notNull())).andAnswer(filter(false, found));
+        EasyMock.expect(annotations.filter(EasyMock.same(context), EasyMock.<ComponentInterceptor[]>notNull())).andAnswer(filter(false, found));
 
         final ComponentInterceptor interceptor = found[0];
 
@@ -257,32 +257,22 @@ public class DependencyInterceptorsTest extends MockGroupAbstractTest {
         }
     }
 
-    private IAnswer<ComponentContextDescriptor[]> filter(final boolean empty, final ComponentInterceptor... interceptors) {
-        return new IAnswer<ComponentContextDescriptor[]>() {
-            public ComponentContextDescriptor[] answer() throws Throwable {
-                expect(EasyMock.getCurrentArguments()[0], interceptors);
-                return empty ? DependencyInterceptorsImpl.NO_INTERCEPTORS : describe(interceptors);
-            }
-
-            private DependencyInterceptorsImpl.InterceptorDescriptor[] describe(final ComponentInterceptor[] interceptors) {
-                final DependencyInterceptorsImpl.InterceptorDescriptor[] descriptors = new DependencyInterceptorsImpl.InterceptorDescriptor[interceptors.length];
-
-                for (int i = 0, length = interceptors.length; i < length; i++) {
-                    descriptors[i] = new DependencyInterceptorsImpl.InterceptorDescriptor(interceptors[i]);
-                }
-
-                return descriptors;
+    private IAnswer<ComponentInterceptor[]> filter(final boolean empty, final ComponentInterceptor... interceptors) {
+        return new IAnswer<ComponentInterceptor[]>() {
+            public ComponentInterceptor[] answer() throws Throwable {
+                expect(EasyMock.getCurrentArguments()[1], interceptors);
+                return empty ? DependencyInterceptorsImpl.NO_INTERCEPTORS : interceptors;
             }
         };
     }
 
-    private void expect(final Object argument, final ComponentInterceptor... interceptors) throws Exception {
-        DependencyInterceptorsImpl.InterceptorDescriptor[] descriptors = (DependencyInterceptorsImpl.InterceptorDescriptor[]) argument;
-        assert descriptors != null;
-        assert descriptors.length == interceptors.length;
+    private void expect(final Object argument, final ComponentInterceptor... actual) throws Exception {
+        final ComponentInterceptor[] expected = (ComponentInterceptor[]) argument;
+        assert expected != null;
+        assert expected.length == actual.length;
 
-        for (int i = 0, limit = descriptors.length; i < limit; i++) {
-            assert descriptors[i].interceptor == interceptors[i];
+        for (int i = 0, limit = expected.length; i < limit; i++) {
+            assert expected[i] == actual[i];
         }
     }
 }
