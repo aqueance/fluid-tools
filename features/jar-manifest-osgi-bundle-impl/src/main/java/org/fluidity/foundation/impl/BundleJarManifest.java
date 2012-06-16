@@ -28,7 +28,7 @@ import java.util.jar.Attributes;
 
 import org.fluidity.composition.ComponentGroup;
 import org.fluidity.composition.ContainerBoundary;
-import org.fluidity.deployment.osgi.BundleBootstrap;
+import org.fluidity.deployment.osgi.impl.BundleBootstrap;
 import org.fluidity.deployment.plugin.spi.JarManifest;
 import org.fluidity.foundation.Archives;
 import org.fluidity.foundation.ClassLoaders;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.fluidity.deployment.osgi;
+package org.fluidity.deployment.osgi.impl;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +27,7 @@ import org.fluidity.composition.ContainerBoundary;
 import org.fluidity.composition.Inject;
 import org.fluidity.composition.Optional;
 import org.fluidity.composition.spi.ContainerTermination;
+import org.fluidity.deployment.osgi.BundleComponentContainer;
 import org.fluidity.foundation.Log;
 
 import org.osgi.framework.BundleActivator;

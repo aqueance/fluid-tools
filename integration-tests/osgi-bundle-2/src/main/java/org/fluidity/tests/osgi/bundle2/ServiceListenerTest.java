@@ -31,7 +31,7 @@ public class ServiceListenerTest implements BundleTest, BundleComponentContainer
 
     private final AtomicInteger bundleCount = new AtomicInteger();
 
-    public Class clientType() {
+    public Class type() {
         return BundleComponentContainer.Status.class;
     }
 

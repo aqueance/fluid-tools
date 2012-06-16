@@ -153,8 +153,8 @@ public class BundleComponentContainerImplTest extends MockGroupAbstractTest {
         final Map.Entry<Class<?>, Set<Service>> dependencies = dependencies(ServiceDependent1.class, annotation1, annotation2);
 
         // no services yet
-        EasyMock.expect(context.getServiceReferences(ServiceInterface1.class.getName(), null)).andReturn(null);
-        EasyMock.expect(context.getServiceReferences(ServiceInterface2.class.getName(), null)).andReturn(null);
+        EasyMock.expect(context.getServiceReferences(ServiceInterface1.class, null)).andReturn(Collections.EMPTY_LIST);
+        EasyMock.expect(context.getServiceReferences(ServiceInterface2.class, null)).andReturn(Collections.EMPTY_LIST);
 
         final List<ListenerSpec> listeners = Arrays.asList(expectListenerRegistration(), expectListenerRegistration());
 
@@ -173,7 +173,7 @@ public class BundleComponentContainerImplTest extends MockGroupAbstractTest {
         checkFilter(listener2, ServiceInterface2.class, null);
 
         // responding to appearance of the first service
-        EasyMock.expect(context.getServiceReferences(ServiceInterface1.class.getName(), null)).andReturn(new ServiceReference[] { reference1 });
+        EasyMock.expect(context.getServiceReferences(ServiceInterface1.class, null)).andReturn(Collections.<ServiceReference<ServiceInterface1>>singleton(reference1));
 
         EasyMock.expect(context.getService(reference1)).andReturn(service1);
 
@@ -186,7 +186,7 @@ public class BundleComponentContainerImplTest extends MockGroupAbstractTest {
         assertInactive(collect(dependencies), annotation1);
 
         // responding to appearance of the second service
-        EasyMock.expect(context.getServiceReferences(ServiceInterface2.class.getName(), null)).andReturn(new ServiceReference[] { reference2 });
+        EasyMock.expect(context.getServiceReferences(ServiceInterface2.class, null)).andReturn(Collections.<ServiceReference<ServiceInterface2>>singleton(reference2));
 
         EasyMock.expect(context.getService(reference2)).andReturn(service2);
 
@@ -201,7 +201,7 @@ public class BundleComponentContainerImplTest extends MockGroupAbstractTest {
         assertInactive(Collections.<Class<?>, Set<Service>>emptyMap());
 
         // responding to disappearance of the first service
-        EasyMock.expect(context.getServiceReferences(ServiceInterface1.class.getName(), null)).andReturn(null);
+        EasyMock.expect(context.getServiceReferences(ServiceInterface1.class, null)).andReturn(Collections.EMPTY_LIST);
 
         EasyMock.expect(context.ungetService(reference1)).andReturn(false);
 
@@ -216,7 +216,7 @@ public class BundleComponentContainerImplTest extends MockGroupAbstractTest {
         assertInactive(collect(dependencies), annotation2);
 
         // responding to reappearance of the first service
-        EasyMock.expect(context.getServiceReferences(ServiceInterface1.class.getName(), null)).andReturn(new ServiceReference[] { reference1 });
+        EasyMock.expect(context.getServiceReferences(ServiceInterface1.class, null)).andReturn(Collections.<ServiceReference<ServiceInterface1>>singleton(reference1));
 
         EasyMock.expect(context.getService(reference1)).andReturn(service1);
 
@@ -231,7 +231,7 @@ public class BundleComponentContainerImplTest extends MockGroupAbstractTest {
         assertInactive(Collections.<Class<?>, Set<Service>>emptyMap());
 
         // responding to disappearance of the second service
-        EasyMock.expect(context.getServiceReferences(ServiceInterface2.class.getName(), null)).andReturn(null);
+        EasyMock.expect(context.getServiceReferences(ServiceInterface2.class, null)).andReturn(Collections.EMPTY_LIST);
 
         EasyMock.expect(context.ungetService(reference2)).andReturn(false);
 
@@ -246,7 +246,7 @@ public class BundleComponentContainerImplTest extends MockGroupAbstractTest {
         assertInactive(collect(dependencies), annotation1);
 
         // responding to disappearance of the first service
-        EasyMock.expect(context.getServiceReferences(ServiceInterface1.class.getName(), null)).andReturn(null);
+        EasyMock.expect(context.getServiceReferences(ServiceInterface1.class, null)).andReturn(Collections.EMPTY_LIST);
 
         EasyMock.expect(context.ungetService(reference1)).andReturn(false);
 
@@ -279,8 +279,8 @@ public class BundleComponentContainerImplTest extends MockGroupAbstractTest {
         final List<ListenerSpec> listeners = Arrays.asList(expectListenerRegistration(), expectListenerRegistration());
 
         // first service already registered
-        EasyMock.expect(context.getServiceReferences(ServiceInterface1.class.getName(), null)).andReturn(new ServiceReference[] { reference1 });
-        EasyMock.expect(context.getServiceReferences(ServiceInterface2.class.getName(), null)).andReturn(null);
+        EasyMock.expect(context.getServiceReferences(ServiceInterface1.class, null)).andReturn(Collections.<ServiceReference<ServiceInterface1>>singleton(reference1));
+        EasyMock.expect(context.getServiceReferences(ServiceInterface2.class, null)).andReturn(Collections.EMPTY_LIST);
 
         EasyMock.expect(context.getService(reference1)).andReturn(service1);
 
@@ -299,7 +299,7 @@ public class BundleComponentContainerImplTest extends MockGroupAbstractTest {
         checkFilter(listener2, ServiceInterface2.class, null);
 
         // responding to appearance of the second service
-        EasyMock.expect(context.getServiceReferences(ServiceInterface2.class.getName(), null)).andReturn(new ServiceReference[] { reference2 });
+        EasyMock.expect(context.getServiceReferences(ServiceInterface2.class, null)).andReturn(Collections.<ServiceReference<ServiceInterface2>>singleton(reference2));
 
         EasyMock.expect(context.getService(reference2)).andReturn(service2);
 
@@ -314,7 +314,7 @@ public class BundleComponentContainerImplTest extends MockGroupAbstractTest {
         assertInactive(Collections.<Class<?>, Set<Service>>emptyMap());
 
         // responding to disappearance of the first service
-        EasyMock.expect(context.getServiceReferences(ServiceInterface1.class.getName(), null)).andReturn(null);
+        EasyMock.expect(context.getServiceReferences(ServiceInterface1.class, null)).andReturn(Collections.EMPTY_LIST);
 
         EasyMock.expect(context.ungetService(reference1)).andReturn(false);
 
@@ -329,7 +329,7 @@ public class BundleComponentContainerImplTest extends MockGroupAbstractTest {
         assertInactive(collect(dependencies), annotation2);
 
         // responding to reappearance of the first service
-        EasyMock.expect(context.getServiceReferences(ServiceInterface1.class.getName(), null)).andReturn(new ServiceReference[] { reference1 });
+        EasyMock.expect(context.getServiceReferences(ServiceInterface1.class, null)).andReturn(Collections.<ServiceReference<ServiceInterface1>>singleton(reference1));
 
         EasyMock.expect(context.getService(reference1)).andReturn(service1);
 
@@ -365,8 +365,8 @@ public class BundleComponentContainerImplTest extends MockGroupAbstractTest {
 
         final List<ListenerSpec> listeners = Arrays.asList(expectListenerRegistration(), expectListenerRegistration());
 
-        EasyMock.expect(context.getServiceReferences(ServiceInterface1.class.getName(), selector1)).andReturn(new ServiceReference[] { reference1 });
-        EasyMock.expect(context.getServiceReferences(ServiceInterface2.class.getName(), selector2)).andReturn(new ServiceReference[] { reference2 });
+        EasyMock.expect(context.getServiceReferences(ServiceInterface1.class, selector1)).andReturn(Collections.<ServiceReference<ServiceInterface1>>singleton(reference1));
+        EasyMock.expect(context.getServiceReferences(ServiceInterface2.class, selector2)).andReturn(Collections.<ServiceReference<ServiceInterface2>>singleton(reference2));
 
         EasyMock.expect(context.getService(reference1)).andReturn(service1);
 
@@ -409,8 +409,8 @@ public class BundleComponentContainerImplTest extends MockGroupAbstractTest {
         // service listener registration
         final ListenerSpec spec = expectListenerRegistration();
 
-        EasyMock.expect(source.clientType()).andReturn(Consumer.class);
-        EasyMock.expect(context.getServiceReferences(Consumer.class.getName(), null)).andReturn(new ServiceReference[0]);
+        EasyMock.expect(source.type()).andReturn(Consumer.class);
+        EasyMock.expect(context.getServiceReferences(Consumer.class, null)).andReturn(Collections.EMPTY_LIST);
 
         Source.delegate.start();
 
@@ -504,11 +504,11 @@ public class BundleComponentContainerImplTest extends MockGroupAbstractTest {
         // service listener registration
         final ListenerSpec spec = expectListenerRegistration();
 
-        EasyMock.expect(context.getServiceReferences(Consumer.class.getName(), null)).andReturn(new ServiceReference[] { reference1 });
+        EasyMock.expect(context.getServiceReferences(Consumer.class, null)).andReturn(Collections.<ServiceReference<Consumer>>singleton(reference1));
         EasyMock.expect(context.getService(reference1)).andReturn(consumer1);
         EasyMock.expect(reference1.getPropertyKeys()).andReturn(new String[0]);
 
-        EasyMock.expect(source.clientType()).andReturn(Consumer.class);
+        EasyMock.expect(source.type()).andReturn(Consumer.class);
         source.serviceAdded(EasyMock.same(consumer1), EasyMock.<Properties>notNull());
 
         Source.delegate.start();
@@ -582,8 +582,8 @@ public class BundleComponentContainerImplTest extends MockGroupAbstractTest {
         final List<ListenerSpec> listeners = Arrays.asList(expectListenerRegistration(), expectListenerRegistration());
 
         // no services yet
-        EasyMock.expect(context.getServiceReferences(ServiceInterface1.class.getName(), null)).andReturn(null);
-        EasyMock.expect(context.getServiceReferences(ServiceInterface2.class.getName(), null)).andReturn(null);
+        EasyMock.expect(context.getServiceReferences(ServiceInterface1.class, null)).andReturn(Collections.EMPTY_LIST);
+        EasyMock.expect(context.getServiceReferences(ServiceInterface2.class, null)).andReturn(Collections.EMPTY_LIST);
 
         replay();
         services.start();
@@ -597,7 +597,7 @@ public class BundleComponentContainerImplTest extends MockGroupAbstractTest {
         assertInactive(collect(dependencies1, dependencies2, dependencies3, dependencies4, dependencies5));
 
         // add ServiceInterface1
-        EasyMock.expect(context.getServiceReferences(ServiceInterface1.class.getName(), null)).andReturn(new ServiceReference[] { reference1 });
+        EasyMock.expect(context.getServiceReferences(ServiceInterface1.class, null)).andReturn(Collections.<ServiceReference<ServiceInterface1>>singleton(reference1));
         EasyMock.expect(context.getService(reference1)).andReturn(service1);
 
         // start components that require service 1 only
@@ -614,7 +614,7 @@ public class BundleComponentContainerImplTest extends MockGroupAbstractTest {
         assertInactive(collect(dependencies1, dependencies2, dependencies5), annotation1);
 
         // add ServiceInterface2
-        EasyMock.expect(context.getServiceReferences(ServiceInterface2.class.getName(), null)).andReturn(new ServiceReference[] { reference2 });
+        EasyMock.expect(context.getServiceReferences(ServiceInterface2.class, null)).andReturn(Collections.<ServiceReference<ServiceInterface2>>singleton(reference2));
         EasyMock.expect(context.getService(reference2)).andReturn(service2);
 
         // start components that require service 2 only
@@ -640,7 +640,7 @@ public class BundleComponentContainerImplTest extends MockGroupAbstractTest {
         assertInactive(Collections.<Class<?>, Set<Service>>emptyMap());
 
         // remove ServiceInterface1
-        EasyMock.expect(context.getServiceReferences(ServiceInterface1.class.getName(), null)).andReturn(null);
+        EasyMock.expect(context.getServiceReferences(ServiceInterface1.class, null)).andReturn(Collections.EMPTY_LIST);
         EasyMock.expect(context.ungetService(reference1)).andReturn(false);
 
         Component1Service12.delegate.stop();
@@ -656,7 +656,7 @@ public class BundleComponentContainerImplTest extends MockGroupAbstractTest {
         assertInactive(collect(dependencies1, dependencies3, dependencies4), annotation2);
 
         // add ServiceInterface1
-        EasyMock.expect(context.getServiceReferences(ServiceInterface1.class.getName(), null)).andReturn(new ServiceReference[] { reference1 });
+        EasyMock.expect(context.getServiceReferences(ServiceInterface1.class, null)).andReturn(Collections.<ServiceReference<ServiceInterface1>>singleton(reference1));
         EasyMock.expect(context.getService(reference1)).andReturn(service1);
 
         // start components that require service 1 only
@@ -682,7 +682,7 @@ public class BundleComponentContainerImplTest extends MockGroupAbstractTest {
         assertInactive(Collections.<Class<?>, Set<Service>>emptyMap());
 
         // remove ServiceInterface2
-        EasyMock.expect(context.getServiceReferences(ServiceInterface2.class.getName(), null)).andReturn(null);
+        EasyMock.expect(context.getServiceReferences(ServiceInterface2.class, null)).andReturn(Collections.EMPTY_LIST);
         EasyMock.expect(context.ungetService(reference2)).andReturn(false);
 
         Component1Service12.delegate.stop();
@@ -698,7 +698,7 @@ public class BundleComponentContainerImplTest extends MockGroupAbstractTest {
         assertInactive(collect(dependencies1, dependencies2, dependencies5), annotation1);
 
         // remove ServiceInterface1
-        EasyMock.expect(context.getServiceReferences(ServiceInterface1.class.getName(), null)).andReturn(null);
+        EasyMock.expect(context.getServiceReferences(ServiceInterface1.class, null)).andReturn(Collections.EMPTY_LIST);
         EasyMock.expect(context.ungetService(reference1)).andReturn(false);
 
         Component3Service1.delegate.stop();
@@ -713,7 +713,7 @@ public class BundleComponentContainerImplTest extends MockGroupAbstractTest {
         assertInactive(collect(dependencies1, dependencies2, dependencies3, dependencies4, dependencies5));
 
         // add ServiceInterface2
-        EasyMock.expect(context.getServiceReferences(ServiceInterface2.class.getName(), null)).andReturn(new ServiceReference[] { reference2 });
+        EasyMock.expect(context.getServiceReferences(ServiceInterface2.class, null)).andReturn(Collections.<ServiceReference<ServiceInterface2>>singleton(reference2));
         EasyMock.expect(context.getService(reference2)).andReturn(service2);
 
         // start components that require service 2 only
@@ -755,7 +755,7 @@ public class BundleComponentContainerImplTest extends MockGroupAbstractTest {
         final ListenerSpec listener = expectListenerRegistration();
 
         // no services yet
-        EasyMock.expect(context.getServiceReferences(ServiceInterface1.class.getName(), null)).andReturn(null);
+        EasyMock.expect(context.getServiceReferences(ServiceInterface1.class, null)).andReturn(Collections.EMPTY_LIST);
 
         replay();
         services.start();
@@ -766,7 +766,7 @@ public class BundleComponentContainerImplTest extends MockGroupAbstractTest {
         assertInactive(collect(dependencies1, dependencies2));
 
         // add ServiceInterface1
-        EasyMock.expect(context.getServiceReferences(ServiceInterface1.class.getName(), null)).andReturn(new ServiceReference[] { reference1 });
+        EasyMock.expect(context.getServiceReferences(ServiceInterface1.class, null)).andReturn(Collections.<ServiceReference<ServiceInterface1>>singleton(reference1));
         EasyMock.expect(context.getService(reference1)).andReturn(service1);
 
         // start components that require service 1 only
@@ -782,7 +782,7 @@ public class BundleComponentContainerImplTest extends MockGroupAbstractTest {
         assertInactive(Collections.<Class<?>, Set<Service>>emptyMap());
 
         // remove ServiceInterface1
-        EasyMock.expect(context.getServiceReferences(ServiceInterface1.class.getName(), null)).andReturn(null);
+        EasyMock.expect(context.getServiceReferences(ServiceInterface1.class, null)).andReturn(Collections.EMPTY_LIST);
         EasyMock.expect(context.ungetService(reference1)).andReturn(false);
 
         Component4Service1.delegate.stop();
@@ -796,7 +796,7 @@ public class BundleComponentContainerImplTest extends MockGroupAbstractTest {
         assertInactive(collect(dependencies1, dependencies2));
 
         // add ServiceInterface1
-        EasyMock.expect(context.getServiceReferences(ServiceInterface1.class.getName(), null)).andReturn(new ServiceReference[] { reference1 });
+        EasyMock.expect(context.getServiceReferences(ServiceInterface1.class, null)).andReturn(Collections.<ServiceReference<ServiceInterface1>>singleton(reference1));
         EasyMock.expect(context.getService(reference1)).andReturn(service1);
 
         // start components that require service 1 only
@@ -838,8 +838,8 @@ public class BundleComponentContainerImplTest extends MockGroupAbstractTest {
         final List<ListenerSpec> listeners = Arrays.asList(expectListenerRegistration(), expectListenerRegistration());
 
         // no services yet
-        EasyMock.expect(context.getServiceReferences(ServiceInterface1.class.getName(), selector1)).andReturn(null);
-        EasyMock.expect(context.getServiceReferences(ServiceInterface1.class.getName(), selector2)).andReturn(null);
+        EasyMock.expect(context.getServiceReferences(ServiceInterface1.class, selector1)).andReturn(Collections.EMPTY_LIST);
+        EasyMock.expect(context.getServiceReferences(ServiceInterface1.class, selector2)).andReturn(Collections.EMPTY_LIST);
 
         replay();
         services.start();
@@ -853,7 +853,7 @@ public class BundleComponentContainerImplTest extends MockGroupAbstractTest {
         assertInactive(collect(dependencies));
 
         // add service with filter 1
-        EasyMock.expect(context.getServiceReferences(ServiceInterface1.class.getName(), selector1)).andReturn(new ServiceReference[] { reference1 });
+        EasyMock.expect(context.getServiceReferences(ServiceInterface1.class, selector1)).andReturn(Collections.<ServiceReference<ServiceInterface1>>singleton(reference1));
         EasyMock.expect(context.getService(reference1)).andReturn(service1);
 
         replay();
@@ -865,7 +865,7 @@ public class BundleComponentContainerImplTest extends MockGroupAbstractTest {
         assertInactive(collect(dependencies), annotation1);
 
         // add service with filter 2
-        EasyMock.expect(context.getServiceReferences(ServiceInterface1.class.getName(), selector2)).andReturn(new ServiceReference[] { reference3 });
+        EasyMock.expect(context.getServiceReferences(ServiceInterface1.class, selector2)).andReturn(Collections.<ServiceReference<ServiceInterface1>>singleton(reference3));
         EasyMock.expect(context.getService(reference3)).andReturn(service3);
 
         // start the component
@@ -880,7 +880,7 @@ public class BundleComponentContainerImplTest extends MockGroupAbstractTest {
         assertInactive(Collections.<Class<?>, Set<Service>>emptyMap());
 
         // remove service with filter 1
-        EasyMock.expect(context.getServiceReferences(ServiceInterface1.class.getName(), selector1)).andReturn(null);
+        EasyMock.expect(context.getServiceReferences(ServiceInterface1.class, selector1)).andReturn(Collections.EMPTY_LIST);
         EasyMock.expect(context.ungetService(reference1)).andReturn(false);
 
         MultipleServiceFiltersComponent.delegate.stop();
@@ -894,7 +894,7 @@ public class BundleComponentContainerImplTest extends MockGroupAbstractTest {
         assertInactive(collect(dependencies), annotation2);
 
         // add service with filter 1
-        EasyMock.expect(context.getServiceReferences(ServiceInterface1.class.getName(), selector1)).andReturn(new ServiceReference[] { reference1 });
+        EasyMock.expect(context.getServiceReferences(ServiceInterface1.class, selector1)).andReturn(Collections.<ServiceReference<ServiceInterface1>>singleton(reference1));
         EasyMock.expect(context.getService(reference1)).andReturn(service1);
 
         // start the component
@@ -909,7 +909,7 @@ public class BundleComponentContainerImplTest extends MockGroupAbstractTest {
         assertInactive(Collections.<Class<?>, Set<Service>>emptyMap());
 
         // remove service with filter 2
-        EasyMock.expect(context.getServiceReferences(ServiceInterface1.class.getName(), selector2)).andReturn(null);
+        EasyMock.expect(context.getServiceReferences(ServiceInterface1.class, selector2)).andReturn(Collections.EMPTY_LIST);
         EasyMock.expect(context.ungetService(reference3)).andReturn(false);
 
         MultipleServiceFiltersComponent.delegate.stop();
@@ -923,7 +923,7 @@ public class BundleComponentContainerImplTest extends MockGroupAbstractTest {
         assertInactive(collect(dependencies), annotation1);
 
         // remove service with filter 1
-        EasyMock.expect(context.getServiceReferences(ServiceInterface1.class.getName(), selector1)).andReturn(null);
+        EasyMock.expect(context.getServiceReferences(ServiceInterface1.class, selector1)).andReturn(Collections.EMPTY_LIST);
         EasyMock.expect(context.ungetService(reference1)).andReturn(false);
 
         replay();
@@ -935,7 +935,7 @@ public class BundleComponentContainerImplTest extends MockGroupAbstractTest {
         assertInactive(collect(dependencies));
 
         // add service with filter 2
-        EasyMock.expect(context.getServiceReferences(ServiceInterface1.class.getName(), selector2)).andReturn(new ServiceReference[] { reference3 });
+        EasyMock.expect(context.getServiceReferences(ServiceInterface1.class, selector2)).andReturn(Collections.<ServiceReference<ServiceInterface1>>singleton(reference3));
         EasyMock.expect(context.getService(reference3)).andReturn(service3);
 
         replay();
@@ -947,7 +947,7 @@ public class BundleComponentContainerImplTest extends MockGroupAbstractTest {
         assertInactive(collect(dependencies), annotation2);
 
         // add service with filter 1
-        EasyMock.expect(context.getServiceReferences(ServiceInterface1.class.getName(), selector1)).andReturn(new ServiceReference[] { reference1 });
+        EasyMock.expect(context.getServiceReferences(ServiceInterface1.class, selector1)).andReturn(Collections.<ServiceReference<ServiceInterface1>>singleton(reference1));
         EasyMock.expect(context.getService(reference1)).andReturn(service1);
 
         // start the component
@@ -1187,8 +1187,8 @@ public class BundleComponentContainerImplTest extends MockGroupAbstractTest {
 
         private static BundleComponentContainer.Registration.Listener<Consumer> delegate;
 
-        public Class<Consumer> clientType() {
-            return delegate.clientType();
+        public Class<Consumer> type() {
+            return delegate.type();
         }
 
         public void serviceAdded(final Consumer component, final Properties properties) {

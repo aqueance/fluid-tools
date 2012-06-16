@@ -345,7 +345,7 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
         }
 
         private <T> void register(final Registration.Listener<T> source) {
-            final Class<T> type = source.clientType();
+            final Class<T> type = source.type();
 
             final ServiceListener listener = new ServiceListener() {
                 public void serviceChanged(final ServiceEvent event) {
@@ -387,11 +387,8 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
 
                 log.debug("[%s] Accepting %s components", bundleName, sourceName);
 
-                final ServiceReference[] references = context.getServiceReferences(type.getName(), null);
-                if (references != null) {
-                    for (final ServiceReference reference : references) {
-                        listener.serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED, reference));
-                    }
+                for (final ServiceReference<T> reference : context.getServiceReferences(type, null)) {
+                    listener.serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED, reference));
                 }
             } catch (final InvalidSyntaxException e) {
                 assert false : e;
@@ -646,8 +643,9 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
                 final String filter = service.filter;
 
                 try {
-                    final ServiceReference[] references = context.getServiceReferences(service.type.getName(), filter);
-                    return references == null ? new ServiceReference[0] : references;
+                    @SuppressWarnings("unchecked")
+                    final Collection<ServiceReference> references = context.getServiceReferences((Class) service.type, filter);
+                    return references.toArray(new ServiceReference[references.size()]);
                 } catch (final InvalidSyntaxException e) {
                     throw new IllegalStateException(filter, e);   // filter has already been used when the listener was created
                 }

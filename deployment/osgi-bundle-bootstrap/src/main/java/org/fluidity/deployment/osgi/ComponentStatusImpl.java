@@ -38,7 +38,7 @@ final class ComponentStatusImpl implements BundleComponentContainer.Status, Bund
 
     public ComponentStatusImpl(final BundleContext context, final ComponentStatus delegate) {
         this.delegate = delegate;
-        this.registration.setProperty(ID, context.getBundle().getSymbolicName());
+        this.registration.setProperty(BUNDLE, context.getBundle().getSymbolicName());
     }
 
     public Class<?>[] types() {

@@ -58,11 +58,10 @@ final class ServiceImportInterceptor implements ComponentInterceptor {
     public Dependency intercept(final Type reference, final ComponentContext context, final Dependency dependency) {
         final Class<?> type = Generics.rawType(reference);
 
-        return new Dependency() {
+        return !type.isInterface() ? dependency : new Dependency() {
             @SuppressWarnings("unchecked")
             public Object create() {
-                final Object instance = dependency.create();
-                return type.isInterface() ? border.imported((Class) type, instance) : instance;
+                return border.imported((Class) type, dependency.create());
             }
         };
     }
