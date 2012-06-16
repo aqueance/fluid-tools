@@ -174,17 +174,6 @@ interface SimpleContainer extends DependencyGraph {
     void replaceResolver(Class<?> key, ComponentResolver previous, ComponentResolver replacement);
 
     /**
-     * Traverses the dependency graph with the given command.
-     *
-     * @param observer the resolution observer to establish; may be <code>null</code>.
-     * @param command  the command to execute while the observer is active.
-     * @param <T>      the return value type of the command.
-     *
-     * @return whatever the command returns.
-     */
-    <T> T traverse(ComponentContainer.Observer observer, Traversed<T> command);
-
-    /**
      * Returns a {@link DependencyResolver} using the given domain container.
      *
      * @param domain the domain container.
@@ -192,23 +181,4 @@ interface SimpleContainer extends DependencyGraph {
      * @return a {@link DependencyResolver} using the given domain container.
      */
     DependencyResolver dependencyResolver(ParentContainer domain);
-
-    /**
-     * A command that is executed while some resolution observer is active.
-     *
-     * @param <T> the return value type of the command.
-     *
-     * @author Tibor Varga
-     */
-    interface Traversed<T> {
-
-        /**
-         * Executes the business logic while some resolution observer is active.
-         *
-         * @param traversal the strategy to use to traverse the dependency graph.
-         *
-         * @return whatever the caller of {@link SimpleContainer#traverse} expects.
-         */
-        T run(Traversal traversal);
-    }
 }

@@ -70,7 +70,8 @@ public class DependencyInterceptorsTest extends MockGroupAbstractTest {
     public void testNoInterceptors() throws Exception {
         EasyMock.expect(resolver.resolveGroup(EasyMock.same(ComponentInterceptor.class),
                                               EasyMock.<ContextDefinition>notNull(),
-                                              EasyMock.same(traversal)))
+                                              EasyMock.same(traversal),
+                                              EasyMock.same(ComponentInterceptor.class)))
                 .andReturn(null);
 
         EasyMock.expect(annotations.filter(EasyMock.same(context), EasyMock.aryEq(DependencyInterceptorsImpl.NO_INTERCEPTORS))).andReturn(DependencyInterceptorsImpl.NO_INTERCEPTORS);
@@ -82,7 +83,10 @@ public class DependencyInterceptorsTest extends MockGroupAbstractTest {
 
     @Test
     public void testEmptyInterceptors() throws Exception {
-        EasyMock.expect(resolver.resolveGroup(EasyMock.same(ComponentInterceptor.class), EasyMock.<ContextDefinition>notNull(), EasyMock.same(traversal)))
+        EasyMock.expect(resolver.resolveGroup(EasyMock.same(ComponentInterceptor.class),
+                                              EasyMock.<ContextDefinition>notNull(),
+                                              EasyMock.same(traversal),
+                                              EasyMock.same(ComponentInterceptor.class)))
                 .andReturn(group);
 
         EasyMock.expect(group.instance(traversal)).andReturn(new ComponentInterceptor[0]);
@@ -97,7 +101,8 @@ public class DependencyInterceptorsTest extends MockGroupAbstractTest {
     public void testNoMatchingInterceptor() throws Exception {
         EasyMock.expect(resolver.resolveGroup(EasyMock.same(ComponentInterceptor.class),
                                               EasyMock.<ContextDefinition>notNull(),
-                                              EasyMock.same(traversal)))
+                                              EasyMock.same(traversal),
+                                              EasyMock.same(ComponentInterceptor.class)))
                 .andReturn(group);
 
         final ComponentInterceptor[] found = { interceptor1 };
@@ -114,7 +119,8 @@ public class DependencyInterceptorsTest extends MockGroupAbstractTest {
     public void testMatchingInterceptor() throws Exception {
         EasyMock.expect(resolver.resolveGroup(EasyMock.same(ComponentInterceptor.class),
                                               EasyMock.<ContextDefinition>notNull(),
-                                              EasyMock.same(traversal)))
+                                              EasyMock.same(traversal),
+                                              EasyMock.same(ComponentInterceptor.class)))
                 .andReturn(group);
 
         final ComponentInterceptor[] found = { interceptor1, interceptor2, interceptor3 };
@@ -171,7 +177,8 @@ public class DependencyInterceptorsTest extends MockGroupAbstractTest {
     public void testComponentSink() throws Exception {
         EasyMock.expect(resolver.resolveGroup(EasyMock.same(ComponentInterceptor.class),
                                               EasyMock.<ContextDefinition>notNull(),
-                                              EasyMock.same(traversal)))
+                                              EasyMock.same(traversal),
+                                              EasyMock.same(ComponentInterceptor.class)))
                 .andReturn(group);
 
         final ComponentInterceptor[] found = { interceptor1, interceptor2, interceptor3 };
@@ -211,7 +218,8 @@ public class DependencyInterceptorsTest extends MockGroupAbstractTest {
     public void testPrematureDereference() throws Exception {
         EasyMock.expect(resolver.resolveGroup(EasyMock.same(ComponentInterceptor.class),
                                               EasyMock.<ContextDefinition>notNull(),
-                                              EasyMock.same(traversal)))
+                                              EasyMock.same(traversal),
+                                              EasyMock.same(ComponentInterceptor.class)))
                 .andReturn(group);
 
         final ComponentInterceptor[] found = {

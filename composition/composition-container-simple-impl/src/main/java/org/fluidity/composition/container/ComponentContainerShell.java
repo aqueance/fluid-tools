@@ -22,7 +22,6 @@ import java.lang.reflect.Method;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.Components;
 import org.fluidity.composition.ObservedComponentContainer;
-import org.fluidity.composition.container.spi.DependencyGraph;
 import org.fluidity.composition.container.spi.EmptyComponentContainer;
 import org.fluidity.composition.container.spi.OpenComponentContainer;
 
@@ -31,11 +30,7 @@ import org.fluidity.composition.container.spi.OpenComponentContainer;
  *
  * @author Tibor Varga
  */
-final class ComponentContainerShell extends EmptyComponentContainer {
-
-    private final SimpleContainer container;
-    private final ContextDefinition context;
-    private final Observer observer;
+final class ComponentContainerShell extends EmptyComponentContainer<SimpleContainer> {
 
     public ComponentContainerShell(final ContainerServices services, final PlatformContainer platform) {
         this(new SimpleContainerImpl(services, platform), services.emptyContext(), false, false, null);
@@ -50,55 +45,11 @@ final class ComponentContainerShell extends EmptyComponentContainer {
                                    final boolean child,
                                    final boolean domain,
                                    final Observer observer) {
-        assert container != null;
-        assert context != null;
-        this.container = child ? container.newChildContainer(domain) : container;
-        this.context = context.copy();
-        this.observer = observer;
+        super(child ? container.newChildContainer(domain) : container, container.services(), context.copy(), observer);
     }
 
-    @SuppressWarnings("unchecked")
-    public <T> T getComponent(final Class<T> api) {
-        return container.traverse(observer, new SimpleContainer.Traversed<T>() {
-            public T run(final DependencyGraph.Traversal traversal) {
-                final DependencyGraph.Node node = container.resolveComponent(api, context, traversal);
-                return node == null ? null : (T) node.instance(traversal);
-            }
-        });
-    }
-
-    @SuppressWarnings("unchecked")
-    public <T> T[] getComponentGroup(final Class<T> api) {
-        return container.traverse(observer, new SimpleContainer.Traversed<T[]>() {
-            public T[] run(final DependencyGraph.Traversal traversal) {
-                final DependencyGraph.Node node = container.resolveGroup(api, context, traversal);
-                return node == null ? null : (T[]) node.instance(traversal);
-            }
-        });
-    }
-
-    public void resolveComponent(final Class<?> api) {
-        container.traverse(observer, new SimpleContainer.Traversed<Void>() {
-            public Void run(final DependencyGraph.Traversal traversal) {
-                container.resolveComponent(api, context, traversal);
-                return null;
-            }
-        });
-    }
-
-    public void resolveGroup(final Class<?> api) {
-        container.traverse(observer, new SimpleContainer.Traversed<Void>() {
-            public Void run(final DependencyGraph.Traversal traversal) {
-                container.resolveGroup(api, context, traversal);
-                return null;
-            }
-        });
-    }
-
-    public ObservedComponentContainer observed(final Observer observer) {
-        return observer == null
-               ? this
-               : new ComponentContainerShell(container, context, false, false, container.services().aggregateObserver(this.observer, observer));
+    public ObservedComponentContainer container(final SimpleContainer container, final ContextDefinition context, final Observer observer) {
+        return new ComponentContainerShell(container, context, false, false, observer);
     }
 
     @SuppressWarnings("unchecked")

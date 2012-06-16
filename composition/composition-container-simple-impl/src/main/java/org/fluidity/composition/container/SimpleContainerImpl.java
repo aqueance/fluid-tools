@@ -37,7 +37,6 @@ import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.Components;
 import org.fluidity.composition.container.spi.ContextNode;
 import org.fluidity.composition.container.spi.DependencyResolver;
-import org.fluidity.composition.container.spi.EmptyDependencyGraph;
 import org.fluidity.composition.spi.ComponentVariantFactory;
 import org.fluidity.composition.spi.CustomComponentFactory;
 import org.fluidity.foundation.Log;
@@ -47,10 +46,7 @@ import org.fluidity.foundation.spi.LogFactory;
 /**
  * @author Tibor Varga
  */
-final class SimpleContainerImpl extends EmptyDependencyGraph implements ParentContainer {
-
-    // allows traversal path to propagate between containers
-    private static final ThreadLocal<Traversal> traversal = new InheritableThreadLocal<Traversal>();
+final class SimpleContainerImpl implements ParentContainer {
 
     private final ContainerServices services;
     private final Log log;
@@ -307,18 +303,6 @@ final class SimpleContainerImpl extends EmptyDependencyGraph implements ParentCo
         }
     }
 
-    public <T> T traverse(final ComponentContainer.Observer observer, final Traversed<T> command) {
-        final Traversal saved = traversal.get();
-        final Traversal current = saved == null ? services.graphTraversal(observer) : saved.observed(observer);
-
-        traversal.set(current);
-        try {
-            return command.run(current);
-        } finally {
-            traversal.set(saved);
-        }
-    }
-
     public DependencyResolver dependencyResolver(final ParentContainer domain) {
         return new DelegatingDependencyResolver(domain);
     }
@@ -572,7 +556,7 @@ final class SimpleContainerImpl extends EmptyDependencyGraph implements ParentCo
         }
     }
 
-    private static class SuperContainer extends EmptyDependencyGraph implements ParentContainer {
+    private static class SuperContainer implements ParentContainer {
 
         private final PlatformContainer platform;
         private final List<GroupResolver> emptyList = Collections.emptyList();
@@ -715,16 +699,12 @@ final class SimpleContainerImpl extends EmptyDependencyGraph implements ParentCo
             throw new UnsupportedOperationException();
         }
 
-        public <T> T traverse(final ComponentContainer.Observer observer, final Traversed<T> command) {
-            throw new UnsupportedOperationException();
-        }
-
         public DependencyResolver dependencyResolver(final ParentContainer domain) {
             throw new UnsupportedOperationException();
         }
     }
 
-    private class DelegatingDependencyResolver extends EmptyDependencyGraph implements DependencyResolver {
+    private class DelegatingDependencyResolver implements DependencyResolver {
 
         private final ParentContainer domain;
 

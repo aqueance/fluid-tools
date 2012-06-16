@@ -60,7 +60,7 @@ final class DependencyInterceptorsImpl implements DependencyInterceptors {
             intercepting.set(true);
 
             try {
-                final DependencyGraph.Node group = container.resolveGroup(ComponentInterceptor.class, new ContextDefinitionImpl(), traversal);
+                final DependencyGraph.Node group = container.resolveGroup(ComponentInterceptor.class, new ContextDefinitionImpl(), traversal, ComponentInterceptor.class);
                 return group == null ? NO_INTERCEPTORS : (ComponentInterceptor[]) group.instance(traversal);
             } finally {
                 intercepting.set(false);

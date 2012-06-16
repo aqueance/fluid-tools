@@ -37,28 +37,6 @@ import org.fluidity.composition.container.ContextDefinition;
 public interface DependencyGraph {
 
     /**
-     * Resolves, without instantiating, a component using the given traversal in the given context.
-     *
-     * @param api       the component interface.
-     * @param context   the component context at the node at which the resolution starts.
-     * @param traversal the graph traversal state.
-     *
-     * @return the resolved component or <code>null</code> if none could be resolved.
-     */
-    Node resolveComponent(Class<?> api, ContextDefinition context, Traversal traversal);
-
-    /**
-     * Resolves, without instantiating its members, a component group with the given traversal in the given context.
-     *
-     * @param api       the group interface.
-     * @param context   the component context at the node at which the resolution starts.
-     * @param traversal the graph traversal state.
-     *
-     * @return the resolved component group or <code>null</code> if none could be resolved.
-     */
-    Node resolveGroup(Class<?> api, ContextDefinition context, Traversal traversal);
-
-    /**
      * Resolves, without instantiating, a component using the given traversal in the given context, for the given dependency reference.
      *
      * @param api       the component interface.
@@ -135,7 +113,8 @@ public interface DependencyGraph {
         }
 
         /**
-         * A node whose instance is known without further resolution, or as a result of such resolution.
+         * A {@linkplain DependencyGraph.Node dependency graph node} for an instance that is known without further resolution, or as a result of such
+         * resolution.
          * <h3>Usage</h3>
          * You don't interact with an internal interface.
          *

@@ -17,6 +17,7 @@
 package org.fluidity.composition.container.spi;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Array;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -29,25 +30,80 @@ import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.Components;
 import org.fluidity.composition.Inject;
 import org.fluidity.composition.ObservedComponentContainer;
+import org.fluidity.composition.container.ContainerServices;
+import org.fluidity.composition.container.ContextDefinition;
 import org.fluidity.composition.spi.ComponentInterceptor;
 import org.fluidity.foundation.Proxies;
 
 /**
- * Implements basic method relationships and functionality useful for container and registry implementations. The public facade of dependency injection
- * container implementations must extend this base class.
+ * Implements basic method relationships and functionality on behalf of actual container and registry implementations. The public facade of dependency
+ * injection container implementations must extend this base class and wrap a {@link DependencyGraph} implementation.
  * <h3>Usage</h3>
  * You don't interact with an internal interface.
  *
+ * @param <C> the dependency graph type used internally by the subclass.
+ *
  * @author Tibor Varga
  */
-public abstract class EmptyComponentContainer implements OpenComponentContainer, ObservedComponentContainer, ComponentRegistry {
+public abstract class EmptyComponentContainer<C extends DependencyGraph> implements OpenComponentContainer, ObservedComponentContainer, ComponentRegistry {
+
+    // allows traversal path and observers to propagate between containers
+    private static final ThreadLocal<DependencyGraph.Traversal> traversal = new InheritableThreadLocal<DependencyGraph.Traversal>();
+
+    /**
+     * The container services supplied in the constructor.
+     */
+    protected final ContainerServices services;
+
+    /**
+     * The context definition supplied in the constructor.
+     */
+    protected final ContextDefinition context;
+
+    /**
+     * The observer supplied in the constructor.
+     */
+    protected final Observer observer;
+
+    /**
+     * The container supplied in the constructor.
+     */
+    protected final C container;
 
     private final Registry registry = new EmptyRegistry(this);
 
     /**
      * Creates a new instance.
+     *
+     * @param container the dependency graph to resolve components and component groups.
+     * @param services  the container services to use.
+     * @param context   the base context of this container.
+     * @param observer  the observer to use when resolving components or component groups; may be <code>null</code>.
      */
-    protected EmptyComponentContainer() { }
+    protected EmptyComponentContainer(final C container, final ContainerServices services, final ContextDefinition context, final Observer observer) {
+        assert container != null;
+        this.container = container;
+
+        assert services != null;
+        this.services = services;
+
+        assert context != null;
+        this.context = context;
+
+        this.observer = observer;
+    }
+
+    /**
+     * Returns a new container that calls the given observer whenever a dependency is resolved while resolving a component interface via the returned
+     * container.
+     *
+     * @param graph    the dependency graph.
+     * @param context  the base context of the dependency graph.
+     * @param observer the observer to call, never <code>null</code>.
+     *
+     * @return a new container instance backed by this one and using the provided resolution observer.
+     */
+    protected abstract ObservedComponentContainer container(C graph, ContextDefinition context, Observer observer);
 
     /**
      * Invokes the given method of the given object after resolving and injecting its applicable parameters that the given argument list contains no
@@ -67,6 +123,96 @@ public abstract class EmptyComponentContainer implements OpenComponentContainer,
      */
     protected abstract Object invoke(final Object component, boolean explicit, final Method method, final Object... arguments)
             throws ResolutionException, InvocationTargetException;
+
+    /**
+     * {@inheritDoc}
+     */
+    public final ObservedComponentContainer observed(final Observer observer) {
+        return observer == null
+               ? this
+               : container(container, context, services.aggregateObserver(this.observer, observer));    // TODO: this is the only call to ContainerServices#aggregateObserver()
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @SuppressWarnings("unchecked")
+    public final <T> T getComponent(final Class<T> api) {
+        return traverse(services, new Traversed<T>() {
+            public T run(final DependencyGraph.Traversal traversal) {
+                final DependencyGraph.Node node = container.resolveComponent(api, context.advance(api), traversal, api);
+                return node == null ? null : (T) node.instance(traversal);
+            }
+        });
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @SuppressWarnings("unchecked")
+    public final <T> T[] getComponentGroup(final Class<T> api) {
+        return traverse(services, new Traversed<T[]>() {
+            public T[] run(final DependencyGraph.Traversal traversal) {
+                final DependencyGraph.Node node = container.resolveGroup(api, context.advance(Array.newInstance(api, 0).getClass()), traversal, api);
+                return node == null ? null : (T[]) node.instance(traversal);
+            }
+        });
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public final void resolveComponent(final Class<?> api) {
+        traverse(services, new Traversed<Void>() {
+            public Void run(final DependencyGraph.Traversal traversal) {
+                container.resolveComponent(api, context.advance(api), traversal, api);
+                return null;
+            }
+        });
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public final void resolveGroup(final Class<?> api) {
+        traverse(services, new Traversed<Void>() {
+            public Void run(final DependencyGraph.Traversal traversal) {
+                container.resolveGroup(api, context.advance(Array.newInstance(api, 0).getClass()), traversal, api);
+                return null;
+            }
+        });
+    }
+
+    /**
+     * A command that is executed while some resolution observer is active.
+     *
+     * @param <T> the return value type of the command.
+     *
+     * @author Tibor Varga
+     */
+    private interface Traversed<T> {
+
+        /**
+         * Executes the business logic while some resolution observer is active.
+         *
+         * @param traversal the graph traversal state.
+         *
+         * @return whatever the caller of {@link #traverse} expects.
+         */
+        T run(DependencyGraph.Traversal traversal);
+    }
+
+    private <T> T traverse(final ContainerServices services, final Traversed<T> command) {
+        final DependencyGraph.Traversal saved = traversal.get();
+        final DependencyGraph.Traversal current = saved == null ? services.graphTraversal(observer) : saved.observed(observer);
+
+        traversal.set(current);
+        try {
+            return command.run(current);
+        } finally {
+            traversal.set(saved);
+        }
+    }
 
     /**
      * Adds the given list of component bindings to this container.
