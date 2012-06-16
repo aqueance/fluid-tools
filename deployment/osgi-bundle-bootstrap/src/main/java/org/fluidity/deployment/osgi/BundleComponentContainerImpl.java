@@ -411,7 +411,7 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
 
             log.debug("[%s] Registering %s", bundleName, serviceMessage);
 
-            @SuppressWarnings({ "unchecked", "RedundantCast" }) // OSGi 4.3 complains about the unchecked cast
+            @SuppressWarnings("unchecked")
             final ServiceRegistration registration = context.registerService(classes, service, (Dictionary) properties);
 
             cleanup(service.getClass().getName(), new Stoppable() {

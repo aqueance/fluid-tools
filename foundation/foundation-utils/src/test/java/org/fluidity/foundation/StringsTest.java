@@ -147,7 +147,7 @@ public class StringsTest extends MockGroupAbstractTest {
         final String string = Strings.printAnnotation(annotation);
         verify();
 
-        assert String.format("@%s.%s([id=%d], [list={}])", getClass().getSimpleName(), MultiValued.class.getSimpleName(), id).equals(string) : string;
+        assert String.format("@%s.%s", getClass().getSimpleName(), MultiValued.class.getSimpleName()).equals(string) : string;
     }
 
     private static @interface MultiValued {

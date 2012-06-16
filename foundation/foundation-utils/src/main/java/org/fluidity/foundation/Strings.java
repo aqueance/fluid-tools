@@ -126,25 +126,22 @@ public final class Strings extends Utility {
 
                     // not every Annotation class is an annotation...
                     if (method.getParameterTypes().length == 0 && method.getReturnType() != Void.TYPE) {
-                        if (builder.length() > 0) {
-                            builder.append(", ");
-                        }
-
-                        final StringBuilder parameter = new StringBuilder();
-                        parameter.append(method.getName()).append('=');
-
-                        method.setAccessible(true);
-                        final Object value = method.invoke(annotation);
-                        appendValue(parameter, value);
-
                         final Object fallback = method.getDefaultValue();
                         final Class<?> parameterType = method.getReturnType();
 
-                        if (fallback != null && (parameterType.isArray() ? Arrays.equals((Object[]) fallback, (Object[]) value) : fallback.equals(value))) {
-                            parameter.insert(0, '[').append(']');
-                        }
+                        method.setAccessible(true);
+                        final Object value = method.invoke(annotation);
 
-                        builder.append(parameter);
+                        if (fallback == null || !(parameterType.isArray() ? Arrays.equals((Object[]) fallback, (Object[]) value) : fallback.equals(value))) {
+                            if (builder.length() > 0) {
+                                builder.append(", ");
+                            }
+
+                            final StringBuilder parameter = new StringBuilder();
+                            parameter.append(method.getName()).append('=');
+                            appendValue(parameter, value);
+                            builder.append(parameter);
+                        }
                     }
                 }
             }
