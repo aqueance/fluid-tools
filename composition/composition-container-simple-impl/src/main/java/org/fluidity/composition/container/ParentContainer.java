@@ -16,7 +16,6 @@
 
 package org.fluidity.composition.container;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.util.List;
 
@@ -59,16 +58,15 @@ interface ParentContainer extends SimpleContainer {
     /**
      * Resolves a component group with the given traversal in the given context.
      *
-     * @param domain      the domain container to resolve missing dependencies in.
-     * @param api         the group interface.
-     * @param context     the component context at the point of resolution.
-     * @param traversal   the graph traversal to use.
-     * @param annotations the annotations defined at the reference to the group interface being resolved.
-     * @param reference   the parameterized type of the dependency reference.
+     * @param domain    the domain container to resolve missing dependencies in.
+     * @param api       the group interface.
+     * @param context   the component context at the point of resolution.
+     * @param traversal the graph traversal to use.
+     * @param reference the parameterized type of the dependency reference.
      *
      * @return the resolved component group or <code>null</code> if none could be resolved.
      */
-    Node resolveGroup(ParentContainer domain, Class<?> api, ContextDefinition context, Traversal traversal, Annotation[] annotations, Type reference);
+    Node resolveGroup(ParentContainer domain, Class<?> api, ContextDefinition context, Traversal traversal, Type reference);
 
     /**
      * Returns the group resolver for the given interface, consulting the parent, if any, if not found in the container.

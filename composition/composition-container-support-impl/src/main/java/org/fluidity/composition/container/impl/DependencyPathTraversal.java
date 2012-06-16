@@ -32,9 +32,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.DependencyPath;
-import org.fluidity.composition.container.ContainerServices;
 import org.fluidity.composition.container.ContextDefinition;
-import org.fluidity.composition.container.DependencyInjector;
 import org.fluidity.composition.container.spi.DependencyGraph;
 import org.fluidity.foundation.Deferred;
 import org.fluidity.foundation.Proxies;
@@ -52,32 +50,32 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
     private final ComponentContainer.Observer observer;
 
     private final AtomicReference<ActualPath> resolutionPath;
-    private final DependencyInjector injector;
 
     final AtomicReference<CircularReferencesException> deferring = new AtomicReference<CircularReferencesException>();
 
-    public DependencyPathTraversal(final DependencyInjector injector, final ComponentContainer.Observer observer) {
-        this(new AtomicReference<ActualPath>(new ActualPath()), injector, observer);
+    public DependencyPathTraversal(final ComponentContainer.Observer observer) {
+        this(new AtomicReference<ActualPath>(new ActualPath()), observer);
     }
 
-    public DependencyPathTraversal(final AtomicReference<ActualPath> path, final DependencyInjector injector, final ComponentContainer.Observer observer) {
+    public DependencyPathTraversal(final AtomicReference<ActualPath> path, final ComponentContainer.Observer observer) {
         assert path != null;
         this.resolutionPath = path;
-        this.injector = injector;
         this.observer = observer;
     }
 
     /**
-     * TODO: documentation...
+     * Command to invoke while descending a resolution path.
      *
-     * @param <T>
+     * @param <T> the return type of the descent.
      *
      * @author Tibor Varga
      */
     private interface Descent<T> {
 
         /**
-         * TODO: documentation
+         * Performs the descent.
+         *
+         * @return whatever the caller of {@link DependencyPathTraversal#descend(DependencyPathTraversal.ActualPath, DependencyPathTraversal.Descent)} expects.
          */
         T perform();
     }
@@ -92,13 +90,14 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
         }
     }
 
-    public DependencyGraph.Node follow(final DependencyGraph graph, final ContextDefinition context, final DependencyGraph.Node.Reference reference) {
+    public DependencyGraph.Node follow(final Object identity,
+                                       final Class<?> api,
+                                       final Class<?> type,
+                                       final ContextDefinition context,
+                                       final DependencyGraph.Node.Reference reference) {
         assert context != null;
 
-        final Class<?> api = reference.api();
-        final Object id = reference.identity();
-
-        final ActualPath path = resolutionPath.get().descend(new ActualElement(reference.type(), id, context, null));
+        final ActualPath path = resolutionPath.get().descend(new ActualElement(type, identity, context, null));
 
         if (path.repeating && observer != null) {
             observer.circular(path);
@@ -116,7 +115,7 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
                     }
                 }
 
-                final DependencyGraph.Node resolved = reference.resolve(DependencyPathTraversal.this, context);
+                final DependencyGraph.Node resolved = reference.resolve();
                 assert resolved != null : api;
 
                 if (observer != null) {
@@ -156,12 +155,12 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
         }
     }
 
-    public DependencyGraph.Traversal observed(final ContainerServices services, final ComponentContainer.Observer... observers) {
+    public DependencyGraph.Traversal observed(final ComponentContainer.Observer... observers) {
         if (observers.length > 0) {
             final ComponentContainer.Observer[] list = new ComponentContainer.Observer[observers.length + 1];
             list[0] = this.observer;
             System.arraycopy(observers, 0, list, 1, observers.length);
-            return new DependencyPathTraversal(resolutionPath, injector, services.aggregateObserver(list));
+            return new DependencyPathTraversal(resolutionPath, CompositeObserver.combine(list));
         } else {
             return this;
         }
@@ -356,6 +355,7 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
             final Strings.Listing text = Strings.delimited();
 
             for (final ActualElement type : list) {
+                @SuppressWarnings("MismatchedQueryAndUpdateOfStringBuilder")
                 final StringBuilder builder = text.next();
 
                 if (!type.definition.isEmpty()) {

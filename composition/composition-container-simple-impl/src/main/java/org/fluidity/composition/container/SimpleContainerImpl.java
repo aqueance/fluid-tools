@@ -307,9 +307,9 @@ final class SimpleContainerImpl extends EmptyDependencyGraph implements ParentCo
         }
     }
 
-    public <T> T observe(final ComponentContainer.Observer recent, final Observed<T> command) {
+    public <T> T traverse(final ComponentContainer.Observer observer, final Traversed<T> command) {
         final Traversal saved = traversal.get();
-        final Traversal current = saved == null ? services.graphTraversal(recent) : saved.observed(services, recent);
+        final Traversal current = saved == null ? services.graphTraversal(observer) : saved.observed(observer);
 
         traversal.set(current);
         try {
@@ -384,7 +384,7 @@ final class SimpleContainerImpl extends EmptyDependencyGraph implements ParentCo
                         }
                     }
 
-                    return node.instance(traversal.observed(services, observers.toArray(new ComponentContainer.Observer[observers.size()])));
+                    return node.instance(traversal.observed(observers.toArray(new ComponentContainer.Observer[observers.size()])));
                 }
 
                 public ComponentContext context() {
@@ -414,42 +414,21 @@ final class SimpleContainerImpl extends EmptyDependencyGraph implements ParentCo
     }
 
     public Node resolveGroup(final Class<?> api, final ContextDefinition context, final Traversal traversal, final Type reference) {
-        return resolveGroup(domain, api, context, traversal, null, reference);
+        return resolveGroup(domain, api, context, traversal, reference);
     }
 
-    public Node resolveGroup(final ParentContainer domain,
-                             final Class<?> api,
-                             final ContextDefinition context,
-                             final Traversal traversal,
-                             final Annotation[] annotations,
-                             final Type reference) {
+    public Node resolveGroup(final ParentContainer domain, final Class<?> api, final ContextDefinition context, final Traversal traversal, final Type reference) {
         final GroupResolver group = groups.get(api);
 
         if (group == null) {
             return parent == null
-                   ? domain == null || domain == this ? null : domain.resolveGroup(null, api, context, traversal, annotations, reference)
-                   : parent.resolveGroup(domain, api, context, traversal, annotations, reference);
+                   ? domain == null || domain == this ? null : domain.resolveGroup(null, api, context, traversal, reference)
+                   : parent.resolveGroup(domain, api, context, traversal, reference);
         } else {
             final Class<?> arrayApi = Array.newInstance(api, 0).getClass();
 
-            return traversal.follow(this, context, new Node.Reference() {
-                public Object identity() {
-                    return group;
-                }
-
-                public Class<?> api() {
-                    return arrayApi;
-                }
-
-                public Class<?> type() {
-                    return arrayApi;
-                }
-
-                public Annotation[] annotations() {
-                    return annotations;
-                }
-
-                public Node resolve(final Traversal traversal, final ContextDefinition context) {
+            return traversal.follow(group, arrayApi, arrayApi, context, new Node.Reference() {
+                public Node resolve() {
                     return groupNode(api, resolveGroup(domain, api, traversal, context.advance(reference).expand(null), reference), context);
                 }
             });
@@ -659,9 +638,7 @@ final class SimpleContainerImpl extends EmptyDependencyGraph implements ParentCo
         public Node resolveGroup(final ParentContainer domain,
                                  final Class<?> api,
                                  final ContextDefinition context,
-                                 final Traversal traversal,
-                                 final Annotation[] annotations,
-                                 final Type reference) {
+                                 final Traversal traversal, final Type reference) {
             return resolveGroup(api, context, traversal, reference);
         }
 
@@ -738,7 +715,7 @@ final class SimpleContainerImpl extends EmptyDependencyGraph implements ParentCo
             throw new UnsupportedOperationException();
         }
 
-        public <T> T observe(final ComponentContainer.Observer observer, final Observed<T> command) {
+        public <T> T traverse(final ComponentContainer.Observer observer, final Traversed<T> command) {
             throw new UnsupportedOperationException();
         }
 
@@ -759,14 +736,6 @@ final class SimpleContainerImpl extends EmptyDependencyGraph implements ParentCo
             return domain.container(context);
         }
 
-        public Node resolveGroup(final Class<?> api,
-                                 final ContextDefinition context,
-                                 final Traversal traversal,
-                                 final Annotation[] annotations,
-                                 final Type reference) {
-            return SimpleContainerImpl.this.resolveGroup(domain, api, context, traversal, annotations, reference);
-        }
-
         public Object cached(final Class<?> api, final ComponentContext context) {
             return SimpleContainerImpl.this.cached(api, context);
         }
@@ -776,7 +745,7 @@ final class SimpleContainerImpl extends EmptyDependencyGraph implements ParentCo
         }
 
         public Node resolveGroup(final Class<?> api, final ContextDefinition context, final Traversal traversal, final Type reference) {
-            return SimpleContainerImpl.this.resolveGroup(domain, api, context, traversal, null, reference);
+            return SimpleContainerImpl.this.resolveGroup(domain, api, context, traversal, reference);
         }
 
         @Override

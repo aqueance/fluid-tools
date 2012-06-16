@@ -16,16 +16,13 @@
 
 package org.fluidity.composition.container.spi;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Type;
-
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.container.ContextDefinition;
 
 /**
- * Capable of resolving component references. A dependency injection container implements this interface for a {@link
- * org.fluidity.composition.container.DependencyInjector} to be able to use the implementation.
+ * Implemented by a {@linkplain org.fluidity.composition.container.spi.OpenComponentContainer component container} to allow a {@link
+ * org.fluidity.composition.container.DependencyInjector} to interact with that container.
  * <h3>Usage</h3>
  * You don't interact with an internal interface.
  *
@@ -41,19 +38,6 @@ public interface DependencyResolver extends DependencyGraph {
      * @return a new component container.
      */
     ComponentContainer container(ContextDefinition context);
-
-    /**
-     * Resolves a component group with the given traversal in the given context.
-     *
-     * @param api         the group interface.
-     * @param context     the component context at the point of resolution.
-     * @param traversal   the graph traversal to use.
-     * @param annotations the annotations defined at the reference to the group interface being resolved.
-     * @param reference   the parameterized type of the dependency reference.
-     *
-     * @return the resolved component group or <code>null</code> if none could be resolved.
-     */
-    Node resolveGroup(Class<?> api, ContextDefinition context, Traversal traversal, Annotation[] annotations, Type reference);
 
     /**
      * Checks if an instance has been cached for the given component interface and component context, and returns the instance of found. This method never

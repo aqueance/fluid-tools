@@ -20,19 +20,9 @@ import org.fluidity.composition.ComponentContainer;
 
 /**
  * A dependency injection container that components can be added to, using the container's {@linkplain
- * org.fluidity.composition.ComponentContainer.Registry registry}. You rarely interact with this interface except when working with {@linkplain
- * ComponentContainer#makeDomainContainer(ComponentContainer.Bindings...) domain containers}.
+ * org.fluidity.composition.ComponentContainer.Registry registry}.
  * <h3>Usage</h3>
- * <pre>
- * final {@linkplain ComponentContainer} container = &hellip;; // got this one from somewhere
- *
- * final <span class="h1">OpenComponentContainer</span> domain = container.makeDomainContainer();
- * final {@linkplain org.fluidity.composition.ComponentContainer.Registry} registry = domain.getRegistry();
- *
- * registry.bindComponent(<span class="hl2">MyComponent</span>.class);
- *
- * final <span class="hl2">MyComponent</span> component = domain.getComponent(<span class="hl2">MyComponent</span>.class);
- * </pre>
+ * You don't directly interact with an internal interface.
  *
  * @author Tibor Varga
  * @see ComponentContainer

@@ -65,28 +65,13 @@ final class ConstructingResolver extends AbstractResolver {
                                         final SimpleContainer container,
                                         final ContextDefinition context,
                                         final Type reference) {
-        return traversal.follow(container, context, new DependencyGraph.Node.Reference() {
-            public Object identity() {
-                return ConstructingResolver.this;
-            }
+        final Class<?> group = Generics.rawType(Generics.arrayComponentType(reference));
 
-            public Class<?> api() {
-                final Class<?> group = Generics.rawType(Generics.arrayComponentType(reference));
-                return group != null && group.isAssignableFrom(api) ? group : api;
-            }
-
-            public Class<?> type() {
-                return api;
-            }
-
-            public Annotation[] annotations() {
-                return ConstructingResolver.this.providedContext();
-            }
-
-            public DependencyGraph.Node resolve(final DependencyGraph.Traversal traversal, final ContextDefinition context) {
+        return traversal.follow(ConstructingResolver.this, group != null && group.isAssignableFrom(api) ? group : api, api, context, new DependencyGraph.Node.Reference() {
+            public DependencyGraph.Node resolve() {
                 return cachingNode(domain,
                                    container,
-                                   injector.constructor(api,  traversal, container.dependencyResolver(domain), ConstructingResolver.this, context, constructor));
+                                   injector.constructor(api, traversal, container.dependencyResolver(domain), ConstructingResolver.this, context, constructor));
             }
         });
     }

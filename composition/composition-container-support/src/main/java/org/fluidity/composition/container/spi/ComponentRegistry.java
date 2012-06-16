@@ -20,8 +20,8 @@ import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.Components;
 
 /**
- * Allows registration of component bindings to a backing {@linkplain org.fluidity.composition.container.spi.OpenComponentContainer component container}. This
- * is an internal interface used by dependency injection container implementations via {@link EmptyComponentContainer}.
+ * Implemented by a {@linkplain org.fluidity.composition.container.spi.OpenComponentContainer component container} to allow registration of component bindings.
+ * This is an internal interface implemented through {@link EmptyComponentContainer}.
  * <h3>Usage</h3>
  * You don't interact with an internal interface.
  *
@@ -51,8 +51,7 @@ public interface ComponentRegistry {
     void bindInstance(Object instance, Components.Interfaces interfaces) throws ComponentContainer.BindingException;
 
     /**
-     * Creates a child container and calls {@link #bindComponent(Components.Interfaces)} with the given parameters. The component implementation will be
-     * bound to all component interfaces and group interfaces also in the container this is a registry for.
+     * Creates a child container and binds the given component while making its bindings also visible in the container behind this registry.
      *
      * @param interfaces the component and group interfaces; never <code>null</code>.
      *

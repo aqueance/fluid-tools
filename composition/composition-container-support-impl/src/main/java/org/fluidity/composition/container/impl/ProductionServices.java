@@ -62,7 +62,7 @@ final class ProductionServices implements ContainerServices {
     }
 
     public DependencyGraph.Traversal graphTraversal(final ComponentContainer.Observer observer) {
-        return new DependencyPathTraversal(injector, observer);
+        return new DependencyPathTraversal(observer);
     }
 
     public ComponentContainer.Observer aggregateObserver(final ComponentContainer.Observer... observers) {

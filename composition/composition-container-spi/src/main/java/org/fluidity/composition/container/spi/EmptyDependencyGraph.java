@@ -22,7 +22,8 @@ import java.lang.reflect.Type;
 import org.fluidity.composition.container.ContextDefinition;
 
 /**
- * Implements basic method relationships and functionality useful for dependency graph implementations.
+ * Implements basic method relationships and functionality useful for dependency graph implementations. The dependency injection container implementations must
+ * extend this base class.
  * <p/>
  * Implements the {@link DependencyGraph#resolveComponent(Class, ContextDefinition, Traversal)} and {@link DependencyGraph#resolveGroup(Class,
  * ContextDefinition, Traversal)} methods to delegate to the {@link DependencyGraph#resolveComponent(Class, ContextDefinition, Traversal, Type)} and
@@ -35,7 +36,12 @@ import org.fluidity.composition.container.ContextDefinition;
 public abstract class EmptyDependencyGraph implements DependencyGraph {
 
     /**
-     * Calls {@link #resolveComponent(Class, ContextDefinition, Traversal, Type)} with <code>api</code> passed to the last argument.
+     * Creates a new instance.
+     */
+    protected EmptyDependencyGraph() { }
+
+    /**
+     * Manages the context and calls {@link #resolveComponent(Class, ContextDefinition, Traversal, Type)} with <code>api</code> passed to the last argument.
      * <p/>
      * {@inheritDoc}
      */
@@ -44,7 +50,7 @@ public abstract class EmptyDependencyGraph implements DependencyGraph {
     }
 
     /**
-     * Calls {@link #resolveGroup(Class, ContextDefinition, Traversal, Type)}  with <code>api</code> passed to the last argument.
+     * Manages the context and calls {@link #resolveGroup(Class, ContextDefinition, Traversal, Type)}  with <code>api</code> passed to the last argument.
      * <p/>
      * {@inheritDoc}
      */

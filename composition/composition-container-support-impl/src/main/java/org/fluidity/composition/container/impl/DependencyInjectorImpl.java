@@ -560,7 +560,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
                             declaringType);
                 }
 
-                node = container.resolveGroup(itemType, downstream, traversal, dependencyContext, reference);
+                node = container.resolveGroup(itemType, downstream, traversal, reference);
             } else {
                 node = resolve(dependencyType, new Resolution() {
                     public ComponentContext context() {

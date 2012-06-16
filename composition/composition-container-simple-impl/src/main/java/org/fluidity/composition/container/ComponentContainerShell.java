@@ -59,7 +59,7 @@ final class ComponentContainerShell extends EmptyComponentContainer {
 
     @SuppressWarnings("unchecked")
     public <T> T getComponent(final Class<T> api) {
-        return container.observe(observer, new SimpleContainer.Observed<T>() {
+        return container.traverse(observer, new SimpleContainer.Traversed<T>() {
             public T run(final DependencyGraph.Traversal traversal) {
                 final DependencyGraph.Node node = container.resolveComponent(api, context, traversal);
                 return node == null ? null : (T) node.instance(traversal);
@@ -69,7 +69,7 @@ final class ComponentContainerShell extends EmptyComponentContainer {
 
     @SuppressWarnings("unchecked")
     public <T> T[] getComponentGroup(final Class<T> api) {
-        return container.observe(observer, new SimpleContainer.Observed<T[]>() {
+        return container.traverse(observer, new SimpleContainer.Traversed<T[]>() {
             public T[] run(final DependencyGraph.Traversal traversal) {
                 final DependencyGraph.Node node = container.resolveGroup(api, context, traversal);
                 return node == null ? null : (T[]) node.instance(traversal);
@@ -78,7 +78,7 @@ final class ComponentContainerShell extends EmptyComponentContainer {
     }
 
     public void resolveComponent(final Class<?> api) {
-        container.observe(observer, new SimpleContainer.Observed<Void>() {
+        container.traverse(observer, new SimpleContainer.Traversed<Void>() {
             public Void run(final DependencyGraph.Traversal traversal) {
                 container.resolveComponent(api, context, traversal);
                 return null;
@@ -87,12 +87,18 @@ final class ComponentContainerShell extends EmptyComponentContainer {
     }
 
     public void resolveGroup(final Class<?> api) {
-        container.observe(observer, new SimpleContainer.Observed<Void>() {
+        container.traverse(observer, new SimpleContainer.Traversed<Void>() {
             public Void run(final DependencyGraph.Traversal traversal) {
                 container.resolveGroup(api, context, traversal);
                 return null;
             }
         });
+    }
+
+    public ObservedComponentContainer observed(final Observer observer) {
+        return observer == null
+               ? this
+               : new ComponentContainerShell(container, context, false, false, container.services().aggregateObserver(this.observer, observer));
     }
 
     @SuppressWarnings("unchecked")
@@ -127,12 +133,6 @@ final class ComponentContainerShell extends EmptyComponentContainer {
 
     public OpenComponentContainer makeChildContainer(final Components.Interfaces interfaces) throws BindingException {
         return new ComponentContainerShell(container.linkComponent(interfaces), context, false, false, observer);
-    }
-
-    public ObservedComponentContainer observed(final Observer observer) {
-        return observer == null
-               ? this
-               : new ComponentContainerShell(container, context, false, false, container.services().aggregateObserver(this.observer, observer));
     }
 
     @Override

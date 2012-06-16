@@ -174,7 +174,7 @@ interface SimpleContainer extends DependencyGraph {
     void replaceResolver(Class<?> key, ComponentResolver previous, ComponentResolver replacement);
 
     /**
-     * Establishes the given resolution observer for the duration of the given command's execution in any container that may be involved.
+     * Traverses the dependency graph with the given command.
      *
      * @param observer the resolution observer to establish; may be <code>null</code>.
      * @param command  the command to execute while the observer is active.
@@ -182,7 +182,7 @@ interface SimpleContainer extends DependencyGraph {
      *
      * @return whatever the command returns.
      */
-    <T> T observe(ComponentContainer.Observer observer, Observed<T> command);
+    <T> T traverse(ComponentContainer.Observer observer, Traversed<T> command);
 
     /**
      * Returns a {@link DependencyResolver} using the given domain container.
@@ -200,14 +200,14 @@ interface SimpleContainer extends DependencyGraph {
      *
      * @author Tibor Varga
      */
-    interface Observed<T> {
+    interface Traversed<T> {
 
         /**
          * Executes the business logic while some resolution observer is active.
          *
          * @param traversal the strategy to use to traverse the dependency graph.
          *
-         * @return whatever the caller of {@link SimpleContainer#observe(org.fluidity.composition.ComponentContainer.Observer, Observed)} expects.
+         * @return whatever the caller of {@link SimpleContainer#traverse} expects.
          */
         T run(Traversal traversal);
     }

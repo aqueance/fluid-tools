@@ -21,7 +21,8 @@ import org.fluidity.composition.container.ContainerServices;
 import org.fluidity.composition.container.PlatformContainer;
 
 /**
- * Creates dependency injection container instances. This is an internal interface to be implemented by dependency injection container implementations.
+ * Creates {@linkplain OpenComponentContainer dependency injection container} instances. This is the entry point to a container implementation that hooks it up
+ * to the rest of Fluid Tools.
  * <h3>Usage</h3>
  * You don't interact with an internal interface.
  *
@@ -33,8 +34,8 @@ public interface ContainerProvider {
     /**
      * Creates and returns and empty standalone dependency injection container.
      *
-     * @param services provides service components for the container.
-     * @param platform the container that turns the host platform's component container into a super container for Fluid Tools.
+     * @param services provides service components for the container; never <code>null</code>.
+     * @param platform the container that turns the host platform's component container into a super container for Fluid Tools; may be <code>null</code>.
      *
      * @return and empty standalone dependency injection container.
      */

@@ -131,7 +131,7 @@ final class GroupResolver {
         return new Node() {
             public Collection<?> instance(final DependencyGraph.Traversal traversal) {
                 final List<Object> instances = new ArrayList<Object>();
-                final DependencyGraph.Traversal observed = traversal.observed(container.services(), observer);
+                final DependencyGraph.Traversal observed = traversal.observed(observer);
 
                 for (final DependencyGraph.Node node : nodes) {
                     instances.add(node.instance(observed));

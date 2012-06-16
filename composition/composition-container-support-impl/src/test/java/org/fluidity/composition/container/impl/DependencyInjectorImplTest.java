@@ -142,7 +142,6 @@ public class DependencyInjectorImplTest extends MockGroupAbstractTest {
             EasyMock.expect(resolver.resolveGroup(EasyMock.same(dependencyType.getComponentType()),
                                                   EasyMock.same(copy),
                                                   EasyMock.same(traversal),
-                                                  EasyMock.<Annotation[]>notNull(),
                                                   EasyMock.same(dependencyType))).andReturn(new DependencyGraph.Node.Constant(dependencyType, services, null));
         } else if (dependencyType == ComponentContext.class) {
             EasyMock.expect(contexts.contextConsumer()).andReturn((Class) componentType);

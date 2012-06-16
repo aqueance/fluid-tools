@@ -33,7 +33,8 @@ import org.fluidity.composition.spi.ComponentInterceptor;
 import org.fluidity.foundation.Proxies;
 
 /**
- * Implements basic method relationships and functionality useful for container and registry implementations.
+ * Implements basic method relationships and functionality useful for container and registry implementations. The public facade of dependency injection
+ * container implementations must extend this base class.
  * <h3>Usage</h3>
  * You don't interact with an internal interface.
  *
@@ -42,6 +43,11 @@ import org.fluidity.foundation.Proxies;
 public abstract class EmptyComponentContainer implements OpenComponentContainer, ObservedComponentContainer, ComponentRegistry {
 
     private final Registry registry = new EmptyRegistry(this);
+
+    /**
+     * Creates a new instance.
+     */
+    protected EmptyComponentContainer() { }
 
     /**
      * Invokes the given method of the given object after resolving and injecting its applicable parameters that the given argument list contains no
@@ -87,8 +93,6 @@ public abstract class EmptyComponentContainer implements OpenComponentContainer,
     }
 
     /**
-     * Implements this convenience method using the primary methods of the container.
-     * <p/>
      * {@inheritDoc}
      */
     public final <T> T getComponent(final Class<T> api, final Bindings... bindings) throws ResolutionException {
@@ -96,8 +100,6 @@ public abstract class EmptyComponentContainer implements OpenComponentContainer,
     }
 
     /**
-     * Implements this convenience method using the primary methods of the container.
-     * <p/>
      * {@inheritDoc}
      */
     public final <T> T instantiate(final Class<T> componentClass) throws ResolutionException {
@@ -105,8 +107,6 @@ public abstract class EmptyComponentContainer implements OpenComponentContainer,
     }
 
     /**
-     * Implements this convenience method using the primary methods of the container.
-     * <p/>
      * {@inheritDoc}
      */
     public final <T> T instantiate(final Class<T> componentClass, final Bindings bindings) throws ResolutionException {
@@ -124,6 +124,9 @@ public abstract class EmptyComponentContainer implements OpenComponentContainer,
         return container.getComponent(componentClass);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @SuppressWarnings("unchecked")
     public final <T> T complete(final T component, final Class<? super T>... api) throws ResolutionException {
         final Class<T> type = (Class<T>) component.getClass();
@@ -167,6 +170,9 @@ public abstract class EmptyComponentContainer implements OpenComponentContainer,
         });
     }
 
+    /**
+     * {@inheritDoc}
+     */
     public final ComponentContainer intercepting(final ComponentInterceptor... interceptors) {
         return makeChildContainer(new Bindings() {
             @SuppressWarnings("unchecked")
@@ -178,6 +184,9 @@ public abstract class EmptyComponentContainer implements OpenComponentContainer,
         });
     }
 
+    /**
+     * {@inheritDoc}
+     */
     public final Registry getRegistry() {
         return registry;
     }
