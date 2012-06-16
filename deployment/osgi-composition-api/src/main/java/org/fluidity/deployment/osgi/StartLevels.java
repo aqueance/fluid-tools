@@ -35,15 +35,17 @@ import org.osgi.framework.Bundle;
 public interface StartLevels {
 
     /**
-     * Returns the list of bundles to start at the given level. This method is called for each level starting from <code>2</code> progressively until the
-     * returned list contains no more of the remaining bundles.
+     * Returns a list of bundle lists to start at subsequent start levels. The start level begins at <code>2</code> for the first list of bundles in the
+     * returned list and increments for each subsequent list of bundles.
+     * <p/>
+     * Bundles included more than once will be considered only once. The list of bundles not included in the returned lists will be added
+     * to the end of the returned list by the caller.
      *
-     * @param level   the start level the returned the list of bundles will be started at.
-     * @param bundles the list of bundles not yet assigned a start level.
+     * @param bundles the list of all bundles; the implementation may modify this parameter without affecting the caller.
      *
-     * @return the list of bundles to start at the given start level.
+     * @return the list of bundles to start at various start levels.
      */
-    List<Bundle> bundles(int level, List<Bundle> bundles);
+    List<List<Bundle>> bundles(List<Bundle> bundles);
 
     /**
      * Returns the initial start level of the OSGi framework. Bundles with start level up to the returned value will be started in the order of their start

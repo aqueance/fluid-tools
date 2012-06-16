@@ -16,7 +16,6 @@
 
 package org.fluidity.deployment.launcher;
 
-import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ContainerBoundary;
 import org.fluidity.deployment.cli.Application;
 
@@ -57,11 +56,6 @@ public final class ShellApplicationBootstrap {
      * @throws Exception whatever {@link Application#run(String[])} throws.
      */
     public static void main(final String[] args) throws Exception {
-        new ContainerBoundary().getComponent(ShellApplicationBootstrap.class, new ComponentContainer.Bindings() {
-            @SuppressWarnings("unchecked")
-            public void bindComponents(final ComponentContainer.Registry registry) {
-                registry.bindComponent(ShellApplicationBootstrap.class);
-            }
-        }).run(args);
+        new ContainerBoundary().instantiate(ShellApplicationBootstrap.class).run(args);
     }
 }

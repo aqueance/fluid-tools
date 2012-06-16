@@ -32,7 +32,6 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.jar.JarFile;
 
-import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ContainerBoundary;
 import org.fluidity.composition.Optional;
 import org.fluidity.composition.spi.ContainerTermination;
@@ -210,17 +209,17 @@ public final class OsgiApplicationBootstrap {
         final List<List<Bundle>> order = new ArrayList<List<Bundle>>();
 
         if (startLevel != null) {
-            final List<Bundle> remaining = new ArrayList<Bundle>(bundles);
 
             // start level 0: framework stopped
             // start level 1: framework started
             // start level 2+ : bundle start levels
-            for (int level = 2; !remaining.isEmpty(); ++level) {
 
-                // list could be linked: unlink it
-                final List<Bundle> list = new ArrayList<Bundle>(levels.bundles(level, remaining));
+            final List<Bundle> remaining = new ArrayList<Bundle>(bundles);
 
-                // make sure no extra bundle has been added
+            int level = 1;
+            for (final List<Bundle> list : list(bundles)) {
+
+                // make sure no bundle is included that has already been assigned a start level
                 list.retainAll(remaining);
 
                 // no bundle to start at this level: discard the rest
@@ -231,7 +230,17 @@ public final class OsgiApplicationBootstrap {
                 remaining.removeAll(list);
                 order.add(list);
 
+                ++level;
                 for (final Bundle bundle : list) {
+                    bundle.adapt(BundleStartLevel.class).setStartLevel(level);
+                }
+            }
+
+            if (!remaining.isEmpty()) {
+                order.add(remaining);
+
+                ++level;
+                for (final Bundle bundle : remaining) {
                     bundle.adapt(BundleStartLevel.class).setStartLevel(level);
                 }
             }
@@ -247,6 +256,11 @@ public final class OsgiApplicationBootstrap {
         }
 
         framework.waitForStop(0);
+    }
+
+    private List<List<Bundle>> list(final List<Bundle> bundles) {
+        final List<List<Bundle>> lists = levels.bundles(new ArrayList<Bundle>(bundles));
+        return lists == null ? Collections.<List<Bundle>>emptyList() : lists;
     }
 
     private Properties loadProperties(final InputStream stream, final Properties defaults) throws IOException {
@@ -266,11 +280,6 @@ public final class OsgiApplicationBootstrap {
     }
 
     public static void main(final String[] args) throws Exception {
-        new ContainerBoundary().getComponent(OsgiApplicationBootstrap.class, new ComponentContainer.Bindings() {
-            @SuppressWarnings("unchecked")
-            public void bindComponents(final ComponentContainer.Registry registry) {
-                registry.bindComponent(OsgiApplicationBootstrap.class);
-            }
-        }).run();
+        new ContainerBoundary().instantiate(OsgiApplicationBootstrap.class).run();
     }
 }
