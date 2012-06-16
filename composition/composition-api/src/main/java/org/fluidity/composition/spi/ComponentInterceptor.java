@@ -27,13 +27,12 @@ import org.fluidity.composition.ComponentGroup;
  * Interceptors visible to a {@linkplain org.fluidity.composition.ComponentContainer dependency injection container} are invoked at all dependency injection
  * operations performed by that container, and are the means to implement delegation chains in Fluid Tools.
  * <p/>
- * The intent is to have this process governed by the context at the dependency reference, which also determines the order in which the interceptors are
+ * The list of interceptors applied is determined by the context at the dependency reference, which also determines the order in which the interceptors are
  * invoked.
  * <p/>
  * If present, the {@linkplain org.fluidity.composition.Component.Context @Component.Context} annotation of the interceptor is consulted to determine
  * what dependency references will the interceptor be invoked for: it will be invoked for those dependency references that have all listed context annotations
- * present. Context annotations used by an interceptor do not implicitly become part of the context of any component unless it is explicitly listed by that
- * component as a context annotation.
+ * present. Context annotations used by an interceptor have no effect on the context passed to the replaced component.
  * <p/>
  * The interceptor may also elect not to discriminate between the dependencies by their context, in which case it will be invoked for all dependency
  * references.
@@ -63,7 +62,7 @@ import org.fluidity.composition.ComponentGroup;
 public interface ComponentInterceptor {
 
     /**
-     * Replaces some dependency with a type compatible replacement. The interceptor is never invoked with a <code>null</code> dependency and returning a
+     * Replaces some dependency with a type compatible substitute. The interceptor is never invoked with a <code>null</code> dependency and returning a
      * <code>null</code> dependency will short-cut the interceptor chain and result in an unresolved dependency.
      * <p/>
      * The interceptor cannot invoke {@link ComponentInterceptor.Dependency#create()} in this method.

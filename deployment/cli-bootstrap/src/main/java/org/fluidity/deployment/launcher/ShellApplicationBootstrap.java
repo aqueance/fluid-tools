@@ -25,6 +25,8 @@ import org.fluidity.deployment.cli.Application;
  * supplied implementation to load and run the application's main loop.
  * <p/>
  * <b>NOTE</b>: This class is public <em>only</em> so that its main method can be found by the Java launcher.
+ * <h3>Usage</h3>
+ * Use the <code>org.fluidity.maven:fluidity-archetype-standalone-jar</code> Maven archetype to generate the command line application wrapper project.
  *
  * @author Tibor Varga
  */
@@ -32,6 +34,13 @@ public final class ShellApplicationBootstrap {
 
     private final Application application;
 
+    /**
+     * Dependency injected constructor.
+     *
+     * @param application the main loop to invoke.
+     *
+     * @throws Exception in any exceptional situation.
+     */
     public ShellApplicationBootstrap(final Application application) throws Exception {
         this.application = application;
     }
@@ -40,6 +49,13 @@ public final class ShellApplicationBootstrap {
         application.run(args);
     }
 
+    /**
+     * Command line application entry point.
+     *
+     * @param args the command line arguments.
+     *
+     * @throws Exception whatever {@link Application#run(String[])} throws.
+     */
     public static void main(final String[] args) throws Exception {
         new ContainerBoundary().getComponent(ShellApplicationBootstrap.class, new ComponentContainer.Bindings() {
             @SuppressWarnings("unchecked")

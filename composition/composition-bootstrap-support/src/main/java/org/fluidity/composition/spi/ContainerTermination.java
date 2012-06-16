@@ -17,8 +17,8 @@
 package org.fluidity.composition.spi;
 
 /**
- * Enables tasks to be executed when the application shuts down. A suitable implementation is used by dependency injection containers to provide means to shut
- * down components when the application shuts down.
+ * Enables commands to be invoked when the application shuts down. A suitable implementation is used by dependency injection containers to provide means to
+ * notifies components about application terminatation.
  * <p/>
  * Application commands executed at container termination must not rely on any Fluid Tools dependency injection container functionality as containers must be
  * assumed to have shut down already when these commands are executed.

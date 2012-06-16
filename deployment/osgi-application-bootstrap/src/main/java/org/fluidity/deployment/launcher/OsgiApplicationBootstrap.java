@@ -56,12 +56,12 @@ import org.osgi.framework.startlevel.BundleStartLevel;
 import org.osgi.framework.startlevel.FrameworkStartLevel;
 
 /**
- * A command line main class that populates the application's dependency injection container, bootstraps an OSGi framework, installs all bundle JAR files
+ * A command line main class that populates the application's dependency injection container, bootstraps an OSGi framework, installs all OSGi bundle JAR files
  * visible to its class loader, starts all non-fragment bundles, and then waits for the OSGi framework to stop.
  * <p/>
  * <b>NOTE</b>: This class is public <em>only</em> so that its main method can be found by the Java launcher.
  * <p/>
- * With OSGi version 4.3 or later, bundle and framework start levels default to 2 to enable starting and stopping all bundles by simply setting the framework
+ * With OSGi version 4.3 or later, bundle and framework start levels default to 2 to enable starting and stopping all bundles simply by setting the framework
  * start level. Fine tuning of start levels is possible through an optional implementation of the {@link StartLevels} interface.
  * <p/>
  * With OSGi version earlier than 4.2, bundle and framework start levels are set to 1 and no fine tuning is possible.
@@ -82,6 +82,13 @@ public final class OsgiApplicationBootstrap {
     private final ContainerTermination termination;
     private final StartLevels levels;
 
+    /**
+     * Dependency injected constructor.
+     *
+     * @param log         the log sink to use.
+     * @param termination the container termination component.
+     * @param levels      the optional start level fine tuning component.
+     */
     public OsgiApplicationBootstrap(final Log<OsgiApplicationBootstrap> log, final ContainerTermination termination, final @Optional StartLevels levels) {
         this.log = log;
         this.termination = termination;

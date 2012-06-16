@@ -22,8 +22,9 @@ import javax.servlet.ServletContextListener;
 import org.fluidity.composition.ContainerBoundary;
 
 /**
- * Forwards servlet context listener callbacks to all <code>ServletContextListener</code>s annotated with
- * {@link org.fluidity.composition.ComponentGroup @ComponentGroup}.
+ * Forwards servlet context listener callbacks to all {@link ServletContextListener ServletContextListeners} annotated with
+ * {@link org.fluidity.composition.ComponentGroup @ComponentGroup}. This makes it possible to register those listeners without explicitly listing them in
+ * <code>web.xml</code>.
  * <h3>Usage</h3>
  * This listener is registered in a <code>web.xml</code> descriptor of a web application.
  * <pre>
@@ -41,6 +42,11 @@ import org.fluidity.composition.ContainerBoundary;
 public final class AggregatingServletContextListener implements ServletContextListener {
 
     private final ServletContextListener listeners[] = new ContainerBoundary().getComponentGroup(ServletContextListener.class);
+
+    /**
+     * Invoked by the servlet container to create a new instance.
+     */
+    public AggregatingServletContextListener() { }
 
     public void contextInitialized(final ServletContextEvent event) {
         for (final ServletContextListener listener : listeners) {

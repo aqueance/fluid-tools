@@ -36,10 +36,12 @@ import org.fluidity.foundation.ServiceProviders;
 import org.fluidity.foundation.jarjar.Handler;
 
 /**
- * A command line main class that prepares the web container bootstrap process, e.g., creating a work directory, setting up the boot classpath and loading and
- * invoking a supplied {@linkplain ServerBootstrap bootstrap} component.
+ * A command line main class that prepares the web container bootstrap process, e.g., creating a work directory, setting up the boot classpath and, then loads
+ * and invokes a supplied {@linkplain ServerBootstrap bootstrap} component.
  * <p/>
  * <b>NOTE</b>: This class is public <em>only</em> so that its main method can be found by the Java launcher.
+ * <h3>Usage</h3>
+ * Use the <code>org.fluidity.maven:fluidity-archetype-standalone-war</code> Maven archetype to create the standalone web application wrapper project.
  *
  * @author Tibor Varga
  */
@@ -47,6 +49,18 @@ public final class WebApplicationBootstrap {
 
     private final Pattern warFilePattern = Pattern.compile("^(jar:)?file:(.+?.war)(\\!/.*)?");
 
+    /**
+     * Dependency injected constructor.
+     */
+    public WebApplicationBootstrap() { }
+
+    /**
+     * Command line application entry point.
+     *
+     * @param args the command line arguments.
+     *
+     * @throws Exception whatever is thrown by the web application bootstrap component.
+     */
     public static void main(final String[] args) throws Exception {
         new WebApplicationBootstrap().boot(args);
     }
