@@ -19,10 +19,12 @@ package org.fluidity.foundation;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import org.apache.xbean.classloader.JarFileClassLoader;
@@ -226,6 +228,44 @@ public final class ClassLoaders extends Utility {
             return command.run(loader);
         } finally {
             set(saved);
+        }
+    }
+
+    /**
+     * Creates an isolated URL class loader for the given list of URLs, loads using the isolated class loader and instantiates the given type and calls the
+     * given method on it with the given parameters to return its return value.
+     *
+     *
+     * @param parent the class loader to load the method parameters and the return values; this class loader must not see the given <code>type</code>.
+     * @param urls the list of URLs to use for the isolated class loader; make sure the list contains the JARs containing the type to load.
+     * @param type the command class to load and invoke the given method on.
+     * @param run the method to call; the parameter types and the return type must be loaded by the parent class loader and the declaring class must be either
+     *            visible to the <code>parent</code> class loader or listed in the given list of URLs.
+     * @param arguments the arguments to pass to the command.
+     * @return whatever the command returns.
+     * @throws Exception when anything goes wrong.
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> T isolate(final ClassLoader parent, final Set<URL> urls, final Class<?> type, final Method run, final Object... arguments)
+            throws Exception {
+        final ClassLoader isolated = create(parent, urls.toArray(new URL[urls.size()]));
+
+        try {
+            // find the command
+            final Object command = isolated.loadClass(type.getName()).newInstance();
+
+            // find the method to call in the other class loader
+            final Method method = isolated.loadClass(run.getDeclaringClass().getName()).getDeclaredMethod(run.getName(), run.getParameterTypes());
+
+            // see if the class loader can see the ContainerBoundary and BundleBootstrap classes and if so, set the bundle activator
+            method.setAccessible(true);
+            return (T) method.invoke(command, arguments);
+        } finally {
+            try {
+                ((Closeable) isolated).close();
+            } catch (final IOException e) {
+                // ignore
+            }
         }
     }
 

@@ -26,7 +26,7 @@ import javax.servlet.ServletResponse;
 
 /**
  * A servlet decorator that enables its delegate to have its dependencies injected. The delegate must be another servlet, obviously. The delegate is
- * instantiated in the {@link #init(ServletConfig)} method and discarded in the {@link #destroy()} method..
+ * instantiated in the {@link #init(ServletConfig) init()} method and discarded in the {@link #destroy()} method..
  * <p/>
  * Example <code>web.xml</code>:<pre>
  * &lt;web-app &hellip;>
@@ -56,9 +56,6 @@ public final class DependencyResolverServlet implements Servlet {
      */
     public DependencyResolverServlet() { }
 
-    /**
-     * {@inheritDoc}
-     */
     public void init(final ServletConfig config) throws ServletException {
         init(config, resolver);
     }
@@ -73,30 +70,18 @@ public final class DependencyResolverServlet implements Servlet {
         delegate.init(config);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public ServletConfig getServletConfig() {
         return delegate.getServletConfig();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void service(final ServletRequest request, final ServletResponse response) throws ServletException, IOException {
         delegate.service(request, response);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public String getServletInfo() {
         return delegate.getServletInfo();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void destroy() {
         delegate.destroy();
         delegate = null;

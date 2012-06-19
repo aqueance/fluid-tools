@@ -16,14 +16,13 @@
 
 package org.fluidity.foundation.impl;
 
-import java.io.Closeable;
-import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.jar.Attributes;
 
 import org.fluidity.composition.ComponentGroup;
@@ -147,12 +146,10 @@ public final class BundleJarManifest implements JarManifest {
 
         // if embedding other JARs, see if Fluid Tools composition is included and if so, add a bundle activator to bootstrap the system.
         if (!dependencies.isEmpty()) {
-            ClassLoader classLoader = null;
-
             try {
 
                 // create a class loader that sees the project's compile-time dependencies
-                final List<URL> urls = new ArrayList<URL>();
+                final Set<URL> urls = new HashSet<URL>();
 
                 final String skippedId = project.getArtifact().getId();
                 for (final Artifact dependency : dependencies) {
@@ -165,29 +162,17 @@ public final class BundleJarManifest implements JarManifest {
 
                 final ClassLoader parent = getClass().getClassLoader();
 
-                addJarFile(urls, parent, BundleActivatorProcessor.class);       // add the jar where the command we're about to invoke is found
-                addJarFile(urls, parent, Command.class);                        // add the jar where the command interface is found
-
-                // must not use our class loader as parent
-                classLoader = ClassLoaders.create(null, urls.toArray(new URL[urls.size()]));
-
-                // find the command
-                final Object command = classLoader.loadClass(BundleActivatorProcessor.class.getName()).newInstance();
-
-                // find the method to call in our class loader
-                final Method run = Methods.get(Command.class, new Methods.Invoker<Command>() {
+                final Method method = Methods.get(BootstrapDiscovery.class, new Methods.Invoker<BootstrapDiscovery>() {
                     @SuppressWarnings("unchecked")
-                    public void invoke(final Command capture) {
-                        capture.run(null);
+                    public void invoke(final BootstrapDiscovery capture) {
+                        capture.activator();
                     }
                 });
 
-                // find the method to call in the other class loader
-                final Method method = classLoader.loadClass(run.getDeclaringClass().getName()).getDeclaredMethod(run.getName(), run.getParameterTypes());
+                urls.add((Archives.containing(parent, BootstrapDiscovery.class)));
+                urls.add((Archives.containing(parent, BootstrapDiscoveryImpl.class)));
 
-                // see if the class loader can see the ContainerBoundary and BundleBootstrap classes and if so, set the bundle activator
-                method.setAccessible(true);
-                final String activator = (String) method.invoke(command, (Object) null);
+                final String activator = ClassLoaders.isolate(null, urls, BootstrapDiscoveryImpl.class, method);
 
                 if (activator != null) {
                     if (!addEntry(attributes, BUNDLE_ACTIVATOR, activator)) {
@@ -201,14 +186,6 @@ public final class BundleJarManifest implements JarManifest {
                 // that's OK
             } catch (final Exception e) {
                 throw new IllegalStateException(e);
-            } finally {
-                if (classLoader != null) {
-                    try {
-                        ((Closeable) classLoader).close();
-                    } catch (final IOException e) {
-                        // ignore
-                    }
-                }
             }
         }
     }
@@ -266,23 +243,25 @@ public final class BundleJarManifest implements JarManifest {
         return bundleVersion.toString().substring(1);
     }
 
-    private void addJarFile(final List<URL> urls, final ClassLoader parent, final Class<?> type) {
-        final URL source = parent.getResource(ClassLoaders.classResourceName(type));
-        final URL jar = Archives.jarFile(source).getJarFileURL();
+    /**
+     * Returns the name of the bundle activator class if Fluid Tools is used in the host Maven project.
+     */
+    public static interface BootstrapDiscovery {
 
-        if (jar != null) {
-            urls.add(jar);
-        } else {
-            throw new IllegalArgumentException(String.format("Class %s was not loaded from a JAR file: %s", type.getName(), source));
-        }
+        /**
+         * Returns the name of the bundle activator class, if any.
+         *
+         * @return the name of the bundle activator, or <code>null</code> if no Fluid Tools is used in the project.
+         */
+        String activator();
     }
 
     /**
-     * This class is loaded from a bespoke class loader defined on the compile-time dependencies of the host project. It checks if the ContainerBoundary
-     * and BundleBootstrap classes can be found in the project's compile-time class path.
+     * This class is loaded from a bespoke class loader defined on the compile-time dependencies of the host Mave project. It checks if the {@link
+     * ContainerBoundary} and {@link BundleBootstrap} classes can be found in the project's compile-time class path.
      */
-    public static final class BundleActivatorProcessor implements Command<String, Void> {
-        public String run(final Void ignored) {
+    public static final class BootstrapDiscoveryImpl implements BootstrapDiscovery {
+        public String activator() {
             try {
 
                 // try to load the classes from the artifact's compile-time dependencies

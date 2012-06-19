@@ -264,6 +264,27 @@ public final class Archives extends Utility {
     }
 
     /**
+     * Returns the JAR file that contains the given type as seen by the given class loader.
+     *
+     * @param loader the class loader to ask for the source of the given type.
+     * @param type   the Java class to find.
+     *
+     * @return the JAR URL containing the given type.
+     *
+     * @throws IllegalArgumentException if the given type is not loaded from a JAR file.
+     */
+    public static URL containing(final ClassLoader loader, final Class<?> type) throws IllegalArgumentException {
+        final URL source = loader.getResource(ClassLoaders.classResourceName(type));
+        final URL jar = jarFile(source).getJarFileURL();
+
+        if (jar == null) {
+            throw new IllegalArgumentException(String.format("Class %s was not loaded from a JAR file: %s", type.getName(), source));
+        } else {
+            return jar;
+        }
+    }
+
+    /**
      * Filters and reads entries in a JAR file. Used by {@link Archives#readEntries(URL, EntryReader)} and {@link Archives#readNestedEntries(URL,
      * EntryReader)}.
      */

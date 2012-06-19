@@ -24,26 +24,25 @@ import org.apache.maven.artifact.Artifact;
 import org.apache.maven.project.MavenProject;
 
 /**
- * Implements some JAR manifest transformation. The <code>org.fluidity.maven:standalone-jar-maven-plugin</code> Maven plugin can be configured with an
+ * JAR manifest transformation for application wrappers. The <code>org.fluidity.maven:standalone-jar-maven-plugin</code> Maven plugin can be configured with an
  * implementation of this interface to transform the manifest file of the host project.
  * <p/>
- * The implementation must be accompanied by a JAR service provider file for the above plugin to find the implementation.
+ * The implementation must be registered in a JAR service provider file for the above plugin to find the implementation.
  * <p/>
- * The execution environment of the implementation is the execution environment of a Maven plugin. In order to delegate execution of some code loaded into a
- * different execution environment, the {@link JarManifest.Command} interface is provided to bridge the two environments.
+ * The execution environment of the implementation is the execution environment of a Maven plugin.
  *
  * @author Tibor Varga
  */
 public interface JarManifest {
 
     /**
-     * This are profile names for the implementation project to declare dependencies not to include, to include and to unpack, respectively, in the project
-     * artifact being processed.
+     * Maven profile names for the implementation project to declare dependencies <em>not to include</em>, <em>to include</em>, or <em>to unpack</em>,
+     * respectively, in the project artifact being processed.
      */
     enum Packaging {
 
         /**
-         * The list of dependencies not to include in the project artifact must be listed in a profile with activation (note the <b>exclamation mark</b>
+         * Dependencies not to include in the project artifact. The dependencies must be listed in a profile with activation (note the <b>exclamation mark</b>
          * before the property name):
          * <pre>
          * &lt;activation>&lt;property>&lt;name><b>!package-exclude</b>&lt;/name>&lt;/property>&lt;/activation>
@@ -52,8 +51,8 @@ public interface JarManifest {
         EXCLUDE("package-exclude"),
 
         /**
-         * The list of dependencies to include as an embedded JAR must be listed in a profile with activation (note the <b>exclamation mark</b> before the
-         * property name):
+         * Dependencies to include as an embedded JAR in the project artifact. The dependencies must be listed in a profile with activation (note the
+         * <b>exclamation mark</b> before the property name):
          * <pre>
          * &lt;activation>&lt;property>&lt;name><b>!package-include</b>&lt;/name>&lt;/property>&lt;/activation>
          * </pre>
@@ -61,8 +60,8 @@ public interface JarManifest {
         INCLUDE("package-include"),
 
         /**
-         * The list of dependencies to unpack into the root must be listed in a profile with activation (note the <b>exclamation mark</b> before the property
-         * name):
+         * Dependencies to unpack into the root of the project artifact. The dependencies must be listed in a profile with activation (note the <b>exclamation
+         * mark</b> before the property name):
          * <pre>
          * &lt;activation>&lt;property>&lt;name><b>!package-unpack</b>&lt;/name>&lt;/property>&lt;/activation>
          * </pre>
@@ -94,21 +93,25 @@ public interface JarManifest {
     Packaging packaging();
 
     /**
-     * Gives a name under which dependencies requested for inclusion by the manifest handler that are not also dependencies of the project
-     * artifact should be saved. The <code>paths</code> parameter of {@link #processManifest(MavenProject, Attributes, List, Collection)} method will have
-     * this name used for such dependencies.
+     * Names the folder under which to package the dependencies requested for inclusion by the manifest handler that are <em>not</em> dependencies of the
+     * project artifact. The <code>paths</code> parameter of {@link #processManifest(MavenProject, Attributes, List, Collection) processManifest()} method will
+     * have this name used for such dependencies.
      * <p/>
      * The returned name must not contain the '/' character.
      *
-     * @return a directory name, or <code>null</code> if the manifest handler requests no dependencies for inclusion.
+     * @return a directory name, or <code>null</code> if the manifest handler requests no extra dependencies for inclusion.
      */
     String dependencyPath();
 
     /**
-     * Transforms the provided main manifest attributes of the given Maven project. The <code>org.fluidity.maven:standalone-jar-maven-plugin</code> Maven
-     * plugin packages the host project's run-time dependencies into the project artifact, including the original project artifact itself, before invoking this
-     * method. The method receives in its <code>paths</code> parameter the paths, relative to the project artifact, to the packaged run-time dependencies, and
-     * in its <code>dependencies</code> parameter the run-time or compile-time dependencies of the host project.
+     * Transforms the provided main manifest attributes of the given Maven project.
+     * <p/>
+     * The <code>org.fluidity.maven:standalone-jar-maven-plugin</code> Maven plugin packages the host project's run-time dependencies into the project
+     * artifact, including the original project artifact itself, before invoking this method.
+     * <p/>
+     * The method receives in its <code>paths</code> parameter the paths, relative to the project artifact, of the packaged run-time dependencies, and in its
+     * <code>dependencies</code> parameter either the run-time or compile-time dependencies of the host project, depending on what {@link
+     * #needsCompileDependencies()} returns.
      *
      * @param project      the Maven project to extract metadata from.
      * @param attributes   the main manifest attributes.
@@ -116,21 +119,4 @@ public interface JarManifest {
      * @param dependencies the actual project dependencies.
      */
     void processManifest(MavenProject project, Attributes attributes, List<String> paths, Collection<Artifact> dependencies);
-
-    /**
-     * Allows delegating some computation to a command loaded by a class loader that is different from the one that loaded this interface. This is intended to
-     * be used by {@link JarManifest} implementations to allow them to load classes for example from the host project without requiring further dependencies to
-     * be added to the plugin itself.
-     */
-    interface Command<R, P> {
-
-        /**
-         * Do some computation and return the result.
-         *
-         * @param object some parameter.
-         *
-         * @return the result.
-         */
-        R run(P object);
-    }
 }
