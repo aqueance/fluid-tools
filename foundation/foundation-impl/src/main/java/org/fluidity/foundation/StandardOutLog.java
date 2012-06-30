@@ -59,10 +59,6 @@ final class StandardOutLog<T> implements Log<T> {
         System.out.printf("%s%s%s%n", prefix, suffix, stackTrace(exception));
     }
 
-    public void refresh() {
-        // ignore
-    }
-
     public boolean isTraceEnabled() {
         return true;
     }

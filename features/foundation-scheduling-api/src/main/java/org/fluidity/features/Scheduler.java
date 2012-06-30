@@ -22,9 +22,29 @@ package org.fluidity.features;
  * <p/>
  * <b>NOTE</b>: This component keeps a hard reference to the tasks supplied in its {@link #invoke(long, Runnable)} and {@link #invoke(long, long, Runnable)}
  * methods. If you need periodic updates without the consequent hard reference, use {@link Updates} instead of directly using this component.
+ * <h3>Usage</h3>
+ * <pre>
+ * {@linkplain org.fluidity.composition.Component @Component}
+ * final class <span class="hl2">MyComponent</span> {
+ *
+ *   private static final int period = {@linkplain java.util.concurrent.TimeUnit#MILLISECONDS}.{@linkplain java.util.concurrent.TimeUnit#convert(long, java.util.concurrent.TimeUnit) convert}(1, {@linkplain java.util.concurrent.TimeUnit#SECONDS});
+ *
+ *   private volatile long <span class="hl3">timestamp</span>;
+ *
+ *   public <span class="hl2">MyComponent</span>(final <span class="hl1">Scheduler</span> scheduler) {
+ *     scheduler.<span class="hl1">invoke</span>(period, period, new {@linkplain Runnable}() {
+ *       public void run() {
+ *         <span class="hl3">timestamp</span> = {@linkplain System#currentTimeMillis()};
+ *       }
+ *     });
+ *   }
+ *   &hellip;
+ * }
+ * </pre>
  *
  * @author Tibor Varga
  */
+@SuppressWarnings("JavadocReference")
 public interface Scheduler {
 
     /**
@@ -49,7 +69,9 @@ public interface Scheduler {
     Control invoke(long delay, Runnable task);
 
     /**
-     * Controls an invocation scheduled by {@link Scheduler#invoke(long, Runnable)} or {@link Scheduler#invoke(long, long, Runnable)}.
+     * Controls an invocation scheduled by the <code>invoke()</code> methods of a {@link Scheduler}.
+     * <h3>Usage</h3>
+     * See {@link Scheduler}.
      */
     interface Control {
 

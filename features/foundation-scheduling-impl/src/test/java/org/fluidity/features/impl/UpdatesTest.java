@@ -14,10 +14,13 @@
  * limitations under the License.
  */
 
-package src.fluidity.features.impl;
+package org.fluidity.features.impl;
 
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.fluidity.features.Scheduler;
+import org.fluidity.features.Updates;
+import org.fluidity.foundation.Configuration;
 import org.fluidity.tests.MockGroupAbstractTest;
 
 import org.easymock.EasyMock;
@@ -31,13 +34,13 @@ import org.testng.annotations.Test;
 public class UpdatesTest extends MockGroupAbstractTest {
 
     @SuppressWarnings("unchecked")
-    private final Configuration<Updates.Settings> configuration = mock(Configuration.class);
+    private final Configuration<UpdatesImpl.Settings> configuration = mock(Configuration.class);
     @SuppressWarnings("unchecked")
     private final Updates.Snapshot<Object> loader = mock(Updates.Snapshot.class);
 
     private final Scheduler scheduler = mock(Scheduler.class);
     private final Scheduler.Control control = mock(Scheduler.Control.class);
-    private final Updates.Settings settings = mock(Updates.Settings.class);
+    private final UpdatesImpl.Settings settings = mock(UpdatesImpl.Settings.class);
 
     private Updates updates;
 
@@ -75,6 +78,7 @@ public class UpdatesTest extends MockGroupAbstractTest {
     @Test
     public void testUpdates() throws Exception {
         final Runnable timer = setPeriod(true);
+        assert timer != null;
 
         final Object context = new Object();
 
@@ -123,6 +127,53 @@ public class UpdatesTest extends MockGroupAbstractTest {
 
         replay();
         assert context == snapshot.get();
+        verify();
+    }
+
+    @Test
+    public void testNoPeriod() throws Exception {
+        final Runnable timer = setPeriod(true);
+        assert timer != null;
+
+        final Object context = new Object();
+
+        // initialization
+        EasyMock.expect(loader.get()).andReturn(context);
+
+        replay();
+        final Updates.Snapshot<Object> snapshot = updates.register(0, loader);
+        verify();
+
+        replay();
+        assert context == snapshot.get();
+        assert context == snapshot.get();
+        verify();
+
+        Thread.sleep(150);
+
+        replay();
+        assert context == snapshot.get();
+        verify();
+    }
+
+    @Test
+    public void testTransparentSnapshot() throws Exception {
+        final Runnable timer = setPeriod(true);
+        assert timer != null;
+
+        final Object context1 = new Object();
+        final Object context2 = new Object();
+
+        replay();
+        final Updates.Snapshot<Object> snapshot = updates.register(-1, loader);
+        verify();
+
+        EasyMock.expect(loader.get()).andReturn(context1);
+        EasyMock.expect(loader.get()).andReturn(context2);
+
+        replay();
+        assert context1 == snapshot.get();
+        assert context2 == snapshot.get();
         verify();
     }
 }

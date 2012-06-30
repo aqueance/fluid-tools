@@ -494,20 +494,18 @@ final class ConfigurationFactory implements CustomComponentFactory {
                 final Map map = new LinkedHashMap();
 
                 if (value instanceof String) {
-                    final AtomicReference<String> key = new AtomicReference<String>();
-
                     final List<String> pairs = split((String) value, delimiter, groupers);
 
                     if (pairs.size() % 2 != 0) {
                         throw new IllegalArgumentException(String.format("Missing a value for one of the keys in %s", value));
                     }
 
+                    final AtomicReference<String> key = new AtomicReference<String>();
+
                     for (final String item : pairs) {
                         if (!key.compareAndSet(null, item)) {
-                            map.put(convert(key.get(), Generics.rawType(keyType), keyType, delimiter, groupers, suffix, loader),
+                            map.put(convert(key.getAndSet(null), Generics.rawType(keyType), keyType, delimiter, groupers, suffix, loader),
                                     convert(item, Generics.rawType(valueType), valueType, delimiter, groupers, suffix, loader));
-
-                            key.set(null);
                         }
                     }
                 }

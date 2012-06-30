@@ -47,25 +47,25 @@ final class Slf4jLogImpl<T> extends AbstractLog<Logger, T> {
     }
 
     public void trace(final String format, final Object... args) {
-        if (isTraceEnabled()) {
+        if (permissions.trace) {
             log.trace(String.format(format, args));
         }
     }
 
     public void debug(final String format, final Object... args) {
-        if (isDebugEnabled()) {
+        if (permissions.debug) {
             log.debug(String.format(format, args));
         }
     }
 
     public void info(final String format, final Object... args) {
-        if (isInfoEnabled()) {
+        if (permissions.info) {
             log.info(String.format(format, args));
         }
     }
 
     public void warning(final String format, final Object... args) {
-        if (isWarningEnabled()) {
+        if (permissions.info) {
             log.warn(String.format(format, args));
         }
     }
@@ -75,25 +75,25 @@ final class Slf4jLogImpl<T> extends AbstractLog<Logger, T> {
     }
 
     public void trace(final Throwable exception, final String format, final Object... args) {
-        if (isTraceEnabled()) {
+        if (permissions.trace) {
             log.trace(String.format(format, args), exception);
         }
     }
 
     public void debug(final Throwable exception, final String format, final Object... args) {
-        if (isDebugEnabled()) {
+        if (permissions.debug) {
             log.debug(String.format(format, args), exception);
         }
     }
 
     public void info(final Throwable exception, final String format, final Object... args) {
-        if (isInfoEnabled()) {
+        if (permissions.info) {
             log.info(String.format(format, args), exception);
         }
     }
 
     public void warning(final Throwable exception, final String format, final Object... args) {
-        if (isWarningEnabled()) {
+        if (permissions.info) {
             log.warn(String.format(format, args), exception);
         }
     }

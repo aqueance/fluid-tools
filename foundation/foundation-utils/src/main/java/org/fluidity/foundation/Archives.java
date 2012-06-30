@@ -285,7 +285,7 @@ public final class Archives extends Utility {
     }
 
     /**
-     * Filters and reads entries in a JAR file. Used by {@link Archives#readEntries(URL, EntryReader)} and {@link Archives#readNestedEntries(URL,
+     * Selects and reads entries in a JAR file. Used by {@link Archives#readEntries(URL, EntryReader)} and {@link Archives#readNestedEntries(URL,
      * EntryReader)}.
      */
     public interface EntryReader {

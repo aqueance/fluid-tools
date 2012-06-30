@@ -17,7 +17,7 @@
 package org.fluidity.features;
 
 /**
- * Periodic updates facility. Components wishing to periodically update some data should call {@link #register(long, Snapshot)} upon initialization and then
+ * Periodic update facility. Components wishing to periodically update some data should call {@link #register(long, Snapshot)} upon initialization and then
  * use {@link Snapshot#get()} on the returned snapshot every time they wish to access the periodically updated data.
  * <p/>
  * <b>NOTE</b>: This component is designed not to keep a hard reference to any object that registers for updates and thus is a preferred way to the
@@ -27,9 +27,39 @@ package org.fluidity.features;
  * number for the {@link #UPDATE_GRANULARITY} key. The default period granularity is 1 second.
  * <p/>
  * See {@link org.fluidity.foundation.Configuration} for details on configuration.
+ * <h3>Usage</h3>
+ * <pre>
+ * {@linkplain org.fluidity.composition.Component @Component}
+ * final class <span class="hl2">MyComponent</span> {
+ *
+ *   private static final int period = {@linkplain java.util.concurrent.TimeUnit#MILLISECONDS}.{@linkplain java.util.concurrent.TimeUnit#convert(long, java.util.concurrent.TimeUnit) convert}(1, {@linkplain java.util.concurrent.TimeUnit#SECONDS});
+ *
+ *   private final <span class="hl1">Updates.Snapshot</span>&lt;<span class="hl3">Data</span>> data;
+ *
+ *   public <span class="hl2">MyComponent</span>(final <span class="hl1">Updates</span> updates) {
+ *     data = updates.<span class="hl1">register</span>(period, new <span class="hl1">Updates.Snapshot</span>&lt;<span class="hl3">Data</span>>() {
+ *       public <span class="hl3">Data</span> get() {
+ *         return &hellip;;  // update the data
+ *       }
+ *     });
+ *   }
+ *
+ *   public int someMethod() {
+ *     final <span class="hl3">Data</span> snapshot = data.get();
+ *     &hellip;
+ *     return snapshot.&hellip;; // access the data snapshot
+ *   }
+ *   &hellip;
+ *
+ *   private static class <span class="hl3">Data</span> {
+ *     &hellip;
+ *   }
+ * }
+ * </pre>
  *
  * @author Tibor Varga
  */
+@SuppressWarnings("JavadocReference")
 public interface Updates {
 
     /**
@@ -46,12 +76,14 @@ public interface Updates {
      * @param period the number of milliseconds that must pass between subsequent calls to {@link Snapshot#get()} on the provided <code>loader</code>.
      * @param loader the object that can refresh the data.
      *
-     * @return an object through the up-to-date data can be obtained.
+     * @return an object through which the up-to-date data can be obtained.
      */
     <T> Snapshot<T> register(long period, Snapshot<T> loader);
 
     /**
      * Represents some data that may be periodically refreshed by the {@link Updates} component.
+     * <h3>Usage</h3>
+     * See {@link Updates}.
      *
      * @param <T> the type of the data.
      *
@@ -60,9 +92,9 @@ public interface Updates {
     interface Snapshot<T> {
 
         /**
-         * Returns an up-to-date snapshot of the represented data.
+         * Returns the most recent snapshot of the represented data.
          *
-         * @return an up-to-date snapshot of the represented data.
+         * @return the most recent snapshot of the represented data.
          */
         T get();
     }

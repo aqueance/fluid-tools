@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package src.fluidity.features.impl;
+package org.fluidity.features.impl;
 
+import org.fluidity.features.Scheduler;
 import org.fluidity.tests.MockGroupAbstractTest;
 
 import org.testng.annotations.AfterMethod;

@@ -18,7 +18,6 @@ package org.fluidity.foundation.tests;
 
 import org.fluidity.composition.Component;
 import org.fluidity.features.ReloadingConfiguration;
-import org.fluidity.features.ReloadingLog;
 import org.fluidity.features.Updates;
 import org.fluidity.foundation.spi.PropertyProvider;
 
@@ -30,7 +29,6 @@ public class EchoPropertyProviderImpl implements PropertyProvider {
 
     private static final String[] known = new String[] {
             Updates.UPDATE_GRANULARITY,
-            ReloadingLog.LOG_LEVEL_REFRESH_PERIOD,
             ReloadingConfiguration.CONFIGURATION_REFRESH_PERIOD
     };
 

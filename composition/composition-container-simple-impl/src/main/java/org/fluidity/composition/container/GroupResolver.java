@@ -22,12 +22,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.fluidity.composition.ComponentContainer;
@@ -37,7 +36,7 @@ import org.fluidity.composition.container.spi.DependencyGraph;
 /**
  * Component mapping for a component group.
  * <p/>
- * TODO: mention that the instantiation order of self referencing group members cannot be established before injecting the group array
+ * TODO: mention that the instantiation ordering of self referencing group members cannot be established before injecting the group array
  *
  * @author Tibor Varga
  */
@@ -46,8 +45,8 @@ final class GroupResolver {
     private final Class<?> api;
     private final Set<Class<?>> members = new LinkedHashSet<Class<?>>();
 
-    private final AtomicInteger index = new AtomicInteger(0);
-    private final Map<Class<?>, Integer> instantiated = new HashMap<Class<?>, Integer>();
+    private volatile int index;     // volatility only guarantees visibility; synchronization is used to guarantee atomicity of mutation
+    private final Map<Class<?>, Integer> instantiated = new ConcurrentHashMap<Class<?>, Integer>(64);
 
     private final ComponentContainer.Observer observer = new ComponentContainer.Observer() {
         public void descending(final Class<?> declaringType,
@@ -70,10 +69,13 @@ final class GroupResolver {
         }
 
         public void instantiated(final DependencyPath path, final AtomicReference<?> ignored) {
-            synchronized (instantiated) {
-                final Class<?> type = path.head().type();
-                if (api.isAssignableFrom(type) && !instantiated.containsKey(type)) {
-                    instantiated.put(type, index.getAndIncrement());
+            final Class<?> type = path.head().type();
+
+            if (api.isAssignableFrom(type)) {
+                synchronized (instantiated) {       // makes sure index is incremented only once for each instantiated group member class
+                    if (!instantiated.containsKey(type)) {
+                        instantiated.put(type, index++);
+                    }
                 }
             }
         }

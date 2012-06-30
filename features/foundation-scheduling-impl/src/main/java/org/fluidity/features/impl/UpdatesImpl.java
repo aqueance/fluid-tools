@@ -17,8 +17,6 @@
 package org.fluidity.features.impl;
 
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.AtomicReference;
 
 import org.fluidity.composition.Component;
 import org.fluidity.features.Scheduler;
@@ -32,7 +30,7 @@ import org.fluidity.foundation.Configuration;
 @Component.Context(ignore = Configuration.Context.class)
 final class UpdatesImpl implements Updates {
 
-    private final AtomicLong timestamp = new AtomicLong();
+    private volatile long timestamp;
 
     private final long delay;
 
@@ -42,14 +40,26 @@ final class UpdatesImpl implements Updates {
         if (delay > 0) {
             scheduler.invoke(delay, delay, new Runnable() {
                 public void run() {
-                    timestamp.set(System.currentTimeMillis());
+                    timestamp = System.currentTimeMillis();
                 }
             });
         }
     }
 
     public synchronized <T> Snapshot<T> register(final long period, final Snapshot<T> loader) {
-        if (delay <= 0 || period <= 0) {
+        final long interval = period > 0 ? delay : period;  // period set: delay determines special behavior, period does otherwise
+
+        if (interval < 0) {
+
+            // transparent snapshot
+            return new Snapshot<T>() {
+                public T get() {
+                    return loader.get();
+                }
+            };
+        } else if (interval == 0) {
+
+            // static snapshot
             return new Snapshot<T>() {
                 private final T snapshot = loader.get();
 
@@ -58,20 +68,25 @@ final class UpdatesImpl implements Updates {
                 }
             };
         } else {
+
+            // periodic snapshot
             return new Snapshot<T>() {
 
-                private final AtomicLong loaded = new AtomicLong(System.currentTimeMillis());
-                private final AtomicReference<T> snapshot = new AtomicReference<T>(loader.get());
+                private long loaded = System.currentTimeMillis();   // not volatile: snapshot assignment is a write barrier, timestamp query is a read barrier
+                private volatile T snapshot = loader.get();
+
                 private final AtomicBoolean loading = new AtomicBoolean(false);
 
                 public T get() {
-                    if (timestamp.get() - loaded.get() >= period && loading.compareAndSet(false, true)) {
-                        loaded.set(System.currentTimeMillis());
-                        snapshot.set(loader.get());
+
+                    // "timestamp" query is a read barrier; must happen before reading "loaded"
+                    if (timestamp - loaded >= period && loading.compareAndSet(false, true)) {
+                        loaded = System.currentTimeMillis();
+                        snapshot = loader.get();                    // "snapshot" assignment is a write barrier; must come after assignment to "loaded"
                         loading.set(false);
                     }
 
-                    return snapshot.get();
+                    return snapshot;
                 }
             };
         }
@@ -82,7 +97,7 @@ final class UpdatesImpl implements Updates {
      *
      * @author Tibor Varga
      */
-    private static interface Settings {
+    static interface Settings {
 
         /**
          * The minimum number in milliseconds between subsequent calls to {@link org.fluidity.features.Updates.Snapshot#get()} of a loader passed to

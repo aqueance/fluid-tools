@@ -22,11 +22,35 @@ package org.fluidity.features;
  * <p/>
  * The granularity of the updates can be configured by implementing a {@link org.fluidity.foundation.spi.PropertyProvider} component that returns a valid
  * number for the {@link #CONFIGURATION_REFRESH_PERIOD} key. The default period granularity is 30 seconds.
+ * <p/>
+ * See {@link org.fluidity.foundation.Configuration} for details on configuration.
+ * <h3>Usage</h3>
+ * <pre>
+ * {@linkplain org.fluidity.composition.Component @Component}
+ * final class <span class="hl3">MyComponent</span> {
+ *
+ *   private final <span class="hl1">{@linkplain Updates.Snapshot}</span>&lt;<span class="hl2">Settings</span>> configuration;
+ *
+ *   public <span class="hl3">MyComponent</span>(final <span class="hl1">ReloadingConfiguration</span>&lt;<span class="hl2">Settings</span>> configuration) {
+ *     this.configuration = configuration.<span class="hl1">snapshot</span>();
+ *   }
+ *
+ *   public void someMethod() {
+ *     final <span class="hl2">Settings</span> settings = configuration.<span class="hl1">get</span>();
+ *     &hellip;
+ *   }
+ *
+ *   interface <span class="hl2">Settings</span> {
+ *     &hellip;
+ *   }
+ * }
+ * </pre>
  *
  * @param <T> the settings interface.
  *
  * @author Tibor Varga
  */
+@SuppressWarnings("JavadocReference")
 public interface ReloadingConfiguration<T> {
 
     String CONFIGURATION_REFRESH_PERIOD = "org.fluidity.features.configuration-refresh-period-ms";

@@ -18,34 +18,35 @@ package org.fluidity.foundation;
 
 /**
  * Log interface to use by dependency injected components. An instance is provided to your component via dependency injection. You must use a parameterized
- * reference as the dependency on this interface to specify the class that will be the name of the injected logger. For instance:
- * <pre>
- * &#64;Component
- * public class MyComponent {
- *
- *   private final Log&lt;?> log;
- *
- *   public MyComponent(final Log&lt;MyComponent> log) {
- *     this.log = log;
- *   }
- * }
- * </pre>
+ * reference as the dependency on this interface to specify the class that will be the name of the injected logger.
  * <p/>
  * Message formatting conforms to the Java print format specification.
  * <p/>
  * The injected instance will be backed by one of the popular logging frameworks; which one is used depends on the {@link
  * org.fluidity.foundation.spi.LogFactory} found in the class path. If no specific logging framework is configured, Fluid Tools provides a default factory that
  * forwards all log messages to the standard output stream.
+ * <h3>Usage</h3>
+ * <pre>
+ * {@linkplain org.fluidity.composition.Component @Component}
+ * final class <span class="hl3">MyComponent</span> {
+ *
+ *   private final <span class="hl1">Log</span> log;
+ *
+ *   public <span class="hl3">MyComponent</span>(final <span class="hl1">Log</span>&lt;<span class="hl3">MyComponent</span>> log) {
+ *     this.log = log;
+ *   }
+ *
+ *   public void someMethod() {
+ *     log.info("so it has come to this");
+ *     &hellip;
+ *   }
+ * }
+ * </pre>
  *
  * @author Tibor Varga
  */
-@SuppressWarnings("UnusedDeclaration")
+@SuppressWarnings({ "UnusedDeclaration", "JavadocReference" })
 public interface Log<T> {
-
-    /**
-     * Reloads from the underlying log implementation the flags that permit emission of TRACE, DEBUG, INFO and WARNING level log messages.
-     */
-    void refresh();
 
     /**
      * Tells if TRACE level messages will be emitted or not.

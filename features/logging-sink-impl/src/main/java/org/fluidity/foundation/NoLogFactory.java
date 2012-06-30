@@ -35,10 +35,6 @@ public final class NoLogFactory implements LogFactory {
      */
     public static final Log sink = new Log() {
 
-        public void refresh() {
-            // empty
-        }
-
         public boolean isTraceEnabled() {
             return false;
         }

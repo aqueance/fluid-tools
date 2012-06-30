@@ -52,8 +52,8 @@ final class ContainerLifecycle {
 
     public boolean initialize(final Log log) {
         final boolean init = shouldInitialize.compareAndSet(true, false);
-        if (init) {
 
+        if (init) {
             log.debug("Initializing %s", container);
 
             /*
