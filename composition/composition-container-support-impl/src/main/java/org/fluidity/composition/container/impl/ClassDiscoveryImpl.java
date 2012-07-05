@@ -56,7 +56,7 @@ final class ClassDiscoveryImpl implements ClassDiscovery {
     }
 
     private <T> Class<T>[] findComponentClasses(final String type, final Class<T> api, final ClassLoader cl, final boolean strict) {
-        final ClassLoader classLoader = cl == null ? ClassLoaders.findClassLoader(api) : cl;
+        final ClassLoader classLoader = cl == null ? ClassLoaders.findClassLoader(api, true) : cl;
         log.debug("Loading '%s' type service provider files for %s using class loader %s", type, api, classLoader);
 
         final String root = ServiceProviders.location(type).concat("/");

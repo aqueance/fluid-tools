@@ -55,7 +55,7 @@ final class BundleBoundaryImpl implements BundleBoundary {
     public <T, E extends Throwable> T invoke(final Object remote, final Object local, final Command<T, E> command) throws E {
         return tunnel(remote, local, new Tunnel<T, E>() {
             public T run(final boolean internal, final DelegatingClassLoader loader) throws E {
-                return internal ? command.run() : ClassLoaders.context(loader, new ClassLoaders.ContextCommand<T, E>() {
+                return internal ? command.run() : ClassLoaders.context(loader, new ClassLoaders.Command<T, E>() {
                     public T run(final ClassLoader loader) throws E {
                         return command.run();
                     }
@@ -114,7 +114,7 @@ final class BundleBoundaryImpl implements BundleBoundary {
         }
 
         public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
-            return ClassLoaders.context(tunnel, new ClassLoaders.ContextCommand<Object, Throwable>() {
+            return ClassLoaders.context(tunnel, new ClassLoaders.Command<Object, Throwable>() {
                 public Object run(final ClassLoader loader) throws Throwable {
                     return method.invoke(implementation, args);
                 }

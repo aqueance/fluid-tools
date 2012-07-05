@@ -160,8 +160,6 @@ public final class BundleJarManifest implements JarManifest {
                     }
                 }
 
-                final ClassLoader parent = getClass().getClassLoader();
-
                 final Method method = Methods.get(BootstrapDiscovery.class, new Methods.Invoker<BootstrapDiscovery>() {
                     @SuppressWarnings("unchecked")
                     public void invoke(final BootstrapDiscovery capture) {
@@ -169,8 +167,8 @@ public final class BundleJarManifest implements JarManifest {
                     }
                 });
 
-                urls.add((Archives.containing(parent, BootstrapDiscovery.class)));
-                urls.add((Archives.containing(parent, BootstrapDiscoveryImpl.class)));
+                urls.add((Archives.containing(BootstrapDiscovery.class)));
+                urls.add((Archives.containing(BootstrapDiscoveryImpl.class)));
 
                 final String activator = ClassLoaders.isolate(null, urls, BootstrapDiscoveryImpl.class, method);
 

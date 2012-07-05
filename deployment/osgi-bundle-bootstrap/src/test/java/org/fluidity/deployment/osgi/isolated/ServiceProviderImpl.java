@@ -44,6 +44,6 @@ public final class ServiceProviderImpl implements ServiceProvider, BundleCompone
     }
 
     public String callback(String className) throws Exception {
-        return ((Callback) ClassLoaders.findClassLoader(getClass()).loadClass(className).newInstance()).invoke();
+        return ((Callback) ClassLoaders.findClassLoader(getClass(), true).loadClass(className).newInstance()).invoke();
     }
 }

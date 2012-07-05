@@ -100,7 +100,7 @@ public final class OsgiApplicationBootstrap {
          * Embedding OSGi: http://njbartlett.name/2011/03/07/embedding-osgi.html
          */
 
-        final FrameworkFactory factory = ServiceProviders.findInstance(FrameworkFactory.class, ClassLoaders.findClassLoader(getClass()));
+        final FrameworkFactory factory = ServiceProviders.findInstance(FrameworkFactory.class, ClassLoaders.findClassLoader(getClass(), true));
         if (factory == null) {
             throw new IllegalStateException("No OSGi framework found");
         }

@@ -65,10 +65,10 @@ public final class Launcher {
                 urls.add(Handler.formatURL(jarURL, path));
             }
 
-            final ClassLoader loader = new URLClassLoader(urls.toArray(new URL[urls.size()]), ClassLoaders.findClassLoader(main));
+            final ClassLoader loader = new URLClassLoader(urls.toArray(new URL[urls.size()]), ClassLoaders.findClassLoader(main, true));
 
             try {
-                ClassLoaders.context(loader, new ClassLoaders.ContextCommand<Void, Exception>() {
+                ClassLoaders.context(loader, new ClassLoaders.Command<Void, Exception>() {
                     public Void run(final ClassLoader loader) throws Exception {
                         final Method main = loader.loadClass(mainClass).getMethod("main", String[].class);
 

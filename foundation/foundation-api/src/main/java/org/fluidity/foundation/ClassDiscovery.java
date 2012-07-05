@@ -29,9 +29,14 @@ package org.fluidity.foundation;
  * final class MyComponent {
  *
  *   public MyComponent(final <span class="hl1">ClassDiscovery</span> discovery) {
- *     final ClassLoader loader = getClass().getClassLoader();
+ *     final {@linkplain ClassLoader} loader = getClass().getClassLoader();
  *     final Class&lt;<span class="hl2">MyProvider</span>>[] classes = discovery.<span class="hl1">findComponentClasses</span>(<span class="hl2">MyProvider</span>.class, loader, false);
- *     assert classes != null : MyProvider.class;
+ *     assert classes != null : <span class="hl2">MyProvider</span>.class;
+ *     &hellip;
+ *   }
+ *
+ *   {@linkplain org.fluidity.composition.ServiceProvider @ServiceProvider}
+ *   public interface <span class="hl2">MyProvider</span> {
  *     &hellip;
  *   }
  * }

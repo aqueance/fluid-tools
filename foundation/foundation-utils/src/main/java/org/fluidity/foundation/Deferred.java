@@ -89,9 +89,13 @@ public final class Deferred extends Utility {
     }
 
     /**
-     * A factory of some object to be lazily instantiated. This is used by {@link Deferred#reference(Factory)}.
+     * A factory of some object to be {@link Deferred lazily} instantiated. This is used by {@link Deferred#reference(Factory)}.
+     * <h3>Usage</h3>
+     * See {@link Deferred}.
      *
      * @param <T> the class of the created object.
+     *
+     * @author Tibor Varga
      */
     public interface Factory<T> {
 
@@ -104,9 +108,13 @@ public final class Deferred extends Utility {
     }
 
     /**
-     * A reference to some object that is lazily instantiated. Instances are created by {@link Deferred#reference(Factory)}.
+     * A reference to some object that is {@link Deferred lazily} instantiated. Instances are created by {@link Deferred#reference(Factory)}.
+     * <h3>Usage</h3>
+     * See {@link Deferred}.
      *
      * @param <T> the class of the cached object.
+     *
+     * @author Tibor Varga
      */
     public interface Reference<T> {
 
@@ -127,11 +135,35 @@ public final class Deferred extends Utility {
         /**
          * Extends the {@link Deferred.Reference} interface with facilities to invalidate the lazily instantiated object to force its lazy instantiation the
          * next time it is requested by a call to {@link #get()}.
+         * <h3>Usage</h3>
+         * <pre>
+         * final class LightObject {
+         *
+         *   private final <span class="hl1">Deferred.Reference.State</span><span class="hl2">&lt;HeavyObject></span> state = <span class="hl1">Deferred.state</span>(new <span class="hl1">Deferred.Factory</span><span class="hl2">&lt;HeavyObject></span>() {
+         *     public <span class="hl2">HeavyObject</span> <span class="hl1">create()</span> {
+         *       return new HeavyObject(&hellip;);
+         *     }
+         *   });
+         *
+         *   &hellip;
+         *
+         *   private void someMethod() {
+         *     final <span class="hl2">HeavyObject</span> object = reference.<span class="hl1">get()</span>;
+         *     assert object != null : HeavyObject.class;
+         *     assert object == reference.<span class="hl1">get()</span>;
+         *   }
+         * }
+         * </pre>
          *
          * @param <T> the class of the cached object.
+         *
+         * @author Tibor Varga
          */
         interface State<T> extends Reference<T> {
 
+            /**
+             * Forces the re-instantiation of the deferred object the next time it is  {@linkplain Deferred.Reference#get() de-referenced}.
+             */
             void invalidate();
         }
     }

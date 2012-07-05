@@ -61,6 +61,7 @@ public final class IntegrationTest {
     private final AtomicReference<Throwable> error = new AtomicReference<Throwable>();
 
     @Factory
+    @SuppressWarnings("unchecked")
     public Object[] startContainer() throws Exception {
 
         /*
@@ -68,7 +69,7 @@ public final class IntegrationTest {
          */
 
         try {
-            final ClassLoader loader = ClassLoaders.findClassLoader(IntegrationTest.class);
+            final ClassLoader loader = ClassLoaders.findClassLoader(IntegrationTest.class, true);
             final Properties properties = loadProperties("system.properties");
 
             final Map<String, String> config = new HashMap<String, String>();

@@ -78,7 +78,7 @@ public class ProxiesTest extends MockGroupAbstractTest {
 
     @Test
     public void testCustomIdentity() throws Exception {
-        final Proxies.ObjectIdentity<TestObject> identity = new Proxies.ObjectIdentity<TestObject>() {
+        final Proxies.Identity<TestObject> identity = new Proxies.Identity<TestObject>() {
             public int hashCode(final TestObject instance) {
                 return instance.id();
             }

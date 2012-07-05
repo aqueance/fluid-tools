@@ -23,7 +23,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 /**
- * General stream related convenience methods.
+ * General I/O stream related convenience methods.
  *
  * @author Tibor Varga
  */

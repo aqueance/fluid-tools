@@ -28,9 +28,8 @@ import org.fluidity.foundation.spi.PropertyProvider;
  * Dependency injected component configuration. A component may have any number of such configurations, each for a different context and / or for a different
  * settings interface.
  * <p/>
- * The configuration is backed by a {@linkplain PropertyProvider property provider} component that, if found, the configuration object queries for data
- * and provides type conversion of values returned. The properties queried are determined by {@linkplain Configuration.Context context annotations} of the
- * configured component up to the point of its dependency reference.
+ * The configuration is backed by a {@linkplain PropertyProvider property provider} component that, if implemented, will be queried for data. The properties
+ * queried are determined by {@linkplain Configuration.Context context annotations} of the configured component up to the point of its dependency reference.
  * <h3>Usage</h3>
  * A configuration is a group of settings consumed by the configured component. The settings are defined by the methods of a custom <em>settings
  * interface</em>, which is specified as the type parameter of the <code>Configuration</code> interface.
@@ -40,20 +39,22 @@ import org.fluidity.foundation.spi.PropertyProvider;
  * // The settings interface
  * interface <span class="hl2">MySettings</span> {
  *
- *   <span class="hl1">&#64;{@linkplain Property}(key = </span>"property.<span class="hl3">%d</span>"<span class="hl1">, undefined = </span>"default value <span class="hl3">%d</span>"<span class="hl1">)</span>
- *   String <span class="hl2">property(</span><span class="hl3">int item</span><span class="hl2">)</span>;
+ *   <span class="hl1">{@linkplain Property @Configuration.Property}</span>(<span class="hl1">key</span> = "<span class="hl3">property.%d</span>", <span class="hl1">undefined</span> = "default value <span class="hl3">%d</span>"<span class="hl1">)</span>
+ *   String <span class="hl2">property</span>(<span class="hl3">int</span> item);
  *
  *   &hellip;
  * }
  *
  * // The configured component
- * &#64;{@linkplain org.fluidity.composition.Component}
+ * {@linkplain org.fluidity.composition.Component @Component}
+ * <span class="hl1">{@linkplain Context @Configuration.Context}</span>(<span class="hl3">"some.property"</span>)
  * final class MyComponent {
  *
- *   public MyComponent(final <span class="hl1">Configuration</span><span class="hl2">&lt;MySettings></span> configuration) {
+ *   public MyComponent(final <span class="hl1">{@linkplain Context @Configuration.Context}</span>(<span class="hl3">"prefix"</span>) <span class="hl1">Configuration</span><span class="hl2">&lt;MySettings></span> configuration) {
  *     &hellip;
  *     final <span class="hl2">MySettings</span> settings = configuration<span class="hl1">.settings()</span>;
  *     &hellip;
+ *     // query <span class="hl3">"some.property</span>.<span class="hl3">prefix</span>.<span class="hl3">property.123"</span> from the optional {@linkplain PropertyProvider} component
  *     final String property123 = settings.<span class="hl2">property(</span><span class="hl3">123</span><span class="hl2">)</span>;
  *     &hellip;
  *   }
@@ -65,14 +66,14 @@ import org.fluidity.foundation.spi.PropertyProvider;
  * A settings interface like the above must have all of its methods annotated with {@link Configuration.Property @Configuration.Property}, must have a
  * <a href="#supported_types">supported return type</a>, and the methods may have any number of arguments.
  * <p/>
- * The given {@link Configuration.Property#key() property keys} are understood to be relative to the concatenation of the value of each {@link
- * Configuration.Context @Configuration.Context} annotation in the instantiation path of the configured component.
+ * The given {@link Configuration.Property#key() property keys} are understood to be relative to the dot delimited concatenation of the value of each {@link
+ * Configuration.Context @Configuration.Context} annotation in the dependency path of the configured component.
  * <p/>
  * If the computed property has no value in the underlying property provider, the first context is stripped and the new property is queried, and this process
  * is repeated until the property provider returns a value or there is no more context to strip, then the last context is stripped from the original property
  * and the new property is queried, and the process is repeated again.
  * <p/>
- * For instance, if the the instantiation path contains <code>@Configuration.Context("a")</code>, <code>@Configuration.Context("b")</code> and
+ * For instance, if the the dependency path contains <code>@Configuration.Context("a")</code>, <code>@Configuration.Context("b")</code>, and
  * <code>@Configuration.Context("c")</code>, then the method <code>@Configuration.Property(key = "property") String property()</code> will query the following
  * properties, in the given order, from its underlying property provider until it returns a value or there is no more context to strip:
  * <ul>
@@ -98,8 +99,8 @@ import org.fluidity.foundation.spi.PropertyProvider;
  * <code>null</code>, it is returned.</li>
  * <li>If a component bound to the settings interface has been implemented, the method invoked on the snapshot is forwarded to the settings implementation. If
  * a result is not <code>null</code>, it is returned.</li>
- * <li>The {@link Configuration.Property#undefined()} parameter is checked. If it is not empty, it is returned, otherwise <code>null</code> is returned for non
- * primitive types and the default value is returned for primitive types.</li>
+ * <li>The {@link Configuration.Property#undefined() undefined} parameter is checked. If it is not empty, it is returned, otherwise <code>null</code> is
+ * returned for non primitive types and the default value is returned for primitive types.</li>
  * </ol>
  * <a name="supported_types"><h3>Supported Return Types</h3></a>
  * <ul>
@@ -117,19 +118,19 @@ import org.fluidity.foundation.spi.PropertyProvider;
  * </ul>
  * <h4>Custom Types</h4>
  * The configuration implementation supports both interfaces with query methods and classes with fields as return values from the settings interface. There are
- * a few key difference between the two and you need to choose the one that fits your use of the property data.
+ * a few key differences between the two and you need to choose the one that fits your use of the property data.
  * <p/>
  * A custom interface:
  * <ul>
  * <li>allows method parameters to vary the property queried for a given method,</li>
  * <li>is given the default {@linkplain Object#equals(Object) object identity},</li>
- * <li>may return a different value at different times if accessed outside the {@link Configuration.Query#read(Object) Configuration.Query.read(T)}
+ * <li>may return a different value at different times if accessed outside the {@link Configuration.Query#read(Object) Configuration.Query.read()}
  * method.</li>
  * </ul>
  * In contrast, a custom class:
  * <ul>
  * <li>provides no means to vary at run time the property queried for a given field,</li>
- * <li>honours the equality defined by its {@link Object#equals(Object)} method,</li>
+ * <li>honours the equality defined by its {@link Object#equals(Object) equals()} method,</li>
  * <li>will have the same property value in its fields regardless of when they are accessed (until you change those values, of course).</li>
  * </ul>
  *
@@ -149,9 +150,9 @@ public interface Configuration<T> {
     T settings();
 
     /**
-     * Provides isolated access to the configuration settings. The settings returned by the methods of the object provided as the parameter of the {@link
-     * Query#read(Object)} method are consistent and will not reflect changes to the underlying configuration settings while this method executes. This
-     * consistence, however, is subject to support by the {@link PropertyProvider#properties(Runnable)} method of the underlying property provider, if found.
+     * Provides consistent access to the configuration settings. The methods of the settings object sent to the provided <code>query</code> will return the same
+     * value from multiple invocations during the execution of this method as long as the {@link PropertyProvider#properties(Runnable)
+     * PropertyProvider.properties()} method of the underlying property provider, if found, properly implements that consistency.
      *
      * @param query the object to supply the settings implementation to.
      *
@@ -160,11 +161,36 @@ public interface Configuration<T> {
     <R> R query(Query<T, R> query);
 
     /**
-     * Groups property queries to provide settings consistency. Properties read in the {@link #read(Object) read(T)} method will be consistent in that no
-     * property change will take place during the execution of that method. Stashing the <code>read</code> method parameter and invoking its methods
-     * outside the <code>read</code> method will not have the same effect.
+     * Groups {@link Configuration configuration} queries to provide settings consistency. Properties read in the {@link #read(Object) read()} method will be
+     * consistent in that no property change will take place during the execution of that method. Stashing the <code>read</code> method parameter and invoking
+     * its methods outside the <code>read</code> method will not have the same effect.
      * <p/>
      * This feature is subject to {@linkplain PropertyProvider#properties(Runnable) property provider} support.
+     * <h3>Usage</h3>
+     * <pre>
+     * {@linkplain org.fluidity.composition.Component @Component}
+     * final class MyComponent {
+     *
+     *   public MyComponent(final {@linkplain Configuration}&lt;<span class="hl2">MySettings</span>> configuration) {
+     *     final int data = configuration.<span class="hl1">query</span>(new <span class="hl1">Configuration.Query</span>&lt;<span class="hl2">MySettings</span>, Integer>() {
+     *       public final Integer <span class="hl1">read</span>(final <span class="hl2">MySettings</span> settings) {
+     *         return settings.<span class="hl2">property1</span>() + settings.<span class="hl2">property2</span>();
+     *       }
+     *     });
+     *
+     *     &hellip;
+     *   }
+     *
+     *   interface <span class="hl2">MySettings</span> {
+     *
+     *       <span class="hl1">{@linkplain Property @Configuration.Property}</span>(<span class="hl1">key</span> = "property1", <span class="hl1">undefined</span> = "default value 1"<span class="hl1">)</span>
+     *       int <span class="hl2">property1</span>();
+     *
+     *       <span class="hl1">{@linkplain Property @Configuration.Property}</span>(<span class="hl1">key</span> = "property2", <span class="hl1">undefined</span> = "default value 2"<span class="hl1">)</span>
+     *       int <span class="hl2">property2</span>();
+     *   }
+     * }
+     * </pre>
      *
      * @param <T> the settings interface type.
      * @param <R> the return type of the <code>read</code> method.
@@ -172,12 +198,12 @@ public interface Configuration<T> {
     interface Query<T, R> {
 
         /**
-         * Allows access to the settings. If the underlying {@link PropertyProvider} supports it, properties will not be updated dynamically while this method
-         * executes. However, stashing the method parameter and invoking its methods outside this method will circumvent this consistency.
+         * Allows consistent access to the settings. If the underlying {@link PropertyProvider} supports it, properties will not be updated dynamically while
+         * this method executes. However, stashing the method parameter and invoking its methods outside this method will circumvent this consistency.
          *
          * @param settings an object implementing the settings interface.
          *
-         * @return whatever the caller wants {@link Configuration#query(Configuration.Query)} to return.
+         * @return whatever the caller wants {@link Configuration#query(Configuration.Query) Configuration.query()} to return.
          */
         R read(T settings);
     }
@@ -312,7 +338,7 @@ public interface Configuration<T> {
     }
 
     /**
-     * Provides a context for a {@link Configuration} dependency.
+     * Provides a component context for a {@link Configuration} dependency.
      */
     @Documented
     @Retention(RetentionPolicy.RUNTIME)

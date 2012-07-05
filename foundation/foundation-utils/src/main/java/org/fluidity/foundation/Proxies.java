@@ -23,12 +23,33 @@ import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Convenience utilities concerning proxies.
+ * <h3>Usage Example</h3>
+ * <pre>
+ * final class MyComponent {
+ *
+ *   private final <span class="hl1">Proxies.Identity</span>&lt;<span class="hl2">MyDelegate</span>> <span class="hl3">identity</span> = new <span class="hl1">Proxies.Identity</span>&lt;<span class="hl2">MyDelegate</span>>() {
+ *       &hellip;
+ *   }
+ *
+ *   private final {@linkplain Class}[] types = { <span class="hl2">MyDelegate</span>.class };
+ *
+ *   private final <span class="hl2">MyDelegate</span> delegate = <span class="hl1">Proxies.create</span>(getClass().getClassLoader(), <span class="hl3">identity</span>, types, new {@linkplain InvocationHandler}() {
+ *     &hellip;
+ *   }
+ *
+ *   interface <span class="hl2">MyDelegate</span> {
+ *     &hellip;
+ *   }
+ * }
+ * </pre>
+ *
+ * @author Tibor Varga
  */
 public final class Proxies extends Utility {
 
     private Proxies() { }
 
-    private static ObjectIdentity DEFAULT_IDENTITY = new ObjectIdentity<Object>() {
+    private static Identity DEFAULT_IDENTITY = new Identity<Object>() {
         public int hashCode(final Object instance) {
             return System.identityHashCode(instance);
         }
@@ -53,7 +74,7 @@ public final class Proxies extends Utility {
      */
     @SuppressWarnings("unchecked")
     public static <T> T create(final Class<T> type, final InvocationHandler handler) {
-        return create(type, (ObjectIdentity<T>) DEFAULT_IDENTITY, handler);
+        return create(type, (Identity<T>) DEFAULT_IDENTITY, handler);
     }
 
     /**
@@ -67,7 +88,7 @@ public final class Proxies extends Utility {
      * @return a proxy implementing the given interface.
      */
     @SuppressWarnings("unchecked")
-    public static <T> T create(final Class<T> type, final ObjectIdentity<T> identity, final InvocationHandler handler) {
+    public static <T> T create(final Class<T> type, final Identity<T> identity, final InvocationHandler handler) {
         final AtomicReference<T> proxy = new AtomicReference<T>();
         proxy.set((T) Proxy.newProxyInstance(type.getClassLoader(), new Class<?>[] { type }, new MethodInvocations(handler, proxy, identity)));
         return proxy.get();
@@ -84,7 +105,7 @@ public final class Proxies extends Utility {
      */
     @SuppressWarnings("unchecked")
     public static Object create(final ClassLoader loader, final Class<?>[] types, final InvocationHandler handler) {
-        return create(loader, (ObjectIdentity<?>) DEFAULT_IDENTITY, types, handler);
+        return create(loader, (Identity<?>) DEFAULT_IDENTITY, types, handler);
     }
 
     /**
@@ -98,7 +119,7 @@ public final class Proxies extends Utility {
      * @return a proxy implementing the given interface.
      */
     @SuppressWarnings("unchecked")
-    public static Object create(final ClassLoader loader, final ObjectIdentity<?> identity, final Class<?>[] types, final InvocationHandler handler) {
+    public static Object create(final ClassLoader loader, final Identity<?> identity, final Class<?>[] types, final InvocationHandler handler) {
         final AtomicReference proxy = new AtomicReference();
         proxy.set(Proxy.newProxyInstance(loader, types, new MethodInvocations(handler, proxy, identity)));
         return proxy.get();
@@ -118,13 +139,17 @@ public final class Proxies extends Utility {
 
     /**
      * Provides object identity to some proxy.
+     * <h3>Usage</h3>
+     * See {@link Proxies}.
      *
      * @param <T> the interface the proxy stands for.
+     *
+     * @author Tibor Varga
      */
     /*
      *  The proxy invocation handler calling methods on this interface assumes that the instance is the last parameter of the method.
      */
-    public interface ObjectIdentity<T> {
+    public interface Identity<T> {
 
         /**
          * Computes the hash code for the given instance.
@@ -161,11 +186,11 @@ public final class Proxies extends Utility {
      */
     private static final class MethodInvocations<T> implements InvocationHandler {
 
-        private final ObjectIdentity<T> identity;
+        private final Identity<T> identity;
         private final InvocationHandler handler;
         private final AtomicReference<T> proxy;
 
-        protected MethodInvocations(final InvocationHandler handler, final AtomicReference<T> proxy, final ObjectIdentity<T> identity) {
+        protected MethodInvocations(final InvocationHandler handler, final AtomicReference<T> proxy, final Identity<T> identity) {
             this.handler = handler;
             this.proxy = proxy;
             this.identity = identity;

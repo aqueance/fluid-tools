@@ -396,7 +396,7 @@ public final class ContainerBoundary implements ComponentContainer {
                         }
                     };
 
-                    container.set(ClassLoaders.context(loader, new ClassLoaders.ContextCommand<OpenComponentContainer, RuntimeException>() {
+                    container.set(ClassLoaders.context(loader, new ClassLoaders.Command<OpenComponentContainer, RuntimeException>() {
                         public OpenComponentContainer run(final ClassLoader loader) {
                             return containerBootstrap.populateContainer(containerServices,
                                                                         containerProvider,

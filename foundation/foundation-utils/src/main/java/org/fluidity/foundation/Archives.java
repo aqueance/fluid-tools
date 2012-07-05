@@ -29,7 +29,23 @@ import java.util.jar.JarInputStream;
 import java.util.jar.Manifest;
 
 /**
- * Convenience methods to browse and read JAR archives.
+ * Convenience methods to work with JAR archives.
+ * <h3>Usage Example</h3>
+ * <pre>
+ * {@link Archives#readEntries(java.net.URL, org.fluidity.foundation.Archives.Entry) Archives.readEntries}({@linkplain Archives#containing(Class) Archives.containing}(getClass()), new <span class="hl1">Archives.Entry</span>() {
+ *   public boolean <span class="hl1">matches</span>(final {@linkplain JarEntry} entry) throws {@linkplain IOException} {
+ *     return true;
+ *   }
+ *
+ *   public boolean <span class="hl1">read</span>(final {@linkplain JarEntry} entry, final {@linkplain InputStream} stream) throws {@linkplain IOException} {
+ *     System.out.println(entry.{@linkplain JarEntry#getName() getName}());
+ *     return true;
+ *   }
+ * });
+ *
+ * </pre>
+ *
+ * @author Tibor Varga
  */
 @SuppressWarnings("UnusedDeclaration")
 public final class Archives extends Utility {
@@ -57,96 +73,63 @@ public final class Archives extends Utility {
     private Archives() { }
 
     /**
-     * Allows searching for and reading nested JAR files as in a JAR file. This method, as compared to {@link #readEntries(URL, EntryReader)}, supplies the
-     * provided <code>reader</code> with an independent stream for each entry rather than the stream tied to the supplied JAR file that the receiver should
-     * close.
+     * Reads entries from a JAR file.
      *
-     * @param jar    the URL of the JAR file.
-     * @param reader the object that filters and reads the JAR entries.
+     * @param jar         the URL of the JAR file.
+     * @param reader      the object that reads the JAR entries.
      *
      * @return the number of entries read.
      *
      * @throws IOException when something goes wrong reading the JAR file.
      */
-    public static int readNestedEntries(final URL jar, final EntryReader reader) throws IOException {
+    public static int readEntries(final URL jar, final Entry reader) throws IOException {
         assert jar != null;
-        final JarInputStream container = new JarInputStream(jar.openStream(), false);
+        final InputStream stream = jar.openStream();
 
-        int count = 0;
         try {
-            JarEntry entry;
-            while ((entry = container.getNextJarEntry()) != null) {
-                try {
-                    if (!entry.isDirectory()) {
-                        if (reader.matches(entry)) {
-                            ++count;
-
-                            if (!reader.read(entry, new JarInputStream(container, false))) {
-                                break;
-                            }
-                        }
-                    }
-                } finally {
-                    try {
-                        container.closeEntry();
-                    } catch (final IOException e) {
-                        // ignore
-                    }
-                }
-            }
+            return readEntries(stream, reader);
         } finally {
             try {
-                container.close();
+                stream.close();
             } catch (final IOException e) {
                 // ignore
             }
         }
-
-        return count;
     }
 
     /**
-     * Allows reading entries from a JAR file. This method, as compared to {@link #readNestedEntries(URL, EntryReader)}, supplies the
-     * provided <code>reader</code> the stream tied to the supplied JAR file that the receiver should not close.
+     * Reads entries from a JAR file. The input stream will <em>not</em> be {@linkplain InputStream#close() closed} by this method.
      *
-     * @param jar    the URL of the JAR file.
+     * @param input  the stream to load the JAR file from.
      * @param reader the object that reads the JAR entries.
      *
      * @return the number of entries read.
      *
      * @throws IOException when something goes wrong reading the JAR file.
      */
-    public static int readEntries(final URL jar, final EntryReader reader) throws IOException {
-        assert jar != null;
-        final JarInputStream container = new JarInputStream(jar.openStream(), false);
+    public static int readEntries(final InputStream input, final Entry reader) throws IOException {
+        assert input != null;
+        final JarInputStream stream = new JarInputStream(input, false);
 
         int count = 0;
-        try {
-            JarEntry entry;
-            while ((entry = container.getNextJarEntry()) != null) {
-                try {
-                    if (!entry.isDirectory()) {
-                        if (reader.matches(entry)) {
-                            ++count;
+        JarEntry entry;
+        while ((entry = stream.getNextJarEntry()) != null) {
+            try {
+                if (!entry.isDirectory()) {
+                    if (reader.matches(entry)) {
+                        ++count;
 
-                            if (!reader.read(entry, container)) {
-                                break;
-                            }
+                        if (!reader.read(entry, stream)) {
+                            break;
                         }
                     }
-                } finally {
-                    try {
-                        container.closeEntry();
-                    } catch (final IOException e) {
-                        // ignore
-                    }
                 }
-            }
-        } finally {
-            try {
-                container.close();
-            } catch (final IOException e) {
-                // ignore
+            } finally {
+                try {
+                    stream.closeEntry();
+                } catch (final IOException e) {
+                    // ignore
+                }
             }
         }
 
@@ -215,7 +198,7 @@ public final class Archives extends Utility {
      *
      * @throws IOException if reading the URL contents fails.
      */
-    private static Manifest loadManifest(final URL url) throws IOException {
+    public static Manifest loadManifest(final URL url) throws IOException {
         final JarInputStream stream = new JarInputStream(url.openStream());
 
         try {
@@ -247,8 +230,8 @@ public final class Archives extends Utility {
     }
 
     /**
-     * Returns a <code>JarURLConnection</code> for the given JAR URL (an URL into a JAR file) that allows {@link JarURLConnection#getAttributes() loading the
-     * JAR manifest} or finding the {@link JarURLConnection#getJarFileURL() base JAR file URL} of the given URL.
+     * Returns a <code>JarURLConnection</code> for the given JAR URL (an URL into a JAR file) that allows {@linkplain JarURLConnection#getAttributes() loading
+     * the JAR manifest} or finding the {@linkplain JarURLConnection#getJarFileURL() base JAR file URL} of the given URL.
      *
      * @param url the URL to interpret as a JAR URL.
      *
@@ -264,17 +247,16 @@ public final class Archives extends Utility {
     }
 
     /**
-     * Returns the JAR file that contains the given type as seen by the given class loader.
+     * Returns the JAR file that contains the given type.
      *
-     * @param loader the class loader to ask for the source of the given type.
      * @param type   the Java class to find.
      *
      * @return the JAR URL containing the given type.
      *
      * @throws IllegalArgumentException if the given type is not loaded from a JAR file.
      */
-    public static URL containing(final ClassLoader loader, final Class<?> type) throws IllegalArgumentException {
-        final URL source = loader.getResource(ClassLoaders.classResourceName(type));
+    public static URL containing(final Class<?> type) throws IllegalArgumentException {
+        final URL source = ClassLoaders.findClassResource(type);
         final URL jar = jarFile(source).getJarFileURL();
 
         if (jar == null) {
@@ -285,17 +267,21 @@ public final class Archives extends Utility {
     }
 
     /**
-     * Selects and reads entries in a JAR file. Used by {@link Archives#readEntries(URL, EntryReader)} and {@link Archives#readNestedEntries(URL,
-     * EntryReader)}.
+     * Used by {@link Archives#readEntries(URL, Archives.Entry) Archives.readEntries()} to select and read entries in a JAR file.
+     * <h3>Usage</h3>
+     * See {@link Archives}.
+     *
+     * @author Tibor Varga
      */
-    public interface EntryReader {
+    public interface Entry {
 
         /**
-         * Tells if the {@link #read(JarEntry, JarInputStream)} method should be invoked with the given entry.
+         * Tells if the {@link #read(JarEntry, InputStream) Entry.read()} method should be invoked with the given entry.
          *
          * @param entry the entry to decide about; never <code>null</code>.
          *
-         * @return <code>true</code> if the given entry should be passed to the {@link #read(JarEntry, JarInputStream)} method, <code>false</code> if not.
+         * @return <code>true</code> if the given entry should be passed to the {@link #read(JarEntry, InputStream) Entry.read()} method, <code>false</code> if
+         * not.
          *
          * @throws IOException when something goes wrong reading the JAR file.
          */
@@ -305,12 +291,12 @@ public final class Archives extends Utility {
          * Reads the given entry.
          *
          * @param entry  the entry to read.
-         * @param stream the stream containing the entry's content.
+         * @param stream the stream containing the entry's content; must <em>not</em> be {@link InputStream#close() closed} by the receiver.
          *
          * @return <code>true</code> if further searching is needed, <code>false</code> if search should terminate.
          *
          * @throws IOException when something goes wrong reading the JAR file.
          */
-        boolean read(JarEntry entry, JarInputStream stream) throws IOException;
+        boolean read(JarEntry entry, InputStream stream) throws IOException;
     }
 }

@@ -18,6 +18,7 @@ package org.fluidity.deployment.launcher;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.JarURLConnection;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -25,7 +26,6 @@ import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.jar.JarEntry;
-import java.util.jar.JarInputStream;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -116,7 +116,7 @@ public final class WebApplicationBootstrap {
 
                 classpath.add(warURL);
 
-                Archives.readEntries(warURL, new Archives.EntryReader() {
+                Archives.readEntries(warURL, new Archives.Entry() {
                     private final String bootEntry = "WEB-INF/boot/";
 
                     public boolean matches(final JarEntry entry) throws IOException {
@@ -130,7 +130,7 @@ public final class WebApplicationBootstrap {
                         return false;
                     }
 
-                    public boolean read(final JarEntry entry, final JarInputStream stream) throws IOException {
+                    public boolean read(final JarEntry entry, final InputStream stream) throws IOException {
                         return false;
                     }
                 });
@@ -153,7 +153,7 @@ public final class WebApplicationBootstrap {
         final ServerBootstrap server = ServiceProviders.findInstance(ServerBootstrap.class, classLoader);
 
         if (server != null) {
-            ClassLoaders.context(classLoader, new ClassLoaders.ContextCommand<Void, Exception>() {
+            ClassLoaders.context(classLoader, new ClassLoaders.Command<Void, Exception>() {
                 public Void run(final ClassLoader loader) throws Exception {
                     server.bootstrap(httpPort, bootApp, managedApps, args);
                     return null;

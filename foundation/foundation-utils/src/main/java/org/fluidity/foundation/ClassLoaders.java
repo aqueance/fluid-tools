@@ -46,26 +46,27 @@ public final class ClassLoaders extends Utility {
 
     /**
      * Finds the class loader appropriate for the given class. Here, the term <em>appropriate</em> means:<ul>
-     * <li>the thread context class loader, if given</li>
+     * <li>the thread context class loader, if given and <code>fallback</code> is <code>true</code></li>
      * <li>else the class loader that loaded the supplied class, if not <code>null</code></li>
-     * <li>else the class loader that loaded this class, if not <code>null</code></li>
-     * <li>else the system class loader</li>
+     * <li>else if <code>fallback</code> is <code>true</code>, the class loader that loaded this class, if not <code>null</code></li>
+     * <li>else the system class loader.</li>
      * </ul>
      *
-     * @param sourceClass the class to find the appropriate class loader for.
+     * @param type     the class to find the appropriate class loader for.
+     * @param fallback if <code>true</code>, the context class loader and the class loader of this utility class may be returned.
      *
      * @return the class loader appropriate for the given class.
      */
-    public static ClassLoader findClassLoader(final Class sourceClass) {
-        ClassLoader result = Thread.currentThread().getContextClassLoader();
-        result = result == null ? sourceClass.getClassLoader() : result;
-        result = result == null ? ClassLoaders.class.getClassLoader() : result;
+    public static ClassLoader findClassLoader(final Class type, final boolean fallback) {
+        ClassLoader result = fallback ? Thread.currentThread().getContextClassLoader() : null;
+        result = result == null ? type.getClassLoader() : result;
+        result = fallback && result == null ? ClassLoaders.class.getClassLoader() : result;
         return result == null ? ClassLoader.getSystemClassLoader() : result;
     }
 
     /**
-     * Returns the name that can be fed to {@link ClassLoader#findResource(String)} and {@link ClassLoader#findResources(String)}. The resource name is
-     * computed from a format string and its parameters.
+     * Returns the name that can be fed to {@link ClassLoader#findResource(String) ClassLoader.findResource()} and {@link ClassLoader#findResources(String)
+     * ClassLoader.findResources()}. The resource name is computed from a format string and its parameters.
      *
      * @param format the format string.
      * @param params the parameters of the format string.
@@ -78,97 +79,101 @@ public final class ClassLoaders extends Utility {
     }
 
     /**
-     * Finds the named resource in the class loader appropriate for the given class. See {@link #findClassLoader(Class)} for the definition of
-     * <em>appropriate</em>. The resource name is computed from a format string and its parameters.
+     * Finds the named resource in the class loader appropriate for the given class. See {@link #findClassLoader(Class, boolean)
+     * ClassLoaders.findClassLoader(type, true)} for the definition of <em>appropriate</em>. The resource name is computed from a format string and its
+     * parameters.
      *
-     * @param sourceClass the class to use the appropriate class loader for.
-     * @param format      the format string.
-     * @param params      the parameters of the format string.
+     * @param type   the class to use the appropriate class loader for.
+     * @param format the format string.
+     * @param params the parameters of the format string.
      *
      * @return the URL for the resource, or <code>null</code> if the resource could not be found.
      */
-    public static URL findResource(final Class sourceClass, final String format, final Object... params) {
-        return findClassLoader(sourceClass).getResource(absoluteResourceName(format, params));
+    public static URL findResource(final Class type, final String format, final Object... params) {
+        return findClassLoader(type, true).getResource(absoluteResourceName(format, params));
     }
 
     /**
-     * Finds the named resources in the class loader appropriate for the given class. See {@link #findClassLoader(Class)} for the definition of
-     * <em>appropriate</em>. The resource name is computed from a format string and its parameters.
+     * Finds the named resources in the class loader appropriate for the given class. See {@link #findClassLoader(Class, boolean)
+     * ClassLoaders.findClassLoader(type, true)} for the definition of <em>appropriate</em>. The resource name is computed from a format string and its
+     * parameters.
      *
-     * @param sourceClass the class to use the appropriate class loader for.
-     * @param format      the format string.
-     * @param params      the parameters of the format string.
+     * @param type   the class to use the appropriate class loader for.
+     * @param format the format string.
+     * @param params the parameters of the format string.
      *
      * @return the list of URLs for the resource; possibly empty.
      */
-    public static List<URL> findResources(final Class sourceClass, final String format, final Object... params) throws IOException {
-        return Collections.list(findClassLoader(sourceClass).getResources(absoluteResourceName(format, params)));
+    public static List<URL> findResources(final Class type, final String format, final Object... params) throws IOException {
+        return Collections.list(findClassLoader(type, true).getResources(absoluteResourceName(format, params)));
     }
 
     /**
      * Finds the named resource in the class loader appropriate for the given class and returns an input stream to read its contents. See {@link
-     * #findClassLoader(Class)} for the definition of <em>appropriate</em>. The resource name is computed from a format string and its parameters.
+     * #findClassLoader(Class, boolean) ClassLoaders.findClassLoader(type, true)} for the definition of <em>appropriate</em>. The resource name is computed from
+     * a format string and its parameters.
      *
-     * @param sourceClass the class to use the appropriate class loader for.
-     * @param format      the format string.
-     * @param params      the parameters of the format string.
+     * @param type   the class to use the appropriate class loader for.
+     * @param format the format string.
+     * @param params the parameters of the format string.
      *
      * @return the input stream for the resource, or <code>null</code> if the resource could not be found.
      */
-    public static InputStream readResource(final Class sourceClass, final String format, final Object... params) {
-        return findClassLoader(sourceClass).getResourceAsStream(absoluteResourceName(format, params));
+    public static InputStream readResource(final Class type, final String format, final Object... params) {
+        return findClassLoader(type, true).getResourceAsStream(absoluteResourceName(format, params));
     }
 
     /**
-     * Returns the resource name for the given class. The resource name is the value to feed to {@link ClassLoader#findResource(String)} to find the URL where
-     * the class may be loaded from. The method {@link #findClassResource(Class)} calls that method with the output of this one.
+     * Returns the resource name for the given class. The resource name is the value to feed to {@link ClassLoader#findResource(String)
+     * ClassLoader.findResource()} to find the URL where the class may be loaded from. The method {@link #findClassResource(Class)
+     * ClassLoader.findClassResource()} calls that method with the output of this one.
      *
-     * @param sourceClass the class to return the resource name of.
+     * @param type the class to return the resource name of.
      *
      * @return a string, never <code>null</code>.
      */
-    public static String classResourceName(final Class sourceClass) {
-        return classResourceName(sourceClass.getName());
+    public static String classResourceName(final Class type) {
+        return classResourceName(type.getName());
     }
 
     /**
-     * Returns the resource name for the given class name. The resource name is the value to feed to {@link ClassLoader#findResource(String)} to find the URL
-     * where the class may be loaded from.
+     * Returns the resource name for the given class name. The resource name is the value to feed to {@link ClassLoader#findResource(String)
+     * ClassLoader.findResource()} to find the URL where the class may be loaded from.
      *
-     * @param sourceClass the name of the class to return the resource name of.
+     * @param type the name of the class to return the resource name of.
      *
      * @return a string, never <code>null</code>.
      */
-    public static String classResourceName(final String sourceClass) {
-        return sourceClass.replace('.', '/').concat(CLASS_SUFFIX);
+    public static String classResourceName(final String type) {
+        return type.replace('.', '/').concat(CLASS_SUFFIX);
     }
 
     /**
      * Returns the resource URL where the given class may be loaded from.
      *
-     * @param sourceClass the class to return the resource URL for.
+     * @param type the class to return the resource URL for.
      *
      * @return the resource URL for the given class.
      */
-    public static URL findClassResource(final Class sourceClass) {
-        return findClassLoader(sourceClass).getResource(classResourceName(sourceClass));
+    public static URL findClassResource(final Class type) {
+        return findClassLoader(type, false).getResource(classResourceName(type));
     }
 
     /**
      * Returns the input stream where the given class may be loaded from.
      *
-     * @param sourceClass the class to return the resource URL for.
+     * @param type the class to return the resource URL for.
      *
      * @return the input stream for the given class.
      */
-    public static InputStream readClassResource(final Class sourceClass) {
-        return findClassLoader(sourceClass).getResourceAsStream(classResourceName(sourceClass));
+    public static InputStream readClassResource(final Class type) {
+        return findClassLoader(type, false).getResourceAsStream(classResourceName(type));
     }
 
     /**
-     * Returns a closeable URL class loader. To close it, cast it to {@link Closeable} and invoke {@link Closeable#close()} on the returned class loader.
+     * Returns a closeable URL class loader. To close it, cast it to {@link Closeable}, and invoke the {@link Closeable#close()} method.
      *
-     * @param parent the parent class loader for the returned one.
+     * @param parent the parent class loader for the returned one; may be <code>null</code>.
      * @param urls   the URLs to initialize the returned class loader with.
      *
      * @return a closeable URL class loader.
@@ -204,13 +209,12 @@ public final class ClassLoaders extends Utility {
      * @return the previous class loader.
      */
     public static ClassLoader set(final Class type) {
-        final ClassLoader loader = type.getClassLoader();
-        return set(loader == null ? ClassLoader.getSystemClassLoader() : loader);
+        return set(findClassLoader(type, false));
     }
 
     /**
-     * Establishes the given class loader as the {@linkplain Thread#setContextClassLoader(ClassLoader) context class loader}, executes the given command and
-     * the establishes the previous context class loader before returning what the command returned, or throwing what the command threw.
+     * Establishes the given class loader as the {@linkplain Thread#setContextClassLoader(ClassLoader) context class loader}, executes the given command, and
+     * then establishes the previous context class loader before returning whatever the command returned, or throwing whatever the command threw.
      *
      * @param loader  the class loader to set as the context class loader.
      * @param command the command to execute with the given class loader as the context class loader.
@@ -221,7 +225,7 @@ public final class ClassLoaders extends Utility {
      *
      * @throws E from the command.
      */
-    public static <R, E extends Throwable> R context(final ClassLoader loader, final ContextCommand<R, E> command) throws E {
+    public static <R, E extends Throwable> R context(final ClassLoader loader, final Command<R, E> command) throws E {
         final ClassLoader saved = set(loader);
 
         try {
@@ -270,15 +274,29 @@ public final class ClassLoaders extends Utility {
     }
 
     /**
-     * A command to execute by {@link ClassLoaders#context(ClassLoader, ClassLoaders.ContextCommand) ClassLoaders.context()}.
+     * A command to execute by {@link ClassLoaders#context(ClassLoader, ClassLoaders.Command) ClassLoaders.context()} with some class loader as the
+     * context class loader.
+     * <h3>Usage</h3>
+     * <pre>
+     * final {@linkplain ClassLoader} loader = &hellip;;
+     *
+     * final boolean success = {@linkplain ClassLoaders}.<span class="hl1">context</span>(loader, new <span class="hl1">ClassLoaders.Command</span>&lt;Boolean, {@linkplain RuntimeException}>() {
+     *   public Boolean run(final {@linkplain ClassLoader} loader) throws {@linkplain RuntimeException} {
+     *     &hellip; // call some library that uses the {@linkplain Thread#getContextClassLoader() thread context class loader}
+     *     return true;
+     *   }
+     * });
+     * </pre>
      *
      * @param <R> the return type of the command.
      * @param <E> the type of the exception thrown by the command.
+     *
+     * @author Tibor Varga
      */
-    public interface ContextCommand<R, E extends Throwable> {
+    public interface Command<R, E extends Throwable> {
 
         /**
-         * Executes custom code in the {@linkplain ClassLoaders#context(ClassLoader, ClassLoaders.ContextCommand) context} of a class loader.
+         * Executes custom code in the {@linkplain ClassLoaders#context(ClassLoader, ClassLoaders.Command) context} of a class loader.
          *
          * @param loader the context class loader.
          *
@@ -291,6 +309,8 @@ public final class ClassLoaders extends Utility {
 
     /**
      * This class isolates the xbeans class loader thus prevents it from being loaded if it is not necessary (i.e., when Java 7+ is present)
+     *
+     * @author Tibor Varga
      */
     private static class XBeansClassLoaders {
 
@@ -302,6 +322,11 @@ public final class ClassLoaders extends Utility {
         }
     }
 
+    /**
+     * Adapts the xbeans URL class loader to the {@link Closeable} interface.
+     *
+     * @author Tibor Varga
+     */
     private static class CloseableURLClassLoader extends JarFileClassLoader implements Closeable {
 
         private static final String[] EMPTY_STRING_ARRAY = new String[0];

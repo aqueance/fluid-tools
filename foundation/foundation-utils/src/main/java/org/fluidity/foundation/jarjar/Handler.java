@@ -178,6 +178,7 @@ public final class Handler extends URLStreamHandler {
         }
 
         @Override
+        @SuppressWarnings({ "finally", "ThrowFromFinallyBlock" })
         public InputStream getInputStream() throws IOException {
             final JarInputStream container = new JarInputStream(root.getInputStream());
 
@@ -189,12 +190,10 @@ public final class Handler extends URLStreamHandler {
 
             // the first path is an empty string since spec starts with a ! and we split around !s
             for (int i = 1, pathCount = paths.length; i < pathCount; i++) {
-                final String path = paths[i];
-
                 JarEntry next;
                 while ((next = stream.getNextJarEntry()) != null) {
                     if (!next.isDirectory()) {
-                        if (path.equals(next.getName())) {
+                        if (paths[i].equals(next.getName())) {
                             if (i == pathCount - 1) {
 
                                 // caller must close the stream, which closes its input, closing all streams we just opened here
@@ -212,7 +211,11 @@ public final class Handler extends URLStreamHandler {
                 }
             }
 
-            throw new FileNotFoundException(getURL().toExternalForm());
+            try {
+                stream.close();
+            } finally {
+                throw new FileNotFoundException(getURL().toExternalForm());
+            }
         }
     }
 

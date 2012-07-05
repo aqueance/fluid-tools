@@ -41,7 +41,7 @@ final class DependencyResolverImpl implements DependencyResolver {
         assert componentClassName != null : COMPONENT_KEY;
 
         try {
-            final ClassLoader classLoader = ClassLoaders.findClassLoader(DependencyResolver.class);
+            final ClassLoader classLoader = ClassLoaders.findClassLoader(DependencyResolver.class, true);
             assert classLoader != null : DependencyResolver.class;
 
             final Class componentClass = classLoader.loadClass(componentClassName);

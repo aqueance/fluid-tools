@@ -105,7 +105,11 @@ public final class Exceptions extends Utility {
     }
 
     /**
-     * Used by {@link Exceptions}, this is a command to run and wrap the exceptions thrown therefrom.
+     * Used by {@link Exceptions}, this is a command to run and wrap the exceptions thrown from.
+     * <h3>Usage</h3>
+     * See {@link Exceptions}.
+     *
+     * @author Tibor Varga
      */
     public interface Command<T> {
 

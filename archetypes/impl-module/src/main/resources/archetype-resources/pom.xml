@@ -27,7 +27,7 @@ limitations under the License.
     <dependencies>
 
         <dependency>
-            <groupId>${groupId}</groupId>
+            <groupId>${symbol_dollar}{project.groupId}</groupId>
             <artifactId>${apiArtifactId}</artifactId>
             <version>${symbol_dollar}{project.version}</version>
         </dependency>

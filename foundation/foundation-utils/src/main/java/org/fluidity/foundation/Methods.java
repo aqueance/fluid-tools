@@ -32,14 +32,14 @@ public final class Methods extends Utility {
      * Finds a method object in a refactoring friendly way. Let's say you need to find the {@link java.io.Closeable#close()} method at run time. Here's how you
      * do that with this method:
      * <pre>
-     *  final Method closeMethod = Methods.get(Closeable.class, new Methods.Invoker&lt;Closeable>() {
-     *    public void invoke(final Closeable dummy) {
-     *      dummy.close();
-     *    }
-     *  });
+     * final {@linkplain Method} closeMethod = <span class="hl1">Methods.get</span>(<span class="hl2">Closeable</span>.class, new <span class="hl1">Methods.Invoker</span>&lt;<span class="hl2">Closeable</span>>() {
+     *   public void invoke(final <span class="hl2">Closeable</span> dummy) {
+     *     dummy.<span class="hl2">close</span>();
+     *   }
+     * });
      * </pre>
      * <p/>
-     * This works only on interface types.
+     * This works only on interface methods.
      *
      * @param type    the class that directly or indirectly defines the method you seek.
      * @param invoker code that invokes the method on a dummy implementation of its owning interface.
@@ -63,16 +63,20 @@ public final class Methods extends Utility {
     }
 
     /**
-     * Allows the caller of {@link Methods#get(Class, Invoker) Methods.get()} to find a method without referring to it by name.
+     * Allows the caller of {@link Methods#get(Class, Methods.Invoker) Methods.get()} to find a method without referring to it by name.
+     * <h3>Usage</h3>
+     * See {@link Methods#get(Class, Methods.Invoker) Methods.get()}.
+     *
+     * @author Tibor Varga
      */
     public interface Invoker<T> {
 
         /**
-         * Invokes the method that the caller of {@link Methods#get(Class, Invoker)} intends to find.
+         * Invokes the method that the caller of {@link Methods#get(Class, Methods.Invoker) Methods.get()} intends to find.
          *
-         * @param capture a dummy implementation of the interface owning the method being sought. The implementation must call on the supplied
-         *                object the one method it is looking for via {@link Methods#get(Class, Invoker)}.
-         * @throws Throwable listed for convenience; should never actually be thrown.
+         * @param capture a dummy implementation of the interface owning the method being sought. The implementation must call, on the supplied
+         *                object, the method it is looking for.
+         * @throws Throwable listed for semantic purposes; should never actually be thrown.
          */
         void invoke(T capture) throws Throwable;
     }
