@@ -31,9 +31,7 @@ import java.util.concurrent.atomic.AtomicReference;
  *       &hellip;
  *   }
  *
- *   private final {@linkplain Class}[] types = { <span class="hl2">MyDelegate</span>.class };
- *
- *   private final <span class="hl2">MyDelegate</span> delegate = <span class="hl1">Proxies.create</span>(getClass().getClassLoader(), <span class="hl3">identity</span>, types, new {@linkplain InvocationHandler}() {
+ *   private final <span class="hl2">MyDelegate</span> delegate = <span class="hl1">Proxies.create</span>(<span class="hl2">MyDelegate</span>.class, <span class="hl3">identity</span>, types, new {@linkplain InvocationHandler}() {
  *     &hellip;
  *   }
  *
@@ -88,7 +86,7 @@ public final class Proxies extends Utility {
      * @return a proxy implementing the given interface.
      */
     @SuppressWarnings("unchecked")
-    public static <T> T create(final Class<T> type, final Identity<T> identity, final InvocationHandler handler) {
+    public static <T> T create(final Class<T> type, final Identity<? extends T> identity, final InvocationHandler handler) {
         final AtomicReference<T> proxy = new AtomicReference<T>();
         proxy.set((T) Proxy.newProxyInstance(type.getClassLoader(), new Class<?>[] { type }, new MethodInvocations(handler, proxy, identity)));
         return proxy.get();
@@ -126,13 +124,13 @@ public final class Proxies extends Utility {
     }
 
     /**
-     * Returns the original <code>InvocationHandler</code> passed to {@link #create(Class, InvocationHandler)}.
+     * Returns the original <code>InvocationHandler</code> passed to any of the <code>create()</code> methods.
      *
      * @param proxy the proxy returned by {@link #create(Class, InvocationHandler)}.
      *
-     * @return the original <code>InvocationHandler</code> passed to {@link #create(Class, InvocationHandler)}.
+     * @return the original <code>InvocationHandler</code> passed to any of the <code>create()</code> methods.
      */
-    public static InvocationHandler invocationHandler(final Object proxy) {
+    public static InvocationHandler handler(final Object proxy) {
         final InvocationHandler invocations = Proxy.getInvocationHandler(proxy);
         return invocations instanceof MethodInvocations ? ((MethodInvocations) invocations).handler : invocations;
     }

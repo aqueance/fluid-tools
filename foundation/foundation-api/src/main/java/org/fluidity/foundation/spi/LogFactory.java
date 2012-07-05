@@ -22,8 +22,8 @@ import org.fluidity.foundation.Log;
  * Adapts an external logging framework to the Fluid Tools dependency injection system. This interface is used only by implementations of such an adaptor. For
  * logging in your code, see to the documentation of the {@link Log} class.
  * <p/>
- * The log factory creates source-bound {@link Log} objects. Your implementation should hook the {@link Log} interface to the respective log sink of the
- * logging framework of your choice. The prevalent implementation of this interface will be looked for as a
+ * The log factory creates source-bound {@link Log} objects. Your implementation should adapt the respective log sink of the logging framework of your choice
+ * to the {@link Log} interface. The prevalent implementation of this interface will be looked for as a
  * <a href="http://download.oracle.com/javase/1.5.0/docs/guide/jar/jar.html#Service Provider">JAR Service Provider</a>.
  * <p/>
  * If you use Fluid Tools composition to implement your adaptor then all you need is to annotate your implementation class as a

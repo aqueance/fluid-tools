@@ -26,11 +26,12 @@ import sun.misc.ServiceConfigurationError;
 
 /**
  * Wraps the Sun JDK service provider discovery implementation that was private API prior to Java 6. This class is used internally to maintain compatibility
- * with Java 5. Use the <code>@ServiceProvider</code> annotation and the <code>ClassDiscovery</code> component instead of this low level utility to make your
- * tasks in dealing with service providers much, much simpler.
+ * with Java 5. Use the {@link org.fluidity.composition.ServiceProvider @ServiceProvider} annotation and the {@link org.fluidity.foundation.ClassDiscovery}
+ * component instead of this low level utility to make your tasks in dealing with service providers much, much simpler.
  *
  * @author Tibor Varga
  */
+@SuppressWarnings("JavadocReference")
 public final class ServiceProviders extends Utility {
 
     /**
@@ -46,7 +47,7 @@ public final class ServiceProviders extends Utility {
     private ServiceProviders() { }
 
     /**
-     * Returns the directory in JAR files that could contain Fluid Tools {@link org.fluidity.composition.ServiceProvider @ServiceProvider} files of the given
+     * Returns the directory in JAR files that may contain Fluid Tools {@link org.fluidity.composition.ServiceProvider @ServiceProvider} files of the given
      * type.
      *
      * @param type the service provider type.

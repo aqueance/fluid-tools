@@ -346,7 +346,8 @@ public interface Configuration<T> {
     @interface Context {
 
         /**
-         * The property prefix to apply to all property keys specified by {@link Configuration.Property#key()} annotated methods in the scope of this context.
+         * The property prefix to apply to all property keys specified by {@link Configuration.Property @Configuration.Property} annotated methods in the scope
+         * of this context.
          *
          * @return a property prefix, without the trailing dot.
          */

@@ -39,32 +39,32 @@ public final class Strings extends Utility {
     /**
      * Prints a class name. For arrays, this method adds "[]" to the class name once for each step in the depth of the array. For instance:
      * <pre>
-     * assert Strings.printClass(Object[][][].class).equals("java.lang.Object[][][]");
+     * assert Strings.printClass(false, Object[][][].class).equals("java.lang.Object[][][]");
      * </pre>
      *
-     * @param full if <code>true</code>, the type's full string representation is used, otherwise only its fully qualified name is used.
-     * @param type the class, which may be an array.
+     * @param textual if <code>true</code>, the type's string representation is used, otherwise only its fully qualified name is used.
+     * @param type    the class, which may be an array.
      *
-     * @return the Java array notation corresponding to the given class.
+     * @return the textual representation of the given class.
      */
-    public static String printClass(final boolean full, final Class<?> type) {
-        return printClass(full, true, type);
+    public static String printClass(final boolean textual, final Class<?> type) {
+        return printClass(textual, true, type);
     }
 
     /**
      * Prints a class name. For arrays, this method adds "[]" to the class name once for each step in the depth of the array. For instance:
      * <pre>
-     * assert Strings.printClass(Object[][][].class).equals("java.lang.Object[][][]");
+     * assert Strings.printClass(false, false, Object[][][].class).equals("Object[][][]");
      * </pre>
      *
-     * @param full      if <code>true</code>, the type's full string representation is used, otherwise only its name is used.
-     * @param qualified if <code>true</code> and <code>full</code> is <code>false</code>, the type's fully qualified name is used, otherwise its simple name is
-     *                  used.
+     * @param textual   if <code>true</code>, the type's string representation is used, otherwise only its name is used.
+     * @param qualified if <code>true</code> and <code>textual</code> is <code>false</code>, the type's fully qualified name is used, otherwise its simple name
+     *                  is used.
      * @param type      the class, which may be an array.
      *
-     * @return the Java array notation corresponding to the given class.
+     * @return the textual representation of the given class.
      */
-    public static String printClass(final boolean full, final boolean qualified, final Class<?> type) {
+    public static String printClass(final boolean textual, final boolean qualified, final Class<?> type) {
         final StringBuilder builder = new StringBuilder();
 
         Class<?> componentType = type;
@@ -74,7 +74,7 @@ public final class Strings extends Utility {
 
         final String typeName;
 
-        if (full) {
+        if (textual) {
             typeName = componentType.toString();
         } else if (qualified) {
             typeName = componentType.getName();
@@ -95,7 +95,7 @@ public final class Strings extends Utility {
      * <li><code>@MyAnnotation({ 1, 2, 3 })</code>: "@MyAnnotation({1,2,3})"</li>
      * </ul>
      * <p/>
-     * Default values are surrounded by a pair of square brackets, i.e., "[]".
+     * Parameters set to their default value are not printed.
      *
      * @param annotation the annotation instance to return the Java-like form of.
      *
@@ -304,7 +304,7 @@ public final class Strings extends Utility {
         }
 
         /**
-         * Collects the given text, appending the delimiter to the string builder if it is not empty.
+         * Collects the given text, appending the delimiter as necessary.
          *
          * @return the underlying {@link StringBuilder} object.
          */

@@ -69,7 +69,7 @@ public final class Streams extends Utility {
     }
 
     /**
-     * Loads into a byte array all content from the given <code>stream</code>.
+     * Reads into a byte array all content from the given <code>stream</code>.
      *
      * @param stream the stream to load the contents of.
      * @param buffer the buffer to use.
@@ -85,7 +85,7 @@ public final class Streams extends Utility {
     }
 
     /**
-     * Loads into a text string all content from the given <code>stream</code>.
+     * Reads into a text string all content from the given <code>stream</code>.
      *
      * @param stream  the stream to load the contents of.
      * @param charset the character set of the stream.
@@ -100,7 +100,7 @@ public final class Streams extends Utility {
     }
 
     /**
-     * Saves the given <code>data</code> to the given <code>stream</code>.
+     * Writes the given <code>data</code> to the given <code>stream</code>.
      *
      * @param stream the stream to save to.
      * @param data   the contents to save.
@@ -114,7 +114,7 @@ public final class Streams extends Utility {
     }
 
     /**
-     * Saves the given <code>text</code> to the given <code>stream</code>.
+     * Writes the given <code>text</code> to the given <code>stream</code>.
      *
      * @param stream  the stream to save to.
      * @param text    the contents to save.

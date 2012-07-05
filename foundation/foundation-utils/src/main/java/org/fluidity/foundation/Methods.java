@@ -33,12 +33,11 @@ public final class Methods extends Utility {
      * do that with this method:
      * <pre>
      * final {@linkplain Method} closeMethod = <span class="hl1">Methods.get</span>(<span class="hl2">Closeable</span>.class, new <span class="hl1">Methods.Invoker</span>&lt;<span class="hl2">Closeable</span>>() {
-     *   public void invoke(final <span class="hl2">Closeable</span> dummy) {
+     *   public void <span class="hl1">invoke</span>(final <span class="hl2">Closeable</span> dummy) {
      *     dummy.<span class="hl2">close</span>();
      *   }
      * });
      * </pre>
-     * <p/>
      * This works only on interface methods.
      *
      * @param type    the class that directly or indirectly defines the method you seek.

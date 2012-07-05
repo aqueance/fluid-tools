@@ -40,9 +40,9 @@ import org.fluidity.foundation.ClassLoaders;
  * ordinary {@link java.net.URLClassLoader} to work with JAR archives embedded in other JAR archives, enabling packaged Java applications without loss of
  * functionality such as signed JAR files, etc.
  * <p/>
- * To use this this stream handler, all you need to do is {@linkplain #formatURL(URL, String...) create} URLs that map to this stream protocol handler. For
- * example, if you have a JAR archive named <code>my-archive.jar</code> that embeds another JAR archive, <code>my-dependency.jar</code>, the following will
- * create an URL that can then be fed to an URL class loader:
+ * To use this stream handler, all you need to do is {@linkplain #formatURL(URL, String...) create} URLs that map to this stream protocol handler. For example,
+ * if you have a JAR archive named <code>my-archive.jar</code> that embeds another JAR archive, <code>my-dependency.jar</code>, the following will create an
+ * URL that can then be fed to an URL class loader:
  * <pre>
  * final URL embedded = Handler.formatURL(new File("my-archive.jar").toURI().toURL(), "my-dependency.jar");
  * </pre>
@@ -117,8 +117,8 @@ public final class Handler extends URLStreamHandler {
     /**
      * Creates a URL that will have the protocol handled, and the path format recognized, by this handler.
      *
-     * @param root  the URL of the outermost JAR archive.
-     * @param paths the paths of the JAR archives embedded the last archive, or in case of the first item, the root archive.
+     * @param root  the URL of the outermost (root) JAR archive.
+     * @param paths the list of JAR archive paths relative to the root of the preceding JAR archive in the list, the root archive in case of the first path.
      *
      * @return a URL properly formatted for this handler.
      *

@@ -41,9 +41,24 @@ import org.fluidity.foundation.Exceptions;
 @SuppressWarnings("JavadocReference")
 public final class Launcher {
 
+    /**
+     * The JAR manifest attribute to list the embedded JAR files that comprise the packages application.
+     */
     public static final String NESTED_DEPENDENCIES = "Nested-Dependencies";
+
+    /**
+     * The JAR manifest attribute that specifies the application's main class, one with a <code>public static void main(final String[] args) throws
+     * Exception</code> method.
+     */
     public static final String ORIGINAL_MAIN_CLASS = "Original-Main-Class";
 
+    /**
+     * The command line entry point.
+     *
+     * @param args the command line arguments.
+     *
+     * @throws Exception when anything goes wrong.
+     */
     public static void main(final String[] args) throws Exception {
         final Class<?> main = Launcher.class;
 

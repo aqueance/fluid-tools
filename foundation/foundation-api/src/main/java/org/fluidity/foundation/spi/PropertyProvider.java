@@ -17,7 +17,7 @@
 package org.fluidity.foundation.spi;
 
 /**
- * Maps property keys to property values. You provide an implementation that suits your configuration strategy. As long as the implementation is annotated as
+ * Maps property keys to property values. You provide an implementation that suits your configuration logic. As long as the implementation is annotated as
  * {@link org.fluidity.composition.Component @Component}, Fluid Tools will find and use it.
  *
  * @author Tibor Varga
