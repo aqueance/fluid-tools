@@ -206,7 +206,7 @@ public class StandaloneWarMojo extends AbstractMojo {
             final AtomicReference<String> mainClass = new AtomicReference<String>();
 
             try {
-                final byte buffer[] = new byte[1024 * 16];
+                final byte buffer[] = new byte[1024 * 1024];
 
                 final Map<String, Attributes> attributesMap = ArchivesSupport.expand(outputStream, buffer, getLog(), new ArchivesSupport.Feed() {
                     private final Iterator<Artifact> iterator = bootstrapDependencies.iterator();

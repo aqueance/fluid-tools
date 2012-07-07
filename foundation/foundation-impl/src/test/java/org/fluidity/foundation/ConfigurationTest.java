@@ -753,7 +753,7 @@ public class ConfigurationTest extends MockGroupAbstractTest {
             text.next().append(Array.get(actual, i));
         }
 
-        return text.builder.insert(0, "[").append("]").toString();
+        return text.surround("[]").toString();
     }
 
     private static void collectionCheck(final Object expected, final Object actual) {

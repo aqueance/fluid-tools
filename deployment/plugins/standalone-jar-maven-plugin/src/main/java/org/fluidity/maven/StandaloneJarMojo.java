@@ -40,12 +40,14 @@ import org.fluidity.deployment.plugin.spi.JarManifest;
 import org.fluidity.foundation.Archives;
 import org.fluidity.foundation.ServiceProviders;
 import org.fluidity.foundation.Streams;
+import org.fluidity.foundation.Strings;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
 import org.sonatype.aether.RepositorySystem;
 import org.sonatype.aether.RepositorySystemSession;
@@ -160,6 +162,8 @@ public class StandaloneJarMojo extends AbstractMojo {
             throw new MojoExecutionException(String.format("%s does not exist", packageFile));
         }
 
+        final Log log = getLog();
+
         final List<JarManifest> handlers = ServiceProviders.findInstances(JarManifest.class, getClass().getClassLoader());
 
         if (handlers.isEmpty()) {
@@ -254,7 +258,6 @@ public class StandaloneJarMojo extends AbstractMojo {
                     final Collection<Artifact> unpackedClosure = DependenciesSupport.dependencyClosure(repositorySystem, unpacked, repositories, handlerArtifact, false, false, null);
                     final Collection<Artifact> includedClosure = DependenciesSupport.dependencyClosure(repositorySystem, included, repositories, handlerArtifact, false, false, null);
 
-
                     if (packaging != JarManifest.Packaging.UNPACK) {
                         unpackedClosure.remove(handlerArtifact);
                     }
@@ -293,12 +296,17 @@ public class StandaloneJarMojo extends AbstractMojo {
                         }
                     }
 
+                    if (log.isDebugEnabled()) {
+                        log.debug(String.format("Invoking manifest handler: %s", Strings.printObject(false, handler)));
+                        log.debug(String.format("Packaged dependencies: %s", dependencies));
+                    }
+
                     handler.processManifest(project, mainAttributes, dependencyList, dependencies);
                 }
 
-                final byte[] buffer = new byte[1024 * 16];
+                final byte[] buffer = new byte[1024 * 1024];
 
-                final Map<String, Attributes> attributesMap = ArchivesSupport.expand(outputStream, buffer, getLog(), new ArchivesSupport.Feed() {
+                final Map<String, Attributes> attributesMap = ArchivesSupport.expand(outputStream, buffer, log, new ArchivesSupport.Feed() {
                     private final Iterator<Artifact> iterator = unpackedDependencies.iterator();
 
                     public JarFile next() throws IOException {
@@ -331,7 +339,7 @@ public class StandaloneJarMojo extends AbstractMojo {
                         final File dependency = artifact.getFile();
 
                         if (dependency.isDirectory()) {
-                            getLog().warn(String.format("Ignoring non JAR dependency %s", dependency));
+                            log.warn(String.format("Ignoring non-JAR dependency %s", dependency));
                         } else {
                             final String entryName = path.concat(dependency.getName());
                             outputStream.putNextEntry(new JarEntry(entryName));
@@ -368,7 +376,7 @@ public class StandaloneJarMojo extends AbstractMojo {
                 }
             }
 
-            DependenciesSupport.saveArtifact(project, file, finalName, classifier, DependenciesSupport.JAR_TYPE, getLog());
+            DependenciesSupport.saveArtifact(project, file, finalName, classifier, DependenciesSupport.JAR_TYPE, log);
         } catch (final IOException e) {
             throw new MojoExecutionException(String.format("Processing %s", packageFile), e);
         }

@@ -403,7 +403,7 @@ public final class Components extends Utility {
                 }
             }
 
-            return (api.length > 1 ? text.builder.insert(0, '[').append(']') : text).toString();
+            return (api.length > 1 ? text.surround("[]") : text).toString();
         }
 
         @Override

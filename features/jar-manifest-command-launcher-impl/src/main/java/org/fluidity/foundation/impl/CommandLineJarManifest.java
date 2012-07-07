@@ -61,4 +61,9 @@ public final class CommandLineJarManifest implements JarManifest {
 
         attributes.putValue(Launcher.NESTED_DEPENDENCIES, Strings.delimited(" ", paths));
     }
+
+    @Override
+    public String toString() {
+        return "Fluid Tools executable JAR manifest handler";
+    }
 }

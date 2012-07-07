@@ -21,11 +21,9 @@ import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.List;
 
 /**
  * Common string related utilities.
@@ -175,16 +173,17 @@ public final class Strings extends Utility {
             appendValue(output.next(), Array.get(value, i));
         }
 
-        output.builder.insert(0, '{').append('}');
-        return output.toString();
+        return output.surround("{}").toString();
     }
 
     /**
      * For proxies, it returns <code>"proxy@&lt;identity hash code>[&lt;list of interfaces>]"</code>; for ordinary classes, it returns <code>"&lt;fully
-     * qualified class name>@&lt;identity hash code>"</code>; arrays are printed as described at {@link #printClass(boolean, Class)}. Arrays are printed as
-     * the list of individual items, surrounded with brackets.
+     * qualified class name>@&lt;identity hash code>"</code>; arrays are printed as described at {@link #printClass(boolean, Class)}.
+     * <p/>
+     * Arrays are printed as the list of individual items, surrounded with brackets.
      *
      * @param object the object to print; may be <code>null</code>.
+     *
      * @return the proxy friendly run-time identity of the given object.
      */
     public static String printObjectId(final Object object) {
@@ -194,13 +193,13 @@ public final class Strings extends Utility {
             final Class<?> type = object.getClass();
 
             if (type.isArray()) {
-                final Listing text = new Listing(",");
+                final Listing text = delimited();
 
                 for (int i = 0, limit = Array.getLength(object); i < limit; ++i) {
                     text.add(Strings.printObjectId(Array.get(object, i)));
                 }
 
-                return text.builder.insert(0, '[').append(']').toString();
+                return text.surround("[]").toString();
             } else {
                 return Proxy.isProxyClass(type)
                        ? String.format("proxy@%x%s", System.identityHashCode(object), interfaces(type))
@@ -209,14 +208,63 @@ public final class Strings extends Utility {
         }
     }
 
-    private static List<String> interfaces(final Class<?> type) {
-        final List<String> list = new ArrayList<String>();
+    /**
+     * Returns a textual representation of the given object. In particular:<ul>
+     * <li>if the object is <code>null</code>, returns <code>"null"</code>;</li>
+     * <li>if the object is a proxy and has {@linkplain Proxies.Identity custom identity}, {@link Proxies.Identity#toString(Object) Proxies.Identity.toString()}
+     * is invoked with the object and its result is returned;</li>
+     * <li>if the object is a proxy, has no {@linkplain Proxies.Identity custom identity}, and <code>identity</code> is <code>false</code>, then
+     * <code>"proxy[&lt;list of interfaces>]"</code> is returned;</li>
+     * <li>if the object is a proxy, has no {@linkplain Proxies.Identity custom identity}, and <code>identity</code> is <code>true</code>, then {@link
+     * #printObjectId(Object)  Strings.printObjectId()} is invoked and returned;</li>
+     * <li>if the object overrides {@link Object#toString()}, the result of invoking that method is returned;</li>
+     * <li>Otherwise if <code>identity</code> is <code>true</code> then {@link #printObjectId(Object) Strings.printObjectId()} is invoked and returned, else the
+     * fully qualified name of the object type is returned.</li>
+     * </ul>
+     * <p/>
+     * Arrays are printed as the list of individual items, surrounded with brackets.
+     *
+     * @param identify tells if object identity is to be printed in absence of a custom {@link Object#toString()} method (<code>true</code>) or just the
+     *                 type identity (<code>false</code>).
+     * @param object   the object to print; may be <code>null</code>.
+     *
+     * @return the the proxy friendly textual representation, if any, or the identity of the given object.
+     */
+    public static String printObject(final boolean identify, final Object object) {
+        if (object == null) {
+            return String.valueOf(object);
+        } else {
+            final Class<?> type = object.getClass();
+
+            if (type.isArray()) {
+                final Listing text = delimited();
+
+                for (int i = 0, limit = Array.getLength(object); i < limit; ++i) {
+                    text.add(Strings.printObject(identify, Array.get(object, i)));
+                }
+
+                final String array = text.surround("[]").toString();
+                return identify ? String.format("%x@%s", System.identityHashCode(object), array) : array;
+            } else if (Proxy.isProxyClass(type) && !Proxies.isIdentified(object)) {
+                return identify ? printObjectId(object) : String.format("proxy%s", interfaces(type));
+            } else {
+                try {
+                    return (String) type.getDeclaredMethod("toString").invoke(object);
+                } catch (final Exception e) {
+                    return identify ? printObjectId(object) : printClass(false, type);
+                }
+            }
+        }
+    }
+
+    private static String interfaces(final Class<?> type) {
+        final Listing listing = new Listing(",");
 
         for (final Class<?> api : type.getInterfaces()) {
-            list.add(printClass(false, api));
+            listing.add(printClass(false, api));
         }
 
-        return list;
+        return listing.surround("[]").toString();
     }
 
     /**
@@ -350,6 +398,24 @@ public final class Strings extends Utility {
         @Override
         public String toString() {
             return builder.toString();
+        }
+
+        /**
+         * Copies the first half of <code>bracket</code> to the beginning of the list and the second half to the end.
+         *
+         * @param bracket the character pairs to surround the current value with; may have odd number of characters, in which case the middle one will be
+         *                copied to both ends.
+         *
+         * @return the underlying {@link StringBuilder} object.
+         */
+        public StringBuilder surround(final String bracket) {
+            if (!bracket.isEmpty()) {
+                final int length = bracket.length();
+                final int half = length >>> 1;
+                builder.insert(0, bracket.substring(0, half + length % 2)).append(bracket.substring(half));
+            }
+
+            return builder;
         }
     }
 }

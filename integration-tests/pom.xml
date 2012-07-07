@@ -57,6 +57,17 @@
         </dependencies>
     </dependencyManagement>
 
+    <profiles>
+        <profile>
+            <id>equinox</id>
+            <activation><property><name>equinox</name></property></activation>
+
+            <modules>
+                <module>osgi-launcher-test</module>
+            </modules>
+        </profile>
+    </profiles>
+
     <build>
 
         <plugins>

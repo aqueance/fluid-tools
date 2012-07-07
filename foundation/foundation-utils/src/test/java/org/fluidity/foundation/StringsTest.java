@@ -150,6 +150,67 @@ public class StringsTest extends MockGroupAbstractTest {
         assert String.format("@%s.%s", getClass().getSimpleName(), MultiValued.class.getSimpleName()).equals(string) : string;
     }
 
+    @Test
+    public void testObjectId() throws Exception {
+        final Object proxy1 = Proxies.create(getClass().getClassLoader(), new Class[] { Interface1.class, Interface2.class }, null);
+        final Object proxy2 = Proxies.create(getClass().getClassLoader(), new Class[] { Interface1.class, Interface2.class }, null);
+        final Object object3 = new Default();
+
+        final String text1 = String.format("proxy@%x[%s,%s]", System.identityHashCode(proxy1), Interface1.class.getName(), Interface2.class.getName());
+        final String text2 = String.format("proxy@%x[%s,%s]", System.identityHashCode(proxy2), Interface1.class.getName(), Interface2.class.getName());
+        final String text3 = String.format("%s@%x", Default.class.getName(), System.identityHashCode(object3));
+
+        check(text1, Strings.printObjectId(proxy1));
+        check(text2, Strings.printObjectId(proxy2));
+        check(text3, Strings.printObjectId(object3));
+        check(String.format("[%s, %s, %s]", text1, text2, text3), Strings.printObjectId(new Object[] { proxy1, proxy2, object3 }));
+    }
+
+    @Test
+    public void testObjectText() throws Exception {
+        final Object proxy1 = Proxies.create(getClass().getClassLoader(), new Class[] { Interface1.class, Interface2.class }, null);
+        final Object proxy2 = Proxies.create(getClass().getClassLoader(), new Class[] { Interface1.class, Interface2.class }, null);
+        final Object object3 = new Default();
+        final Object object4 = new Overridden();
+        final Object object5 = new Default();
+
+        final String text1 = String.format("proxy[%s,%s]", Interface1.class.getName(), Interface2.class.getName());
+        final String text2 = String.format("proxy@%x[%s,%s]", System.identityHashCode(proxy2), Interface1.class.getName(), Interface2.class.getName());
+        final String text3 = String.format("%s@%x", Default.class.getName(), System.identityHashCode(object3));
+        final String text4 = object4.toString();
+        final String text5 = String.format("%s", Default.class.getName());
+
+        check(text1, Strings.printObject(false, proxy1));
+        check(text2, Strings.printObject(true, proxy2));
+        check(text3, Strings.printObject(true, object3));
+        check(text4, Strings.printObject(false, object4));
+        check(text5, Strings.printObject(false, object5));
+        check(String.format("[%s, %s, %s, %s, %s]", text1, Strings.printObject(false, proxy2), Strings.printObject(false, object3), text4, text5),
+              Strings.printObject(false, new Object[] { proxy1, proxy2, object3, object4, object5 }));
+    }
+
+    @Test
+    public void testListSurrounding() throws Exception {
+        final Strings.Listing listing = Strings.delimited();
+
+        listing.add("item");
+        listing.surround("|");
+        assert "|item|".equals(listing.toString()) : listing;
+
+        listing.surround("[]");
+        assert "[|item|]".equals(listing.toString()) : listing;
+
+        listing.surround("({})");
+        assert "({[|item|]})".equals(listing.toString()) : listing;
+
+        listing.surround("<|>");
+        assert "<|({[|item|]})|>".equals(listing.toString()) : listing;
+    }
+
+    private void check(final String expected, final String actual) {
+        assert expected.equals(actual) : String.format("Expected %s, got %s", expected, actual);
+    }
+
     private static @interface MultiValued {
         int id() default -1;
         String[] list() default { };
@@ -157,5 +218,19 @@ public class StringsTest extends MockGroupAbstractTest {
 
     private static @interface ClassValued {
         Class value() default Object.class;
+    }
+
+    private interface Interface1 { }
+
+    private interface Interface2 { }
+
+    private static class Default { }
+
+    private static class Overridden {
+
+        @Override
+        public String toString() {
+            return getClass().getSimpleName();
+        }
     }
 }

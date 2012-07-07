@@ -307,6 +307,11 @@ public final class BundleJarManifest implements JarManifest {
         return partCount;
     }
 
+    @Override
+    public String toString() {
+        return "Fluid Tools OSGi bundle JAR manifest handler";
+    }
+
     /**
      * Encapsulates the action of getting some metadata. The idea is to be able to chain getters without considering <code>null</code> values along the way.
      */

@@ -27,7 +27,7 @@ limitations under the License.
     <dependencies>
 
         <!--
-        Add dependencies for your bundles, e.g.:
+        Add dependencies for your bundles like this one. The scope and optional restrictions are required.
 
         <dependency>
             <groupId>\${project.groupId}</groupId>
@@ -35,17 +35,7 @@ limitations under the License.
             <version>\${project.version}</version>
             <classifier>bundle</classifier>
             <scope>runtime</scope>
-
-            <exclusions>
-                <exclusion>
-                    <groupId>${fluidity.deployment.groupId}</groupId>
-                    <artifactId>osgi-bundle-bootstrap</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>${fluidity.public.groupId}</groupId>
-                    <artifactId>fluid-tools-osgi-bundle</artifactId>
-                </exclusion>
-            </exclusions>
+            <optional>true</optional>
         </dependency>
         -->
 

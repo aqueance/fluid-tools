@@ -56,6 +56,7 @@ import org.sonatype.aether.util.artifact.ArtifactProperties;
 import org.sonatype.aether.util.artifact.DefaultArtifactType;
 import org.sonatype.aether.util.artifact.JavaScopes;
 import org.sonatype.aether.util.graph.PreorderNodeListGenerator;
+import org.sonatype.aether.util.graph.selector.StaticDependencySelector;
 
 /**
  * Convenience methods to access the Maven dependency resolution mechanism.
@@ -174,7 +175,15 @@ public final class DependenciesSupport extends Utility {
          */
 
         final CollectRequest collectRequest = new CollectRequest(root, new ArrayList<RemoteRepository>(repositories));
-        final DependencyFilterSession filter = new DependencyFilterSession(session, selector);
+        final DependencyFilterSession filter = new DependencyFilterSession(session, new DependencySelector() {
+            public boolean selectDependency(final org.sonatype.aether.graph.Dependency dependency) {
+                return true;  // accept the root artifact
+            }
+
+            public DependencySelector deriveChildSelector(final DependencyCollectionContext dependencyCollectionContext) {
+                return selector;
+            }
+        });
 
         final DependencyNode node;
         try {
@@ -212,7 +221,6 @@ public final class DependenciesSupport extends Utility {
                 results.remove();
             }
         }
-
 
         return dependencies;
     }
@@ -333,7 +341,7 @@ public final class DependenciesSupport extends Utility {
                                                            final RepositorySystemSession session,
                                                            final List<RemoteRepository> repositories,
                                                            final MavenProject project) throws MojoExecutionException {
-        return dependencyClosure(system, session, repositories, project.getArtifact(), false, false, null);
+        return dependencyClosure(system, session, repositories, project.getArtifact(), false, true, null);
     }
 
     public static Collection<Artifact> compileDependencies(final RepositorySystem system,
@@ -412,6 +420,7 @@ public final class DependenciesSupport extends Utility {
 
         private static final Set<String> RUNTIME_SCOPES = new HashSet<String>(Arrays.asList(JavaScopes.COMPILE, JavaScopes.RUNTIME, JavaScopes.SYSTEM));
         private static final Set<String> COMPILE_SCOPES = new HashSet<String>(Arrays.asList(JavaScopes.COMPILE, JavaScopes.PROVIDED, JavaScopes.SYSTEM));
+        private static final Set<String> INTRANSITIVE_SCOPES = new HashSet<String>(Arrays.asList(JavaScopes.PROVIDED));
 
         private final boolean compile;
         private final boolean optionals;
@@ -430,17 +439,28 @@ public final class DependenciesSupport extends Utility {
         }
 
         public DependencySelector deriveChildSelector(final DependencyCollectionContext context) {
-            final Collection<org.sonatype.aether.graph.Exclusion> exclusions = context.getDependency().getExclusions();
-            final Set<String> excluded = new HashSet<String>(exclusions.size() + this.excluded.size());
+            final org.sonatype.aether.graph.Dependency dependency = context.getDependency();
 
-            excluded.addAll(this.excluded);
+            if (dependency == null || INTRANSITIVE_SCOPES.contains(dependency.getScope()) || (!compile && dependency.isOptional())) {
+                return new StaticDependencySelector(false);
+            } else {
+                final Collection<org.sonatype.aether.graph.Exclusion> exclusions = dependency.getExclusions();
 
-            for (final org.sonatype.aether.graph.Exclusion exclusion : exclusions) {
-                excluded.add(artifactSpecification(exclusion));
+                if (optionals || !exclusions.isEmpty()) {
+                    final Set<String> excluded = new HashSet<String>(exclusions.size() + this.excluded.size());
+
+                    excluded.addAll(this.excluded);
+
+                    for (final org.sonatype.aether.graph.Exclusion exclusion : exclusions) {
+                        excluded.add(artifactSpecification(exclusion));
+                    }
+
+                    // next level optionals and those excluded will not be selected
+                    return new TransitiveDependencySelector(compile, false, excluded.toArray(new String[excluded.size()]));
+                } else {
+                    return this;
+                }
             }
-
-            // next level optionals and those excluded will not be selected
-            return optionals || !exclusions.isEmpty() ? new TransitiveDependencySelector(compile, false, excluded.toArray(new String[excluded.size()])) : this;
         }
     }
 }

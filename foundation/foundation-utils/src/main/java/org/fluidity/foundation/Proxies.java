@@ -57,8 +57,7 @@ public final class Proxies extends Utility {
         }
 
         public String toString(final Object instance) {
-            assert Proxy.isProxyClass(instance.getClass()) : instance.getClass();
-            return String.format("%s@%x", instance.getClass().getInterfaces()[0].getSimpleName(), instance.hashCode());
+            return Strings.printObject(false, instance);
         }
     };
 
@@ -124,9 +123,21 @@ public final class Proxies extends Utility {
     }
 
     /**
+     * Tells if the given proxy has a {@linkplain Proxies.Identity custom object identity}.
+     *
+     * @param proxy the proxy returned by one of the <code>create</code> methods.
+     *
+     * @return <code>true</code> if the given proxy has a non default identity; <code>false</code> otherwise.
+     */
+    public static boolean isIdentified(final Object proxy) {
+        final InvocationHandler invocations = Proxy.getInvocationHandler(proxy);
+        return invocations instanceof MethodInvocations && ((MethodInvocations) invocations).identity != DEFAULT_IDENTITY;
+    }
+
+    /**
      * Returns the original <code>InvocationHandler</code> passed to any of the <code>create()</code> methods.
      *
-     * @param proxy the proxy returned by {@link #create(Class, InvocationHandler)}.
+     * @param proxy the proxy returned by one of the <code>create</code> methods.
      *
      * @return the original <code>InvocationHandler</code> passed to any of the <code>create()</code> methods.
      */
