@@ -170,8 +170,8 @@ public class StandaloneJarMojo extends AbstractMojo {
             throw new MojoExecutionException(String.format("No %s implementation found", JarManifest.class.getName()));
         }
 
-        final Collection<Artifact> compileDependencies = DependenciesSupport.compileDependencies(repositorySystem, repositorySession, repositories, project);
-        final Collection<Artifact> runtimeDependencies = DependenciesSupport.runtimeDependencies(repositorySystem, repositorySession, repositories, project);
+        final Collection<Artifact> compileDependencies = DependenciesSupport.compileDependencies(repositorySystem, repositorySession, repositories, project, true);
+        final Collection<Artifact> runtimeDependencies = DependenciesSupport.runtimeDependencies(repositorySystem, repositorySession, repositories, project, true);
 
         // keep only JAR artifacts
         for (final Iterator<Artifact> i = runtimeDependencies.iterator(); i.hasNext();) {

@@ -337,20 +337,64 @@ public final class DependenciesSupport extends Utility {
         return new org.sonatype.aether.graph.Dependency(artifact, original.getScope(), original.isOptional(), exclusions == null ? null : exclusionList);
     }
 
+    /**
+     * Returns the transitive compile time dependencies of the given Maven project. Compile time dependencies include those with scope "compile", "provided",
+     * and "system.
+     *
+     * @param system       dependency injected Maven @component
+     * @param session      dependency injected Maven @component
+     * @param repositories dependency injected Maven @component
+     * @param project      the Maven project to find transitive dependencies of.
+     * @param optionals    whether include the optional direct dependencies of the project.
+     *
+     * @return a collection of Maven artifacts, each representing a dependency of the Maven project.
+     *
+     * @throws MojoExecutionException when anything goes wrong.
+     */
     public static Collection<Artifact> runtimeDependencies(final RepositorySystem system,
                                                            final RepositorySystemSession session,
                                                            final List<RemoteRepository> repositories,
-                                                           final MavenProject project) throws MojoExecutionException {
-        return dependencyClosure(system, session, repositories, project.getArtifact(), false, true, null);
+                                                           final MavenProject project,
+                                                           final boolean optionals) throws MojoExecutionException {
+        return dependencyClosure(system, session, repositories, project.getArtifact(), false, optionals, null);
     }
 
+    /**
+     * Returns the transitive run time dependencies of the given Maven project. Run time dependencies include those with scope "compile", "runtime", and
+     * "system.
+     *
+     * @param system       dependency injected Maven @component
+     * @param session      dependency injected Maven @component
+     * @param repositories dependency injected Maven @component
+     * @param project      the Maven project to find transitive dependencies of.
+     * @param optionals    whether include the optional direct dependencies of the project.
+     *
+     * @return a collection of Maven artifacts, each representing a dependency of the Maven project.
+     *
+     * @throws MojoExecutionException when anything goes wrong.
+     */
     public static Collection<Artifact> compileDependencies(final RepositorySystem system,
                                                            final RepositorySystemSession session,
                                                            final List<RemoteRepository> repositories,
-                                                           final MavenProject project) throws MojoExecutionException {
-        return dependencyClosure(system, session, repositories, project.getArtifact(), true, true, null);
+                                                           final MavenProject project,
+                                                           final boolean optionals) throws MojoExecutionException {
+        return dependencyClosure(system, session, repositories, project.getArtifact(), true, optionals, null);
     }
 
+    /**
+     * Save the given artifact. If the project already has a saved artifact and the given computed artifact name is the same as the name of the existing
+     * artifact file, then the existing artifact file is deleted and the temporary artifact file is moved in its place. Otherwise, the temporary file is
+     * renamed to the computed final name and then added to the given Maven project as an attached artifact.
+     *
+     * @param project    the Maven project to persist the artifact for.
+     * @param file       the temporary file containing the artifact.
+     * @param finalName  the Maven final name set for the project artifact.
+     * @param classifier the Maven dependency classifier for the artifact.
+     * @param packaging  the Maven packaging of the artifact.
+     * @param log        the Maven log.
+     *
+     * @throws MojoExecutionException when anything goes wrong.
+     */
     public static void saveArtifact(final MavenProject project,
                                     final File file,
                                     final String finalName,
@@ -401,6 +445,9 @@ public final class DependenciesSupport extends Utility {
         }
     }
 
+    /**
+     * @author Tibor Varga
+     */
     private static class DependencyFilterSession extends FilterRepositorySystemSession {
 
         private final DependencySelector selector;
@@ -416,6 +463,9 @@ public final class DependenciesSupport extends Utility {
         }
     }
 
+    /**
+     * @author Tibor Varga
+     */
     private static class TransitiveDependencySelector implements DependencySelector {
 
         private static final Set<String> RUNTIME_SCOPES = new HashSet<String>(Arrays.asList(JavaScopes.COMPILE, JavaScopes.RUNTIME, JavaScopes.SYSTEM));
