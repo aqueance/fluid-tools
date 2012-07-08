@@ -470,43 +470,53 @@ public final class DependenciesSupport extends Utility {
 
         private static final Set<String> RUNTIME_SCOPES = new HashSet<String>(Arrays.asList(JavaScopes.COMPILE, JavaScopes.RUNTIME, JavaScopes.SYSTEM));
         private static final Set<String> COMPILE_SCOPES = new HashSet<String>(Arrays.asList(JavaScopes.COMPILE, JavaScopes.PROVIDED, JavaScopes.SYSTEM));
-        private static final Set<String> INTRANSITIVE_SCOPES = new HashSet<String>(Arrays.asList(JavaScopes.PROVIDED));
 
         private final boolean compile;
         private final boolean optionals;
-        private final Set<String> excluded;
+
+        private final Set<String> excludedArtifacts;
+        private final Set<String> selectedArtifacts;
+        private final Set<String> acceptedScopes;
 
         public TransitiveDependencySelector(final boolean compile, boolean optionals, final String... exclusions) {
+            this(compile, optionals, new HashSet<String>(), exclusions);
+        }
+
+        public TransitiveDependencySelector(final boolean compile, boolean optionals, final Set<String> selected, final String... exclusions) {
             this.compile = compile;
             this.optionals = optionals;
-            this.excluded = new HashSet<String>(Arrays.asList(exclusions));
+            this.excludedArtifacts = new HashSet<String>(Arrays.asList(exclusions));
+            this.selectedArtifacts = selected;
+            this.acceptedScopes = compile ? COMPILE_SCOPES : RUNTIME_SCOPES;
         }
 
         public boolean selectDependency(final org.sonatype.aether.graph.Dependency dependency) {
-            return !excluded.contains(artifactSpecification(dependency.getArtifact()))
-                   && (compile ? COMPILE_SCOPES : RUNTIME_SCOPES).contains(dependency.getScope())
+            return dependency != null
+                   && selectedArtifacts.add(dependency.toString())
+                   && !excludedArtifacts.contains(artifactSpecification(dependency.getArtifact()))
+                   && acceptedScopes.contains(dependency.getScope())
                    && (optionals || !dependency.isOptional());
         }
 
         public DependencySelector deriveChildSelector(final DependencyCollectionContext context) {
             final org.sonatype.aether.graph.Dependency dependency = context.getDependency();
 
-            if (dependency == null || INTRANSITIVE_SCOPES.contains(dependency.getScope()) || (!compile && dependency.isOptional())) {
+            if (dependency == null || JavaScopes.PROVIDED.equals(dependency.getScope()) || (!compile && dependency.isOptional())) {
                 return new StaticDependencySelector(false);
             } else {
                 final Collection<org.sonatype.aether.graph.Exclusion> exclusions = dependency.getExclusions();
 
                 if (optionals || !exclusions.isEmpty()) {
-                    final Set<String> excluded = new HashSet<String>(exclusions.size() + this.excluded.size());
+                    final Set<String> excluded = new HashSet<String>(exclusions.size() + excludedArtifacts.size());
 
-                    excluded.addAll(this.excluded);
+                    excluded.addAll(excludedArtifacts);
 
                     for (final org.sonatype.aether.graph.Exclusion exclusion : exclusions) {
                         excluded.add(artifactSpecification(exclusion));
                     }
 
-                    // next level optionals and those excluded will not be selected
-                    return new TransitiveDependencySelector(compile, false, excluded.toArray(new String[excluded.size()]));
+                    // next level optionals and those excluded by the current dependency will not be selected during descent
+                    return new TransitiveDependencySelector(compile, false, selectedArtifacts, excluded.toArray(new String[excluded.size()]));
                 } else {
                     return this;
                 }
