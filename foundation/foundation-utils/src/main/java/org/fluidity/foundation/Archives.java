@@ -28,6 +28,8 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 import java.util.jar.Manifest;
 
+import org.fluidity.foundation.jarjar.Handler;
+
 /**
  * Convenience methods to work with JAR archives.
  * <h3>Usage Example</h3>
@@ -169,7 +171,8 @@ public final class Archives extends Utility {
         }
 
         try {
-            final URL jar = jarFile(url).getJarFileURL();
+            final JarURLConnection connection = jarFile(url);
+            final URL jar = connection == null ? url : connection.getJarFileURL();
 
             if (jar != null) {
                 final Manifest manifest = loadManifest(jar);
@@ -298,5 +301,64 @@ public final class Archives extends Utility {
          * @throws IOException when something goes wrong reading the JAR file.
          */
         boolean read(JarEntry entry, InputStream stream) throws IOException;
+    }
+
+    /**
+     * Convenience methods to handle nested JAR archives.
+     *
+     * @author Tibor Varga
+     */
+    public static final class Nested extends Utility {
+        /**
+         * The URL protocol understood by this handler. The value is computed to be the last component of the containing package.
+         */
+        public static final String PROTOCOL = Handler.PROTOCOL;
+
+        /**
+         * The path component delimiter in a valid URL.
+         */
+        public static final String DELIMITER = Handler.DELIMITER;
+
+        private Nested() { }
+
+        /**
+         * Creates a URL that will target an entry in a JAR archive nested in other JAR archives, at any level.
+         *
+         * @param root  the URL of the outermost (root) JAR archive.
+         * @param file  optional file path inside the nested JAR archive; may be <code>null</code>.
+         * @param paths the list of JAR archive paths relative to the preceding JAR archive in the list, or the <code>root</code> archive in case of the first
+         *              path.
+         *
+         * @return a "jar:" URL to target the given <code>file</code> in a nested JAR archive.
+         *
+         * @throws IOException if URL handling fails.
+         */
+        public static URL formatURL(final URL root, final String file, final String... paths) throws IOException {
+            return Handler.formatURL(root, file, paths);
+        }
+
+        /**
+         * Returns the root URL of the given URL returned by a previous call to {@link #formatURL(URL, String, String...)}. The returned URL can then be fed back
+         * to {@link #formatURL(URL, String, String...)} to target other nested JAR archives.
+         *
+         * @param url the URL to return the root of.
+         *
+         * @return the root URL.
+         *
+         * @throws IOException when processing the URL fails.
+         */
+        public static URL rootURL(final URL url) throws IOException {
+            return Handler.rootURL(url);
+        }
+
+        /**
+         * Unloads a AR archive identified by its URL that was previously loaded to cache nested JAR archives found within. The protocol of the URL must either be
+         * "jar" or "jarjar", as produced by {@link org.fluidity.foundation.jarjar.Handler#formatURL(java.net.URL, String, String...)}.
+         *
+         * @param url the URL to the JAR archive to unload.
+         */
+        public static void unload(final URL url) throws IOException {
+            Handler.unload(url);
+        }
     }
 }

@@ -152,7 +152,7 @@ public class ClassDiscoveryImplTest extends MockGroupAbstractTest {
         final InputStream input = ClassLoaders.readClassResource(impl);
         assert input != null : fileName;
 
-        Streams.copy(input, new FileOutputStream(outputFile), new byte[1024], true);
+        Streams.copy(input, new FileOutputStream(outputFile), new byte[1024], true, true);
     }
 
     private void deleteDirectory(final File rootDir, final List<File> fileList) {

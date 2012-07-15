@@ -33,7 +33,6 @@ import org.fluidity.deployment.plugin.spi.ServerBootstrap;
 import org.fluidity.foundation.Archives;
 import org.fluidity.foundation.ClassLoaders;
 import org.fluidity.foundation.ServiceProviders;
-import org.fluidity.foundation.jarjar.Handler;
 
 /**
  * A command line main class that prepares the web container bootstrap process, e.g., creating a work directory, setting up the boot classpath and, then loads
@@ -124,7 +123,7 @@ public final class WebApplicationBootstrap {
                         final boolean matches = entryName.startsWith(bootEntry) && !entryName.equals(bootEntry);
 
                         if (matches) {
-                            classpath.add(Handler.formatURL(warURL, entryName));
+                            classpath.add(Archives.Nested.formatURL(warURL, null, entryName));
                         }
 
                         return false;

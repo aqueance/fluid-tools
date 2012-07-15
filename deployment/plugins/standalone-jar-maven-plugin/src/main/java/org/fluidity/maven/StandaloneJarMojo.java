@@ -173,15 +173,6 @@ public class StandaloneJarMojo extends AbstractMojo {
         final Collection<Artifact> compileDependencies = DependenciesSupport.compileDependencies(repositorySystem, repositorySession, repositories, project, true);
         final Collection<Artifact> runtimeDependencies = DependenciesSupport.runtimeDependencies(repositorySystem, repositorySession, repositories, project, true);
 
-        // keep only JAR artifacts
-        for (final Iterator<Artifact> i = runtimeDependencies.iterator(); i.hasNext();) {
-            final Artifact artifact = i.next();
-
-            if (!artifact.getType().equals(DependenciesSupport.JAR_TYPE)) {
-                i.remove();
-            }
-        }
-
         try {
             final File file = createTempFile();
             final JarOutputStream outputStream = new JarOutputStream(new FileOutputStream(file));
@@ -216,7 +207,9 @@ public class StandaloneJarMojo extends AbstractMojo {
                         throw new MojoExecutionException(String.format("Dependency %s not found (tried: %s)", artifact, dependency));
                     }
 
-                    dependencyList.add(dependencyPath.concat(dependency.getName()));
+                    if (artifact.getType().equals(DependenciesSupport.JAR_TYPE)) {
+                        dependencyList.add(dependencyPath.concat(dependency.getName()));
+                    }
                 }
 
                 final Collection<Artifact> unpackedDependencies = new HashSet<Artifact>();
@@ -304,25 +297,20 @@ public class StandaloneJarMojo extends AbstractMojo {
                     handler.processManifest(project, mainAttributes, dependencyList, dependencies);
                 }
 
+                final Map<String, Attributes> attributesMap = new HashMap<String, Attributes>();
+                final Map<String, String[]> providerMap = new HashMap<String, String[]>();
                 final byte[] buffer = new byte[1024 * 1024];
 
-                final Map<String, Attributes> attributesMap = ArchivesSupport.expand(outputStream, buffer, log, new ArchivesSupport.Feed() {
-                    private final Iterator<Artifact> iterator = unpackedDependencies.iterator();
-
-                    public JarFile next() throws IOException {
-                        if (iterator.hasNext()) {
-                            return new JarFile(iterator.next().getFile());
-                        } else {
-                            return null;
-                        }
-                    }
-                });
+                ArchivesSupport.load(attributesMap, providerMap, buffer, log, new DependencyFeed(unpackedDependencies));
 
                 ArchivesSupport.include(attributesMap, manifest);
 
                 // create the new manifest
+                outputStream.putNextEntry(new JarEntry(ArchivesSupport.META_INF));
                 outputStream.putNextEntry(new JarEntry(JarFile.MANIFEST_NAME));
                 manifest.write(outputStream);
+
+                ArchivesSupport.expand(outputStream, buffer, providerMap, new DependencyFeed(unpackedDependencies));
 
                 add(includedDependencies, dependencyPath, runtimeDependencies);
 
@@ -354,7 +342,7 @@ public class StandaloneJarMojo extends AbstractMojo {
                                     }
 
                                     public boolean read(final JarEntry entry, final InputStream stream) throws IOException {
-                                        Streams.copy(stream, outputStream, buffer, false);
+                                        Streams.copy(stream, outputStream, buffer, true, false);
                                         return false;
                                     }
                                 });
@@ -364,7 +352,7 @@ public class StandaloneJarMojo extends AbstractMojo {
                                 }
                             }
 
-                            Streams.copy(new FileInputStream(dependency), outputStream, buffer, false);
+                            Streams.copy(new FileInputStream(dependency), outputStream, buffer, true, false);
                         }
                     }
                 }
@@ -426,5 +414,29 @@ public class StandaloneJarMojo extends AbstractMojo {
         } while (tempFile.exists());
 
         return tempFile;
+    }
+
+    /**
+     * @author Tibor Varga
+     */
+    private static class DependencyFeed implements ArchivesSupport.Feed {
+
+        private final Iterator<Artifact> iterator;
+
+        public DependencyFeed(final Collection<Artifact> unpackedDependencies) {
+            iterator = unpackedDependencies.iterator();
+        }
+
+        public File next() throws IOException {
+            if (iterator.hasNext()) {
+                return iterator.next().getFile();
+            } else {
+                return null;
+            }
+        }
+
+        public boolean include(final JarEntry entry) {
+            return true;
+        }
     }
 }

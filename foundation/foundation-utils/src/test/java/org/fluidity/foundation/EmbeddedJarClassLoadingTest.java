@@ -34,6 +34,7 @@ import org.testng.annotations.Test;
  * @author Tibor Varga
  */
 public class EmbeddedJarClassLoadingTest {
+
     private final String container = "samples.jar";
     private final URL root = getClass().getClassLoader().getResource(container);
 
@@ -44,7 +45,7 @@ public class EmbeddedJarClassLoadingTest {
 
         urls.add(root);
         for (final String path : paths) {
-            urls.add(Handler.formatURL(root, path));
+            urls.add(Handler.formatURL(root, null, path));
         }
 
         return new URLClassLoader(urls.toArray(new URL[urls.size()]), parent);
@@ -52,7 +53,11 @@ public class EmbeddedJarClassLoadingTest {
 
     @BeforeMethod
     public void setup() throws Exception {
-        loader = createLoader(root, getClass().getClassLoader(), "META-INF/dependencies/dependency-1.jar", "META-INF/dependencies/dependency-2.jar", "META-INF/dependencies/dependency-3.jar");
+        loader = createLoader(root,
+                              getClass().getClassLoader(),
+                              "META-INF/dependencies/dependency-1.jar",
+                              "META-INF/dependencies/dependency-2.jar",
+                              "META-INF/dependencies/dependency-3.jar");
     }
 
     @Test

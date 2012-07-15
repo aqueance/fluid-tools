@@ -77,7 +77,7 @@ public final class Launcher {
             urls.add(jarURL);
 
             for (final String path : dependencies.split(" ")) {
-                urls.add(Handler.formatURL(jarURL, path));
+                urls.add(Handler.formatURL(jarURL, null, path));
             }
 
             final ClassLoader loader = new URLClassLoader(urls.toArray(new URL[urls.size()]), ClassLoaders.findClassLoader(main, true));

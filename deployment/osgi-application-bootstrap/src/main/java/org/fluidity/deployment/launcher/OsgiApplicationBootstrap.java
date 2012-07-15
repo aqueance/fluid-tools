@@ -16,7 +16,6 @@
 
 package org.fluidity.deployment.launcher;
 
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -74,8 +73,23 @@ import org.osgi.framework.startlevel.FrameworkStartLevel;
  */
 public final class OsgiApplicationBootstrap {
 
+    /**
+     * The name of the system property that specifies the application properties resource URL. The application properties are deployment independent. If not
+     * given, the resource named "application.properties" will be loaded.
+     */
     public static final String APPLICATION_PROPERTIES = "application.properties";
+
+    /**
+     * The name of the system property that specifies the deployment properties resource URL. The deployment properties are specific to a particular
+     * deployment. Ignored if not given.
+     */
     public static final String DEPLOYMENT_PROPERTIES = "deployment.properties";
+
+    /**
+     * The name of the system property that resolves to the JAR file containing this OSGi application. Relative paths can be appended to the value of this
+     * property.
+     */
+    public static final String OSGI_APPLICATION_ROOT = "osgi.application.root";
 
     private final Log<OsgiApplicationBootstrap> log;
     private final ContainerTermination termination;
@@ -105,25 +119,30 @@ public final class OsgiApplicationBootstrap {
             throw new IllegalStateException("No OSGi framework found");
         }
 
-        final URL frameworkURL = Archives.jarFile(ClassLoaders.findClassResource(factory.getClass())).getJarFileURL();
-        final Properties defaults = loadProperties(ClassLoaders.readResource(getClass(), "osgi.properties"), null);
-        final Properties distribution = loadProperties(ClassLoaders.readResource(getClass(), APPLICATION_PROPERTIES), defaults);
-
-        final String deployment = System.getProperty(DEPLOYMENT_PROPERTIES);
-        final Properties properties = deployment == null ? distribution : loadProperties(new FileInputStream(deployment), distribution);
-
-        final Map<String, String> config = new HashMap<String, String>();
-
         final RegexBasedInterpolator interpolator = new RegexBasedInterpolator();
 
         final Properties global = System.getProperties();
         interpolator.addValueSource(new PropertiesBasedValueSource(global));
-        interpolator.addValueSource(new PropertiesBasedValueSource(properties));
 
         final RecursionInterceptor interceptor = new SimpleRecursionInterceptor();
 
         interpolator.setCacheAnswers(true);
         interpolator.setReusePatterns(true);
+
+        final URL frameworkURL = Archives.containing(factory.getClass());
+        final Properties defaults = loadProperties(ClassLoaders.readResource(getClass(), "osgi.properties"), null);
+
+        final String application = System.getProperty(APPLICATION_PROPERTIES);
+        final Properties distribution = loadProperties(application == null
+                                                       ? ClassLoaders.readResource(getClass(), APPLICATION_PROPERTIES)
+                                                       : new URL(interpolator.interpolate(application)).openStream(), defaults);
+
+        final String deployment = System.getProperty(DEPLOYMENT_PROPERTIES);
+        final Properties properties = deployment == null
+                                      ? distribution
+                                      : loadProperties(new URL(interpolator.interpolate(deployment)).openStream(), distribution);
+
+        final Map<String, String> config = new HashMap<String, String>();
 
         @SuppressWarnings("unchecked")
         final List<String> keys = Collections.list((Enumeration<String>) properties.propertyNames());
@@ -133,8 +152,13 @@ public final class OsgiApplicationBootstrap {
         }
 
         config.put(Constants.FRAMEWORK_BUNDLE_PARENT, Constants.FRAMEWORK_BUNDLE_PARENT_FRAMEWORK);
+        config.put(OSGI_APPLICATION_ROOT, String.format("%s:%s%s", Archives.Nested.PROTOCOL, Archives.Nested.rootURL(frameworkURL), Archives.Nested.DELIMITER));
 
-        log.info("OSGi system properties: %s", config);
+        for (final Map.Entry<String, String> entry : config.entrySet()) {
+            System.setProperty(entry.getKey(), entry.getValue());
+        }
+
+        log.debug("OSGi system properties: %s", config);
 
         final Framework framework = factory.newFramework(config);
 
@@ -152,7 +176,7 @@ public final class OsgiApplicationBootstrap {
 
             if (!frameworkURL.equals(url)) {
 
-                // find and install those JAR files that have an OSGi bundle symbolic name (it is a mandatory OSGi header)
+                // select those JAR files that have an OSGi bundle symbolic name (it is a mandatory OSGi header)
                 final String[] markers = Archives.manifestAttributes(manifest, Constants.BUNDLE_SYMBOLICNAME);
 
                 if (markers[0] != null) {
@@ -189,13 +213,19 @@ public final class OsgiApplicationBootstrap {
                 } catch (final Exception e) {
                     log.error(e, "Error stopping the OSGi framework");
                 }
+
+                try {
+                    Archives.Nested.unload(frameworkURL);
+                } catch (final IOException e) {
+                    assert false : frameworkURL;
+                }
             }
         });
 
         final BundleContext system = framework.getBundleContext();
 
         for (final URL url : jars) {
-            log.info("Installing bundle %s", url);
+            log.debug("Installing bundle %s", url);
 
             final Bundle bundle = system.installBundle(url.toExternalForm());
 

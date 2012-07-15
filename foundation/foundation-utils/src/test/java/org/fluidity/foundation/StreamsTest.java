@@ -36,7 +36,7 @@ public class StreamsTest extends MockGroupAbstractTest {
         final byte[] buffer = new byte[128];
         final String original = "some rubbish to copy";
 
-        final ByteArrayOutputStream stream = Streams.copy(new ByteArrayInputStream(original.getBytes()), new ByteArrayOutputStream(), buffer, true);
+        final ByteArrayOutputStream stream = Streams.copy(new ByteArrayInputStream(original.getBytes()), new ByteArrayOutputStream(), buffer, true, true);
 
         final String copy = new String(stream.toByteArray());
         assert original.equals(copy) : copy;
@@ -53,7 +53,7 @@ public class StreamsTest extends MockGroupAbstractTest {
         for (final String text : input) {
             format.append("%s");
 
-            Streams.copy(new ByteArrayInputStream(text.getBytes()), stream, buffer, false);
+            Streams.copy(new ByteArrayInputStream(text.getBytes()), stream, buffer, true, false);
         }
 
         final String copy = new String(stream.toByteArray());
@@ -79,13 +79,13 @@ public class StreamsTest extends MockGroupAbstractTest {
         final byte[] buffer = new byte[0];
 
         replay();
-        Streams.copy(new ByteArrayInputStream("".getBytes()), output, buffer, false);
+        Streams.copy(new ByteArrayInputStream("".getBytes()), output, buffer, true, false);
         verify();
 
         closeable.close();
 
         replay();
-        Streams.copy(new ByteArrayInputStream("".getBytes()), output, buffer, true);
+        Streams.copy(new ByteArrayInputStream("".getBytes()), output, buffer, true, true);
         verify();
     }
 }

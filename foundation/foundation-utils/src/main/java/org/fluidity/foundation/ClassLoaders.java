@@ -110,8 +110,8 @@ public final class ClassLoaders extends Utility {
 
     /**
      * Finds the named resource in the class loader appropriate for the given class and returns an input stream to read its contents. See {@link
-     * #findClassLoader(Class, boolean) ClassLoaders.findClassLoader(type, true)} for the definition of <em>appropriate</em>. The resource name is computed from
-     * a format string and its parameters.
+     * #findClassLoader(Class, boolean) ClassLoaders.findClassLoader(type, true)} for the definition of <em>appropriate</em>. The resource name is computed
+     * from a format string and its parameters.
      *
      * @param type   the class to use the appropriate class loader for.
      * @param format the format string.
@@ -239,14 +239,15 @@ public final class ClassLoaders extends Utility {
      * Creates an isolated URL class loader for the given list of URLs, loads using the isolated class loader and instantiates the given type and calls the
      * given method on it with the given parameters to return its return value.
      *
-     *
-     * @param parent the class loader to load the method parameters and the return values; this class loader must not see the given <code>type</code>.
-     * @param urls the list of URLs to use for the isolated class loader; make sure the list contains the JARs containing the type to load.
-     * @param type the command class to load and invoke the given method on.
-     * @param run the method to call; the parameter types and the return type must be loaded by the parent class loader and the declaring class must be either
-     *            visible to the <code>parent</code> class loader or listed in the given list of URLs.
+     * @param parent    the class loader to load the method parameters and the return values; this class loader must not see the given <code>type</code>.
+     * @param urls      the list of URLs to use for the isolated class loader; make sure the list contains the JARs containing the type to load.
+     * @param type      the command class to load and invoke the given method on.
+     * @param run       the method to call; the parameter types and the return type must be loaded by the parent class loader and the declaring class must be
+     *                  either visible to the <code>parent</code> class loader or listed in the given list of URLs.
      * @param arguments the arguments to pass to the command.
+     *
      * @return whatever the command returns.
+     *
      * @throws Exception when anything goes wrong.
      */
     @SuppressWarnings("unchecked")

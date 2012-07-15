@@ -32,18 +32,19 @@ public final class Streams extends Utility {
     private Streams() { }
 
     /**
-     * Fully copies the contents of one stream into another. The input stream is closed afterwards.
+     * Fully copies the contents of one stream into another.
      *
-     * @param input  the input stream to copy data from.
-     * @param output the output stream to copy data to.
-     * @param buffer the buffer to use.
-     * @param close  closes the output stream if <code>true</code>.
+     * @param input       the input stream to copy data from.
+     * @param output      the output stream to copy data to.
+     * @param buffer      the buffer to use.
+     * @param closeInput  closes the input stream if <code>true</code>.
+     * @param closeOutput closes the output stream if <code>true</code>.
      *
      * @return the output stream.
      *
      * @throws IOException thrown when reading or writing fails.
      */
-    public static <T extends OutputStream> T copy(final InputStream input, final T output, final byte[] buffer, final boolean close) throws IOException {
+    public static <T extends OutputStream> T copy(final InputStream input, final T output, final byte[] buffer, boolean closeInput, final boolean closeOutput) throws IOException {
         try {
             int len;
             while ((len = input.read(buffer)) != -1) {
@@ -52,13 +53,15 @@ public final class Streams extends Utility {
 
             return output;
         } finally {
-            try {
-                input.close();
-            } catch (final IOException e) {
-                // ignore
+            if (closeInput) {
+                try {
+                    input.close();
+                } catch (final IOException e) {
+                    // ignore
+                }
             }
 
-            if (close) {
+            if (closeOutput) {
                 try {
                     output.close();
                 } catch (final IOException e) {
@@ -73,14 +76,15 @@ public final class Streams extends Utility {
      *
      * @param stream the stream to load the contents of.
      * @param buffer the buffer to use.
+     * @param close  closes the input stream if <code>true</code>.
      *
      * @return the contents of the given <code>stream</code>.
      *
      * @throws IOException thrown when reading fails.
      */
-    public static byte[] load(final InputStream stream, final byte[] buffer) throws IOException {
+    public static byte[] load(final InputStream stream, final byte[] buffer, final boolean close) throws IOException {
         final ByteArrayOutputStream output = new ByteArrayOutputStream();
-        Streams.copy(stream, output, buffer, true);
+        Streams.copy(stream, output, buffer, close, false);
         return output.toByteArray();
     }
 
@@ -90,13 +94,14 @@ public final class Streams extends Utility {
      * @param stream  the stream to load the contents of.
      * @param charset the character set of the stream.
      * @param buffer  the buffer to use.
+     * @param close   closes the input stream if <code>true</code>.
      *
      * @return the contents of the given <code>stream</code>.
      *
      * @throws IOException thrown when reading fails.
      */
-    public static String load(final InputStream stream, final String charset, final byte[] buffer) throws IOException {
-        return new String(Streams.load(stream, buffer), charset);
+    public static String load(final InputStream stream, final String charset, final byte[] buffer, final boolean close) throws IOException {
+        return new String(Streams.load(stream, buffer, close), charset);
     }
 
     /**
@@ -110,7 +115,7 @@ public final class Streams extends Utility {
      * @throws IOException thrown when writing fails.
      */
     public static void store(final OutputStream stream, final byte[] data, final byte[] buffer, final boolean close) throws IOException {
-        Streams.copy(new ByteArrayInputStream(data), stream, buffer, close);
+        Streams.copy(new ByteArrayInputStream(data), stream, buffer, false, close);
     }
 
     /**

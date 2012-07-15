@@ -24,7 +24,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.fluidity.deployment.plugin.spi.ServerBootstrap;
-import org.fluidity.foundation.jarjar.Handler;
+import org.fluidity.foundation.Archives;
 
 import org.eclipse.jetty.util.resource.Resource;
 import org.eclipse.jetty.webapp.WebAppClassLoader;
@@ -73,7 +73,7 @@ public final class JettyBootstrap implements ServerBootstrap {
         final Matcher matcher = archiveNamePattern.matcher(archiveName);
 
         if (!matcher.matches()) {
-            throw new IllegalArgumentException(String.format("Could not parse archive name %s using pattern %s", archiveName, archiveNamePattern));
+            throw new IllegalArgumentException(String.format("Could not match archive name '%s' with pattern '%s'", archiveName, archiveNamePattern));
         }
 
         return matcher.group(1);
@@ -90,12 +90,7 @@ public final class JettyBootstrap implements ServerBootstrap {
             if (classPath != null) {
                 for (final String path : classPath.split("[,;]")) {
                     final Resource resource = getContext().newResource(path.trim());
-
-                    if (resource.toString().endsWith("/")) {
-                        addURL(resource.getURL());
-                    } else {
-                        addURL(Handler.formatURL(resource.getURL()));
-                    }
+                    addURL(resource.toString().endsWith("/") ? resource.getURL() : Archives.Nested.formatURL(resource.getURL(), null));
                 }
             }
         }
