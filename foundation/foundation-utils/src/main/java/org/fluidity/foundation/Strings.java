@@ -323,6 +323,8 @@ public final class Strings extends Utility {
 
     /**
      * A string listing tool that makes working with a {@link StringBuilder} simpler when collecting list items.
+     *
+     * @author Tibor Varga
      */
     public static class Listing {
 
@@ -387,17 +389,27 @@ public final class Strings extends Utility {
         }
 
         /**
-         * Tells if the underlying {@link StringBuilder} is empty.
+         * Sets the value of the listing.
          *
-         * @return <code>true</code> if the underlying {@link StringBuilder} is empty; <code>false</code> otherwise.
+         * @param text the new value of the list.
+         *
+         * @return the underlying {@link StringBuilder} object.
          */
-        public boolean isEmpty() {
-            return builder.length() == 0;
+        public StringBuilder set(final String text) {
+            builder.setLength(0);
+            builder.append(text);
+            return builder;
         }
 
-        @Override
-        public String toString() {
-            return builder.toString();
+        /**
+         * Appends some text to the list <i>without</i> the delimiter.
+         *
+         * @param text the text to append to the list.
+         *
+         * @return the underlying {@link StringBuilder} object.
+         */
+        public StringBuilder append(final String text) {
+            return builder.append(text);
         }
 
         /**
@@ -412,10 +424,47 @@ public final class Strings extends Utility {
             if (!bracket.isEmpty()) {
                 final int length = bracket.length();
                 final int half = length >>> 1;
-                builder.insert(0, bracket.substring(0, half + length % 2)).append(bracket.substring(half));
+                surround(bracket.substring(0, half + length % 2), bracket.substring(half));
             }
 
             return builder;
+        }
+
+        /**
+         * Copies the <code>prefix</code> to the beginning of the list and <code>suffix</code> to the end.
+         *
+         * @param prefix the text to prepend to the current value.
+         * @param suffix the text to append to the current value.
+         *
+         * @return the underlying {@link StringBuilder} object.
+         */
+        public StringBuilder surround(final String prefix, final String suffix) {
+            return builder.insert(0, prefix).append(suffix);
+        }
+
+        /**
+         * Copies the <code>prefix</code> to the beginning of the list.
+         *
+         * @param prefix the text to prepend to the current value.
+         *
+         * @return the underlying {@link StringBuilder} object.
+         */
+        public StringBuilder prepend(final String prefix) {
+            return builder.insert(0, prefix);
+        }
+
+        /**
+         * Tells if the underlying {@link StringBuilder} is empty.
+         *
+         * @return <code>true</code> if the underlying {@link StringBuilder} is empty; <code>false</code> otherwise.
+         */
+        public boolean isEmpty() {
+            return builder.length() == 0;
+        }
+
+        @Override
+        public String toString() {
+            return builder.toString();
         }
     }
 }

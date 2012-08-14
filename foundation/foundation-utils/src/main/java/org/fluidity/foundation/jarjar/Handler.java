@@ -37,6 +37,7 @@ import java.util.jar.JarInputStream;
 
 import org.fluidity.foundation.ClassLoaders;
 import org.fluidity.foundation.Streams;
+import org.fluidity.foundation.Strings;
 
 /**
  * {@linkplain URLStreamHandler Stream protocol handler} to work with resources inside JAR archives embedded in other JAR archives, ad infinitum.
@@ -66,9 +67,14 @@ public final class Handler extends URLStreamHandler {
      */
     public static final String DELIMITER = "!:/";      // must not be the one used by the JAR handler
 
+    private static final String JAR_PROTOCOL = "jar:";
+    private static final String JAR_DELIMITER = "!/";
+
     private static final String PROTOCOL_HANDLERS_PROPERTY = "java.protocol.handler.pkgs";
 
     static {
+        assert !DELIMITER.equals(JAR_DELIMITER);
+
         final String canonicalName = Handler.class.getName();
         final int dot = canonicalName.lastIndexOf('.', canonicalName.length() - Handler.class.getSimpleName().length() - 2);
 
@@ -140,35 +146,35 @@ public final class Handler extends URLStreamHandler {
         }
 
         final String stem = root.toExternalForm();
-        final StringBuilder specification = new StringBuilder(256);
-        final URLConnection connection = root.openConnection();
+        final Strings.Listing specification = Strings.delimited(DELIMITER);
 
         if (root.getProtocol().equals(PROTOCOL)) {
-            specification.append(stem);
+            specification.set(stem);
         } else {
+            final URLConnection connection = root.openConnection();
+
             if (connection instanceof JarURLConnection) {
 
-                // we have a JAR URL but we need the enclosed URL and the JAR file path relative to the URL separately
+                // we have a JAR URL but we need the enclosed URL and the JAR file path relative to the URL, separately
                 final URL url = ((JarURLConnection) connection).getJarFileURL();
-                final String path = root.getPath().split("!/")[1];      // parsing a JAR URL, not our own URL
+                final String path = root.getPath().split(JAR_DELIMITER)[1];      // parsing a JAR URL, not our own URL
 
-                specification.append(PROTOCOL).append(':').append(url.toExternalForm());
-                specification.append(DELIMITER).append(path);
+                specification.set(PROTOCOL).append(':').append(url.toExternalForm());
+                specification.add(path);
             } else {
-                specification.append(PROTOCOL).append(':').append(stem);
+                specification.set(PROTOCOL).append(':').append(stem);
             }
         }
 
         for (final String path : paths) {
-            specification.append(DELIMITER).append(ClassLoaders.absoluteResourceName(path));
+            specification.add(ClassLoaders.absoluteResourceName(path));
         }
 
         if (!specification.toString().contains(DELIMITER)) {
-            specification.setLength(0);
-            specification.append(stem);
+            specification.set(stem);
         }
 
-        specification.insert(0, "jar:").append("!/");   // embedded _JAR_, remember?
+        specification.surround(JAR_PROTOCOL, JAR_DELIMITER);   // embedded _JAR_, remember?
 
         if (file != null) {
             specification.append(file);
@@ -215,24 +221,22 @@ public final class Handler extends URLStreamHandler {
         return url.openConnection() instanceof JarURLConnection ? new URL(url.getFile()) : url;
     }
 
-    private static final Map<URL, Map<String, Content>> contents = new HashMap<URL, Map<String, Content>>();
+    private static final Map<URL, Map<String, byte[]>> contents = new HashMap<URL, Map<String, byte[]>>();
 
     static byte[] contents(final URL url) throws IOException {
-        final Content data = load(url).get(url.getPath());
-        return data == null ? null : data.content;
+        final byte[] data = load(url).get(url.getPath());
+        return data == null ? null : data;
     }
 
     @SuppressWarnings("SynchronizationOnLocalVariableOrMethodParameter")
-    static Map<String, Content> load(final URL url) throws IOException {
+    static Map<String, byte[]> load(final URL url) throws IOException {
         assert url != null;
 
         final URL root = new URL(url.getHost());
-        Map<String, Content> content = contents.get(root);
+        Map<String, byte[]> content = contents.get(root);
 
         if (content == null) {
-            content = new HashMap<String, Content>();
-
-            final byte[] buffer = new byte[1024 * 1024];
+            content = new HashMap<String, byte[]>();
 
             synchronized (content) {
                 synchronized (contents) {
@@ -250,40 +254,14 @@ public final class Handler extends URLStreamHandler {
                 final URLConnection connection = root.openConnection();
                 connection.setUseCaches(true);
 
-                final byte[] bytes = Streams.load(connection.getInputStream(), buffer, true);
-                final JarInputStream container = new JarInputStream(new ByteArrayInputStream(bytes));
+                load(content, new HashMap<Metadata, String>(), new byte[1024 * 1024], "", new JarInputStream(connection.getInputStream()));
 
-                try {
-                    load(new HashMap<Metadata, String>(), content, buffer, "", container);
-                } finally {
-                    try {
-                        container.close();
-                    } catch (final IOException e) {
-                        // ignore
-                    }
-                }
+                return content;
             }
-        }
-
-        return content;
-    }
-
-    /**
-     * @author Tibor Varga
-     */
-    private static class Content {
-
-        public final long crc;
-        public final byte[] content;
-
-        public Content(final long crc, final byte[] content) {
-            this.crc = crc;
-            this.content = content;
-        }
-
-        @Override
-        public String toString() {
-            return String.format("%d (%d)", crc, content.length);
+        } else {
+            synchronized (content) {
+                return content;
+            }
         }
     }
 
@@ -292,11 +270,15 @@ public final class Handler extends URLStreamHandler {
      */
     private static class Metadata {
 
-        public final String name;
-        public final long crc;
+        private final String name;
+        private final long size;
+        private final long crc;
 
-        public Metadata(final String name, final long crc) {
-            this.name = name;
+        public Metadata(final String name, final long size, final long crc) {
+            assert name != null;
+            final String[] components = name.split("/");
+            this.name = components[components.length - 1];
+            this.size = size;
             this.crc = crc;
         }
 
@@ -305,70 +287,69 @@ public final class Handler extends URLStreamHandler {
             if (this == o) {
                 return true;
             }
+
             if (o == null || getClass() != o.getClass()) {
                 return false;
             }
 
             final Metadata that = (Metadata) o;
-            return crc == that.crc && name.equals(that.name);
+            return size == that.size && crc == that.crc && name.equals(that.name);
         }
 
         @Override
         public int hashCode() {
             int result = name.hashCode();
+            result = 31 * result + (int) (size ^ (size >>> 32));
             result = 31 * result + (int) (crc ^ (crc >>> 32));
             return result;
         }
 
         @Override
         public String toString() {
-            return String.format("%s (%d)", name, crc);
+            return String.format("%s (%d: %d)", name, size, crc);
         }
     }
 
-    private static void load(final Map<Metadata, String> map, final Map<String, Content> content, byte[] buffer, final String base, final JarInputStream stream) throws IOException {
-        for (JarEntry next; (next = stream.getNextJarEntry()) != null; stream.closeEntry()) {
-            final String name = next.getName();
-            final String entry = String.format("%s%s%s", base, DELIMITER, name);
+    private static void load(final Map<String, byte[]> content, final Map<Metadata, String> meta, byte[] buffer, final String base, final JarInputStream stream) throws IOException {
+        try {
+            for (JarEntry next; (next = stream.getNextJarEntry()) != null; stream.closeEntry()) {
+                final String name = next.getName();
+                final String entry = String.format("%s%s%s", base, DELIMITER, name);
 
-            final byte[] bytes = Streams.load(stream, buffer, false);
-            if (new JarInputStream(new ByteArrayInputStream(bytes)).getManifest() != null) {
+                final byte[] bytes = Streams.load(stream, buffer, false);
 
-                final long crc = next.getCrc();
-                final Metadata metadata = new Metadata(name, crc);
-                String reference = map.get(metadata);
+                if (new JarInputStream(new ByteArrayInputStream(bytes)).getManifest() != null) {
+                    final Metadata metadata = new Metadata(name, next.getSize(), next.getCrc());
+                    final String reference = meta.get(metadata);
 
-                if (reference == null) {
-                    map.put(metadata, entry);
-                } else {
-                    final Content loaded = content.get(reference);
+                    if (reference == null) {
+                        meta.put(metadata, entry);
+                        content.put(entry, bytes);
 
-                    if (loaded.crc == crc) {
-                        content.put(entry, loaded);
+                        load(content, meta, buffer, entry, new JarInputStream(new ByteArrayInputStream(bytes), false));
+                    } else {
+                        content.put(entry, content.get(reference));
 
-                        final Map<String, Content> copy = new HashMap<String, Content>();
+                        final Map<String, byte[]> entries = new HashMap<String, byte[]>();
                         final String prefix = reference.concat(DELIMITER);
 
-                        for (final Map.Entry<String, Content> candidate : content.entrySet()) {
+                        for (final Map.Entry<String, byte[]> candidate : content.entrySet()) {
                             final String key = candidate.getKey();
 
                             if (key.startsWith(prefix)) {
-                                copy.put(entry.concat(key.substring(reference.length())), candidate.getValue());
+                                entries.put(entry.concat(key.substring(reference.length())), candidate.getValue());
                             }
                         }
 
-                        content.putAll(copy);
+                        content.putAll(entries);
                     }
-
-                    return;
                 }
-
-                content.put(entry, new Content(crc, bytes));
-
-                final JarInputStream nested = new JarInputStream(new ByteArrayInputStream(bytes), false);
-                if (nested.getManifest() != null) {
-                    load(map, content, buffer, entry, nested);
-                }
+            }
+        } finally {
+            try {
+                stream.close();
+            } catch (final IOException e) {
+                // ignore
             }
         }
     }

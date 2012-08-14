@@ -205,6 +205,10 @@ public class StringsTest extends MockGroupAbstractTest {
 
         listing.surround("<|>");
         assert "<|({[|item|]})|>".equals(listing.toString()) : listing;
+
+        listing.set("item");
+        listing.prepend("[").append("]");
+        assert "[item]".equals(listing.toString()) : listing;
     }
 
     private void check(final String expected, final String actual) {

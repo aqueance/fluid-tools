@@ -309,13 +309,14 @@ public final class Archives extends Utility {
      * @author Tibor Varga
      */
     public static final class Nested extends Utility {
+
         /**
-         * The URL protocol understood by this handler. The value is computed to be the last component of the containing package.
+         * The URL protocol understood by this embedded JAR URL handler.
          */
         public static final String PROTOCOL = Handler.PROTOCOL;
 
         /**
-         * The path component delimiter in a valid URL.
+         * The path component delimiter in a valid embedded JAR URL.
          */
         public static final String DELIMITER = Handler.DELIMITER;
 

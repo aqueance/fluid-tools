@@ -399,7 +399,7 @@ public final class Components extends Utility {
                 text.add(Strings.printClass(true, specification.api));
 
                 if (specification.groups.length > 0) {
-                    text.builder.append(" group ").append(Arrays.toString(specification.groups));
+                    text.append(" group ").append(Arrays.toString(specification.groups));
                 }
             }
 
