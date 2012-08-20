@@ -42,7 +42,7 @@ import org.fluidity.foundation.Exceptions;
 public final class Launcher {
 
     /**
-     * The JAR manifest attribute to list the embedded JAR files that comprise the packages application.
+     * The JAR manifest attribute to list the embedded JAR files that comprise the packaged application.
      */
     public static final String NESTED_DEPENDENCIES = "Nested-Dependencies";
 

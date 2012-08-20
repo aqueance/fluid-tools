@@ -19,6 +19,7 @@ package org.fluidity.maven;
 import java.util.List;
 
 import org.fluidity.composition.ContainerBoundary;
+import org.fluidity.composition.Containers;
 import org.fluidity.foundation.ServiceProviders;
 
 import org.testng.annotations.Test;
@@ -28,7 +29,7 @@ import org.testng.annotations.Test;
  */
 public class ComponentRegistrationTest {
 
-    private final ContainerBoundary container = new ContainerBoundary();
+    private final ContainerBoundary container = Containers.prepare();
 
     @Test
     public void testComponents() throws Exception {

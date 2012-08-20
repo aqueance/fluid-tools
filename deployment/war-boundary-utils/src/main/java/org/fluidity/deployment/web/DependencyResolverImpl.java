@@ -19,7 +19,7 @@ package org.fluidity.deployment.web;
 import javax.servlet.ServletException;
 
 import org.fluidity.composition.ComponentContainer;
-import org.fluidity.composition.ContainerBoundary;
+import org.fluidity.composition.Containers;
 import org.fluidity.foundation.ClassLoaders;
 
 /**
@@ -29,30 +29,30 @@ import org.fluidity.foundation.ClassLoaders;
  */
 final class DependencyResolverImpl implements DependencyResolver {
 
-    public Object findComponent(final String componentClassName) throws ServletException {
-        return findComponent(Bootstrap.container, componentClassName);
+    public Object findComponent(final String type) throws ServletException {
+        return findComponent(Singleton.container, type);
     }
 
     /*
      * Package visible to make accessible to test cases.
      */
     @SuppressWarnings("unchecked")
-    Object findComponent(final ComponentContainer container, final String componentClassName) throws ServletException {
-        assert componentClassName != null : COMPONENT_KEY;
+    Object findComponent(final ComponentContainer container, final String type) throws ServletException {
+        assert type != null : COMPONENT_KEY;
 
         try {
             final ClassLoader classLoader = ClassLoaders.findClassLoader(DependencyResolver.class, true);
             assert classLoader != null : DependencyResolver.class;
 
-            final Class componentClass = classLoader.loadClass(componentClassName);
-            assert componentClass != null : componentClassName;
+            final Class componentClass = classLoader.loadClass(type);
+            assert componentClass != null : type;
 
             assert container != null : ComponentContainer.class;
             Object component = container.getComponent(componentClass);
 
             if (component == null) {
                 component = container.instantiate(componentClass);
-                assert component != null : componentClassName;
+                assert component != null : type;
             }
 
             return component;
@@ -61,7 +61,10 @@ final class DependencyResolverImpl implements DependencyResolver {
         }
     }
 
-    private static class Bootstrap {
-        private static final ComponentContainer container = new ContainerBoundary();
+    /**
+     * @author Tibor Varga
+     */
+    private static class Singleton {
+        private static final ComponentContainer container = Containers.global();
     }
 }

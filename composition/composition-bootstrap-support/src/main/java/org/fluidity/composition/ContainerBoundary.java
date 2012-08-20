@@ -68,6 +68,7 @@ import org.fluidity.foundation.spi.LogFactory;
  *
  * @author Tibor Varga
  */
+@SuppressWarnings("UnusedDeclaration")
 public final class ContainerBoundary implements ComponentContainer {
 
     private static final Map<ClassLoader, OpenComponentContainer> populatedContainers = new WeakHashMap<ClassLoader, OpenComponentContainer>();
@@ -114,7 +115,7 @@ public final class ContainerBoundary implements ComponentContainer {
     /**
      * Creates a container boundary for the current class loader.
      */
-    public ContainerBoundary() {
+    /* package */ ContainerBoundary() {
         final ClassLoader cl = Thread.currentThread().getContextClassLoader();
         this.classLoader = cl == null ? getClass().getClassLoader() : cl;
     }
@@ -124,7 +125,7 @@ public final class ContainerBoundary implements ComponentContainer {
      *
      * @param classLoader the class loader.
      */
-    public ContainerBoundary(final ClassLoader classLoader) {
+    /* package */ ContainerBoundary(final ClassLoader classLoader) {
         this.classLoader = classLoader;
     }
 
@@ -338,9 +339,7 @@ public final class ContainerBoundary implements ComponentContainer {
      * @return list of populated containers at and above the current class loader.
      */
     private List<OpenComponentContainer> makeContainer() {
-        if (services == null) {
-            services = new BootstrapServicesImpl();
-        }
+        initFinder();
 
         // list of class loaders from current one up the hierarchy
         final List<ClassLoader> classLoaders = new ArrayList<ClassLoader>();
@@ -354,25 +353,12 @@ public final class ContainerBoundary implements ComponentContainer {
             final ClassLoader loader = i.previous();
 
             if (!populatedContainers.containsKey(loader)) {
-                if (containerBootstrap == null) {
-                    containerBootstrap = services.findInstance(ContainerBootstrap.class, loader);
-                }
-
-                if (containerProvider == null) {
-                    containerProvider = services.findInstance(ContainerProvider.class, loader);
-                }
+                findBootstrap(loader);
+                findProvider(loader);
 
                 if (containerBootstrap != null && containerProvider != null) {
                     if (rootClassLoader == null) {
                         rootClassLoader = loader;
-                    }
-
-                    if (containerServices == null) {
-                        final ContainerServicesFactory factory = services.findInstance(ContainerServicesFactory.class, loader);
-                        assert factory != null : ContainerServicesFactory.class;
-
-                        containerServices = factory.containerServices(services.findInstance(LogFactory.class, loader));
-                        assert containerServices != null : ContainerServicesFactory.class;
                     }
 
                     final Map map = propertiesMap.get(loader);
@@ -398,7 +384,7 @@ public final class ContainerBoundary implements ComponentContainer {
 
                     container.set(ClassLoaders.context(loader, new ClassLoaders.Command<OpenComponentContainer, RuntimeException>() {
                         public OpenComponentContainer run(final ClassLoader loader) {
-                            return containerBootstrap.populateContainer(containerServices,
+                            return containerBootstrap.populateContainer(findServices(loader),
                                                                         containerProvider,
                                                                         map == null ? new HashMap() : map,
                                                                         parent,
@@ -429,6 +415,30 @@ public final class ContainerBoundary implements ComponentContainer {
         }
 
         return containers;
+    }
+
+    private BootstrapServices initFinder() {
+        return services == null ? services = Singleton.BOOTSTRAP_SERVICES : services;
+    }
+
+    private ContainerProvider findProvider(final ClassLoader loader) {
+        return containerProvider == null ? containerProvider = services.findInstance(ContainerProvider.class, loader) : containerProvider;
+    }
+
+    private ContainerBootstrap findBootstrap(final ClassLoader loader) {
+        return containerBootstrap == null ? containerBootstrap = services.findInstance(ContainerBootstrap.class, loader) : containerBootstrap;
+    }
+
+    private ContainerServices findServices(final ClassLoader loader) {
+        if (containerServices == null) {
+            final ContainerServicesFactory factory = services.findInstance(ContainerServicesFactory.class, loader);
+            assert factory != null : ContainerServicesFactory.class;
+
+            containerServices = factory.containerServices(services.findInstance(LogFactory.class, loader));
+            assert containerServices != null : ContainerServicesFactory.class;
+        }
+
+        return containerServices;
     }
 
     /**
@@ -473,7 +483,35 @@ public final class ContainerBoundary implements ComponentContainer {
                 }
             }
 
-            return containers.isEmpty() ? null : containers.get(0);
+            if (containers.isEmpty()) {
+                throw new IllegalStateException("No container found");
+            } else {
+                return containers.get(0);
+            }
         }
+    }
+
+    /**
+     * Creates an empty container.
+     *
+     * @return an empty container.
+     */
+    /* package */ OpenComponentContainer create() {
+        initFinder();
+
+        if (findProvider(classLoader) != null) {
+            return containerProvider.newContainer(findServices(classLoader), null);
+        } else {
+            throw new IllegalStateException(String.format("Container implementation not found; could not find service providers %s in class loader %s",
+                                                          ContainerProvider.class.getName(),
+                                                          classLoader));
+        }
+    }
+
+    /**
+     * @author Tibor Varga
+     */
+    private static class Singleton {
+        private static final BootstrapServices BOOTSTRAP_SERVICES = new BootstrapServicesImpl();
     }
 }

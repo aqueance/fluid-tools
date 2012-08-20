@@ -19,7 +19,7 @@ package org.fluidity.composition.web;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
-import org.fluidity.composition.ContainerBoundary;
+import org.fluidity.composition.Containers;
 
 /**
  * Forwards servlet context listener callbacks to all {@link ServletContextListener ServletContextListeners} annotated with
@@ -41,7 +41,7 @@ import org.fluidity.composition.ContainerBoundary;
  */
 public final class AggregatingServletContextListener implements ServletContextListener {
 
-    private final ServletContextListener listeners[] = new ContainerBoundary().getComponentGroup(ServletContextListener.class);
+    private final ServletContextListener listeners[] = Containers.global().getComponentGroup(ServletContextListener.class);
 
     /**
      * Invoked by the servlet container to create a new instance.

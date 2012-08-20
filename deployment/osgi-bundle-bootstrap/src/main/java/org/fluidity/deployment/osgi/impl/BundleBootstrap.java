@@ -24,6 +24,7 @@ import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentGroup;
 import org.fluidity.composition.ContainerBoundary;
+import org.fluidity.composition.Containers;
 import org.fluidity.composition.Inject;
 import org.fluidity.composition.Optional;
 import org.fluidity.composition.spi.ContainerTermination;
@@ -46,7 +47,7 @@ import org.osgi.framework.BundleContext;
 public final class BundleBootstrap implements BundleActivator {
 
     // this dependence on the bundle class loader requires this class to be loaded by that bundle class loader
-    private final ContainerBoundary bootstrap = new ContainerBoundary(BundleBootstrap.class.getClassLoader());
+    private final ContainerBoundary bootstrap = Containers.prepare(BundleBootstrap.class.getClassLoader());
     private final BundleTermination termination = new BundleTermination();
 
     private BundleComponentContainer components;

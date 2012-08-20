@@ -31,7 +31,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.jar.JarFile;
 
-import org.fluidity.composition.ContainerBoundary;
+import org.fluidity.composition.Containers;
 import org.fluidity.composition.Optional;
 import org.fluidity.composition.spi.ContainerTermination;
 import org.fluidity.deployment.osgi.StartLevels;
@@ -57,7 +57,7 @@ import org.osgi.framework.startlevel.FrameworkStartLevel;
  * A command line main class that populates the application's dependency injection container, bootstraps an OSGi framework, installs all OSGi bundle JAR files
  * visible to its class loader, starts all non-fragment bundles, and then waits for the OSGi framework to stop.
  * <p/>
- * <b>NOTE</b>: This class is public <em>only</em> so that its main method can be found by the Java launcher.
+ * <b>NOTE</b>: This class is public <em>only</em> so that its <code>main</code> method can be found by the Java launcher.
  * <p/>
  * With OSGi version 4.3 or later, bundle and framework start levels default to 2 to enable starting and stopping all bundles simply by setting the framework
  * start level. Fine tuning of start levels is possible through an optional implementation of the {@link StartLevels} interface.
@@ -310,6 +310,6 @@ public final class OsgiApplicationBootstrap {
     }
 
     public static void main(final String[] args) throws Exception {
-        new ContainerBoundary().instantiate(OsgiApplicationBootstrap.class).run();
+        Containers.global().instantiate(OsgiApplicationBootstrap.class).run();
     }
 }

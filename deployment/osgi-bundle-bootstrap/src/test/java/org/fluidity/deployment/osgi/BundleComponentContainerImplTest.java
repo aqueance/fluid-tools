@@ -29,7 +29,7 @@ import java.util.Properties;
 import java.util.Set;
 
 import org.fluidity.composition.ComponentContainer;
-import org.fluidity.composition.ContainerBoundary;
+import org.fluidity.composition.Containers;
 import org.fluidity.foundation.ClassDiscovery;
 import org.fluidity.foundation.Log;
 import org.fluidity.foundation.NoLogFactory;
@@ -53,7 +53,7 @@ import org.testng.annotations.Test;
 @SuppressWarnings("unchecked")
 public class BundleComponentContainerImplTest extends MockGroupAbstractTest {
 
-    private final ComponentContainer root = new ContainerBoundary();
+    private final ComponentContainer root = Containers.global();
 
     private final Bundle bundle = mock(Bundle.class);
     private final BundleContext context = mock(BundleContext.class);

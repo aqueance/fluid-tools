@@ -23,7 +23,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
-import org.fluidity.composition.ContainerBoundary;
+import org.fluidity.composition.Containers;
 import org.fluidity.composition.Inject;
 import org.fluidity.foundation.Deferred;
 
@@ -34,7 +34,7 @@ import org.testng.annotations.Test;
  */
 public class DeferredDependencyTest {
 
-    private final ComponentContainer container = new ContainerBoundary();
+    private final ComponentContainer container = Containers.global();
 
     @Test
     public void testPlainDependency() throws Exception {

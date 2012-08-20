@@ -38,7 +38,7 @@ import org.fluidity.foundation.ServiceProviders;
  * A command line main class that prepares the web container bootstrap process, e.g., creating a work directory, setting up the boot classpath and, then loads
  * and invokes a supplied {@linkplain ServerBootstrap bootstrap} component.
  * <p/>
- * <b>NOTE</b>: This class is public <em>only</em> so that its main method can be found by the Java launcher.
+ * <b>NOTE</b>: This class is public <em>only</em> so that its <code>main</code> method can be found by the Java launcher.
  * <h3>Usage</h3>
  * Use the <code>org.fluidity.maven:fluidity-archetype-standalone-war</code> Maven archetype to create the standalone web application wrapper project.
  *

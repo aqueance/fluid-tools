@@ -14,7 +14,9 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 *#
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>\${groupId}</groupId>
     <artifactId>\${artifactId}</artifactId>
@@ -54,6 +56,7 @@ limitations under the License.
                 <groupId>${fluidity.plugin.groupId}</groupId>
                 <artifactId>composition-maven-plugin</artifactId>
                 <version>${symbol_dollar}{fluid.tools.version}</version>
+
                 <executions>
                     <execution>
                         <goals>
@@ -64,24 +67,10 @@ limitations under the License.
             </plugin>
 
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <version>2.3.2</version>
-                <configuration>
-                    <archive>
-                        <manifest>
-
-                            <!-- You can use your own main class, of course, unless you want component deployment -->
-                            <mainClass>org.fluidity.deployment.launcher.ShellApplicationBootstrap</mainClass>
-                        </manifest>
-                    </archive>
-                </configuration>
-            </plugin>
-
-            <plugin>
                 <groupId>${fluidity.plugin.groupId}</groupId>
                 <artifactId>standalone-jar-maven-plugin</artifactId>
                 <version>${symbol_dollar}{fluid.tools.version}</version>
+
                 <executions>
                     <execution>
                         <goals>
@@ -89,14 +78,13 @@ limitations under the License.
                         </goals>
                     </execution>
                 </executions>
-                <dependencies>
 
+                <dependencies>
                     <dependency>
                         <groupId>${fluidity.features.groupId}</groupId>
                         <artifactId>jar-manifest-command-launcher-impl</artifactId>
                         <version>${symbol_dollar}{fluid.tools.version}</version>
                     </dependency>
-
                 </dependencies>
             </plugin>
 

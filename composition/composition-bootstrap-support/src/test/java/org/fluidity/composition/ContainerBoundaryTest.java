@@ -290,6 +290,35 @@ public class ContainerBoundaryTest extends MockGroupAbstractTest {
     }
 
     @Test
+    public void testCreatesEmptyContainer() throws Exception {
+        final ClassLoader classLoader = getClass().getClassLoader();
+
+        final ContainerBoundary boundary = new ContainerBoundary(classLoader);
+        boundary.reset(providers);
+
+        EasyMock.expect(providers.<ContainerProvider>findInstance(ContainerProvider.class, classLoader)).andReturn(provider);
+        EasyMock.expect(providers.<ContainerServicesFactory>findInstance(ContainerServicesFactory.class, classLoader)).andReturn(servicesFactory);
+        EasyMock.expect(providers.<LogFactory>findInstance(LogFactory.class, classLoader)).andReturn(logs);
+        EasyMock.expect(servicesFactory.containerServices(logs)).andReturn(services);
+
+        final OpenComponentContainer container1 = localMock(OpenComponentContainer.class);
+
+        EasyMock.expect(provider.newContainer(services, null)).andReturn(container1);
+
+        replay();
+        assert  boundary.create() == container1;
+        verify();
+
+        final OpenComponentContainer container2 = localMock(OpenComponentContainer.class);
+
+        EasyMock.expect(provider.newContainer(services, null)).andReturn(container2);
+
+        replay();
+        assert boundary.create() == container2;
+        verify();
+    }
+
+    @Test
     @SuppressWarnings("unchecked")
     public void bindsBootComponentBeforePopulationButRefusesAfter() throws Exception {
 

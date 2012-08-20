@@ -18,7 +18,7 @@ package org.fluidity.foundation.tests;
 
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
-import org.fluidity.composition.ContainerBoundary;
+import org.fluidity.composition.Containers;
 import org.fluidity.foundation.Log;
 
 import org.testng.annotations.Test;
@@ -28,7 +28,7 @@ import org.testng.annotations.Test;
  */
 public class LogFactoryTest {
 
-    private final ComponentContainer container = new ContainerBoundary();
+    private final ComponentContainer container = Containers.global();
 
     @Test
     public void testLogInjection() throws Exception {

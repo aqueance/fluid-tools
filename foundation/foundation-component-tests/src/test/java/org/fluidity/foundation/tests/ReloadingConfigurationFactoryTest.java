@@ -18,7 +18,7 @@ package org.fluidity.foundation.tests;
 
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
-import org.fluidity.composition.ContainerBoundary;
+import org.fluidity.composition.Containers;
 import org.fluidity.features.ReloadingConfiguration;
 import org.fluidity.features.Updates;
 import org.fluidity.foundation.Configuration;
@@ -30,7 +30,7 @@ import org.testng.annotations.Test;
  */
 public class ReloadingConfigurationFactoryTest {
 
-    private final ComponentContainer container = new ContainerBoundary();
+    private final ComponentContainer container = Containers.global();
 
     @Test
     public void testWithoutContext() throws Exception {

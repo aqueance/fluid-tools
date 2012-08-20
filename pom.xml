@@ -343,7 +343,7 @@
             <resource>
                 <directory>src/licenses</directory>
                 <filtering>true</filtering>
-                <targetPath>META-INF/fluidity/licenses/${project.groupId}/${project.artifactId}</targetPath>
+                <targetPath>META-INF/licenses/${project.groupId}/${project.artifactId}</targetPath>
             </resource>
         </resources>
 
@@ -355,7 +355,7 @@
             <testResource>
                 <directory>src/licenses</directory>
                 <filtering>true</filtering>
-                <targetPath>META-INF/fluidity/licenses/${project.groupId}/${project.artifactId}</targetPath>
+                <targetPath>META-INF/licenses/${project.groupId}/${project.artifactId}</targetPath>
             </testResource>
         </testResources>
 

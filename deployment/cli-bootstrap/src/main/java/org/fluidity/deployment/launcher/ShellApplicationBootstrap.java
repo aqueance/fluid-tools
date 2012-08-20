@@ -16,37 +16,21 @@
 
 package org.fluidity.deployment.launcher;
 
-import org.fluidity.composition.ContainerBoundary;
+import org.fluidity.composition.Component;
+import org.fluidity.composition.Containers;
 import org.fluidity.deployment.cli.Application;
 
 /**
- * A command line main class that populates the application's dependency injection container and invokes {@link Application#run(String[])} on the application
- * supplied implementation to load and run the application's main loop.
+ * A command line main class that populates the application's dependency injection container and invokes {@link Application#run(String[])} on the detected
+ * implementation of the {@link Application} interface.
  * <p/>
- * <b>NOTE</b>: This class is public <em>only</em> so that its main method can be found by the Java launcher.
+ * <b>NOTE</b>: This class is public <em>only</em> so that its <code>main</code> method can be found by the Java launcher.
  * <h3>Usage</h3>
  * Use the <code>org.fluidity.maven:fluidity-archetype-standalone-jar</code> Maven archetype to generate the command line application wrapper project.
  *
  * @author Tibor Varga
  */
 public final class ShellApplicationBootstrap {
-
-    private final Application application;
-
-    /**
-     * Dependency injected constructor.
-     *
-     * @param application the main loop to invoke.
-     *
-     * @throws Exception in any exceptional situation.
-     */
-    public ShellApplicationBootstrap(final Application application) throws Exception {
-        this.application = application;
-    }
-
-    private void run(final String[] args) throws Exception {
-        application.run(args);
-    }
 
     /**
      * Command line application entry point.
@@ -56,6 +40,12 @@ public final class ShellApplicationBootstrap {
      * @throws Exception whatever {@link Application#run(String[])} throws.
      */
     public static void main(final String[] args) throws Exception {
-        new ContainerBoundary().instantiate(ShellApplicationBootstrap.class).run(args);
+        final Application application = Containers.global().getComponent(Application.class);
+
+        if (application == null) {
+            throw new IllegalStateException(String.format("Application not found; implement %s and annotate it with @%s", Application.class.getName(), Component.class.getName()));
+        } else {
+            application.run(args);
+        }
     }
 }
