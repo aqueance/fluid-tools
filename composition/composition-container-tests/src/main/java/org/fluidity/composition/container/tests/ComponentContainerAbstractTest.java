@@ -82,7 +82,7 @@ public abstract class ComponentContainerAbstractTest extends MockGroupAbstractTe
         };
     }
 
-    // IDEA fails to recognize subclasses as test classes without this
+    // IntelliJ IDEA fails to recognize subclasses as test classes without this
     @Test(enabled = false)
     public void ignored() { }
 }

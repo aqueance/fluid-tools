@@ -57,7 +57,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
     public void setMockFactory() {
         ContextExpansionFactory.delegate = this.factory;
         DependentFactory.delegate = this.factory;
-        DependentFactory.instances.clear();
+        DependentFactory.used.clear();
     }
 
     @Test
@@ -220,7 +220,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
         verify();
 
         // only one factory instance should be created as opposed to one for every context
-        assert DependentFactory.instances.size() == 1 : DependentFactory.instances.size();
+        assert DependentFactory.used.size() == 1 : DependentFactory.used.size();
     }
 
     @Test
@@ -337,7 +337,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
                 assert context.defines(Setting2.class) : Setting2.class;
                 return new ComponentFactory.Instance() {
                     public void bind(final ComponentFactory.Registry registry) throws ComponentContainer.BindingException {
-                        // empty
+                        registry.bindComponent(ContextDependentValue.class);
                     }
                 };
             }
@@ -495,7 +495,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
     private static class DependentFactory implements ComponentFactory {
 
         public static ComponentFactory delegate;
-        public static Set<DependentFactory> instances = new HashSet<DependentFactory>();
+        public static Set<DependentFactory> used = new HashSet<DependentFactory>();
 
         public DependentFactory(final FactoryDependency dependent) {
             assert dependent != null;
@@ -507,7 +507,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
 
             return new Instance() {
                 public void bind(final Registry registry) throws ComponentContainer.BindingException {
-                    instances.add(DependentFactory.this);        // only instances in actual use count
+                    used.add(DependentFactory.this);
                     assert instance != null;
                     instance.bind(registry);
                 }
@@ -529,7 +529,6 @@ public final class ComponentVariantTests extends AbstractContainerTests {
                 public void bind(final Registry registry) throws ComponentContainer.BindingException {
                     assert instance != null;
                     instance.bind(registry);
-                    registry.bindComponent(ContextDependentValue.class);
                 }
             };
         }
