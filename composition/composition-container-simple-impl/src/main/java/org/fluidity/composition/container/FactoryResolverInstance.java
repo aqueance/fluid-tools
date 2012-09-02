@@ -27,7 +27,7 @@ import org.fluidity.foundation.spi.LogFactory;
  *
  * @author Tibor Varga
  */
-final class FactoryResolverInstance extends AbstractFactoryResolver {
+final class FactoryResolverInstance extends FactoryResolver {
 
     private final ComponentFactory factory;
 

@@ -208,7 +208,7 @@ final class SimpleContainerImpl implements ParentContainer {
                 return new ConstructingResolver(isFallback ? 0 : 1, api, implementation, resolvesFactory, cache, injector, logs);
             }
 
-            public AbstractFactoryResolver factory(final Class<?> api, final ComponentCache cache) {
+            public FactoryResolver factory(final Class<?> api, final ComponentCache cache) {
                 final Class<? extends ComponentFactory> factory = implementation.asSubclass(ComponentFactory.class);
                 return new FactoryResolverClass(isFallback ? 0 : 1, api, factory, cache, logs);
             }
@@ -242,7 +242,7 @@ final class SimpleContainerImpl implements ParentContainer {
             }
 
             @SuppressWarnings("ConstantConditions")
-            public AbstractFactoryResolver factory(final Class<?> api, final ComponentCache cache) {
+            public FactoryResolver factory(final Class<?> api, final ComponentCache cache) {
                 return new FactoryResolverInstance(isFallback ? 0 : 1, api, (ComponentFactory) instance, cache, logs);
             }
         });
@@ -492,7 +492,7 @@ final class SimpleContainerImpl implements ParentContainer {
          *
          * @return a component resolver that will produce, and cache if necessary, a single instance of the component factory.
          */
-        AbstractFactoryResolver factory(Class<?> api, ComponentCache cache);
+        FactoryResolver factory(Class<?> api, ComponentCache cache);
     }
 
     private class InstanceDescriptor implements ContextNode {

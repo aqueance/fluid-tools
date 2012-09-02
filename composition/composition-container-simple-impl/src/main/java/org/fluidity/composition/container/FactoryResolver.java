@@ -36,7 +36,7 @@ import org.fluidity.foundation.spi.LogFactory;
  *
  * @author Tibor Varga
  */
-abstract class AbstractFactoryResolver extends AbstractResolver {
+abstract class FactoryResolver extends AbstractResolver {
 
     /**
      * Returns the {@link ComponentFactory} instance this is a mapping for.
@@ -52,11 +52,11 @@ abstract class AbstractFactoryResolver extends AbstractResolver {
 
     private final Class<? extends ComponentFactory> factoryClass;
 
-    public AbstractFactoryResolver(final Class<? extends ComponentFactory> factoryClass,
-                                   final int priority,
-                                   final Class<?> api,
-                                   final ComponentCache cache,
-                                   final LogFactory logs) {
+    public FactoryResolver(final Class<? extends ComponentFactory> factoryClass,
+                           final int priority,
+                           final Class<?> api,
+                           final ComponentCache cache,
+                           final LogFactory logs) {
         super(priority, api, cache, logs);
         this.factoryClass = factoryClass;
     }
@@ -148,7 +148,7 @@ abstract class AbstractFactoryResolver extends AbstractResolver {
 
             private DependencyGraph.Node resolve(final Class<?> api, final Type reference, final Annotation[] annotations) {
                 assert reference != null : api;
-                final Class<?> resolving = AbstractFactoryResolver.this.api;
+                final Class<?> resolving = FactoryResolver.this.api;
 
                 return injector.resolve(api, new DependencyInjector.Resolution() {
                     public ComponentContext context() {
