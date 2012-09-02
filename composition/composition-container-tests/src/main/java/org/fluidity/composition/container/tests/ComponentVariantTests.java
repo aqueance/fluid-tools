@@ -499,6 +499,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
 
         public DependentFactory(final FactoryDependency dependent) {
             assert dependent != null;
+            used.add(DependentFactory.this);
         }
 
         public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
@@ -507,7 +508,6 @@ public final class ComponentVariantTests extends AbstractContainerTests {
 
             return new Instance() {
                 public void bind(final Registry registry) throws ComponentContainer.BindingException {
-                    used.add(DependentFactory.this);
                     assert instance != null;
                     instance.bind(registry);
                 }
