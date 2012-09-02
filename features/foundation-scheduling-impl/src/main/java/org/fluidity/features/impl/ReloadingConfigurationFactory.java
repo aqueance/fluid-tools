@@ -24,7 +24,7 @@ import java.util.Map;
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
-import org.fluidity.composition.spi.CustomComponentFactory;
+import org.fluidity.composition.spi.ComponentFactory;
 import org.fluidity.features.ReloadingConfiguration;
 import org.fluidity.features.Updates;
 import org.fluidity.foundation.Configuration;
@@ -37,7 +37,7 @@ import org.fluidity.foundation.Proxies;
  */
 @Component(api = ReloadingConfiguration.class)
 @Component.Context(value = { Configuration.Context.class, Component.Reference.class })
-final class ReloadingConfigurationFactory implements CustomComponentFactory {
+final class ReloadingConfigurationFactory implements ComponentFactory {
 
     public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
         final Component.Reference reference = context.annotation(Component.Reference.class, ReloadingConfiguration.class);

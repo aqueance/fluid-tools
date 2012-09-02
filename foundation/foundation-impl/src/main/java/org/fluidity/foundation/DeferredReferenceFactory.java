@@ -19,7 +19,7 @@ package org.fluidity.foundation;
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
-import org.fluidity.composition.spi.CustomComponentFactory;
+import org.fluidity.composition.spi.ComponentFactory;
 
 /**
  * This factory makes it possible to depend on a lazy instantiated component when the deferred reference itself needs to be exposed. Use the {@link
@@ -30,7 +30,7 @@ import org.fluidity.composition.spi.CustomComponentFactory;
 @Component(api = Deferred.Reference.class)
 @Component.Context(Component.Reference.class)
 @SuppressWarnings("UnusedDeclaration")
-final class DeferredReferenceFactory implements CustomComponentFactory {
+final class DeferredReferenceFactory implements ComponentFactory {
 
     public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
         final Dependency<?> dependency = dependencies.resolve(null, Generics.typeParameter(context.annotation(Component.Reference.class, null).type(), 0));

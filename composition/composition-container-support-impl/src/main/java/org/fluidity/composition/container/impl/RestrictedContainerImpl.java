@@ -118,7 +118,7 @@ final class RestrictedContainerImpl implements RestrictedContainer {
             if (enabled.get()) {
                 return valid;
             } else {
-                throw new ResolutionException("No dynamic dependencies allowed, use a CustomComponentFactory if you need such functionality");
+                throw new ResolutionException("No dynamic dependencies allowed, use a ComponentFactory if you need such functionality");
             }
         }
 

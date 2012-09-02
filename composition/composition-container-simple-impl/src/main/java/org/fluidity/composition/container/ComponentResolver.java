@@ -55,13 +55,6 @@ interface ComponentResolver extends ContextNode {
     int priority();
 
     /**
-     * Tells whether the mapping is that of a {@link org.fluidity.composition.spi.ComponentVariantFactory}.
-     *
-     * @return <code>true</code> if the mapping is that of a {@link org.fluidity.composition.spi.ComponentVariantFactory}, <code>false</code> otherwise.
-     */
-    boolean isVariantMapping();
-
-    /**
      * Tells whether this mapping has been created for an already instantiated component.
      *
      * @return <code>true</code> if this mapping represents an already instantiated component, <code>false</code> otherwise.

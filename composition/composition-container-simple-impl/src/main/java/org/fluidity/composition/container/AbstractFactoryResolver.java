@@ -32,9 +32,23 @@ import org.fluidity.foundation.Generics;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**
- * Encapsulates common functionality among various factory resolvers.
+ * Component resolver for a {@link ComponentFactory} component.
+ *
+ * @author Tibor Varga
  */
 abstract class AbstractFactoryResolver extends AbstractResolver {
+
+    /**
+     * Returns the {@link ComponentFactory} instance this is a mapping for.
+     *
+     * @param container  the container in which to resolve dependencies of the factory.
+     * @param traversal  the current graph traversal.
+     * @param definition the context in which the resolution takes place.
+     * @param reference  the parameterized type of the dependency reference.
+     *
+     * @return the {@link ComponentFactory} instance this is a mapping for.
+     */
+    protected abstract ComponentFactory factory(SimpleContainer container, DependencyGraph.Traversal traversal, ContextDefinition definition, Type reference);
 
     private final Class<? extends ComponentFactory> factoryClass;
 
@@ -51,38 +65,20 @@ abstract class AbstractFactoryResolver extends AbstractResolver {
         return factoryClass;
     }
 
-    /**
-     * Returns the {@link ComponentFactory} instance this is a mapping for.
-     *
-     * @param container  the container in which to resolve dependencies of the factory.
-     * @param traversal  the current graph traversal.
-     * @param definition the context in which the resolution takes place.
-     * @param reference  the parameterized type of the dependency reference.
-     *
-     * @return the {@link ComponentFactory} instance this is a mapping for.
-     */
-    protected abstract ComponentFactory factory(SimpleContainer container, DependencyGraph.Traversal traversal, ContextDefinition definition, Type reference);
+    public final Annotation[] providedContext() {
+        return null;
+    }
 
-    /**
-     * Invokes the factory and performs proper context housekeeping.
-     *
-     * @param domain    the domain container.
-     * @param traversal the current dependency traversal.
-     * @param container the original container.
-     * @param context   the current component context.
-     * @param child     the child of the original container to pass to the factory.
-     * @param reference the parameterized type of the dependency reference.
-     * @param api       the component interface of the dependency to resolve.
-     *
-     * @return the graph node for the component.
-     */
-    protected final DependencyGraph.Node resolve(final ParentContainer domain,
-                                                 final DependencyGraph.Traversal traversal,
-                                                 final SimpleContainer container,
-                                                 final ContextDefinition context,
-                                                 final SimpleContainer child,
-                                                 final Type reference,
-                                                 final Class<?> api) {
+    public final Class<?> contextConsumer() {
+        return factoryClass();
+    }
+
+    public final DependencyGraph.Node resolve(final ParentContainer domain,
+                                        final DependencyGraph.Traversal traversal,
+                                        final SimpleContainer container,
+                                        final ContextDefinition context,
+                                        final Type reference) {
+        final SimpleContainer child = container.newChildContainer(false);
         final List<RestrictedContainer> containers = new ArrayList<RestrictedContainer>();
         final List<ContextDefinition> contexts = new ArrayList<ContextDefinition>();
 
@@ -101,13 +97,13 @@ abstract class AbstractFactoryResolver extends AbstractResolver {
                 return api;
             }
 
-            public Object instance(final DependencyGraph.Traversal traversal) {
+            public Object instance(final DependencyGraph.Traversal traversal11) {
                 try {
                     if (instance == null) {
                         return null;
                     } else {
                         instance.bind(registry);
-                        return child.resolveComponent(api, saved, traversal, reference).instance(traversal);
+                        return child.resolveComponent(api, saved, traversal11, reference).instance(traversal11);
                     }
                 } finally {
                     for (final RestrictedContainer restricted : containers) {
@@ -213,6 +209,11 @@ abstract class AbstractFactoryResolver extends AbstractResolver {
                 return nodes.toArray(new ComponentFactory.Dependency<?>[nodes.size()]);
             }
         });
+    }
+
+    @Override
+    public String toString() {
+        return String.format("%s (via %s)", api.getName(), factoryClass().getName());
     }
 
     @SuppressWarnings("unchecked")

@@ -37,12 +37,12 @@ import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.Optional;
-import org.fluidity.composition.spi.CustomComponentFactory;
+import org.fluidity.composition.spi.ComponentFactory;
 import org.fluidity.foundation.spi.PropertyProvider;
 
 @Component(api = Configuration.class)
 @Component.Context({ Configuration.Context.class, Component.Reference.class })
-final class ConfigurationFactory implements CustomComponentFactory {
+final class ConfigurationFactory implements ComponentFactory {
 
     public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
         final Component.Reference reference = context.annotation(Component.Reference.class, Configuration.class);

@@ -30,8 +30,7 @@ import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.ComponentGroup;
 import org.fluidity.composition.Inject;
-import org.fluidity.composition.spi.ComponentVariantFactory;
-import org.fluidity.composition.spi.CustomComponentFactory;
+import org.fluidity.composition.spi.ComponentFactory;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
@@ -56,10 +55,10 @@ public final class ComponentContextTests extends AbstractContainerTests {
     @DataProvider(name = "component-types")
     public Object[][] componentTypes() {
         return new Object[][] {
-                new Object[] { ContextAware1Impl.class, null },
-                new Object[] { ContextAware2Impl.class, null },
-                new Object[] { NotContextAware1Impl.class, ContextAwareVariants1.class },
-                new Object[] { NotContextAware2Impl.class, ContextAwareVariants2.class },
+                new Object[] { ContextAware1Impl.class },
+                new Object[] { ContextAware2Impl.class },
+                new Object[] { ContextAwareVariants1.class },
+                new Object[] { ContextAwareVariants2.class },
         };
     }
 
@@ -95,17 +94,14 @@ public final class ComponentContextTests extends AbstractContainerTests {
     }
 
     @Test(dataProvider = "component-types")
-    public <T extends ContextAware, F extends ComponentVariantFactory> void testExplicitContext(final Class<? extends T> type,
-                                                                                                final Class<? extends F> factory)
-            throws Exception {
-        registry.bindComponent(type);
+    public <T extends ContextAware, F extends ComponentFactory> void testExplicitContext(final Class<? extends T> type) throws Exception {
+        if (type != null) {
+            registry.bindComponent(type);
+        }
+
         registry.bindComponent(Test1.class);
         registry.bindComponent(Test2.class);
         registry.bindComponent(Test3.class);
-
-        if (factory != null) {
-            registry.bindComponent(factory);
-        }
 
         final ContextAware variant0 = container.getComponent(ContextAware.class);
         final ContextAware variant1 = container.getComponent(Test1.class).dependency;
@@ -132,7 +128,6 @@ public final class ComponentContextTests extends AbstractContainerTests {
         registry.bindComponent(BaseComponent.class);
         registry.bindComponent(OverridingComponent.class);
         registry.bindComponent(ContextAwareComponent1Impl.class);
-        registry.bindComponent(OrdinaryComponent2Impl.class);
         registry.bindComponent(OrdinaryComponentVariants2.class);
 
         final BaseComponent root = container.getComponent(BaseComponent.class);
@@ -150,8 +145,6 @@ public final class ComponentContextTests extends AbstractContainerTests {
     public void testContextInheritance() throws Exception {
         registry.bindComponent(ContextAwareComponent1Impl.class);
         registry.bindComponent(ContextAwareComponent2Impl.class);
-        registry.bindComponent(OrdinaryComponent1Impl.class);
-        registry.bindComponent(OrdinaryComponent2Impl.class);
         registry.bindComponent(OrdinaryComponentVariants1.class);
         registry.bindComponent(OrdinaryComponentVariants2.class);
         registry.bindComponent(InnocentBystanderComponent.class);
@@ -422,7 +415,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
 
     @Component(api = SecondComponent.class)
     @Component.Context(Setting2.class)
-    private static final class SecondFactory implements CustomComponentFactory {
+    private static final class SecondFactory implements ComponentFactory {
         public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
             final Dependency<?>[] args = dependencies.discover(SecondComponent.class);
 
@@ -441,7 +434,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
 
     @Component(api = ThirdComponent.class)
     @Component.Context({ Setting1.class, Setting3.class })
-    private static final class ThirdFactory implements CustomComponentFactory {
+    private static final class ThirdFactory implements ComponentFactory {
         public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
             dependencies.discover(ThirdComponent.class);
 
@@ -620,10 +613,11 @@ public final class ComponentContextTests extends AbstractContainerTests {
 
     @Component(api = ContextAware.class, automatic = false)
     @Component.Context(Setting1.class)
-    private static class ContextAwareVariants1 implements ComponentVariantFactory {
+    private static class ContextAwareVariants1 implements ComponentFactory {
         public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
             return new Instance() {
                 public void bind(final Registry registry) throws ComponentContainer.BindingException {
+                    registry.bindComponent(NotContextAware1Impl.class);
                     registry.bindInstance(new ContextAware.Settings() {
                         public String setting() {
                             final Setting1 setting = context.annotation(Setting1.class, null);
@@ -638,10 +632,11 @@ public final class ComponentContextTests extends AbstractContainerTests {
 
     @Component(api = ContextAware.class, automatic = false)
     @Component.Context(Setting2.class)
-    private static class ContextAwareVariants2 implements ComponentVariantFactory {
+    private static class ContextAwareVariants2 implements ComponentFactory {
         public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
             return new Instance() {
                 public void bind(final Registry registry) throws ComponentContainer.BindingException {
+                    registry.bindComponent(NotContextAware2Impl.class);
                     registry.bindInstance(new ContextAware.Settings() {
                         public String setting() {
                             final Setting2 setting = context.annotation(Setting2.class, null);
@@ -656,10 +651,11 @@ public final class ComponentContextTests extends AbstractContainerTests {
 
     @Component(api = OrdinaryComponent1.class, automatic = false)
     @Component.Context(Setting1.class)
-    private static class OrdinaryComponentVariants1 implements ComponentVariantFactory {
+    private static class OrdinaryComponentVariants1 implements ComponentFactory {
         public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
             return new Instance() {
                 public void bind(final Registry registry) throws ComponentContainer.BindingException {
+                    registry.bindComponent(OrdinaryComponent1Impl.class);
                     registry.bindInstance(new ContextAware.Settings() {
                         public String setting() {
                             final Setting1 setting = context.annotation(Setting1.class, null);
@@ -674,10 +670,11 @@ public final class ComponentContextTests extends AbstractContainerTests {
 
     @Component(api = OrdinaryComponent2.class, automatic = false)
     @Component.Context(Setting2.class)
-    private static class OrdinaryComponentVariants2 implements ComponentVariantFactory {
+    private static class OrdinaryComponentVariants2 implements ComponentFactory {
         public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
             return new Instance() {
                 public void bind(final Registry registry) throws ComponentContainer.BindingException {
+                    registry.bindComponent(OrdinaryComponent2Impl.class);
                     registry.bindInstance(new ContextAware.Settings() {
                         public String setting() {
                             final Setting2 setting = context.annotation(Setting2.class, null);

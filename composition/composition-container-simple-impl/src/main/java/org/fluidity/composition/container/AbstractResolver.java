@@ -81,10 +81,6 @@ abstract class AbstractResolver implements ComponentResolver {
         return cache == null ? null : cache.lookup(domain, source, context, api, null);
     }
 
-    public boolean isVariantMapping() {
-        return false;
-    }
-
     public boolean isInstanceMapping() {
         return false;
     }

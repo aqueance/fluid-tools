@@ -28,8 +28,8 @@ import java.util.Set;
  * consumed by referred to components that list the custom annotations' type in their <code>@Component.Context</code> annotation.
  * <p/>
  * Since contexts offer a static configuration mechanism, components with other means of configuration can be adapted to context based configuration
- * using a {@link org.fluidity.composition.spi.ComponentVariantFactory ComponentVariantFactory}, which essentially translates the configuration embedded in the
- * instantiation context to configuration understood by the component being adapted.
+ * using a {@link org.fluidity.composition.spi.ComponentFactory ComponentFactory}, which essentially translates the configuration embedded in the instantiation
+ * context to configuration understood by the component being adapted.
  * <h3>Usage</h3>
  * <pre>
  * <span class="hl2">&#64;MyContext1</span>

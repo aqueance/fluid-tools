@@ -20,20 +20,19 @@ import java.lang.reflect.Type;
 
 import org.fluidity.composition.container.spi.DependencyGraph;
 import org.fluidity.composition.spi.ComponentFactory;
-import org.fluidity.composition.spi.CustomComponentFactory;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**
- * Component mapping of a {@link CustomComponentFactory} instance.
+ * Component mapping of a {@link ComponentFactory} instance.
  *
  * @author Tibor Varga
  */
-final class FactoryResolverInstance extends FactoryResolver {
+final class FactoryResolverInstance extends AbstractFactoryResolver {
 
-    private final CustomComponentFactory factory;
+    private final ComponentFactory factory;
 
-    public FactoryResolverInstance(final int priority, final Class<?> api, final CustomComponentFactory factory, final ComponentCache cache, final LogFactory logs) {
-        super(priority, api, factory.getClass(), cache, logs);
+    public FactoryResolverInstance(final int priority, final Class<?> api, final ComponentFactory factory, final ComponentCache cache, final LogFactory logs) {
+        super(factory.getClass(), priority, api, cache, logs);
         this.factory = factory;
     }
 

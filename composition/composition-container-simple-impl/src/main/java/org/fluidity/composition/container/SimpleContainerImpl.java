@@ -37,8 +37,7 @@ import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.Components;
 import org.fluidity.composition.container.spi.ContextNode;
 import org.fluidity.composition.container.spi.DependencyResolver;
-import org.fluidity.composition.spi.ComponentVariantFactory;
-import org.fluidity.composition.spi.CustomComponentFactory;
+import org.fluidity.composition.spi.ComponentFactory;
 import org.fluidity.foundation.Log;
 import org.fluidity.foundation.Strings;
 import org.fluidity.foundation.spi.LogFactory;
@@ -91,7 +90,7 @@ final class SimpleContainerImpl implements ParentContainer {
 
             if (previous == null) {
                 return replace(api, null, resolver);
-            } else if (previous.isVariantMapping() && previous.replaces(resolver)) {
+            } else if (previous.replaces(resolver)) {
                 return replace(api, resolver, previous);
             } else if (resolver.replaces(previous)) {
                 return replace(api, previous, resolver);
@@ -154,17 +153,7 @@ final class SimpleContainerImpl implements ParentContainer {
                                final Components.Specification[] interfaces,
                                final boolean stateful,
                                final ContentResolvers resolvers) {
-        if (resolvers.isVariantFactory()) {
-            bindResolver(implementation, resolvers.component(implementation, services.newCache(true), true));
-
-            final ComponentCache cache = services.newCache(true);
-
-            bindResolvers(interfaces, new Resolver() {
-                public ComponentResolver resolver(final Class<?> type) {
-                    return resolvers.variant(type, cache);
-                }
-            });
-        } else if (resolvers.isCustomFactory()) {
+        if (resolvers.isCustomFactory()) {
             bindResolver(implementation, resolvers.component(implementation, services.newCache(true), true));
 
             final ComponentCache cache = services.newCache(true);
@@ -210,25 +199,17 @@ final class SimpleContainerImpl implements ParentContainer {
                   isFallback ? "fallback" : "primary");
 
         bindResolvers(implementation, interfaces.api, isStateful, new ContentResolvers() {
-            public boolean isVariantFactory() {
-                return ComponentVariantFactory.class.isAssignableFrom(implementation);
-            }
 
             public boolean isCustomFactory() {
-                return CustomComponentFactory.class.isAssignableFrom(implementation);
+                return ComponentFactory.class.isAssignableFrom(implementation);
             }
 
             public ComponentResolver component(final Class<?> api, final ComponentCache cache, final boolean resolvesFactory) {
                 return new ConstructingResolver(isFallback ? 0 : 1, api, implementation, resolvesFactory, cache, injector, logs);
             }
 
-            public VariantResolver variant(final Class<?> api, final ComponentCache cache) {
-                final Class<? extends ComponentVariantFactory> factory = implementation.asSubclass(ComponentVariantFactory.class);
-                return new VariantResolverClass(isFallback ? 0 : 1, SimpleContainerImpl.this, api, factory, cache, logs);
-            }
-
-            public FactoryResolver factory(final Class<?> api, final ComponentCache cache) {
-                final Class<? extends CustomComponentFactory> factory = implementation.asSubclass(CustomComponentFactory.class);
+            public AbstractFactoryResolver factory(final Class<?> api, final ComponentCache cache) {
+                final Class<? extends ComponentFactory> factory = implementation.asSubclass(ComponentFactory.class);
                 return new FactoryResolverClass(isFallback ? 0 : 1, api, factory, cache, logs);
             }
         });
@@ -251,12 +232,9 @@ final class SimpleContainerImpl implements ParentContainer {
         log.debug("%s: binding %s to %s (%s)", this, value, interfaces, isFallback ? "fallback" : "primary");
 
         bindResolvers(implementation, interfaces.api, false, new ContentResolvers() {
-            public boolean isVariantFactory() {
-                return instance instanceof ComponentVariantFactory;
-            }
 
             public boolean isCustomFactory() {
-                return instance instanceof CustomComponentFactory;
+                return instance instanceof ComponentFactory;
             }
 
             public ComponentResolver component(final Class<?> api, final ComponentCache cache, final boolean resolvesFactory) {
@@ -264,13 +242,8 @@ final class SimpleContainerImpl implements ParentContainer {
             }
 
             @SuppressWarnings("ConstantConditions")
-            public VariantResolver variant(final Class<?> api, final ComponentCache cache) {
-                return new VariantResolverInstance(isFallback ? 0 : 1, SimpleContainerImpl.this, api, (ComponentVariantFactory) instance, cache, logs);
-            }
-
-            @SuppressWarnings("ConstantConditions")
-            public FactoryResolver factory(final Class<?> api, final ComponentCache cache) {
-                return new FactoryResolverInstance(isFallback ? 0 : 1, api, (CustomComponentFactory) instance, cache, logs);
+            public AbstractFactoryResolver factory(final Class<?> api, final ComponentCache cache) {
+                return new FactoryResolverInstance(isFallback ? 0 : 1, api, (ComponentFactory) instance, cache, logs);
             }
         });
     }
@@ -494,13 +467,6 @@ final class SimpleContainerImpl implements ParentContainer {
     private static interface ContentResolvers {
 
         /**
-         * Tells if we are processing a variant factory.
-         *
-         * @return <code>true</code> if we are processing a variant factory, <code>false</code> otherwise.
-         */
-        boolean isVariantFactory();
-
-        /**
          * Tells if we are processing an custom component factory.
          *
          * @return <code>true</code> if we are processing an ordinary factory, <code>false</code> otherwise.
@@ -519,16 +485,6 @@ final class SimpleContainerImpl implements ParentContainer {
         ComponentResolver component(Class<?> api, ComponentCache cache, boolean resolvesFactory);
 
         /**
-         * Creates a variant factory resolver for the factory being processed.
-         *
-         * @param api   the interface to which the variant factory will be bound.
-         * @param cache the cache to use for the variant factory.
-         *
-         * @return a variant resolver that will produce, and cache if necessary, a single instance of the variant factory.
-         */
-        VariantResolver variant(Class<?> api, ComponentCache cache);
-
-        /**
          * Creates a component factory resolver for the factory being processed.
          *
          * @param api   the interface to which the factory will be bound.
@@ -536,7 +492,7 @@ final class SimpleContainerImpl implements ParentContainer {
          *
          * @return a component resolver that will produce, and cache if necessary, a single instance of the component factory.
          */
-        FactoryResolver factory(Class<?> api, ComponentCache cache);
+        AbstractFactoryResolver factory(Class<?> api, ComponentCache cache);
     }
 
     private class InstanceDescriptor implements ContextNode {

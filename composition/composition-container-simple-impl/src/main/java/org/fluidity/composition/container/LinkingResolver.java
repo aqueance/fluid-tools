@@ -60,11 +60,6 @@ final class LinkingResolver extends AbstractResolver {
     }
 
     @Override
-    public boolean isVariantMapping() {
-        return delegate.isVariantMapping();
-    }
-
-    @Override
     public boolean isInstanceMapping() {
         return delegate.isInstanceMapping();
     }

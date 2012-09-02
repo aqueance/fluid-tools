@@ -25,7 +25,6 @@ import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.ComponentGroup;
 import org.fluidity.composition.spi.ComponentFactory;
-import org.fluidity.composition.spi.CustomComponentFactory;
 import org.fluidity.foundation.Generics;
 
 import org.easymock.EasyMock;
@@ -41,7 +40,7 @@ import org.testng.annotations.Test;
 public final class CustomFactoryTests extends AbstractContainerTests {
 
     @SuppressWarnings("unchecked")
-    private final CustomComponentFactory factory = mock(CustomComponentFactory.class);
+    private final ComponentFactory factory = mock(ComponentFactory.class);
     private final ComponentFactory.Instance instance = mock(ComponentFactory.Instance.class);
 
     public CustomFactoryTests(final ArtifactFactory factory) {
@@ -217,7 +216,7 @@ public final class CustomFactoryTests extends AbstractContainerTests {
         }
 
         @Component(api = Main.class, automatic = false)
-        class Factory implements CustomComponentFactory {
+        class Factory implements ComponentFactory {
             public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
                 switch (variant) {
                 case 0: {
@@ -313,9 +312,9 @@ public final class CustomFactoryTests extends AbstractContainerTests {
     }
 
     @Component(api = DependentKey.class, automatic = false)
-    private static class DependentFactory implements CustomComponentFactory {
+    private static class DependentFactory implements ComponentFactory {
 
-        public static CustomComponentFactory delegate;
+        public static ComponentFactory delegate;
 
         public DependentFactory(final FactoryDependency dependency) {
             assert dependency != null;
@@ -348,9 +347,9 @@ public final class CustomFactoryTests extends AbstractContainerTests {
     private static class GroupMember2 implements GroupMember2Api { }
 
     @Component(api = GroupMember1.class, automatic = false)
-    private static class GroupMember1Factory implements CustomComponentFactory {
+    private static class GroupMember1Factory implements ComponentFactory {
 
-        public static CustomComponentFactory delegate;
+        public static ComponentFactory delegate;
 
         public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
             assert delegate != null;
@@ -368,9 +367,9 @@ public final class CustomFactoryTests extends AbstractContainerTests {
     }
 
     @Component(api = GroupMember2Api.class, automatic = false)
-    private static class GroupMember2Factory implements CustomComponentFactory {
+    private static class GroupMember2Factory implements ComponentFactory {
 
-        public static CustomComponentFactory delegate;
+        public static ComponentFactory delegate;
 
         public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
             assert delegate != null;
@@ -420,7 +419,7 @@ public final class CustomFactoryTests extends AbstractContainerTests {
     }
 
     @Component(api = DynamicComponent1.class)
-    private static class DynamicFactory1 implements CustomComponentFactory {
+    private static class DynamicFactory1 implements ComponentFactory {
 
         public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
             final Dependency<?>[] args = dependencies.discover(DynamicComponent1.class);
@@ -449,7 +448,7 @@ public final class CustomFactoryTests extends AbstractContainerTests {
     }
 
     @Component(api = DynamicComponent2.class)
-    private static class DynamicFactory2 implements CustomComponentFactory {
+    private static class DynamicFactory2 implements ComponentFactory {
 
         public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
             final Dependency<?>[] args = dependencies.discover(DynamicComponent1.class);
@@ -473,7 +472,7 @@ public final class CustomFactoryTests extends AbstractContainerTests {
 
     @Component(api = CustomDependency.class)
     @Component.Context(Component.Reference.class)
-    private static class CustomDependencyFactory implements CustomComponentFactory {
+    private static class CustomDependencyFactory implements ComponentFactory {
 
         public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
             assert context.defines(Component.Reference.class);

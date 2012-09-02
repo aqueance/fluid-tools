@@ -24,7 +24,7 @@ import java.util.Set;
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
-import org.fluidity.composition.spi.CustomComponentFactory;
+import org.fluidity.composition.spi.ComponentFactory;
 import org.fluidity.foundation.Generics;
 
 /**
@@ -34,7 +34,7 @@ import org.fluidity.foundation.Generics;
  */
 @Component(automatic = false)
 @Component.Context({ Service.class, Component.Reference.class })
-final class ServiceComponentFactory implements CustomComponentFactory {
+final class ServiceComponentFactory implements ComponentFactory {
 
     private final Map<String, ServiceDescriptor> services;
     private final Class<?>[] api;

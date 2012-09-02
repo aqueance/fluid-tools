@@ -24,7 +24,7 @@ import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.ComponentGroup;
 import org.fluidity.composition.Components;
-import org.fluidity.composition.spi.CustomComponentFactory;
+import org.fluidity.composition.spi.ComponentFactory;
 import org.fluidity.tests.MockGroupAbstractTest;
 
 import org.easymock.EasyMock;
@@ -105,7 +105,7 @@ public class EmptyRegistryTest extends MockGroupAbstractTest {
     private static class MarkedGroupComponent implements Interface1, Interface2, InheritingInterface1, InheritingInterface2, GroupInterface3 { }
 
     @Component(api = Interface1.class)
-    private static class MarkedFactory implements CustomComponentFactory {
+    private static class MarkedFactory implements ComponentFactory {
 
         public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
             throw new UnsupportedOperationException();

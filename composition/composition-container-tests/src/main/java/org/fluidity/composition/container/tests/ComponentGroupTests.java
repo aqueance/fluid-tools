@@ -29,7 +29,7 @@ import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.ComponentGroup;
 import org.fluidity.composition.Optional;
-import org.fluidity.composition.spi.CustomComponentFactory;
+import org.fluidity.composition.spi.ComponentFactory;
 import org.fluidity.foundation.Generics;
 
 import org.testng.annotations.Test;
@@ -358,7 +358,7 @@ public final class ComponentGroupTests extends AbstractContainerTests {
         }
     }
 
-    private static abstract class DynamicFilterFactory implements CustomComponentFactory {
+    private static abstract class DynamicFilterFactory implements ComponentFactory {
 
         private final Class<?> type;
 

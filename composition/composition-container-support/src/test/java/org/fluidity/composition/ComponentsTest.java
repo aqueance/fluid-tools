@@ -46,7 +46,6 @@ import org.fluidity.composition.types.MultipleComponent;
 import org.fluidity.composition.types.NoComponent;
 import org.fluidity.composition.types.NoComponentFactory;
 import org.fluidity.composition.types.NoGroupMember;
-import org.fluidity.composition.types.NoVariantFactory;
 import org.fluidity.composition.types.OrdinaryClass;
 import org.fluidity.composition.types.OrdinarySubClass;
 import org.fluidity.composition.types.OverridingComponent;
@@ -72,11 +71,6 @@ public class ComponentsTest {
     @Test(expectedExceptions = ComponentContainer.BindingException.class, expectedExceptionsMessageRegExp = ".*missing.*")
     public void bareComponentFactory() throws Exception {
         Components.inspect(NoComponentFactory.class);
-    }
-
-    @Test(expectedExceptions = ComponentContainer.BindingException.class, expectedExceptionsMessageRegExp = ".*missing.*")
-    public void bareVariantFactory() throws Exception {
-        Components.inspect(NoVariantFactory.class);
     }
 
     @Test(expectedExceptions = ComponentContainer.BindingException.class, expectedExceptionsMessageRegExp = ".*bound.*")

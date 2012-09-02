@@ -25,8 +25,7 @@ import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
 
 /**
- * Creates instances of a component when mere constructor and field injection is not adequate. You don't directly use this interface; rather, you use {@link
- * CustomComponentFactory} or {@link ComponentVariantFactory} instead.
+ * Creates instances of a component when mere constructor and field injection is not adequate.
  * <p/>
  * Component instantiation follows a certain protocol and <code>ComponentFactory</code> objects must follow that protocol to integrate well to Fluid Tools.
  * This interface defines the necessary methods and interfaces for that integration.
@@ -45,7 +44,7 @@ import org.fluidity.composition.ComponentContext;
  * <h3>Usage</h3>
  * <pre>
  * {@linkplain Component @Component}(api = <span class="hl2">MyComponent</span>.class)
- * final class MyComponentFactory implements <span class="hl1">{@linkplain CustomComponentFactory}</span> {
+ * final class MyComponentFactory implements <span class="hl1">{@linkplain ComponentFactory}</span> {
  *
  *   public {@linkplain ComponentFactory.Instance Instance} <span class="hl1">resolve</span>(final {@linkplain ComponentContext} context, final {@linkplain ComponentFactory.Resolver Resolver} dependencies) throws {@linkplain org.fluidity.composition.ComponentContainer.ResolutionException} {
  *     dependencies.discover(<span class="hl3">MyComponentImpl</span>.class);
@@ -72,7 +71,7 @@ import org.fluidity.composition.ComponentContext;
  * <pre>
  * {@linkplain Component @Component}(api = <span class="hl2">CreatedComponent</span>.class)
  * {@linkplain org.fluidity.composition.Component.Context @Component.Context}(<span class="hl3">CustomContext</span>.class)
- * final class CustomFactory implements <span class="hl1">{@linkplain CustomComponentFactory}</span> {
+ * final class CustomFactory implements <span class="hl1">{@linkplain ComponentFactory}</span> {
  *
  *   public {@linkplain ComponentFactory.Instance Instance} resolve(final {@linkplain ComponentContext} context, final {@linkplain ComponentFactory.Resolver Resolver} dependencies) throws {@linkplain org.fluidity.composition.ComponentContainer.ResolutionException} { {
  *     final <span class="hl3">CustomContext</span>[] contexts = context.annotations(<span class="hl3">CustomContext</span>.class);
@@ -105,7 +104,7 @@ import org.fluidity.composition.ComponentContext;
  * <pre>
  * {@linkplain Component @Component}(api = <span class="hl2">CreatedComponent</span>.class)
  * {@linkplain org.fluidity.composition.Component.Context @Component.Context}(<span class="hl3">CustomContext</span>.class)
- * final class CustomFactory implements <span class="hl1">{@linkplain CustomComponentFactory}</span> {
+ * final class CustomFactory implements <span class="hl1">{@linkplain ComponentFactory}</span> {
  *
  *   public {@linkplain ComponentFactory.Instance Instance} resolve(final {@linkplain ComponentContext} context, final {@linkplain ComponentFactory.Resolver Resolver} dependencies) throws {@linkplain org.fluidity.composition.ComponentContainer.ResolutionException} { {
  *     dependencies.discover(<span class="hl2">CreatedComponent</span>.class);
