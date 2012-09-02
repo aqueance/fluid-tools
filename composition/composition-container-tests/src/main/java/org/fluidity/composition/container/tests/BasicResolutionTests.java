@@ -225,7 +225,7 @@ public final class BasicResolutionTests extends AbstractContainerTests {
         registry.bindComponent(Value.class); // Value depends on DependentKey
         registry.bindComponent(DependentValue.class);
 
-        final SerializableComponent component = new SerializableComponent();
+        final SerializableComponent component = container.instantiate(SerializableComponent.class);
 
         component.verify("original object");
 
@@ -324,19 +324,16 @@ public final class BasicResolutionTests extends AbstractContainerTests {
         container.getComponent(DependencyChain1.class);
     }
 
-    // this is how to inject dependencies into a Serializable component
     public static class SerializableComponent implements Serializable {
 
         /* in real life you'd use new ContainerBoundary() here */
         private static ComponentContainer container;
 
         @Inject
-        @SuppressWarnings("UnusedDeclaration")
         private transient Key dependency;
 
         public SerializableComponent() {
-            assert container != null;
-            container.initialize(this);
+            assert container != null : "Container not set by the caller";
         }
 
         private void readObject(final ObjectInputStream in) throws IOException, ClassNotFoundException {

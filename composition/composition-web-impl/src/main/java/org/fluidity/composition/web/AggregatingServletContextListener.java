@@ -19,12 +19,15 @@ package org.fluidity.composition.web;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
-import org.fluidity.composition.Containers;
+import org.fluidity.composition.BoundaryComponent;
 
 /**
  * Forwards servlet context listener callbacks to all {@link ServletContextListener ServletContextListeners} annotated with
  * {@link org.fluidity.composition.ComponentGroup @ComponentGroup}. This makes it possible to register those listeners without explicitly listing them in
  * <code>web.xml</code>.
+ * <p/>
+ * <b>Note</b>: servlet specification version 3.0 and later offers an annotation based solution to the same problem, thus obsoleting the solution presented by
+ * this class.
  * <h3>Usage</h3>
  * This listener is registered in a <code>web.xml</code> descriptor of a web application.
  * <pre>
@@ -39,21 +42,33 @@ import org.fluidity.composition.Containers;
  * &lt;/web-app>
  * </pre>
  */
-public final class AggregatingServletContextListener implements ServletContextListener {
+public final class AggregatingServletContextListener extends BoundaryComponent implements ServletContextListener {
 
-    private final ServletContextListener listeners[] = Containers.global().getComponentGroup(ServletContextListener.class);
+    private final ServletContextListener listeners[];
 
     /**
      * Invoked by the servlet container to create a new instance.
      */
-    public AggregatingServletContextListener() { }
+    public AggregatingServletContextListener() {
+        listeners = container().getComponentGroup(ServletContextListener.class);
+    }
 
+    /**
+     * Invoked by the servlet container.
+     *
+     * @param event the event that trigger the invocation.
+     */
     public void contextInitialized(final ServletContextEvent event) {
         for (final ServletContextListener listener : listeners) {
             listener.contextInitialized(event);
         }
     }
 
+    /**
+     * Invoked by the servlet container.
+     *
+     * @param event the event that trigger the invocation.
+     */
     public void contextDestroyed(final ServletContextEvent event) {
         for (final ServletContextListener listener : listeners) {
             listener.contextDestroyed(event);

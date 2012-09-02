@@ -836,7 +836,6 @@ public final class ComponentContextTests extends AbstractContainerTests {
 
         @Inject
         @Setting3("setting-3")
-        @SuppressWarnings("UnusedDeclaration")
         public ContextConsumer2 consumer;
     }
 
@@ -845,7 +844,6 @@ public final class ComponentContextTests extends AbstractContainerTests {
 
         @Inject
         @Setting2("setting-2")
-        @SuppressWarnings("UnusedDeclaration")
         public ContextProvider4 provider;
     }
 
@@ -854,23 +852,19 @@ public final class ComponentContextTests extends AbstractContainerTests {
     private static class ContextProvider4 {
 
         @Inject
-        @SuppressWarnings("UnusedDeclaration")
         @Component.Context(ignore = { Setting2.class, Setting3.class })
         public ContextConsumer1 consumer1;
 
         @Inject
-        @SuppressWarnings("UnusedDeclaration")
         @Component.Context(ignore = { Setting2.class, Setting3.class })
         public ContextConsumer2 consumer2;
 
         @Inject
-        @SuppressWarnings("UnusedDeclaration")
         @Setting2("setting-2-n")
         @Component.Context(ignore = { Setting2.class, Setting3.class })
         public ContextConsumer1 consumer3;
 
         @Inject
-        @SuppressWarnings("UnusedDeclaration")
         @Component.Context(ignore = { Setting2.class, Setting3.class })
         @Setting3("setting-3-n")
         public ContextConsumer2 consumer4;

@@ -57,12 +57,6 @@ containing web application wrappers.
             <version>${project.version}</version>
         </dependency>
 
-        <dependency>
-            <groupId>${fluidity.deployment.groupId}</groupId>
-            <artifactId>war-boundary-utils</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
     </dependencies>
 
 </project>

@@ -20,12 +20,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
 
+import org.fluidity.composition.BoundaryComponent;
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentGroup;
-import org.fluidity.composition.ContainerBoundary;
-import org.fluidity.composition.Containers;
-import org.fluidity.composition.Inject;
 import org.fluidity.composition.Optional;
 import org.fluidity.composition.spi.ContainerTermination;
 import org.fluidity.deployment.osgi.BundleComponentContainer;
@@ -38,51 +36,30 @@ import org.osgi.framework.BundleContext;
  * Bootstraps the dependency injection container in an OSGi bundle. A properly set up OSGi bundle Maven project will automatically set up this class as the
  * bundle activator for the project artifact. Thus, you should never need to directly deal with this class.
  * <p/>
- * <b>NOTE 1</b>: This class <em>must be</em> public with a zero-arg constructor for the OSGi container to be able to instantiate it.
+ * <b>NOTE 1</b>: This class <em>must</em> be public with a zero-arg constructor for the OSGi container to be able to instantiate it.
  * <p/>
- * <b>NOTE 2</b>: This class <em>must be</em> loaded by the class loader of the bundle it is expected to bootstrap.
+ * <b>NOTE 2</b>: This class <em>must</em> be loaded by the class loader of the bundle it is expected to bootstrap. The superclass, {@link org.fluidity.composition.BoundaryComponent},
+ * uses the class loader that loaded this class to find the dependency injection container that will be used as a root container when working with bundle
+ * components in the loading bundle.
  *
  * @author Tibor Varga
  */
-public final class BundleBootstrap implements BundleActivator {
+public final class BundleBootstrap extends BoundaryComponent implements BundleActivator {
 
-    // this dependence on the bundle class loader requires this class to be loaded by that bundle class loader
-    private final ContainerBoundary bootstrap = Containers.prepare(BundleBootstrap.class.getClassLoader());
-    private final BundleTermination termination = new BundleTermination();
-
-    private BundleComponentContainer components;
-    private Activators activators;
+    private Activation activation;
 
     /**
-     * Default constructor.
-     */
-    @SuppressWarnings("unchecked")
-    public BundleBootstrap() {
-        bootstrap.bindBootComponent(this.termination);
-        bootstrap.initialize(this.termination);
-    }
-
-    /**
-     * Loads a {@link BundleComponentContainer} and calls {@link BundleActivator#start(BundleContext)} on all {@link ComponentGroup @ComponentGroup} annotated
-     * <code>BundleActivator</code> implementations in the bundle.
+     * Loads a {@link BundleComponentContainer} and calls {@link BundleActivator#start(BundleContext)} on all {@link ComponentGroup @ComponentGroup} or
+     * {@link Component @Component} annotated <code>BundleActivator</code> implementations in the bundle.
      *
      * @param context the bundle context for the host bundle.
      *
      * @throws Exception when anything goes wrong.
      */
-    @SuppressWarnings("unchecked")
     public void start(final BundleContext context) throws Exception {
-        final ComponentContainer container = bootstrap.makeDomainContainer(new ComponentContainer.Bindings() {
-            public void bindComponents(final ComponentContainer.Registry registry) {
-                registry.bindInstance(context, BundleContext.class);
-            }
-        });
-
-        components = container.getComponent(BundleComponentContainer.class);
-        components.start();
-
-        activators = container.getComponent(Activators.class);
-        activators.start();
+        assert activation == null : "Bundle has already been started";
+        activation = container(context).instantiate(Activation.class);
+        activation.start();
     }
 
     /**
@@ -94,18 +71,63 @@ public final class BundleBootstrap implements BundleActivator {
      * @throws Exception when anything goes wrong.
      */
     public void stop(final BundleContext context) throws Exception {
-        activators.stop();
-        components.stop();
-        termination.stop();
+        assert activation != null : "Bundle has not been started";
+        activation.stop();
     }
 
+    private ComponentContainer container(final BundleContext context) {
+        return container().makeDomainContainer(new ComponentContainer.Bindings() {
+            @SuppressWarnings("unchecked")
+            public void bindComponents(final ComponentContainer.Registry registry) {
+                registry.bindInstance(context, BundleContext.class);
+            }
+        });
+    }
+
+    /**
+     * The current activation of the bundle.
+     *
+     * @author Tibor Varga
+     */
     @Component(automatic = false)
+    private static class Activation {
+
+        private final BundleComponentContainer components;
+        private final Activators activators;
+        private final BundleTermination termination;
+
+        public Activation(final BundleComponentContainer components, final Activators activators, final BundleTermination termination) {
+            this.components = components;
+            this.activators = activators;
+            this.termination = termination;
+        }
+
+        public void start() {
+            components.start();
+            activators.start();
+        }
+
+        public void stop() {
+            components.stop();
+            activators.stop();
+            termination.stop();
+        }
+    }
+
+    /**
+     * Shuts down the dependency container associated with the current activation.
+     *
+     * @author Tibor Varga
+     */
+    @Component(api = { BundleTermination.class, ContainerTermination.class })
     private static class BundleTermination implements ContainerTermination {
+
+        private final Log log;
         private final List<Runnable> tasks = new ArrayList<Runnable>();
 
-        @Inject
-        @SuppressWarnings("UnusedDeclaration")
-        private Log<BundleTermination> log;
+        public BundleTermination(final Log<BundleTermination> log) {
+            this.log = log;
+        }
 
         public void run(final Runnable command) {
             tasks.add(command);
@@ -114,10 +136,13 @@ public final class BundleBootstrap implements BundleActivator {
         public void stop() {
             for (final ListIterator<Runnable> iterator = tasks.listIterator(tasks.size()); iterator.hasPrevious(); ) {
                 final Runnable task = iterator.previous();
+
                 try {
                     task.run();
                 } catch (final Exception e) {
                     log.error(e, task.getClass().getName());
+                } finally {
+                    iterator.remove();
                 }
             }
         }
@@ -134,7 +159,7 @@ public final class BundleBootstrap implements BundleActivator {
         private Activators(final BundleContext context,
                            final Log<Activators> log,
                            final @Optional BundleActivator single,
-                           final @Optional @ComponentGroup BundleActivator[] multiple) {
+                           final @Optional @ComponentGroup BundleActivator... multiple) {
             this.context = context;
             this.log = log;
             addActivators(activators, single);

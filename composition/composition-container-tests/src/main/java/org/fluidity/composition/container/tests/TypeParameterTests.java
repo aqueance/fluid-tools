@@ -115,7 +115,6 @@ public class TypeParameterTests extends AbstractContainerTests {
     private static class TypedComponent2<T> {
 
         @Inject
-        @SuppressWarnings("UnusedDeclaration")
         public TypedComponent1<T> component1;
     }
 
@@ -142,7 +141,6 @@ public class TypeParameterTests extends AbstractContainerTests {
     private static class TypedComponent4<T> {
 
         @Inject
-        @SuppressWarnings("UnusedDeclaration")
         private TypedComponent2<T> component2;
     }
 
