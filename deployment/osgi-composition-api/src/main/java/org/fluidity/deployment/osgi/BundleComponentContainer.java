@@ -40,6 +40,9 @@ import org.fluidity.composition.ServiceProvider;
  * Registration} and {@link Registration.Listener Registration.Listener}.
  * <p/>
  * By design, you never directly use this interface. Rather, you implement your bundle as a collection of components managed by this container.
+ * <p/>
+ * <b>Note</b>: Managed components cannot consume or transmit component context. Each bundle will have exactly zero or one instance of every managed component
+ * in the empty context and their dependency references will have an empty base context.
  * <h3>Depending on OSGi Services</h3>
  * The constructor parameters of <code>Managed</code> components annotated with the {@link Service @Service} are dependencies to OSGi services while parameters
  * not so annotated are ordinary dependencies.

@@ -169,6 +169,10 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
                 @SuppressWarnings("unchecked")
                 public void bindComponents(final ComponentContainer.Registry registry) {
                     for (final Class<Managed> type : items) {
+                        if (type.isAnnotationPresent(Component.Context.class)) {
+                            log.warning("[%s] Managed component %s accepts context annotations; the received context will always be empty", bundleName, type);
+                        }
+
                         final List<Class<? super BundleComponentContainer.Managed>> interfaces = new ArrayList<Class<? super BundleComponentContainer.Managed>>();
 
                         for (final Components.Specification specification : inspect(type).api) {
