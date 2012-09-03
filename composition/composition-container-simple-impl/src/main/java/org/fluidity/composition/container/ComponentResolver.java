@@ -55,13 +55,6 @@ interface ComponentResolver extends ContextNode {
     int priority();
 
     /**
-     * Tells whether this mapping has been created for an already instantiated component.
-     *
-     * @return <code>true</code> if this mapping represents an already instantiated component, <code>false</code> otherwise.
-     */
-    boolean isInstanceMapping();
-
-    /**
      * Tells if the receiver replaces the supplied <code>resolver</code>.
      *
      * @param resolver the resolver that the receiver may need to replace.
@@ -78,12 +71,6 @@ interface ComponentResolver extends ContextNode {
      * @param replacement the new resolver.
      */
     void resolverReplaced(Class<?> api, ComponentResolver previous, ComponentResolver replacement);
-
-    /**
-     * If the resolver maintains a reference to the parent container of its containing one, this method notifies it that it should use the skip one level and
-     * use the parent's parent instead.
-     */
-    void skipParent();
 
     /**
      * Adds a list of group interfaces that the resolved component belongs to.

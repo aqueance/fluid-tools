@@ -45,10 +45,6 @@ final class InstanceResolver extends AbstractResolver {
         return null;
     }
 
-    public boolean isInstanceMapping() {
-        return true;
-    }
-
     public DependencyGraph.Node resolve(final ParentContainer domain,
                                         final DependencyGraph.Traversal traversal,
                                         final SimpleContainer container,

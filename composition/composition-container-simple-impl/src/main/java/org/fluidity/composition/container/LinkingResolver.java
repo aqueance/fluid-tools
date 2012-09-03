@@ -38,8 +38,6 @@ final class LinkingResolver extends AbstractResolver {
 
         this.delegate = delegate;
         this.target = container;
-
-        this.delegate.skipParent();
     }
 
     public Annotation[] providedContext() {
@@ -60,11 +58,6 @@ final class LinkingResolver extends AbstractResolver {
     }
 
     @Override
-    public boolean isInstanceMapping() {
-        return delegate.isInstanceMapping();
-    }
-
-    @Override
     public Object cached(final Object domain, final String source, final ComponentContext context) {
         return delegate.cached(domain, source, context);
     }
@@ -76,6 +69,8 @@ final class LinkingResolver extends AbstractResolver {
 
     @Override
     public void resolverReplaced(final Class<?> api, final ComponentResolver previous, final ComponentResolver replacement) {
+        delegate.resolverReplaced(api, previous, replacement);
+
         if (delegate == previous) {
             delegate = replacement;
         }

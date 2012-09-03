@@ -55,17 +55,22 @@ abstract class AbstractResolver implements ComponentResolver {
         final int check = resolver.priority();
 
         if (check == priority) {
-            throw new ComponentContainer.BindingException("Component %s already bound", api);
+            final boolean thisFactory = this instanceof FactoryResolver;
+            final boolean thatFactory = resolver instanceof FactoryResolver;
+
+            if (thisFactory && !thatFactory) {
+                return true;
+            } else if (!thisFactory && thatFactory) {
+                return false;
+            } else {
+                throw new ComponentContainer.BindingException("Component %s bound twice: %s and %s", api, resolver, this);
+            }
         } else {
             return check < priority;
         }
     }
 
     public void resolverReplaced(final Class<?> api, final ComponentResolver previous, final ComponentResolver replacement) {
-        // empty
-    }
-
-    public void skipParent() {
         // empty
     }
 
@@ -79,10 +84,6 @@ abstract class AbstractResolver implements ComponentResolver {
 
     public Object cached(final Object domain, final String source, final ComponentContext context) {
         return cache == null ? null : cache.lookup(domain, source, context, api, null);
-    }
-
-    public boolean isInstanceMapping() {
-        return false;
     }
 
     protected final CachingNode cachingNode(final ParentContainer domain, final SimpleContainer container, final DependencyGraph.Node node) {

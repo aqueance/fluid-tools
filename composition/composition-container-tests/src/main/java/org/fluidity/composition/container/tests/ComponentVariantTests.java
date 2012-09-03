@@ -383,14 +383,16 @@ public final class ComponentVariantTests extends AbstractContainerTests {
     @Test
     public void testGroupMembersOrder1() throws Exception {
         registry.bindComponent(GroupMember1.class);
-        registry.bindComponent(GroupMember2Variants.class);
+        registry.bindComponent(GroupMember2.class);
         registry.bindComponent(GroupMember3.class);
+        registry.bindComponent(GroupMember2Variants.class);
         groupMemberChecks(Arrays.asList(GroupMember1.class, GroupMember2.class, GroupMember3.class));
     }
 
     @Test
     public void testGroupMembersOrder2() throws Exception {
         registry.bindComponent(GroupMember2Variants.class);
+        registry.bindComponent(GroupMember2.class);
         registry.bindComponent(GroupMember1.class);
         registry.bindComponent(GroupMember3.class);
         groupMemberChecks(Arrays.asList(GroupMember2.class, GroupMember1.class, GroupMember3.class));
