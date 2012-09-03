@@ -96,7 +96,6 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
 
         private final ServiceComponentFactory serviceFactory;
 
-        @SuppressWarnings("unchecked")
         private final Status status = new ComponentStatus() {
 
             public Collection<Class<?>> active() {
