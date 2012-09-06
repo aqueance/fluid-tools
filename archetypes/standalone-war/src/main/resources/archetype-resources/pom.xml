@@ -54,9 +54,7 @@ limitations under the License.
 
                 <executions>
                     <execution>
-                        <goals>
-                            <goal>process-annotations</goal>
-                        </goals>
+                        <goals><goal>process-annotations</goal></goals>
                     </execution>
                 </executions>
             </plugin>
@@ -75,9 +73,7 @@ limitations under the License.
 
                 <executions>
                     <execution>
-                        <goals>
-                            <goal>package</goal>
-                        </goals>
+                        <goals><goal>package</goal></goals>
                     </execution>
                 </executions>
                 <dependencies>

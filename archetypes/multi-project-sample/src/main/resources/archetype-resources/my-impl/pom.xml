@@ -53,9 +53,7 @@ limitations under the License.
                 <artifactId>composition-maven-plugin</artifactId>
                 <executions>
                     <execution>
-                        <goals>
-                            <goal>process-annotations</goal>
-                        </goals>
+                        <goals><goal>process-annotations</goal></goals>
                     </execution>
                 </executions>
             </plugin>

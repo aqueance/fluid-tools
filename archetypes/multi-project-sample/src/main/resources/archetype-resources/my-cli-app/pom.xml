@@ -64,9 +64,7 @@ limitations under the License.
                 <version>${fluid.tools.version}</version>
                 <executions>
                     <execution>
-                        <goals>
-                            <goal>process-annotations</goal>
-                        </goals>
+                        <goals><goal>process-annotations</goal></goals>
                     </execution>
                 </executions>
             </plugin>
@@ -113,9 +111,7 @@ limitations under the License.
                 <version>${symbol_dollar}{fluid.tools.version}</version>
                 <executions>
                     <execution>
-                        <goals>
-                            <goal>package</goal>
-                        </goals>
+                        <goals><goal>package</goal></goals>
                     </execution>
                 </executions>
                 <dependencies>
