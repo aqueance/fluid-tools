@@ -45,21 +45,13 @@ limitations under the License.
     </dependencies>
 
     <build>
-
         <plugins>
 
             <plugin>
                 <groupId>org.fluidity.maven</groupId>
                 <artifactId>composition-maven-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <goals><goal>process-annotations</goal></goals>
-                    </execution>
-                </executions>
             </plugin>
 
         </plugins>
-
     </build>
-
 </project>

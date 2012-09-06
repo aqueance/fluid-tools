@@ -19,20 +19,15 @@ limitations under the License.
          xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd">
 
     <listener>
-        <description>Helps to manage a Fluid Tools container life cycle</description>
+        <description>Helps to manage the Fluid Tools container life cycle</description>
         <display-name>Fluid Tools Servlet Context Listener</display-name>
         <listener-class>org.fluidity.composition.web.AggregatingServletContextListener</listener-class>
     </listener>
 
     <servlet>
         <servlet-name>my-servlet</servlet-name>
-        <servlet-class>org.fluidity.deployment.web.DependencyResolverServlet</servlet-class>
+        <servlet-class>${package}.MyServlet</servlet-class>
         <load-on-startup>100</load-on-startup>
-
-        <init-param>
-            <param-name>component-key</param-name>
-            <param-value>${package}.MyServlet</param-value>
-        </init-param>
     </servlet>
 
     <servlet-mapping>

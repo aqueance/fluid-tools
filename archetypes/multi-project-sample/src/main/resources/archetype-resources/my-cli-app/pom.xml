@@ -61,12 +61,6 @@ limitations under the License.
             <plugin>
                 <groupId>org.fluidity.maven</groupId>
                 <artifactId>composition-maven-plugin</artifactId>
-                <version>${fluid.tools.version}</version>
-                <executions>
-                    <execution>
-                        <goals><goal>process-annotations</goal></goals>
-                    </execution>
-                </executions>
             </plugin>
 
             <plugin>
@@ -92,36 +86,15 @@ limitations under the License.
             </plugin>
 
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <configuration>
-                    <archive>
-                        <manifest>
-
-                            <!-- You can use your own main class, of course, unless you want component deployment -->
-                            <mainClass>org.fluidity.deployment.launcher.ShellApplicationBootstrap</mainClass>
-                        </manifest>
-                    </archive>
-                </configuration>
-            </plugin>
-
-            <plugin>
                 <groupId>org.fluidity.maven</groupId>
                 <artifactId>standalone-jar-maven-plugin</artifactId>
-                <version>${symbol_dollar}{fluid.tools.version}</version>
-                <executions>
-                    <execution>
-                        <goals><goal>package</goal></goals>
-                    </execution>
-                </executions>
-                <dependencies>
 
+                <dependencies>
                     <dependency>
                         <groupId>org.fluidity.features</groupId>
                         <artifactId>jar-manifest-command-launcher-impl</artifactId>
                         <version>${symbol_dollar}{fluid.tools.version}</version>
                     </dependency>
-
                 </dependencies>
             </plugin>
 

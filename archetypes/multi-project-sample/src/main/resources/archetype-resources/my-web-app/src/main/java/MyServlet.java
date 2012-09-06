@@ -26,14 +26,16 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.fluidity.composition.Component;
+import org.fluidity.composition.Inject;
+import org.fluidity.composition.Containers;
 
-@Component(api = MyServlet.class)
-public class MyServlet extends HttpServlet {
+public final class MyServlet extends HttpServlet {
 
-    private final ComponentApi sink;
+    @Inject
+    private ComponentApi sink;
 
-    public MyServlet(final ComponentApi sink) {
-        this.sink = sink;
+    public MyServlet() {
+        Containers.global().initialize(this);
     }
 
     public void init(final ServletConfig config) throws ServletException {

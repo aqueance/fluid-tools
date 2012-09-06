@@ -131,13 +131,6 @@ limitations under the License.
             <plugin>
                 <groupId>${fluidity.plugin.groupId}</groupId>
                 <artifactId>composition-maven-plugin</artifactId>
-                <version>${symbol_dollar}{fluid.tools.version}</version>
-
-                <executions>
-                    <execution>
-                        <goals><goal>process-annotations</goal></goals>
-                    </execution>
-                </executions>
             </plugin>
 
             <plugin>
@@ -160,17 +153,10 @@ limitations under the License.
             <plugin>
                 <groupId>${fluidity.plugin.groupId}</groupId>
                 <artifactId>standalone-jar-maven-plugin</artifactId>
-                <version>${symbol_dollar}{fluid.tools.version}</version>
 
-                <executions>
-                    <execution>
-                        <goals><goal>package</goal></goals>
-
-                        <configuration>
-                            <classifier>bundle</classifier>
-                        </configuration>
-                    </execution>
-                </executions>
+                <configuration>
+                    <classifier>bundle</classifier>
+                </configuration>
 
                 <dependencies>
                     <dependency>
