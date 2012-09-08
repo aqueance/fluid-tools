@@ -34,8 +34,8 @@ import org.easymock.internal.matchers.Same;
 import org.testng.annotations.AfterMethod;
 
 /**
- * Facilitates the use of multiple <a href="http://www.easymock.org/">EasyMock</a> {@link IMocksControl} objects. There are two ways to use this class: as a
- * super class (preferred mode) or as a delegate.
+ * Facilitates the use of multiple <a href="http://www.easymock.org/">EasyMock</a> control objects. There are two ways to use this class: as a super class
+ * (preferred mode) or as a delegate.
  * <p/>
  * To use it as a super class, the subclass must use <a href="http://testng.org">TestNG</a> annotations. If TestNG or subclassing is not an option, an
  * instance of this class can be used as a delegate. In that case, the actual test case must call {@link #clear() clear} method on the instance after each test
@@ -267,13 +267,14 @@ public class MockGroup {
     }
 
     /**
-     * Argument matcher that understands variadic arguments.
+     * Argument matcher that understands variadic arguments and asserts that the given expected values are {@link EasyMock#eq(Object) equal} to the method
+     * parameters at the matched invocation.
      *
      * @param expected the array of expected values.
      *
-     * @return the matcher.
+     * @return the method parameter.
      */
-    public final <T> T[] varEq(final T[] expected) {
+    public final <T> T[] varEq(final T... expected) {
         for (final T value : expected) {
             EasyMock.reportMatcher(new Equals(value));
         }
@@ -282,13 +283,14 @@ public class MockGroup {
     }
 
     /**
-     * Argument matcher that understands variadic arguments.
+     * Argument matcher that understands variadic arguments and asserts that the given expected values are the {@link EasyMock#same(Object) same} as the method
+     * parameters at the matched invocation.
      *
      * @param expected the array of expected values.
      *
-     * @return the matcher.
+     * @return the method parameter.
      */
-    public final <T> T[] varSame(final T[] expected) {
+    public final <T> T[] varSame(final T... expected) {
         for (final T value : expected) {
             EasyMock.reportMatcher(new Same(value));
         }
@@ -297,13 +299,14 @@ public class MockGroup {
     }
 
     /**
-     * Argument matcher that understands variadic arguments.
+     * Argument matcher that understands variadic arguments and asserts that the method parameter list at the matched invocation consists of
+     * <code>expected.length</code> number of non-<code>null</code> values.
      *
-     * @param expected an array with the expected size.
+     * @param expected an array of <code>null</code> values, of the expected size.
      *
-     * @return the matcher.
+     * @return the method parameter.
      */
-    public final <T> T[] varNotNull(final T[] expected) {
+    public final <T> T[] varNotNull(final T... expected) {
         for (final T value : expected) {
             EasyMock.reportMatcher(NotNull.NOT_NULL);
         }
