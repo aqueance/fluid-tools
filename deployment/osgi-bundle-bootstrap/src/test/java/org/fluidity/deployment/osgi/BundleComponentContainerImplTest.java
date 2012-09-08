@@ -33,7 +33,7 @@ import org.fluidity.composition.Containers;
 import org.fluidity.foundation.ClassDiscovery;
 import org.fluidity.foundation.Log;
 import org.fluidity.foundation.NoLogFactory;
-import org.fluidity.tests.MockGroupAbstractTest;
+import org.fluidity.testing.MockGroup;
 
 import org.easymock.EasyMock;
 import org.easymock.IAnswer;
@@ -51,7 +51,7 @@ import org.testng.annotations.Test;
  * @author Tibor Varga
  */
 @SuppressWarnings("unchecked")
-public class BundleComponentContainerImplTest extends MockGroupAbstractTest {
+public class BundleComponentContainerImplTest extends MockGroup {
 
     private final ComponentContainer root = Containers.global();
 

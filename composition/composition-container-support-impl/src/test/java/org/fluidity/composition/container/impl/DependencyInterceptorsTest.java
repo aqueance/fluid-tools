@@ -26,7 +26,7 @@ import org.fluidity.composition.container.spi.DependencyGraph;
 import org.fluidity.composition.container.spi.DependencyResolver;
 import org.fluidity.composition.spi.ComponentInterceptor;
 import org.fluidity.foundation.NoLogFactory;
-import org.fluidity.tests.MockGroupAbstractTest;
+import org.fluidity.testing.MockGroup;
 
 import org.easymock.EasyMock;
 import org.easymock.IAnswer;
@@ -35,7 +35,7 @@ import org.testng.annotations.Test;
 /**
  * @author Tibor Varga
  */
-public class DependencyInterceptorsTest extends MockGroupAbstractTest {
+public class DependencyInterceptorsTest extends MockGroup {
 
     private final InterceptorFilter annotations = mock(InterceptorFilter.class);
     private final ContextDefinition context = mock(ContextDefinition.class);

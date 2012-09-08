@@ -26,7 +26,7 @@ import org.fluidity.composition.container.spi.DependencyGraph;
 import org.fluidity.foundation.ClassDiscovery;
 import org.fluidity.foundation.NoLogFactory;
 import org.fluidity.foundation.spi.LogFactory;
-import org.fluidity.tests.MockGroupAbstractTest;
+import org.fluidity.testing.MockGroup;
 
 import org.easymock.EasyMock;
 import org.testng.annotations.BeforeMethod;
@@ -37,7 +37,7 @@ import org.testng.annotations.Test;
  *
  * @author Tibor Varga
  */
-public abstract class ContainerProviderAbstractTest extends MockGroupAbstractTest {
+public abstract class ContainerProviderAbstractTest extends MockGroup {
 
     private final LogFactory logs = new NoLogFactory();
 

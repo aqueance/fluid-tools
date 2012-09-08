@@ -29,7 +29,7 @@ import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.container.ContextDefinition;
 import org.fluidity.composition.spi.ComponentInterceptor;
-import org.fluidity.tests.MockGroupAbstractTest;
+import org.fluidity.testing.MockGroup;
 
 import org.easymock.EasyMock;
 import org.testng.annotations.Test;
@@ -37,7 +37,7 @@ import org.testng.annotations.Test;
 /**
  * @author Tibor Varga
  */
-public class InterceptorFilterImplTest extends MockGroupAbstractTest {
+public class InterceptorFilterImplTest extends MockGroup {
 
     private final ContextDefinition context = mock(ContextDefinition.class);
     private final ContextDefinition copy = mock(ContextDefinition.class);

@@ -17,7 +17,7 @@
 package org.fluidity.features.impl;
 
 import org.fluidity.features.Scheduler;
-import org.fluidity.tests.MockGroupAbstractTest;
+import org.fluidity.testing.MockGroup;
 
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.Test;
@@ -25,7 +25,7 @@ import org.testng.annotations.Test;
 /**
  * @author Tibor Varga
  */
-public class SchedulerTest extends MockGroupAbstractTest {
+public class SchedulerTest extends MockGroup {
 
     private final Runnable task = mock(Runnable.class);
 

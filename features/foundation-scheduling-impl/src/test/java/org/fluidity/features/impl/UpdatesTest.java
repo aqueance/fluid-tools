@@ -21,7 +21,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.fluidity.features.Scheduler;
 import org.fluidity.features.Updates;
 import org.fluidity.foundation.Configuration;
-import org.fluidity.tests.MockGroupAbstractTest;
+import org.fluidity.testing.MockGroup;
 
 import org.easymock.EasyMock;
 import org.easymock.IAnswer;
@@ -31,7 +31,7 @@ import org.testng.annotations.Test;
 /**
  * @author Tibor Varga
  */
-public class UpdatesTest extends MockGroupAbstractTest {
+public class UpdatesTest extends MockGroup {
 
     @SuppressWarnings("unchecked")
     private final Configuration<UpdatesImpl.Settings> configuration = mock(Configuration.class);

@@ -30,7 +30,7 @@ import org.fluidity.composition.container.spi.ContainerProvider;
 import org.fluidity.composition.container.spi.OpenComponentContainer;
 import org.fluidity.foundation.NoLogFactory;
 import org.fluidity.foundation.spi.LogFactory;
-import org.fluidity.tests.MockGroupAbstractTest;
+import org.fluidity.testing.MockGroup;
 
 import org.easymock.EasyMock;
 import org.easymock.IAnswer;
@@ -40,7 +40,7 @@ import org.testng.annotations.Test;
 /**
  * @author Tibor Varga
  */
-public class ContainerBoundaryTest extends MockGroupAbstractTest {
+public class ContainerBoundaryTest extends MockGroup {
 
     private final PlatformContainer platform = mock(PlatformContainer.class);
     private final BootstrapServices providers = mock(BootstrapServices.class);

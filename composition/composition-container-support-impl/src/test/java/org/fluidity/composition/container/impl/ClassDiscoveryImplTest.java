@@ -31,7 +31,7 @@ import org.fluidity.foundation.ClassLoaders;
 import org.fluidity.foundation.Log;
 import org.fluidity.foundation.NoLogFactory;
 import org.fluidity.foundation.Streams;
-import org.fluidity.tests.MockGroupAbstractTest;
+import org.fluidity.testing.MockGroup;
 
 import org.testng.annotations.Test;
 
@@ -39,7 +39,7 @@ import org.testng.annotations.Test;
  * @author Tibor Varga
  */
 @SuppressWarnings({ "unchecked", "ResultOfMethodCallIgnored" })
-public class ClassDiscoveryImplTest extends MockGroupAbstractTest {
+public class ClassDiscoveryImplTest extends MockGroup {
 
     private final Log<ClassDiscoveryImpl> log = NoLogFactory.consume(ClassDiscoveryImpl.class);
 

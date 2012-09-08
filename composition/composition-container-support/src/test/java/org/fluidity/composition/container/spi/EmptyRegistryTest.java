@@ -25,7 +25,7 @@ import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.ComponentGroup;
 import org.fluidity.composition.Components;
 import org.fluidity.composition.spi.ComponentFactory;
-import org.fluidity.tests.MockGroupAbstractTest;
+import org.fluidity.testing.MockGroup;
 
 import org.easymock.EasyMock;
 import org.testng.annotations.Test;
@@ -34,7 +34,7 @@ import org.testng.annotations.Test;
  * @author Tibor Varga
  */
 @SuppressWarnings({ "unchecked", "UnusedDeclaration" })
-public class EmptyRegistryTest extends MockGroupAbstractTest {
+public class EmptyRegistryTest extends MockGroup {
 
     private final ComponentRegistry mock = mock(ComponentRegistry.class);
     private final OpenComponentContainer container = mock(OpenComponentContainer.class);

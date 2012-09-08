@@ -22,7 +22,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import org.fluidity.tests.MockGroupAbstractTest;
+import org.fluidity.testing.MockGroup;
 
 import org.easymock.EasyMock;
 import org.testng.annotations.Test;
@@ -31,7 +31,7 @@ import org.testng.annotations.Test;
  * @author Tibor Varga
  */
 @SuppressWarnings("unchecked")
-public class StringsTest extends MockGroupAbstractTest {
+public class StringsTest extends MockGroup {
 
     @Test
     public void ordinaryType() throws Exception {

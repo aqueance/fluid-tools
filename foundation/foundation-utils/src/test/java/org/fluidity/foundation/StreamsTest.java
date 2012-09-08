@@ -22,14 +22,14 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import org.fluidity.tests.MockGroupAbstractTest;
+import org.fluidity.testing.MockGroup;
 
 import org.testng.annotations.Test;
 
 /**
  * @author Tibor Varga
  */
-public class StreamsTest extends MockGroupAbstractTest {
+public class StreamsTest extends MockGroup {
 
     @Test
     public void testCopying() throws Exception {

@@ -21,14 +21,14 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.DependencyPath;
-import org.fluidity.tests.MockGroupAbstractTest;
+import org.fluidity.testing.MockGroup;
 
 import org.testng.annotations.Test;
 
 /**
  * @author Tibor Varga
  */
-public class CompositeObserverTest extends MockGroupAbstractTest {
+public class CompositeObserverTest extends MockGroup {
 
     private final ComponentContainer.Observer observer1 = mock(ComponentContainer.Observer.class);
     private final ComponentContainer.Observer observer2 = mock(ComponentContainer.Observer.class);

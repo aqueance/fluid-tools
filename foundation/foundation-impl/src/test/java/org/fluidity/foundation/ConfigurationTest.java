@@ -29,7 +29,7 @@ import java.util.Set;
 
 import org.fluidity.composition.ComponentContext;
 import org.fluidity.foundation.spi.PropertyProvider;
-import org.fluidity.tests.MockGroupAbstractTest;
+import org.fluidity.testing.MockGroup;
 
 import org.easymock.EasyMock;
 import org.testng.annotations.DataProvider;
@@ -39,7 +39,7 @@ import org.testng.annotations.Test;
  * @author Tibor Varga
  */
 @SuppressWarnings("UnusedDeclaration")
-public class ConfigurationTest extends MockGroupAbstractTest {
+public class ConfigurationTest extends MockGroup {
 
     private final PropertyProvider provider = new PropertyProvider() {
         private final PropertyProvider mock = mock(PropertyProvider.class);

@@ -32,7 +32,7 @@ import org.fluidity.composition.spi.PackageBindings;
 import org.fluidity.foundation.ClassDiscovery;
 import org.fluidity.foundation.NoLogFactory;
 import org.fluidity.foundation.spi.LogFactory;
-import org.fluidity.tests.MockGroupAbstractTest;
+import org.fluidity.testing.MockGroup;
 
 import org.easymock.EasyMock;
 import org.easymock.IAnswer;
@@ -42,7 +42,7 @@ import org.testng.annotations.Test;
 /**
  * @author Tibor Varga
  */
-public final class ContainerBootstrapImplTest extends MockGroupAbstractTest {
+public final class ContainerBootstrapImplTest extends MockGroup {
 
     private final LogFactory logs = new NoLogFactory();
 

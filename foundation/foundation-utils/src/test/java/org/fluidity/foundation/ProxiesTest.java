@@ -19,7 +19,7 @@ package org.fluidity.foundation;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 
-import org.fluidity.tests.MockGroupAbstractTest;
+import org.fluidity.testing.MockGroup;
 
 import org.easymock.EasyMock;
 import org.testng.annotations.Test;
@@ -27,7 +27,7 @@ import org.testng.annotations.Test;
 /**
  * @author Tibor Varga
  */
-public class ProxiesTest extends MockGroupAbstractTest {
+public class ProxiesTest extends MockGroup {
 
     private final TestObject mock = mock(TestObject.class);
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.fluidity.tests;
+package org.fluidity.testing;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
@@ -34,107 +34,184 @@ import org.easymock.internal.matchers.Same;
 import org.testng.annotations.AfterMethod;
 
 /**
- * Abstract test cases that facilitates the use of a {@link IMocksControl}.
+ * Facilitates the use of multiple <a href="http://www.easymock.org/">EasyMock</a> {@link IMocksControl} objects. There are two ways to use this class: as a
+ * super class (preferred mode) or as a delegate.
+ * <p/>
+ * To use it as a super class, the subclass must use <a href="http://testng.org">TestNG</a> annotations. If TestNG or subclassing is not an option, an
+ * instance of this class can be used as a delegate. In that case, the actual test case must call {@link #clear() clear} method on the instance after each test
+ * method.
+ * <p/>
+ * Mock objects are created by any of the<ul>
+ * <li>{@link #mock(Class) mock}, {@link #niceMock(Class) niceMock}, {@link #strictMock(Class) strictMock}, {@link #mockAll(Class, Class[]) mockAll}, and</li>
+ * <li>{@link #localMock(Class) localMock}, {@link #localNiceMock(Class) localNiceMock}, {@link #localStrictMock(Class) localStrictMock}, {@link
+ * #localMockAll(Class, Class[]) localMockAll}</li>
+ * </ul> methods.
+ * <p/>
+ * The <i>first group</i> of methods create mock objects that will be valid in any test method and <i>should be invoked to initialize instance fields</i>,
+ * while the <i>second group</i> of methods create mock objects that will be valid only in the calling method and <i>should only be called from test
+ * methods</i>.
  * <h3>Usage</h3>
- * TODO
+ * <h4>As a super class</h4>
+ * <pre>
+ * public class MyComponentTest extends <span class="hl1">MockGroup</span> {
+ *
+ *     private final Dependency <span class="hl2">dependency</span> = <span class="hl1">{@linkplain #mock(Class) mock}</span>(Dependency.class);
+ *     private final MyComponent component = new MyComponent(<span class="hl2">dependency</span>);
+ *
+ *     &#64;Test
+ *     public void testSomething() throws Exception {
+ *         final Action <span class="hl2">action</span> = <span class="hl1">{@linkplain #localMock(Class) localMock}</span>(Action.class);
+ *
+ *         {@linkplain EasyMock}.expect(dependency.<span class="hl2">getSomeAction</span>()).andReturn(<span class="hl2">action</span>);
+ *         {@linkplain EasyMock}.expect(action.<span class="hl2">perform</span>()).andReturn(true);
+ *
+ *         <span class="hl1">{@linkplain #replay() replay}</span>();
+ *         final boolean success = component.doSomething();
+ *         <span class="hl1">{@linkplain #verify() verify}</span>();
+ *
+ *         assert success;
+ *     }
+ * }
+ * </pre>
+ * <h4>As a delegate</h4>
+ * <pre>
+ * public class MyComponentTest {
+ *
+ *     private final <span class="hl1">MockGroup</span> group = new <span class="hl1">MockGroup</span>();
+ *     private final Dependency <span class="hl2">dependency</span> = group.<span class="hl1">{@linkplain #mock(Class) mock}</span>(Dependency.class);
+ *     private final MyComponent component = new MyComponent(<span class="hl2">dependency</span>);
+ *
+ *     &#64;AfterMethod
+ *     public void tearDown() throws Exception {
+ *         group.<span class="hl1">{@linkplain #clear() clear}</span>();
+ *     }
+ *
+ *     &#64;Test
+ *     public void testSomething() throws Exception {
+ *         final Action <span class="hl2">action</span> = group.<span class="hl1">{@linkplain #localMock(Class) localMock}</span>(Action.class);
+ *
+ *         {@linkplain EasyMock}.expect(dependency.<span class="hl2">getSomeAction</span>()).andReturn(<span class="hl2">action</span>);
+ *         {@linkplain EasyMock}.expect(action.<span class="hl2">perform</span>()).andReturn(true);
+ *
+ *         group.<span class="hl1">{@linkplain #replay() replay}</span>();
+ *         final boolean success = component.doSomething();
+ *         group.<span class="hl1">{@linkplain #verify() verify}</span>();
+ *
+ *         assert success;
+ *     }
+ * }
+ * </pre>
  *
  * @author Tibor Varga
  */
 @SuppressWarnings("UnusedDeclaration")
-public abstract class MockGroupAbstractTest {
+public class MockGroup {
 
     private final ControlGroup globalGroup = new ControlGroup();
     private ControlGroup localGroup = new ControlGroup();
 
+    /**
+     * Default constructor.
+     */
+    public MockGroup() {
+    }
+
     @AfterMethod
-    public void methodDone() throws Exception {
+    public final void clear() throws Exception {
         localGroup = new ControlGroup();
         reset();
     }
 
     /**
-     * Adds an ordinary mock object to the test case. The set of mock objects added to the test case are controlled collectively by the {@link #replay()},
-     * {@link #verify()} and {@link #reset()} methods.
+     * Creates an {@link EasyMock#createMock(Class) ordinary mock object}. The set of mock objects are controlled collectively by the {@link #replay()}, {@link
+     * #verify()}, and {@link #reset()} methods.
      *
      * @param interfaceClass the interface to mock.
      * @param <T>            the interface class.
+     *
      * @return the mock object for the interface.
      */
-    protected final <T> T mock(final Class<T> interfaceClass) {
+    public final <T> T mock(final Class<T> interfaceClass) {
         return globalGroup.mock(interfaceClass);
     }
 
     /**
-     * Adds a nice mock object to the test case. The set of mock objects added to the test case are controlled collectively by the {@link #replay()}, {@link
-     * #verify()} and {@link #reset()} methods.
+     * Creates a {@link EasyMock#createNiceMock(Class) nice mock object}. The set of mock objects are controlled collectively by the {@link #replay()}, {@link
+     * #verify()}, and {@link #reset()} methods.
      *
      * @param interfaceClass the interface to mock.
      * @param <T>            the interface class.
+     *
      * @return the mock object for the interface.
      */
-    protected final <T> T niceMock(final Class<T> interfaceClass) {
+    public final <T> T niceMock(final Class<T> interfaceClass) {
         return globalGroup.niceMock(interfaceClass);
     }
 
     /**
-     * Adds a strict mock object to the test case. The set of mock objects added to the test case are controlled collectively by the {@link #replay()}, {@link
-     * #verify()} and {@link #reset()} methods.
+     * Creates a {@link EasyMock#createStrictMock(Class) strict mock object}. The set of mock objects are controlled collectively by the {@link #replay()},
+     * {@link #verify()}, and {@link #reset()} methods.
      *
      * @param interfaceClass the interface to mock.
      * @param <T>            the interface class.
+     *
      * @return the mock object for the interface.
      */
-    protected final <T> T strictMock(final Class<T> interfaceClass) {
+    public final <T> T strictMock(final Class<T> interfaceClass) {
         return globalGroup.strictMock(interfaceClass);
     }
 
     /**
-     * Adds an ordinary mock object to the test method and will be deleted for the next method. The set of mock objects added to the test case are controlled
-     * collectively by the {@link #replay()}, {@link #verify()} and {@link #reset()} methods.
+     * Creates a method local {@link EasyMock#createMock(Class) ordinary mock object} that will be deleted after the method. The set of mock objects are
+     * controlled collectively by the {@link #replay()}, {@link #verify()} and {@link #reset()} methods.
      *
      * @param interfaceClass the interface to mock.
      * @param <T>            the interface class.
+     *
      * @return the mock object for the interface.
      */
-    protected final <T> T localMock(final Class<T> interfaceClass) {
+    public final <T> T localMock(final Class<T> interfaceClass) {
         return globalGroup.mock(interfaceClass);
     }
 
     /**
-     * Adds a nice mock object to the test method and will be deleted for the next method. The set of mock objects added to the test case are controlled
-     * collectively by the {@link #replay()}, {@link #verify()} and {@link #reset()} methods.
+     * Creates a method local {@link EasyMock#createNiceMock(Class) nice mock object} that will be deleted after the method. The set of mock objects are
+     * controlled collectively by the {@link #replay()}, {@link #verify()} and {@link #reset()} methods.
      *
      * @param interfaceClass the interface to mock.
      * @param <T>            the interface class.
+     *
      * @return the mock object for the interface.
      */
-    protected final <T> T localNiceMock(final Class<T> interfaceClass) {
+    public final <T> T localNiceMock(final Class<T> interfaceClass) {
         return globalGroup.niceMock(interfaceClass);
     }
 
     /**
-     * Adds a strict mock object to the test method and will be deleted for the next method. The set of mock objects added to the test case are controlled
-     * collectively by the {@link #replay()}, {@link #verify()} and {@link #reset()} methods.
+     * Creates a method local {@link EasyMock#createStrictMock(Class) strict mock object} that will be deleted after the method. The set of mock objects are
+     * controlled collectively by the {@link #replay()}, {@link #verify()} and {@link #reset()} methods.
      *
      * @param interfaceClass the interface to mock.
      * @param <T>            the interface class.
+     *
      * @return the mock object for the interface.
      */
-    protected final <T> T localStrictMock(final Class<T> interfaceClass) {
+    public final <T> T localStrictMock(final Class<T> interfaceClass) {
         return globalGroup.strictMock(interfaceClass);
     }
 
     /**
-     * Creates several ordinary mock objects, one for each interface given and combines them into one mock object that implements all of the given interfaces.
-     * The returned mock object can be cast to any of the interface types that were given as method argument. The mock object is then added to the test case.
+     * Creates several {@link EasyMock#createMock(Class) ordinary mock objects}, one for each interface given, and combines them into one mock object that
+     * implements all of the given interfaces. The returned mock object can be cast to any of the interface types that were given as method arguments.
      * <p/>
-     * The set of mock objects added to the test case are controlled collectively by the {@link #replay()}, {@link #verify()} and {@link #reset()} methods.
+     * The set of mock objects are controlled collectively by the {@link #replay()}, {@link #verify()} and {@link #reset()} methods.
      * <p/>
      * Note: interface visibility may make it impossible to combine the mock objects.
      *
      * @param <T>             the interface class.
      * @param mainInterface   the interface to use as a reference and also the on that determines the return type.
      * @param otherInterfaces the other interfaces to mock.
+     *
      * @return the mock object for the interface.
      */
     @SuppressWarnings("unchecked")
@@ -143,17 +220,18 @@ public abstract class MockGroupAbstractTest {
     }
 
     /**
-     * Creates several ordinary mock objects, one for each interface given and combines them into one mock object that implements all of the given interfaces.
-     * The returned mock object can be cast to any of the interface types that were given as method argument. The mock object is then added to the test method
-     * and will be deleted for the next method.
+     * Creates several method local {@link EasyMock#createMock(Class) ordinary mock objects}, one for each interface given, and combines them into one mock
+     * object that implements all of the given interfaces. The returned mock object can be cast to any of the interface types that were given as method
+     * argument. The mock objects will be deleted at the end of the calling method.
      * <p/>
-     * The set of mock objects added to the test case are controlled collectively by the {@link #replay()}, {@link #verify()} and {@link #reset()} methods.
+     * The set of mock objects are controlled collectively by the {@link #replay()}, {@link #verify()} and {@link #reset()} methods.
      * <p/>
      * Note: interface visibility may make it impossible to combine the mock objects.
      *
      * @param <T>             the interface class.
      * @param mainInterface   the interface to use as a reference and also the on that determines the return type.
      * @param otherInterfaces the other interfaces to mock.
+     *
      * @return the mock object for the interface.
      */
     @SuppressWarnings("unchecked")
@@ -162,28 +240,28 @@ public abstract class MockGroupAbstractTest {
     }
 
     /**
-     * Calls {@link IMocksControl#replay()} on all mock objects added to the test. Mock objects are added by calling {@link #mock(Class)}, {@link
-     * #niceMock(Class)}, {@link #strictMock(Class)} and {@link #mockAll(Class, Class[])}.
+     * Calls {@link IMocksControl#replay()} on all mock objects added to the group. Mock objects are added by calling {@link #mock(Class)}, {@link
+     * #niceMock(Class)}, {@link #strictMock(Class)}, and {@link #mockAll(Class, Class[])}, and their <code>local</code> counterparts.
      */
-    protected final void replay() {
+    public final void replay() {
         globalGroup.replay();
         localGroup.replay();
     }
 
     /**
-     * Calls {@link IMocksControl#verify()} on all mock objects added to the test. Mock objects are added by calling {@link #mock(Class)}, {@link
-     * #niceMock(Class)}, {@link #strictMock(Class)} and {@link #mockAll(Class, Class[])}.
+     * Calls {@link IMocksControl#verify()} on all mock objects added to the group. Mock objects are added by calling {@link #mock(Class)}, {@link
+     * #niceMock(Class)}, {@link #strictMock(Class)}, and {@link #mockAll(Class, Class[])}, and their <code>local</code> counterparts.
      */
-    protected final void verify() {
+    public final void verify() {
         globalGroup.verify();
         localGroup.verify();
     }
 
     /**
-     * Calls {@link IMocksControl#reset()} on all mock objects added to the test. Mock objects are added by calling {@link #mock(Class)}, {@link
-     * #niceMock(Class)}, {@link #strictMock(Class)} and {@link #mockAll(Class, Class[])}.
+     * Calls {@link IMocksControl#reset()} on all mock objects added to the group. Mock objects are added by calling {@link #mock(Class)}, {@link
+     * #niceMock(Class)}, {@link #strictMock(Class)}, and {@link #mockAll(Class, Class[])}, and their <code>local</code> counterparts.
      */
-    protected final void reset() {
+    public final void reset() {
         globalGroup.reset();
         localGroup.reset();
     }
@@ -192,9 +270,10 @@ public abstract class MockGroupAbstractTest {
      * Argument matcher that understands variadic arguments.
      *
      * @param expected the array of expected values.
+     *
      * @return the matcher.
      */
-    protected final <T> T[] varEq(final T[] expected) {
+    public final <T> T[] varEq(final T[] expected) {
         for (final T value : expected) {
             EasyMock.reportMatcher(new Equals(value));
         }
@@ -206,9 +285,10 @@ public abstract class MockGroupAbstractTest {
      * Argument matcher that understands variadic arguments.
      *
      * @param expected the array of expected values.
+     *
      * @return the matcher.
      */
-    protected final <T> T[] varSame(final T[] expected) {
+    public final <T> T[] varSame(final T[] expected) {
         for (final T value : expected) {
             EasyMock.reportMatcher(new Same(value));
         }
@@ -220,9 +300,10 @@ public abstract class MockGroupAbstractTest {
      * Argument matcher that understands variadic arguments.
      *
      * @param expected an array with the expected size.
+     *
      * @return the matcher.
      */
-    protected final <T> T[] varNotNull(final T[] expected) {
+    public final <T> T[] varNotNull(final T[] expected) {
         for (final T value : expected) {
             EasyMock.reportMatcher(NotNull.NOT_NULL);
         }
@@ -230,6 +311,11 @@ public abstract class MockGroupAbstractTest {
         return expected;
     }
 
+    /**
+     * A group of mock objects.
+     *
+     * @author Tibor Varga
+     */
     private static class ControlGroup {
 
         public final IMocksControl group = EasyMock.createControl();
@@ -245,11 +331,12 @@ public abstract class MockGroupAbstractTest {
         }
 
         /**
-         * Adds an ordinary mock object to the test case. The set of mock objects added to the test case are controlled collectively by the {@link #replay()},
-         * {@link #verify()} and {@link #reset()} methods.
+         * Adds an {@link EasyMock#createMock(Class) ordinary mock object} to the group. The set of mock objects added to the group are controlled collectively
+         * by the {@link #replay()}, {@link #verify()} and {@link #reset()} methods.
          *
          * @param interfaceClass the interface to mock.
          * @param <T>            the interface class.
+         *
          * @return the mock object for the interface.
          */
         protected final <T> T mock(final Class<T> interfaceClass) {
@@ -257,11 +344,12 @@ public abstract class MockGroupAbstractTest {
         }
 
         /**
-         * Adds a nice mock object to the test case. The set of mock objects added to the test case are controlled collectively by the {@link #replay()}, {@link
-         * #verify()} and {@link #reset()} methods.
+         * Adds a {@link EasyMock#createNiceMock(Class) nice mock object} to the group. The set of mock objects added to the group are controlled collectively
+         * by the {@link #replay()}, {@link #verify()} and {@link #reset()} methods.
          *
          * @param interfaceClass the interface to mock.
          * @param <T>            the interface class.
+         *
          * @return the mock object for the interface.
          */
         protected final <T> T niceMock(final Class<T> interfaceClass) {
@@ -269,11 +357,12 @@ public abstract class MockGroupAbstractTest {
         }
 
         /**
-         * Adds a strict mock object to the test case. The set of mock objects added to the test case are controlled collectively by the {@link #replay()},
-         * {@link #verify()} and {@link #reset()} methods.
+         * Adds a {@link EasyMock#createStrictMock(Class) strict mock object} to the group. The set of mock objects added to the group are controlled
+         * collectively by the {@link #replay()}, {@link #verify()} and {@link #reset()} methods.
          *
          * @param interfaceClass the interface to mock.
          * @param <T>            the interface class.
+         *
          * @return the mock object for the interface.
          */
         protected final <T> T strictMock(final Class<T> interfaceClass) {
@@ -281,21 +370,22 @@ public abstract class MockGroupAbstractTest {
         }
 
         /**
-         * Creates several ordinary mock objects, one for each interface given and combines them into one mock object that implements all of the given
-         * interfaces. The returned mock object can be cast to any of the interface types that were given as method argument. The mock object is then added to
-         * the test case.
+         * Creates several {@link EasyMock#createMock(Class) ordinary mock objects}, one for each interface given and combines them into one mock object that
+         * implements all of the given interfaces. The returned mock object can be cast to any of the interface types that were given as method argument. The
+         * mock object is then added to the group.
          * <p/>
-         * The set of mock objects added to the test case are controlled collectively by the {@link #replay()}, {@link #verify()} and {@link #reset()} methods.
+         * The set of mock objects added to the group are controlled collectively by the {@link #replay()}, {@link #verify()} and {@link #reset()} methods.
          * <p/>
          * Note: interface visibility may make it impossible to combine the mock objects.
          *
          * @param <T>             the interface class.
          * @param mainInterface   the interface to use as a reference and also the on that determines the return type.
          * @param otherInterfaces the other interfaces to mock.
+         *
          * @return the mock object for the interface.
          */
         @SuppressWarnings("unchecked")
-        public final <T> T mockAll(final Class<T> mainInterface, final Class<?>... otherInterfaces) {
+        protected final <T> T mockAll(final Class<T> mainInterface, final Class<?>... otherInterfaces) {
             if (otherInterfaces.length == 0) {
                 return mock(mainInterface);
             } else {
@@ -336,7 +426,7 @@ public abstract class MockGroupAbstractTest {
         }
 
         /**
-         * Calls {@link IMocksControl#replay()} on all mock objects added to the test. Mock objects are added by calling {@link #mock(Class)}, {@link
+         * Calls {@link IMocksControl#replay()} on all mock objects added to the group. Mock objects are added by calling {@link #mock(Class)}, {@link
          * #niceMock(Class)}, {@link #strictMock(Class)} and {@link #mockAll(Class, Class[])}.
          */
         protected final void replay() {
@@ -346,7 +436,7 @@ public abstract class MockGroupAbstractTest {
         }
 
         /**
-         * Calls {@link IMocksControl#verify()} on all mock objects added to the test. Mock objects are added by calling {@link #mock(Class)}, {@link
+         * Calls {@link IMocksControl#verify()} on all mock objects added to the group. Mock objects are added by calling {@link #mock(Class)}, {@link
          * #niceMock(Class)}, {@link #strictMock(Class)} and {@link #mockAll(Class, Class[])}.
          */
         protected final void verify() {
@@ -364,7 +454,7 @@ public abstract class MockGroupAbstractTest {
         }
 
         /**
-         * Calls {@link IMocksControl#reset()} on all mock objects added to the test. Mock objects are added by calling {@link #mock(Class)}, {@link
+         * Calls {@link IMocksControl#reset()} on all mock objects added to the group. Mock objects are added by calling {@link #mock(Class)}, {@link
          * #niceMock(Class)}, {@link #strictMock(Class)} and {@link #mockAll(Class, Class[])}.
          */
         protected final void reset() {

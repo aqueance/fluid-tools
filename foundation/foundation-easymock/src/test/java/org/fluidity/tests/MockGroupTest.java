@@ -16,10 +16,12 @@
 
 package org.fluidity.tests;
 
+import org.fluidity.testing.MockGroup;
+
 import org.easymock.EasyMock;
 import org.testng.annotations.Test;
 
-public class MockGroupAbstractTestTest extends MockGroupAbstractTest {
+public class MockGroupTest extends MockGroup {
 
     private final VarargsComponent component = mock(VarargsComponent.class);
 

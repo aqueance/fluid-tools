@@ -18,11 +18,11 @@ limitations under the License.
 *#package ${package};
 
 import org.easymock.EasyMock;
-import org.fluidity.tests.MockGroupAbstractTest;
+import org.fluidity.testing.MockGroup;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-public final class ComponentImplTest extends MockGroupAbstractTest {
+public final class ComponentImplTest extends MockGroup {
 
     private final ComponentApi.MessageSink dependency = mock(ComponentApi.MessageSink.class);
 

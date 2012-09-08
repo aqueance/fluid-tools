@@ -20,7 +20,7 @@ import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.container.spi.OpenComponentContainer;
-import org.fluidity.tests.MockGroupAbstractTest;
+import org.fluidity.testing.MockGroup;
 
 import org.testng.annotations.BeforeMethod;
 
@@ -29,7 +29,7 @@ import org.testng.annotations.BeforeMethod;
  *
  * @author Tibor Varga
  */
-public abstract class AbstractContainerTests extends MockGroupAbstractTest {
+public abstract class AbstractContainerTests extends MockGroup {
 
     protected final ArtifactFactory artifacts;
 
@@ -67,7 +67,7 @@ public abstract class AbstractContainerTests extends MockGroupAbstractTest {
     }
 
     /**
-     * Component interface for {@link Value}.
+     * Component interface for {@link AbstractContainerTests.Value}.
      */
     public interface Key {
 
@@ -75,7 +75,7 @@ public abstract class AbstractContainerTests extends MockGroupAbstractTest {
     }
 
     /**
-     * Component that depends on {@link DependentKey}.
+     * Component that depends on {@link AbstractContainerTests.DependentKey}.
      *
      * This is intentionally protected - makes sure the container is able to instantiate non-public classes.
      */
@@ -109,7 +109,7 @@ public abstract class AbstractContainerTests extends MockGroupAbstractTest {
     }
 
     /**
-     * Component interface for {@link DependentValue}.
+     * Component interface for {@link AbstractContainerTests.DependentValue}.
      */
     public interface DependentKey {
 

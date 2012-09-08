@@ -35,7 +35,7 @@ import org.fluidity.composition.container.DependencyInjector;
 import org.fluidity.composition.container.spi.ContextNode;
 import org.fluidity.composition.container.spi.DependencyGraph;
 import org.fluidity.composition.container.spi.DependencyResolver;
-import org.fluidity.tests.MockGroupAbstractTest;
+import org.fluidity.testing.MockGroup;
 
 import org.easymock.EasyMock;
 import org.testng.annotations.Test;
@@ -43,7 +43,7 @@ import org.testng.annotations.Test;
 /**
  * @author Tibor Varga
  */
-public class DependencyInjectorImplTest extends MockGroupAbstractTest {
+public class DependencyInjectorImplTest extends MockGroup {
 
     private final DependencyInterceptors interceptors = mock(DependencyInterceptors.class);
     private final DependencyGraph.Traversal traversal = mock(DependencyGraph.Traversal.class);
