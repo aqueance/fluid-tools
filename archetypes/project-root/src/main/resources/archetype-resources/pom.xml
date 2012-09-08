@@ -35,6 +35,7 @@ limitations under the License.
         <osgi.import.core>org.osgi.framework;version=1.4</osgi.import.core>
     </properties>
 
+<!-- Allows specifying the target repository as -DaltDeploymentRepository (http://maven.apache.org/plugins/maven-deploy-plugin/deploy-mojo.html)
     <distributionManagement>
         <repository>
             <id>dummy</id>
@@ -42,8 +43,9 @@ limitations under the License.
             <url>dummy</url>
         </repository>
     </distributionManagement>
+-->
 
-#set( $symbol_dollar = '$' )
+    #set( $symbol_dollar = '$' )
     <dependencyManagement>
         <dependencies>
 

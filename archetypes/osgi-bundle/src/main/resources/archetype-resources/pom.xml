@@ -36,13 +36,13 @@ limitations under the License.
         </dependency>
 
         <!--
-        Depending on the intended use, move here the dependencies from either
-        the "standalone" or the "stripped" profile and delete the profiles.
+        Depending on the intended use, you may want to move here the
+        dependencies from either the "standalone" or the "stripped" profile
+        and delete the profiles themselves.
 
         The "standalone" variant produces a complete OSGi bundle while the
-        "stripped" variant can only be used as a dependency of a standalone
-        OSGi application matching the fluidity-archetype-standalone-osgi
-        archetype.
+        "stripped" variant can only be deployed in a standalone OSGi
+        application matching the fluidity-archetype-standalone-osgi archetype.
         -->
 
     </dependencies>
@@ -50,19 +50,17 @@ limitations under the License.
     <profiles>
         <profile>
             <id>standalone</id>
-            <activation><property><name>!stripped</name></property></activation>
+            <activation><property><name>standalone-bundles</name></property></activation>
 
             <dependencies>
 
-                <!--
-                Add dependencies of the bundle, e.g.:
-
+<!-- Add the dependencies of the bundle, e.g.:
                 <dependency>
                     <groupId>${symbol_dollar}{project.groupId}</groupId>
-                    <artifactId>my-bundle-dependency</artifactId>
+                    <artifactId>some-bundle-dependency</artifactId>
                     <version>${symbol_dollar}{project.version}</version>
                 </dependency>
-                -->
+-->
 
                 <dependency>
                     <groupId>${fluidity.public.groupId}</groupId>
@@ -71,6 +69,7 @@ limitations under the License.
                     <type>pom</type>
                 </dependency>
 
+<!-- Uncomment and modify to make available to the bundle a suitable logging framework.
                 <dependency>
                     <groupId>${fluidity.features.groupId}</groupId>
                     <artifactId>logging-commons-impl</artifactId>
@@ -82,21 +81,20 @@ limitations under the License.
                     <artifactId>commons-logging</artifactId>
                     <version>1.1.1</version>
                 </dependency>
+-->
             </dependencies>
         </profile>
 
         <profile>
             <id>stripped</id>
-            <activation><property><name>stripped</name></property></activation>
+            <activation><property><name>!standalone-bundles</name></property></activation>
 
             <dependencies>
 
-                <!--
-                Add dependencies of the bundle, e.g.:
-
+<!-- Add the dependencies of the bundle, e.g.:
                 <dependency>
                     <groupId>${symbol_dollar}{project.groupId}</groupId>
-                    <artifactId>my-bundle-dependency</artifactId>
+                    <artifactId>some-bundle-dependency</artifactId>
                     <version>${symbol_dollar}{project.version}</version>
 
                     <exclusions>
@@ -106,7 +104,7 @@ limitations under the License.
                         </exclusion>
                     </exclusions>
                 </dependency>
-                -->
+-->
 
                 <dependency>
                     <groupId>${fluidity.public.groupId}</groupId>
@@ -141,7 +139,7 @@ limitations under the License.
                     <archive>
                         <manifestEntries>
                             <Import-Package>${symbol_dollar}{osgi.import.core}</Import-Package>
-<!-- Sample package export
+<!-- Sample package export:
                             <Export-Package>${package};version=${symbol_dollar}{version:project.version}</Export-Package>
 -->
                             <Bundle-RequiredExecutionEnvironment>J2SE-1.5</Bundle-RequiredExecutionEnvironment>
@@ -154,6 +152,7 @@ limitations under the License.
                 <groupId>${fluidity.plugin.groupId}</groupId>
                 <artifactId>standalone-jar-maven-plugin</artifactId>
 
+<!-- Comment out to overwrite the original artifact rather than creating a new one with the given classifier. -->
                 <configuration>
                     <classifier>bundle</classifier>
                 </configuration>

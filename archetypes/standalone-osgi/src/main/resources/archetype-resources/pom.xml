@@ -28,18 +28,20 @@ limitations under the License.
     #set( $symbol_dollar = '$' )
     <dependencies>
 
-        <!--
-        Add dependencies for your bundles like this one. The scope and optional restrictions are required.
-
+<!-- Add dependencies to your bundles like this one.
         <dependency>
             <groupId>\${project.groupId}</groupId>
-            <artifactId>my-osgi-bundle</artifactId>
+            <artifactId>some-osgi-bundle</artifactId>
             <version>\${project.version}</version>
-            <classifier>bundle</classifier>
+
+The <scope/> and <optional/> restrictions are required:
             <scope>runtime</scope>
             <optional>true</optional>
+
+Remove or edit the classifier to match the particulars:
+            <classifier>bundle</classifier>
         </dependency>
-        -->
+-->
 
         <dependency>
             <groupId>${fluidity.public.groupId}</groupId>
@@ -66,6 +68,7 @@ limitations under the License.
             <version>3.7.2</version>
         </dependency>
 
+<!-- Uncomment and modify to make available to the application a suitable logging framework.
         <dependency>
             <groupId>${fluidity.features.groupId}</groupId>
             <artifactId>logging-commons-impl</artifactId>
@@ -77,6 +80,7 @@ limitations under the License.
             <artifactId>commons-logging</artifactId>
             <version>1.1.1</version>
         </dependency>
+-->
 
     </dependencies>
 

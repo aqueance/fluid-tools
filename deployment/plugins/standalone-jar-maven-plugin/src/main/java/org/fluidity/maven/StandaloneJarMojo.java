@@ -216,7 +216,7 @@ public class StandaloneJarMojo extends AbstractMojo {
                 final Map<String, Collection<Artifact>> includedDependencies = new HashMap<String, Collection<Artifact>>();
 
                 /*
-                 * Manifest handlers use profiles to declare dependencies to include, exclude and unpack in our standalone artifact.
+                 * Manifest handlers use profiles to declare dependencies to include, exclude, or unpack in our standalone artifact.
                  * These profiles are turned off by the presence of packaging properties.
                  * Thus we need to manipulate the properties when doing dependency traversal to turn these profiles on and off.
                  */

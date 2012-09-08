@@ -99,7 +99,7 @@ public interface JarManifest {
      * <p/>
      * The returned name must not contain the '/' character.
      *
-     * @return a directory name, or <code>null</code> if the manifest handler requests no extra dependencies for inclusion.
+     * @return a directory name, or <code>null</code> if the default path should be used.
      */
     String dependencyPath();
 

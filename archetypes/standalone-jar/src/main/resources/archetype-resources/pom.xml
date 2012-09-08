@@ -35,6 +35,7 @@ limitations under the License.
             <type>pom</type>
         </dependency>
 
+<!-- Uncomment and modify to make available to the application a suitable logging framework.
         <dependency>
             <groupId>${fluidity.features.groupId}</groupId>
             <artifactId>logging-commons-impl</artifactId>
@@ -46,6 +47,7 @@ limitations under the License.
             <artifactId>commons-logging</artifactId>
             <version>1.1.1</version>
         </dependency>
+-->
 
     </dependencies>
 
@@ -61,7 +63,7 @@ limitations under the License.
                 <groupId>${fluidity.plugin.groupId}</groupId>
                 <artifactId>standalone-jar-maven-plugin</artifactId>
 
-<!-- Uncomment this to produce a new artifact with the given classifier.
+<!-- Uncomment to produce a new artifact with the given classifier.
                 <configuration>
                     <classifier>app</classifier>
                 </configuration>

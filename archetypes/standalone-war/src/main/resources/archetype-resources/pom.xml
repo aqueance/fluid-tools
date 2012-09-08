@@ -50,13 +50,6 @@ limitations under the License.
             <plugin>
                 <groupId>${fluidity.plugin.groupId}</groupId>
                 <artifactId>composition-maven-plugin</artifactId>
-                <version>${symbol_dollar}{fluid.tools.version}</version>
-
-                <executions>
-                    <execution>
-                        <goals><goal>process-annotations</goal></goals>
-                    </execution>
-                </executions>
             </plugin>
 
 
@@ -76,6 +69,7 @@ limitations under the License.
                         <goals><goal>package</goal></goals>
                     </execution>
                 </executions>
+
                 <dependencies>
 
                     <dependency>
@@ -93,6 +87,7 @@ limitations under the License.
 -->
                     </dependency>
 
+<!-- Uncomment and modify to make available to the application a suitable logging framework.
                     <dependency>
                         <groupId>${fluidity.features.groupId}</groupId>
                         <artifactId>logging-commons-impl</artifactId>
@@ -104,6 +99,7 @@ limitations under the License.
                         <artifactId>commons-logging</artifactId>
                         <version>1.1.1</version>
                     </dependency>
+-->
 
                 </dependencies>
             </plugin>
