@@ -72,7 +72,23 @@ public final class Archives extends Utility {
      */
     public static final String INDEX_NAME = String.format("%s/INDEX.LIST", META_INF);
 
+    /**
+     * The JAR manifest attribute to list the embedded JAR files within a Java archive.
+     */
+    private static final String NESTED_DEPENDENCIES = "Nested-Dependencies";
+
     private Archives() { }
+
+    /**
+     * Returns the JAR manifest attribute listing the embedded dependency paths for the given name.
+     *
+     * @param name the name of the dependency list; may be <code>null</code>
+     *
+     * @return the JAR manifest entry listing the embedded dependency paths for the given name.
+     */
+    public static String nestedDependencies(final String name) {
+        return name == null || name.isEmpty() ? NESTED_DEPENDENCIES : String.format("%s-%s", NESTED_DEPENDENCIES, name);
+    }
 
     /**
      * Reads entries from a JAR file.

@@ -44,7 +44,7 @@ public final class Launcher {
     /**
      * The JAR manifest attribute to list the embedded JAR files that comprise the packaged application.
      */
-    public static final String NESTED_DEPENDENCIES = "Nested-Dependencies";
+    public static final String NESTED_DEPENDENCIES = Archives.nestedDependencies(null);
 
     /**
      * The JAR manifest attribute that specifies the application's main class, one with a <code>public static void main(final String[] args) throws

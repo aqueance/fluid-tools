@@ -83,9 +83,7 @@
                 <version>${project.version}</version>
                 <executions>
                     <execution>
-                        <goals>
-                            <goal>process-annotations</goal>
-                        </goals>
+                        <goals><goal>process-annotations</goal></goals>
                     </execution>
                 </executions>
             </plugin>
@@ -109,7 +107,7 @@
                 <executions>
                     <execution>
                         <goals>
-                            <goal>package</goal>
+                            <goal>standalone</goal>
                         </goals>
                     </execution>
                 </executions>

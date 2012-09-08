@@ -58,7 +58,7 @@ limitations under the License.
                 <artifactId>standalone-war-maven-plugin</artifactId>
                 <version>${symbol_dollar}{fluid.tools.version}</version>
 
-<!-- Uncomment to support executable WAR only; trims some off the WAR size
+<!-- Uncomment to make execution-only WAR; trims some off the WAR size
                 <configuration>
                     <commandLineOnly>true</commandLineOnly>
                 </configuration>
@@ -66,7 +66,7 @@ limitations under the License.
 
                 <executions>
                     <execution>
-                        <goals><goal>package</goal></goals>
+                        <goals><goal>standalone</goal></goals>
                     </execution>
                 </executions>
 

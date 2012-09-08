@@ -35,6 +35,8 @@ import org.testng.annotations.AfterMethod;
 
 /**
  * Abstract test cases that facilitates the use of a {@link IMocksControl}.
+ * <h3>Usage</h3>
+ * TODO
  *
  * @author Tibor Varga
  */

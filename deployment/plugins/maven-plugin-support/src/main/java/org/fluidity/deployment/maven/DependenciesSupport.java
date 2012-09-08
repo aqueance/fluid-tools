@@ -23,6 +23,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -401,15 +402,18 @@ public final class DependenciesSupport extends Utility {
                                     final String classifier,
                                     final String packaging,
                                     final Log log) throws MojoExecutionException {
-        final boolean classified = classifier == null || classifier.isEmpty();
-        final String outputName = classified ? String.format("%s.%s", finalName, packaging) : String.format("%s-%s.%s", finalName, classifier, packaging);
+        final boolean unclassified = classifier == null || classifier.isEmpty();
+        final String outputName = unclassified ? String.format("%s.%s", finalName, packaging) : String.format("%s-%s.%s", finalName, classifier, packaging);
+
+        final File outputFile = new File(outputName);
+        final String outputPath = outputFile.getAbsolutePath();
 
         final Artifact artifact = project.getArtifact();
         assert artifact != null;
 
         final File artifactFile = artifact.getFile();
 
-        if (artifactFile != null && artifactFile.getAbsolutePath().equals(outputName)) {
+        if (artifactFile != null && artifactFile.getAbsolutePath().equals(outputPath)) {
             log.info(String.format("Replacing %s: %s", packaging, artifactFile.getAbsolutePath()));
 
             if (!artifactFile.delete()) {
@@ -420,29 +424,52 @@ public final class DependenciesSupport extends Utility {
                 throw new MojoExecutionException(String.format("Could not create %s", artifactFile));
             }
         } else {
-            final File attachmentFile = new File(outputName);
+            boolean replacing = false;
 
-            if (attachmentFile.exists() && !attachmentFile.delete()) {
-                throw new MojoExecutionException(String.format("Could not delete %s", attachmentFile));
+            for (final Artifact attached : project.getAttachedArtifacts()) {
+                if (attached.getFile().getAbsolutePath().equals(outputPath)) {
+                    replacing = true;
+                    break;
+                }
             }
 
-            if (!file.renameTo(attachmentFile)) {
-                throw new MojoExecutionException(String.format("Could not create %s", attachmentFile));
+            log.info(String.format("%s %s: %s", replacing ? "Replacing" : "Saving", packaging, outputPath));
+
+            if (outputFile.exists() && !outputFile.delete()) {
+                throw new MojoExecutionException(String.format("Could not delete %s", outputFile));
             }
 
-            log.info(String.format("Saving %s: %s", packaging, attachmentFile.getAbsolutePath()));
+            if (!file.renameTo(outputFile)) {
+                throw new MojoExecutionException(String.format("Could not create %s", outputFile));
+            }
 
-            final DefaultArtifact attachment = new DefaultArtifact(project.getGroupId(),
-                                                                   project.getArtifactId(),
-                                                                   project.getVersion(),
-                                                                   artifact.getScope(),
-                                                                   packaging,
-                                                                   classifier,
-                                                                   artifact.getArtifactHandler());
-            attachment.setFile(attachmentFile);
+            if (!replacing) {
+                final DefaultArtifact attachment = new DefaultArtifact(project.getGroupId(),
+                                                                       project.getArtifactId(),
+                                                                       project.getVersion(),
+                                                                       artifact.getScope(),
+                                                                       packaging,
+                                                                       classifier,
+                                                                       artifact.getArtifactHandler());
+                attachment.setFile(outputFile);
 
-            project.addAttachedArtifact(attachment);
+                project.addAttachedArtifact(attachment);
+            }
         }
+    }
+
+    public static Collection<Artifact> resolve(final RepositorySystem system,
+                                               final RepositorySystemSession session,
+                                               final List<RemoteRepository> repositories,
+                                               final List<Dependency> dependencies) throws MojoExecutionException {
+        final DependencySelector selector = new TransitiveDependencySelector(false, false);
+        final Collection<Artifact> artifacts = new LinkedHashSet<Artifact>();
+
+        for (final Dependency dependency : dependencies) {
+            artifacts.addAll(closure(system, session, repositories, selector, aetherDependency(dependencyArtifact(dependency), dependency.getExclusions())));
+        }
+
+        return artifacts;
     }
 
     /**

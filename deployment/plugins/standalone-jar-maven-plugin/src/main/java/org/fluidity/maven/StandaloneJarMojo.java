@@ -59,7 +59,7 @@ import org.sonatype.aether.util.DefaultRepositorySystemSession;
  * JAR service provider, to process the JAR's manifest attributes.
  *
  * @author Tibor Varga
- * @goal package
+ * @goal standalone
  * @phase package
  * @threadSafe
  */

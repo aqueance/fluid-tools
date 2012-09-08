@@ -34,12 +34,12 @@ limitations under the License.
             <artifactId>some-osgi-bundle</artifactId>
             <version>\${project.version}</version>
 
+Remove or edit the classifier to match the particulars:
+            <classifier>bundle</classifier>
+
 The <scope/> and <optional/> restrictions are required:
             <scope>runtime</scope>
             <optional>true</optional>
-
-Remove or edit the classifier to match the particulars:
-            <classifier>bundle</classifier>
         </dependency>
 -->
 

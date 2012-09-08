@@ -71,7 +71,7 @@ import org.sonatype.aether.repository.RemoteRepository;
  * There are various set operations performed in these dependencies to make sure nothing is included that shouldn't.
  *
  * @author Tibor Varga
- * @goal package
+ * @goal standalone
  * @phase package
  * @threadSafe
  */
