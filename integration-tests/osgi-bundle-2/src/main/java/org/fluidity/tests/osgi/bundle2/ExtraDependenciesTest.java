@@ -16,36 +16,30 @@
 
 package org.fluidity.tests.osgi.bundle2;
 
+import java.net.URL;
 import java.util.Properties;
-import java.util.concurrent.atomic.AtomicInteger;
 
-import org.fluidity.deployment.osgi.BundleComponentContainer;
+import org.fluidity.foundation.Archives;
 import org.fluidity.tests.osgi.BundleTest;
 
+import org.osgi.framework.BundleContext;
 import org.testng.annotations.Test;
 
 /**
  * @author Tibor Varga
  */
-public class ServiceListenerTest implements BundleTest, BundleComponentContainer.Registration.Listener {
+public class ExtraDependenciesTest implements BundleTest {
 
-    private final AtomicInteger bundleCount = new AtomicInteger();
+    private final BundleContext context;
 
-    public Class type() {
-        return BundleComponentContainer.Status.class;
-    }
-
-    public void serviceAdded(final Object component, final Properties properties) {
-        bundleCount.incrementAndGet();
-    }
-
-    public void serviceRemoved(final Object component) {
-        bundleCount.decrementAndGet();
+    public ExtraDependenciesTest(final BundleContext context) {
+        this.context = context;
     }
 
     @Test
     public void test() throws Exception {
-        assert bundleCount.get() == 2 : bundleCount.get();
+        // the bundle location is not guaranteed to be a URL so the below is not portable
+        assert !Archives.Nested.dependencies(new URL(context.getBundle().getLocation()), "extras", false).isEmpty();
     }
 
     public Class<?>[] types() {

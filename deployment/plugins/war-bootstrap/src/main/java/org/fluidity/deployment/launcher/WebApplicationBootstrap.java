@@ -19,7 +19,6 @@ package org.fluidity.deployment.launcher;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.JarURLConnection;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.net.URLDecoder;
@@ -106,38 +105,32 @@ public final class WebApplicationBootstrap {
                     params.add(param);
                 }
             }
-            final URL url = ClassLoaders.findClassResource(WebApplicationBootstrap.class);
-            final JarURLConnection jar = Archives.jarFile(url);
 
-            if (jar != null) {
-                final URL warURL = jar.getJarFileURL();
-                final List<URL> classpath = new ArrayList<URL>();
+            final URL war = Archives.containing(WebApplicationBootstrap.class);
+            final List<URL> classpath = new ArrayList<URL>();
 
-                classpath.add(warURL);
+            classpath.add(war);
 
-                Archives.readEntries(warURL, new Archives.Entry() {
-                    private final String bootEntry = "WEB-INF/boot/";
+            Archives.readEntries(war, new Archives.Entry() {
+                private final String bootEntry = "WEB-INF/boot/";
 
-                    public boolean matches(final JarEntry entry) throws IOException {
-                        final String entryName = entry.getName();
-                        final boolean matches = entryName.startsWith(bootEntry) && !entryName.equals(bootEntry);
+                public boolean matches(final JarEntry entry) throws IOException {
+                    final String entryName = entry.getName();
+                    final boolean matches = entryName.startsWith(bootEntry) && !entryName.equals(bootEntry);
 
-                        if (matches) {
-                            classpath.add(Archives.Nested.formatURL(warURL, null, entryName));
-                        }
-
-                        return false;
+                    if (matches) {
+                        classpath.add(Archives.Nested.formatURL(war, null, entryName));
                     }
 
-                    public boolean read(final JarEntry entry, final InputStream stream) throws IOException {
-                        return false;
-                    }
-                });
+                    return false;
+                }
 
-                bootstrapServer(httpPort, classpath, bootWar, managedApps, params.toArray(new String[params.size()]));
-            } else {
-                throw new IllegalStateException(String.format("%s does not point to a WAR file", url));
-            }
+                public boolean read(final JarEntry entry, final InputStream stream) throws IOException {
+                    return false;
+                }
+            });
+
+            bootstrapServer(httpPort, classpath, bootWar, managedApps, params.toArray(new String[params.size()]));
         } else {
             throw new RuntimeException("Not a local WAR file: " + bootUrl);
         }

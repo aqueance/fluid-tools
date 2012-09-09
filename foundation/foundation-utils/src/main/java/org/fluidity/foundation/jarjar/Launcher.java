@@ -17,12 +17,10 @@
 package org.fluidity.foundation.jarjar;
 
 import java.lang.reflect.Method;
-import java.net.JarURLConnection;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.jar.Attributes;
 
 import org.fluidity.foundation.Archives;
 import org.fluidity.foundation.ClassLoaders;
@@ -30,7 +28,7 @@ import org.fluidity.foundation.Exceptions;
 
 /**
  * Launches a main class from a JAR file using a class loader that can load classes from JAR files nested inside the main JAR. Nested JAR files must be located
- * in the path denoted by the manifest attribute named in {@link #NESTED_DEPENDENCIES}. The main class to be loaded is defined by the manifest attribute named
+ * in the path denoted by the manifest attribute named in {@link Archives#NESTED_DEPENDENCIES}. The main class to be loaded is defined by the manifest attribute named
  * in {@link #ORIGINAL_MAIN_CLASS}. The <code>Main-Class</code> manifest attribute has to point to this class, obviously.
  * <p/>
  * The above manifest attributes are set by the appropriate {@link org.fluidity.deployment.plugin.spi.JarManifest} processor when used by the
@@ -40,11 +38,6 @@ import org.fluidity.foundation.Exceptions;
  */
 @SuppressWarnings("JavadocReference")
 public final class Launcher {
-
-    /**
-     * The JAR manifest attribute to list the embedded JAR files that comprise the packaged application.
-     */
-    public static final String NESTED_DEPENDENCIES = Archives.nestedDependencies(null);
 
     /**
      * The JAR manifest attribute that specifies the application's main class, one with a <code>public static void main(final String[] args) throws
@@ -62,55 +55,36 @@ public final class Launcher {
     public static void main(final String[] args) throws Exception {
         final Class<?> main = Launcher.class;
 
-        final URL url = ClassLoaders.findClassResource(main);
-        final JarURLConnection jar = Archives.jarFile(url);
-
-        if (jar != null) {
-            final URL jarURL = jar.getJarFileURL();
-            final Attributes attributes = jar.getMainAttributes();
-
-            final String jarPath = jarURL.getFile();
-            final String mainClass = getMandatoryAttribute(jarPath, attributes, ORIGINAL_MAIN_CLASS);
-            final String dependencies = getMandatoryAttribute(jarPath, attributes, NESTED_DEPENDENCIES);
-
-            final List<URL> urls = new ArrayList<URL>();
-            urls.add(jarURL);
-
-            for (final String path : dependencies.split(" ")) {
-                urls.add(Handler.formatURL(jarURL, null, path));
-            }
-
-            final ClassLoader loader = new URLClassLoader(urls.toArray(new URL[urls.size()]), ClassLoaders.findClassLoader(main, true));
-
-            try {
-                ClassLoaders.context(loader, new ClassLoaders.Command<Void, Exception>() {
-                    public Void run(final ClassLoader loader) throws Exception {
-                        final Method main = loader.loadClass(mainClass).getMethod("main", String[].class);
-
-                        return Exceptions.wrap(new Exceptions.Command<Void>() {
-                            public Void run() throws Throwable {
-                                main.setAccessible(true);
-                                main.invoke(null, new Object[] { args });
-                                return null;
-                            }
-                        });
-                    }
-                });
-            } catch (final Exceptions.Wrapper wrapper) {
-                throw wrapper.rethrow(Exception.class);
-            }
-        } else {
-            throw new IllegalStateException(String.format("%s does not point to a JAR file", url));
-        }
-    }
-
-    private static String getMandatoryAttribute(final String file, final Attributes attributes, final String name) {
-        final String mainClass = attributes.getValue(name);
+        final URL root = Archives.containing(main);
+        final String mainClass = Archives.mainAttributes(root, ORIGINAL_MAIN_CLASS)[0];
 
         if (mainClass == null) {
-            throw new IllegalStateException(String.format("%s is not a defined in the %s manifest", name, file));
+            throw new IllegalStateException(String.format("%s is not a defined in the %s manifest", ORIGINAL_MAIN_CLASS, root));
         }
 
-        return mainClass;
+        final List<URL> urls = new ArrayList<URL>();
+
+        urls.add(root);
+        urls.addAll(Archives.Nested.dependencies(null));
+
+        final ClassLoader loader = new URLClassLoader(urls.toArray(new URL[urls.size()]), ClassLoaders.findClassLoader(main, true));
+
+        try {
+            ClassLoaders.context(loader, new ClassLoaders.Command<Void, Exception>() {
+                public Void run(final ClassLoader loader) throws Exception {
+                    final Method main = loader.loadClass(mainClass).getMethod("main", String[].class);
+
+                    return Exceptions.wrap(new Exceptions.Command<Void>() {
+                        public Void run() throws Throwable {
+                            main.setAccessible(true);
+                            main.invoke(null, new Object[] { args });
+                            return null;
+                        }
+                    });
+                }
+            });
+        } catch (final Exceptions.Wrapper wrapper) {
+            throw wrapper.rethrow(Exception.class);
+        }
     }
 }

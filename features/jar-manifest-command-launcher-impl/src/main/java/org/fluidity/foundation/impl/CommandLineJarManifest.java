@@ -22,6 +22,7 @@ import java.util.jar.Attributes;
 
 import org.fluidity.deployment.launcher.ShellApplicationBootstrap;
 import org.fluidity.deployment.plugin.spi.JarManifest;
+import org.fluidity.foundation.Archives;
 import org.fluidity.foundation.Strings;
 import org.fluidity.foundation.jarjar.Launcher;
 
@@ -59,7 +60,7 @@ public final class CommandLineJarManifest implements JarManifest {
             attributes.put(Attributes.Name.MAIN_CLASS, Launcher.class.getName());
         }
 
-        attributes.putValue(Launcher.NESTED_DEPENDENCIES, Strings.delimited(" ", paths));
+        attributes.putValue(Archives.Nested.attribute(null), Strings.delimited(" ", paths));
     }
 
     @Override

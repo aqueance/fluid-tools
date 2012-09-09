@@ -19,7 +19,7 @@
     <properties>
 
         <!-- Equinox versions earlier than 3.7 cannot be embedded, apparently -->
-        <equinox.version>3.7.2</equinox.version>
+        <equinox.version>3.8</equinox.version>
     </properties>
 
     <dependencies>
@@ -29,24 +29,6 @@
             <artifactId>testing-api</artifactId>
             <version>${project.version}</version>
             <scope>runtime</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>osgi-bundle-1</artifactId>
-            <version>${project.version}</version>
-            <classifier>bundle</classifier>
-            <scope>runtime</scope>
-            <optional>true</optional>
-        </dependency>
-
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>osgi-bundle-2</artifactId>
-            <version>${project.version}</version>
-            <classifier>bundle</classifier>
-            <scope>runtime</scope>
-            <optional>true</optional>
         </dependency>
 
         <dependency>
@@ -73,6 +55,33 @@
         </dependency>
 
     </dependencies>
+
+    <profiles>
+        <profile>
+            <id>bundles</id>
+            <activation><activeByDefault>true</activeByDefault></activation>
+
+            <dependencies>
+                <dependency>
+                    <groupId>${project.groupId}</groupId>
+                    <artifactId>osgi-bundle-1</artifactId>
+                    <version>${project.version}</version>
+                    <classifier>bundle</classifier>
+                    <scope>provided</scope>
+                    <optional>true</optional>
+                </dependency>
+
+                <dependency>
+                    <groupId>${project.groupId}</groupId>
+                    <artifactId>osgi-bundle-2</artifactId>
+                    <version>${project.version}</version>
+                    <classifier>bundle</classifier>
+                    <scope>provided</scope>
+                    <optional>true</optional>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
 
     <build>
         <plugins>
@@ -108,7 +117,14 @@
                     <execution>
                         <goals>
                             <goal>standalone</goal>
+                            <goal>include</goal>
                         </goals>
+
+                        <configuration>
+                            <profiles>
+                                <profile>bundles</profile>
+                            </profiles>
+                        </configuration>
                     </execution>
                 </executions>
 

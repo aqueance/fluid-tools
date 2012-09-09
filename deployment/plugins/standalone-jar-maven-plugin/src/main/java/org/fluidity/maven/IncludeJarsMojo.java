@@ -217,7 +217,7 @@ public class IncludeJarsMojo extends AbstractMojo {
                             }
                         }
 
-                        mainAttributes.putValue(Archives.nestedDependencies(id), Strings.delimited(" ", dependencyList));
+                        mainAttributes.putValue(Archives.Nested.attribute(id), Strings.delimited(" ", dependencyList));
                         dependencyMap.put(dependencyPath, dependencies);
                     }
                 }

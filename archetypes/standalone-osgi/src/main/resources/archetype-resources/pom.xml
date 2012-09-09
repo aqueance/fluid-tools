@@ -28,21 +28,6 @@ limitations under the License.
     #set( $symbol_dollar = '$' )
     <dependencies>
 
-<!-- Add dependencies to your bundles like this one.
-        <dependency>
-            <groupId>\${project.groupId}</groupId>
-            <artifactId>some-osgi-bundle</artifactId>
-            <version>\${project.version}</version>
-
-Remove or edit the classifier to match the particulars:
-            <classifier>bundle</classifier>
-
-The <scope/> and <optional/> restrictions are required:
-            <scope>runtime</scope>
-            <optional>true</optional>
-        </dependency>
--->
-
         <dependency>
             <groupId>${fluidity.public.groupId}</groupId>
             <artifactId>fluid-tools-cli-application</artifactId>
@@ -65,7 +50,7 @@ The <scope/> and <optional/> restrictions are required:
             -->
             <groupId>org.eclipse</groupId>
             <artifactId>equinox</artifactId>
-            <version>3.7.2</version>
+            <version>3.8</version>
         </dependency>
 
 <!-- Uncomment and modify to make available to the application a suitable logging framework.
@@ -83,6 +68,29 @@ The <scope/> and <optional/> restrictions are required:
 -->
 
     </dependencies>
+
+    <profiles>
+        <profile>
+            <!-- this ID is used at run time -->
+            <id>bundles</id>
+            <activation><activeByDefault>true</activeByDefault></activation>
+
+<!-- Add dependencies to your bundles like this one.
+            <dependency>
+                <groupId>\${project.groupId}</groupId>
+                <artifactId>some-osgi-bundle</artifactId>
+                <version>\${project.version}</version>
+
+                Remove or edit the classifier to match the particulars:
+                <classifier>bundle</classifier>
+
+                The <scope/> and <optional/> restrictions are required:
+                <scope>provided</scope>
+                <optional>true</optional>
+            </dependency>
+-->
+        </profile>
+    </profiles>
 
     <build>
         <resources>
@@ -115,6 +123,18 @@ The <scope/> and <optional/> restrictions are required:
             <plugin>
                 <groupId>${fluidity.plugin.groupId}</groupId>
                 <artifactId>standalone-jar-maven-plugin</artifactId>
+
+                <executions>
+                    <execution>
+                        <goals><goal>include</goal></goals>
+
+                        <configuration>
+                            <profiles>
+                                <profile>bundles</profile>
+                            </profiles>
+                        </configuration>
+                    </execution>
+                </executions>
 
                 <dependencies>
                     <dependency>

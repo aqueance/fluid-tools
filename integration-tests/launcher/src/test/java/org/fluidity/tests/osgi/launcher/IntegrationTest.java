@@ -93,10 +93,10 @@ public final class IntegrationTest {
             for (final URL manifest : manifests) {
 
                 // find and install those JAR files that have both an OSGi bundle symbolic name and our integration test marker
-                final String[] markers = Archives.manifestAttributes(manifest, INTEGRATION_TEST_MARKER, Constants.BUNDLE_SYMBOLICNAME);
+                final String[] markers = Archives.mainAttributes(manifest, INTEGRATION_TEST_MARKER, Constants.BUNDLE_SYMBOLICNAME);
 
                 if (markers[0] != null && markers[1] != null) {
-                    final Bundle bundle = system.installBundle(Archives.jarFile(manifest).getJarFileURL().toExternalForm());
+                    final Bundle bundle = system.installBundle(Archives.containing(manifest).toExternalForm());
 
                     if (bundle.getHeaders().get(Constants.FRAGMENT_HOST) == null) {
                         bundles.add(bundle);
@@ -125,6 +125,9 @@ public final class IntegrationTest {
             system.removeBundleListener(bundleListener);
 
             assert started : "Not all bundles started";
+
+            // run this before any other test is discovered
+            testRestartingBundles();
 
             final ServiceReference[] statuses = system.getServiceReferences(BundleComponentContainer.Status.class.getName(), null);
 
@@ -171,7 +174,7 @@ public final class IntegrationTest {
         return properties;
     }
 
-    @Test
+    @Test(enabled = false)
     public void testRestartingBundles() throws Exception {
 
         @SuppressWarnings("ThrowableResultOfMethodCallIgnored")

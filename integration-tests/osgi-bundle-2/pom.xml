@@ -160,12 +160,18 @@
 
                         <executions>
                             <execution>
-                                <goals><goal>standalone</goal></goals>
+                                <goals>
+                                    <goal>standalone</goal>
+                                    <goal>include</goal>
+                                </goals>
                             </execution>
                         </executions>
 
                         <configuration>
                             <classifier>bundle</classifier>
+                            <profiles>
+                                <profile>extras</profile>
+                            </profiles>
                         </configuration>
 
                         <dependencies>
@@ -178,6 +184,22 @@
                     </plugin>
                 </plugins>
             </build>
+        </profile>
+
+        <profile>
+            <id>extras</id>
+            <activation><activeByDefault>false</activeByDefault></activation>
+
+            <dependencies>
+                <!-- Anything that is not built along with us (as this is not an active profile)-->
+                <dependency>
+                    <groupId>org.ow2.asm</groupId>
+                    <artifactId>asm</artifactId>
+                    <version>4.0</version>
+                    <scope>provided</scope>
+                    <optional>false</optional>
+                </dependency>
+            </dependencies>
         </profile>
     </profiles>
 

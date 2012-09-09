@@ -17,6 +17,7 @@
 package org.fluidity.deployment.maven;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -66,6 +67,8 @@ import org.sonatype.aether.util.graph.selector.StaticDependencySelector;
  */
 @SuppressWarnings("UnusedDeclaration")
 public final class DependenciesSupport extends Utility {
+
+    private static final StaticDependencySelector NO_SELECTOR = new StaticDependencySelector(false);
 
     private DependenciesSupport() { }
 
@@ -178,11 +181,11 @@ public final class DependenciesSupport extends Utility {
         final CollectRequest collectRequest = new CollectRequest(root, new ArrayList<RemoteRepository>(repositories));
         final DependencyFilterSession filter = new DependencyFilterSession(session, new DependencySelector() {
             public boolean selectDependency(final org.sonatype.aether.graph.Dependency dependency) {
-                return true;  // accept the root artifact
+                return true;  // always accept the root artifact
             }
 
-            public DependencySelector deriveChildSelector(final DependencyCollectionContext dependencyCollectionContext) {
-                return selector;
+            public DependencySelector deriveChildSelector(final DependencyCollectionContext context) {
+                return root.isOptional() ? NO_SELECTOR : selector;
             }
         });
 
@@ -227,13 +230,17 @@ public final class DependenciesSupport extends Utility {
     }
 
     private static String[] projectId(final Class<?> type) throws MojoExecutionException {
-        final String[] spec = Archives.manifestAttributes(type, MANIFEST_MAVEN_GROUP_ID, MANIFEST_MAVEN_ARTIFACT_ID);
+        try {
+            final String[] spec = Archives.mainAttributes(type, MANIFEST_MAVEN_GROUP_ID, MANIFEST_MAVEN_ARTIFACT_ID);
 
-        if (spec == null || spec.length != 2 || spec[0] == null || spec[1] == null) {
-            throw new MojoExecutionException(String.format("Could not find Maven project for %s", type));
+            if (spec == null || spec.length != 2 || spec[0] == null || spec[1] == null) {
+                throw new MojoExecutionException(String.format("Could not find Maven project for %s", type));
+            }
+
+            return spec;
+        } catch (final IOException e) {
+            throw new MojoExecutionException("Reading JAR manifest", e);
         }
-
-        return spec;
     }
 
     /**
@@ -244,13 +251,15 @@ public final class DependenciesSupport extends Utility {
      * @return the artifact.
      */
     public static Artifact dependencyArtifact(final Dependency dependency) {
-        return new DefaultArtifact(dependency.getGroupId(),
-                                   dependency.getArtifactId(),
-                                   dependency.getVersion(),
-                                   dependency.getScope(),
-                                   dependency.getType(),
-                                   dependency.getClassifier(),
-                                   new DefaultArtifactHandler(dependency.getType()));
+        final DefaultArtifact artifact = new DefaultArtifact(dependency.getGroupId(),
+                                                             dependency.getArtifactId(),
+                                                             dependency.getVersion(),
+                                                             dependency.getScope(),
+                                                             dependency.getType(),
+                                                             dependency.getClassifier(),
+                                                             new DefaultArtifactHandler(dependency.getType()));
+        artifact.setOptional(Boolean.valueOf(dependency.getOptional()));
+        return artifact;
     }
 
     /**
@@ -529,7 +538,7 @@ public final class DependenciesSupport extends Utility {
             final org.sonatype.aether.graph.Dependency dependency = context.getDependency();
 
             if (dependency == null || JavaScopes.PROVIDED.equals(dependency.getScope()) || (!compile && dependency.isOptional())) {
-                return new StaticDependencySelector(false);
+                return NO_SELECTOR;
             } else {
                 final Collection<org.sonatype.aether.graph.Exclusion> exclusions = dependency.getExclusions();
 

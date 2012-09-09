@@ -218,7 +218,7 @@ public class StandaloneWarMojo extends AbstractMojo {
                     if (iterator.hasNext()) {
                         final File file = iterator.next().getFile();
                         final URL url = file.toURI().toURL();
-                        mainClass.compareAndSet(null, Archives.manifestAttributes(url, Attributes.Name.MAIN_CLASS.toString())[0]);
+                        mainClass.compareAndSet(null, Archives.mainAttributes(url, Attributes.Name.MAIN_CLASS.toString())[0]);
                         return file;
                     } else {
                         return null;

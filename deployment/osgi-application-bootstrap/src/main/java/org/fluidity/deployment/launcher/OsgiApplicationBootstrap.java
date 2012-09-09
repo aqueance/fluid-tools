@@ -29,7 +29,6 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.jar.JarFile;
 
 import org.fluidity.composition.Containers;
 import org.fluidity.composition.Optional;
@@ -169,19 +168,11 @@ public final class OsgiApplicationBootstrap {
             }
         });
 
-        // find all JAR manifests visible to our class loader
-        final List<URL> manifests = ClassLoaders.findResources(getClass(), JarFile.MANIFEST_NAME);
-        for (final URL manifest : manifests) {
-            final URL url = Archives.jarFile(manifest).getJarFileURL();
+        for (final URL url : Archives.Nested.dependencies("bundles")) {
 
-            if (!frameworkURL.equals(url)) {
-
-                // select those JAR files that have an OSGi bundle symbolic name (it is a mandatory OSGi header)
-                final String[] markers = Archives.manifestAttributes(manifest, Constants.BUNDLE_SYMBOLICNAME);
-
-                if (markers[0] != null) {
-                    jars.add(url);
-                }
+            // make sure to select only those archives that have an OSGi bundle symbolic name (it is a mandatory OSGi header)
+            if (Archives.mainAttributes(url, Constants.BUNDLE_SYMBOLICNAME)[0] != null) {
+                jars.add(url);
             }
         }
 
@@ -282,7 +273,12 @@ public final class OsgiApplicationBootstrap {
 
         if (startLevel != null) {
             final int limit = order.size() + 1;
-            startLevel.setStartLevel(Math.max(1, Math.min(limit, levels.initial(limit))), null);
+            final int level = Math.max(1, Math.min(limit, levels.initial(limit)));
+            startLevel.setStartLevel(level, null);
+
+            log.debug("OSGi framework (%s) started at level %d", framework.getSymbolicName(), level);
+        } else {
+            log.debug("OSGi framework (%s) started", framework.getSymbolicName());
         }
 
         framework.waitForStop(0);

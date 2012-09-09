@@ -22,6 +22,7 @@ import java.net.JarURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
@@ -78,17 +79,6 @@ public final class Archives extends Utility {
     private static final String NESTED_DEPENDENCIES = "Nested-Dependencies";
 
     private Archives() { }
-
-    /**
-     * Returns the JAR manifest attribute listing the embedded dependency paths for the given name.
-     *
-     * @param name the name of the dependency list; may be <code>null</code>
-     *
-     * @return the JAR manifest entry listing the embedded dependency paths for the given name.
-     */
-    public static String nestedDependencies(final String name) {
-        return name == null || name.isEmpty() ? NESTED_DEPENDENCIES : String.format("%s-%s", NESTED_DEPENDENCIES, name);
-    }
 
     /**
      * Reads entries from a JAR file.
@@ -155,57 +145,48 @@ public final class Archives extends Utility {
     }
 
     /**
-     * Loads manifest attributes from the JAR file where the given class was loaded from.
+     * Reads the main attributes from the manifest of the JAR file where the given class was loaded from.
      *
      * @param type the class whose source JAR is to be processed.
      * @param names  the list of attribute names to load.
      *
      * @return an array of strings, each being the value of the attribute name at the same index in the <code>names</code> parameter or <code>null</code>.
      */
-    public static String[] manifestAttributes(final Class<?> type, final String... names) {
-        return manifestAttributes(ClassLoaders.findClassResource(type),
-                                  String.format("Can't find class loader for %s", type),
-                                  String.format("Class %s was not loaded from a JAR file: %s", type.getName(), ClassLoaders.findClassResource(type)),
-                                  names);
+    public static String[] mainAttributes(final Class<?> type, final String... names) throws IOException {
+        return attributes(ClassLoaders.findClassResource(type), String.format("Can't find class loader for %s", type), names);
     }
 
     /**
-     * Loads manifest attributes from the JAR file where the given resource was loaded from.
+     * Returns the main attributes with the given names from manifest of the JAR file identified by the given URL.
      *
-     * @param url   the resource whose source JAR is to be processed.
+     * @param url   the URL, pointing either to a JAR resource or an archive itself.
      * @param names the list of attribute names to load.
      *
      * @return an array of strings, each being the value of the attribute name at the same index in the <code>names</code> parameter or <code>null</code>.
+     *
+     * @throws IllegalStateException when the given URL is not a JAR file
+     * @throws IOException           when an I/O error occurs when accessing its manifest
      */
-    public static String[] manifestAttributes(final URL url, final String... names) {
-        return manifestAttributes(url, "Resource URL is null", String.format("Resource was not loaded from a JAR file: %s", url), names);
+    public static String[] mainAttributes(final URL url, final String... names) throws IOException {
+        return attributes(url, "Resource URL is null", names);
     }
 
-    private static String[] manifestAttributes(final URL url, final String nullURL, final String notJAR, final String... names) {
+    private static String[] attributes(final URL url, final String nullURL, final String... names) throws IOException {
         if (url == null) {
-            throw new IllegalArgumentException(nullURL);
+            throw new IllegalStateException(nullURL);
         }
 
-        try {
-            final JarURLConnection connection = jarFile(url);
-            final URL jar = connection == null ? url : connection.getJarFileURL();
+        final URL jar = jar(url);
+        final Manifest manifest = loadManifest(jar == null ? url : jar);    // not a JAR resource, assume it's the archive itself
+        final Attributes attributes = manifest == null ? null : manifest.getMainAttributes();
 
-            if (jar != null) {
-                final Manifest manifest = loadManifest(jar);
-                final Attributes attributes = manifest == null ? null : manifest.getMainAttributes();
+        final List<String> list = new ArrayList<String>();
 
-                final List<String> list = new ArrayList<String>();
-                for (final String name : names) {
-                    list.add(attributes == null ? null : attributes.getValue(name));
-                }
-
-                return list.toArray(new String[list.size()]);
-            } else {
-                throw new IllegalArgumentException(notJAR);
-            }
-        } catch (final IOException e) {
-            throw new IllegalArgumentException(e);
+        for (final String name : names) {
+            list.add(attributes == null ? null : attributes.getValue(name));
         }
+
+        return list.toArray(new String[list.size()]);
     }
 
     /**
@@ -228,38 +209,16 @@ public final class Archives extends Utility {
     }
 
     /**
-     * Loads the JAR manifest from the given JAR input stream.
-     *
-     * @param stream the JAR input stream to load the manifest from.
-     *
-     * @return the JAR manifest.
-     *
-     * @throws IOException if loading the input stream fails.
-     */
-    public static Manifest loadManifest(final InputStream stream) throws IOException {
-        final Manifest manifest = new Manifest();
-
-        try {
-            manifest.read(stream);
-        } finally {
-            stream.close();
-        }
-
-        return manifest;
-    }
-
-    /**
-     * Returns a <code>JarURLConnection</code> for the given JAR URL (an URL into a JAR file) that allows {@linkplain JarURLConnection#getAttributes() loading
-     * the JAR manifest} or finding the {@linkplain JarURLConnection#getJarFileURL() base JAR file URL} of the given URL.
+     * Returns the <code>URL</code> for the Java archive that the given JAR URL points into.
      *
      * @param url the URL to interpret as a JAR URL.
      *
-     * @return the JAR URL connection or <code>null</code> if the provided URL is not a JAR URL.
+     * @return the <code>URL</code> for the Java archive that the given JAR URL points into.
      */
-    public static JarURLConnection jarFile(final URL url) {
+    private static URL jar(final URL url) {
         try {
             final URLConnection connection = url.openConnection();
-            return connection instanceof JarURLConnection ? ((JarURLConnection) connection) : null;
+            return connection instanceof JarURLConnection ? ((JarURLConnection) connection).getJarFileURL() : null;
         } catch (final IOException e) {
             return null;
         }
@@ -268,18 +227,45 @@ public final class Archives extends Utility {
     /**
      * Returns the JAR file that contains the given type.
      *
-     * @param type   the Java class to find.
+     * @param type the Java class to find.
      *
      * @return the JAR URL containing the given type.
      *
-     * @throws IllegalArgumentException if the given type is not loaded from a JAR file.
+     * @throws IllegalStateException if the given type is not loaded from a JAR file.
      */
-    public static URL containing(final Class<?> type) throws IllegalArgumentException {
+    public static URL containing(final Class<?> type) throws IllegalStateException {
         final URL source = ClassLoaders.findClassResource(type);
-        final URL jar = jarFile(source).getJarFileURL();
+        return containing(source, String.format("Class %s was not loaded from a JAR file: %s", type.getName(), source));
+    }
+
+    /**
+     * Returns the URL for JAR file that the given URL is relative to.
+     *
+     * @param url the nested URL.
+     *
+     * @return the URL for JAR file that the given URL is relative to.
+     *
+     * @throws IllegalStateException if the given URL is not relative to a JAR file.
+     */
+    public static URL containing(final URL url) throws IllegalStateException {
+        return containing(url, String.format("%s is not a JAR URL", url));
+    }
+
+    /**
+     * Returns the root JAR file that the given URL is relative to.
+     *
+     * @param url    the nested URL.
+     * @param notJAR the error to report if the given URL is not a JAR resource URL.
+     *
+     * @return the root JAR file that the given URL is relative to.
+     *
+     * @throws IllegalStateException if the given URL is not relative to a JAR file.
+     */
+    private static URL containing(final URL url, final String notJAR) throws IllegalStateException {
+        final URL jar = jar(url);
 
         if (jar == null) {
-            throw new IllegalArgumentException(String.format("Class %s was not loaded from a JAR file: %s", type.getName(), source));
+            throw new IllegalStateException(notJAR);
         } else {
             return jar;
         }
@@ -321,6 +307,8 @@ public final class Archives extends Utility {
 
     /**
      * Convenience methods to handle nested JAR archives.
+     * <h3>Usage</h3>
+     * TODO
      *
      * @author Tibor Varga
      */
@@ -376,6 +364,62 @@ public final class Archives extends Utility {
          */
         public static void unload(final URL url) throws IOException {
             Handler.unload(url);
+        }
+
+        /**
+         * Returns the JAR manifest attribute listing the embedded dependency paths for the given name.
+         *
+         * @param name the name of the dependency list; may be <code>null</code>
+         *
+         * @return the JAR manifest entry listing the embedded dependency paths for the given name.
+         */
+        public static String attribute(final String name) {
+            return name == null || name.isEmpty() ? NESTED_DEPENDENCIES : String.format("%s-%s", NESTED_DEPENDENCIES, name);
+        }
+
+        /**
+         * Returns the list of URLs pointing to the named list of embedded archives.
+         *
+         * @param name the name of the dependency list; may be <code>null</code>
+         *
+         * @return the list of URLs pointing to the named list of embedded archives.
+         *
+         * @throws IllegalStateException if there is no dependency list with the given name.
+         * @throws IOException           when I/O error occurs when accessing the archive.
+         */
+        public static Collection<URL> dependencies(final String name) throws IOException, IllegalStateException  {
+            return dependencies(Archives.containing(Archives.class), name, false);
+        }
+
+        /**
+         * Returns the list of URLs pointing to the named list of embedded archives.
+         *
+         * @param archive the URL to the Java archive to inspect
+         * @param name    the name of the dependency list; may be <code>null</code>
+         * @param jar     if <code>true</code>, the returned URLs will be JAR URLs ready to append paths contained therein; if <code>false</code>, the returned
+         *                URLs will point to the nested JAR files themselves.
+         *
+         * @return the list of URLs pointing to the named list of embedded archives.
+         *
+         * @throws IllegalStateException if there is no dependency list with the given name.
+         * @throws IOException           when I/O error occurs when accessing the archive.
+         */
+        public static Collection<URL> dependencies(final URL archive, final String name, final boolean jar) throws IOException, IllegalStateException  {
+            final String list = attribute(name);
+            final String dependencies = Archives.mainAttributes(archive, list)[0];
+
+            if (dependencies == null) {
+                throw new IllegalStateException(String.format("%s is not defined in the archive manifest of %s", list, archive));
+            }
+
+            final List<URL> urls = new ArrayList<URL>();
+
+            for (final String dependency : dependencies.split(" ")) {
+                final URL url = Handler.formatURL(archive, null, dependency);
+                urls.add(jar ? url : Archives.containing(url));
+            }
+
+            return urls;
         }
     }
 }
