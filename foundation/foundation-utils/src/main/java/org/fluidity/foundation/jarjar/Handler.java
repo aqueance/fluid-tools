@@ -35,6 +35,7 @@ import java.util.Map;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 
+import org.fluidity.foundation.Archives;
 import org.fluidity.foundation.ClassLoaders;
 import org.fluidity.foundation.Streams;
 import org.fluidity.foundation.Strings;
@@ -67,13 +68,10 @@ public final class Handler extends URLStreamHandler {
      */
     public static final String DELIMITER = "!:/";      // must not be the one used by the JAR handler
 
-    private static final String JAR_PROTOCOL = "jar:";
-    private static final String JAR_DELIMITER = "!/";
-
     private static final String PROTOCOL_HANDLERS_PROPERTY = "java.protocol.handler.pkgs";
 
     static {
-        assert !DELIMITER.equals(JAR_DELIMITER);
+        assert !DELIMITER.equals(Archives.DELIMITER);
 
         final String canonicalName = Handler.class.getName();
         final int dot = canonicalName.lastIndexOf('.', canonicalName.length() - Handler.class.getSimpleName().length() - 2);
@@ -157,7 +155,7 @@ public final class Handler extends URLStreamHandler {
 
                 // we have a JAR URL but we need the enclosed URL and the JAR file path relative to the URL, separately
                 final URL url = ((JarURLConnection) connection).getJarFileURL();
-                final String path = root.getPath().split(JAR_DELIMITER)[1];      // parsing a JAR URL, not our own URL
+                final String path = root.getPath().split(Archives.DELIMITER)[1];      // parsing a JAR URL, not our own URL
 
                 specification.set(PROTOCOL).append(':').append(url.toExternalForm());
                 specification.add(path);
@@ -174,7 +172,7 @@ public final class Handler extends URLStreamHandler {
             specification.set(stem);
         }
 
-        specification.surround(JAR_PROTOCOL, JAR_DELIMITER);   // embedded _JAR_, remember?
+        specification.surround(Archives.PROTOCOL, Archives.DELIMITER);   // embedded _JAR_, remember?
 
         if (file != null) {
             specification.append(file);

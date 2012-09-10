@@ -90,6 +90,8 @@ public final class OsgiApplicationBootstrap {
      */
     public static final String OSGI_APPLICATION_ROOT = "osgi.application.root";
 
+    private static final String BUNDLES = "bundles";
+
     private final Log<OsgiApplicationBootstrap> log;
     private final ContainerTermination termination;
     private final StartLevels levels;
@@ -168,7 +170,7 @@ public final class OsgiApplicationBootstrap {
             }
         });
 
-        for (final URL url : Archives.Nested.dependencies("bundles")) {
+        for (final URL url : Archives.Nested.dependencies(BUNDLES)) {
 
             // make sure to select only those archives that have an OSGi bundle symbolic name (it is a mandatory OSGi header)
             if (Archives.mainAttributes(url, Constants.BUNDLE_SYMBOLICNAME)[0] != null) {
@@ -197,6 +199,8 @@ public final class OsgiApplicationBootstrap {
                         } catch (final InterruptedException e) {
                             Thread.currentThread().interrupt();
                         }
+
+                        log.debug("OSGi framework (%s) stopped", framework.getSymbolicName());
 
                     default:
                         break;
@@ -276,7 +280,7 @@ public final class OsgiApplicationBootstrap {
             final int level = Math.max(1, Math.min(limit, levels.initial(limit)));
             startLevel.setStartLevel(level, null);
 
-            log.debug("OSGi framework (%s) started at level %d", framework.getSymbolicName(), level);
+            log.debug("OSGi framework (%s) started at level %d of %d", framework.getSymbolicName(), level, limit);
         } else {
             log.debug("OSGi framework (%s) started", framework.getSymbolicName());
         }

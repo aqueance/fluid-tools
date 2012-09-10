@@ -18,10 +18,12 @@ package org.fluidity.tests.osgi.bundle2;
 
 import java.net.URL;
 import java.util.Properties;
+import java.util.jar.JarFile;
 
 import org.fluidity.foundation.Archives;
 import org.fluidity.tests.osgi.BundleTest;
 
+import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.testng.annotations.Test;
 
@@ -30,16 +32,21 @@ import org.testng.annotations.Test;
  */
 public class ExtraDependenciesTest implements BundleTest {
 
-    private final BundleContext context;
+    private static final String EXTRAS = "extras";
+
+    private final Bundle bundle;
 
     public ExtraDependenciesTest(final BundleContext context) {
-        this.context = context;
+        bundle = context.getBundle();
     }
 
     @Test
     public void test() throws Exception {
-        // the bundle location is not guaranteed to be a URL so the below is not portable
-        assert !Archives.Nested.dependencies(new URL(context.getBundle().getLocation()), "extras", false).isEmpty();
+        assert !Archives.Nested.dependencies(bundle.getEntry("/"), EXTRAS, false).isEmpty();
+        assert !Archives.Nested.dependencies(new URL(bundle.getEntry("/"), JarFile.MANIFEST_NAME), EXTRAS, false).isEmpty();
+
+        // the bundle location is not guaranteed to be a URL so this is not portable
+        assert !Archives.Nested.dependencies(new URL(bundle.getLocation()), EXTRAS, false).isEmpty();
     }
 
     public Class<?>[] types() {
