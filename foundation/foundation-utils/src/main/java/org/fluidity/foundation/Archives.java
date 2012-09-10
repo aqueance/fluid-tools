@@ -404,7 +404,8 @@ public final class Archives extends Utility {
         }
 
         /**
-         * Returns the list of URLs pointing to the named list of embedded archives.
+         * Returns the list of URLs pointing to the named list of embedded archives. The returned URLs can then be appended further nested archives or
+         * resources using the {@link Archives.Nested#formatURL(URL, String, String...) formatURL} method.
          *
          * @param name the name of the dependency list; may be <code>null</code>
          *
@@ -413,30 +414,28 @@ public final class Archives extends Utility {
          * @throws IOException when I/O error occurs when accessing the archive.
          */
         public static Collection<URL> dependencies(final String name) throws IOException {
-            return Archives.Nested.dependencies(Archives.rootURL(), name, false);
+            return Archives.Nested.dependencies(Archives.rootURL(), name);
         }
 
         /**
-         * Returns the list of URLs pointing to the named list of embedded archives.
+         * Returns the list of URLs pointing to the named list of embedded archives. The returned URLs can then be appended further nested archives or
+         * resources using the {@link Archives.Nested#formatURL(URL, String, String...) formatURL} method.
          *
          * @param archive the URL to the Java archive to inspect
          * @param name    the name of the dependency list; may be <code>null</code>
-         * @param base    base URL flag; if <code>true</code>, the returned URLs will be JAR URLs ready to append some path contained therein; if
-         *                <code>false</code>, the returned URLs will point to the nested JAR files themselves.
          *
          * @return the list of URLs pointing to the named list of embedded archives; may be empty.
          *
          * @throws IOException when I/O error occurs when accessing the archive.
          */
-        public static Collection<URL> dependencies(final URL archive, final String name, final boolean base) throws IOException {
+        public static Collection<URL> dependencies(final URL archive, final String name) throws IOException {
             final String dependencies = archive == null ? null : Archives.mainAttributes(archive, Archives.Nested.attribute(name))[0];
 
             final Collection<URL> urls = new ArrayList<URL>();
 
             if (dependencies != null) {
                 for (final String dependency : dependencies.split(" ")) {
-                    final URL url = Handler.formatURL(archive, null, dependency);
-                    urls.add(base ? url : Archives.containing(url));
+                    urls.add(Handler.formatURL(archive, null, dependency));
                 }
             }
 

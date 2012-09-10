@@ -42,11 +42,11 @@ public class ExtraDependenciesTest implements BundleTest {
 
     @Test
     public void test() throws Exception {
-        assert !Archives.Nested.dependencies(bundle.getEntry("/"), EXTRAS, false).isEmpty();
-        assert !Archives.Nested.dependencies(new URL(bundle.getEntry("/"), JarFile.MANIFEST_NAME), EXTRAS, false).isEmpty();
+        assert !Archives.Nested.dependencies(bundle.getEntry("/"), EXTRAS).isEmpty();
+        assert !Archives.Nested.dependencies(new URL(bundle.getEntry("/"), JarFile.MANIFEST_NAME), EXTRAS).isEmpty();
 
         // the bundle location is not guaranteed to be a URL so this is not portable
-        assert !Archives.Nested.dependencies(new URL(bundle.getLocation()), EXTRAS, false).isEmpty();
+        assert !Archives.Nested.dependencies(new URL(bundle.getLocation()), EXTRAS).isEmpty();
     }
 
     public Class<?>[] types() {

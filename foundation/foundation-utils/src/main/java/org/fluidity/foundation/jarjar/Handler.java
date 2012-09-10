@@ -146,7 +146,7 @@ public final class Handler extends URLStreamHandler {
         final String stem = root.toExternalForm();
         final Strings.Listing specification = Strings.delimited(DELIMITER);
 
-        if (root.getProtocol().equals(PROTOCOL)) {
+        if (PROTOCOL.equals(root.getProtocol())) {
             specification.set(stem);
         } else {
             final URLConnection connection = root.openConnection();
@@ -155,10 +155,15 @@ public final class Handler extends URLStreamHandler {
 
                 // we have a JAR URL but we need the enclosed URL and the JAR file path relative to the URL, separately
                 final URL url = ((JarURLConnection) connection).getJarFileURL();
-                final String path = root.getPath().split(Archives.DELIMITER)[1];      // parsing a JAR URL, not our own URL
 
-                specification.set(PROTOCOL).append(':').append(url.toExternalForm());
-                specification.add(path);
+                if (PROTOCOL.equals(url.getProtocol())) {
+                    specification.set(url.toExternalForm());
+                } else {
+                    final String path = root.getPath().split(Archives.DELIMITER, -1)[1];      // parsing a JAR URL, not our own URL
+
+                    specification.set(PROTOCOL).append(':').append(url.toExternalForm());
+                    specification.add(path);
+                }
             } else {
                 specification.set(PROTOCOL).append(':').append(stem);
             }

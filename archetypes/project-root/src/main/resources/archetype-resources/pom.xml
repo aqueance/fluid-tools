@@ -26,7 +26,7 @@ limitations under the License.
     <name>\${projectName}</name>
 
     <prerequisites>
-        <maven>2.0.9</maven> <!-- scope "import" appeared in 2.0.9 -->
+        <maven>3.0.3</maven>
     </prerequisites>
 
     <properties>
@@ -46,21 +46,6 @@ limitations under the License.
 -->
 
     #set( $symbol_dollar = '$' )
-    <dependencyManagement>
-        <dependencies>
-
-            <!-- fluid tools -->
-            <dependency>
-                <groupId>org.fluidity</groupId>
-                <artifactId>public</artifactId>
-                <version>${symbol_dollar}{fluid.tools.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-
-        </dependencies>
-    </dependencyManagement>
-
     <build>
         <defaultGoal>package</defaultGoal>
 
