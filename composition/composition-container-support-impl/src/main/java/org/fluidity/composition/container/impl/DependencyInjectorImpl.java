@@ -35,6 +35,7 @@ import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.ComponentGroup;
+import org.fluidity.composition.Components;
 import org.fluidity.composition.DependencyPath;
 import org.fluidity.composition.Inject;
 import org.fluidity.composition.Optional;
@@ -98,12 +99,12 @@ final class DependencyInjectorImpl implements DependencyInjector {
         final Annotation[][] parameterAnnotations = method.getParameterAnnotations();
         final Type[] types = method.getGenericParameterTypes();
         final Object[] parameters = arguments == null ? new Object[types.length] : Arrays.copyOf(arguments, types.length);
+        final boolean parameterized = Components.isParameterized(componentClass);
 
         for (int i = 0, length = types.length; i < length; ++i) {
             final int index = i;
             if (parameters[index] == null && (explicit || contains(parameterAnnotations[index], Inject.class))) {
-                injectDependency(false, traversal, container, contexts, context, componentClass, new Dependency() {
-
+                injectDependency(false, traversal, container, contexts, context, componentClass, parameterized, new Dependency() {
                     public Type reference() {
                         return types[index];
                     }
@@ -286,7 +287,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
          * Inner class constructor generic types array does not contain the enclosing classes and the closure context.
          * The enclosing classes are on the beginning of the params array while the closure context are on the end.
          *
-         * TODO: test this thoroughly
+         * TODO: test this thoroughly on various JVMs
          */
         if (hidden > 0) {
             for (int i = nesting; i < params.length - hidden; ++i) {
@@ -300,11 +301,11 @@ final class DependencyInjectorImpl implements DependencyInjector {
         }
 
         final DependencyGraph.Node[] parameters = new DependencyGraph.Node[params.length];
+        final boolean parameterized = Components.isParameterized(componentClass);
 
         for (int i = 0, length = params.length; i < length; ++i) {
             final int index = i;
-            consumed.add(injectDependency(true, traversal, container, contexts, context, componentClass, new Dependency() {
-
+            consumed.add(injectDependency(true, traversal, container, contexts, context, componentClass, parameterized, new Dependency() {
                 public Type reference() {
                     final int nested = index - nesting;
                     return hidden == 0 ? types[index] : nested < 0 || nested >= types.length ? params[index] : types[nested];
@@ -481,11 +482,11 @@ final class DependencyInjectorImpl implements DependencyInjector {
                                                   final Class<?> declaringType,
                                                   final Map<Field, DependencyGraph.Node> nodes) {
         final List<ContextDefinition> consumed = new ArrayList<ContextDefinition>();
+        final boolean parameterized = Components.isParameterized(declaringType);
 
         processFields(declaringType, new FieldCommand() {
             public void process(final Field field) {
-                consumed.add(injectDependency(false, traversal, container, contexts, context, declaringType, new Dependency() {
-
+                consumed.add(injectDependency(false, traversal, container, contexts, context, declaringType, parameterized, new Dependency() {
                     public Type reference() {
                         return field.getGenericType();
                     }
@@ -508,33 +509,16 @@ final class DependencyInjectorImpl implements DependencyInjector {
         return consumed;
     }
 
-    private boolean accepts(final Class<?> type, final Class<? extends Annotation> annotation) {
-        final Component.Context context = type.getAnnotation(Component.Context.class);
-
-        if (context == null) {
-            return false;
-        }
-
-        for (final Class<? extends Annotation> accepted : context.value()) {
-            if (annotation.isAssignableFrom(accepted)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
     private ContextDefinition injectDependency(final boolean resolving,
                                                final DependencyGraph.Traversal traversal,
                                                final DependencyResolver container,
                                                final ContextNode contexts,
                                                final ContextDefinition original,
                                                final Class<?> declaringType,
+                                               final boolean parameterized,
                                                final Dependency dependency) {
         final Component.Reference inbound = original.reference();
-        final Type reference = inbound == null || !accepts(declaringType, Component.Reference.class)
-                               ? dependency.reference()
-                               : Generics.propagate(inbound.type(), dependency.reference());
+        final Type reference = inbound == null || !parameterized ? dependency.reference() : Generics.propagate(inbound.type(), dependency.reference());
 
         final ComponentGroup componentGroup = dependency.annotation(ComponentGroup.class);
         final Class<?> dependencyType = findDependencyType(dependency.annotation(Component.class), reference, declaringType);

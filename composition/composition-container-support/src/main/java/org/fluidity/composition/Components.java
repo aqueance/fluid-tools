@@ -16,6 +16,7 @@
 
 package org.fluidity.composition;
 
+import java.lang.annotation.Annotation;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
@@ -23,15 +24,21 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.lang.reflect.TypeVariable;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.fluidity.composition.spi.ComponentFactory;
+import org.fluidity.foundation.Generics;
 import org.fluidity.foundation.Strings;
 import org.fluidity.foundation.Utility;
 
@@ -150,12 +157,12 @@ public final class Components extends Utility {
             throw new IllegalStateException("Component class to inspect is null");
         }
 
-        final Map<Class<?>, Set<Class<?>>> interfaceMap = new LinkedHashMap<Class<?>, Set<Class<?>>>();
+        final Map<Type, Set<Class<?>>> interfaceMap = new LinkedHashMap<Type, Set<Class<?>>>();
         final Set<Class<?>> path = new LinkedHashSet<Class<?>>();
 
         if (restrictions != null && restrictions.length > 0) {
             final boolean factory = isFactory(componentClass);
-            final Map<Class<?>, Set<Class<?>>> map = new LinkedHashMap<Class<?>, Set<Class<?>>>();
+            final Map<Type, Set<Class<?>>> map = new LinkedHashMap<Type, Set<Class<?>>>();
 
             for (final Class<?> api : restrictions) {
                 if (!factory && !api.isAssignableFrom(componentClass)) {
@@ -187,26 +194,95 @@ public final class Components extends Utility {
         // post-processing of component interfaces found
         final Set<Specification> interfaces = new LinkedHashSet<Specification>();
 
-        for (final Map.Entry<Class<?>, Set<Class<?>>> entry : interfaceMap.entrySet()) {
-            final Class<?> type = entry.getKey();
+        for (final Map.Entry<Type, Set<Class<?>>> entry : interfaceMap.entrySet()) {
+            final Type type = entry.getKey();
+            final Class<?> api = Generics.rawType(type);
 
-            if (isFactory(type)) {
+            if (isFactory(api)) {
                 throw new ComponentContainer.BindingException("Component interface for %s is the factory interface itself: %s", componentClass, type);
             }
 
-            interfaces.add(new Specification(type, entry.getValue()));
+            if (isParameterized(componentClass)) {
+                checkTypeParameters(componentClass, type);
+            }
+
+            interfaces.add(new Specification(api, entry.getValue()));
         }
 
         return new Interfaces(componentClass, interfaces.toArray(new Specification[interfaces.size()]));
     }
 
-    private static void interfaces(final Class<?> actual,
-                                   final Class<?> checked,
-                                   final Map<Class<?>, Set<Class<?>>> output,
+    /**
+     * Tells if the given class accepts the {@link Component.Reference} annotation as context.
+     *
+     * @param type the class to check for parameterization.
+     *
+     * @return <code>true</code> if the given class accepts the {@link Component.Reference} annotation as context; <code>false</code> otherwise.
+     */
+    public static boolean isParameterized(final Class<?> type) {
+        final Component.Context context = type.getAnnotation(Component.Context.class);
+
+        if (context != null) {
+            for (final Class<? extends Annotation> accepted : context.value()) {
+                if (Component.Reference.class.isAssignableFrom(accepted)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private static void checkTypeParameters(final Class<?> type, final Type api) {
+        for (final Type check : type.getGenericInterfaces()) {
+            checkTypeParameters(type, api, check);
+            checkTypeParameters(Generics.rawType(check), api);
+        }
+
+        final Type check = type.getGenericSuperclass();
+
+        if (check != null && check != Object.class) {
+            checkTypeParameters(type, api, check);
+            checkTypeParameters(Generics.rawType(check), api);
+        }
+    }
+
+    private static void checkTypeParameters(final Class<?> type, final Type api, final Type check) {
+        if (Generics.rawType(api).isAssignableFrom(Generics.rawType(check))) {
+            if (api instanceof Class) {
+                final TypeVariable[] parameters = ((Class) api).getTypeParameters();
+                if (parameters.length > 0) {
+                    throw new ComponentContainer.BindingException("Component type %s specifies parameter(s) %s from its parameterized component interface: %s",
+                                                                  type.getName(),
+                                                                  Arrays.toString(parameters),
+                                                                  api);
+                }
+            } else if (check instanceof ParameterizedType) {
+                final List<Type> specified = new ArrayList<Type>();
+                for (final Type argument : ((ParameterizedType) check).getActualTypeArguments()) {
+                    if (!(argument instanceof TypeVariable)) {
+                        specified.add(argument);
+                    }
+                }
+
+                if (!specified.isEmpty()) {
+                    throw new ComponentContainer.BindingException("Component type %s specifies parameter(s) %s from its parameterized component interface: %s",
+                                                                  type.getName(),
+                                                                  specified,
+                                                                  Arrays.toString(Generics.rawType(api).getTypeParameters()));
+                }
+            }
+        }
+    }
+
+    private static void interfaces(final Type actual,
+                                   final Type type,
+                                   final Map<Type, Set<Class<?>>> output,
                                    final Set<Class<?>> path,
                                    final boolean reference,
                                    final boolean resolve) {
-        final Map<Class<?>, Set<Class<?>>> interfaceMap = new LinkedHashMap<Class<?>, Set<Class<?>>>();
+        final Map<Type, Set<Class<?>>> interfaceMap = new LinkedHashMap<Type, Set<Class<?>>>();
+        final Class<?> checked = Generics.rawType(type);
 
         if (path.contains(checked)) {
             interfaceMap.put(actual, groups(checked));
@@ -241,14 +317,14 @@ public final class Components extends Utility {
                             interfaces(api, api, interfaceMap, path, true, resolve);
                         }
                     } else {
-                        final Class<?>[] direct = checked.getInterfaces();
+                        final Type[] direct = checked.getGenericInterfaces();
 
                         if (direct.length > 0) {
-                            for (final Class<?> api : direct) {
-                                interfaceMap.put(api, groups(api));
+                            for (final Type api : direct) {
+                                interfaceMap.put(api, groups(Generics.rawType(api)));
                             }
                         } else {
-                            final Class<?> superClass = checked.getSuperclass();
+                            final Type superClass = checked.getGenericSuperclass();
 
                             if (superClass != Object.class && superClass != null) {
                                 interfaces(actual, superClass, interfaceMap, path, true, resolve);
@@ -263,15 +339,16 @@ public final class Components extends Utility {
             }
         }
 
-        filter(checked, output, interfaceMap);
+        filter(type, output, interfaceMap);
     }
 
-    private static void filter(final Class<?> componentClass, final Map<Class<?>, Set<Class<?>>> output, final Map<Class<?>, Set<Class<?>>> interfaceMap) {
-        interfaceMap.keySet().removeAll(allGroups(interfaceMap));
+    private static void filter(final Type componentClass, final Map<Type, Set<Class<?>>> output, final Map<Type, Set<Class<?>>> interfaceMap) {
+        interfaceMap.keySet().removeAll(allGroups(interfaceMap.values()));
 
-        final Set<Class<?>> groups = groups(componentClass);
+        final Class<?> type = Generics.rawType(componentClass);
+        final Set<Class<?>> groups = groups(type);
 
-        final ComponentGroup groupAnnotation = componentClass.getAnnotation(ComponentGroup.class);
+        final ComponentGroup groupAnnotation = type.getAnnotation(ComponentGroup.class);
         if (groupAnnotation != null && groupAnnotation.api().length > 0) {
             interfaceMap.keySet().removeAll(groups);
         } else {
@@ -287,10 +364,10 @@ public final class Components extends Utility {
         output.putAll(interfaceMap);
     }
 
-    private static Set<Class<?>> allGroups(final Map<Class<?>, Set<Class<?>>> interfaceMap) {
+    private static Set<Class<?>> allGroups(final Collection<Set<Class<?>>> list) {
         final Set<Class<?>> allGroups = new HashSet<Class<?>>();
 
-        for (final Set<Class<?>> set : interfaceMap.values()) {
+        for (final Set<Class<?>> set : list) {
             allGroups.addAll(set);
         }
 

@@ -50,6 +50,14 @@ import org.fluidity.composition.types.OrdinaryClass;
 import org.fluidity.composition.types.OrdinarySubClass;
 import org.fluidity.composition.types.OverridingComponent;
 import org.fluidity.composition.types.OverridingSubComponent;
+import org.fluidity.composition.types.ParameterizedApi;
+import org.fluidity.composition.types.ParameterizedImpl0;
+import org.fluidity.composition.types.ParameterizedImpl1;
+import org.fluidity.composition.types.ParameterizedImpl2;
+import org.fluidity.composition.types.ParameterizedSubclass0;
+import org.fluidity.composition.types.ParameterizedSubclass1;
+import org.fluidity.composition.types.ParameterizedSubclass2;
+import org.fluidity.composition.types.ParameterizedSubclass3;
 import org.fluidity.composition.types.ReferencingComponent;
 import org.fluidity.composition.types.SelfReferringComponent;
 import org.fluidity.composition.types.SingleComponent;
@@ -291,6 +299,49 @@ public class ComponentsTest {
         checkGroups(interfaces.api[0], GroupApi2.class);
         checkGroups(interfaces.api[1]);
         checkGroups(interfaces.api[2], GroupApi1.class);
+    }
+
+    @Test
+    public void testParameterization0() throws Exception {
+        final Components.Interfaces interfaces = Components.inspect(ParameterizedImpl0.class);
+
+        checkImplementation(ParameterizedImpl0.class, interfaces);
+        checkInterfaces(ParameterizedImpl0.class, interfaces.api, ParameterizedApi.class);
+        checkGroups(interfaces.api[0]);
+    }
+
+    @Test
+    public void testParameterizationSubclass0() throws Exception {
+        final Components.Interfaces interfaces = Components.inspect(ParameterizedSubclass0.class);
+
+        checkImplementation(ParameterizedSubclass0.class, interfaces);
+        checkInterfaces(ParameterizedSubclass0.class, interfaces.api, ParameterizedApi.class);
+        checkGroups(interfaces.api[0]);
+    }
+
+    @Test(expectedExceptions = ComponentContainer.BindingException.class)
+    public void testParameterization1() throws Exception {
+        Components.inspect(ParameterizedImpl1.class);
+    }
+
+    @Test(expectedExceptions = ComponentContainer.BindingException.class)
+    public void testParameterization2() throws Exception {
+        Components.inspect(ParameterizedImpl2.class);
+    }
+
+    @Test(expectedExceptions = ComponentContainer.BindingException.class)
+    public void testParameterizationSubclass1() throws Exception {
+        Components.inspect(ParameterizedSubclass1.class);
+    }
+
+    @Test(expectedExceptions = ComponentContainer.BindingException.class)
+    public void testParameterizationSubclass2() throws Exception {
+        Components.inspect(ParameterizedSubclass2.class);
+    }
+
+    @Test(expectedExceptions = ComponentContainer.BindingException.class)
+    public void testParameterizationSubclass3() throws Exception {
+        Components.inspect(ParameterizedSubclass3.class);
     }
 
     @Test

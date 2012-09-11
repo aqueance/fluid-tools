@@ -140,22 +140,18 @@ public class TypeParameterTests extends AbstractContainerTests {
         assert container.getComponent(TypedRootComponent.class) != null;
     }
 
-    @Test(expectedExceptions = ComponentContainer.ResolutionException.class, enabled = false)   // does not yet work
+    @Test(expectedExceptions = ComponentContainer.BindingException.class)
     @SuppressWarnings("unchecked")
-    public void testTypeResolvedWrong() throws Exception {
-        registry.bindComponent(TypedResolvedMarker.class);
-        registry.bindComponent(TypedRootComponent.class);
-
-        assert container.getComponent(TypedRootComponent.class) != null;
+    public void testTypeResolved1() throws Exception {
+        registry.bindComponent(TypedResolved1.class);
     }
 
     @Test
     @SuppressWarnings("unchecked")
-    public void testTypeResolvedCorrect() throws Exception {
-        registry.bindComponent(TypedResolvedSerializable.class);
-        registry.bindComponent(TypedRootComponent.class);
+    public void testTypeResolved2() throws Exception {
+        registry.bindComponent(TypedResolved2.class);
 
-        assert container.getComponent(TypedRootComponent.class) != null;
+        assert container.getComponent(TypedComponent.class) != null;
     }
 
     @Component(automatic = false)
@@ -251,8 +247,6 @@ public class TypeParameterTests extends AbstractContainerTests {
     @SuppressWarnings("UnusedDeclaration")
     public interface TypedComponent<T> { }
 
-    public interface Marker { }
-
     @Component
     @Component.Context(Component.Reference.class)
     private static class TypedContextAware<T> implements TypedComponent<T> {
@@ -271,10 +265,11 @@ public class TypeParameterTests extends AbstractContainerTests {
     }
 
     @Component
-    private static class TypedResolvedMarker implements TypedComponent<Marker> { }
+    @Component.Context(Component.Reference.class)
+    private static class TypedResolved1 implements TypedComponent<Serializable> { }
 
     @Component
-    private static class TypedResolvedSerializable implements TypedComponent<Serializable> { }
+    private static class TypedResolved2 implements TypedComponent<Serializable> { }
 
     @Component
     private static class TypedRootComponent {
