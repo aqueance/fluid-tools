@@ -16,4 +16,10 @@
 
 package org.fluidity.composition.types;
 
-public interface ParameterizedApi<T> { }
+import java.io.Serializable;
+
+import org.fluidity.composition.Component;
+
+@Component(api = ParameterizedApi1.class)
+@Component.Context(Component.Reference.class)
+public final class ParameterizedImpl3<T> implements ParameterizedApi1<T>, ParameterizedApi2<Serializable> { }

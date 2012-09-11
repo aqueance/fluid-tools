@@ -19,4 +19,4 @@ package org.fluidity.composition.types;
 import org.fluidity.composition.Component;
 
 @Component(automatic = false)
-public abstract class AbstractParameterizedImpl0<T> implements ParameterizedApi<T> { }
+public abstract class AbstractParameterizedImpl0<T> implements ParameterizedApi1<T> { }

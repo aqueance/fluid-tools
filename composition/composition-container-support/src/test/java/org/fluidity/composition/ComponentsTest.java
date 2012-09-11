@@ -50,10 +50,11 @@ import org.fluidity.composition.types.OrdinaryClass;
 import org.fluidity.composition.types.OrdinarySubClass;
 import org.fluidity.composition.types.OverridingComponent;
 import org.fluidity.composition.types.OverridingSubComponent;
-import org.fluidity.composition.types.ParameterizedApi;
+import org.fluidity.composition.types.ParameterizedApi1;
 import org.fluidity.composition.types.ParameterizedImpl0;
 import org.fluidity.composition.types.ParameterizedImpl1;
 import org.fluidity.composition.types.ParameterizedImpl2;
+import org.fluidity.composition.types.ParameterizedImpl3;
 import org.fluidity.composition.types.ParameterizedSubclass0;
 import org.fluidity.composition.types.ParameterizedSubclass1;
 import org.fluidity.composition.types.ParameterizedSubclass2;
@@ -306,7 +307,25 @@ public class ComponentsTest {
         final Components.Interfaces interfaces = Components.inspect(ParameterizedImpl0.class);
 
         checkImplementation(ParameterizedImpl0.class, interfaces);
-        checkInterfaces(ParameterizedImpl0.class, interfaces.api, ParameterizedApi.class);
+        checkInterfaces(ParameterizedImpl0.class, interfaces.api, ParameterizedApi1.class);
+        checkGroups(interfaces.api[0]);
+    }
+
+    @Test
+    public void testParameterization3() throws Exception {
+        final Components.Interfaces interfaces = Components.inspect(ParameterizedImpl3.class);
+
+        checkImplementation(ParameterizedImpl3.class, interfaces);
+        checkInterfaces(ParameterizedImpl0.class, interfaces.api, ParameterizedApi1.class);
+        checkGroups(interfaces.api[0]);
+    }
+
+    @Test
+    public void testParameterization4() throws Exception {
+        final Components.Interfaces interfaces = Components.inspect(ParameterizedImpl3.class, ParameterizedApi1.class);
+
+        checkImplementation(ParameterizedImpl3.class, interfaces);
+        checkInterfaces(ParameterizedImpl0.class, interfaces.api, ParameterizedApi1.class);
         checkGroups(interfaces.api[0]);
     }
 
@@ -315,7 +334,7 @@ public class ComponentsTest {
         final Components.Interfaces interfaces = Components.inspect(ParameterizedSubclass0.class);
 
         checkImplementation(ParameterizedSubclass0.class, interfaces);
-        checkInterfaces(ParameterizedSubclass0.class, interfaces.api, ParameterizedApi.class);
+        checkInterfaces(ParameterizedSubclass0.class, interfaces.api, ParameterizedApi1.class);
         checkGroups(interfaces.api[0]);
     }
 

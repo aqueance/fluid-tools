@@ -20,4 +20,4 @@ import org.fluidity.composition.Component;
 
 @Component
 @Component.Context(Component.Reference.class)
-public final class ParameterizedImpl0<T> implements ParameterizedApi<T> { }
+public final class ParameterizedImpl0<T> implements ParameterizedApi1<T> { }

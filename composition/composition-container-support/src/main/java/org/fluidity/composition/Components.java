@@ -169,7 +169,8 @@ public final class Components extends Utility {
                     throw new ComponentContainer.BindingException("Class %s refers to incompatible component interface %s", componentClass, api);
                 }
 
-                interfaces(api, api, map, path, false, false);
+                final Type declared = findDeclaredInterface(componentClass, api);
+                interfaces(declared, declared, map, path, false, false);
                 filter(componentClass, interfaceMap, map);
             }
         } else {
@@ -275,6 +276,26 @@ public final class Components extends Utility {
         }
     }
 
+    private static Type findDeclaredInterface(final Class<?> type, final Class<?> api) {
+        if (api == type) {
+            return api;
+        }
+
+        for (final Type checked : type.getGenericInterfaces()) {
+            if (api == Generics.rawType(checked)) {
+                return checked;
+            }
+        }
+
+        final Type checked = type.getGenericSuperclass();
+
+        if (api == Generics.rawType(checked)) {
+            return checked;
+        }
+
+        return api;
+    }
+
     private static void interfaces(final Type actual,
                                    final Type type,
                                    final Map<Type, Set<Class<?>>> output,
@@ -314,7 +335,8 @@ public final class Components extends Utility {
                                 throw new ComponentContainer.BindingException("Class %s refers to incompatible %s", checked.getName(), api);
                             }
 
-                            interfaces(api, api, interfaceMap, path, true, resolve);
+                            final Type declared = findDeclaredInterface(checked, api);
+                            interfaces(declared, declared, interfaceMap, path, true, resolve);
                         }
                     } else {
                         final Type[] direct = checked.getGenericInterfaces();

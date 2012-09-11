@@ -21,4 +21,4 @@ import java.io.Serializable;
 import org.fluidity.composition.Component;
 
 @Component(automatic = false)
-public abstract class AbstractParameterizedImpl2 implements ParameterizedApi<Serializable> { }
+public abstract class AbstractParameterizedImpl2 implements ParameterizedApi1<Serializable> { }

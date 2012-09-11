@@ -16,7 +16,5 @@
 
 package org.fluidity.composition.types;
 
-import org.fluidity.composition.Component;
-
-@Component(automatic = false)
-public abstract class AbstractParameterizedImpl1 implements ParameterizedApi1 { }
+@SuppressWarnings("UnusedDeclaration")
+public interface ParameterizedApi1<T> { }
