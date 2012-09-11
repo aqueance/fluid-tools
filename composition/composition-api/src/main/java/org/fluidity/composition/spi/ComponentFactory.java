@@ -131,8 +131,18 @@ import org.fluidity.composition.ComponentContext;
 public interface ComponentFactory {
 
     /**
-     * Informs the caller about the static dependencies the created component has in the given context. Actual component instantiation does not take place in
+     * Informs the caller about the static dependencies the created component has in the given context. Actual component instantiation does _not_ take place in
      * this method.
+     * <p/>
+     * The caller is informed about the static dependencies of the component by calls to methods of the {@link ComponentFactory.Resolver resolver} parameter.
+     * <p/>
+     * In the general case, a call to {@link ComponentFactory.Resolver#discover(Class)} will find the injectable constructor of the given type – the component
+     * implementation class – and inform the caller about the dependencies found therein. In case some of those declared dependencies don't match the type of
+     * the actual object injected by the factory to the component instance, further calls to {@link ComponentFactory.Resolver#resolve(Class, Type)} should be
+     * made, one for each such dependency.
+     * <p/>
+     * If the general case above does not apply, more specific methods of the {@link ComponentFactory.Resolver} class can be used to make sure the caller is
+     * informed about all dependencies of the component instance.
      * <p/>
      * The {@link ComponentFactory.Instance#bind(ComponentFactory.Registry) ComponentFactory.Instance.bind()} method of the returned object will be invoked, at
      * the appropriate time, to actually bind the created component, and its local, internal dependencies to a container. Actual instantiation should, when
@@ -282,9 +292,9 @@ public interface ComponentFactory {
 
 
         /**
-         * Returns a list of dependencies, each corresponding to the parameters of the supplied factory method.
+         * Returns a list of dependencies, each corresponding to the parameters of the supplied parameter injected method.
          *
-         * @param method the constructor.
+         * @param method the method.
          *
          * @return a list of dependencies corresponding to the parameters of the supplied factory method.
          */

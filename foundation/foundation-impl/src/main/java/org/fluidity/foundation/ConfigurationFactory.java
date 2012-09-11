@@ -40,6 +40,11 @@ import org.fluidity.composition.Optional;
 import org.fluidity.composition.spi.ComponentFactory;
 import org.fluidity.foundation.spi.PropertyProvider;
 
+/**
+ * Factory for {@link Configuration} components. TODO: is this actually needed?
+ *
+ * @author Tibor Varga
+ */
 @Component(api = Configuration.class)
 @Component.Context({ Configuration.Context.class, Component.Reference.class })
 final class ConfigurationFactory implements ComponentFactory {
@@ -48,6 +53,7 @@ final class ConfigurationFactory implements ComponentFactory {
         final Component.Reference reference = context.annotation(Component.Reference.class, Configuration.class);
         final Class<?> api = reference.parameter(0);
 
+        // inform the caller about the specific dependencies that will be needed
         dependencies.discover(ConfigurationImpl.class);
 
         return new Instance() {
@@ -61,7 +67,7 @@ final class ConfigurationFactory implements ComponentFactory {
     }
 
     @Component(automatic = false)
-    @Component.Context(Configuration.Context.class)
+    @Component.Context({ Configuration.Context.class, Component.Reference.class })
     static final class ConfigurationImpl<T> implements Configuration<T> {
 
         private final PropertyProvider provider;

@@ -40,6 +40,11 @@ public class ConfigurationFactoryTest {
         assert container.getComponent(ContextConfigured.class) != null;
     }
 
+    @Test
+    public void testDefaults() throws Exception {
+        assert container.getComponent(DefaultsTest.class) != null;
+    }
+
     @Component
     @SuppressWarnings("UnusedDeclaration")
     private static class NoContextConfigured {
@@ -49,6 +54,19 @@ public class ConfigurationFactoryTest {
 
             assert settings != null;
             assert Settings.SOME_PROPERTY.equals(settings.property()) : settings.property();
+        }
+    }
+
+    @Component
+    @SuppressWarnings("UnusedDeclaration")
+    private static class DefaultsTest {
+
+        private DefaultsTest(final Configuration<Settings2> configuration) {
+            final Settings2 settings = configuration.settings();
+
+            assert settings != null;
+            assert DefaultSettings.SPECIFIED.equals(settings.specified()) : settings.specified();
+            assert Settings.DEFAULT_VALUE.equals(settings.unspecified()) : settings.unspecified();
         }
     }
 
@@ -80,6 +98,30 @@ public class ConfigurationFactoryTest {
 
             assert settings3 != null;
             assert String.format("%s.%s.%s", ROOT, CONTEXT1, Settings.SOME_PROPERTY).equals(settings3.property()) : settings3.property();
+        }
+    }
+
+    // Property names prefixed with {@link EchoPropertyProviderImpl#UNKNOWN}.
+    interface Settings2 {
+
+        @Configuration.Property(key = "unknown-specified", undefined = Settings.DEFAULT_VALUE)
+        String specified();
+
+        @Configuration.Property(key = "unknown-unspecified", undefined = Settings.DEFAULT_VALUE)
+        String unspecified();
+    }
+
+    @Component
+    private static class DefaultSettings implements Settings2 {
+
+        static final String SPECIFIED = String.format("run-time %s", Settings.DEFAULT_VALUE);
+
+        public String specified() {
+            return SPECIFIED;
+        }
+
+        public String unspecified() {
+            return null;
         }
     }
 }

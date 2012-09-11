@@ -31,10 +31,12 @@ import org.fluidity.foundation.spi.LogFactory;
 final class InstanceResolver extends AbstractResolver {
 
     private final Object instance;
+    private final Class<?> componentClass;
 
     public InstanceResolver(final int priority, final Class<?> api, final Object instance, final LogFactory logs) {
         super(priority, api, null, logs);
         this.instance = instance;
+        this.componentClass = this.instance.getClass();
     }
 
     public Annotation[] providedContext() {
@@ -52,7 +54,7 @@ final class InstanceResolver extends AbstractResolver {
                                         final Type reference) {
         return traversal.follow(InstanceResolver.this, api, api, context, new DependencyGraph.Node.Reference() {
             public DependencyGraph.Node resolve() {
-                return new DependencyGraph.Node.Constant(instance.getClass(), instance, context.create());
+                return new DependencyGraph.Node.Constant(componentClass, instance, context.create());
             }
         });
     }
@@ -64,6 +66,6 @@ final class InstanceResolver extends AbstractResolver {
 
     @Override
     public String toString() {
-        return String.format("%s (instance)", instance.getClass().getName());
+        return String.format("%s (instance)", componentClass.getName());
     }
 }

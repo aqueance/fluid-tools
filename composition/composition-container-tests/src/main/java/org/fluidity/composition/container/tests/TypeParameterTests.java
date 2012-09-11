@@ -41,11 +41,13 @@ public class TypeParameterTests extends AbstractContainerTests {
     @Test
     @SuppressWarnings("unchecked")
     public void testTypes() throws Exception {
-        registry.bindComponent(TypedComponent1.class);
+        registry.bindComponent(TypedComponent1a.class);
+        registry.bindComponent(TypedComponent1b.class);
         registry.bindComponent(TypedComponent2.class);
         registry.bindComponent(TypedComponent3.class);
         registry.bindComponent(TypedComponent4.class);
         registry.bindComponent(RootComponent.class);
+        registry.bindComponent(SerializableImpl.class);
 
         final RootComponent rootComponent = container.getComponent(RootComponent.class);
         assert rootComponent != null;
@@ -53,17 +55,20 @@ public class TypeParameterTests extends AbstractContainerTests {
         assert rootComponent.p3 != null;
         assert rootComponent.p3.p2 != null;
 
-        rootComponent.p3.container.invoke(rootComponent.p3, TypedComponent3.class.getMethod("method", TypedComponent1.class));
+        rootComponent.p3.container.invoke(rootComponent.p3, TypedComponent3.class.getMethod("method", TypedComponent1a.class));
+        rootComponent.p4.container.invoke(rootComponent.p4, TypedComponent4.class.getMethod("method", TypedComponent1b.class));
     }
 
     @Test
     @SuppressWarnings("unchecked")
     public void testEmbeddedContainer() throws Exception {
-        registry.bindComponent(TypedComponent1.class);
+        registry.bindComponent(TypedComponent1a.class);
+        registry.bindComponent(TypedComponent1b.class);
         registry.bindComponent(TypedComponent2.class);
         registry.bindComponent(TypedComponent3.class);
         registry.bindComponent(TypedComponent4.class);
         registry.bindComponent(RootComponent.class);
+        registry.bindComponent(SerializableImpl.class);
 
         final RootComponent rootComponent = container.getComponent(RootComponent.class);
         assert rootComponent != null;
@@ -71,33 +76,94 @@ public class TypeParameterTests extends AbstractContainerTests {
         assert rootComponent.p3 != null;
         assert rootComponent.p3.p2 != null;
 
-        rootComponent.p3.container.invoke(rootComponent.p3, TypedComponent3.class.getMethod("method", TypedComponent1.class));
+        rootComponent.p3.container.invoke(rootComponent.p3, TypedComponent3.class.getMethod("method", TypedComponent1a.class));
+        rootComponent.p4.container.invoke(rootComponent.p4, TypedComponent4.class.getMethod("method", TypedComponent1b.class));
+    }
+
+    @Test(expectedExceptions = ComponentContainer.InstantiationException.class)
+    @SuppressWarnings("unchecked")
+    public void testRootContainer1a() throws Exception {
+        registry.bindComponent(TypedComponent1a.class);
+        registry.bindComponent(TypedComponent1b.class);
+        registry.bindComponent(TypedComponent2.class);
+        registry.bindComponent(TypedComponent3.class);
+        registry.bindComponent(TypedComponent4.class);
+        registry.bindComponent(RootComponent.class);
+        registry.bindComponent(SerializableImpl.class);
+
+        final RootComponent rootComponent = container.getComponent(RootComponent.class);
+        assert rootComponent != null;
+
+        assert rootComponent.p3 != null;
+        assert rootComponent.p3.p2 != null;
+
+        container.invoke(rootComponent.p3, TypedComponent3.class.getMethod("method", TypedComponent1a.class));
+    }
+
+    @Test(expectedExceptions = ComponentContainer.ResolutionException.class, expectedExceptionsMessageRegExp = ".*[Uu]nresolved.*\\[[T\\]].*")
+    @SuppressWarnings("unchecked")
+    public void testRootContainer1b() throws Exception {
+        registry.bindComponent(TypedComponent1a.class);
+        registry.bindComponent(TypedComponent1b.class);
+        registry.bindComponent(TypedComponent2.class);
+        registry.bindComponent(TypedComponent3.class);
+        registry.bindComponent(TypedComponent4.class);
+        registry.bindComponent(RootComponent.class);
+        registry.bindComponent(SerializableImpl.class);
+
+        final RootComponent rootComponent = container.getComponent(RootComponent.class);
+        assert rootComponent != null;
+
+        assert rootComponent.p3 != null;
+        assert rootComponent.p3.p2 != null;
+
+        container.invoke(rootComponent.p4, TypedComponent4.class.getMethod("method", TypedComponent1b.class));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void testTypedContextAware() throws Exception {
+        registry.bindComponent(SerializableImpl.class);
+        registry.bindComponent(TypedContextAware.class);
+        registry.bindComponent(TypedRootComponent.class);
+
+        assert container.getComponent(TypedRootComponent.class) != null;
     }
 
     @Test(expectedExceptions = ComponentContainer.ResolutionException.class)
     @SuppressWarnings("unchecked")
-    public void testRootContainer() throws Exception {
-        registry.bindComponent(TypedComponent1.class);
-        registry.bindComponent(TypedComponent2.class);
-        registry.bindComponent(TypedComponent3.class);
-        registry.bindComponent(TypedComponent4.class);
-        registry.bindComponent(RootComponent.class);
+    public void testTypedContextUnaware() throws Exception {
+        registry.bindComponent(SerializableImpl.class);
+        registry.bindComponent(TypedContextUnaware.class);
+        registry.bindComponent(TypedRootComponent.class);
 
-        final RootComponent rootComponent = container.getComponent(RootComponent.class);
-        assert rootComponent != null;
+        assert container.getComponent(TypedRootComponent.class) != null;
+    }
 
-        assert rootComponent.p3 != null;
-        assert rootComponent.p3.p2 != null;
+    @Test(expectedExceptions = ComponentContainer.ResolutionException.class, enabled = false)   // does not yet work
+    @SuppressWarnings("unchecked")
+    public void testTypeResolvedWrong() throws Exception {
+        registry.bindComponent(TypedResolvedMarker.class);
+        registry.bindComponent(TypedRootComponent.class);
 
-        container.invoke(rootComponent.p3, TypedComponent3.class.getMethod("method", TypedComponent1.class));
+        assert container.getComponent(TypedRootComponent.class) != null;
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void testTypeResolvedCorrect() throws Exception {
+        registry.bindComponent(TypedResolvedSerializable.class);
+        registry.bindComponent(TypedRootComponent.class);
+
+        assert container.getComponent(TypedRootComponent.class) != null;
     }
 
     @Component(automatic = false)
     @Component.Context(Component.Reference.class)
     @SuppressWarnings("UnusedDeclaration")
-    private static class TypedComponent1<T> {
+    private static class TypedComponent1a<T> {
 
-        private TypedComponent1(final ComponentContext context) {
+        private TypedComponent1a(final ComponentContext context) {
             final Component.Reference reference = context.annotation(Component.Reference.class, getClass());
             assert reference != null;
 
@@ -112,14 +178,30 @@ public class TypeParameterTests extends AbstractContainerTests {
 
     @Component(automatic = false)
     @Component.Context(Component.Reference.class)
-    private static class TypedComponent2<T> {
+    @SuppressWarnings("UnusedDeclaration")
+    private static class TypedComponent1b<T> {
 
-        @Inject
-        public TypedComponent1<T> component1;
+        private TypedComponent1b(final ComponentContext context, final T serializable) {
+            final Component.Reference reference = context.annotation(Component.Reference.class, getClass());
+            assert reference != null;
+
+            final Type type = reference.type();
+            assert type instanceof ParameterizedType : type;
+            assert Generics.rawType(type) == getClass() : type;
+
+            final Type parameter = Generics.typeParameter(type, 0);
+            assert !(parameter instanceof TypeVariable) : parameter;
+        }
     }
 
     @Component(automatic = false)
-    @Component.Context(Component.Reference.class)
+    private static class TypedComponent2<T> {
+
+        @Inject
+        public TypedComponent1b<T> component1;
+    }
+
+    @Component(automatic = false)
     @SuppressWarnings("UnusedDeclaration")
     private static class TypedComponent3<T> {
 
@@ -131,27 +213,75 @@ public class TypeParameterTests extends AbstractContainerTests {
             this.p2 = p1;
         }
 
-        public void method(final TypedComponent1<T> p1) {
+        public void method(final TypedComponent1a<T> p1) {
             assert p1 != null;
         }
     }
 
     @Component(automatic = false)
-    @Component.Context(Component.Reference.class)
     private static class TypedComponent4<T> {
 
         @Inject
-        private TypedComponent2<T> component2;
+        public ComponentContainer container;
+
+        @Inject
+        private TypedComponent2<T> p2;
+
+        public void method(final TypedComponent1b<T> p1) {
+            assert p1 != null;
+        }
     }
 
     @Component(automatic = false)
     private static class RootComponent {
 
         public final TypedComponent3<Serializable> p3;
+        public final TypedComponent4<Serializable> p4;
 
         @SuppressWarnings("UnusedDeclaration")
         private RootComponent(final TypedComponent3<Serializable> p1, final TypedComponent4<Serializable> p2) {
             this.p3 = p1;
+            this.p4 = p2;
+        }
+    }
+
+    @Component
+    private static class SerializableImpl implements Serializable { }
+
+    @SuppressWarnings("UnusedDeclaration")
+    public interface TypedComponent<T> { }
+
+    public interface Marker { }
+
+    @Component
+    @Component.Context(Component.Reference.class)
+    private static class TypedContextAware<T> implements TypedComponent<T> {
+
+        public TypedContextAware(final T dependency) {
+            assert dependency != null;
+        }
+    }
+
+    @Component
+    private static class TypedContextUnaware<T> implements TypedComponent<T> {
+
+        public TypedContextUnaware(final T dependency) {
+            assert dependency != null;
+        }
+    }
+
+    @Component
+    private static class TypedResolvedMarker implements TypedComponent<Marker> { }
+
+    @Component
+    private static class TypedResolvedSerializable implements TypedComponent<Serializable> { }
+
+    @Component
+    private static class TypedRootComponent {
+
+        @SuppressWarnings("UnusedDeclaration")
+        private TypedRootComponent(final TypedComponent<Serializable> dependency) {
+            assert dependency != null;
         }
     }
 }

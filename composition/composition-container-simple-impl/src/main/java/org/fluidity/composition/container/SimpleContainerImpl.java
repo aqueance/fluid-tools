@@ -216,36 +216,31 @@ final class SimpleContainerImpl implements ParentContainer {
     }
 
     public void bindInstance(final Object instance, final Components.Interfaces interfaces) {
-        if (instance == null) {
-            throw new ComponentContainer.BindingException("Component instance%s is null",
-                                                          interfaces == null ? "" : String.format(" for %s", interfaces.implementation));
+        if (instance != null) {
+            final Class<?> implementation = instance.getClass();
+            final Component componentSpec = implementation.getAnnotation(Component.class);
+            final boolean isFallback = componentSpec != null && !componentSpec.primary();
+
+            final String value = instance instanceof String || instance instanceof Number ? String.format("'%s'", instance) : Strings.printObjectId(instance);
+
+            log.debug("%s: binding %s to %s (%s)", this, value, interfaces, isFallback ? "fallback" : "primary");
+
+            bindResolvers(implementation, interfaces.api, false, new ContentResolvers() {
+
+                public boolean isCustomFactory() {
+                    return instance instanceof ComponentFactory;
+                }
+
+                public ComponentResolver component(final Class<?> api, final ComponentCache cache, final boolean resolvesFactory) {
+                    return new InstanceResolver(isFallback ? 0 : 1, api, instance, logs);
+                }
+
+                @SuppressWarnings("ConstantConditions")
+                public FactoryResolver factory(final Class<?> api, final ComponentCache cache) {
+                    return new FactoryResolverInstance(isFallback ? 0 : 1, api, (ComponentFactory) instance, cache, logs);
+                }
+            });
         }
-
-        final Class<?> implementation = instance.getClass();
-        final Component componentSpec = implementation.getAnnotation(Component.class);
-        final boolean isFallback = componentSpec != null && !componentSpec.primary();
-
-        final String value = instance instanceof String || instance instanceof Number
-                             ? String.format("'%s'", instance)
-                             : Strings.printObjectId(instance);
-
-        log.debug("%s: binding %s to %s (%s)", this, value, interfaces, isFallback ? "fallback" : "primary");
-
-        bindResolvers(implementation, interfaces.api, false, new ContentResolvers() {
-
-            public boolean isCustomFactory() {
-                return instance instanceof ComponentFactory;
-            }
-
-            public ComponentResolver component(final Class<?> api, final ComponentCache cache, final boolean resolvesFactory) {
-                return new InstanceResolver(isFallback ? 0 : 1, api, instance, logs);
-            }
-
-            @SuppressWarnings("ConstantConditions")
-            public FactoryResolver factory(final Class<?> api, final ComponentCache cache) {
-                return new FactoryResolverInstance(isFallback ? 0 : 1, api, (ComponentFactory) instance, cache, logs);
-            }
-        });
     }
 
     public SimpleContainer linkComponent(final Components.Interfaces interfaces) throws ComponentContainer.BindingException {

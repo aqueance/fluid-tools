@@ -27,6 +27,8 @@ import org.fluidity.foundation.spi.PropertyProvider;
 @Component
 public class EchoPropertyProviderImpl implements PropertyProvider {
 
+    public static final String UNKNOWN = "unknown-";
+
     private static final String[] known = new String[] {
             Updates.UPDATE_GRANULARITY,
             ReloadingConfiguration.CONFIGURATION_REFRESH_PERIOD
@@ -39,7 +41,7 @@ public class EchoPropertyProviderImpl implements PropertyProvider {
             }
         }
 
-        return key;
+        return key.startsWith(UNKNOWN) ? null : key;
     }
 
     public void properties(final Runnable reader) {

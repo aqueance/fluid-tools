@@ -143,7 +143,7 @@ abstract class FactoryResolver extends AbstractResolver {
                 }
 
                 final DependencyGraph.Node node = resolve(api == null ? Generics.rawType(reference) : api, reference == null ? api : reference, null);
-                return node == null ? null : new NodeDependency<T>(node, traversal);
+                return new NodeDependency<T>(node, traversal);
             }
 
             private DependencyGraph.Node resolve(final Class<?> api, final Type reference, final Annotation[] annotations) {

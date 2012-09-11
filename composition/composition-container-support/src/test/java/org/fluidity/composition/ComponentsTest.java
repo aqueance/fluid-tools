@@ -54,6 +54,9 @@ import org.fluidity.composition.types.ReferencingComponent;
 import org.fluidity.composition.types.SelfReferringComponent;
 import org.fluidity.composition.types.SingleComponent;
 import org.fluidity.composition.types.SingleMultipleComponent;
+import org.fluidity.composition.types.hierarchy.ComponentImpl1;
+import org.fluidity.composition.types.hierarchy.ComponentImpl2;
+import org.fluidity.composition.types.hierarchy.ComponentImpl3;
 
 import org.testng.annotations.Test;
 
@@ -106,6 +109,33 @@ public class ComponentsTest {
         checkComponent(FallbackComponent.class);
         checkComponent(ManualFallbackComponent.class);
         checkComponent(ComponentSubClass.class);
+    }
+
+    @Test
+    public void testComponentHierarchy1() throws Exception {
+        final Components.Interfaces interfaces = Components.inspect(ComponentImpl1.class);
+
+        checkImplementation(ComponentImpl1.class, interfaces);
+        checkInterfaces(ComponentImpl1.class, interfaces.api, ComponentApi1.class, ComponentApi2.class);
+        checkGroups(interfaces.api[0]);
+    }
+
+    @Test
+    public void testComponentHierarchy2() throws Exception {
+        final Components.Interfaces interfaces = Components.inspect(ComponentImpl2.class);
+
+        checkImplementation(ComponentImpl2.class, interfaces);
+        checkInterfaces(ComponentImpl2.class, interfaces.api, ComponentApi1.class, ComponentApi2.class, ComponentApi3.class);
+        checkGroups(interfaces.api[0]);
+    }
+
+    @Test
+    public void testComponentHierarchy3() throws Exception {
+        final Components.Interfaces interfaces = Components.inspect(ComponentImpl3.class);
+
+        checkImplementation(ComponentImpl3.class, interfaces);
+        checkInterfaces(ComponentImpl3.class, interfaces.api, ComponentApi1.class, ComponentApi2.class, ComponentApi3.class, Serializable.class);
+        checkGroups(interfaces.api[0]);
     }
 
     @Test
@@ -291,35 +321,35 @@ public class ComponentsTest {
         checkGroups(interfaces.api[0]);
     }
 
-    private void checkImplementation(final Class<?> type, final Components.Interfaces interfaces) {
-        assert interfaces != null : type;
-        assert interfaces.implementation == type : interfaces.implementation;
+    private void checkImplementation(final Class<?> expected, final Components.Interfaces actual) {
+        assert actual != null : expected;
+        assert actual.implementation == expected : actual.implementation;
     }
 
-    private void checkInterfaces(final Class<?> type, final Components.Specification[] specifications, final Class<?>... list) {
-        assert specifications != null : type;
-        assert specifications.length == list.length : String.format("%s - %s", Arrays.toString(list), Arrays.toString(specifications));
+    private void checkInterfaces(final Class<?> type, final Components.Specification[] actual, final Class<?>... expected) {
+        assert actual != null : type;
+        assert actual.length == expected.length : String.format("%s - %s", Arrays.toString(expected), Arrays.toString(actual));
 
-        for (int i = 0, limit = specifications.length; i < limit; i++) {
-            final Components.Specification spec = specifications[i];
+        for (int i = 0, limit = actual.length; i < limit; i++) {
+            final Components.Specification spec = actual[i];
             assert spec != null : type;
-            assert spec.api == list[i] : String.format("%s - %s", list[i], spec.api);
+            assert spec.api == expected[i] : String.format("%s - %s", expected[i], spec.api);
             assert spec.groups != null : type;
         }
     }
 
-    private void checkGroups(final Components.Specification specification, final Class<?>... list) {
-        assert specification != null;
+    private void checkGroups(final Components.Specification actual, final Class<?>... expected) {
+        assert actual != null;
 
-        final Class<?> type = specification.api;
-        final Class<?>[] groups = specification.groups;
+        final Class<?> type = actual.api;
+        final Class<?>[] groups = actual.groups;
 
         assert groups != null : type;
-        assert groups.length == list.length : Arrays.toString(groups);
+        assert groups.length == expected.length : Arrays.toString(groups);
 
         for (int i = 0, limit = groups.length; i < limit; i++) {
             final Class<?> group = groups[i];
-            assert group == list[i] : String.format("%s - %s", list[i], group);
+            assert group == expected[i] : String.format("%s - %s", expected[i], group);
         }
     }
 }

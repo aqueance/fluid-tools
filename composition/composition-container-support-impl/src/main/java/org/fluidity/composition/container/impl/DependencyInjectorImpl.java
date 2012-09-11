@@ -508,6 +508,22 @@ final class DependencyInjectorImpl implements DependencyInjector {
         return consumed;
     }
 
+    private boolean accepts(final Class<?> type, final Class<? extends Annotation> annotation) {
+        final Component.Context context = type.getAnnotation(Component.Context.class);
+
+        if (context == null) {
+            return false;
+        }
+
+        for (final Class<? extends Annotation> accepted : context.value()) {
+            if (annotation.isAssignableFrom(accepted)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private ContextDefinition injectDependency(final boolean resolving,
                                                final DependencyGraph.Traversal traversal,
                                                final DependencyResolver container,
@@ -516,7 +532,9 @@ final class DependencyInjectorImpl implements DependencyInjector {
                                                final Class<?> declaringType,
                                                final Dependency dependency) {
         final Component.Reference inbound = original.reference();
-        final Type reference = inbound == null ? dependency.reference() : Generics.propagate(inbound.type(), dependency.reference());
+        final Type reference = inbound == null || !accepts(declaringType, Component.Reference.class)
+                               ? dependency.reference()
+                               : Generics.propagate(inbound.type(), dependency.reference());
 
         final ComponentGroup componentGroup = dependency.annotation(ComponentGroup.class);
         final Class<?> dependencyType = findDependencyType(dependency.annotation(Component.class), reference, declaringType);
@@ -591,7 +609,6 @@ final class DependencyInjectorImpl implements DependencyInjector {
                         // empty
                     }
                 });
-
             }
         } finally {
             if (resolving) {
@@ -609,7 +626,9 @@ final class DependencyInjectorImpl implements DependencyInjector {
     }
 
     private Class<?> findDependencyType(final Component component, final Type reference, final Class<?> declaringType) {
-        assert !(reference instanceof TypeVariable) && !(reference instanceof WildcardType) : reference;
+        if (reference instanceof TypeVariable || reference instanceof WildcardType) {
+            throw new ComponentContainer.ResolutionException("Unresolved type parameter [%s] in a dependency of %s", reference, declaringType);
+        }
 
         final Class<?> defaultType = Generics.rawType(reference);
         final Class<?>[] types = component == null ? new Class<?>[] { defaultType } : component.api();
