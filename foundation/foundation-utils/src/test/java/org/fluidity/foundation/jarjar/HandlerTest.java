@@ -77,8 +77,12 @@ public class HandlerTest {
     @Test
     public void testFormatting() throws Exception {
         final URL expected = Handler.formatURL(getClass().getClassLoader().getResource(container), "level1-2.jar", "level2.jar", "level3.jar");
-        final URL actual = Handler.formatURL(Handler.rootURL(expected), "level1-2.jar", "level2.jar", "level3.jar");
+        verify(expected, Handler.formatURL(Handler.rootURL(expected), "level1-2.jar", "level2.jar", "level3.jar"));
+        verify(expected, Handler.formatURL(Handler.formatURL(Handler.rootURL(expected), null, "level2.jar", "level3.jar"), "level1-2.jar"));
+        verify(expected, Handler.formatURL(Handler.formatURL(Handler.rootURL(expected), null, "level2.jar"), "level1-2.jar", "level3.jar"));
+    }
 
+    private void verify(final URL expected, final URL actual) {
         assert expected.equals(actual) : String.format("%nExpected %s,%n     got %s", expected, actual);
     }
 

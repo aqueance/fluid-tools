@@ -353,14 +353,16 @@ public final class Archives extends Utility {
         private Nested() { }
 
         /**
-         * Creates a URL that will target an entry in a JAR archive nested in other JAR archives, at any level.
+         * Creates a URL to either a JAR archive nested in other JAR archives at any level, or an entry therein, depending on the absence or presence of the
+         * <code>file</code> parameter, respectively.
          *
-         * @param root  the URL of the outermost (root) JAR archive.
+         * @param root  the URL of the (possibly nested) JAR archive.
          * @param file  optional file path inside the nested JAR archive; may be <code>null</code>.
          * @param paths the list of JAR archive paths relative to the preceding JAR archive in the list, or the <code>root</code> archive in case of the first
-         *              path.
+         *              path; may be empty.
          *
-         * @return a "jar:" URL to target the given <code>file</code> in a nested JAR archive.
+         * @return either a <code>jarjar:</code> or a <code>jar:</code> URL to either a JAR archive nested in other JAR archives at any level, or the given
+         *         <code>file</code> entry therein, respectively.
          *
          * @throws IOException when URL handling fails.
          */
