@@ -271,9 +271,11 @@ public interface ComponentFactory {
         /**
          * Returns a list of dependencies, each corresponding to the parameters of the dependency injectable constructor of the supplied component class. For
          * the algorithm on constructor resolution, see the {@link org.fluidity.composition.container.DependencyInjector#constructor(Class,
-         * org.fluidity.composition.container.spi.DependencyGraph.Traversal, org.fluidity.composition.container.spi.DependencyResolver,
-         * org.fluidity.composition.container.spi.ContextNode, org.fluidity.composition.container.ContextDefinition, java.lang.reflect.Constructor)
+         * DependencyGraph.Traversal, DependencyResolver, ContextNode, org.fluidity.composition.container.ContextDefinition, Constructor)
          * DependencyInjector.constructor()} method.
+         * <p/>
+         * The constructor discovered by this method is also returned by the {@link #constructor(Class)} method and can then be used to inject the dependencies
+         * discovered by this one.
          *
          * @param type the component class.
          *
@@ -282,7 +284,20 @@ public interface ComponentFactory {
         Dependency<?>[] discover(Class<?> type);
 
         /**
+         * Returns the dependency injectable constructor of the given component class. The returned value can be used to instantiate the component using the
+         * dependencies discovered by the {@link #discover(Class)} method.
+         *
+         * @param type the component class.
+         *
+         * @return the dependency injectable constructor of the given component class.
+         */
+        Constructor<?> constructor(Class<?> type);
+
+        /**
          * Returns a list of dependencies, each corresponding to the parameters of the supplied constructor.
+         * <p/>
+         * Use this method if the component has multiple constructors and the invoking dependency injection container would not be able to figure out which one
+         * to use. Otherwise use the {@link #discover(Class)} and {@link #constructor(Class)} methods instead.
          *
          * @param constructor the constructor.
          *

@@ -97,13 +97,13 @@ abstract class FactoryResolver extends AbstractResolver {
                 return api;
             }
 
-            public Object instance(final DependencyGraph.Traversal traversal11) {
+            public Object instance(final DependencyGraph.Traversal traversal) {
                 try {
                     if (instance == null) {
                         return null;
                     } else {
                         instance.bind(registry);
-                        return child.resolveComponent(api, saved, traversal11, reference).instance(traversal11);
+                        return child.resolveComponent(api, saved, traversal, reference).instance(traversal);
                     }
                 } finally {
                     for (final RestrictedContainer restricted : containers) {
@@ -187,7 +187,11 @@ abstract class FactoryResolver extends AbstractResolver {
             }
 
             public ComponentFactory.Dependency<?>[] discover(final Class<?> type) {
-                return discover(injector.findConstructor(type));
+                return discover(constructor(type));
+            }
+
+            public Constructor<?> constructor(final Class<?> type) {
+                return injector.findConstructor(type);
             }
 
             public ComponentFactory.Dependency<?>[] discover(final Constructor<?> constructor) {

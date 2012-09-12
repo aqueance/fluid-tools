@@ -36,7 +36,7 @@ import org.fluidity.foundation.Proxies;
  * @author Tibor Varga
  */
 @Component(api = ReloadingConfiguration.class)
-@Component.Context(value = { Configuration.Context.class, Component.Reference.class })
+@Component.Context(Component.Reference.class)
 final class ReloadingConfigurationFactory implements ComponentFactory {
 
     public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
@@ -62,6 +62,7 @@ final class ReloadingConfigurationFactory implements ComponentFactory {
     }
 
     @Component(automatic = false)
+    @Component.Context(Component.Reference.class)
     private static class ReloadingConfigurationImpl<T> implements ReloadingConfiguration<T> {
 
         private final Deferred.Reference<Updates.Snapshot<T>> snapshot;

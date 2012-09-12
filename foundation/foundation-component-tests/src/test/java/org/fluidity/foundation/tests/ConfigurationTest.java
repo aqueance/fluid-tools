@@ -26,7 +26,7 @@ import org.testng.annotations.Test;
 /**
  * @author Tibor Varga
  */
-public class ConfigurationFactoryTest {
+public class ConfigurationTest {
 
     private final ComponentContainer container = Containers.global();
 

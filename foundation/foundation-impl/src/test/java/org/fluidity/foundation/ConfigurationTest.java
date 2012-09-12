@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContext;
 import org.fluidity.foundation.spi.PropertyProvider;
 import org.fluidity.testing.MockGroup;
@@ -54,15 +55,19 @@ public class ConfigurationTest extends MockGroup {
     };
 
     private final ComponentContext context = mock(ComponentContext.class);
+    private final Component.Reference reference = mock(Component.Reference.class);
 
+    @SuppressWarnings("unchecked")
     private <T> Configuration<T> configure(final Class<T> settingsType,
                                            final PropertyProvider provider,
                                            final T defaults,
                                            final Configuration.Context... contexts) {
         EasyMock.expect(context.annotations(Configuration.Context.class)).andReturn(contexts);
+        EasyMock.expect(context.annotation(Component.Reference.class, Configuration.class)).andReturn(reference);
+        EasyMock.expect(reference.parameter(0)).andReturn((Class) settingsType);
 
         replay();
-        final Configuration<T> configuration = new ConfigurationFactory.ConfigurationImpl<T>(settingsType, provider, defaults, context);
+        final Configuration<T> configuration = new ConfigurationImpl<T>(context, provider, defaults);
         verify();
 
         return configuration;
