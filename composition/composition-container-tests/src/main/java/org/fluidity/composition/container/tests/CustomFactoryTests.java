@@ -400,8 +400,8 @@ public final class CustomFactoryTests extends AbstractContainerTests {
     @Test(dataProvider = "delegating-factories")
     public void testDelegatingFactories(final ComponentFactory factory) throws Exception {
         registry.bindFactory(factory, ContextProvider.class);
-        registry.bindComponent(NamedGroupMember2.class);
         registry.bindComponent(NamedGroupMember1.class);
+        registry.bindComponent(NamedGroupMember2.class);
 
         replay();
         final ContextProvider component = container.getComponent(ContextProvider.class);
@@ -412,14 +412,19 @@ public final class CustomFactoryTests extends AbstractContainerTests {
         assert "name-2".equals(component.name2()) : component.name2();
         assert "name-5".equals(component.name3()) : component.name3();
 
-        final NamedGroup[] group = component.field();
+        final NamedGroup[] group = component.group();
         assert group != null;
+        assert group.length == 2 : group.length;
 
-        for (final NamedGroup member : component.group()) {
+        for (final NamedGroup member : group) {
             assert "name-3".equals(member.name()) : String.format("%s: %s", member.getClass(), member.name());
         }
 
-        for (final NamedGroup member : group) {
+        final NamedGroup[] field = component.field();
+        assert field != null;
+        assert field.length == 2 : field.length;
+
+        for (final NamedGroup member : field) {
             assert "name-4".equals(member.name()) : String.format("%s: %s", member.getClass(), member.name());
         }
     }
