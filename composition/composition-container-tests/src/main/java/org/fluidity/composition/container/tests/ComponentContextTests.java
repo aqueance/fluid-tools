@@ -247,7 +247,8 @@ public final class ComponentContextTests extends AbstractContainerTests {
             group1.add(member.getClass());
 
             if (member instanceof GroupMember2) {
-                assert GroupDependent1.class.getAnnotation(Setting1.class).value().equals(((GroupMember2) member).setting) : ((GroupMember2) member).setting;
+                assert GroupDependent1.class.getAnnotation(Setting1.class).value()
+                        .equals(((GroupMember2) member).setting) : ((GroupMember2) member).setting;
             }
         }
 
@@ -255,7 +256,8 @@ public final class ComponentContextTests extends AbstractContainerTests {
             group2.add(member.getClass());
 
             if (member instanceof GroupMember2) {
-                assert ((Setting1) GroupDependent2.class.getConstructor(GroupApi[].class).getParameterAnnotations()[0][0]).value().equals(((GroupMember2) member).setting) : ((GroupMember2) member).setting;
+                assert ((Setting1) GroupDependent2.class.getConstructor(GroupApi[].class).getParameterAnnotations()[0][0]).value()
+                        .equals(((GroupMember2) member).setting) : ((GroupMember2) member).setting;
             }
         }
 
@@ -333,6 +335,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
     @SuppressWarnings("UnusedDeclaration")
     @Component.Context(Setting1.class)
     private static class GroupMember2 implements GroupApi {
+
         public final String setting;
 
         private GroupMember2(final ComponentContext context) {

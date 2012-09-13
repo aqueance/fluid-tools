@@ -589,7 +589,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
             final ComponentFactory.Resolver resolver = (ComponentFactory.Resolver) EasyMock.getCurrentArguments()[1];
             assert resolver != null : "Received no resolver";
 
-            final ComponentFactory.Dependency<?> dependency = resolver.resolve(checkKey, null);
+            final ComponentFactory.Dependency<?> dependency = resolver.resolve(checkKey, null, null);
             assert dependency != null && dependency.instance() == checkValue : "Container does not check up";
 
             final Object[] arguments = EasyMock.getCurrentArguments();

@@ -131,15 +131,18 @@ public class DependencyInjectorImplTest extends MockGroup {
 
         EasyMock.expect(context.reference()).andReturn(reference);
 
-        EasyMock.expect(context.advance(dependencyType)).andReturn(copy);
+        EasyMock.expect(context.advance(dependencyType, false)).andReturn(copy);
         EasyMock.expect(copy.expand(EasyMock.aryEq(definitions))).andReturn(copy);
 
         if (dependencyType.isArray()) {
             assert component == null || component.getClass().isArray() : component.getClass();
             final Object[] services = (Object[]) component;
 
+            final ContextDefinition advanced = localMock(ContextDefinition.class);
+
+            EasyMock.expect(copy.advance(dependencyType, true)).andReturn(advanced);
             EasyMock.expect(resolver.resolveGroup(EasyMock.same(dependencyType.getComponentType()),
-                                                  EasyMock.same(copy),
+                                                  EasyMock.same(advanced),
                                                   EasyMock.same(traversal),
                                                   EasyMock.same(dependencyType))).andReturn(new DependencyGraph.Node.Constant(dependencyType, services, null));
         } else if (dependencyType == ComponentContext.class) {

@@ -54,7 +54,6 @@ final class EmptyRegistry implements ComponentContainer.Registry {
         }
     }
 
-    // TODO: test this method
     @SuppressWarnings("unchecked")
     public void bindFactory(final ComponentFactory factory, final Class<?>... interfaces) throws ComponentContainer.BindingException {
         assert factory != null;

@@ -276,7 +276,11 @@ final class SimpleContainerImpl implements ParentContainer {
     }
 
     public Object initialize(final Object component, final ContextDefinition context, final ComponentContainer.Observer observer) {
-        return injector.fields(component, services.graphTraversal(), dependencyResolver(domain), new InstanceDescriptor(component), context);
+        return initialize(component, context, services.graphTraversal(observer));
+    }
+
+    public Object initialize(final Object component, final ContextDefinition context, final Traversal traversal) {
+        return injector.fields(component, traversal, dependencyResolver(domain), new InstanceDescriptor(component), context);
     }
 
     public Object invoke(final Object component, final Method method, final ContextDefinition context, final Object[] arguments, final boolean explicit)
@@ -381,7 +385,7 @@ final class SimpleContainerImpl implements ParentContainer {
 
             return traversal.follow(group, arrayApi, arrayApi, context, new Node.Reference() {
                 public Node resolve() {
-                    return groupNode(api, resolveGroup(domain, api, traversal, context.advance(reference).expand(null), reference), context);
+                    return groupNode(api, resolveGroup(domain, api, traversal, context, reference), context);
                 }
             });
         }
@@ -643,6 +647,10 @@ final class SimpleContainerImpl implements ParentContainer {
         }
 
         public Object initialize(final Object component, final ContextDefinition context, final ComponentContainer.Observer observer) throws ComponentContainer.ResolutionException {
+            throw new UnsupportedOperationException();
+        }
+
+        public Object initialize(final Object component, final ContextDefinition context, final Traversal traversal) throws ComponentContainer.ResolutionException {
             throw new UnsupportedOperationException();
         }
 

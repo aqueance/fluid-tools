@@ -565,8 +565,8 @@ public interface ComponentContainer {
          *
          * @param declaringType        the class having the dependency to the <code>api</code>.
          * @param dependencyType       the class with which the <code>declaringType</code> references the dependency.
-         * @param typeAnnotations      the annotations of the declaring class.
-         * @param referenceAnnotations the annotations of the dependency reference.
+         * @param typeAnnotations      the annotations of the declaring class; may be <code>null</code>.
+         * @param referenceAnnotations the annotations of the dependency reference; may be <code>null</code>.
          */
         void descending(Class<?> declaringType, Class<?> dependencyType, Annotation[] typeAnnotations, Annotation[] referenceAnnotations);
 

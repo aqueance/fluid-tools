@@ -16,7 +16,9 @@
 
 package org.fluidity.composition.spi;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 
@@ -26,6 +28,9 @@ import org.fluidity.composition.ComponentContext;
 
 /**
  * Creates instances of a component when mere constructor and field injection is not adequate.
+ * <p/>
+ * <b>Note</b>: Component factories expose an internal process to the external world and thus hard measures are taken to protect the former from the latter by
+ * wrapping sensitive functionality under highly focused interfaces.
  * <p/>
  * Component instantiation follows a certain protocol and <code>ComponentFactory</code> objects must follow that protocol to integrate well to Fluid Tools.
  * This interface defines the necessary methods and interfaces for that integration.
@@ -58,11 +63,11 @@ import org.fluidity.composition.ComponentContext;
  * }
  *
  * {@linkplain Component @Component}(automatic = false)
- * final <span class="hl3">MyComponentImpl</span> implements <span class="hl2">MyComponent</span> {
+ * final class <span class="hl3">MyComponentImpl</span> implements <span class="hl2">MyComponent</span> {
  *   &hellip;
  * }
  * </pre>
- * <h4>Context Awareness</h4>
+ * <h4>Context Adaptation</h4>
  * If the created component is context aware, the {@link ComponentFactory} has two distinct ways to communicate the contextual information to the
  * new component:<ol>
  * <li>The factory can extract from the <code>context</code> received in {@link
@@ -80,10 +85,7 @@ import org.fluidity.composition.ComponentContext;
  *
  *     return new Instance() {
  *       public void bind(final {@linkplain ComponentFactory.Registry Registry} registry) throws {@linkplain org.fluidity.composition.ComponentContainer.ResolutionException} {
- *         if (contexts != null) {
- *           registry.bindInstance(contexts, <span class="hl3">CustomContext</span>[].class);
- *         }
- *
+ *         registry.bindInstance(contexts, <span class="hl3">CustomContext</span>[].class);
  *         registry.bindComponent(<span class="hl2">CreatedComponent</span>.class);
  *       }
  *     };
@@ -138,8 +140,8 @@ public interface ComponentFactory {
      * <p/>
      * In the general case, a call to {@link ComponentFactory.Resolver#discover(Class)} will find the injectable constructor of the given type – the component
      * implementation class – and inform the caller about the dependencies found therein. In case some of those declared dependencies don't match the type of
-     * the actual object injected by the factory to the component instance, further calls to {@link ComponentFactory.Resolver#resolve(Class, Type)} should be
-     * made, one for each such dependency.
+     * the actual object injected by the factory to the component instance, further calls to {@link ComponentFactory.Resolver#resolve(Class, Type,
+     * Annotation[])} should be made, one for each such dependency.
      * <p/>
      * If the general case above does not apply, more specific methods of the {@link ComponentFactory.Resolver} class can be used to make sure the caller is
      * informed about all dependencies of the component instance.
@@ -261,18 +263,19 @@ public interface ComponentFactory {
          * org.fluidity.composition.Component.Reference @Component.Reference} context annotation, the specified component interface as the dependency reference
          * to it unless the <code>reference</code> parameter is present. The component interface must be assignable to the reference if it is specified.
          *
-         * @param api       the component interface to resolve, or <code>null</code> of it can be derived from the <code>reference</code> parameter.
-         * @param reference the reference to use when resolving the component or <code>null</code> to use the component interface.
+         * @param api         the component interface to resolve, or <code>null</code> of it can be derived from the <code>reference</code> parameter.
+         * @param reference   the reference to use when resolving the component or <code>null</code> to use the component interface.
+         * @param annotations the annotations at the point of reference to the dependency; may be <code>null</code>.
          *
          * @return an object that can return an instance of the resolved dependency.
          */
-        <T> Dependency<T> resolve(Class<T> api, Type reference);
+        <T> Dependency<T> resolve(Class<T> api, Type reference, Annotation[] annotations);
 
         /**
-         * Returns a list of dependencies, each corresponding to the parameters of the dependency injectable constructor of the supplied component class. For
-         * the algorithm on constructor resolution, see the {@link org.fluidity.composition.container.DependencyInjector#constructor(Class,
-         * DependencyGraph.Traversal, DependencyResolver, ContextNode, org.fluidity.composition.container.ContextDefinition, Constructor)
-         * DependencyInjector.constructor()} method.
+         * Informs the recipient about the injectable constructor parameters of the given component class, and then returns a list of dependencies, each
+         * corresponding to the parameters of the dependency injectable constructor of the supplied component class. For the algorithm on constructor
+         * resolution, see the {@link org.fluidity.composition.container.DependencyInjector#constructor(Class, DependencyGraph.Traversal, DependencyResolver,
+         * ContextNode, org.fluidity.composition.container.ContextDefinition, Constructor) DependencyInjector.constructor()} method.
          * <p/>
          * The constructor discovered by this method is also returned by the {@link #constructor(Class)} method and can then be used to inject the dependencies
          * discovered by this one.
@@ -282,6 +285,13 @@ public interface ComponentFactory {
          * @return a list of dependencies corresponding to the constructor parameters.
          */
         Dependency<?>[] discover(Class<?> type);
+
+        /**
+         * Informs the recipient about the injectable field dependencies of the given component class.
+         *
+         * @param type the component class.
+         */
+        void fields(Class<?> type);
 
         /**
          * Returns the dependency injectable constructor of the given component class. The returned value can be used to instantiate the component using the
@@ -294,7 +304,8 @@ public interface ComponentFactory {
         Constructor<?> constructor(Class<?> type);
 
         /**
-         * Returns a list of dependencies, each corresponding to the parameters of the supplied constructor.
+         * Informs the recipient about the injectable constructor parameters of the given component class, and then returns a list of dependencies, each
+         * corresponding to the parameters of the supplied constructor.
          * <p/>
          * Use this method if the component has multiple constructors and the invoking dependency injection container would not be able to figure out which one
          * to use. Otherwise use the {@link #discover(Class)} and {@link #constructor(Class)} methods instead.
@@ -305,15 +316,26 @@ public interface ComponentFactory {
          */
         Dependency<?>[] discover(Constructor<?> constructor);
 
-
         /**
-         * Returns a list of dependencies, each corresponding to the parameters of the supplied parameter injected method.
+         * Informs the recipient about the injectable constructor parameters of the given component class, and then returns a list of dependencies, each
+         * corresponding to the parameters of the supplied parameter injected method.
          *
          * @param method the method.
          *
          * @return a list of dependencies corresponding to the parameters of the supplied factory method.
          */
         Dependency<?>[] discover(Method method);
+
+        /**
+         * Creates a transient container and applies the given bindings thereto. The returned container can be used to instantiate dependencies local to the
+         * component when the component itself is instantiated by the calling factory.
+         *
+         * @param dependent the class this container is returned to bind the dependencies of; may not be <code>null</code>.
+         * @param bindings  the component bindings for the local dependencies of some component.
+         *
+         * @return a container to instantiate local dependencies.
+         */
+        Container local(Class<?> dependent, Container.Bindings bindings);
     }
 
     /**
@@ -357,13 +379,119 @@ public interface ComponentFactory {
          *          ComponentContainer.Registry.bindInstance()}.
          */
         <T> void bindInstance(T instance, Class<? super T>... interfaces) throws ComponentContainer.BindingException;
+    }
+
+    /**
+     * Container to resolve local dependencies of some component that will be instantiated by the {@linkplain ComponentFactory component factory} rather than
+     * the invoking container.
+     *
+     * <h3>Usage</h3>
+     * <pre>
+     * {@linkplain Component @Component}(api = MyComponent<.class)
+     * final class MyComponentFactory implements {@linkplain ComponentFactory} {
+     *
+     *   public {@linkplain ComponentFactory.Instance Instance} resolve(final {@linkplain ComponentContext} context, final {@linkplain ComponentFactory.Resolver Resolver} dependencies) throws {@linkplain org.fluidity.composition.ComponentContainer.ResolutionException} {
+     *     final Constructor&lt;?> <span class="hl2">constructor</span> = dependencies.<span class="hl1">constructor</span>(<span class="hl3">MyComponentImpl</span>.class);
+     *
+     *     dependencies.<span class="hl1">discover</span>(<span class="hl2">constructor</span>);
+     *
+     *     final <span class="hl1">Container</span> container = dependencies.<span class="hl1">local</span>(<span class="hl2">MyComponentImpl</span>.class, new {@linkplain Container.Bindings}() {
+     *       public void bindComponents(final {@linkplain Container.Registry} registry) {
+     *         registry.<span class="hl1">bindComponent</span>(<span class="hl3">LocalDependency</span>.class);
+     *       }
+     *     }));
+     *
+     *     final Dependency&lt;<span class="hl3">LocalDependency</span>> <span class="hl3">dependency</span> = container.<span class="hl1">resolve</span>(<span class="hl2">constructor</span>, 0, <span class="hl3">LocalDependency</span>.class);
+     *
+     *     return new {@linkplain ComponentFactory.Instance Instance}() {
+     *       public void bind(final {@linkplain ComponentFactory.Registry Registry} registry) throws {@linkplain org.fluidity.composition.ComponentContainer.ResolutionException} {
+     *         registry.bindComponent(new <span class="hl2">MyComponentImpl</span>(<span class="hl3">dependency</span>.<span class="hl1">instance</span>()));
+     *       }
+     *     }
+     *   }
+     * }
+     *
+     * {@linkplain Component @Component}(automatic = false)
+     * final class <span class="hl2">MyComponentImpl</span> implements MyComponent {
+     *
+     *   public <span class="hl2">MyComponentImpl</span>(final <span class="hl3">LocalDependency</span> local) {
+     *     &hellip;
+     *   }
+     *
+     *   &hellip;
+     * }
+     *
+     * {@linkplain Component @Component}(automatic = false)
+     * final class <span class="hl3">LocalDependency</span> {
+     *   &hellip;
+     * }
+     * </pre>
+     *
+     * @author Tibor Varga
+     */
+    interface Container {
 
         /**
-         * Returns the registry of a new child container that will use this registry as its parent. See {@link
-         * ComponentContainer#makeChildContainer(ComponentContainer.Bindings...) ComponentContainer.makeChildContainer()}.
+         * Returns the component instance bound to the given component interface.
          *
-         * @return an registry, never <code>null</code>.
+         * @param constructor    the constructor of the component this binding is intended to resolve.
+         * @param parameter      the index in the <code>constructor</code>'s parameter array of the dependency that this binding is intended to resolve.
+         * @param api the component interface.
+         * @param <T> the component interface type parameter.
+         *
+         * @return the component instance bound to the given component interface, or <code>null</code> if none found.
          */
-        Registry makeChildContainer();
+        <T> Dependency<T> resolve(Constructor<?> constructor, int parameter, Class<T> api);
+
+        /**
+         * Returns the component instance bound to the given component interface.
+         *
+         * @param api the component interface.
+         * @param <T> the component interface type parameter.
+         *
+         * @return the component instance bound to the given component interface, or <code>null</code> if none found.
+         */
+        <T> Dependency<T> resolve(Field field, Class<T> api);
+
+        /**
+         * Adds component bindings to a {@linkplain ComponentFactory.Container local dependency container}.
+         *
+         * <h3>Usage</h3>
+         * See {@link ComponentFactory.Container}.
+         *
+         * @author Tibor Varga
+         */
+        interface Registry {
+
+            /**
+             * Binds a component class to an optional list of component interfaces in the container behind this registry.
+             *
+             * @param implementation see {@link org.fluidity.composition.ComponentContainer.Registry#bindComponent(Class, Class...)
+             *                       ComponentContainer.Registry.bindComponent()}.
+             * @param interfaces     see {@link org.fluidity.composition.ComponentContainer.Registry#bindComponent(Class, Class...)
+             *                       ComponentContainer.Registry.bindComponent()}.
+             *
+             * @throws ComponentContainer.BindingException
+             *          see {@link org.fluidity.composition.ComponentContainer.Registry#bindComponent(Class, Class...)
+             *          ComponentContainer.Registry.bindComponent()}.
+             */
+            <T> void bindComponent(Class<T> implementation, Class<? super T>... interfaces) throws ComponentContainer.BindingException;
+        }
+
+        /**
+         * Adds component bindings to a {@link ComponentFactory.Container}.
+         *
+         * <h3>Usage</h3>
+         * See {@link ComponentFactory.Container}.
+         *
+         * @author Tibor Varga
+         */
+        interface Bindings {
+
+            /**
+             * Adds component bindings to the given registry.
+             */
+            void bindComponents(Registry registry);
+        }
     }
 }

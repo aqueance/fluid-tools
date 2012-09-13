@@ -120,7 +120,7 @@ final class GroupResolver {
 
         final List<ContextDefinition> consumed = new ArrayList<ContextDefinition>();
         for (final Class<?> member : members) {
-            final ContextDefinition copy = context.advance(member);
+            final ContextDefinition copy = context.advance(member, true);
 
             final ComponentResolver resolver = container.resolver(member, false);
             nodes.add(container.resolveComponent(domain, false, member, copy.accept(resolver.contextConsumer()), traversal, reference));

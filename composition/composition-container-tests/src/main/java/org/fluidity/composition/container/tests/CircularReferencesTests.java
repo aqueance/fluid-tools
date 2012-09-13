@@ -706,7 +706,7 @@ public final class CircularReferencesTests extends AbstractContainerTests {
     }
 
     @Component(automatic = false)
-    @Component.Context({ Context1.class })
+    @Component.Context(Context1.class)
     private static class GroupMember3 extends GroupMember {
 
         public static boolean call;

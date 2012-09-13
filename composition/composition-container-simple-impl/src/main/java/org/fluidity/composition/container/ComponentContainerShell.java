@@ -54,7 +54,7 @@ final class ComponentContainerShell extends EmptyComponentContainer<SimpleContai
 
     @SuppressWarnings("unchecked")
     public <T> T initialize(final T component) {
-        return (T) container.initialize(component, context.copy(), null);
+        return (T) container.initialize(component, context.copy(), observer);
     }
 
     public Object invoke(final Object component, final boolean explicit, final Method method, final Object... arguments)

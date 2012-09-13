@@ -73,16 +73,20 @@ final class ContextDefinitionImpl implements ContextDefinition {
 
     private ContextDefinitionImpl(final Type reference,
                                   final Map<Class<? extends Annotation>, Annotation[]> defined,
-                                  final Map<Class<? extends Annotation>, Annotation[]> active) {
+                                  final Map<Class<? extends Annotation>, Annotation[]> active,
+                                  final boolean refine) {
         this(defined, active);
 
         assert reference != null;
         final Component.Reference inherited = reference();
 
-        // remove all non-inherited context
-        for (final Iterator<Class<? extends Annotation>> iterator = this.defined.keySet().iterator(); iterator.hasNext(); ) {
-            if (series(iterator.next()) == Component.Context.Collection.IMMEDIATE) {
-                iterator.remove();
+        if (!refine) {
+
+            // remove all non-inherited context
+            for (final Iterator<Class<? extends Annotation>> iterator = this.defined.keySet().iterator(); iterator.hasNext(); ) {
+                if (series(iterator.next()) == Component.Context.Collection.IMMEDIATE) {
+                    iterator.remove();
+                }
             }
         }
 
@@ -129,8 +133,8 @@ final class ContextDefinitionImpl implements ContextDefinition {
         return new ContextDefinitionImpl(defined, active);
     }
 
-    public ContextDefinition advance(final Type reference) {
-        return new ContextDefinitionImpl(reference, defined, active);
+    public ContextDefinition advance(final Type reference, final boolean refine) {
+        return new ContextDefinitionImpl(reference, defined, active, refine);
     }
 
     public ContextDefinition accept(final Class<?> type) {

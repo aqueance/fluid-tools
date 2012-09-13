@@ -91,7 +91,7 @@ public class ContextDefinitionImplTest extends MockGroup {
         check(Immediate.class, map3, "immediate-2");
         check(None.class, map3);
 
-        final ContextDefinition expanded4 = expanded3.advance(ConsumerAll.class).expand(Definition3.class.getAnnotations());
+        final ContextDefinition expanded4 = expanded3.advance(ConsumerAll.class, false).expand(Definition3.class.getAnnotations());
         final ContextDefinition accepted4 = expanded4.accept(ConsumerAll.class);
 
         assert expanded4 != expanded2;

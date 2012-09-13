@@ -18,13 +18,19 @@ package org.fluidity.composition.container.tests;
 
 import java.io.Closeable;
 import java.io.Serializable;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.Type;
 
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.ComponentGroup;
+import org.fluidity.composition.Inject;
 import org.fluidity.composition.spi.ComponentFactory;
+import org.fluidity.foundation.Exceptions;
 import org.fluidity.foundation.Generics;
 
 import org.easymock.EasyMock;
@@ -179,6 +185,177 @@ public final class CustomFactoryTests extends AbstractContainerTests {
         verify();
     }
 
+    @Retention(RetentionPolicy.RUNTIME)
+    @Component.Context(collect = Component.Context.Collection.IMMEDIATE)
+    public @interface Name {
+
+        String value();
+    }
+
+    @Component(automatic = false)
+    @Name("name-1")
+    private static class ContextProvider {
+
+        private final NamedComponent dependency1;
+        private final NamedComponent dependency2;
+        private final NamedGroup[] group;
+
+        @Inject
+        @Name("name-4")
+        private @ComponentGroup NamedGroup[] field;
+
+        @Inject
+        @Name("name-5")
+        private NamedComponent dependency3;
+
+        public ContextProvider(final NamedComponent dependency1,
+                               final @Name("name-2") NamedComponent dependency2,
+                               final @Name("name-3") @ComponentGroup NamedGroup[] group) {
+            this.dependency1 = dependency1;
+            this.dependency2 = dependency2;
+            this.group = group;
+        }
+
+        public String name1() {
+            return dependency1.name;
+        }
+
+        public String name2() {
+            return dependency2.name;
+        }
+
+        public String name3() {
+            return dependency3.name;
+        }
+
+        public NamedGroup[] field() {
+            return field;
+        }
+
+        public NamedGroup[] group() {
+            return group;
+        }
+    }
+
+    @Component(automatic = false)
+    @Component.Context(Name.class)
+    private static class NamedComponent {
+
+        public final String name;
+
+        @SuppressWarnings("UnusedDeclaration")
+        private NamedComponent(final ComponentContext context) {
+            this.name = context.annotation(Name.class, NamedComponent.class).value();
+        }
+    }
+
+    @ComponentGroup
+    private interface NamedGroup {
+
+        String name();
+    }
+
+    private static abstract class NamedGroupMember implements NamedGroup {
+
+        private final String name;
+
+        protected NamedGroupMember(final ComponentContext context) {
+            this.name = context.annotation(Name.class, getClass()).value();
+        }
+
+        public String name() {
+            return name;
+        }
+    }
+
+    @Component.Context(Name.class)
+    private static class NamedGroupMember1 extends NamedGroupMember {
+
+        protected NamedGroupMember1(final ComponentContext context) {
+            super(context);
+        }
+    }
+
+    @Component.Context(Name.class)
+    private static class NamedGroupMember2 extends NamedGroupMember {
+
+        protected NamedGroupMember2(final ComponentContext context) {
+            super(context);
+        }
+    }
+
+    @Component(automatic = false)
+    private static class DelegatingFactory implements ComponentFactory {
+
+        public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
+            final Constructor<?> constructor = dependencies.constructor(ContextProvider.class);
+
+            dependencies.discover(constructor);
+
+            final Container container = dependencies.local(ContextProvider.class, new Container.Bindings() {
+                public void bindComponents(final Container.Registry registry) {
+                    registry.bindComponent(NamedComponent.class);
+                }
+            });
+
+            final Dependency<NamedComponent> dependency1 = container.resolve(constructor, 0, NamedComponent.class);
+            final Dependency<NamedComponent> dependency2 = container.resolve(constructor, 1, NamedComponent.class);
+            final Dependency<NamedGroup[]> dependency3 = container.resolve(constructor, 2, NamedGroup[].class);
+
+            final Field field = Exceptions.wrap(new Exceptions.Command<Field>() {
+                public Field run() throws Throwable {
+                    return ContextProvider.class.getDeclaredField("dependency3");
+                }
+            });
+
+            final Dependency<NamedComponent> dependency4 = container.resolve(field, NamedComponent.class);
+
+            return new Instance() {
+                public void bind(final Registry registry) throws ComponentContainer.BindingException {
+                    final ContextProvider instance = new ContextProvider(dependency1.instance(), dependency2.instance(), dependency3.instance());
+
+                    Exceptions.wrap(new Exceptions.Command<Void>() {
+                        public Void run() throws Throwable {
+                            field.setAccessible(true);
+                            field.set(instance, dependency4.instance());
+                            return null;
+                        }
+                    });
+
+                    registry.bindInstance(instance);
+                }
+            };
+
+        }
+    }
+
+    @Test
+    public void testChildContainerContextPropagation() throws Exception {
+        registry.bindFactory(new DelegatingFactory(), ContextProvider.class);
+        registry.bindComponent(NamedGroupMember2.class);
+        registry.bindComponent(NamedGroupMember1.class);
+
+        replay();
+        final ContextProvider component = container.getComponent(ContextProvider.class);
+        verify();
+
+        assert component != null;
+        assert "name-1".equals(component.name1()) : component.name1();
+        assert "name-2".equals(component.name2()) : component.name2();
+        assert "name-5".equals(component.name3()) : component.name3();
+
+        final NamedGroup[] group = component.field();
+        assert group != null;
+
+        for (final NamedGroup member : component.group()) {
+            assert "name-3".equals(member.name()) : String.format("%s: %s", member.getClass(), member.name());
+        }
+
+        for (final NamedGroup member : group) {
+            assert "name-4".equals(member.name()) : String.format("%s: %s", member.getClass(), member.name());
+        }
+    }
+
     @DataProvider(name = "resolutionVariants")
     public Object[][] resolutionTypes() {
         return new Object[][] {
@@ -220,7 +397,7 @@ public final class CustomFactoryTests extends AbstractContainerTests {
             public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
                 switch (variant) {
                 case 0: {
-                    final Dependency<Secondary> dependency = dependencies.resolve(Secondary.class, null);
+                    final Dependency<Secondary> dependency = dependencies.resolve(Secondary.class, null, null);
                     assert dependency != null : Secondary.class;
 
                     return new Instance() {
@@ -232,7 +409,7 @@ public final class CustomFactoryTests extends AbstractContainerTests {
                 }
 
                 case 1: {
-                    final Dependency<Secondary> dependency = dependencies.resolve(Secondary.class, Secondary.class);
+                    final Dependency<Secondary> dependency = dependencies.resolve(Secondary.class, Secondary.class, null);
                     assert dependency != null : Secondary.class;
 
                     return new Instance() {
@@ -244,7 +421,7 @@ public final class CustomFactoryTests extends AbstractContainerTests {
                 }
 
                 case 2: {
-                    final Dependency<Secondary> dependency = dependencies.resolve(null, Secondary.class);
+                    final Dependency<Secondary> dependency = dependencies.resolve(null, Secondary.class, null);
                     assert dependency != null : Secondary.class;
 
                     return new Instance() {
@@ -256,7 +433,7 @@ public final class CustomFactoryTests extends AbstractContainerTests {
                 }
 
                 case 3: {
-                    final Dependency<Secondary> dependency = dependencies.resolve(Secondary.class, Serializable.class);
+                    final Dependency<Secondary> dependency = dependencies.resolve(Secondary.class, Serializable.class, null);
                     assert dependency != null : Secondary.class;
 
                     return new Instance() {
@@ -269,7 +446,7 @@ public final class CustomFactoryTests extends AbstractContainerTests {
 
                 case 4: {
                     try {
-                        dependencies.resolve(Secondary.class, Closeable.class);
+                        dependencies.resolve(Secondary.class, Closeable.class, null);
                         assert false : "Should have thrown resolution exception";
                     } catch (final ComponentContainer.ResolutionException e) {
                         // that's fine
@@ -402,7 +579,7 @@ public final class CustomFactoryTests extends AbstractContainerTests {
             final ComponentFactory.Resolver resolver = (ComponentFactory.Resolver) EasyMock.getCurrentArguments()[1];
             assert resolver != null : "Received no resolver";
 
-            final ComponentFactory.Dependency<?> dependency = resolver.resolve(checkKey, null);
+            final ComponentFactory.Dependency<?> dependency = resolver.resolve(checkKey, null, null);
             assert dependency != null && dependency.instance() == checkValue : "Container does not check up";
 
             return instance;

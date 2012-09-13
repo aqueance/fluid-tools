@@ -16,8 +16,11 @@
 
 package org.fluidity.foundation;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.GenericArrayType;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
@@ -30,6 +33,8 @@ import java.util.Collection;
  * Utility methods to access parameterized type information.
  */
 public final class Generics extends Utility {
+
+    private static final Annotation[] NO_ANNOTATION = new Annotation[0];
 
     private Generics() { }
 
@@ -295,5 +300,94 @@ public final class Generics extends Utility {
 
             return String.format("%s<%s>", Generics.toString(getRawType()), parameters);
         }
+    }
+
+    /**
+     * Creates and returns a constructor parameters descriptor that works around http://bugs.sun.com/view_bug.do?bug_id=5087240.
+     *
+     * @param constructor the constructor to describe the parameters of.
+     *
+     * @return a constructor parameters descriptor.
+     */
+    public static ConstructorParameters describe(final Constructor<?> constructor) {
+        final Class<?> type = constructor.getDeclaringClass();
+        final Class[] params = constructor.getParameterTypes();
+        final Type[] types = constructor.getGenericParameterTypes();
+
+        final int hidden = params.length - types.length;
+
+        int levels = -1;   // top-level class is never static and yet it is an enclosing class
+        for (Class enclosing = type; enclosing != null; enclosing = enclosing.getEnclosingClass()) {
+            if (!Modifier.isStatic(enclosing.getModifiers())) {
+                ++levels;
+            }
+        }
+
+        final int nesting = levels;
+
+        /*
+         * http://bugs.sun.com/view_bug.do?bug_id=5087240:
+         *
+         * Inner class constructor generic types array does not contain the enclosing classes and the closure context.
+         * The enclosing classes are on the beginning of the params array while the closure context are on the end.
+         *
+         * TODO: test this thoroughly on various JVMs
+         */
+        if (hidden > 0) {
+            for (int i = nesting; i < params.length - hidden; ++i) {
+                if (Generics.rawType(types[i - nesting]) != params[i]) {
+                    throw new IllegalStateException(String.format("Could not match parameter types of %s constructor: classes: %s, types: %s on %s %s version %s virtual machine for %s Java %s",
+                                                                  type,
+                                                                  Arrays.toString(params),
+                                                                  Arrays.toString(types),
+                                                                  System.getProperty("java.vm.vendor"),
+                                                                  System.getProperty("java.vm.name"),
+                                                                  System.getProperty("java.vm.version"),
+                                                                  System.getProperty("java.vendor"),
+                                                                  System.getProperty("java.version")));
+                }
+            }
+        }
+
+        final Annotation[][] parameterAnnotations = constructor.getParameterAnnotations();
+
+        return new ConstructorParameters() {
+
+            public Type genericType(final int index) {
+                final int nested = index - nesting;
+                return hidden == 0 ? types[index] : nested < 0 || nested >= types.length ? params[index] : types[nested];
+            }
+
+            public Annotation[] getAnnotations(final int index) {
+                final int nested = index - nesting;
+                return nested < 0 || nested >= parameterAnnotations.length ? NO_ANNOTATION : parameterAnnotations[nested];
+            }
+        };
+    }
+
+    /**
+     * Works around http://bugs.sun.com/view_bug.do?bug_id=5087240.
+     *
+     * @author Tibor Varga
+     */
+    public interface ConstructorParameters {
+
+        /**
+         * Returns the generic parameter type at the given index.
+         *
+         * @param index the parameter index.
+         *
+         * @return the generic parameter type at the given index.
+         */
+        Type genericType(int index);
+
+        /**
+         * Returns the list of annotations specified for the parameter at the given index.
+         *
+         * @param index the parameter index.
+         *
+         * @return the list of annotations specified for the parameter at the given index.
+         */
+        Annotation[] getAnnotations(int index);
     }
 }

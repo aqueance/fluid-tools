@@ -114,7 +114,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
                     }
 
                     public Annotation[] annotations() {
-                        return parameterAnnotations(methodAnnotations, parameterAnnotations[index]);
+                        return parameterAnnotations(null, methodAnnotations, parameterAnnotations[index]);
                     }
 
                     public void set(final DependencyGraph.Node node) {
@@ -264,41 +264,10 @@ final class DependencyInjectorImpl implements DependencyInjector {
 
         final Class<?> componentClass = constructor.getDeclaringClass();
 
-        final Annotation[] constructorAnnotations = neverNull(constructor.getAnnotations());
-        final Annotation[][] parameterAnnotations = constructor.getParameterAnnotations();
+        final Generics.ConstructorParameters descriptor = Generics.describe(constructor);
 
         final Class[] params = constructor.getParameterTypes();
-        final Type[] types = constructor.getGenericParameterTypes();
-
-        final int hidden = params.length - types.length;        // http://bugs.sun.com/view_bug.do?bug_id=5087240
-
-        int levels = -1;   // top-level class is never static and yet it is an enclosing class
-        for (Class enclosing = componentClass; enclosing != null; enclosing = enclosing.getEnclosingClass()) {
-            if (!Modifier.isStatic(enclosing.getModifiers())) {
-                ++levels;
-            }
-        }
-
-        final int nesting = levels;
-
-        /*
-         * http://bugs.sun.com/view_bug.do?bug_id=5087240:
-         *
-         * Inner class constructor generic types array does not contain the enclosing classes and the closure context.
-         * The enclosing classes are on the beginning of the params array while the closure context are on the end.
-         *
-         * TODO: test this thoroughly on various JVMs
-         */
-        if (hidden > 0) {
-            for (int i = nesting; i < params.length - hidden; ++i) {
-                if (Generics.rawType(types[i - nesting]) != params[i]) {
-                    throw new IllegalStateException(String.format("Could not match parameter types of %s constructor: classes: %s, types: %s)",
-                                                                  componentClass,
-                                                                  Arrays.toString(params),
-                                                                  Arrays.toString(types)));
-                }
-            }
-        }
+        final Annotation[] constructorAnnotations = neverNull(constructor.getAnnotations());
 
         final DependencyGraph.Node[] parameters = new DependencyGraph.Node[params.length];
         final boolean parameterized = Components.isParameterized(componentClass);
@@ -307,8 +276,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
             final int index = i;
             consumed.add(injectDependency(true, traversal, container, contexts, context, componentClass, parameterized, new Dependency() {
                 public Type reference() {
-                    final int nested = index - nesting;
-                    return hidden == 0 ? types[index] : nested < 0 || nested >= types.length ? params[index] : types[nested];
+                    return descriptor.genericType(index);
                 }
 
                 public <T extends Annotation> T annotation(final Class<T> annotationClass) {
@@ -316,8 +284,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
                 }
 
                 public Annotation[] annotations() {
-                    final int nested = index - nesting;
-                    return parameterAnnotations(constructorAnnotations, nested < 0 || nested >= parameterAnnotations.length ? null : parameterAnnotations[nested]);
+                    return parameterAnnotations(null, constructorAnnotations, descriptor.getAnnotations(index));
                 }
 
                 public void set(final DependencyGraph.Node node) {
@@ -387,10 +354,21 @@ final class DependencyInjectorImpl implements DependencyInjector {
         };
     }
 
-    private Annotation[] parameterAnnotations(final Annotation[] method, final Annotation[] params) {
-        final Annotation[] annotations = neverNull(params);
-        final Annotation[] all = Arrays.copyOf(method, method.length + annotations.length);
-        System.arraycopy(annotations, 0, all, method.length, annotations.length);
+    public Annotation[] parameterAnnotations(final Annotation[] type, final Annotation[] method, final Annotation[] params) {
+        final int typeCount = type == null ? 0 : type.length;
+        final int methodCount = method == null ? 0 : method.length;
+        final int paramCount = (params == null ? 0 : params.length);
+
+        final Annotation[] all = Arrays.copyOf(neverNull(type), typeCount + methodCount + paramCount);
+
+        if (methodCount > 0) {
+            System.arraycopy(method, 0, all, typeCount, methodCount);
+        }
+
+        if (paramCount > 0) {
+            System.arraycopy(params, 0, all, typeCount + methodCount, paramCount);
+        }
+
         return all;
     }
 
@@ -408,7 +386,10 @@ final class DependencyInjectorImpl implements DependencyInjector {
             public Object run() throws Exception {
                 for (final Map.Entry<Field, DependencyGraph.Node> entry : fieldNodes.entrySet()) {
                     final Field field = entry.getKey();
-                    field.set(instance, arguments(field.getDeclaringClass(), traversal, containers, entry.getValue())[0]);
+
+                    if (field.get(instance) == null) {
+                        field.set(instance, arguments(field.getDeclaringClass(), traversal, containers, entry.getValue())[0]);
+                    }
                 }
 
                 return instance;
@@ -540,7 +521,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
             System.arraycopy(typeContext, 0, definitions, 0, typeContext.length);
             System.arraycopy(dependencyContext, 0, definitions, typeContext.length, dependencyContext.length);
 
-            downstream = original.advance(reference).expand(definitions);
+            downstream = original.advance(reference, false).expand(definitions);
 
             if (componentGroup != null) {
                 if (!dependencyType.isArray()) {
@@ -562,7 +543,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
                             declaringType);
                 }
 
-                node = container.resolveGroup(itemType, downstream, traversal, reference);
+                node = container.resolveGroup(itemType, downstream.advance(reference, true), traversal, reference);
             } else {
                 node = resolve(dependencyType, new Resolution() {
                     public ComponentContext context() {

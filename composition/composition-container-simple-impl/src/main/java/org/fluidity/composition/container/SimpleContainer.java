@@ -97,8 +97,7 @@ interface SimpleContainer extends DependencyGraph {
      *
      * @param interfaces the component and group interfaces to bind to.
      *
-     * @throws ComponentContainer.BindingException
-     *          when binding fails.
+     * @throws ComponentContainer.BindingException when binding fails.
      */
     void bindComponent(Components.Interfaces interfaces) throws ComponentContainer.BindingException;
 
@@ -108,8 +107,7 @@ interface SimpleContainer extends DependencyGraph {
      * @param instance   the component instance to bind.
      * @param interfaces the component and group interfaces to bind to.
      *
-     * @throws ComponentContainer.BindingException
-     *          when binding fails.
+     * @throws ComponentContainer.BindingException when binding fails.
      */
     void bindInstance(Object instance, Components.Interfaces interfaces) throws ComponentContainer.BindingException;
 
@@ -121,8 +119,7 @@ interface SimpleContainer extends DependencyGraph {
      *
      * @return the child container returned.
      *
-     * @throws ComponentContainer.BindingException
-     *          when binding fails.
+     * @throws ComponentContainer.BindingException when binding fails.
      */
     SimpleContainer linkComponent(Components.Interfaces interfaces) throws ComponentContainer.BindingException;
 
@@ -135,10 +132,22 @@ interface SimpleContainer extends DependencyGraph {
      *
      * @return the component instance.
      *
-     * @throws ComponentContainer.ResolutionException
-     *          when dependency resolution fails.
+     * @throws ComponentContainer.ResolutionException when dependency resolution fails.
      */
     Object initialize(Object component, ContextDefinition context, ComponentContainer.Observer observer) throws ComponentContainer.ResolutionException;
+
+    /**
+     * Injects the {@link org.fluidity.composition.Inject @Inject} annotated fields of the given component instance.
+     *
+     * @param component the component instance.
+     * @param context   the base context to resolve the component's dependencies in.
+     * @param traversal the current graph traversal.
+     *
+     * @return the component instance.
+     *
+     * @throws ComponentContainer.ResolutionException when dependency resolution fails.
+     */
+    Object initialize(Object component, ContextDefinition context, Traversal traversal) throws ComponentContainer.ResolutionException;
 
     /**
      * Injects all applicable parameters of the given method that the provided argument list contains no value for, and invokes it on the given interface.
@@ -151,8 +160,7 @@ interface SimpleContainer extends DependencyGraph {
      *
      * @return the component instance.
      *
-     * @throws ComponentContainer.ResolutionException
-     *                                   when dependency resolution fails.
+     * @throws ComponentContainer.ResolutionException when dependency resolution fails.
      * @throws InvocationTargetException when the method throws an exception.
      */
     Object invoke(Object component, Method method, ContextDefinition context, Object[] arguments, boolean explicit) throws InvocationTargetException;

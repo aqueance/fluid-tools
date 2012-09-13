@@ -140,7 +140,7 @@ public abstract class EmptyComponentContainer<C extends DependencyGraph> impleme
     public final <T> T getComponent(final Class<T> api) {
         return traverse(services, new Traversed<T>() {
             public T run(final DependencyGraph.Traversal traversal) {
-                final DependencyGraph.Node node = container.resolveComponent(api, context.advance(api), traversal, api);
+                final DependencyGraph.Node node = container.resolveComponent(api, context.advance(api, false), traversal, api);
                 return node == null ? null : (T) node.instance(traversal);
             }
         });
@@ -153,7 +153,7 @@ public abstract class EmptyComponentContainer<C extends DependencyGraph> impleme
     public final <T> T[] getComponentGroup(final Class<T> api) {
         return traverse(services, new Traversed<T[]>() {
             public T[] run(final DependencyGraph.Traversal traversal) {
-                final DependencyGraph.Node node = container.resolveGroup(api, context.advance(Array.newInstance(api, 0).getClass()), traversal, api);
+                final DependencyGraph.Node node = container.resolveGroup(api, context.advance(Array.newInstance(api, 0).getClass(), false).expand(null), traversal, api);
                 return node == null ? null : (T[]) node.instance(traversal);
             }
         });
@@ -165,7 +165,7 @@ public abstract class EmptyComponentContainer<C extends DependencyGraph> impleme
     public final void resolveComponent(final Class<?> api) {
         traverse(services, new Traversed<Void>() {
             public Void run(final DependencyGraph.Traversal traversal) {
-                container.resolveComponent(api, context.advance(api), traversal, api);
+                container.resolveComponent(api, context.advance(api, false), traversal, api);
                 return null;
             }
         });
@@ -177,7 +177,7 @@ public abstract class EmptyComponentContainer<C extends DependencyGraph> impleme
     public final void resolveGroup(final Class<?> api) {
         traverse(services, new Traversed<Void>() {
             public Void run(final DependencyGraph.Traversal traversal) {
-                container.resolveGroup(api, context.advance(Array.newInstance(api, 0).getClass()), traversal, api);
+                container.resolveGroup(api, context.advance(Array.newInstance(api, 0).getClass(), false).expand(null), traversal, api);
                 return null;
             }
         });

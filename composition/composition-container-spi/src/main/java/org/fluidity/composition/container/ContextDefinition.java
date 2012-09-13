@@ -40,8 +40,8 @@ import org.fluidity.composition.ComponentContext;
  * <p/>
  * The above is implemented by<ol>
  * <li>{@linkplain ContainerServices#emptyContext() creating an empty context} definition object at the head of some dependency path</li>
- * <li>{@linkplain #advance(Type) advancing} to the next node along that path as we move downstream to each dependency of the current component and {@linkplain
- * #expand(Annotation[]) expanding} the context with the context annotations present at the new node</li>
+ * <li>{@linkplain #advance(Type, boolean) advancing} to the next node along that path as we move downstream to each dependency of the current component and
+ * {@linkplain #expand(Annotation[]) expanding} the context with the context annotations present at the new node</li>
  * <li>{@linkplain #accept(Class) narrowing} a <em>copy</em> of the definition down to the contexts accepted by the current context that can then be used
  * to<ul>
  * <li>{@linkplain #create() create} the actual context to be injected to the current component upon instantiation</li>
@@ -120,10 +120,12 @@ public interface ContextDefinition {
      * Makes a copy and removes from it all {@link org.fluidity.composition.Component.Context.Collection#IMMEDIATE} context annotations.
      *
      * @param reference the parameterized type of the reference to the component being advanced to.
+     * @param refine    tells whether the reference is just a more refined version of the last one (value <code>true</code>) or an actual advance on the
+     *                  dependency path (value <code>false</code>)
      *
      * @return the new copy of the receiver.
      */
-    ContextDefinition advance(Type reference);
+    ContextDefinition advance(Type reference, boolean refine);
 
     /**
      * Returns a component context containing the active context set.
