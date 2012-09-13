@@ -35,11 +35,29 @@ public class Lists extends Utility {
 
     private Lists() { }
 
+    /**
+     * Returns either the <code>array</code> parameter or, if it is <code>null</code>, an empty array with the given component <code>type</code>.
+     *
+     * @param type  the component type of the array.
+     * @param array the array.
+     * @param <T>   the component type of the array.
+     *
+     * @return either the <code>array</code> parameter or, if it is <code>null</code>, an empty array with the given component <code>type</code>.
+     */
     @SuppressWarnings("unchecked")
     public static <T> T[] notNull(final Class<T> type, final T[] array) {
         return array == null ? (T[]) Array.newInstance(type, 0) : array;
     }
 
+    /**
+     * Concatenates the given list of <code>arrays</code>.
+     *
+     * @param type   the component type of the arrays; any item may be <code>null</code>.
+     * @param arrays the array list.
+     * @param <T>    the component type of the arrays.
+     *
+     * @return a new array containing the values from all non-<code>null</code> <code>arrays</code>.
+     */
     public static <T> T[] concatenate(final Class<T> type, final T[]... arrays) {
         int length = 0;
 
