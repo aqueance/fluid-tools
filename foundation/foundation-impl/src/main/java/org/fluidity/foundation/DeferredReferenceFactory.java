@@ -17,7 +17,6 @@
 package org.fluidity.foundation;
 
 import org.fluidity.composition.Component;
-import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.spi.ComponentFactory;
 
@@ -32,7 +31,7 @@ import org.fluidity.composition.spi.ComponentFactory;
 @SuppressWarnings("UnusedDeclaration")
 final class DeferredReferenceFactory implements ComponentFactory {
 
-    public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
+    public Instance resolve(final ComponentContext context, final Resolver dependencies) throws Exception {
         final Dependency<?> dependency = dependencies.resolve(null, Generics.typeParameter(context.annotation(Component.Reference.class, null).type(), 0), null);
 
         final Deferred.Reference<Object> reference = Deferred.reference(new Deferred.Factory<Object>() {
@@ -43,7 +42,7 @@ final class DeferredReferenceFactory implements ComponentFactory {
 
         return new Instance() {
             @SuppressWarnings("unchecked")
-            public void bind(final Registry registry) throws ComponentContainer.BindingException {
+            public void bind(final Registry registry) throws Exception {
                 registry.bindInstance(reference, Deferred.Reference.class);
             }
         };

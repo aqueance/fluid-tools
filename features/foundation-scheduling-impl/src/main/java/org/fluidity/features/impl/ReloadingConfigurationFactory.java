@@ -39,7 +39,7 @@ import org.fluidity.foundation.Proxies;
 @Component.Context(Component.Reference.class)
 final class ReloadingConfigurationFactory implements ComponentFactory {
 
-    public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
+    public Instance resolve(final ComponentContext context, final Resolver dependencies) throws Exception {
         final Component.Reference reference = context.annotation(Component.Reference.class, ReloadingConfiguration.class);
         final Class<?> api = reference.parameter(0);
 
@@ -54,7 +54,7 @@ final class ReloadingConfigurationFactory implements ComponentFactory {
         return new Instance() {
 
             @SuppressWarnings("unchecked")
-            public void bind(final Registry registry) throws ComponentContainer.BindingException {
+            public void bind(final Registry registry) throws Exception {
                 registry.bindInstance(api, Class.class);
                 registry.bindComponent(ReloadingConfigurationImpl.class);
             }

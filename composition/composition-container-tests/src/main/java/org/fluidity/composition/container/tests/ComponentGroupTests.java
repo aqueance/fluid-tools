@@ -366,7 +366,7 @@ public final class ComponentGroupTests extends AbstractContainerTests {
             this.type = getClass().getAnnotation(Component.class).api()[0];
         }
 
-        public final Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
+        public final Instance resolve(final ComponentContext context, final Resolver dependencies) throws Exception {
             final Type reference = context.annotation(Component.Reference.class, type).type();
 
             assert reference != null;
@@ -375,7 +375,7 @@ public final class ComponentGroupTests extends AbstractContainerTests {
             dependencies.discover(type);
 
             return new Instance() {
-                public void bind(final Registry registry) throws ComponentContainer.BindingException {
+                public void bind(final Registry registry) throws Exception {
                     registry.bindComponent(type);
                 }
             };

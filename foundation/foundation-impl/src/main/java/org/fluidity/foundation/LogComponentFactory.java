@@ -17,7 +17,6 @@
 package org.fluidity.foundation;
 
 import org.fluidity.composition.Component;
-import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.spi.ComponentFactory;
 import org.fluidity.foundation.spi.LogFactory;
@@ -39,11 +38,11 @@ final class LogComponentFactory implements ComponentFactory {
 
     }
 
-    public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
+    public Instance resolve(final ComponentContext context, final Resolver dependencies) throws Exception {
         return new Instance() {
 
             @SuppressWarnings("unchecked")
-            public void bind(final Registry registry) throws ComponentContainer.BindingException {
+            public void bind(final Registry registry) throws Exception {
                 final Component.Reference reference = context.annotation(Component.Reference.class, Log.class);
                 registry.bindInstance(factory.createLog(reference.parameter(0)), Log.class);
             }

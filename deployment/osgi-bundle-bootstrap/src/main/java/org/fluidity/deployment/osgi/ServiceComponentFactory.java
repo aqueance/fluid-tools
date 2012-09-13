@@ -53,7 +53,7 @@ final class ServiceComponentFactory implements ComponentFactory {
         this.api = types.toArray(new Class[types.size()]);
     }
 
-    public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
+    public Instance resolve(final ComponentContext context, final Resolver dependencies) throws Exception {
         final Service annotation = context.annotation(Service.class, null);
         final Component.Reference reference = context.annotation(Component.Reference.class, null);
         final Class<?> type = annotation.api();
@@ -66,7 +66,7 @@ final class ServiceComponentFactory implements ComponentFactory {
         } else {
             return new Instance() {
                 @SuppressWarnings("unchecked")
-                public void bind(final Registry registry) throws ComponentContainer.BindingException {
+                public void bind(final Registry registry) throws Exception {
                     registry.bindInstance(descriptor.instance(), (Class) descriptor.type);
                 }
             };

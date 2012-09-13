@@ -337,7 +337,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
                 assert !context.defines(Setting1.class) : Setting1.class;
                 assert context.defines(Setting2.class) : Setting2.class;
                 return new ComponentFactory.Instance() {
-                    public void bind(final ComponentFactory.Registry registry) throws ComponentContainer.BindingException {
+                    public void bind(final ComponentFactory.Registry registry) throws Exception {
                         registry.bindComponent(ContextDependentValue.class);
                     }
                 };
@@ -365,7 +365,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
                 assert context.defines(Setting1.class) : Setting1.class;
                 assert context.defines(Setting2.class) : Setting2.class;
                 return new ComponentFactory.Instance() {
-                    public void bind(final ComponentFactory.Registry registry) throws ComponentContainer.BindingException {
+                    public void bind(final ComponentFactory.Registry registry) throws Exception {
                         registry.bindComponent(ContextDependentValue.class);
                     }
                 };
@@ -441,9 +441,9 @@ public final class ComponentVariantTests extends AbstractContainerTests {
     @Component.Context(Setting1.class)
     private static class GroupMember2Variants implements ComponentFactory {
 
-        public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
+        public Instance resolve(final ComponentContext context, final Resolver dependencies) throws Exception {
             return new Instance() {
-                public void bind(final Registry registry) throws ComponentContainer.BindingException {
+                public void bind(final Registry registry) throws Exception {
                     final Setting1 annotation = context.annotation(Setting1.class, null);
                     registry.bindInstance(annotation == null ? null : annotation.value(), String.class);
                     registry.bindComponent(GroupMember2.class);
@@ -505,12 +505,12 @@ public final class ComponentVariantTests extends AbstractContainerTests {
             used.add(DependentFactory.this);
         }
 
-        public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
+        public Instance resolve(final ComponentContext context, final Resolver dependencies) throws Exception {
             assert delegate != null;
             final Instance instance = delegate.resolve(context, dependencies);
 
             return new Instance() {
-                public void bind(final Registry registry) throws ComponentContainer.BindingException {
+                public void bind(final Registry registry) throws Exception {
                     assert instance != null;
                     instance.bind(registry);
                 }
@@ -524,12 +524,12 @@ public final class ComponentVariantTests extends AbstractContainerTests {
 
         public static ComponentFactory delegate;
 
-        public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
+        public Instance resolve(final ComponentContext context, final Resolver dependencies) throws Exception {
             assert delegate != null;
             final Instance instance = delegate.resolve(context, dependencies);
 
             return new Instance() {
-                public void bind(final Registry registry) throws ComponentContainer.BindingException {
+                public void bind(final Registry registry) throws Exception {
                     assert instance != null;
                     instance.bind(registry);
                 }
@@ -596,7 +596,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
             final Object[] arguments = EasyMock.getCurrentArguments();
 
             return new ComponentFactory.Instance() {
-                public void bind(final ComponentFactory.Registry registry) throws ComponentContainer.BindingException {
+                public void bind(final ComponentFactory.Registry registry) throws Exception {
                     registry.bindInstance(arguments[0]);
                     registry.bindComponent(type);
                 }
