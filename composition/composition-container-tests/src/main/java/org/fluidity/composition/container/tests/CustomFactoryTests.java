@@ -193,21 +193,28 @@ public final class CustomFactoryTests extends AbstractContainerTests {
         String value();
     }
 
+    private static class SuperClass {
+
+        @Inject
+        @Name("name-4")
+        protected  @ComponentGroup NamedGroup[] field1;
+
+        @Inject
+        @Name("name-6")
+        protected @ComponentGroup NamedGroup[] field2;
+
+        @Inject
+        @Name("name-5")
+        protected NamedComponent field3;
+    }
+
     @Component(automatic = false)
     @Name("name-1")
-    private static class ContextProvider {
+    private static class ContextProvider extends SuperClass {
 
         private final NamedComponent dependency1;
         private final NamedComponent dependency2;
         private final NamedGroup[] group;
-
-        @Inject
-        @Name("name-4")
-        private @ComponentGroup NamedGroup[] field;
-
-        @Inject
-        @Name("name-5")
-        private NamedComponent dependency3;
 
         public ContextProvider(final NamedComponent dependency1,
                                final @Name("name-2") NamedComponent dependency2,
@@ -226,11 +233,15 @@ public final class CustomFactoryTests extends AbstractContainerTests {
         }
 
         public String name3() {
-            return dependency3.name;
+            return field3.name;
         }
 
-        public NamedGroup[] field() {
-            return field;
+        public NamedGroup[] field1() {
+            return field1;
+        }
+
+        public NamedGroup[] field2() {
+            return field2;
         }
 
         public NamedGroup[] group() {
@@ -285,6 +296,14 @@ public final class CustomFactoryTests extends AbstractContainerTests {
         }
     }
 
+    @Component.Context(Name.class)
+    private static class NamedGroupMember3 extends NamedGroupMember {
+
+        protected NamedGroupMember3(final ComponentContext context) {
+            super(context);
+        }
+    }
+
     @Component(automatic = false)
     private static class ConstructorDelegatingFactory implements ComponentFactory {
 
@@ -293,23 +312,31 @@ public final class CustomFactoryTests extends AbstractContainerTests {
 
             dependencies.discover(constructor);
 
-            final Container container = dependencies.local(ContextProvider.class, new Container.Bindings() {
+            final Container container = dependencies.local(new Container.Bindings() {
                 public void bindComponents(final Container.Registry registry) {
+                    registry.bindComponent(NamedGroupMember3.class);
                     registry.bindComponent(NamedComponent.class);
                 }
             });
 
-            final Dependency<NamedComponent> dependency1 = container.resolve(constructor, 0, NamedComponent.class);
-            final Dependency<NamedComponent> dependency2 = container.resolve(constructor, 1, NamedComponent.class);
-            final Dependency<NamedGroup[]> dependency3 = container.resolve(constructor, 2, NamedGroup[].class);
+            final Dependency<NamedComponent> dependency1 = container.resolve(NamedComponent.class, constructor, 0);
+            final Dependency<NamedComponent> dependency2 = container.resolve(NamedComponent.class, constructor, 1);
+            final Dependency<NamedGroup[]> dependency3 = container.resolve(NamedGroup[].class, constructor, 2);
 
-            final Field field = Exceptions.wrap(new Exceptions.Command<Field>() {
+            final Field field1 = Exceptions.wrap(new Exceptions.Command<Field>() {
                 public Field run() throws Throwable {
-                    return ContextProvider.class.getDeclaredField("dependency3");
+                    return SuperClass.class.getDeclaredField("field3");
                 }
             });
 
-            final Dependency<NamedComponent> dependency4 = container.resolve(field, NamedComponent.class);
+            final Field field2 = Exceptions.wrap(new Exceptions.Command<Field>() {
+                public Field run() throws Throwable {
+                    return SuperClass.class.getDeclaredField("field2");
+                }
+            });
+
+            final Dependency<NamedComponent> dependency4 = container.resolve(NamedComponent.class, ContextProvider.class, field1);
+            final Dependency<NamedGroup[]> dependency5 = dependencies.resolve(NamedGroup[].class, ContextProvider.class, field2);
 
             return new Instance() {
                 public void bind(final Registry registry) throws ComponentContainer.BindingException {
@@ -317,8 +344,18 @@ public final class CustomFactoryTests extends AbstractContainerTests {
 
                     Exceptions.wrap(new Exceptions.Command<Void>() {
                         public Void run() throws Throwable {
-                            field.setAccessible(true);
-                            field.set(instance, dependency4.instance());
+                            final NamedComponent value1 = dependency4.instance();
+                            assert value1 != null;
+
+                            field1.setAccessible(true);
+                            field1.set(instance, value1);
+
+                            final NamedGroup[] value2 = dependency5.instance();
+                            assert value2 != null;
+
+                            field2.setAccessible(true);
+                            field2.set(instance, value2);
+
                             return null;
                         }
                     });
@@ -352,23 +389,31 @@ public final class CustomFactoryTests extends AbstractContainerTests {
 
             dependencies.discover(method);
 
-            final Container container = dependencies.local(ContextProvider.class, new Container.Bindings() {
+            final Container container = dependencies.local(new Container.Bindings() {
                 public void bindComponents(final Container.Registry registry) {
+                    registry.bindComponent(NamedGroupMember3.class);
                     registry.bindComponent(NamedComponent.class);
                 }
             });
 
-            final Dependency<NamedComponent> dependency1 = container.resolve(method, 0, NamedComponent.class);
-            final Dependency<NamedComponent> dependency2 = container.resolve(method, 1, NamedComponent.class);
-            final Dependency<NamedGroup[]> dependency3 = container.resolve(method, 2, NamedGroup[].class);
+            final Dependency<NamedComponent> dependency1 = container.resolve(NamedComponent.class, ContextProvider.class, method, 0);
+            final Dependency<NamedComponent> dependency2 = container.resolve(NamedComponent.class, ContextProvider.class, method, 1);
+            final Dependency<NamedGroup[]> dependency3 = container.resolve(NamedGroup[].class, ContextProvider.class, method, 2);
 
-            final Field field = Exceptions.wrap(new Exceptions.Command<Field>() {
+            final Field field1 = Exceptions.wrap(new Exceptions.Command<Field>() {
                 public Field run() throws Throwable {
-                    return ContextProvider.class.getDeclaredField("dependency3");
+                    return SuperClass.class.getDeclaredField("field3");
                 }
             });
 
-            final Dependency<NamedComponent> dependency4 = container.resolve(field, NamedComponent.class);
+            final Field field2 = Exceptions.wrap(new Exceptions.Command<Field>() {
+                public Field run() throws Throwable {
+                    return SuperClass.class.getDeclaredField("field2");
+                }
+            });
+
+            final Dependency<NamedComponent> dependency4 = container.resolve(NamedComponent.class, ContextProvider.class, field1);
+            final Dependency<NamedGroup[]> dependency5 = dependencies.resolve(NamedGroup[].class, ContextProvider.class, field2);
 
             return new Instance() {
                 public void bind(final Registry registry) throws ComponentContainer.BindingException {
@@ -376,8 +421,18 @@ public final class CustomFactoryTests extends AbstractContainerTests {
 
                     Exceptions.wrap(new Exceptions.Command<Void>() {
                         public Void run() throws Throwable {
-                            field.setAccessible(true);
-                            field.set(instance, dependency4.instance());
+                            final NamedComponent value1 = dependency4.instance();
+                            assert value1 != null;
+
+                            field1.setAccessible(true);
+                            field1.set(instance, value1);
+
+                            final NamedGroup[] value2 = dependency5.instance();
+                            assert value2 != null;
+
+                            field2.setAccessible(true);
+                            field2.set(instance, value2);
+
                             return null;
                         }
                     });
@@ -414,18 +469,26 @@ public final class CustomFactoryTests extends AbstractContainerTests {
 
         final NamedGroup[] group = component.group();
         assert group != null;
-        assert group.length == 2 : group.length;
+        assert group.length == 3 : group.length;
 
         for (final NamedGroup member : group) {
             assert "name-3".equals(member.name()) : String.format("%s: %s", member.getClass(), member.name());
         }
 
-        final NamedGroup[] field = component.field();
-        assert field != null;
-        assert field.length == 2 : field.length;
+        final NamedGroup[] field1 = component.field1();
+        assert field1 != null;
+        assert field1.length == 2 : field1.length;
 
-        for (final NamedGroup member : field) {
+        for (final NamedGroup member : field1) {
             assert "name-4".equals(member.name()) : String.format("%s: %s", member.getClass(), member.name());
+        }
+
+        final NamedGroup[] field2 = component.field2();
+        assert field2 != null;
+        assert field2.length == 2 : field2.length;
+
+        for (final NamedGroup member : field2) {
+            assert "name-6".equals(member.name()) : String.format("%s: %s", member.getClass(), member.name());
         }
     }
 
@@ -470,7 +533,7 @@ public final class CustomFactoryTests extends AbstractContainerTests {
             public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
                 switch (variant) {
                 case 0: {
-                    final Dependency<Secondary> dependency = dependencies.resolve(Secondary.class, null, null);
+                    final Dependency<Secondary> dependency = dependencies.resolve(Secondary.class, (Type) null, null);
                     assert dependency != null : Secondary.class;
 
                     return new Instance() {
@@ -482,7 +545,7 @@ public final class CustomFactoryTests extends AbstractContainerTests {
                 }
 
                 case 1: {
-                    final Dependency<Secondary> dependency = dependencies.resolve(Secondary.class, Secondary.class, null);
+                    final Dependency<Secondary> dependency = dependencies.resolve(Secondary.class, (Type) Secondary.class, null);
                     assert dependency != null : Secondary.class;
 
                     return new Instance() {
@@ -494,7 +557,7 @@ public final class CustomFactoryTests extends AbstractContainerTests {
                 }
 
                 case 2: {
-                    final Dependency<Secondary> dependency = dependencies.resolve(null, Secondary.class, null);
+                    final Dependency<Secondary> dependency = dependencies.resolve(null, (Type) Secondary.class, null);
                     assert dependency != null : Secondary.class;
 
                     return new Instance() {
@@ -506,7 +569,7 @@ public final class CustomFactoryTests extends AbstractContainerTests {
                 }
 
                 case 3: {
-                    final Dependency<Secondary> dependency = dependencies.resolve(Secondary.class, Serializable.class, null);
+                    final Dependency<Secondary> dependency = dependencies.resolve(Secondary.class, (Type) Serializable.class, null);
                     assert dependency != null : Secondary.class;
 
                     return new Instance() {
@@ -519,7 +582,7 @@ public final class CustomFactoryTests extends AbstractContainerTests {
 
                 case 4: {
                     try {
-                        dependencies.resolve(Secondary.class, Closeable.class, null);
+                        dependencies.resolve(Secondary.class, (Type) Closeable.class, null);
                         assert false : "Should have thrown resolution exception";
                     } catch (final ComponentContainer.ResolutionException e) {
                         // that's fine
@@ -652,7 +715,7 @@ public final class CustomFactoryTests extends AbstractContainerTests {
             final ComponentFactory.Resolver resolver = (ComponentFactory.Resolver) EasyMock.getCurrentArguments()[1];
             assert resolver != null : "Received no resolver";
 
-            final ComponentFactory.Dependency<?> dependency = resolver.resolve(checkKey, null, null);
+            final ComponentFactory.Dependency<?> dependency = resolver.resolve(checkKey, (Type) null, null);
             assert dependency != null && dependency.instance() == checkValue : "Container does not check up";
 
             return instance;

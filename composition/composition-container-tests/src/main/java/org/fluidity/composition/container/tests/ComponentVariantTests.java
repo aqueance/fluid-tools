@@ -22,6 +22,7 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -589,7 +590,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
             final ComponentFactory.Resolver resolver = (ComponentFactory.Resolver) EasyMock.getCurrentArguments()[1];
             assert resolver != null : "Received no resolver";
 
-            final ComponentFactory.Dependency<?> dependency = resolver.resolve(checkKey, null, null);
+            final ComponentFactory.Dependency<?> dependency = resolver.resolve(checkKey, (Type) null, null);
             assert dependency != null && dependency.instance() == checkValue : "Container does not check up";
 
             final Object[] arguments = EasyMock.getCurrentArguments();

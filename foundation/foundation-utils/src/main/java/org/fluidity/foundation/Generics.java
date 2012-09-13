@@ -309,7 +309,7 @@ public final class Generics extends Utility {
      *
      * @return a constructor parameters descriptor.
      */
-    public static ConstructorParameters describe(final Constructor<?> constructor) {
+    public static Parameters describe(final Constructor<?> constructor) {
         final Class<?> type = constructor.getDeclaringClass();
         final Class[] params = constructor.getParameterTypes();
         final Type[] types = constructor.getGenericParameterTypes();
@@ -351,7 +351,7 @@ public final class Generics extends Utility {
 
         final Annotation[][] parameterAnnotations = constructor.getParameterAnnotations();
 
-        return new ConstructorParameters() {
+        return new Parameters() {
 
             public Type genericType(final int index) {
                 final int nested = index - nesting;
@@ -370,7 +370,7 @@ public final class Generics extends Utility {
      *
      * @author Tibor Varga
      */
-    public interface ConstructorParameters {
+    public interface Parameters {
 
         /**
          * Returns the generic parameter type at the given index.

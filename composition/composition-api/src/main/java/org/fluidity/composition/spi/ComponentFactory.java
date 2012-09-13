@@ -263,11 +263,56 @@ public interface ComponentFactory {
          * org.fluidity.composition.Component.Reference @Component.Reference} context annotation, the specified component interface as the dependency reference
          * to it unless the <code>reference</code> parameter is present. The component interface must be assignable to the reference if it is specified.
          *
+         * @param api         the component interface to resolve; may not be <code>null</code>.
+         * @param constructor constructor to derive context annotations from.
+         * @param parameter   index of the constructor parameter to derive generic type and context annotations from.
+         *
+         * @return an object that can return an instance of the resolved dependency.
+         */
+        <T> Dependency<T> resolve(Class<T> api, Constructor<T> constructor, int parameter);
+
+        /**
+         * Resolves a component by its component interface without instantiating the component. The resolved component will see, if it accepts the {@link
+         * org.fluidity.composition.Component.Reference @Component.Reference} context annotation, the specified component interface as the dependency reference
+         * to it unless the <code>reference</code> parameter is present. The component interface must be assignable to the reference if it is specified.
+         *
+         * @param api       the component interface to resolve; may not be <code>null</code>.
+         * @param type      the component class to resolve the dependency of; used to derive context annotations from; may be <code>null</code>, in which case
+         *                  the method's declaring class will be used.
+         * @param method    method to derive context annotations from.
+         * @param parameter index of the constructor parameter to derive generic type and context annotations from.
+         *
+         * @return an object that can return an instance of the resolved dependency.
+         */
+        <T> Dependency<T> resolve(Class<T> api, Class<?> type, Method method, int parameter);
+
+        /**
+         * Resolves a component by its component interface without instantiating the component. The resolved component will see, if it accepts the {@link
+         * org.fluidity.composition.Component.Reference @Component.Reference} context annotation, the specified component interface as the dependency reference
+         * to it unless the <code>reference</code> parameter is present. The component interface must be assignable to the reference if it is specified.
+         *
+         * @param api   the component interface to resolve; may not be <code>null</code>.
+         * @param type  the component class to resolve the dependency of; used to derive context annotations from; may be <code>null</code>, in which case
+         *              the field's declaring class will be used.
+         * @param field field to derive generic type and context annotations from.
+         *
+         * @return an object that can return an instance of the resolved dependency.
+         */
+        <T> Dependency<T> resolve(Class<T> api, Class<?> type, Field field);
+
+        /**
+         * Resolves a component by its component interface without instantiating the component. The resolved component will see, if it accepts the {@link
+         * org.fluidity.composition.Component.Reference @Component.Reference} context annotation, the specified component interface as the dependency reference
+         * to it unless the <code>reference</code> parameter is present. The component interface must be assignable to the reference if it is specified.
+         *
          * @param api         the component interface to resolve, or <code>null</code> of it can be derived from the <code>reference</code> parameter.
          * @param reference   the reference to use when resolving the component or <code>null</code> to use the component interface.
          * @param annotations the annotations at the point of reference to the dependency; may be <code>null</code>.
          *
          * @return an object that can return an instance of the resolved dependency.
+         *
+         * @deprecated This is a low level method in case none of the {@link #resolve(Class, Constructor, int)}, {@link #resolve(Class}, or {@link
+         *             #resolve(Class} satisfies your needs. Please favor those methods to this one.
          */
         <T> Dependency<T> resolve(Class<T> api, Type reference, Annotation[] annotations);
 
@@ -330,12 +375,11 @@ public interface ComponentFactory {
          * Creates a transient container and applies the given bindings thereto. The returned container can be used to instantiate dependencies local to the
          * component when the component itself is instantiated by the calling factory.
          *
-         * @param dependent the class this container is returned to bind the dependencies of; may not be <code>null</code>.
-         * @param bindings  the component bindings for the local dependencies of some component.
+         * @param bindings the component bindings for the local dependencies of the component.
          *
          * @return a container to instantiate local dependencies.
          */
-        Container local(Class<?> dependent, Container.Bindings bindings);
+        Container local(Container.Bindings bindings);
     }
 
     /**
@@ -434,36 +478,38 @@ public interface ComponentFactory {
         /**
          * Returns the component instance bound to the given component interface.
          *
-         * @param constructor    the constructor of the component this binding is intended to resolve.
-         * @param parameter      the index in the <code>constructor</code>'s parameter array of the dependency that this binding is intended to resolve.
-         * @param api the component interface.
-         * @param <T> the component interface type parameter.
+         * @param api         the component interface.
+         * @param constructor the constructor of the component this binding is intended to resolve.
+         * @param parameter   the index in the <code>constructor</code>'s parameter array of the dependency that this binding is intended to resolve.
          *
          * @return the component instance bound to the given component interface, or <code>null</code> if none found.
          */
-        <T> Dependency<T> resolve(Constructor<?> constructor, int parameter, Class<T> api);
+        <T> Dependency<T> resolve(Class<T> api, Constructor<?> constructor, int parameter);
 
         /**
          * Returns the component instance bound to the given component interface.
          *
+         * @param api       the component interface.
+         * @param type      the component class to resolve the dependency of; used to derive context annotations from; may be <code>null</code>, in which case
+         *                  the method's declaring class will be used.
          * @param method    the method of the factory this binding is intended to resolve.
          * @param parameter the index in the <code>constructor</code>'s parameter array of the dependency that this binding is intended to resolve.
-         * @param api       the component interface.
-         * @param <T>       the component interface type parameter.
          *
          * @return the component instance bound to the given component interface, or <code>null</code> if none found.
          */
-        <T> Dependency<T> resolve(Method method, int parameter, Class<T> api);
+        <T> Dependency<T> resolve(Class<T> api, Class<?> type, Method method, int parameter);
 
         /**
          * Returns the component instance bound to the given component interface.
          *
-         * @param api the component interface.
-         * @param <T> the component interface type parameter.
+         * @param api   the component interface.
+         * @param type  the component class to resolve the dependency of; used to derive context annotations from; may be <code>null</code>, in which case
+         *              the field's declaring class will be used.
+         * @param field the field that this binding is intended to resolve.
          *
          * @return the component instance bound to the given component interface, or <code>null</code> if none found.
          */
-        <T> Dependency<T> resolve(Field field, Class<T> api);
+        <T> Dependency<T> resolve(Class<T> api, Class<?> type, Field field);
 
         /**
          * Adds component bindings to a {@linkplain ComponentFactory.Container local dependency container}.

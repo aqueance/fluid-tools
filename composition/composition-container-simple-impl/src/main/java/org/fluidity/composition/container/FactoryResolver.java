@@ -137,6 +137,32 @@ abstract class FactoryResolver extends AbstractResolver {
         final ComponentContext passed = reduced.create();
 
         return factory.resolve(passed, new ComponentFactory.Resolver() {
+            public <T> ComponentFactory.Dependency<T> resolve(final Class<T> api, final Class<?> type, final Field field) {
+                return resolve(api, field.getGenericType(), Lists.concatenate(Annotation.class,
+                                                                              field.getDeclaringClass().getAnnotations(),
+                                                                              field.getAnnotations()));
+            }
+
+            public <T> ComponentFactory.Dependency<T> resolve(final Class<T> api, final Constructor<T> constructor, final int parameter) {
+                final Generics.Parameters parameters = Generics.describe(constructor);
+
+                return resolve(api,
+                               parameters.genericType(parameter),
+                               Lists.concatenate(Annotation.class,
+                                                 constructor.getDeclaringClass().getAnnotations(),
+                                                 constructor.getAnnotations(),
+                                                 parameters.getAnnotations(parameter)));
+            }
+
+            public <T> ComponentFactory.Dependency<T> resolve(final Class<T> api, final Class<?> type, final Method method, final int parameter) {
+                return resolve(api,
+                               method.getGenericParameterTypes()[parameter],
+                               Lists.concatenate(Annotation.class,
+                                                 method.getDeclaringClass().getAnnotations(),
+                                                 method.getAnnotations(),
+                                                 method.getParameterAnnotations()[parameter]));
+            }
+
             public <T> ComponentFactory.Dependency<T> resolve(final Class<T> api, final Type reference, final Annotation[] annotations) {
                 if (api == null && reference == null) {
                     throw new IllegalArgumentException("Both parameters are null");
@@ -241,7 +267,7 @@ abstract class FactoryResolver extends AbstractResolver {
                 return nodes.toArray(new ComponentFactory.Dependency<?>[nodes.size()]);
             }
 
-            public ComponentFactory.Container local(final Class<?> dependent, final ComponentFactory.Container.Bindings bindings) {
+            public ComponentFactory.Container local(final ComponentFactory.Container.Bindings bindings) {
                 final SimpleContainer container = child.newChildContainer(false);
                 final ComponentContainerShell shell = new ComponentContainerShell(container, context, false, false, null);
                 final ComponentContainer.Registry registry = shell.getRegistry();
@@ -252,25 +278,26 @@ abstract class FactoryResolver extends AbstractResolver {
                     }
                 });
 
-                final Annotation[] typeAnnotations = dependent.getAnnotations();
-
                 return new ComponentFactory.Container() {
 
-                    public <T> ComponentFactory.Dependency<T> resolve(final Constructor<?> constructor, final int parameter, final Class<T> api) {
+                    public <T> ComponentFactory.Dependency<T> resolve(final Class<T> api, final Constructor<?> constructor, final int parameter) {
                         if (constructor == null) {
-                            throw new ComponentContainer.BindingException("Provided %s constructor is null", dependent);
+                            throw new ComponentContainer.BindingException("Provided constructor is null");
                         }
 
-                        final Generics.ConstructorParameters parameters = Generics.describe(constructor);
+                        final Generics.Parameters parameters = Generics.describe(constructor);
                         final Annotation[] parameterAnnotations = parameters.getAnnotations(parameter);
 
                         return dependency(api,
                                           parameters.genericType(parameter),
-                                          Lists.concatenate(Annotation.class, typeAnnotations, constructor.getAnnotations(), parameterAnnotations),
+                                          Lists.concatenate(Annotation.class,
+                                                            constructor.getDeclaringClass().getAnnotations(),
+                                                            constructor.getAnnotations(),
+                                                            parameterAnnotations),
                                           parameterAnnotations);
                     }
 
-                    public <T> ComponentFactory.Dependency<T> resolve(final Method method, final int parameter, final Class<T> api) {
+                    public <T> ComponentFactory.Dependency<T> resolve(final Class<T> api, final Class<?> type, final Method method, final int parameter) {
                         if (method == null) {
                             throw new ComponentContainer.BindingException("Provided method is null");
                         }
@@ -279,18 +306,23 @@ abstract class FactoryResolver extends AbstractResolver {
 
                         return dependency(api,
                                           method.getGenericParameterTypes()[parameter],
-                                          Lists.concatenate(Annotation.class, typeAnnotations, method.getAnnotations(), parameterAnnotations),
+                                          Lists.concatenate(Annotation.class,
+                                                            type == null ? method.getDeclaringClass().getAnnotations() : type.getAnnotations(),
+                                                            method.getAnnotations(),
+                                                            parameterAnnotations),
                                           parameterAnnotations);
                     }
 
-                    public <T> ComponentFactory.Dependency<T> resolve(final Field field, final Class<T> api) {
+                    public <T> ComponentFactory.Dependency<T> resolve(final Class<T> api, final Class<?> type, final Field field) {
                         if (field == null) {
-                            throw new ComponentContainer.BindingException("Provided %s field is null", dependent);
+                            throw new ComponentContainer.BindingException("Provided field is null");
                         }
 
                         return dependency(api,
                                           field.getGenericType(),
-                                          Lists.concatenate(Annotation.class, typeAnnotations, field.getAnnotations()),
+                                          Lists.concatenate(Annotation.class,
+                                                            type == null ? field.getDeclaringClass().getAnnotations() : type.getAnnotations(),
+                                                            field.getAnnotations()),
                                           field.getAnnotations());
                     }
 

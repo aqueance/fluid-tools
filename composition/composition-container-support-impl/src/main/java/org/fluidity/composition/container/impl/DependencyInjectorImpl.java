@@ -265,7 +265,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
 
         final Class<?> componentClass = constructor.getDeclaringClass();
 
-        final Generics.ConstructorParameters descriptor = Generics.describe(constructor);
+        final Generics.Parameters descriptor = Generics.describe(constructor);
 
         final Class[] params = constructor.getParameterTypes();
         final Annotation[] constructorAnnotations = Lists.notNull(Annotation.class, constructor.getAnnotations());
