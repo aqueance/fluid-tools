@@ -16,7 +16,6 @@
 
 package org.fluidity.composition.container;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -140,17 +139,6 @@ public interface DependencyInjector {
      * @return a resolved node or <code>null</code> if the given dependency could not be resolved.
      */
     DependencyGraph.Node resolve(Class<?> api, Resolution resolution);
-
-    /**
-     * Combines the annotation arrays of a class, its method method and a parameter thereof, into one.
-     *
-     * @param type      the annotations of the class; never <code>null</code>.
-     * @param method    the annotations of the method; never <code>null</code>.
-     * @param parameter the annotations of the method parameter.
-     *
-     * @return the array containing all parameters.
-     */
-    Annotation[] parameterAnnotations(Annotation[] type, Annotation[] method, Annotation[] parameter);
 
     /**
      * Callback methods to resolve the various types of special and regular dependencies.

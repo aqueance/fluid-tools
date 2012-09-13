@@ -22,6 +22,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 
 import org.fluidity.composition.Component;
@@ -285,7 +286,7 @@ public final class CustomFactoryTests extends AbstractContainerTests {
     }
 
     @Component(automatic = false)
-    private static class DelegatingFactory implements ComponentFactory {
+    private static class ConstructorDelegatingFactory implements ComponentFactory {
 
         public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
             final Constructor<?> constructor = dependencies.constructor(ContextProvider.class);
@@ -329,9 +330,76 @@ public final class CustomFactoryTests extends AbstractContainerTests {
         }
     }
 
-    @Test
-    public void testChildContainerContextPropagation() throws Exception {
-        registry.bindFactory(new DelegatingFactory(), ContextProvider.class);
+    private static class ContextProviderFactory {
+
+        @Name("name-1")
+        public static ContextProvider factoryMethod(final NamedComponent dependency1,
+                                                    final @Name("name-2") NamedComponent dependency2,
+                                                    final @Name("name-3") @ComponentGroup NamedGroup[] group) {
+            return new ContextProvider(dependency1, dependency2, group);
+        }
+    }
+
+    @Component(automatic = false)
+    private static class FactoryDelegatingFactory implements ComponentFactory {
+
+        public Instance resolve(final ComponentContext context, final Resolver dependencies) throws ComponentContainer.ResolutionException {
+            final Method method = Exceptions.wrap(new Exceptions.Command<Method>() {
+                public Method run() throws Throwable {
+                    return ContextProviderFactory.class.getMethod("factoryMethod", NamedComponent.class, NamedComponent.class, NamedGroup[].class);
+                }
+            });
+
+            dependencies.discover(method);
+
+            final Container container = dependencies.local(ContextProvider.class, new Container.Bindings() {
+                public void bindComponents(final Container.Registry registry) {
+                    registry.bindComponent(NamedComponent.class);
+                }
+            });
+
+            final Dependency<NamedComponent> dependency1 = container.resolve(method, 0, NamedComponent.class);
+            final Dependency<NamedComponent> dependency2 = container.resolve(method, 1, NamedComponent.class);
+            final Dependency<NamedGroup[]> dependency3 = container.resolve(method, 2, NamedGroup[].class);
+
+            final Field field = Exceptions.wrap(new Exceptions.Command<Field>() {
+                public Field run() throws Throwable {
+                    return ContextProvider.class.getDeclaredField("dependency3");
+                }
+            });
+
+            final Dependency<NamedComponent> dependency4 = container.resolve(field, NamedComponent.class);
+
+            return new Instance() {
+                public void bind(final Registry registry) throws ComponentContainer.BindingException {
+                    final ContextProvider instance = ContextProviderFactory.factoryMethod(dependency1.instance(), dependency2.instance(), dependency3.instance());
+
+                    Exceptions.wrap(new Exceptions.Command<Void>() {
+                        public Void run() throws Throwable {
+                            field.setAccessible(true);
+                            field.set(instance, dependency4.instance());
+                            return null;
+                        }
+                    });
+
+                    registry.bindInstance(instance);
+                }
+            };
+
+        }
+    }
+
+    @DataProvider(name = "delegating-factories")
+    public Object[][] delegatingFactories() {
+        return new Object[][] {
+                new Object[] { new ConstructorDelegatingFactory() },
+                new Object[] { new FactoryDelegatingFactory() },
+        };
+    }
+
+    @Test(dataProvider = "delegating-factories")
+    public void testDelegatingFactories(final ComponentFactory factory) throws Exception {
+        registry.bindFactory(factory, ContextProvider.class);
         registry.bindComponent(NamedGroupMember2.class);
         registry.bindComponent(NamedGroupMember1.class);
 
@@ -356,7 +424,7 @@ public final class CustomFactoryTests extends AbstractContainerTests {
         }
     }
 
-    @DataProvider(name = "resolutionVariants")
+    @DataProvider(name = "resolution-variants")
     public Object[][] resolutionTypes() {
         return new Object[][] {
                 new Object[] { 0 },
@@ -367,7 +435,7 @@ public final class CustomFactoryTests extends AbstractContainerTests {
         };
     }
 
-    @Test(dataProvider = "resolutionVariants")
+    @Test(dataProvider = "resolution-variants")
     public void testResolver(final int variant) throws Exception {
 
         @Component(automatic = false)

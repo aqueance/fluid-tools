@@ -32,6 +32,7 @@ import org.fluidity.composition.Inject;
 import org.fluidity.composition.container.spi.DependencyGraph;
 import org.fluidity.composition.spi.ComponentFactory;
 import org.fluidity.foundation.Generics;
+import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**
@@ -194,11 +195,13 @@ abstract class FactoryResolver extends AbstractResolver {
             }
 
             public ComponentFactory.Dependency<?>[] discover(final Class<?> type) {
+                assert type != null;
                 fields(type);
                 return discover(constructor(type));
             }
 
             public void fields(final Class<?> type) {
+                assert type != null;
                 for (final Field field : type.getDeclaredFields()) {
                     if (field.isAnnotationPresent(Inject.class)) {
                         descend(field.getType(), field.getGenericType(), field.getAnnotations());
@@ -213,14 +216,17 @@ abstract class FactoryResolver extends AbstractResolver {
             }
 
             public Constructor<?> constructor(final Class<?> type) {
+                assert type != null;
                 return injector.findConstructor(type);
             }
 
             public ComponentFactory.Dependency<?>[] discover(final Constructor<?> constructor) {
+                assert constructor != null;
                 return discover(constructor.getGenericParameterTypes(), constructor.getParameterAnnotations());
             }
 
             public ComponentFactory.Dependency<?>[] discover(final Method method) {
+                assert method != null;
                 return discover(method.getGenericParameterTypes(), method.getParameterAnnotations());
             }
 
@@ -256,12 +262,24 @@ abstract class FactoryResolver extends AbstractResolver {
                         }
 
                         final Generics.ConstructorParameters parameters = Generics.describe(constructor);
-                        final Annotation[] constructorAnnotations = constructor.getAnnotations();
                         final Annotation[] parameterAnnotations = parameters.getAnnotations(parameter);
 
                         return dependency(api,
                                           parameters.genericType(parameter),
-                                          injector.parameterAnnotations(typeAnnotations, constructorAnnotations, parameterAnnotations),
+                                          Lists.concatenate(Annotation.class, typeAnnotations, constructor.getAnnotations(), parameterAnnotations),
+                                          parameterAnnotations);
+                    }
+
+                    public <T> ComponentFactory.Dependency<T> resolve(final Method method, final int parameter, final Class<T> api) {
+                        if (method == null) {
+                            throw new ComponentContainer.BindingException("Provided method is null");
+                        }
+
+                        final Annotation[] parameterAnnotations = method.getParameterAnnotations()[parameter];
+
+                        return dependency(api,
+                                          method.getGenericParameterTypes()[parameter],
+                                          Lists.concatenate(Annotation.class, typeAnnotations, method.getAnnotations(), parameterAnnotations),
                                           parameterAnnotations);
                     }
 
@@ -272,7 +290,7 @@ abstract class FactoryResolver extends AbstractResolver {
 
                         return dependency(api,
                                           field.getGenericType(),
-                                          injector.parameterAnnotations(typeAnnotations, null, field.getAnnotations()),
+                                          Lists.concatenate(Annotation.class, typeAnnotations, field.getAnnotations()),
                                           field.getAnnotations());
                     }
 

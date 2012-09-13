@@ -522,7 +522,7 @@ final class SimpleContainerImpl implements ParentContainer {
             }
 
             public Annotation[] providedContext() {
-                return new Annotation[0];
+                return null;
             }
         };
 

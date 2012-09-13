@@ -47,6 +47,7 @@ import org.fluidity.composition.container.spi.DependencyGraph;
 import org.fluidity.composition.container.spi.DependencyResolver;
 import org.fluidity.foundation.Exceptions;
 import org.fluidity.foundation.Generics;
+import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.Strings;
 
 /**
@@ -114,7 +115,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
                     }
 
                     public Annotation[] annotations() {
-                        return parameterAnnotations(null, methodAnnotations, parameterAnnotations[index]);
+                        return Lists.concatenate(Annotation.class, methodAnnotations, parameterAnnotations[index]);
                     }
 
                     public void set(final DependencyGraph.Node node) {
@@ -267,7 +268,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
         final Generics.ConstructorParameters descriptor = Generics.describe(constructor);
 
         final Class[] params = constructor.getParameterTypes();
-        final Annotation[] constructorAnnotations = neverNull(constructor.getAnnotations());
+        final Annotation[] constructorAnnotations = Lists.notNull(Annotation.class, constructor.getAnnotations());
 
         final DependencyGraph.Node[] parameters = new DependencyGraph.Node[params.length];
         final boolean parameterized = Components.isParameterized(componentClass);
@@ -284,7 +285,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
                 }
 
                 public Annotation[] annotations() {
-                    return parameterAnnotations(null, constructorAnnotations, descriptor.getAnnotations(index));
+                    return Lists.concatenate(Annotation.class, constructorAnnotations, descriptor.getAnnotations(index));
                 }
 
                 public void set(final DependencyGraph.Node node) {
@@ -352,24 +353,6 @@ final class DependencyInjectorImpl implements DependencyInjector {
                 return componentContext;
             }
         };
-    }
-
-    public Annotation[] parameterAnnotations(final Annotation[] type, final Annotation[] method, final Annotation[] params) {
-        final int typeCount = type == null ? 0 : type.length;
-        final int methodCount = method == null ? 0 : method.length;
-        final int paramCount = (params == null ? 0 : params.length);
-
-        final Annotation[] all = Arrays.copyOf(neverNull(type), typeCount + methodCount + paramCount);
-
-        if (methodCount > 0) {
-            System.arraycopy(method, 0, all, typeCount, methodCount);
-        }
-
-        if (paramCount > 0) {
-            System.arraycopy(params, 0, all, typeCount + methodCount, paramCount);
-        }
-
-        return all;
     }
 
     private void enableContainers(final List<RestrictedContainer> containers) {
@@ -506,20 +489,18 @@ final class DependencyInjectorImpl implements DependencyInjector {
         final boolean mandatory = dependency.annotation(Optional.class) == null;
 
         assert contexts != null : declaringType;
-        final Annotation[] typeContext = neverNull(contexts.providedContext());
-        final Annotation[] dependencyContext = neverNull(dependency.annotations());
+        final Annotation[] typeContext = contexts.providedContext();
+        final Annotation[] dependencyContext = dependency.annotations();
 
         if (resolving) {
-            traversal.descend(declaringType, dependencyType, typeContext, dependencyContext);
+            traversal.descend(declaringType, dependencyType, Lists.notNull(Annotation.class, typeContext), dependencyContext);
         }
 
         final ContextDefinition downstream;
         final DependencyGraph.Node node;
 
         try {
-            final Annotation[] definitions = new Annotation[typeContext.length + dependencyContext.length];
-            System.arraycopy(typeContext, 0, definitions, 0, typeContext.length);
-            System.arraycopy(dependencyContext, 0, definitions, typeContext.length, dependencyContext.length);
+            final Annotation[] definitions = Lists.concatenate(Annotation.class, typeContext, dependencyContext);
 
             downstream = original.advance(reference, false).expand(definitions);
 
@@ -586,10 +567,6 @@ final class DependencyInjectorImpl implements DependencyInjector {
         return downstream;
     }
 
-    private static Annotation[] neverNull(final Annotation[] array) {
-        return array == null ? new Annotation[0] : array;
-    }
-
     private Class<?> findDependencyType(final Component component, final Type reference, final Class<?> declaringType) {
         if (reference instanceof TypeVariable || reference instanceof WildcardType) {
             throw new ComponentContainer.ResolutionException("Unresolved type parameter [%s] in a dependency of %s", reference, declaringType);
@@ -634,7 +611,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
         /**
          * Returns all annotations present at the reference.
          *
-         * @return all annotations present at the reference.
+         * @return all annotations present at the reference; never <code>null</code>.
          */
         Annotation[] annotations();
 

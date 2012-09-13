@@ -446,6 +446,18 @@ public interface ComponentFactory {
         /**
          * Returns the component instance bound to the given component interface.
          *
+         * @param method    the method of the factory this binding is intended to resolve.
+         * @param parameter the index in the <code>constructor</code>'s parameter array of the dependency that this binding is intended to resolve.
+         * @param api       the component interface.
+         * @param <T>       the component interface type parameter.
+         *
+         * @return the component instance bound to the given component interface, or <code>null</code> if none found.
+         */
+        <T> Dependency<T> resolve(Method method, int parameter, Class<T> api);
+
+        /**
+         * Returns the component instance bound to the given component interface.
+         *
          * @param api the component interface.
          * @param <T> the component interface type parameter.
          *
