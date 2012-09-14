@@ -339,6 +339,18 @@ public interface ComponentFactory {
         Container local(Class<?> type, Bindings bindings);
 
         /**
+         * Wraps the given object as a dependency. Useful to fill in missing {@linkplain #resolve(Constructor) constructor} or {@linkplain #resolve(Class,
+         * Method) method} parameters in the {@link Dependency} array returned by those methods before feeding the array to {@link
+         * #instantiate(ComponentFactory.Dependency[])}.
+         *
+         * @param object the object to wrap as a dependency.
+         * @param <T> the type of the object.
+         *
+         * @return the dependency whose {@link ComponentFactory.Dependency#instance()} method will return the given <code>object</code>.
+         */
+        <T> Dependency<T> constant(T object);
+
+        /**
          * Returns an array containing the {@linkplain ComponentFactory.Dependency#instance() instance} of each dependency in the given array.
          *
          * @param dependencies the dependency array; may not be <code>null</code>.

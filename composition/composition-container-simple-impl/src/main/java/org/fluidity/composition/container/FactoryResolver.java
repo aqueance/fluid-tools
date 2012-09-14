@@ -358,6 +358,14 @@ abstract class FactoryResolver extends AbstractResolver {
                 });
             }
 
+            public <T> ComponentFactory.Dependency<T> constant(final T object) {
+                return new ComponentFactory.Dependency<T>() {
+                    public T instance() {
+                        return object;
+                    }
+                };
+            }
+
             public Object[] instantiate(final ComponentFactory.Dependency<?>... dependencies) {
                 final Object[] instances = new Object[dependencies.length];
 
