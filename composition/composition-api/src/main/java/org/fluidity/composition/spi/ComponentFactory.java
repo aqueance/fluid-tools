@@ -260,15 +260,15 @@ public interface ComponentFactory {
          * Resolves a component by its component interface without instantiating the component. The resolved component will see, if it accepts the {@link
          * org.fluidity.composition.Component.Reference @Component.Reference} context annotation, the specified component interface as the dependency reference
          * to it unless the <code>reference</code> parameter is present. The component interface must be assignable to the reference if it is specified.
+         * <p/>
+         * <b>Note</b>: This is a low level method in case none of the {@link #resolve(Class, Constructor, int)}, {@link #resolve(Class, Class, Field)}, or
+         * {@link #resolve(Class, Class, Method, int)} satisfies your needs. Please favor those methods to this one.
          *
          * @param api         the component interface to resolve, or <code>null</code> of it can be derived from the <code>reference</code> parameter.
          * @param reference   the reference to use when resolving the component or <code>null</code> to use the component interface.
          * @param annotations the annotations at the point of reference to the dependency; may be <code>null</code>.
          *
          * @return an object that can return an instance of the resolved dependency.
-         *
-         * @deprecated This is a low level method in case none of the {@link #resolve(Class, Constructor, int)}, {@link #resolve(Class}, or {@link
-         *             #resolve(Class} satisfies your needs. Please favor those methods to this one.
          */
         <T> Dependency<T> resolve(Class<T> api, Type reference, Annotation[] annotations);
 
