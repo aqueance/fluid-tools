@@ -37,6 +37,8 @@ import org.fluidity.composition.spi.ComponentInterceptor;
 import org.fluidity.foundation.ClassLoaders;
 import org.fluidity.foundation.spi.LogFactory;
 
+import static org.fluidity.foundation.Command.Function;
+
 /**
  * External access to a class loader specific <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Dependency_Injection_Concept">dependency
  * injection</a> <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Dependency_Injection_Containers">container</a>. This utility class ensures that
@@ -382,7 +384,7 @@ public final class ContainerBoundary implements ComponentContainer {
                         }
                     };
 
-                    container.set(ClassLoaders.context(loader, new ClassLoaders.Command<OpenComponentContainer, RuntimeException>() {
+                    container.set(ClassLoaders.context(loader, new Function<OpenComponentContainer, ClassLoader, RuntimeException>() {
                         public OpenComponentContainer run(final ClassLoader loader) {
                             return containerBootstrap.populateContainer(findServices(loader),
                                                                         containerProvider,

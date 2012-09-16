@@ -189,8 +189,8 @@ import org.fluidity.foundation.Strings;
  * try {
  *
  *   // handle checked exceptions ...
- *   result = {@linkplain org.fluidity.foundation.Exceptions}.wrap(new Exceptions.Command&lt;<span class="hl2">Integer</span>>() {
- *     public <span class="hl2">Integer</span> run() throws Throwable {
+ *   result = {@linkplain org.fluidity.foundation.Exceptions}.wrap(new Command.Process&lt;<span class="hl2">Integer</span>, Exception>() {
+ *     public <span class="hl2">Integer</span> run() throws Exception {
  *
  *       // pass known parameters as the last parameters to this call
  *       return (<span class="hl2">Integer</span>) container.<span class="hl1">invoke</span>(helper, method, <span class="hl3">1234</span>);

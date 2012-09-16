@@ -21,6 +21,8 @@ import java.lang.reflect.UndeclaredThrowableException;
 
 import org.testng.annotations.Test;
 
+import static org.fluidity.foundation.Command.Process;
+
 /**
  * @author Tibor Varga
  */
@@ -30,7 +32,7 @@ public class ExceptionsTest {
     public void testReturning() throws Exception {
         final int original = 1234;
 
-        final Integer result = Exceptions.wrap(new Exceptions.Command<Integer>() {
+        final Integer result = Exceptions.wrap(new Process<Integer, Exception>() {
             public Integer run() throws Exception {
                 return original;
             }
@@ -45,7 +47,7 @@ public class ExceptionsTest {
 
         try {
             try {
-                Exceptions.wrap(new Exceptions.Command<Void>() {
+                Exceptions.wrap(new Process<Void, Exception>() {
                     public Void run() throws Exception {
                         throw original;
                     }
@@ -90,7 +92,7 @@ public class ExceptionsTest {
         final Exception original = new Exception();
 
         try {
-            Exceptions.wrap(new Exceptions.Command<Object>() {
+            Exceptions.wrap(new Process<Object, Exception>() {
                 public Object run() throws Exception {
                     throw new UndeclaredThrowableException(new InvocationTargetException(new RuntimeException(new InvocationTargetException(new UndeclaredThrowableException(original)))));
                 }

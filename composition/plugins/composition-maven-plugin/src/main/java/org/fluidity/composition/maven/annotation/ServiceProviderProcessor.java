@@ -30,6 +30,8 @@ import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 
+import static org.fluidity.foundation.Command.Process;
+
 /**
  * Processes a {@link org.fluidity.composition.ServiceProvider @ServiceProvider} annotation.
  *
@@ -89,7 +91,7 @@ public final class ServiceProviderProcessor extends AnnotationVisitor {
     public void visitEnd() {
         final String className = ClassReaders.externalName(classData);
 
-        Exceptions.wrap(new Exceptions.Command<Void>() {
+        Exceptions.wrap(new Process<Void, Exception>() {
             public Void run() throws Exception {
                 if (apiSet.isEmpty()) {
                     if (ClassReaders.isInterface(classData)) {

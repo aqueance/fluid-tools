@@ -19,6 +19,8 @@ package org.fluidity.foundation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.UndeclaredThrowableException;
 
+import static org.fluidity.foundation.Command.Process;
+
 /**
  * A utility that allows propagation of checked exceptions through method calls that don't allow those checked exceptions thrown from inside.
  * <h3>Usage</h3>
@@ -29,8 +31,8 @@ import java.lang.reflect.UndeclaredThrowableException;
  *   try {
  *     executor.run(new Runnable() {
  *       public void run() {
- *         <span class="hl1">Exceptions.wrap</span>(new <span class="hl1">{@linkplain Exceptions.Command}</span>&lt;Void>() {
- *           public Void <span class="hl1">run</span>() throws Throwable {
+ *         <span class="hl1">Exceptions.wrap</span>(new {@linkplain Command.Process}&lt;Void, Exception>() {
+ *           public Void <span class="hl1">run</span>() throws Exception {
  *             &hellip;
  *             throw new <span class="hl2">CheckedException2</span>();
  *           }
@@ -64,7 +66,7 @@ public final class Exceptions extends Utility {
      *
      * @return whatever the command returns.
      */
-    public static <T> T wrap(final String context, final Command<T> command) {
+    public static <T, E extends Throwable> T wrap(final String context, final Process<T, E> command) {
         try {
             try {
                 return command.run();
@@ -88,7 +90,7 @@ public final class Exceptions extends Utility {
      *
      * @return whatever the command returns.
      */
-    public static <T> T wrap(final Command<T> command) {
+    public static <T, E extends Throwable> T wrap(final Process<T, E> command) {
         return wrap(null, command);
     }
 
@@ -105,28 +107,8 @@ public final class Exceptions extends Utility {
     }
 
     /**
-     * Used by {@link Exceptions}, this is a command to run and wrap the exceptions thrown from.
-     * <h3>Usage</h3>
-     * See {@link Exceptions}.
-     *
-     * @author Tibor Varga
-     */
-    public interface Command<T> {
-
-        /**
-         * Code to run and wrap the exceptions therefrom.
-         *
-         * @return whatever the caller of the {@link Exceptions#wrap(Command)} or {@link Exceptions#wrap(String, Command)} wishes to
-         *         receive.
-         *
-         * @throws Throwable to turn to {@link RuntimeException} if necessary.
-         */
-        T run() throws Throwable;
-    }
-
-    /**
-     * An unchecked exception that wraps a checked exception. Thrown by {@link Exceptions#wrap(Exceptions.Command)} and {@link Exceptions#wrap(String,
-     * Exceptions.Command)}.
+     * An unchecked exception that wraps a checked exception. Thrown by {@link Exceptions#wrap(Command.Process)} and {@link Exceptions#wrap(String,
+     * Command.Process)}.
      * <h3>Usage</h3>
      * See {@link Exceptions} for an example.
      */

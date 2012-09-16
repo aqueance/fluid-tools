@@ -21,6 +21,8 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static org.fluidity.foundation.Command.Process;
+
 /**
  * Convenience utilities concerning proxies.
  * <h3>Usage Example</h3>
@@ -208,7 +210,7 @@ public final class Proxies extends Utility {
         @SuppressWarnings("unchecked")
         public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
             try {
-                return Exceptions.wrap(new Exceptions.Command<Object>() {
+                return Exceptions.wrap(new Process<Object, Throwable>() {
                     public Object run() throws Throwable {
                         if (method.getDeclaringClass() == Object.class) {
                             return method.invoke(MethodInvocations.this, args);

@@ -26,6 +26,9 @@ import org.fluidity.composition.Component;
 import org.fluidity.foundation.ClassLoaders;
 import org.fluidity.foundation.Proxies;
 
+import static org.fluidity.foundation.Command.Function;
+import static org.fluidity.foundation.Command.Process;
+
 /**
  * <b>NOTE</b>: This class <em>must be</em> loaded by the class loader of the bundle it is expected to import services into.
  *
@@ -36,7 +39,7 @@ final class BundleBoundaryImpl implements BundleBoundary {
 
     public <T> T imported(final Class<T> type, final T remote) {
 
-        // the use of "this" requires this class to be loaded by the class loader of the bundle importing the remote object into
+        // the use of "this" here requires this class to be loaded by the class loader of the bundle importing the remote object into
         return tunnel(remote, this, new Tunnel<T, RuntimeException>() {
             public T run(final boolean internal, final DelegatingClassLoader loader) {
                 return internal ? remote : Proxies.create(type, new ServiceInvocation(remote, loader));
@@ -52,10 +55,10 @@ final class BundleBoundaryImpl implements BundleBoundary {
         });
     }
 
-    public <T, E extends Throwable> T invoke(final Object remote, final Object local, final Command<T, E> command) throws E {
+    public <T, E extends Exception> T invoke(final Object remote, final Object local, final Process<T, E> command) throws E {
         return tunnel(remote, local, new Tunnel<T, E>() {
             public T run(final boolean internal, final DelegatingClassLoader loader) throws E {
-                return internal ? command.run() : ClassLoaders.context(loader, new ClassLoaders.Command<T, E>() {
+                return internal ? command.run() : ClassLoaders.context(loader, new Function<T, ClassLoader, E>() {
                     public T run(final ClassLoader loader) throws E {
                         return command.run();
                     }
@@ -64,7 +67,7 @@ final class BundleBoundaryImpl implements BundleBoundary {
         });
     }
 
-    private <T, E extends Throwable> T tunnel(final Object remote, final Object local, final Tunnel<T, E> command) throws E {
+    private <T, E extends Exception> T tunnel(final Object remote, final Object local, final Tunnel<T, E> command) throws E {
         final ClassLoader remoteCL = loader(remote);
         final ClassLoader localCL = loader(local);
 
@@ -114,8 +117,8 @@ final class BundleBoundaryImpl implements BundleBoundary {
         }
 
         public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
-            return ClassLoaders.context(tunnel, new ClassLoaders.Command<Object, Throwable>() {
-                public Object run(final ClassLoader loader) throws Throwable {
+            return ClassLoaders.context(tunnel, new Function<Object, ClassLoader, Exception>() {
+                public Object run(final ClassLoader loader) throws Exception {
                     return method.invoke(implementation, args);
                 }
             });

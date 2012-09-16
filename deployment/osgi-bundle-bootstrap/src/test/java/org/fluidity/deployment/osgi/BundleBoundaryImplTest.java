@@ -23,6 +23,8 @@ import org.fluidity.deployment.osgi.isolated.ServiceProviderImpl;
 
 import org.testng.annotations.Test;
 
+import static org.fluidity.foundation.Command.Process;
+
 /**
  * @author Tibor Varga
  */
@@ -89,7 +91,7 @@ public class BundleBoundaryImplTest {
 
         final ServiceConsumer consumer = (ServiceConsumer) constructor.newInstance(customs(bundle2).imported(ServiceProvider.class, provider));
 
-        checkClassLoader(bundle2, customs(bundle1).invoke(consumer, provider, new BundleBoundary.Command<String, Exception>() {
+        checkClassLoader(bundle2, customs(bundle1).invoke(consumer, provider, new Process<String, Exception>() {
             public String run() throws Exception {
                 return provider.callback(ServiceConsumerImpl.CallbackImpl.class.getName());
             }

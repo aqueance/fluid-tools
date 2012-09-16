@@ -24,7 +24,8 @@ import java.util.List;
 
 import org.fluidity.foundation.Archives;
 import org.fluidity.foundation.ClassLoaders;
-import org.fluidity.foundation.Exceptions;
+
+import static org.fluidity.foundation.Command.Function;
 
 /**
  * Launches a main class from a JAR file using a class loader that can load classes from JAR files nested inside the main JAR. Nested JAR files must be located
@@ -71,22 +72,13 @@ public final class Launcher {
 
         final ClassLoader loader = new URLClassLoader(urls.toArray(new URL[urls.size()]), ClassLoaders.findClassLoader(main, true));
 
-        try {
-            ClassLoaders.context(loader, new ClassLoaders.Command<Void, Exception>() {
-                public Void run(final ClassLoader loader) throws Exception {
-                    final Method main = loader.loadClass(mainClass).getMethod("main", String[].class);
+        ClassLoaders.context(loader, new Function<Object, ClassLoader, Exception>() {
+            public Object run(final ClassLoader loader) throws Exception {
+                final Method main = loader.loadClass(mainClass).getMethod("main", String[].class);
 
-                    return Exceptions.wrap(new Exceptions.Command<Void>() {
-                        public Void run() throws Throwable {
-                            main.setAccessible(true);
-                            main.invoke(null, new Object[] { args });
-                            return null;
-                        }
-                    });
-                }
-            });
-        } catch (final Exceptions.Wrapper wrapper) {
-            throw wrapper.rethrow(Exception.class);
-        }
+                main.setAccessible(true);
+                return main.invoke(null, new Object[] { args });
+            }
+        });
     }
 }

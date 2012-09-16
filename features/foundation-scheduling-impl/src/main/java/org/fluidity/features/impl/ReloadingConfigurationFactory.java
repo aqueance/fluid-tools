@@ -32,6 +32,8 @@ import org.fluidity.foundation.Deferred;
 import org.fluidity.foundation.Exceptions;
 import org.fluidity.foundation.Proxies;
 
+import static org.fluidity.foundation.Command.Process;
+
 /**
  * @author Tibor Varga
  */
@@ -76,8 +78,8 @@ final class ReloadingConfigurationFactory implements ComponentFactory {
                                 final Map<Method, Object> cache = new HashMap<Method, Object>();
 
                                 for (final Method method : type.getMethods()) {
-                                    cache.put(method, Exceptions.wrap(new Exceptions.Command<Object>() {
-                                        public Object run() throws Throwable {
+                                    cache.put(method, Exceptions.wrap(new Process<Object, Exception>() {
+                                        public Object run() throws Exception {
                                             assert method.getParameterTypes().length == 0 : method;
                                             method.setAccessible(true);
                                             return method.invoke(settings);

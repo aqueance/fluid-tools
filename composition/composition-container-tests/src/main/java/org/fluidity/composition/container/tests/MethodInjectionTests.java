@@ -27,6 +27,8 @@ import org.fluidity.foundation.Methods;
 import org.easymock.EasyMock;
 import org.testng.annotations.Test;
 
+import static org.fluidity.foundation.Command.Process;
+
 /**
  * @author Tibor Varga
  */
@@ -120,8 +122,8 @@ public class MethodInjectionTests extends AbstractContainerTests {
 
         replay();
         try {
-            Exceptions.wrap(new Exceptions.Command<Void>() {
-                public Void run() throws Throwable {
+            Exceptions.wrap(new Process<Void, Exception>() {
+                public Void run() throws Exception {
                     container.invoke(component, injectable);
                     return null;
                 }

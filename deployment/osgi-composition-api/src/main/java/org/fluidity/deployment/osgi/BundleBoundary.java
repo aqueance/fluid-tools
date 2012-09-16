@@ -16,6 +16,8 @@
 
 package org.fluidity.deployment.osgi;
 
+import static org.fluidity.foundation.Command.Process;
+
 /**
  * Enables controlled cross-bundle class loading in an OSGi container. More specifically, this component allows:
  * <ul>
@@ -78,26 +80,5 @@ public interface BundleBoundary {
      *
      * @return whatever the command returns.
      */
-    <T, E extends Throwable> T invoke(Object remote, Object local, Command<T, E> command) throws E;
-
-    /**
-     * A command to be invoked by {@link BundleBoundary#invoke(Object, Object, BundleBoundary.Command) BundleBoundary.invoke()}.
-     *
-     * @param <T> the return type of the {@link #run()} method.
-     * @param <E> the exception type thrown by the {@link #run()} method.
-     */
-    interface Command<T, E extends Throwable> {
-
-        /**
-         * Executes in the context of a tunneling class loader as described at {@link BundleBoundary#invoke(Object,
-         * Object, BundleBoundary.Command) BundleBoundary.invoke()}.
-         *
-         * @return whatever the caller of {@link BundleBoundary#invoke(Object, Object, BundleBoundary.Command) BundleBoundary.invoke()} wants
-         *         returned.
-         *
-         * @throws E whatever the caller of {@link BundleBoundary#invoke(Object, Object, BundleBoundary.Command) BundleBoundary.invoke()}
-         *           accepts to be thrown.
-         */
-        T run() throws E;
-    }
+    <T, E extends Exception> T invoke(Object remote, Object local, Process<T, E> command) throws E;
 }

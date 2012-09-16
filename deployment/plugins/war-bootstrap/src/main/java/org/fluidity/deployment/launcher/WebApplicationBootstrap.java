@@ -33,6 +33,8 @@ import org.fluidity.foundation.Archives;
 import org.fluidity.foundation.ClassLoaders;
 import org.fluidity.foundation.ServiceProviders;
 
+import static org.fluidity.foundation.Command.Function;
+
 /**
  * A command line main class that prepares the web container bootstrap process, e.g., creating a work directory, setting up the boot classpath and, then loads
  * and invokes a supplied {@linkplain ServerBootstrap bootstrap} component.
@@ -142,7 +144,7 @@ public final class WebApplicationBootstrap {
         final ServerBootstrap server = ServiceProviders.findInstance(ServerBootstrap.class, classLoader);
 
         if (server != null) {
-            ClassLoaders.context(classLoader, new ClassLoaders.Command<Void, Exception>() {
+            ClassLoaders.context(classLoader, new Function<Void, ClassLoader, Exception>() {
                 public Void run(final ClassLoader loader) throws Exception {
                     server.bootstrap(httpPort, bootApp, managedApps, args);
                     return null;

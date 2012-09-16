@@ -50,6 +50,8 @@ import org.fluidity.foundation.Generics;
 import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.Strings;
 
+import static org.fluidity.foundation.Command.Process;
+
 /**
  * Finds, resolves and sets, using the given container, all {@link Inject @Inject} annotated fields of an object that have not yet been set.
  *
@@ -308,7 +310,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
                 final List<RestrictedContainer> containers = new ArrayList<RestrictedContainer>();
 
                 try {
-                    return injectFields(fields, traversal, containers, Exceptions.wrap(String.format("instantiating %s", componentClass), new Exceptions.Command<Object>() {
+                    return injectFields(fields, traversal, containers, Exceptions.wrap(String.format("instantiating %s", componentClass), new Process<Object, Exception>() {
                         public Object run() throws Exception {
                             final Object[] arguments = arguments(constructor.getDeclaringClass(), traversal, containers, parameters);
 
@@ -327,8 +329,8 @@ final class DependencyInjectorImpl implements DependencyInjector {
 
                             try {
                                 try {
-                                    component = Exceptions.wrap(new Exceptions.Command<Object>() {
-                                        public Object run() throws Throwable {
+                                    component = Exceptions.wrap(new Process<Object, Exception>() {
+                                        public Object run() throws Exception {
                                             constructor.setAccessible(true);
                                             return constructor.newInstance(arguments);
                                         }
@@ -365,7 +367,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
                                 final DependencyGraph.Traversal traversal,
                                 final List<RestrictedContainer> containers,
                                 final Object instance) {
-        return Exceptions.wrap(String.format("setting %s fields", instance.getClass()), new Exceptions.Command<Object>() {
+        return Exceptions.wrap(String.format("setting %s fields", instance.getClass()), new Process<Object, Exception>() {
             public Object run() throws Exception {
                 for (final Map.Entry<Field, DependencyGraph.Node> entry : fieldNodes.entrySet()) {
                     final Field field = entry.getKey();

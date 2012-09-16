@@ -31,7 +31,6 @@ import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.ComponentGroup;
 import org.fluidity.composition.Inject;
 import org.fluidity.composition.spi.ComponentFactory;
-import org.fluidity.foundation.Exceptions;
 import org.fluidity.foundation.Generics;
 
 import org.easymock.EasyMock;
@@ -656,17 +655,8 @@ public final class CustomFactoryTests extends AbstractContainerTests {
             final Dependency<NamedComponent> dependency2 = container.resolve(NamedComponent.class, ContextProvider.class, method, 1);
             final Dependency<NamedGroup[]> dependency3 = container.resolve(NamedGroup[].class, ContextProvider.class, method, 2);
 
-            final Field field1 = Exceptions.wrap(new Exceptions.Command<Field>() {
-                public Field run() throws Throwable {
-                    return SuperClass.class.getDeclaredField("field3");
-                }
-            });
-
-            final Field field2 = Exceptions.wrap(new Exceptions.Command<Field>() {
-                public Field run() throws Throwable {
-                    return SuperClass.class.getDeclaredField("field2");
-                }
-            });
+            final Field field1 = SuperClass.class.getDeclaredField("field3");
+            final Field field2 = SuperClass.class.getDeclaredField("field2");
 
             final Dependency<NamedComponent> dependency4 = container.resolve(NamedComponent.class, ContextProvider.class, field1);
             final Dependency<NamedGroup[]> dependency5 = dependencies.resolve(NamedGroup[].class, ContextProvider.class, field2);

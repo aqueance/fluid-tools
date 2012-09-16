@@ -29,6 +29,8 @@ import java.util.UUID;
 
 import org.apache.xbean.classloader.JarFileClassLoader;
 
+import static org.fluidity.foundation.Command.Function;
+
 /**
  * Utility methods related to {@linkplain ClassLoader class loaders}.
  *
@@ -215,6 +217,17 @@ public final class ClassLoaders extends Utility {
     /**
      * Establishes the given class loader as the {@linkplain Thread#setContextClassLoader(ClassLoader) context class loader}, executes the given command, and
      * then establishes the previous context class loader before returning whatever the command returned, or throwing whatever the command threw.
+     * <h3>Usage</h3>
+     * <pre>
+     * final {@linkplain ClassLoader} loader = &hellip;;
+     *
+     * final boolean success = {@linkplain ClassLoaders}.<span class="hl1">context</span>(loader, new Command.Function&lt;Boolean, {@linkplain ClassLoader}, {@linkplain RuntimeException}>() {
+     *   public Boolean run(final {@linkplain ClassLoader} loader) throws {@linkplain RuntimeException} {
+     *     &hellip; // call some library that uses the {@linkplain Thread#getContextClassLoader() thread context class loader}
+     *     return true;
+     *   }
+     * });
+     * </pre>
      *
      * @param loader  the class loader to set as the context class loader.
      * @param command the command to execute with the given class loader as the context class loader.
@@ -225,7 +238,7 @@ public final class ClassLoaders extends Utility {
      *
      * @throws E from the command.
      */
-    public static <R, E extends Throwable> R context(final ClassLoader loader, final Command<R, E> command) throws E {
+    public static <R, E extends Exception> R context(final ClassLoader loader, final Function<R, ClassLoader, E> command) throws E {
         final ClassLoader saved = set(loader);
 
         try {
@@ -272,40 +285,6 @@ public final class ClassLoaders extends Utility {
                 // ignore
             }
         }
-    }
-
-    /**
-     * A command to execute by {@link ClassLoaders#context(ClassLoader, ClassLoaders.Command) ClassLoaders.context()} with some class loader as the
-     * context class loader.
-     * <h3>Usage</h3>
-     * <pre>
-     * final {@linkplain ClassLoader} loader = &hellip;;
-     *
-     * final boolean success = {@linkplain ClassLoaders}.<span class="hl1">context</span>(loader, new <span class="hl1">ClassLoaders.Command</span>&lt;Boolean, {@linkplain RuntimeException}>() {
-     *   public Boolean run(final {@linkplain ClassLoader} loader) throws {@linkplain RuntimeException} {
-     *     &hellip; // call some library that uses the {@linkplain Thread#getContextClassLoader() thread context class loader}
-     *     return true;
-     *   }
-     * });
-     * </pre>
-     *
-     * @param <R> the return type of the command.
-     * @param <E> the type of the exception thrown by the command.
-     *
-     * @author Tibor Varga
-     */
-    public interface Command<R, E extends Throwable> {
-
-        /**
-         * Executes custom code in the {@linkplain ClassLoaders#context(ClassLoader, ClassLoaders.Command) context} of a class loader.
-         *
-         * @param loader the context class loader.
-         *
-         * @return whatever it wants.
-         *
-         * @throws E whenever it wants to.
-         */
-        R run(ClassLoader loader) throws E;
     }
 
     /**

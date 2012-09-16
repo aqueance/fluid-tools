@@ -35,6 +35,8 @@ import org.fluidity.foundation.Exceptions;
 import org.fluidity.foundation.Log;
 import org.fluidity.foundation.ServiceProviders;
 
+import static org.fluidity.foundation.Command.Process;
+
 /**
  * The component is instantiated by {@link ProductionServices} and picked up at container bootstrap to be made available as a component. This implementation
  * assumes class loaders adhere to the contract of delegating to parent first and only if that fails trying to resolve classes.
@@ -61,7 +63,7 @@ final class ClassDiscoveryImpl implements ClassDiscovery {
 
         final String root = ServiceProviders.location(type).concat("/");
 
-        final Collection<Class<T>> componentList = Exceptions.wrap(new Exceptions.Command<Collection<Class<T>>>() {
+        final Collection<Class<T>> componentList = Exceptions.wrap(new Process<Collection<Class<T>>, Exception>() {
             public Collection<Class<T>> run() throws Exception {
                 final Collection<Class<T>> componentList = new LinkedHashSet<Class<T>>();
 
