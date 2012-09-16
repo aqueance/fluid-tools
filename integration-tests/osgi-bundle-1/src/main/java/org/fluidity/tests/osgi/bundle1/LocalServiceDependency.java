@@ -30,7 +30,7 @@ final class LocalServiceDependency implements BundleComponentContainer.Registrat
 
     private final IndependentService dependency;
 
-    public LocalServiceDependency(final @Service IndependentService dependency) {
+    LocalServiceDependency(final @Service IndependentService dependency) {
         this.dependency = dependency;
     }
 

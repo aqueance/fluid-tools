@@ -62,7 +62,7 @@ import org.sonatype.aether.repository.RemoteRepository;
  * @threadSafe
  */
 @SuppressWarnings("UnusedDeclaration")
-public class IncludeJarsMojo extends AbstractMojo {
+public final class IncludeJarsMojo extends AbstractMojo {
 
     /**
      * The location of the compiled classes.
@@ -332,29 +332,5 @@ public class IncludeJarsMojo extends AbstractMojo {
         } while (tempFile.exists());
 
         return tempFile;
-    }
-
-    /**
-     * @author Tibor Varga
-     */
-    private static class DependencyFeed implements ArchivesSupport.Feed {
-
-        private final Iterator<Artifact> iterator;
-
-        public DependencyFeed(final Collection<Artifact> unpackedDependencies) {
-            iterator = unpackedDependencies.iterator();
-        }
-
-        public File next() throws IOException {
-            if (iterator.hasNext()) {
-                return iterator.next().getFile();
-            } else {
-                return null;
-            }
-        }
-
-        public boolean include(final JarEntry entry) {
-            return true;
-        }
     }
 }

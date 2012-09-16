@@ -38,21 +38,25 @@ import java.lang.annotation.Target;
  * <pre>
  * <span class="hl1">&#64;ComponentGroup</span>
  * public interface <span class="hl2">ImageFilter</span> { &hellip; }
- *
+ * </pre>
+ * <pre>
  * {@linkplain Component @Component}
- * final class ImageProcessor {
+ * public final class ImageProcessor {
  *
- *   public ImageProcessor(final <span class="hl1">&#64;ComponentGroup</span> <span class="hl2">ImageFilter</span>[] filters) {
+ *   ImageProcessor(final <span class="hl1">&#64;ComponentGroup</span> <span class="hl2">ImageFilter</span>[] filters) {
  *     assert filters != null : ImageFilter.class;
  *     assert filters.length == 3 : ImageFilter.class;
  *     &hellip;
  *   }
  * }
- *
+ * </pre>
+ * <pre>
  * final class ImageFilter1 implements <span class="hl2">ImageFilter</span> { &hellip; }
- *
+ * </pre>
+ * <pre>
  * final class ImageFilter2 implements <span class="hl2">ImageFilter</span> { &hellip; }
- *
+ * </pre>
+ * <pre>
  * final class ImageFilter3 implements <span class="hl2">ImageFilter</span> { &hellip; }
  * </pre>
  *

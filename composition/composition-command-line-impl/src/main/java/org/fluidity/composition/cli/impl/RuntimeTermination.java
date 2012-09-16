@@ -35,7 +35,7 @@ final class RuntimeTermination implements ContainerTermination {
 
     private final List<Runnable> tasks = new ArrayList<Runnable>();
 
-    public RuntimeTermination(final Log<RuntimeTermination> log) {
+    RuntimeTermination(final Log<RuntimeTermination> log) {
         Runtime.getRuntime().addShutdownHook(new Thread("Container shutdown") {
             @Override
             public void run() {

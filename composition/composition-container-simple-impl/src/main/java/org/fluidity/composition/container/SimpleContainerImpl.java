@@ -59,7 +59,7 @@ final class SimpleContainerImpl implements ParentContainer {
     private final DependencyInjector injector;
     private final LogFactory logs;
 
-    public SimpleContainerImpl(final ContainerServices services, final PlatformContainer platform) {
+    SimpleContainerImpl(final ContainerServices services, final PlatformContainer platform) {
         this(platform == null ? null : new SuperContainer(platform), null, services);
     }
 
@@ -526,7 +526,7 @@ final class SimpleContainerImpl implements ParentContainer {
             }
         };
 
-        public SuperContainer(final PlatformContainer platform) {
+        SuperContainer(final PlatformContainer platform) {
             this.platform = platform;
         }
 
@@ -667,7 +667,7 @@ final class SimpleContainerImpl implements ParentContainer {
 
         private final ParentContainer domain;
 
-        public DelegatingDependencyResolver(final ParentContainer domain) {
+        DelegatingDependencyResolver(final ParentContainer domain) {
             this.domain = domain;
         }
 

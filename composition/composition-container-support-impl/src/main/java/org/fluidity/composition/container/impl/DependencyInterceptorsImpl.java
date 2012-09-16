@@ -37,7 +37,7 @@ import org.fluidity.foundation.Strings;
 @Component(automatic = false)
 final class DependencyInterceptorsImpl implements DependencyInterceptors {
 
-    public static final ComponentInterceptor[] NO_INTERCEPTORS = new ComponentInterceptor[0];
+    static final ComponentInterceptor[] NO_INTERCEPTORS = new ComponentInterceptor[0];
 
     // recursion guard: no interception of dependencies of interceptors
     private final ThreadLocal<Boolean> intercepting = new ThreadLocal<Boolean>() {
@@ -50,7 +50,7 @@ final class DependencyInterceptorsImpl implements DependencyInterceptors {
     private final InterceptorFilter annotations;
     private final Log log;
 
-    public DependencyInterceptorsImpl(final InterceptorFilter annotations, final Log log) {
+    DependencyInterceptorsImpl(final InterceptorFilter annotations, final Log log) {
         this.annotations = annotations;
         this.log = log;
     }

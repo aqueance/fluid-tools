@@ -40,13 +40,14 @@ import java.lang.reflect.Type;
  * <span class="hl1">&#64;Component</span>
  * public final class MyComponent {
  *
- *   public MyComponent(final <span class="hl2">MyDependency</span> dependency) {
+ *   MyComponent(final <span class="hl2">MyDependency</span> dependency) {
  *     &hellip;
  *   }
  *
  *   &hellip;
  * }
- *
+ * </pre>
+ * <pre>
  * <span class="hl1">&#64;Component</span>
  * final class MyDependencyImpl implements <span class="hl2">MyDependency</span> {
  *   &hellip;
@@ -125,18 +126,19 @@ public @interface Component {
      * <span class="hl2">&#64;MyContext</span>(value = "1")
      * public final class MyComponent {
      *
-     *   public MyComponent(final <span class="hl2">&#64;MyContext</span>(value = "2") <span class="hl3">MyDependency</span> dependency) {
+     *   MyComponent(final <span class="hl2">&#64;MyContext</span>(value = "2") <span class="hl3">MyDependency</span> dependency) {
      *     &hellip;
      *   }
      *
      *   &hellip;
      * }
-     *
+     * </pre>
+     * <pre>
      * {@linkplain Component @Component}
      * <span class="hl1">&#64;Component.Context</span>(<span class="hl2">MyContext</span>.class)
      * final class MyDependencyImpl implements <span class="hl3">MyDependency</span> {
      *
-     *   public MyDependencyImpl(final {@linkplain ComponentContext} context) {
+     *   MyDependencyImpl(final {@linkplain ComponentContext} context) {
      *     final <span class="hl2">MyContext</span>[] annotations = context.annotations(<span class="hl2">MyContext</span>.class);
      *     &hellip;
      *   }
@@ -231,7 +233,7 @@ public @interface Component {
      *    *&#47;
      *   private final Class&lt;?> type;
      *
-     *   public MyComponent(final {@linkplain ComponentContext} context) {
+     *   MyComponent(final {@linkplain ComponentContext} context) {
      *     final <span class="hl1">Component.Reference</span> reference = context.annotation(<span class="hl1">Component.Reference</span>.class, null);
      *     this.type = reference.parameter(0);
      *     &hellip;
@@ -241,11 +243,12 @@ public @interface Component {
      *     return type;
      *   }
      * }
-     *
+     * </pre>
+     * <pre>
      * {@linkplain Component @Component}
      * final class MyReferrer {
      *
-     *   public MyReferrer(final <span class="hl2">MyComponent</span><span class="hl3">&lt;MyType></span> dependency) {
+     *   MyReferrer(final <span class="hl2">MyComponent</span><span class="hl3">&lt;MyType></span> dependency) {
      *     assert dependency.<span class="hl2">type()</span> == <span class="hl3">MyType</span>.class : <span class="hl2">MyComponent</span>.class;
      *     &hellip;
      *   }
@@ -281,13 +284,14 @@ public @interface Component {
      * {@linkplain Component @Component}
      * public final class MyComponent {
      *
-     *   public MyComponent(final <span class="hl1">&#64;Component.Deferred</span> <span class="hl2">SomeDependency</span> dependency) {
+     *   MyComponent(final <span class="hl1">&#64;Component.Deferred</span> <span class="hl2">SomeDependency</span> dependency) {
      *     &hellip;
      *   }
      *
      *   &hellip;
      * }
-     *
+     * </pre>
+     * <pre>
      * public <b>interface</b> <span class="hl2">SomeDependency</span> {
      *   &hellip;
      * }

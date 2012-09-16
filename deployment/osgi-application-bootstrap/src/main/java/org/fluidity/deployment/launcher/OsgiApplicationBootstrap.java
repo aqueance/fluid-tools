@@ -103,7 +103,7 @@ public final class OsgiApplicationBootstrap {
      * @param termination the container termination component.
      * @param levels      the optional start level fine tuning component.
      */
-    public OsgiApplicationBootstrap(final Log<OsgiApplicationBootstrap> log, final ContainerTermination termination, final @Optional StartLevels levels) {
+    OsgiApplicationBootstrap(final Log<OsgiApplicationBootstrap> log, final ContainerTermination termination, final @Optional StartLevels levels) {
         this.log = log;
         this.termination = termination;
         this.levels = levels;

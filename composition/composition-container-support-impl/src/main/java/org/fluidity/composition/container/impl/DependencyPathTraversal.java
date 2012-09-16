@@ -53,11 +53,11 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
 
     final AtomicReference<CircularReferencesException> deferring = new AtomicReference<CircularReferencesException>();
 
-    public DependencyPathTraversal(final ComponentContainer.Observer observer) {
+    DependencyPathTraversal(final ComponentContainer.Observer observer) {
         this(new AtomicReference<ActualPath>(new ActualPath()), observer);
     }
 
-    public DependencyPathTraversal(final AtomicReference<ActualPath> path, final ComponentContainer.Observer observer) {
+    private DependencyPathTraversal(final AtomicReference<ActualPath> path, final ComponentContainer.Observer observer) {
         assert path != null;
         this.resolutionPath = path;
         this.observer = observer;
@@ -306,7 +306,7 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
             this.head = null;
         }
 
-        public ActualPath(final List<ActualElement> list, final Map<ActualElement, ActualElement> map, final ActualElement head) {
+        ActualPath(final List<ActualElement> list, final Map<ActualElement, ActualElement> map, final ActualElement head) {
             this.list.addAll(list);
             this.map.putAll(map);
             this.repeating = map.containsKey(head);
@@ -385,7 +385,7 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
 
         private Set<Annotation> annotations = new HashSet<Annotation>();
 
-        public ActualElement(final Class<?> api, final Object identity, final ContextDefinition definition, final Annotation[] annotations) {
+        ActualElement(final Class<?> api, final Object identity, final ContextDefinition definition, final Annotation[] annotations) {
             this.api = api;
             this.identity = identity;
             this.definition = definition;
@@ -478,12 +478,12 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
         private final CircularityDescriptor descriptor;
         private final Set<ProxyContext> failed = new HashSet<ProxyContext>();
 
-        public CircularReferencesException(final Class<?> api, final ActualPath path) {
+        CircularReferencesException(final Class<?> api, final ActualPath path) {
             super(api, path.toString(true));
             this.descriptor = new CircularityDescriptor(api, path);
         }
 
-        public CircularReferencesException(final Class<?> api, final ActualPath path, final CircularReferencesException original) {
+        CircularReferencesException(final Class<?> api, final ActualPath path, final CircularReferencesException original) {
             super(original == null ? api : original.descriptor.api, (original == null ? path : original.descriptor.path).toString(true));
             this.descriptor = original == null ? new CircularityDescriptor(api, path) : original.descriptor;
         }

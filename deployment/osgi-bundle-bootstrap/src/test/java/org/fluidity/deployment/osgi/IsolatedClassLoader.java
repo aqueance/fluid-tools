@@ -35,7 +35,7 @@ public class IsolatedClassLoader extends ClassLoader {
 
     private final String name;
 
-    public IsolatedClassLoader(final String name, final Class... invisible) {
+    IsolatedClassLoader(final String name, final Class... invisible) {
         super(BundleComponentContainerImplTest.class.getClassLoader());
         this.name = name;
 

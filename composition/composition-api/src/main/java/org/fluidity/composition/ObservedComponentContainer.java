@@ -24,17 +24,18 @@ package org.fluidity.composition;
  * <h3>Usage</h3>
  * <pre>
  * {@linkplain Component @Component}
- * final class MyComponent {
+ * public final class MyComponent {
  *
  *   private final <span class="hl3">{@linkplain ComponentContainer}</span> container;
+ *   &hellip;
  *
- *   public MyComponent(final <span class="hl3">{@linkplain ComponentContainer}</span> container) {
+ *   MyComponent(final <span class="hl3">{@linkplain ComponentContainer}</span> container, &hellip;) {
  *     this.container = container;
  *     &hellip;
  *   }
  *
- *   private void exampleMethod() {
- *     final <span class="hl1">ObservedComponentContainer</span> observed = container.<span class="hl3">observed(</span>new <span class="hl2">{@linkplain org.fluidity.composition.ComponentContainer.Observer}</span>() {
+ *   public void exampleMethod() {
+ *     final <span class="hl1">ObservedComponentContainer</span> observed = container.<span class="hl3">observed</span>(new <span class="hl2">{@linkplain ComponentContainer.Observer}</span>() {
  *       public void <span class="hl2">descending</span>(final {@linkplain Class}&lt;?> declaringType,
  *                              final {@linkplain Class}&lt;?> dependencyType,
  *                              final {@linkplain java.lang.annotation.Annotation}[] typeAnnotations,
@@ -56,15 +57,17 @@ package org.fluidity.composition;
  *       }
  *
  *       public void <span class="hl2">instantiated</span>(final {@linkplain DependencyPath} path, final {@linkplain java.util.concurrent.atomic.AtomicReference}&lt;?> object) {
- *         assert object.get() == null; // will return the just instantiated object only <b>after</b> this method completes
+ *
+ *         // will return the just instantiated object only <b>after</b> this method completes
+ *         assert object.get() == null;
  *         &hellip;
  *       }
- *     }<span class="hl3">)</span>;
+ *     });
  *
- *     &#47;* &hellip; static dependencies only; will invoke all methods of <span class="hl2">{@linkplain org.fluidity.composition.ComponentContainer.Observer}</span> except <span class="hl2">instantiated()</span>: *&#47;
+ *     // static dependencies only; will invoke all methods of <span class="hl2">{@linkplain ComponentContainer.Observer}</span> except <span class="hl2">instantiated()</span>:
  *     observed.<span class="hl1">resolveComponent</span>(SomeComponent.class);
  *
- *     &#47;* &hellip; static and dynamic dependencies; will invoke all methods of <span class="hl2">{@linkplain org.fluidity.composition.ComponentContainer.Observer}</span>: *&#47;
+ *     // static and dynamic dependencies; will invoke all methods of <span class="hl2">{@linkplain ComponentContainer.Observer}</span>:
  *     observed.<span class="hl1">getComponent</span>(SomeComponent.class);
  *   }
  * }

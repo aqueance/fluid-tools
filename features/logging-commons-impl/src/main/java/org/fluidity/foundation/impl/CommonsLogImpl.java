@@ -26,7 +26,7 @@ import org.apache.commons.logging.LogFactory;
  */
 final class CommonsLogImpl<T> extends AbstractLog<Log, T> {
 
-    public CommonsLogImpl(final Class<T> source) {
+    CommonsLogImpl(final Class<T> source) {
         super(LogFactory.getLog(source.getName()), new Levels<Log>() {
             public boolean trace(final Log log) {
                 return log.isTraceEnabled();

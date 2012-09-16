@@ -25,19 +25,20 @@ package org.fluidity.features;
  * <h3>Usage</h3>
  * <pre>
  * {@linkplain org.fluidity.composition.Component @Component}
- * final class <span class="hl2">MyComponent</span> {
+ * public final class <span class="hl2">MyComponent</span> {
  *
- *   private static final int period = {@linkplain java.util.concurrent.TimeUnit#MILLISECONDS}.{@linkplain java.util.concurrent.TimeUnit#convert(long, java.util.concurrent.TimeUnit) convert}(1, {@linkplain java.util.concurrent.TimeUnit#SECONDS});
+ *   private static final long period = {@linkplain java.util.concurrent.TimeUnit#MILLISECONDS}.{@linkplain java.util.concurrent.TimeUnit#convert(long, java.util.concurrent.TimeUnit) convert}(1, {@linkplain java.util.concurrent.TimeUnit#SECONDS});
  *
  *   private volatile long <span class="hl3">timestamp</span>;
  *
- *   public <span class="hl2">MyComponent</span>(final <span class="hl1">Scheduler</span> scheduler) {
+ *   <span class="hl2">MyComponent</span>(final <span class="hl1">Scheduler</span> scheduler) {
  *     scheduler.<span class="hl1">invoke</span>(period, period, new {@linkplain Runnable}() {
  *       public void run() {
  *         <span class="hl3">timestamp</span> = {@linkplain System#currentTimeMillis()};
  *       }
  *     });
  *   }
+ *
  *   &hellip;
  * }
  * </pre>

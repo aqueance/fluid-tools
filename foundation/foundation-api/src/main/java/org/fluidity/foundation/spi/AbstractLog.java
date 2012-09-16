@@ -26,10 +26,10 @@ import org.fluidity.foundation.Log;
  * import <b>external.logging.Log</b>;
  * import <b>external.logging.LogFactory</b>;
  *
- * final class <b>MyLogImpl</b> extends <span class="hl1">AbstractLog</span>&lt;<b>Log</b>> {
+ * final class <b>MyLogImpl</b>&lt;T> extends <span class="hl1">AbstractLog</span>&lt;<b>Log</b>, T> {
  *
- *   public <b>MyLogImpl</b>(final Class&lt;?> source) {
- *     <span class="hl1">super</span>(<b>LoggerFactory</b>.<b>getLogger</b>(source), new <span class="hl1">Levels</span>&lt;<b>Log</b>>() {
+ *   <b>MyLogImpl</b>(final Class&lt;T> source) {
+ *     <span class="hl1">super</span>(<b>LoggerFactory</b>.<b>getLogger</b>(source.getName()), new <span class="hl1">Levels</span>&lt;<b>Log</b>>() {
  *       public boolean <span class="hl1">trace</span>(final <b>Log</b> log) {
  *         return log.<b>isTraceEnabled</b>();
  *       }
@@ -60,12 +60,15 @@ import org.fluidity.foundation.Log;
  * <p/>
  * The recommended {@link LogFactory} implementation, with implementation specific bits <b>highlighted</b>, is as follows:
  * <pre>
+ * import org.fluidity.foundation.Log;
+ * import org.fluidity.foundation.LogFactory;
+ *
  * {@linkplain org.fluidity.composition.Component @Component}
  * {@linkplain org.fluidity.composition.ServiceProvider @ServiceProvider}
  * final class <b>MyLogFactory</b> implements <span class="hl1">{@linkplain LogFactory}</span> {
  *
- *   public {@linkplain Log} <span class="hl1">createLog</span>(final Class&lt;?> source) {
- *     return new <b>MyLogImpl</b>(source);
+ *   public &lt;T> {@linkplain Log}&lt;T> <span class="hl1">createLog</span>(final Class&lt;T> source) {
+ *     return new <b>MyLogImpl</b>&lt;T>(source);
  *   }
  * }
  * </pre>

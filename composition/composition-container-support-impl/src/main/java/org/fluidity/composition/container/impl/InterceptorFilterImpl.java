@@ -85,7 +85,7 @@ final class InterceptorFilterImpl implements InterceptorFilter {
 
         final Integer index;
 
-        public Descriptor(final ComponentInterceptor interceptor, final Map<Class<? extends Annotation>, Integer> indexes) {
+        Descriptor(final ComponentInterceptor interceptor, final Map<Class<? extends Annotation>, Integer> indexes) {
             this.type = interceptor.getClass();
 
             final Component.Context annotation = this.type.getAnnotation(Component.Context.class);

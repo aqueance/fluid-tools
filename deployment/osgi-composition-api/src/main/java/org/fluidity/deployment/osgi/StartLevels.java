@@ -24,10 +24,10 @@ import org.osgi.framework.Bundle;
  * Optional component for a standalone OSGi application to control the initial start level of the OSGi framework and the start level of individual bundles.
  * <h3>Usage</h3>
  * <pre>
- *   {@linkplain org.fluidity.composition.Component @Component}
- *   final class MyStartLevels implements <span class="hl1">StartLevels</span> {
- *      &hellip;
- *   }
+ * {@linkplain org.fluidity.composition.Component @Component}
+ * final class MyStartLevels implements <span class="hl1">StartLevels</span> {
+ *    &hellip;
+ * }
  * </pre>
  *
  * @author Tibor Varga

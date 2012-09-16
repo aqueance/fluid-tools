@@ -38,13 +38,13 @@ final class ConstructingResolver extends AbstractResolver {
     private final Constructor<?> constructor;
     private final boolean ignoreContext;
 
-    public ConstructingResolver(final int priority,
-                                final Class<?> api,
-                                final Class<?> componentClass,
-                                final boolean ignoreContext,
-                                final ComponentCache cache,
-                                final DependencyInjector injector,
-                                final LogFactory logs) {
+    ConstructingResolver(final int priority,
+                         final Class<?> api,
+                         final Class<?> componentClass,
+                         final boolean ignoreContext,
+                         final ComponentCache cache,
+                         final DependencyInjector injector,
+                         final LogFactory logs) {
         super(priority, api, cache, logs);
         this.ignoreContext = ignoreContext;
         this.injector = injector;

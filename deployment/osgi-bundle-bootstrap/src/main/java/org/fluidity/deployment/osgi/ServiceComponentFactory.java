@@ -39,7 +39,7 @@ final class ServiceComponentFactory implements ComponentFactory {
     private final Map<String, ServiceDescriptor> services;
     private final Class<?>[] api;
 
-    public ServiceComponentFactory(final ServiceDescriptor[] services) {
+    ServiceComponentFactory(final ServiceDescriptor[] services) {
         final Map<String, ServiceDescriptor> map = new HashMap<String, ServiceDescriptor>();
         final Set<Class<?>> types = new HashSet<Class<?>>();
 

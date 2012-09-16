@@ -32,7 +32,7 @@ final class ComponentDescriptor extends Descriptor {
     private final Class<? super BundleComponentContainer.Managed>[] api;
 
     @SuppressWarnings("unchecked")
-    public ComponentDescriptor(final Class<BundleComponentContainer.Managed> type, final Collection<Class<? super BundleComponentContainer.Managed>> api) {
+    ComponentDescriptor(final Class<BundleComponentContainer.Managed> type, final Collection<Class<? super BundleComponentContainer.Managed>> api) {
         super(type);
         this.api = api.toArray(new Class[api.size()]);
     }

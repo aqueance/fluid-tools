@@ -64,7 +64,7 @@ import org.sonatype.aether.util.DefaultRepositorySystemSession;
  * @threadSafe
  */
 @SuppressWarnings("UnusedDeclaration")
-public class StandaloneJarMojo extends AbstractMojo {
+public final class StandaloneJarMojo extends AbstractMojo {
 
     /**
      * Instructs the plugin, when set, to create a new JAR with the given classifier and attach it to the project. When not set, the project's JAR artifact
@@ -423,7 +423,7 @@ public class StandaloneJarMojo extends AbstractMojo {
 
         private final Iterator<Artifact> iterator;
 
-        public DependencyFeed(final Collection<Artifact> unpackedDependencies) {
+        DependencyFeed(final Collection<Artifact> unpackedDependencies) {
             iterator = unpackedDependencies.iterator();
         }
 

@@ -31,7 +31,7 @@ public final class LocalDependenciesTest implements BundleTest {
     private final ComponentDependency component;
     private final LocalServiceDependency service;
 
-    public LocalDependenciesTest(final ComponentDependency component, final @Service LocalServiceDependency service) {
+    LocalDependenciesTest(final ComponentDependency component, final @Service LocalServiceDependency service) {
         this.component = component;
         this.service = service;
     }

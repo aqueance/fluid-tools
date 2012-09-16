@@ -56,7 +56,7 @@ import org.fluidity.composition.ServiceProvider;
  * <pre>
  * final class <span class="hl2">MyComponent</span> implements <span class="hl1">BundleComponentContainer.Managed</span> {
  *
- *   public <span class="hl2">MyComponent</span>(final {@linkplain Service @Service} SomeService service, final SomeDependency dependency) {
+ *   <span class="hl2">MyComponent</span>(final {@linkplain Service @Service} SomeService service, final SomeDependency dependency) {
  *     &hellip;
  *   }
  *
@@ -67,6 +67,7 @@ import org.fluidity.composition.ServiceProvider;
  *   public void <span class="hl1">stop</span>() throws Exception {
  *     &hellip;
  *   }
+ *
  *   &hellip;
  * }
  * </pre>
@@ -77,9 +78,10 @@ import org.fluidity.composition.ServiceProvider;
  * <pre>
  * final class <span class="hl2">MyComponent</span> implements <span class="hl1">BundleComponentContainer.Registration</span> {
  *
- *   public <span class="hl2">MyComponent</span>(final {@linkplain Service @Service} SomeService service, final SomeDependency dependency) {
+ *   <span class="hl2">MyComponent</span>(final {@linkplain Service @Service} SomeService service, final SomeDependency dependency) {
  *     &hellip;
  *   }
+ *
  *   &hellip;
  * }
  * </pre>
@@ -91,9 +93,10 @@ import org.fluidity.composition.ServiceProvider;
  * <pre>
  * final class <span class="hl2">MyComponent</span> implements <span class="hl1">BundleComponentContainer.Registration.Listener</span> {
  *
- *   public <span class="hl2">MyComponent</span>(final {@linkplain Service @Service} SomeService service, final SomeDependency dependency) {
+ *   <span class="hl2">MyComponent</span>(final {@linkplain Service @Service} SomeService service, final SomeDependency dependency) {
  *     &hellip;
  *   }
+ *
  *   &hellip;
  * }
  * </pre>
@@ -109,7 +112,7 @@ import org.fluidity.composition.ServiceProvider;
  *
  *   private final <span class="hl1">BundleComponentContainer.Status</span> status;
  *
- *   public <span class="hl3">MyComponent</span>(final {@linkplain Service @Service} <span class="hl1">BundleComponentContainer.Status</span> status) {
+ *   <span class="hl3">MyComponent</span>(final {@linkplain Service @Service} <span class="hl1">BundleComponentContainer.Status</span> status) {
  *     this.status = status;
  *   }
  *

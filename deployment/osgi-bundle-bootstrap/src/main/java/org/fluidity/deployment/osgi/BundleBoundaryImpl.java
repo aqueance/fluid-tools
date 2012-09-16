@@ -108,7 +108,7 @@ final class BundleBoundaryImpl implements BundleBoundary {
         private final ClassLoader tunnel;
         private final Object implementation;
 
-        public ServiceInvocation(final Object service, final ClassLoader classLoader) {
+        ServiceInvocation(final Object service, final ClassLoader classLoader) {
             this.implementation = service;
             this.tunnel = classLoader;
         }
@@ -132,7 +132,7 @@ final class BundleBoundaryImpl implements BundleBoundary {
 
         private final ClassLoader caller;
 
-        public DelegatingClassLoader(final ClassLoader remote, final ClassLoader local) {
+        DelegatingClassLoader(final ClassLoader remote, final ClassLoader local) {
             super(remote);
             this.caller = local == null ? getSystemClassLoader() : local;
         }

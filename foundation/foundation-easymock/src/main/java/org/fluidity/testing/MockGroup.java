@@ -327,7 +327,7 @@ public class MockGroup {
 
         public final List<IMocksControl> groups = new ArrayList<IMocksControl>(Arrays.asList(strictGroup, group, niceGroup));
 
-        public ControlGroup() {
+        ControlGroup() {
             for (final IMocksControl control : groups) {
                 control.makeThreadSafe(true);
             }

@@ -24,7 +24,7 @@ final class ComponentImpl implements ComponentApi {
 
     private final MessageSink dependency;
 
-    public ComponentImpl(final MessageSink dependency) {
+    ComponentImpl(final MessageSink dependency) {
         this.dependency = dependency;
     }
 

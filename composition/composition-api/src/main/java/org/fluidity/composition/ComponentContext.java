@@ -32,25 +32,34 @@ import java.util.Set;
  * context to configuration understood by the component being adapted.
  * <h3>Usage</h3>
  * <pre>
+ * &#64;Retention(RetentionPolicy.RUNTIME)
+ * public @interface <span class="hl2">MyContext1</span> { &hellip; }
+ * </pre>
+ * <pre>
+ * &#64;Retention(RetentionPolicy.RUNTIME)
+ * public @interface <span class="hl2">MyContext2</span> { &hellip; }
+ * </pre>
+ * <pre>
  * <span class="hl2">&#64;MyContext1</span>
  * {@linkplain Component @Component}
- * public class ContextProvider {
+ * public final class ContextProvider {
  *
- *     public ContextProvider(final <span class="hl2">&#64;MyContext2</span> dependency) {
+ *     ContextProvider(final <span class="hl2">&#64;MyContext2</span> dependency) {
  *         &hellip;
  *     }
  *
  *     &hellip;
  * }
- *
+ * </pre>
+ * <pre>
  * {@linkplain Component @Component}
  * <span class="hl1">{@linkplain Component.Context @Component.Context}</span>({ <span class="hl2">MyContext1</span>.class,  <span class="hl2">MyContext2</span>.class })
  * final class <span class="hl3">Dependency</span> {
  *
- *     public <span class="hl3">Dependency</span>(final <span class="hl1">ComponentContext</span> context) {
+ *     <span class="hl3">Dependency</span>(final <span class="hl1">ComponentContext</span> context) {
  *
  *         // all MyContext1 annotations in the instantiation path of this object
- *         <span class="hl2">MyContext1</span>[] context1s = context.annotations(<span class="hl2">MyContext1</span>.class);
+ *         <span class="hl2">MyContext1</span>[] context1s = context.<span class="hl1">annotations</span>(<span class="hl2">MyContext1</span>.class);
  *
  *         // the last MyContext2 annotation in the instantiation path of this object
  *         <span class="hl2">MyContext2</span> context2 = context.<span class="hl1">annotation</span>(<span class="hl2">MyContext2</span>.class, <span class="hl3">Dependency</span>.class);

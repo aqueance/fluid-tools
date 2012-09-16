@@ -212,7 +212,7 @@ public final class Generics extends Utility {
     private static class GenericArrayTypeImpl implements GenericArrayType {
         private final Type componentType;
 
-        public GenericArrayTypeImpl(final Type componentType) {
+        GenericArrayTypeImpl(final Type componentType) {
             this.componentType = componentType;
         }
 
@@ -249,7 +249,7 @@ public final class Generics extends Utility {
         private ParameterizedType original;
         private final Type[] arguments;
 
-        public ParameterizedTypeImpl(final ParameterizedType original, final Type[] arguments) {
+        ParameterizedTypeImpl(final ParameterizedType original, final Type[] arguments) {
             this.arguments = arguments;
             this.original = original;
         }

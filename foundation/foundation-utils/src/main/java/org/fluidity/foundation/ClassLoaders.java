@@ -332,7 +332,7 @@ public final class ClassLoaders extends Utility {
 
         private static final String[] EMPTY_STRING_ARRAY = new String[0];
 
-        public CloseableURLClassLoader(final URL[] urls, final ClassLoader parent) {
+        CloseableURLClassLoader(final URL[] urls, final ClassLoader parent) {
             super(UUID.randomUUID().toString(), urls, parent, true, EMPTY_STRING_ARRAY, EMPTY_STRING_ARRAY);
             assert parent != null;
         }

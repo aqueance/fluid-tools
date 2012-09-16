@@ -32,19 +32,19 @@ import org.fluidity.composition.container.spi.OpenComponentContainer;
  */
 final class ComponentContainerShell extends EmptyComponentContainer<SimpleContainer> {
 
-    public ComponentContainerShell(final ContainerServices services, final PlatformContainer platform) {
+    ComponentContainerShell(final ContainerServices services, final PlatformContainer platform) {
         this(new SimpleContainerImpl(services, platform), services.emptyContext(), false, false, null);
     }
 
-    public ComponentContainerShell(final SimpleContainer container, final ContextDefinition context, final boolean child) {
+    ComponentContainerShell(final SimpleContainer container, final ContextDefinition context, final boolean child) {
         this(container, context, child, false, null);
     }
 
-    public ComponentContainerShell(final SimpleContainer container,
-                                   final ContextDefinition context,
-                                   final boolean child,
-                                   final boolean domain,
-                                   final Observer observer) {
+    private ComponentContainerShell(final SimpleContainer container,
+                                    final ContextDefinition context,
+                                    final boolean child,
+                                    final boolean domain,
+                                    final Observer observer) {
         super(child ? container.newChildContainer(domain) : container, container.services(), context.copy(), observer);
     }
 

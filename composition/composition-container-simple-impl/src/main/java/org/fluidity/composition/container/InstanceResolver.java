@@ -33,7 +33,7 @@ final class InstanceResolver extends AbstractResolver {
     private final Object instance;
     private final Class<?> componentClass;
 
-    public InstanceResolver(final int priority, final Class<?> api, final Object instance, final LogFactory logs) {
+    InstanceResolver(final int priority, final Class<?> api, final Object instance, final LogFactory logs) {
         super(priority, api, null, logs);
         this.instance = instance;
         this.componentClass = this.instance.getClass();

@@ -96,7 +96,7 @@ abstract class AbstractResolver implements ComponentResolver {
         private final DependencyGraph.Node node;
         private final String source;
 
-        public CachingNode(final ParentContainer domain, final DependencyGraph.Node node, final SimpleContainer container) {
+        CachingNode(final ParentContainer domain, final DependencyGraph.Node node, final SimpleContainer container) {
             assert cache != null : api;
             assert node != null : api;
             this.domain = domain;

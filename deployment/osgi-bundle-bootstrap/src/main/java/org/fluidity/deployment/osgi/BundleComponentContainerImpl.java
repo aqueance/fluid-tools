@@ -59,10 +59,10 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
     private final Log<BundleComponentContainerImpl> log;
     private final ClassDiscovery discovery;
 
-    public BundleComponentContainerImpl(final BundleContext context,
-                                        final ComponentContainer container,
-                                        final Log<BundleComponentContainerImpl> log,
-                                        final ClassDiscovery discovery) {
+    BundleComponentContainerImpl(final BundleContext context,
+                                 final ComponentContainer container,
+                                 final Log<BundleComponentContainerImpl> log,
+                                 final ClassDiscovery discovery) {
         this.context = context;
         this.container = container;
         this.log = log;
@@ -147,10 +147,7 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
             }
         };
 
-        public Logic(final BundleContext context,
-                     final ComponentContainer container,
-                     final Log<BundleComponentContainerImpl> log,
-                     final ClassDiscovery discovery) {
+        Logic(final BundleContext context, final ComponentContainer container, final Log<BundleComponentContainerImpl> log, final ClassDiscovery discovery) {
             this.context = context;
             this.container = container;
             this.log = log;
@@ -596,7 +593,7 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
 
             private ServiceReference reference;
 
-            public ServiceChangeListener(final ServiceDescriptor descriptor) {
+            ServiceChangeListener(final ServiceDescriptor descriptor) {
                 this.descriptor = descriptor;
             }
 

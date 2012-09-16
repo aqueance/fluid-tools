@@ -46,7 +46,7 @@ final class ClassDiscoveryImpl implements ClassDiscovery {
 
     private final Log log;
 
-    public ClassDiscoveryImpl(final Log<ClassDiscoveryImpl> log) {
+    ClassDiscoveryImpl(final Log<ClassDiscoveryImpl> log) {
         this.log = log;
     }
 

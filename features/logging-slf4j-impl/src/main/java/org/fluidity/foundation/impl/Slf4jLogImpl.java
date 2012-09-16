@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory;
  */
 final class Slf4jLogImpl<T> extends AbstractLog<Logger, T> {
 
-    public Slf4jLogImpl(final Class<?> source) {
+    Slf4jLogImpl(final Class<?> source) {
         super(LoggerFactory.getLogger(source.getName()), new Levels<Logger>() {
             public boolean trace(final Logger log) {
                 return log.isTraceEnabled();

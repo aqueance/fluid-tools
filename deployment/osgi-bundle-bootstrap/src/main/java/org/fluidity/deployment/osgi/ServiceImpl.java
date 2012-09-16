@@ -23,16 +23,17 @@ import org.fluidity.foundation.Strings;
 /**
  * @author Tibor Varga
  */
+@SuppressWarnings("ClassExplicitlyAnnotation")
 final class ServiceImpl implements Service {
 
     private Class<?> type;
     private final String filter;
 
-    public ServiceImpl(final Class<?> type) {
+    ServiceImpl(final Class<?> type) {
         this(type, "");
     }
 
-    public ServiceImpl(final Class<?> type, final String filter) {
+    ServiceImpl(final Class<?> type, final String filter) {
         this.type = type;
         this.filter = filter;
     }

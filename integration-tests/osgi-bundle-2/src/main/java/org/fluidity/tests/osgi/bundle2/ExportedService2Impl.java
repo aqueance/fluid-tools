@@ -28,9 +28,10 @@ import org.fluidity.tests.osgi.ExportedService2;
  *
  * @author Tibor Varga
  */
+@SuppressWarnings("UnusedDeclaration")
 final class ExportedService2Impl implements ExportedService2, BundleComponentContainer.Registration {
 
-    public ExportedService2Impl(final @Service ExportedService1 service) {
+    ExportedService2Impl(final @Service ExportedService1 service) {
         assert service != null;
     }
 

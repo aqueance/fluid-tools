@@ -32,7 +32,6 @@ package org.fluidity.deployment.osgi;
  * final {@linkplain org.osgi.framework.BundleContext} context = &hellip;
  * final {@linkplain org.osgi.framework.ServiceReference}&lt;<span class="hl2">RemoteComponent</span>> reference = context.getServiceReference(<span class="hl2">RemoteComponent</span>.class);
  * final <span class="hl2">RemoteComponent</span> service = boundary.<span class="hl1">imported</span>(<span class="hl2">RemoteComponent</span>.class, context.getService(reference));
- *
  * </pre>
  *
  * @author Tibor Varga

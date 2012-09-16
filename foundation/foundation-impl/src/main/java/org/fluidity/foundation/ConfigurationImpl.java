@@ -55,7 +55,7 @@ final class ConfigurationImpl<T> implements Configuration<T> {
      * @param provider provides properties.
      * @param defaults when found, used as the provider of default values for properties missing from <code>provider</code>.
      */
-    public ConfigurationImpl(final ComponentContext context, final @Optional PropertyProvider provider, final @Optional T defaults) {
+    ConfigurationImpl(final ComponentContext context, final @Optional PropertyProvider provider, final @Optional T defaults) {
         this.provider = provider;
 
         @SuppressWarnings("unchecked")
@@ -143,7 +143,7 @@ final class ConfigurationImpl<T> implements Configuration<T> {
         private final PropertyProvider provider;
         private final ClassLoader loader;
 
-        public PropertyLoader(final Class<T> api, final String[] prefixes, final T defaults, final PropertyProvider provider) {
+        PropertyLoader(final Class<T> api, final String[] prefixes, final T defaults, final PropertyProvider provider) {
             this.api = api;
             this.prefixes = prefixes;
             this.defaults = defaults;

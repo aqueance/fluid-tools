@@ -34,7 +34,7 @@ import java.lang.reflect.UndeclaredThrowableException;
  *             &hellip;
  *             throw new <span class="hl2">CheckedException2</span>();
  *           }
- *         }<span class="hl1">)</span>;
+ *         });
  *       }
  *     });
  *   } catch (final <span class="hl1">{@linkplain Exceptions.Wrapper}</span> wrapper) {

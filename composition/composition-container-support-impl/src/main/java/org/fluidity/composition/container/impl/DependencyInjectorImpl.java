@@ -59,7 +59,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
 
     private final DependencyInterceptors interceptors;
 
-    public DependencyInjectorImpl(final DependencyInterceptors interceptors) {
+    DependencyInjectorImpl(final DependencyInterceptors interceptors) {
         this.interceptors = interceptors;
     }
 
@@ -243,14 +243,14 @@ final class DependencyInjectorImpl implements DependencyInjector {
 
     private static class MultipleConstructorsException extends ComponentContainer.ResolutionException {
 
-        public MultipleConstructorsException(final Class<?> componentClass) {
+        MultipleConstructorsException(final Class<?> componentClass) {
             super("Multiple constructors found for %s", componentClass);
         }
     }
 
     private static class NoConstructorException extends ComponentContainer.ResolutionException {
 
-        public NoConstructorException(final Class<?> componentClass) {
+        NoConstructorException(final Class<?> componentClass) {
             super("No suitable constructor found for %s", componentClass);
         }
     }
@@ -633,7 +633,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
         private final Class<?> declaringType;
         private final Class<?> dependencyType;
 
-        public DependencyNode(final boolean mandatory, final DependencyGraph.Node node, final Class<?> declaringType, final Class<?> dependencyType) {
+        DependencyNode(final boolean mandatory, final DependencyGraph.Node node, final Class<?> declaringType, final Class<?> dependencyType) {
             this.mandatory = mandatory;
             this.node = node;
             this.declaringType = declaringType;

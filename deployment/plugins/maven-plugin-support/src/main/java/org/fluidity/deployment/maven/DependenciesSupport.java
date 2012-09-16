@@ -488,7 +488,7 @@ public final class DependenciesSupport extends Utility {
 
         private final DependencySelector selector;
 
-        public DependencyFilterSession(final RepositorySystemSession parent, final DependencySelector selector) {
+        DependencyFilterSession(final RepositorySystemSession parent, final DependencySelector selector) {
             super(parent);
             this.selector = selector;
         }
@@ -514,11 +514,11 @@ public final class DependenciesSupport extends Utility {
         private final Set<String> selectedArtifacts;
         private final Set<String> acceptedScopes;
 
-        public TransitiveDependencySelector(final boolean compile, boolean optionals, final String... exclusions) {
+        TransitiveDependencySelector(final boolean compile, boolean optionals, final String... exclusions) {
             this(compile, optionals, new HashSet<String>(), exclusions);
         }
 
-        public TransitiveDependencySelector(final boolean compile, boolean optionals, final Set<String> selected, final String... exclusions) {
+        private TransitiveDependencySelector(final boolean compile, boolean optionals, final Set<String> selected, final String... exclusions) {
             this.compile = compile;
             this.optionals = optionals;
             this.excludedArtifacts = new HashSet<String>(Arrays.asList(exclusions));

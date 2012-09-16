@@ -40,7 +40,7 @@ final class ComponentContextImpl implements ComponentContext {
         }
     });
 
-    public ComponentContextImpl(final Map<Class<? extends Annotation>, Annotation[]> map) {
+    ComponentContextImpl(final Map<Class<? extends Annotation>, Annotation[]> map) {
         for (final Map.Entry<Class<? extends Annotation>, Annotation[]> entry : map.entrySet()) {
             annotations.put(entry.getKey(), entry.getValue().clone());
         }

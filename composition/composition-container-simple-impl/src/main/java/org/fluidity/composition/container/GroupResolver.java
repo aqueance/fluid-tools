@@ -98,7 +98,7 @@ final class GroupResolver {
         }
     };
 
-    public GroupResolver(final Class<?> api) {
+    GroupResolver(final Class<?> api) {
         this.api = api;
     }
 

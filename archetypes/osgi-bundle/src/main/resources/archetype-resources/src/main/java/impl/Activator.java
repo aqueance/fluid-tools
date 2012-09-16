@@ -28,7 +28,7 @@ final class Activator implements BundleActivator {
 
     private final Log<?> log;
 
-    public Activator(final Log<Activator> log) {
+    Activator(final Log<Activator> log) {
         this.log = log;
     }
 

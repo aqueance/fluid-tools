@@ -27,11 +27,11 @@ import org.testng.annotations.Test;
 /**
  * @author Tibor Varga
  */
-public class RemoteDependenciesTest implements BundleTest {
+public final class RemoteDependenciesTest implements BundleTest {
 
     private final ExportedService2 service;
 
-    public RemoteDependenciesTest(final @Service ExportedService2 service) {
+    RemoteDependenciesTest(final @Service ExportedService2 service) {
         this.service = service;
     }
 

@@ -31,7 +31,7 @@ final class MessageSinkService implements MessageSink, BundleComponentContainer.
     private final Log<?> log;
     private Properties properties = new Properties();
 
-    public MessageSinkService(final Log<MessageSinkService> log) {
+    MessageSinkService(final Log<MessageSinkService> log) {
         this.log = log;
         this.properties.setProperty("default", String.valueOf(true));
     }

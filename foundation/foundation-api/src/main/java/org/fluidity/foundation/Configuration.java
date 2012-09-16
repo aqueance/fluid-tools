@@ -39,23 +39,24 @@ import org.fluidity.foundation.spi.PropertyProvider;
  * // The settings interface
  * interface <span class="hl2">MySettings</span> {
  *
- *   <span class="hl1">{@linkplain Property @Configuration.Property}</span>(<span class="hl1">key</span> = "<span class="hl3">property.%d</span>", <span class="hl1">undefined</span> = "default value <span class="hl3">%d</span>"<span class="hl1">)</span>
+ *   <span class="hl1">{@linkplain Property @Configuration.Property}</span>(<span class="hl1">key</span> = "<span class="hl3">property.%d</span>", <span class="hl1">undefined</span> = "default value <span class="hl3">%d</span>")
  *   String <span class="hl2">property</span>(<span class="hl3">int</span> item);
  *
  *   &hellip;
  * }
- *
+ * </pre>
+ * <pre>
  * // The configured component
  * {@linkplain org.fluidity.composition.Component @Component}
  * <span class="hl1">{@linkplain Context @Configuration.Context}</span>(<span class="hl3">"some.property"</span>)
- * final class MyComponent {
+ * public final class MyComponent {
  *
- *   public MyComponent(final <span class="hl1">{@linkplain Context @Configuration.Context}</span>(<span class="hl3">"prefix"</span>) <span class="hl1">Configuration</span><span class="hl2">&lt;MySettings></span> configuration) {
+ *   MyComponent(final <span class="hl1">{@linkplain Context @Configuration.Context}</span>(<span class="hl3">"prefix"</span>) <span class="hl1">Configuration</span><span class="hl2">&lt;MySettings></span> configuration) {
  *     &hellip;
  *     final <span class="hl2">MySettings</span> settings = configuration<span class="hl1">.settings()</span>;
  *     &hellip;
  *     // query <span class="hl3">"some.property</span>.<span class="hl3">prefix</span>.<span class="hl3">property.123"</span> from the optional {@linkplain PropertyProvider} component
- *     final String property123 = settings.<span class="hl2">property(</span><span class="hl3">123</span><span class="hl2">)</span>;
+ *     final String property123 = settings.<span class="hl2">property</span>(<span class="hl3">123</span>);
  *     &hellip;
  *   }
  *
@@ -169,9 +170,9 @@ public interface Configuration<T> {
      * <h3>Usage</h3>
      * <pre>
      * {@linkplain org.fluidity.composition.Component @Component}
-     * final class MyComponent {
+     * public final class MyComponent {
      *
-     *   public MyComponent(final {@linkplain Configuration}&lt;<span class="hl2">MySettings</span>> configuration) {
+     *   MyComponent(final {@linkplain Configuration}&lt;<span class="hl2">MySettings</span>> configuration) {
      *     final int data = configuration.<span class="hl1">query</span>(new <span class="hl1">Configuration.Query</span>&lt;<span class="hl2">MySettings</span>, Integer>() {
      *       public final Integer <span class="hl1">read</span>(final <span class="hl2">MySettings</span> settings) {
      *         return settings.<span class="hl2">property1</span>() + settings.<span class="hl2">property2</span>();
@@ -183,10 +184,10 @@ public interface Configuration<T> {
      *
      *   interface <span class="hl2">MySettings</span> {
      *
-     *       <span class="hl1">{@linkplain Property @Configuration.Property}</span>(<span class="hl1">key</span> = "property1", <span class="hl1">undefined</span> = "default value 1"<span class="hl1">)</span>
+     *       <span class="hl1">{@linkplain Property @Configuration.Property}</span>(<span class="hl1">key</span> = "property1", <span class="hl1">undefined</span> = "default value 1")
      *       int <span class="hl2">property1</span>();
      *
-     *       <span class="hl1">{@linkplain Property @Configuration.Property}</span>(<span class="hl1">key</span> = "property2", <span class="hl1">undefined</span> = "default value 2"<span class="hl1">)</span>
+     *       <span class="hl1">{@linkplain Property @Configuration.Property}</span>(<span class="hl1">key</span> = "property2", <span class="hl1">undefined</span> = "default value 2")
      *       int <span class="hl2">property2</span>();
      *   }
      * }

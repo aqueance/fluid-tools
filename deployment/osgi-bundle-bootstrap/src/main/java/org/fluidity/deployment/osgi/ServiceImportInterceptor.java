@@ -28,16 +28,16 @@ import org.fluidity.foundation.Generics;
  * Object)}.
  * <h3>Usage</h3>
  * <pre>
- * {@linkplain Component @Component}
- * public final class MyComponent implements {@linkplain BundleComponentContainer.Managed BundleComponentContainer.Managed} {
+ * final class MyComponent implements {@linkplain BundleComponentContainer.Managed BundleComponentContainer.Managed} {
  *
- *   public MyComponent(final <span class="hl1">&#64;Service</span> <span class="hl2">SomeService</span> service) {
+ *   MyComponent(final <span class="hl1">&#64;Service</span> <span class="hl2">SomeService</span> service) {
  *     &hellip;
  *   }
  *
  *   &hellip;
  * }
- *
+ * </pre>
+ * <pre>
  * public <b>interface</b> <span class="hl2">SomeService</span> {
  *   &hellip;
  * }
@@ -51,7 +51,7 @@ final class ServiceImportInterceptor implements ComponentInterceptor {
 
     private final BundleBoundary border;
 
-    public ServiceImportInterceptor(final BundleBoundary border) {
+    ServiceImportInterceptor(final BundleBoundary border) {
         this.border = border;
     }
 

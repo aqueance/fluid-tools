@@ -38,7 +38,7 @@ final class ProductionServices implements ContainerServices {
     private final DependencyInjector injector;
     private final Log<ComponentCacheImpl> cacheLog;
 
-    public ProductionServices(final LogFactory logs) {
+    ProductionServices(final LogFactory logs) {
         this.logs = logs;
         this.cacheLog = logs.createLog(ComponentCacheImpl.class);
         this.discovery = new ClassDiscoveryImpl(logs.createLog(ClassDiscoveryImpl.class));

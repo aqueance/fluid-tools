@@ -24,12 +24,13 @@ import java.util.concurrent.atomic.AtomicReference;
  * <pre>
  * final class LightObject {
  *
- *   private final <span class="hl1">Deferred.Reference</span><span class="hl2">&lt;HeavyObject></span> reference = <span
- * class="hl1">Deferred.reference</span>(new <span class="hl1">Deferred.Factory</span><span class="hl2">&lt;HeavyObject></span>() {
+ *   private final <span class="hl1">Deferred.Factory</span> factory = new <span class="hl1">Deferred.Factory</span><span class="hl2">&lt;HeavyObject></span>() {
  *     public <span class="hl2">HeavyObject</span> <span class="hl1">create()</span> {
- *       return new HeavyObject(&hellip;);
+ *       return new <span class="hl2">HeavyObject</span>(&hellip;);
  *     }
- *   });
+ *   }
+ *
+ *   private final <span class="hl1">Deferred.Reference</span><span class="hl2">&lt;HeavyObject></span> reference = <span class="hl1">Deferred.reference</span>(factory);
  *
  *   &hellip;
  *
@@ -176,7 +177,7 @@ public final class Deferred extends Utility {
         private Factory<T> factory;
         private volatile T delegate;
 
-        public ReferenceImpl(final Factory<T> factory) {
+        ReferenceImpl(final Factory<T> factory) {
             assert factory != null;
             this.factory = factory;
         }
@@ -208,7 +209,7 @@ public final class Deferred extends Utility {
         private final Factory<T> factory;
         private final AtomicReference<Reference<T>> state = new AtomicReference<Reference<T>>();
 
-        public StateImpl(final Factory<T> factory) {
+        StateImpl(final Factory<T> factory) {
             this.factory = factory;
             invalidate();
         }

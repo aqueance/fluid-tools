@@ -33,7 +33,7 @@ final class LogComponentFactory implements ComponentFactory {
 
     private final LogFactory factory;
 
-    public LogComponentFactory(final LogFactory factory) {
+    LogComponentFactory(final LogFactory factory) {
         this.factory = factory;
 
     }

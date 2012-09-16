@@ -106,11 +106,12 @@ import org.fluidity.foundation.Utility;
  * public interface <span class="hl3">MyComponent</span> {
  *   &hellip;
  * }
- *
+ * </pre>
+ * <pre>
  * {@linkplain Component @Component}
  * final class <span class="hl2">MyComponentImpl</span> implements <span class="hl3">MyComponent</span> {
  *
- *     public <span class="hl2">MyComponentImpl</span>() {
+ *     <span class="hl2">MyComponentImpl</span>() {
  *         System.out.printf("My component interfaces: %s%n", <span class="hl1">Components</span>.inspect(getClass());
  *     }
  * }

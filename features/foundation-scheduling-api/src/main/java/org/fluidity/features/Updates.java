@@ -30,13 +30,13 @@ package org.fluidity.features;
  * <h3>Usage</h3>
  * <pre>
  * {@linkplain org.fluidity.composition.Component @Component}
- * final class <span class="hl2">MyComponent</span> {
+ * public final class <span class="hl2">MyComponent</span> {
  *
- *   private static final int period = {@linkplain java.util.concurrent.TimeUnit#MILLISECONDS}.{@linkplain java.util.concurrent.TimeUnit#convert(long, java.util.concurrent.TimeUnit) convert}(1, {@linkplain java.util.concurrent.TimeUnit#SECONDS});
+ *   private static final long period = {@linkplain java.util.concurrent.TimeUnit#MILLISECONDS}.{@linkplain java.util.concurrent.TimeUnit#convert(long, java.util.concurrent.TimeUnit) convert}(1, {@linkplain java.util.concurrent.TimeUnit#SECONDS});
  *
  *   private final <span class="hl1">Updates.Snapshot</span>&lt;<span class="hl3">Data</span>> data;
  *
- *   public <span class="hl2">MyComponent</span>(final <span class="hl1">Updates</span> updates) {
+ *   <span class="hl2">MyComponent</span>(final <span class="hl1">Updates</span> updates) {
  *     data = updates.<span class="hl1">register</span>(period, new <span class="hl1">Updates.Snapshot</span>&lt;<span class="hl3">Data</span>>() {
  *       public <span class="hl3">Data</span> get() {
  *         return &hellip;;  // update the data
@@ -45,10 +45,11 @@ package org.fluidity.features;
  *   }
  *
  *   public int someMethod() {
- *     final <span class="hl3">Data</span> snapshot = data.get();
+ *     final <span class="hl3">Data</span> snapshot = data.<span class="hl1">get</span>();
  *     &hellip;
  *     return snapshot.&hellip;; // access the data snapshot
  *   }
+ *
  *   &hellip;
  *
  *   private static class <span class="hl3">Data</span> {

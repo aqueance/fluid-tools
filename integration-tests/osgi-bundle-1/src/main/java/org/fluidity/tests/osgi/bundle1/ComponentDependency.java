@@ -27,7 +27,7 @@ final class ComponentDependency implements BundleComponentContainer.Managed {
 
     private final IndependentComponent dependency;
 
-    public ComponentDependency(final IndependentComponent dependency) {
+    ComponentDependency(final IndependentComponent dependency) {
         this.dependency = dependency;
     }
 

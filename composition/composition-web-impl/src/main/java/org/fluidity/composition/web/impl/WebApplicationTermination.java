@@ -44,7 +44,7 @@ final class WebApplicationTermination implements ContainerTermination, ServletCo
     private final List<Runnable> tasks = new ArrayList<Runnable>();
     private final Log log;
 
-    public WebApplicationTermination(final Log<WebApplicationTermination> log) {
+    WebApplicationTermination(final Log<WebApplicationTermination> log) {
         this.log = log;
     }
 

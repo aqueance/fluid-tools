@@ -39,6 +39,8 @@ import org.fluidity.foundation.Exceptions;
 @SuppressWarnings("JavadocReference")
 public final class Launcher {
 
+    private Launcher() { }
+
     /**
      * The JAR manifest attribute that specifies the application's main class, one with a <code>public static void main(final String[] args) throws
      * Exception</code> method.

@@ -27,7 +27,7 @@ import org.testng.annotations.Test;
 /**
  * @author Tibor Varga
  */
-public class ServiceListenerTest implements BundleTest, BundleComponentContainer.Registration.Listener {
+public final class ServiceListenerTest implements BundleTest, BundleComponentContainer.Registration.Listener {
 
     private final AtomicInteger bundleCount = new AtomicInteger();
 

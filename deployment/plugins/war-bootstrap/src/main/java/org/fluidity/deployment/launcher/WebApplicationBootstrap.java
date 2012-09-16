@@ -47,10 +47,7 @@ public final class WebApplicationBootstrap {
 
     private final Pattern warFilePattern = Pattern.compile("^(jar:)?file:(.+?.war)(\\!/.*)?");
 
-    /**
-     * Dependency injected constructor.
-     */
-    public WebApplicationBootstrap() { }
+    private WebApplicationBootstrap() { }
 
     /**
      * Command line application entry point.

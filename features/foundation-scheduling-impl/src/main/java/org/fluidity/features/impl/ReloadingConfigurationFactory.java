@@ -67,10 +67,7 @@ final class ReloadingConfigurationFactory implements ComponentFactory {
 
         private final Deferred.Reference<Updates.Snapshot<T>> snapshot;
 
-        public ReloadingConfigurationImpl(final Class<T> type,
-                                          final Configuration<T> delegate,
-                                          final Configuration<Settings> configuration,
-                                          final Updates updates) {
+        ReloadingConfigurationImpl(final Class<T> type, final Configuration<T> delegate, final Configuration<Settings> configuration, final Updates updates) {
             this.snapshot = Deferred.reference(new Deferred.Factory<Updates.Snapshot<T>>() {
                 public Updates.Snapshot<T> create() {
                     return updates.register(configuration.settings().period(), new Updates.Snapshot<T>() {

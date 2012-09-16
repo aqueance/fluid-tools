@@ -30,7 +30,7 @@ package org.fluidity.deployment.cli;
  * <h4>Code</h4>
  * <pre>
  * {@linkplain org.fluidity.composition.Component @Component}
- * final MyApplication implements <span class="hl1">Application</span> {
+ * final class MyApplication implements <span class="hl1">Application</span> {
  *
  *   public void <span class="hl1">run</span>(final {@linkplain String}[] args) throws {@linkplain Exception} {
  *     &hellip;

@@ -310,7 +310,7 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
         private final Map<String, ClassReader> readers = new HashMap<String, ClassReader>();
         private final ClassLoader loader;
 
-        public ClassRepositoryImpl(final ClassLoader loader) {
+        ClassRepositoryImpl(final ClassLoader loader) {
             this.loader = loader;
         }
 

@@ -278,7 +278,7 @@ public final class Handler extends URLStreamHandler {
         private final long size;
         private final long crc;
 
-        public Metadata(final String name, final long size, final long crc) {
+        Metadata(final String name, final long size, final long crc) {
             assert name != null;
             final String[] components = name.split("/");
             this.name = components[components.length - 1];
@@ -377,7 +377,7 @@ public final class Handler extends URLStreamHandler {
 
         private final URLConnection root;
 
-        public Connection(final URL url) throws IOException {
+        Connection(final URL url) throws IOException {
             super(url);
 
             // the host part of our root URL itself is an URL

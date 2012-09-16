@@ -255,7 +255,7 @@ public final class BundleJarManifest implements JarManifest {
     }
 
     /**
-     * This class is loaded from a bespoke class loader defined on the compile-time dependencies of the host Mave project. It checks if the {@link
+     * This class is loaded from a bespoke class loader defined on the compile-time dependencies of the host Maven project. It checks if the {@link
      * ContainerBoundary} and {@link BundleBootstrap} classes can be found in the project's compile-time class path.
      */
     public static final class BootstrapDiscoveryImpl implements BootstrapDiscovery {

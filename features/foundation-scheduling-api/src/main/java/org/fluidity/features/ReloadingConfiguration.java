@@ -27,11 +27,11 @@ package org.fluidity.features;
  * <h3>Usage</h3>
  * <pre>
  * {@linkplain org.fluidity.composition.Component @Component}
- * final class <span class="hl3">MyComponent</span> {
+ * public final class <span class="hl3">MyComponent</span> {
  *
  *   private final <span class="hl1">{@linkplain Updates.Snapshot}</span>&lt;<span class="hl2">Settings</span>> configuration;
  *
- *   public <span class="hl3">MyComponent</span>(final <span class="hl1">ReloadingConfiguration</span>&lt;<span class="hl2">Settings</span>> configuration) {
+ *   <span class="hl3">MyComponent</span>(final <span class="hl1">ReloadingConfiguration</span>&lt;<span class="hl2">Settings</span>> configuration) {
  *     this.configuration = configuration.<span class="hl1">snapshot</span>();
  *   }
  *

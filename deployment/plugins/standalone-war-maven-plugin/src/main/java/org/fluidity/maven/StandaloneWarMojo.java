@@ -76,7 +76,7 @@ import org.sonatype.aether.repository.RemoteRepository;
  * @threadSafe
  */
 @SuppressWarnings("UnusedDeclaration")
-public class StandaloneWarMojo extends AbstractMojo {
+public final class StandaloneWarMojo extends AbstractMojo {
 
     /**
      * Instructs the plugin, when set, to remove from the WEB-INF/lib directory all .jar files that the plugin puts in the WEB-INF/boot directory, effectively

@@ -34,7 +34,7 @@ final class UpdatesImpl implements Updates {
 
     private final long delay;
 
-    public UpdatesImpl(final Scheduler scheduler, final Configuration<Settings> configuration) {
+    UpdatesImpl(final Scheduler scheduler, final Configuration<Settings> configuration) {
         delay = configuration.settings().period();
 
         if (delay > 0) {

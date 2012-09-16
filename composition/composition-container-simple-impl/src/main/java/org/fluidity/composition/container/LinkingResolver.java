@@ -33,7 +33,7 @@ final class LinkingResolver extends AbstractResolver {
     private final SimpleContainer target;
     private ComponentResolver delegate;
 
-    public LinkingResolver(final SimpleContainer container, final Class<?> api, final ComponentResolver delegate, final LogFactory logs) {
+    LinkingResolver(final SimpleContainer container, final Class<?> api, final ComponentResolver delegate, final LogFactory logs) {
         super(delegate.priority(), api, null, logs);
 
         this.delegate = delegate;

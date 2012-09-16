@@ -96,7 +96,7 @@ public final class BundleBootstrap extends BoundaryComponent implements BundleAc
         private final Activators activators;
         private final BundleTermination termination;
 
-        public Activation(final BundleComponentContainer components, final Activators activators, final BundleTermination termination) {
+        Activation(final BundleComponentContainer components, final Activators activators, final BundleTermination termination) {
             this.components = components;
             this.activators = activators;
             this.termination = termination;
@@ -125,7 +125,7 @@ public final class BundleBootstrap extends BoundaryComponent implements BundleAc
         private final Log log;
         private final List<Runnable> tasks = new ArrayList<Runnable>();
 
-        public BundleTermination(final Log<BundleTermination> log) {
+        BundleTermination(final Log<BundleTermination> log) {
             this.log = log;
         }
 
@@ -155,11 +155,10 @@ public final class BundleBootstrap extends BoundaryComponent implements BundleAc
         private final List<BundleActivator> activators = new ArrayList<BundleActivator>();
         private final Log log;
 
-        @SuppressWarnings("UnusedDeclaration")
-        private Activators(final BundleContext context,
-                           final Log<Activators> log,
-                           final @Optional BundleActivator single,
-                           final @Optional @ComponentGroup BundleActivator... multiple) {
+        Activators(final BundleContext context,
+                   final Log<Activators> log,
+                   final @Optional BundleActivator single,
+                   final @Optional @ComponentGroup BundleActivator... multiple) {
             this.context = context;
             this.log = log;
             addActivators(activators, single);

@@ -25,7 +25,7 @@ final class MyApplication implements Application {
 
     private final MessageSink sink;
 
-    public MyApplication(final MessageSink sink) {
+    MyApplication(final MessageSink sink) {
         this.sink = sink;
     }
 

@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-package org.fluidity.tests;
-
-import org.fluidity.testing.MockGroup;
+package org.fluidity.testing;
 
 import org.easymock.EasyMock;
 import org.testng.annotations.Test;

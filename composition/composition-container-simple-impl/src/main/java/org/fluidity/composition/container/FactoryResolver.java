@@ -56,11 +56,11 @@ abstract class FactoryResolver extends AbstractResolver {
 
     private final Class<? extends ComponentFactory> factoryClass;
 
-    public FactoryResolver(final Class<? extends ComponentFactory> factoryClass,
-                           final int priority,
-                           final Class<?> api,
-                           final ComponentCache cache,
-                           final LogFactory logs) {
+    protected FactoryResolver(final Class<? extends ComponentFactory> factoryClass,
+                              final int priority,
+                              final Class<?> api,
+                              final ComponentCache cache,
+                              final LogFactory logs) {
         super(priority, api, cache, logs);
         this.factoryClass = factoryClass;
     }
@@ -398,7 +398,7 @@ abstract class FactoryResolver extends AbstractResolver {
         private final ContextDefinition context;
         private final DependencyGraph.Traversal traversal;
 
-        public RegistryWrapper(final SimpleContainer container, final ContextDefinition context, final DependencyGraph.Traversal traversal) {
+        RegistryWrapper(final SimpleContainer container, final ContextDefinition context, final DependencyGraph.Traversal traversal) {
             this.container = container;
             this.context = context;
             this.traversal = traversal;
@@ -433,7 +433,7 @@ abstract class FactoryResolver extends AbstractResolver {
         private final DependencyGraph.Node node;
         private final DependencyGraph.Traversal traversal;
 
-        public NodeDependency(final DependencyGraph.Traversal traversal, final DependencyGraph.Node node) {
+        NodeDependency(final DependencyGraph.Traversal traversal, final DependencyGraph.Node node) {
             this.node = node;
             this.traversal = traversal;
         }
@@ -453,7 +453,7 @@ abstract class FactoryResolver extends AbstractResolver {
         private final DependencyInjector injector;
         private final Resolution resolution;
 
-        public ContainerImpl(final DependencyGraph.Traversal traversal, final DependencyInjector injector, final Resolution resolution) {
+        ContainerImpl(final DependencyGraph.Traversal traversal, final DependencyInjector injector, final Resolution resolution) {
             this.traversal = traversal;
             this.injector = injector;
             this.resolution = resolution;

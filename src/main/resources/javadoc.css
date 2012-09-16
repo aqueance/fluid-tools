@@ -12,7 +12,7 @@ h2 { font-size: 140% }
 font[size=-1] { font-size: 90% }
 
 pre, tt, code, kbd, samp, xmp { font-family: courier }
-
+pre { background: #F8F8F8; color: #000000 }
 
 /* Table colors */
 .TableHeadingColor     { background: #CCCCFF; color: #000000 } /* Dark mauve */

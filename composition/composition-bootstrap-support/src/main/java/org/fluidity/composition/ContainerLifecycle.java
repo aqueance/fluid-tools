@@ -44,7 +44,7 @@ final class ContainerLifecycle {
     private final AtomicBoolean shouldInitialize = new AtomicBoolean(true);
     private final AtomicBoolean shouldShutdown = new AtomicBoolean(true);
 
-    public ContainerLifecycle(final ComponentContainer container, final List<PackageBindings> bindings, final ContainerBootstrap.Callback callback) {
+    ContainerLifecycle(final ComponentContainer container, final List<PackageBindings> bindings, final ContainerBootstrap.Callback callback) {
         this.container = container;
         this.bindings = bindings;
         this.callback = callback;

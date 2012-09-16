@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.fluidity.foundation;
+package org.fluidity.foundation.impl;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -23,7 +23,7 @@ import java.util.Properties;
 import java.util.jar.Attributes;
 
 import org.fluidity.deployment.plugin.spi.JarManifest;
-import org.fluidity.foundation.impl.BundleJarManifest;
+import org.fluidity.foundation.Strings;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.License;

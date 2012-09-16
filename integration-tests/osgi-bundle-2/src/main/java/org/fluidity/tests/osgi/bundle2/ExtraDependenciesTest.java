@@ -30,13 +30,13 @@ import org.testng.annotations.Test;
 /**
  * @author Tibor Varga
  */
-public class ExtraDependenciesTest implements BundleTest {
+public final class ExtraDependenciesTest implements BundleTest {
 
     private static final String EXTRAS = "extras";
 
     private final Bundle bundle;
 
-    public ExtraDependenciesTest(final BundleContext context) {
+    ExtraDependenciesTest(final BundleContext context) {
         bundle = context.getBundle();
     }
 

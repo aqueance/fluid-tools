@@ -31,7 +31,7 @@ import java.lang.annotation.Target;
  * {@linkplain Component @Component}
  * public final class MyComponent {
  *
- *   public MyComponent(final <span class="hl1">&#64;Optional</span> SomeDependency optional) {
+ *   MyComponent(final <span class="hl1">&#64;Optional</span> SomeDependency optional) {
  *     &hellip;
  *   }
  *

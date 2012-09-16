@@ -33,7 +33,7 @@ final class StandardOutLog<T> implements Log<T> {
 
     private final String source;
 
-    public StandardOutLog(final Class<?> source) {
+    StandardOutLog(final Class<?> source) {
         this.source = source.getName();
     }
 

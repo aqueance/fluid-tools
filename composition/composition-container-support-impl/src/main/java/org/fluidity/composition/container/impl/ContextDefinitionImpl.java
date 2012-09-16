@@ -61,7 +61,7 @@ final class ContextDefinitionImpl implements ContextDefinition {
         }
     }).getDefaultValue();
 
-    public ContextDefinitionImpl() {
+    ContextDefinitionImpl() {
         // empty
     }
 
@@ -264,7 +264,7 @@ final class ContextDefinitionImpl implements ContextDefinition {
 
         private final Type reference;
 
-        public ComponentReferenceImpl(final Type reference, final Component.Reference inbound) {
+        ComponentReferenceImpl(final Type reference, final Component.Reference inbound) {
             this.reference = inbound == null ? reference : Generics.propagate(inbound.type(), reference);
         }
 

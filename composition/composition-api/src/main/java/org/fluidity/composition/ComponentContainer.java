@@ -62,16 +62,16 @@ import org.fluidity.foundation.Strings;
  * All examples below assume the following enclosing boilerplate:
  * <pre>
  * {@linkplain Component @Component}
- * final class MyComponent {
+ * public final class MyComponent {
  *
  *   private final <span class="hl1">ComponentContainer</span> container;
  *
- *   public MyComponent(final <span class="hl1">ComponentContainer</span> container) {
+ *   MyComponent(final <span class="hl1">ComponentContainer</span> container) {
  *     this.container = container;
  *     &hellip;
  *   }
  *
- *   private void myMethod() throws throws <b>MyCheckedException</b> {
+ *   private void myMethod() throws throws <b>SomeCheckedException</b> {
  *     <i>&hellip; example code snippet from below &hellip;</i>
  *   }
  * }
@@ -81,59 +81,59 @@ import org.fluidity.foundation.Strings;
  * <ul>
  * <li>If the helper has <b>no</b> dependencies specific to this particular use:
  * <pre>
- * final <span class="hl2">MyHelper</span> helper = container.<span class="hl1">instantiate(</span><span class="hl2">MyHelper</span>.class<span class="hl1">)</span>;
+ * final <span class="hl2">MyHelper</span> helper = container.<span class="hl1">instantiate</span>(<span class="hl2">MyHelper</span>.class);
  * </pre></li>
  * <li>If the helper <b>does</b> have dependencies specific to this particular use:
  * <pre>
- * final <span class="hl2">MyHelper</span> helper = container.<span class="hl1">instantiate(</span><span class="hl2">MyHelper</span>.class, new {@linkplain ComponentContainer.Bindings}() {
+ * final <span class="hl2">MyHelper</span> helper = container.<span class="hl1">instantiate</span>(<span class="hl2">MyHelper</span>.class, new {@linkplain ComponentContainer.Bindings}() {
  *   public void bindComponents({@linkplain ComponentContainer.Registry} registry) {
  *     registry.bindInstance("local context", String.class);
  *     &hellip;
  *   }
- * }<span class="hl1">)</span>;
+ * });
  * </pre></li>
  * <li>If <b>multiple</b> helpers share dependencies specific to this particular use:
  * <pre>
  * &#47;* &hellip; acquire a child container with the necessary bindings: *&#47;
  *
- * final <span class="hl1">ComponentContainer</span> child = container.<span class="hl1">makeChildContainer(</span>new {@linkplain ComponentContainer.Bindings}() {
+ * final <span class="hl1">ComponentContainer</span> child = container.<span class="hl1">makeChildContainer</span>(new {@linkplain ComponentContainer.Bindings}() {
  *   public void bindComponents({@linkplain ComponentContainer.Registry} registry) {
  *     registry.bindInstance("local context", String.class);
  *     &hellip;
  *   }
- * }<span class="hl1">)</span>;
+ * });
  *
  * &#47;* &hellip; and get your helpers instantiated: *&#47;
  *
- * final <span class="hl2">MyHelper1</span> helper1 = child.<span class="hl1">instantiate(</span><span class="hl2">MyHelper1</span>.class<span class="hl1">)</span>;
- * final <span class="hl2">MyHelper2</span> helper2 = child.<span class="hl1">instantiate(</span><span class="hl2">MyHelper2</span>.class<span class="hl1">)</span>;
+ * final <span class="hl2">MyHelper1</span> helper1 = child.<span class="hl1">instantiate</span>(<span class="hl2">MyHelper1</span>.class);
+ * final <span class="hl2">MyHelper2</span> helper2 = child.<span class="hl1">instantiate</span>(<span class="hl2">MyHelper2</span>.class);
  * </pre></li>
  * <li>If <b>multiple</b> helpers share dependencies specific to this particular use and they also have local dependencies that should <b>not</b> be shared:
  * <pre>
- * &#47;* &hellip; acquire a child container with the shared bindings: *&#47;
+ * // acquire a child container with the shared bindings:
  *
- * final <span class="hl1">ComponentContainer</span> child = container.<span class="hl1">makeChildContainer(</span>new {@linkplain ComponentContainer.Bindings}() {
+ * final <span class="hl1">ComponentContainer</span> child = container.<span class="hl1">makeChildContainer</span>(new {@linkplain ComponentContainer.Bindings}() {
  *   public void bindComponents({@linkplain ComponentContainer.Registry} registry) {
  *     registry.bindInstance("local context", String.class);
  *     &hellip;
  *   }
- * }<span class="hl1">)</span>;
+ * };
  *
- * &#47;* &hellip; and get your helpers instantiated with the bindings not shared: *&#47;
+ * // and get your helpers instantiated with the bindings not shared:
  *
- * final <span class="hl2">MyHelper1</span> helper1 = child.<span class="hl1">instantiate(</span><span class="hl2">MyHelper1</span>.class, new {@linkplain ComponentContainer.Bindings}() {
+ * final <span class="hl2">MyHelper1</span> helper1 = child.<span class="hl1">instantiate</span>(<span class="hl2">MyHelper1</span>.class, new {@linkplain ComponentContainer.Bindings}() {
  *   public void bindComponents({@linkplain ComponentContainer.Registry} registry) {
  *     registry.bindInstance(1234, Integer.TYPE);
  *     &hellip;
  *   }
- * }<span class="hl1">)</span>;
+ * });
  *
- * final <span class="hl2">MyHelper2</span> helper2 = child.<span class="hl1">instantiate(</span><span class="hl2">MyHelper2</span>.class, new {@linkplain ComponentContainer.Bindings}() {
+ * final <span class="hl2">MyHelper2</span> helper2 = child.<span class="hl1">instantiate</span>(<span class="hl2">MyHelper2</span>.class, new {@linkplain ComponentContainer.Bindings}() {
  *   public void bindComponents({@linkplain ComponentContainer.Registry} registry) {
  *     registry.bindInstance(5678, Integer.TYPE);
  *     &hellip;
  *   }
- * }<span class="hl1">)</span>;
+ * };
  * </pre></li>
  * </ul>
  * <h4>Method Parameter Injection</h4>
@@ -142,45 +142,62 @@ import org.fluidity.foundation.Strings;
  * <li><b>automatic parameter injection</b>: automatically injects all parameters of all component interface methods that have {@link Inject @Inject} annotated
  * parameters with no argument supplied in the original method call. The component's interfaces must be actual Java interfaces.
  * <pre>
+ * public interface <span class="hl2">InjectableMethods</span> {
+ *
+ *   int <span class="hl2">someMethod</span>(<span class="hl3">int given</span>, <span class="hl1">{@linkplain Inject @Inject}</span> MyDependency1 mandatory, <span class="hl1">{@linkplain Inject @Inject}</span> {@linkplain Optional @Optional} MyDependency2 optional)
+ *     throws SomeCheckedException;
+ * }
+ * </pre>
+ * <pre>
  * <span class="hl1">{@linkplain Component @Component}(automatic = false)</span>
  * final class MyHelper implements <span class="hl2">InjectableMethods</span> {
  *   &hellip;
- *   int <span class="hl2">someMethod</span>(final <span class="hl3">int given</span>, final <span class="hl1">{@linkplain Inject @Inject}</span> MyDependency1 mandatory, <span class="hl1">{@linkplain Inject @Inject}</span> {@linkplain Optional @Optional} MyDependency2 optional)
- *     throws SomeCheckedException;
- *   &hellip;
  * }
+ * </pre>
+ * <pre>
+ * final <span class="hl2">InjectableMethods</span> helper = container.<span class="hl1">complete</span>(container.instantiate(MyHelper.class));
  *
- * final <span class="hl2">InjectableMethods</span> helper = container.<span class="hl1">complete(</span>container.instantiate(MyHelper.class)</span class="hl1">)</span>;
- *
- * &#47;* &hellip; pass null for unknown parameters *&#47;
+ * // pass null for parameters to automatically inject
  * final int result = helper.<span class="hl2">someMethod</span>(<span class="hl3">1234</span>, null, null);
  * </pre></li>
  * <li><b>ad-hoc method invocation</b>: any method parameter not provided a value will be injected; if a method parameter cannot be
  * resolved and it is not annotated with {@link Optional @Optional} then a {@link ResolutionException} is thrown.
  * <pre>
  * final class <span class="hl2">MyHelper</span> {
- *   &hellip;
+ *
  *   <span class="hl2">int</span> <span class="hl2">someMethod</span>(final <span class="hl3">int given</span>, final MyDependency1 mandatory, {@linkplain Optional @Optional} MyDependency2 optional);
- *     throws SomeCheckedException;
- *   &hellip;
+ *     throws SomeCheckedException {
+ *     &hellip;
+ *     }
+ * }
+ * </pre>
+ * <pre>
+ * final <span class="hl2">MyHelper</span> helper = new <span class="hl2">MyHelper()</span>;
+ *
+ * // make sure our assumptions implicit in the reflection code below
+ * // have not been broken by changes to <span class="hl2">MyHelper</span>
+ * if (false) {
+ *   final Integer result = helper.someMethod((Integer) null, (MyDependency1) null, (MyDependency1) null);
  * }
  *
- * final <span class="hl2">MyHelper</span> helper = new <span class="hl2">MyHelper()</span>;
- * final Method method = <span class="hl2">MyHelper</span>.class.getMethod("<span class="hl2">someMethod</span>", Integer.TYPE, MyDependency1.class, MyDependency2.class);
+ * final Method method = <span class="hl2">MyHelper</span>.class.getMethod("<span class="hl2">someMethod</span>",
+ *                                                Integer.TYPE,
+ *                                                MyDependency1.class,
+ *                                                MyDependency2.class);
  *
  * final <span class="hl2">int</span> result;
  * try {
  *
- *   &#47;* &hellip; handle checked exceptions ... *&#47;
+ *   // handle checked exceptions ...
  *   result = {@linkplain org.fluidity.foundation.Exceptions}.wrap(new Exceptions.Command&lt;<span class="hl2">Integer</span>>() {
  *     public <span class="hl2">Integer</span> run() throws Throwable {
  *
- *       &#47;* &hellip; pass known parameters as the last parameters to this call*&#47;
+ *       // pass known parameters as the last parameters to this call
  *       return (<span class="hl2">Integer</span>) container.<span class="hl1">invoke</span>(helper, method, <span class="hl3">1234</span>);
  *     }
  *   });
  * } catch (final {@linkplain org.fluidity.foundation.Exceptions.Wrapper} e) {
- *   throw e.rethrow(<b>MyCheckedException</b>.class);
+ *   throw e.{@linkplain org.fluidity.foundation.Exceptions.Wrapper#rethrow(Class) rethrow}(<b>SomeCheckedException</b>.class);
  * }
  *
  * </pre></li>
@@ -205,6 +222,10 @@ public interface ComponentContainer {
     /**
      * Looks up by interface or (super)class and returns a component. This method is provided for boundary objects (objects created outside the container by
      * third party tools) to acquire their dependencies. If there was no explicit binding to the provided class, no component is returned.
+     * <p/>
+     * <b>Note</b>: This method does not allow modification of the component context at the point of invocation so rather than reaching into the container with
+     * this method, a better way is to call {@link #instantiate(Class)} or {@link #instantiate(Class, ComponentContainer.Bindings)} to gain access to
+     * components in this container.
      *
      * @param api a class object that was used to bind a component to; never <code>null</code>.
      *
@@ -219,6 +240,10 @@ public interface ComponentContainer {
      * interface itself, has been marked with the {@link ComponentGroup @ComponentGroup} annotation. This method is provided for boundary objects (objects
      * created outside the container by third party tools) to acquire their dependencies. If there was no explicit binding to the provided class, no component
      * is returned.
+     * <p/>
+     * <b>Note</b>: This method does not allow modification of the component context at the point of invocation so rather than reaching into the container with
+     * this method, a better way is to call {@link #instantiate(Class)} or {@link #instantiate(Class, ComponentContainer.Bindings)} to gain access to
+     * components in this container.
      *
      * @param api the group interface class.
      *
@@ -281,7 +306,8 @@ public interface ComponentContainer {
 
     /**
      * Resolves and injects the {@link Inject @Inject} annotated fields of the given object. You only need to use this method if the supplied component was
-     * instantiated outside the container.
+     * instantiated outside the container. Only non-<code>final</code> <code>null</code> valued fields get injected. The fields can be defined anywhere in the
+     * object's class hierarchy.
      *
      * @param component a component that needs field injection of dependencies.
      *
@@ -314,7 +340,7 @@ public interface ComponentContainer {
      *
      * @throws ResolutionException when dependency resolution fails.
      */
-    <T> T instantiate(Class<T> componentClass, ComponentContainer.Bindings bindings) throws ResolutionException;
+    <T> T instantiate(Class<T> componentClass, Bindings bindings) throws ResolutionException;
 
     /**
      * Invokes the given method of the given object after resolving and injecting its applicable parameters that the given argument list contains no
@@ -360,20 +386,20 @@ public interface ComponentContainer {
      * {@linkplain Component @Component}
      * public final class MyComponentFactory {
      *
-     *   public <span class="hl2">MyComponent</span> create(final {@linkplain ComponentContainer} container, final <span class="hl3">MyLocalDependency</span> state) {
-     *     return container.getComponent(<span class="hl2">MyComponent</span>.class, new <span class="hl1">ComponentContainer.Bindings</span>() {
+     *   public <span class="hl2">MyComponent</span> create(final {@linkplain ComponentContainer} container, final <span class="hl3">MyLocalDependency</span> dependency) {
+     *     return container.instantiate(<span class="hl2">MyComponentImpl</span>.class, new <span class="hl1">ComponentContainer.Bindings</span>() {
      *       public void <span class="hl1">bindComponents</span>(final {@linkplain ComponentContainer.Registry} registry) {
-     *         registry.bindComponent(<span class="hl2">MyComponentImpl</span>.class);
-     *         registry.bindInstance(state, <span class="hl3">MyLocalDependency</span>.class);
+     *         registry.bindInstance(dependency, <span class="hl3">MyLocalDependency</span>.class);
      *       }
      *     });
      *   }
      * }
-     *
+     * </pre>
+     * <pre>
      * {@linkplain Component @Component}<span class="hl1">(automatic = false)</span>
      * final class <span class="hl2">MyComponentImpl</span> implements <span class="hl2">MyComponent</span> {
      *
-     *   public <span class="hl2">MyComponentImpl</span>(final <span class="hl3">MyLocalDependency</span> local, final MyGlobalDependency global) {
+     *   <span class="hl2">MyComponentImpl</span>(final <span class="hl3">MyLocalDependency</span> local, final MyGlobalDependency global) {
      *     &hellip;
      *   }
      *

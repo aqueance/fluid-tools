@@ -31,12 +31,13 @@ import org.osgi.framework.BundleContext;
  *
  * @author Tibor Varga
  */
+@SuppressWarnings("UnusedDeclaration")
 final class ComponentStatusImpl implements BundleComponentContainer.Status, BundleComponentContainer.Registration {
 
     private final Properties registration = new Properties();
     private final ComponentStatus delegate;
 
-    public ComponentStatusImpl(final BundleContext context, final ComponentStatus delegate) {
+    ComponentStatusImpl(final BundleContext context, final ComponentStatus delegate) {
         this.delegate = delegate;
         this.registration.setProperty(BUNDLE, context.getBundle().getSymbolicName());
     }

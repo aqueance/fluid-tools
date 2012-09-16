@@ -34,7 +34,7 @@ final class ComponentCacheImpl implements ComponentCache {
     private final Log log;
     private final Map<Object, Map<ComponentContext, Object>> caches;
 
-    public ComponentCacheImpl(final Log<ComponentCacheImpl> log, boolean stateless) {
+    ComponentCacheImpl(final Log<ComponentCacheImpl> log, boolean stateless) {
         this.log = log;
         this.caches = stateless ? new WeakHashMap<Object, Map<ComponentContext, Object>>() : null;
     }

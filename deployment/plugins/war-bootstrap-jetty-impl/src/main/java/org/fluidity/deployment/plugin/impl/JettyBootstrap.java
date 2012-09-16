@@ -81,7 +81,7 @@ public final class JettyBootstrap implements ServerBootstrap {
 
     private static class InlineWebAppClassLoader extends WebAppClassLoader {
 
-        public InlineWebAppClassLoader(final WebAppContext context) throws IOException {
+        InlineWebAppClassLoader(final WebAppContext context) throws IOException {
             super(context);
         }
 

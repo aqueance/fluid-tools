@@ -28,11 +28,11 @@ package org.fluidity.foundation;
  * <h3>Usage</h3>
  * <pre>
  * {@linkplain org.fluidity.composition.Component @Component}
- * final class <span class="hl3">MyComponent</span> {
+ * public final class <span class="hl3">MyComponent</span> {
  *
  *   private final <span class="hl1">Log</span> log;
  *
- *   public <span class="hl3">MyComponent</span>(final <span class="hl1">Log</span>&lt;<span class="hl3">MyComponent</span>> log) {
+ *   <span class="hl3">MyComponent</span>(final <span class="hl1">Log</span>&lt;<span class="hl3">MyComponent</span>> log) {
  *     this.log = log;
  *   }
  *

@@ -33,7 +33,7 @@ final class RestrictedContainerImpl implements RestrictedContainer {
     private final AccessGuard guard;
     private final ComponentContainer delegate;
 
-    public RestrictedContainerImpl(final ComponentContainer delegate) {
+    RestrictedContainerImpl(final ComponentContainer delegate) {
         this(new AccessGuard(), delegate);
     }
 

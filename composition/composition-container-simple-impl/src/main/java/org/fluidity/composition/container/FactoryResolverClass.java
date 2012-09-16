@@ -29,11 +29,11 @@ import org.fluidity.foundation.spi.LogFactory;
  */
 final class FactoryResolverClass extends FactoryResolver {
 
-    public FactoryResolverClass(final int priority,
-                                final Class<?> api,
-                                final Class<? extends ComponentFactory> factoryClass,
-                                final ComponentCache cache,
-                                final LogFactory logs) {
+    FactoryResolverClass(final int priority,
+                         final Class<?> api,
+                         final Class<? extends ComponentFactory> factoryClass,
+                         final ComponentCache cache,
+                         final LogFactory logs) {
         super(factoryClass, priority, api, cache, logs);
     }
 

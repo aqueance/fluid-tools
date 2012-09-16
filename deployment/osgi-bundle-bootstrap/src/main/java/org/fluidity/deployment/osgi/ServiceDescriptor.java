@@ -24,7 +24,7 @@ final class ServiceDescriptor extends Descriptor {
     public final String filter;
     public final Service annotation;
 
-    public ServiceDescriptor(final Class<?> reference, final Service service) {
+    ServiceDescriptor(final Class<?> reference, final Service service) {
         super(service.api() == Object.class ? reference : service.api());
 
         final String filter = service.filter();

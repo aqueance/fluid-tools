@@ -31,7 +31,7 @@ final class FactoryResolverInstance extends FactoryResolver {
 
     private final ComponentFactory factory;
 
-    public FactoryResolverInstance(final int priority, final Class<?> api, final ComponentFactory factory, final ComponentCache cache, final LogFactory logs) {
+    FactoryResolverInstance(final int priority, final Class<?> api, final ComponentFactory factory, final ComponentCache cache, final LogFactory logs) {
         super(factory.getClass(), priority, api, cache, logs);
         this.factory = factory;
     }
