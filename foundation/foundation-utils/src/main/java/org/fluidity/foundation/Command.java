@@ -24,14 +24,27 @@ package org.fluidity.foundation;
 public final class Command extends Utility {
 
     /**
+     * Extends the {@link Runnable} concept to commands that can throw some exception.
+     *
+     * @author Tibor Varga
+     */
+    public interface Job<E extends Throwable> {
+
+        /**
+         * Executes the command.
+         */
+        void run() throws E;
+    }
+
+    /**
      * Extends the {@link Runnable} concept to commands that can return some value and throw some exception.
      *
      * @author Tibor Varga
      */
-    public static interface Process<R, E extends Throwable> {
+    public interface Process<R, E extends Throwable> {
 
         /**
-         * Execute the command.
+         * Executes the command.
          */
         R run() throws E;
     }
@@ -41,10 +54,10 @@ public final class Command extends Utility {
      *
      * @author Tibor Varga
      */
-    public static interface Function<R, P, E extends Throwable> {
+    public interface Function<R, P, E extends Throwable> {
 
         /**
-         * Execute the command.
+         * Executes the command.
          */
         R run(P parameter) throws E;
     }

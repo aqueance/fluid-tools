@@ -163,9 +163,11 @@ public final class Deferred extends Utility {
         interface State<T> extends Reference<T> {
 
             /**
-             * Forces the re-instantiation of the deferred object the next time it is  {@linkplain Deferred.Reference#get() de-referenced}.
+             * Forces the re-instantiation of the deferred object the next time it is {@linkplain Deferred.Reference#get() de-referenced}.
+             *
+             * @return the cached object; may be <code>null</code> if the object has not yet been {@linkplain #resolved() resolved}.
              */
-            void invalidate();
+            T invalidate();
         }
     }
 
@@ -211,7 +213,7 @@ public final class Deferred extends Utility {
 
         StateImpl(final Factory<T> factory) {
             this.factory = factory;
-            invalidate();
+            this.state.set(Deferred.reference(this.factory));
         }
 
         public T get() {
@@ -222,8 +224,9 @@ public final class Deferred extends Utility {
             return state.get().resolved();
         }
 
-        public void invalidate() {
-            state.set(Deferred.reference(factory));
+        public T invalidate() {
+            final Reference<T> reference = state.getAndSet(Deferred.reference(factory));
+            return reference.resolved() ? reference.get() : null;
         }
     }
 }

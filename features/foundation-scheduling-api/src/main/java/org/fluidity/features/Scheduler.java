@@ -55,7 +55,7 @@ public interface Scheduler {
      * @param period the time in milliseconds between the invocations.
      * @param task   the object to invoke.
      *
-     * @return an object to stop the invocationss.
+     * @return an object to stop the invocations.
      */
     Control invoke(long delay, long period, Runnable task);
 

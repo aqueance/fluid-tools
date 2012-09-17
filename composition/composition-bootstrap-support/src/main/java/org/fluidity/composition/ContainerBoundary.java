@@ -35,9 +35,8 @@ import org.fluidity.composition.container.spi.ContainerProvider;
 import org.fluidity.composition.container.spi.OpenComponentContainer;
 import org.fluidity.composition.spi.ComponentInterceptor;
 import org.fluidity.foundation.ClassLoaders;
+import org.fluidity.foundation.Command.Function;
 import org.fluidity.foundation.spi.LogFactory;
-
-import static org.fluidity.foundation.Command.Function;
 
 /**
  * External access to a class loader specific <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Dependency_Injection_Concept">dependency

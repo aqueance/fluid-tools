@@ -26,6 +26,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.fluidity.foundation.Command;
+
 import org.easymock.EasyMock;
 import org.easymock.IMocksControl;
 import org.easymock.internal.matchers.Equals;
@@ -113,8 +115,7 @@ public class MockGroup {
     /**
      * Default constructor.
      */
-    public MockGroup() {
-    }
+    public MockGroup() { }
 
     @AfterMethod
     public final void clear() throws Exception {
@@ -237,6 +238,75 @@ public class MockGroup {
     @SuppressWarnings("unchecked")
     public final <T> T localMockAll(final Class<T> mainInterface, final Class<?>... otherInterfaces) {
         return globalGroup.mockAll(mainInterface, otherInterfaces);
+    }
+
+    /**
+     * Command to feed to {@link MockGroup#test(MockGroup.Work)} or {@link MockGroup#verify(MockGroup.Work)}.
+     *
+     * @author Tibor Varga
+     */
+    public interface Work<T> extends Command.Process<T, Exception> { }
+
+    /**
+     * Command to feed to {@link MockGroup#test(MockGroup.Task)} or {@link MockGroup#verify(MockGroup.Task)}.
+     *
+     * @author Tibor Varga
+     */
+    public interface Task extends Command.Job<Exception> { }
+
+    /**
+     * Executes the given block and returns whatever it returns. Useful for segmenting steps in a sequence of tests.
+     *
+     * @param block the block to execute.
+     * @param <T>   the type of the block's return value.
+     *
+     * @return whatever the <code>block</code> returns.
+     *
+     * @throws Exception when some error occurs.
+     */
+    public final <T> T test(final Work<T> block) throws Exception {
+        return block.run();
+    }
+
+    /**
+     * Executes the given block and returns whatever it returns. Useful for segmenting steps in a sequence of tests.
+     *
+     * @param block the block to execute.
+     *
+     * @throws Exception when some error occurs.
+     */
+    public final void test(final Task block) throws Exception {
+        block.run();
+    }
+
+    /**
+     * Invokes {@link #replay()}, executes the block, and then, unless the block throws an exception, invokes {@link #verify()}, and returns whatever the block
+     * returns.
+     *
+     * @param block the block to execute.
+     * @param <T>   the type of the block's return value.
+     *
+     * @return whatever the <code>block</code> returns.
+     *
+     * @throws Exception when some error occurs.
+     */
+    public final <T> T verify(final Work<T> block) throws Exception {
+        replay();
+        final T result = block.run();
+        verify();
+        return result;
+    }
+    /**
+     * Invokes {@link #replay()}, executes the block, and then, unless the block throws an exception, invokes {@link #verify()}.
+     *
+     * @param block the block to execute.
+     *
+     * @throws Exception when some error occurs.
+     */
+    public final void verify(final Task block) throws Exception {
+        replay();
+        block.run();
+        verify();
     }
 
     /**

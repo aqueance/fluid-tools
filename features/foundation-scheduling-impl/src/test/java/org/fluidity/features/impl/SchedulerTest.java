@@ -16,10 +16,19 @@
 
 package org.fluidity.features.impl;
 
+import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadInfo;
+import java.lang.management.ThreadMXBean;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import org.fluidity.composition.spi.ContainerTermination;
 import org.fluidity.features.Scheduler;
 import org.fluidity.testing.MockGroup;
 
+import org.easymock.EasyMock;
+import org.easymock.IAnswer;
 import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 /**
@@ -29,31 +38,130 @@ public class SchedulerTest extends MockGroup {
 
     private final Runnable task = mock(Runnable.class);
 
-    private SchedulerImpl scheduler = new SchedulerImpl();
+    private Scheduler scheduler;
+    private Runnable stop;
+
+    @BeforeMethod
+    public void setUp() throws Exception {
+        assert stop == null;
+        final ContainerTermination termination = localMock(ContainerTermination.class);
+
+        termination.run(EasyMock.<Runnable>notNull());
+        EasyMock.expectLastCall().andAnswer(new IAnswer<Void>() {
+            public Void answer() throws Throwable {
+                stop = (Runnable) EasyMock.getCurrentArguments()[0];
+                return null;
+            }
+        });
+
+        verify(new Task() {
+            public void run() throws Exception {
+                scheduler = new SchedulerImpl(termination);
+            }
+        });
+
+        assert stop != null;
+    }
 
     @AfterMethod
     public void tearDown() throws Exception {
         assert scheduler != null;
-        scheduler.stop();
-        scheduler = null;
+        stop.run();
+        stop = null;
     }
 
     @Test
     public void testScheduler() throws Exception {
-        replay();
-        final Scheduler.Control control = scheduler.invoke(100, 100, task);
-        verify();
+        final Scheduler.Control control = verify(new Work<Scheduler.Control>() {
+            public Scheduler.Control run() throws Exception {
+                return scheduler.invoke(100, 100, task);
+            }
+        });
 
-        task.run();
+        test(new Task() {
+            public void run() throws Exception {
+                task.run();
 
-        replay();
-        Thread.sleep(150);
-        verify();
+                verify(new Task() {
+                    public void run() throws Exception {
+                        Thread.sleep(150);
+                    }
+                });
+            }
+        });
 
-        control.cancel();
+        test(new Task() {
+            public void run() throws Exception {
+                control.cancel();
 
-        replay();
-        Thread.sleep(250);
-        verify();
+                verify(new Task() {
+                    public void run() throws Exception {
+                        Thread.sleep(250);
+                    }
+                });
+            }
+        });
+    }
+
+    @Test
+    public void testThreading() throws Exception {
+        test(new Task() {
+            public void run() throws Exception {
+                final AtomicBoolean running = new AtomicBoolean(false);
+
+                scheduler.invoke(0, new Runnable() {
+                    public void run() {
+                        running.set(true);
+                    }
+                });
+
+                verify(new Task() {
+                    public void run() throws Exception {
+                        Thread.sleep(50);
+                    }
+                });
+
+                assert running.get();
+            }
+        });
+
+        final ThreadMXBean threadControl = ManagementFactory.getThreadMXBean();
+
+        if (threadControl != null) {
+            final String name = Scheduler.class.getName();
+
+            test(new Task() {
+                public void run() throws Exception {
+                    final ThreadInfo thread = thread(threadControl, name);
+
+                    assert thread != null : name;
+                    assert thread.getThreadState() != Thread.State.TERMINATED : thread.getThreadState();
+                }
+            });
+
+            stop.run();
+
+            test(new Task() {
+                public void run() throws Exception {
+                    Thread.sleep(10);
+
+                    final ThreadInfo thread = thread(threadControl, name);
+
+                    assert thread == null || thread.getThreadState() == Thread.State.TERMINATED : thread.getThreadState();
+                }
+            });
+        }
+    }
+
+    private ThreadInfo thread(final ThreadMXBean threadControl, final String name) {
+        assert name != null;
+
+        for (final ThreadInfo info : threadControl.getThreadInfo(threadControl.getAllThreadIds())) {
+            if (name.equals(info.getThreadName())) {
+                return info;
+            }
+        }
+
+        return null;
     }
 }

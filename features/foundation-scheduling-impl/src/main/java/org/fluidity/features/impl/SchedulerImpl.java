@@ -21,57 +21,57 @@ import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.fluidity.composition.Component;
+import org.fluidity.composition.spi.ContainerTermination;
 import org.fluidity.features.Scheduler;
 import org.fluidity.foundation.Deferred;
 
 /**
  * @author Tibor Varga
  */
-@Component(automatic = false, primary = false)
+@Component(primary = false)
 final class SchedulerImpl implements Scheduler {
 
-    private final AtomicBoolean stopped = new AtomicBoolean();
-
-    private final Deferred.Reference<Timer> timer = Deferred.reference(new Deferred.Factory<Timer>() {
+    private final AtomicBoolean stopped = new AtomicBoolean(false);
+    private final Deferred.Reference.State<Timer> timer = Deferred.state(new Deferred.Factory<Timer>() {
         public Timer create() {
             return new Timer(Scheduler.class.getName(), true);
         }
     });
 
-    public synchronized void stop() {
-        if (stopped.compareAndSet(false, true) && timer.resolved()) {
-            final Timer timer = this.timer.get();
-
-            if (timer != null) {
-                timer.cancel();
+    SchedulerImpl(final ContainerTermination termination) {
+        termination.run(new Runnable() {
+            public void run() {
+                if (stopped.compareAndSet(false, true) && timer.resolved()) {
+                    timer.invalidate().cancel();
+                }
             }
-        }
+        });
     }
 
     public Control invoke(final long delay, final long period, final Runnable task) {
-        return schedule(delay, period, new TimerTask() {
-            @Override
-            public void run() {
-                task.run();
-            }
-        });
+        return schedule(delay, period, task);
     }
 
     public Control invoke(final long delay, final Runnable task) {
-        return schedule(delay, 0, new TimerTask() {
-            @Override
-            public void run() {
-                task.run();
-            }
-        });
+        return schedule(delay, 0, task);
     }
 
-    private Control schedule(final long delay, final long period, final TimerTask task) {
+    private Control schedule(final long delay, final long period, final Runnable command) {
         if (stopped.get()) {
             throw new IllegalStateException("Scheduler has been stopped");
         }
 
-        timer.get().schedule(task, delay, period);
+        final TimerTask task = new TimerTask() {
+            public void run() {
+                command.run();
+            }
+        };
+
+        if (period > 0) {
+            timer.get().schedule(task, delay, period);
+        } else {
+            timer.get().schedule(task, delay);
+        }
 
         return new Control() {
             public boolean cancel() {
