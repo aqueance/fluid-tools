@@ -33,7 +33,7 @@ public final class NoLogFactory implements LogFactory {
     /**
      * A log sink that gobbles up all log messages.
      */
-    public static final Log sink = new Log() {
+    private static final Log sink = new Log() {
 
         public boolean isTraceEnabled() {
             return false;

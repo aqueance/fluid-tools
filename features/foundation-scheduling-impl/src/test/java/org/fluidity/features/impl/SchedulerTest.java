@@ -23,6 +23,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.fluidity.composition.spi.ContainerTermination;
 import org.fluidity.features.Scheduler;
+import org.fluidity.foundation.Command;
 import org.fluidity.testing.MockGroup;
 
 import org.easymock.EasyMock;
@@ -39,17 +40,18 @@ public class SchedulerTest extends MockGroup {
     private final Runnable task = mock(Runnable.class);
 
     private Scheduler scheduler;
-    private Runnable stop;
+    private Command.Job<Exception> stop;
 
     @BeforeMethod
     public void setUp() throws Exception {
         assert stop == null;
         final ContainerTermination termination = localMock(ContainerTermination.class);
 
-        termination.run(EasyMock.<Runnable>notNull());
+        termination.add(EasyMock.<Command.Job<Exception>>notNull());
         EasyMock.expectLastCall().andAnswer(new IAnswer<Void>() {
+            @SuppressWarnings("unchecked")
             public Void answer() throws Throwable {
-                stop = (Runnable) EasyMock.getCurrentArguments()[0];
+                stop = (Command.Job<Exception>) EasyMock.getCurrentArguments()[0];
                 return null;
             }
         });

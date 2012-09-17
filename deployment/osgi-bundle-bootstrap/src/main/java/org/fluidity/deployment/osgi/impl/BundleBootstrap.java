@@ -18,7 +18,6 @@ package org.fluidity.deployment.osgi.impl;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.ListIterator;
 
 import org.fluidity.composition.BoundaryComponent;
 import org.fluidity.composition.Component;
@@ -27,6 +26,7 @@ import org.fluidity.composition.ComponentGroup;
 import org.fluidity.composition.Optional;
 import org.fluidity.composition.spi.ContainerTermination;
 import org.fluidity.deployment.osgi.BundleComponentContainer;
+import org.fluidity.foundation.Command;
 import org.fluidity.foundation.Log;
 
 import org.osgi.framework.BundleActivator;
@@ -38,9 +38,10 @@ import org.osgi.framework.BundleContext;
  * <p/>
  * <b>NOTE 1</b>: This class <em>must</em> be public with a zero-arg constructor for the OSGi container to be able to instantiate it.
  * <p/>
- * <b>NOTE 2</b>: This class <em>must</em> be loaded by the class loader of the bundle it is expected to bootstrap. The superclass, {@link org.fluidity.composition.BoundaryComponent},
+ * <b>NOTE 2</b>: This class <em>must</em> be loaded by the class loader of the bundle it is expected to bootstrap. The superclass, {@link BoundaryComponent},
  * uses the class loader that loaded this class to find the dependency injection container that will be used as a root container when working with bundle
- * components in the loading bundle.
+ * components in the loading bundle. Also, along this class comes the per-bundle implementation of {@link ContainerTermination} that will map the bundle
+ * specific container's life cycle to that of the loading bundle.
  *
  * @author Tibor Varga
  */
@@ -122,29 +123,22 @@ public final class BundleBootstrap extends BoundaryComponent implements BundleAc
     @Component(api = { BundleTermination.class, ContainerTermination.class })
     private static class BundleTermination implements ContainerTermination {
 
-        private final Log log;
-        private final List<Runnable> tasks = new ArrayList<Runnable>();
+        private final Jobs jobs;
 
-        BundleTermination(final Log<BundleTermination> log) {
-            this.log = log;
+        BundleTermination(final Jobs jobs) {
+            this.jobs = jobs;
         }
 
-        public void run(final Runnable command) {
-            tasks.add(command);
+        public void add(final Command.Job<Exception> job) {
+            jobs.add(job);
+        }
+
+        public void remove(final Command.Job<Exception> job) {
+            jobs.remove(job);
         }
 
         public void stop() {
-            for (final ListIterator<Runnable> iterator = tasks.listIterator(tasks.size()); iterator.hasPrevious(); ) {
-                final Runnable task = iterator.previous();
-
-                try {
-                    task.run();
-                } catch (final Exception e) {
-                    log.error(e, task.getClass().getName());
-                } finally {
-                    iterator.remove();
-                }
-            }
+            jobs.flush();
         }
     }
 

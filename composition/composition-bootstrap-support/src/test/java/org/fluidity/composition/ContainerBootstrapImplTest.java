@@ -30,6 +30,7 @@ import org.fluidity.composition.spi.ContainerTermination;
 import org.fluidity.composition.spi.EmptyPackageBindings;
 import org.fluidity.composition.spi.PackageBindings;
 import org.fluidity.foundation.ClassDiscovery;
+import org.fluidity.foundation.Command;
 import org.fluidity.foundation.NoLogFactory;
 import org.fluidity.foundation.spi.LogFactory;
 import org.fluidity.testing.MockGroup;
@@ -129,14 +130,15 @@ public final class ContainerBootstrapImplTest extends MockGroup {
         EasyMock.expect(container.getComponent(ContainerTermination.class)).andReturn(shutdown);
         EasyMock.expect(container.getComponent(EasyMock.<Class<?>>anyObject())).andReturn(object);
 
-        shutdown.run(EasyMock.<Runnable>anyObject());
+        shutdown.add(EasyMock.<Command.Job<Exception>>anyObject());
         EasyMock.expectLastCall().andAnswer(new IAnswer<Object>() {
+            @SuppressWarnings("unchecked")
             public Object answer() throws Throwable {
                 Object[] args = EasyMock.getCurrentArguments();
                 assert list.equals(watched);
 
                 // invoke the shutdown command to test de-registration
-                ((Runnable) args[0]).run();
+                ((Command.Job<Exception>) args[0]).run();
 
                 // check that all components have been shut down
                 assert list.isEmpty();

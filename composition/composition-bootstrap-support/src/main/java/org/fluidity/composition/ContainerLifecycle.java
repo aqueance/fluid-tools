@@ -24,6 +24,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.fluidity.composition.spi.ContainerTermination;
 import org.fluidity.composition.spi.PackageBindings;
+import org.fluidity.foundation.Command;
 import org.fluidity.foundation.Log;
 
 /**
@@ -80,7 +81,7 @@ final class ContainerLifecycle {
                 throw new RuntimeException(String.format("%s requires a %s component to function", container, ContainerTermination.class.getName()));
             }
 
-            termination.run(new Runnable() {
+            termination.add(new Command.Job<Exception>() {
                 public void run() {
                     shutdown(log);
                 }

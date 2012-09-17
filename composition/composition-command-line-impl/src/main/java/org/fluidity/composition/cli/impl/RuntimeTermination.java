@@ -16,13 +16,9 @@
 
 package org.fluidity.composition.cli.impl;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.ListIterator;
-
 import org.fluidity.composition.Component;
 import org.fluidity.composition.spi.ContainerTermination;
-import org.fluidity.foundation.Log;
+import org.fluidity.foundation.Command;
 
 /**
  * Uses the {@link Runtime} object to add shutdown tasks to. The caller must make sure it has enough privileges to add a shutdown hook.
@@ -30,31 +26,25 @@ import org.fluidity.foundation.Log;
  * @author Tibor Varga
  */
 @Component
-@SuppressWarnings("UnusedDeclaration")
 final class RuntimeTermination implements ContainerTermination {
 
-    private final List<Runnable> tasks = new ArrayList<Runnable>();
+    private final Jobs jobs;
 
-    RuntimeTermination(final Log<RuntimeTermination> log) {
+    RuntimeTermination(final Jobs jobs) {
+        this.jobs = jobs;
+
         Runtime.getRuntime().addShutdownHook(new Thread("Container shutdown") {
-            @Override
             public void run() {
-                for (final ListIterator<Runnable> iterator = tasks.listIterator(tasks.size()); iterator.hasPrevious(); ) {
-                    final Runnable task = iterator.previous();
-
-                    try {
-                        task.run();
-                    } catch (final Exception e) {
-                        log.error(e, task.getClass().getName());
-                    } finally {
-                        iterator.remove();
-                    }
-                }
+                jobs.flush();
             }
         });
     }
 
-    public void run(final Runnable command) {
-        tasks.add(command);
+    public void add(final Command.Job<Exception> job) {
+        jobs.add(job);
+    }
+
+    public void remove(final Command.Job<Exception> job) {
+        jobs.remove(job);
     }
 }

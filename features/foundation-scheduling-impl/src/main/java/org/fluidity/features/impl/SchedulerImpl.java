@@ -23,6 +23,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.fluidity.composition.Component;
 import org.fluidity.composition.spi.ContainerTermination;
 import org.fluidity.features.Scheduler;
+import org.fluidity.foundation.Command;
 import org.fluidity.foundation.Deferred;
 
 /**
@@ -39,7 +40,7 @@ final class SchedulerImpl implements Scheduler {
     });
 
     SchedulerImpl(final ContainerTermination termination) {
-        termination.run(new Runnable() {
+        termination.add(new Command.Job<Exception>() {
             public void run() {
                 if (stopped.compareAndSet(false, true) && timer.resolved()) {
                     timer.invalidate().cancel();

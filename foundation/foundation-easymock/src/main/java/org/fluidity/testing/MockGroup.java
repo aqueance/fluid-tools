@@ -25,8 +25,13 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.fluidity.foundation.Command;
+import org.fluidity.foundation.Strings;
 
 import org.easymock.EasyMock;
 import org.easymock.IMocksControl;
@@ -382,6 +387,231 @@ public class MockGroup {
         }
 
         return expected;
+    }
+
+    /**
+     * Creates a new {@link Threads} object. The returned object can be used to create concurrent test cases.
+     *
+     * @param name the text to use in thread names to distinguish threads created by the returned {@link Threads} instance from other instances.
+     *
+     * @return a new {@link Threads} instance; never <code>null</code>.
+     */
+    public final Threads newThreads(final String name) {
+        return new ThreadsImpl(name);
+    }
+
+    /**
+     * Allows test cases to manage interacting threads.
+     * <h3>Usage</h3>
+     * TODO
+     *
+     * @author Tibor Varga
+     */
+    public interface Threads {
+
+        /**
+         * Executes in the calling thread the given task, using the first barrier to wait, with the given <code>timeout</code>, before starting the
+         * <code>task</code>, and the second barrier to wait, with the given <code>timeout</code>, <code>after</code> the <code>task</code> has completed.
+         * <p/>
+         * This method may be invoked from a task submitted to {@link #concurrent(MockGroup.Task)}.
+         *
+         * @param before  the barrier to wait on before starting the <code>task</code>; if <code>null</code>, the task is executed immediately.
+         * @param after   the barrier to wait on after completing the <code>task</code>; if <code>null</code>, the method returns immediately after completion
+         *                of the <code>task</code>.
+         * @param timeout the timeout to wait on either barriers, if any.
+         * @param task    the task to execute; if <code>null</code>, no code is executed between the two barriers, if any.
+         *
+         * @throws Exception whatever the <code>task</code> throws.
+         */
+        void serial(CyclicBarrier before, CyclicBarrier after, long timeout, Task task) throws Exception;
+
+        /**
+         * Creates a new thread to execute the given task with. Within the thread, {@link #serial(CyclicBarrier, CyclicBarrier, long, MockGroup.Task)} is
+         * invoked with the given parameters.
+         * <p/>
+         * This method may <i>not</i> be invoked from a task submitted to {@link #concurrent(MockGroup.Task)}.
+         *
+         * @param before  see {@link #serial(CyclicBarrier, CyclicBarrier, long, MockGroup.Task)}.
+         * @param after   see {@link #serial(CyclicBarrier, CyclicBarrier, long, MockGroup.Task)}.
+         * @param timeout see {@link #serial(CyclicBarrier, CyclicBarrier, long, MockGroup.Task)}.
+         * @param task    see {@link #serial(CyclicBarrier, CyclicBarrier, long, MockGroup.Task)}.
+         *
+         * @throws Exception see {@link #serial(CyclicBarrier, CyclicBarrier, long, MockGroup.Task)}.
+         */
+        void concurrent(CyclicBarrier before, CyclicBarrier after, long timeout, Task task) throws Exception;
+
+        /**
+         * Creates a new thread to execute the given task with. The task is expected to have at least two calls to {@link #serial(CyclicBarrier, CyclicBarrier,
+         * long, MockGroup.Task)}. IF that expectation is not met, you should use {@link #concurrent(CyclicBarrier, CyclicBarrier, long, MockGroup.Task)}
+         * instead of this method.
+         * <p/>
+         * This method may <i>not</i> be invoked from a task submitted to {@link #concurrent(CyclicBarrier, CyclicBarrier, long, MockGroup.Task)}.
+         *
+         * @param task the task to execute in a new thread.
+         *
+         * @throws Exception whatever the <code>task</code> throws.
+         */
+        void concurrent(Task task) throws Exception;
+
+        /**
+         * Releases all threads created by {@link #concurrent(MockGroup.Task)} or {@link #concurrent(CyclicBarrier, CyclicBarrier, long, MockGroup.Task)},
+         * invokes {@link MockGroup#verify(MockGroup.Task)}, and then waits, with the given timeout, for all threads to complete.
+         * <p/>
+         * This method may <i>not</i> be invoked from a task submitted to {@link #concurrent(MockGroup.Task)} or {@link #concurrent(CyclicBarrier,
+         * CyclicBarrier, long, MockGroup.Task)}.
+         *
+         * @param timeout the timeout to wait for all threads to complete.
+         * @param task    the task to verify.
+         *
+         * @throws Exception whatever the <code>task</code> throws.
+         */
+        void verify(long timeout, Task task) throws Exception;
+
+        /**
+         * Releases all threads created by {@link #concurrent(MockGroup.Task)} or {@link #concurrent(CyclicBarrier, CyclicBarrier, long, MockGroup.Task)},
+         * invokes {@link MockGroup#verify(MockGroup.Work)}, waits, with the given timeout, for all threads to complete, and returns whatever the
+         * <code>task</code> returned.
+         * <p/>
+         * This method may <i>not</i> be invoked from a task submitted to {@link #concurrent(MockGroup.Task)} or {@link #concurrent(CyclicBarrier,
+         * CyclicBarrier, long, MockGroup.Task)}.
+         *
+         * @param timeout the timeout to wait for all threads to complete.
+         * @param task    the task to verify.
+         *
+         * @return whatever the <code>task</code> returns.
+         *
+         * @throws Exception whatever the <code>task</code> throws.
+         */
+        <T> T verify(long timeout, Work<T> task) throws Exception;
+    }
+
+    /**
+     * @author Tibor Varga
+     */
+    private final class ThreadsImpl implements Threads {
+
+        private final AtomicBoolean error = new AtomicBoolean();
+        private final List<Thread> threads = new ArrayList<Thread>();
+        private final List<Exception> errors = new ArrayList<Exception>();
+        private CountDownLatch latch;
+
+        private ThreadsImpl(final String name) {
+            this.name = name;
+        }
+
+        private final String name;
+
+        public void serial(final CyclicBarrier before, final CyclicBarrier after, final long timeout, final Task task) throws Exception {
+            if (before != null) {
+                error.compareAndSet(false, rendezvous(before, timeout) < 0);
+            }
+
+            try {
+                if (task != null) {
+                    task.run();
+                }
+            } finally {
+                if (after != null) {
+                    error.compareAndSet(false, rendezvous(after, timeout) < 0);
+                }
+            }
+        }
+
+        private int rendezvous(final CyclicBarrier barrier, final long timeout) {
+            try {
+                return barrier.await(timeout, TimeUnit.MILLISECONDS);
+            } catch (final Exception e) {
+                return -1;
+            }
+        }
+
+        public void concurrent(final CyclicBarrier before, final CyclicBarrier after, final long timeout, final Task task) throws Exception {
+            concurrent(new Task() {
+                public void run() throws Exception {
+                    serial(before, after, timeout, task);
+                }
+            });
+        }
+
+        public synchronized void concurrent(final Task task) throws Exception {
+            assert task != null;
+            assert latch == null : String.format("Calls to %s.concurrent(...) may not be nested", Strings.printClass(false, false, MockGroup.Threads.class));
+            threads.add(new Thread(String.format("%s %s [%d]", MockGroup.class.getSimpleName(), name, threads.size())) {
+                public void run() {
+                    try {
+                        task.run();
+                    } catch (final Exception e) {
+                        synchronized (errors) {
+                            errors.add(e);
+                        }
+                    } finally {
+                        latch.countDown();
+                    }
+                }
+            });
+        }
+
+        private synchronized void release() {
+            latch = new CountDownLatch(threads.size());
+            errors.clear();
+
+            try {
+                for (final Thread thread : threads) {
+                    thread.start();
+                }
+            } finally {
+                threads.clear();
+            }
+        }
+
+        private synchronized void join(final long timeout) {
+            try {
+                try {
+                    latch.await(timeout, TimeUnit.MILLISECONDS);
+                } catch (final Exception e) {
+                    synchronized (errors) {
+                        errors.add(e);
+                    }
+                }
+
+                for (final Exception error : errors) {
+                    error.printStackTrace();
+                }
+
+                assert errors.isEmpty();
+            } finally {
+                errors.clear();
+            }
+        }
+
+        public final void verify(final long timeout, final Task task) throws Exception {
+            assert latch == null : String.format("Calls to %s.verify(...) may not be nested", Strings.printClass(false, false, MockGroup.Threads.class));
+            release();
+
+            try {
+                MockGroup.this.verify(task);
+            } finally {
+                join(timeout);
+            }
+
+            assert !error.get() : "Concurrency/timing error";
+        }
+
+        public <T> T verify(final long timeout, final Work<T> task) throws Exception {
+            assert latch == null : String.format("Calls to %s.verify(...) may not be nested", Strings.printClass(false, false, MockGroup.Threads.class));
+            release();
+
+            final T result;
+            try {
+                result = MockGroup.this.verify(task);
+            } finally {
+                join(timeout);
+            }
+
+            assert !error.get() : "Concurrency/timing error";
+
+            return result;
+        }
     }
 
     /**

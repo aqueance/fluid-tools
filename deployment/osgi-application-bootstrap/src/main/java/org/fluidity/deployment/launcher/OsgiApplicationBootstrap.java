@@ -36,6 +36,7 @@ import org.fluidity.composition.spi.ContainerTermination;
 import org.fluidity.deployment.osgi.StartLevels;
 import org.fluidity.foundation.Archives;
 import org.fluidity.foundation.ClassLoaders;
+import org.fluidity.foundation.Command;
 import org.fluidity.foundation.Log;
 import org.fluidity.foundation.ServiceProviders;
 
@@ -180,7 +181,7 @@ public final class OsgiApplicationBootstrap {
 
         framework.start();
 
-        termination.run(new Runnable() {
+        termination.add(new Command.Job<Exception>() {
             public void run() {
                 try {
                     switch (framework.getState()) {

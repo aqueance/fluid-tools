@@ -16,17 +16,13 @@
 
 package org.fluidity.composition.web.impl;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.ListIterator;
-
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentGroup;
 import org.fluidity.composition.spi.ContainerTermination;
-import org.fluidity.foundation.Log;
+import org.fluidity.foundation.Command;
 
 /**
  * Implements the component shutdown mechanism for web applications. The implementation requires either to be explicitly registered as a
@@ -41,15 +37,18 @@ import org.fluidity.foundation.Log;
 @ComponentGroup(api = ServletContextListener.class)
 final class WebApplicationTermination implements ContainerTermination, ServletContextListener {
 
-    private final List<Runnable> tasks = new ArrayList<Runnable>();
-    private final Log log;
+    private final Jobs jobs;
 
-    WebApplicationTermination(final Log<WebApplicationTermination> log) {
-        this.log = log;
+    WebApplicationTermination(final Jobs jobs) {
+        this.jobs = jobs;
     }
 
-    public void run(final Runnable command) {
-        tasks.add(command);
+    public void add(final Command.Job<Exception> job) {
+        jobs.add(job);
+    }
+
+    public void remove(final Command.Job<Exception> job) {
+        jobs.remove(job);
     }
 
     public void contextInitialized(final ServletContextEvent event) {
@@ -57,13 +56,6 @@ final class WebApplicationTermination implements ContainerTermination, ServletCo
     }
 
     public void contextDestroyed(final ServletContextEvent event) {
-        for (final ListIterator<Runnable> iterator = tasks.listIterator(tasks.size()); iterator.hasPrevious();) {
-            final Runnable task = iterator.previous();
-            try {
-                task.run();
-            } catch (final Exception e) {
-                log.error(e, task.getClass().getName());
-            }
-        }
+        jobs.flush();
     }
 }
