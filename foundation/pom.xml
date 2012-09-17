@@ -41,9 +41,8 @@
         <module>foundation-api</module>
         <module>foundation-impl</module>
         <module>foundation-utils</module>
-        <module>foundation-utils-tests</module>
         <module>foundation-easymock</module>
-        <module>foundation-component-tests</module>
+        <module>foundation-tests</module>
     </modules>
 
 </project>

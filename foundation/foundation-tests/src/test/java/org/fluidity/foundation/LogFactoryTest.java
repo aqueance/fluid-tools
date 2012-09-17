@@ -14,18 +14,32 @@
  * limitations under the License.
  */
 
-package org.fluidity.foundation.tests;
+package org.fluidity.foundation;
 
-import org.fluidity.foundation.Configuration;
+import org.fluidity.composition.Component;
+import org.fluidity.composition.ComponentContainer;
+import org.fluidity.composition.Containers;
+
+import org.testng.annotations.Test;
 
 /**
  * @author Tibor Varga
  */
-interface Settings {
+public class LogFactoryTest {
 
-    String DEFAULT_VALUE = "default";
-    String SOME_PROPERTY = "some.property";
+    private final ComponentContainer container = Containers.global();
 
-    @Configuration.Property(key = Settings.SOME_PROPERTY, undefined = Settings.DEFAULT_VALUE)
-    String property();
+    @Test
+    public void testLogInjection() throws Exception {
+        assert container.getComponent(Logger.class) != null;
+    }
+
+    @Component
+    private static class Logger {
+
+        @SuppressWarnings("UnusedDeclaration")
+        private Logger(final Log<Logger> log) {
+            assert log != null;
+        }
+    }
 }

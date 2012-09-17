@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.fluidity.foundation.tests;
+package org.fluidity.foundation;
 
 import org.fluidity.composition.Component;
 import org.fluidity.features.ReloadingConfiguration;

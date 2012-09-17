@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.fluidity.foundation.tests;
+package org.fluidity.foundation;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -25,7 +25,6 @@ import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.Containers;
 import org.fluidity.composition.Inject;
-import org.fluidity.foundation.Deferred;
 
 import org.testng.annotations.Test;
 

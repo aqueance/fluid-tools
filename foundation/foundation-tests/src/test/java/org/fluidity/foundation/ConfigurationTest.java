@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-package org.fluidity.foundation.tests;
+package org.fluidity.foundation;
 
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.Containers;
-import org.fluidity.foundation.Configuration;
 
 import org.testng.annotations.Test;
 
