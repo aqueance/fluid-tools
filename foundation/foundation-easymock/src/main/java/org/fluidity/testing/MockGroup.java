@@ -62,50 +62,54 @@ import org.testng.annotations.AfterMethod;
  * <pre>
  * public class MyComponentTest extends <span class="hl1">MockGroup</span> {
  *
- *     private final Dependency <span class="hl2">dependency</span> = <span class="hl1">{@linkplain #mock(Class) mock}</span>(Dependency.class);
- *     private final MyComponent component = new MyComponent(<span class="hl2">dependency</span>);
+ *   private final Dependency <span class="hl2">dependency</span> = <span class="hl1">{@linkplain #mock(Class) mock}</span>(Dependency.class);
+ *   private final MyComponent component = new MyComponent(<span class="hl2">dependency</span>);
  *
- *     &#64;Test
- *     public void testSomething() throws Exception {
- *         final Action <span class="hl2">action</span> = <span class="hl1">{@linkplain #localMock(Class) localMock}</span>(Action.class);
+ *   &#64;Test
+ *   public void testSomething() throws Exception {
+ *     final Action <span class="hl2">action</span> = <span class="hl1">{@linkplain #localMock(Class) localMock}</span>(Action.class);
  *
- *         {@linkplain EasyMock}.expect(dependency.<span class="hl2">getSomeAction</span>()).andReturn(<span class="hl2">action</span>);
- *         {@linkplain EasyMock}.expect(action.<span class="hl2">perform</span>()).andReturn(true);
+ *     {@linkplain EasyMock}.{@linkplain EasyMock#expect(Object) expect}(dependency.<span class="hl2">getSomeAction</span>()).{@linkplain org.easymock.IExpectationSetters#andReturn(Object) andReturn}(<span class="hl2">action</span>);
+ *     {@linkplain EasyMock}.{@linkplain EasyMock#expect(Object) expect}(action.<span class="hl2">perform</span>()).{@linkplain org.easymock.IExpectationSetters#andReturn(Object) andReturn}(true);
  *
- *         <span class="hl1">{@linkplain #replay() replay}</span>();
- *         final boolean success = component.doSomething();
- *         <span class="hl1">{@linkplain #verify() verify}</span>();
+ *     final boolean success = <span class="hl1">{@linkplain #verify() verify}</span>(new {@linkplain Work Work}&lt;Boolean>() {
+ *       public Boolean run() throws Exception {
+ *         return component.doSomething();
+ *       }
+ *     });
  *
- *         assert success;
- *     }
+ *     assert success;
+ *   }
  * }
  * </pre>
  * <h4>As a delegate</h4>
  * <pre>
  * public class MyComponentTest {
  *
- *     private final <span class="hl1">MockGroup</span> group = new <span class="hl1">MockGroup</span>();
- *     private final Dependency <span class="hl2">dependency</span> = group.<span class="hl1">{@linkplain #mock(Class) mock}</span>(Dependency.class);
- *     private final MyComponent component = new MyComponent(<span class="hl2">dependency</span>);
+ *   private final <span class="hl1">MockGroup</span> group = new <span class="hl1">MockGroup</span>();
+ *   private final Dependency <span class="hl2">dependency</span> = group.<span class="hl1">{@linkplain #mock(Class) mock}</span>(Dependency.class);
+ *   private final MyComponent component = new MyComponent(<span class="hl2">dependency</span>);
  *
- *     &#64;AfterMethod
- *     public void tearDown() throws Exception {
- *         group.<span class="hl1">{@linkplain #clear() clear}</span>();
- *     }
+ *   &#64;AfterMethod
+ *   public void tearDown() throws Exception {
+ *     group.<span class="hl1">{@linkplain #clear() clear}</span>();
+ *   }
  *
- *     &#64;Test
- *     public void testSomething() throws Exception {
- *         final Action <span class="hl2">action</span> = group.<span class="hl1">{@linkplain #localMock(Class) localMock}</span>(Action.class);
+ *   &#64;Test
+ *   public void testSomething() throws Exception {
+ *     final Action <span class="hl2">action</span> = group.<span class="hl1">{@linkplain #localMock(Class) localMock}</span>(Action.class);
  *
- *         {@linkplain EasyMock}.expect(dependency.<span class="hl2">getSomeAction</span>()).andReturn(<span class="hl2">action</span>);
- *         {@linkplain EasyMock}.expect(action.<span class="hl2">perform</span>()).andReturn(true);
+ *     {@linkplain EasyMock}.{@linkplain EasyMock#expect(Object) expect}(dependency.<span class="hl2">getSomeAction</span>()).{@linkplain org.easymock.IExpectationSetters#andReturn(Object) andReturn}(<span class="hl2">action</span>);
+ *     {@linkplain EasyMock}.{@linkplain EasyMock#expect(Object) expect}(action.<span class="hl2">perform</span>()).{@linkplain org.easymock.IExpectationSetters#andReturn(Object) andReturn}(true);
  *
- *         group.<span class="hl1">{@linkplain #replay() replay}</span>();
- *         final boolean success = component.doSomething();
- *         group.<span class="hl1">{@linkplain #verify() verify}</span>();
+ *     final boolean success = group.<span class="hl1">{@linkplain #verify() verify}</span>(new {@linkplain Work}&lt;Boolean>() {
+ *       public Boolean run() throws Exception {
+ *         return component.doSomething();
+ *       }
+ *     });
  *
- *         assert success;
- *     }
+ *     assert success;
+ *   }
  * }
  * </pre>
  *
@@ -246,14 +250,20 @@ public class MockGroup {
     }
 
     /**
-     * Command to feed to {@link MockGroup#test(MockGroup.Work)} or {@link MockGroup#verify(MockGroup.Work)}.
+     * Command to feed to {@link MockGroup#test(MockGroup.Work)}, {@link MockGroup#verify(MockGroup.Work)}, or {@link MockGroup.Threads#verify(long,
+     * MockGroup.Work)}.
+     * <h3>Usage</h3>
+     * See {@link MockGroup}.
      *
      * @author Tibor Varga
      */
     public interface Work<T> extends Command.Process<T, Exception> { }
 
     /**
-     * Command to feed to {@link MockGroup#test(MockGroup.Task)} or {@link MockGroup#verify(MockGroup.Task)}.
+     * Command to feed to {@link MockGroup#test(MockGroup.Task)}, {@link MockGroup#verify(MockGroup.Task)}, or {@link MockGroup.Threads#verify(long,
+     * MockGroup.Task)}, {@link MockGroup.Threads#serial(MockGroup.Task)}, and {@link MockGroup.Threads#concurrent(MockGroup.Task)}.
+     * <h3>Usage</h3>
+     * See {@link MockGroup}.
      *
      * @author Tibor Varga
      */
@@ -401,51 +411,72 @@ public class MockGroup {
     }
 
     /**
-     * Allows test cases to manage interacting threads.
+     * Allows test cases to manage interacting threads. Threads are created by the {@link #concurrent(MockGroup.Task) concurrent()} method and started /
+     * stopped by the {@link #verify(long, MockGroup.Task)} and {@link #verify(long, MockGroup.Work)} methods. Threads synchronize on {@linkplain CyclicBarrier
+     * barriers} using the {@link #coalesce(CyclicBarrier, long) coalesce()}.
+     * <p/>
+     * {@link EasyMock} calls <b>must</b> always run in the main thread.
      * <h3>Usage</h3>
-     * TODO
+     * <pre>
+     * &#64;Test
+     * public void testConcurrency() throws Exception {
+     *   final <span class="hl1">Threads</span> threads = {@linkplain MockGroup#newThreads(String) newThreads}("Concurrency");
+     *
+     *   // barrier initialized with number of threads to synchronize on:
+     *   final {@linkplain CyclicBarrier} barrier = new {@linkplain CyclicBarrier#CyclicBarrier(int) CyclicBarrier}(2);
+     *
+     *   &hellip;
+     *
+     *   threads.<span class="hl1">serial</span>(new {@linkplain MockGroup.Task Task}() {
+     *     public void run() throws Exception {
+     *       &hellip;
+     *       thread.<span class="hl1">coalesce</span>(barrier, 100);
+     *       &hellip;
+     *       thread.<span class="hl1">coalesce</span>(barrier, 100);
+     *       &hellip;
+     *     }
+     *   });
+     *
+     *   &hellip;
+     *
+     *   threads.<span class="hl1">concurrent</span>(new {@linkplain MockGroup.Task Task}() {
+     *     public void run() throws Exception {
+     *       &hellip;
+     *       thread.<span class="hl1">coalesce</span>(barrier, 100);
+     *       &hellip;
+     *       thread.<span class="hl1">coalesce</span>(barrier, 100);
+     *       &hellip;
+     *     }
+     *   });
+     *
+     *   &hellip;
+     *
+     *   threads.<span class="hl1">verify</span>(500, new {@linkplain MockGroup.Task Task}() {
+     *     &hellip;
+     *   });
+     * }
+     * </pre>
      *
      * @author Tibor Varga
      */
     public interface Threads {
 
         /**
-         * Executes in the calling thread the given task, using the first barrier to wait, with the given <code>timeout</code>, before starting the
-         * <code>task</code>, and the second barrier to wait, with the given <code>timeout</code>, <code>after</code> the <code>task</code> has completed.
+         * Executes in the calling thread the given task. This is just a convenience method to visually separate the execution of the <code>task</code> from
+         * other code sequences.
          * <p/>
          * This method may be invoked from a task submitted to {@link #concurrent(MockGroup.Task)}.
          *
-         * @param before  the barrier to wait on before starting the <code>task</code>; if <code>null</code>, the task is executed immediately.
-         * @param after   the barrier to wait on after completing the <code>task</code>; if <code>null</code>, the method returns immediately after completion
-         *                of the <code>task</code>.
-         * @param timeout the timeout to wait on either barriers, if any.
          * @param task    the task to execute; if <code>null</code>, no code is executed between the two barriers, if any.
          *
          * @throws Exception whatever the <code>task</code> throws.
          */
-        void serial(CyclicBarrier before, CyclicBarrier after, long timeout, Task task) throws Exception;
+        void serial(Task task) throws Exception;
 
         /**
-         * Creates a new thread to execute the given task with. Within the thread, {@link #serial(CyclicBarrier, CyclicBarrier, long, MockGroup.Task)} is
-         * invoked with the given parameters.
+         * Creates a new thread to execute the given task with.
          * <p/>
-         * This method may <i>not</i> be invoked from a task submitted to {@link #concurrent(MockGroup.Task)}.
-         *
-         * @param before  see {@link #serial(CyclicBarrier, CyclicBarrier, long, MockGroup.Task)}.
-         * @param after   see {@link #serial(CyclicBarrier, CyclicBarrier, long, MockGroup.Task)}.
-         * @param timeout see {@link #serial(CyclicBarrier, CyclicBarrier, long, MockGroup.Task)}.
-         * @param task    see {@link #serial(CyclicBarrier, CyclicBarrier, long, MockGroup.Task)}.
-         *
-         * @throws Exception see {@link #serial(CyclicBarrier, CyclicBarrier, long, MockGroup.Task)}.
-         */
-        void concurrent(CyclicBarrier before, CyclicBarrier after, long timeout, Task task) throws Exception;
-
-        /**
-         * Creates a new thread to execute the given task with. The task is expected to have at least two calls to {@link #serial(CyclicBarrier, CyclicBarrier,
-         * long, MockGroup.Task)}. IF that expectation is not met, you should use {@link #concurrent(CyclicBarrier, CyclicBarrier, long, MockGroup.Task)}
-         * instead of this method.
-         * <p/>
-         * This method may <i>not</i> be invoked from a task submitted to {@link #concurrent(CyclicBarrier, CyclicBarrier, long, MockGroup.Task)}.
+         * This method may <i>not</i> be invoked from a task submitted to another invocation of the same method.
          *
          * @param task the task to execute in a new thread.
          *
@@ -454,11 +485,23 @@ public class MockGroup {
         void concurrent(Task task) throws Exception;
 
         /**
-         * Releases all threads created by {@link #concurrent(MockGroup.Task)} or {@link #concurrent(CyclicBarrier, CyclicBarrier, long, MockGroup.Task)},
-         * invokes {@link MockGroup#verify(MockGroup.Task)}, and then waits, with the given timeout, for all threads to complete.
+         * Causes all threads calling the same method with the same barrier to synchronize at the point of calling this method. Calls to this method must be
+         * paired with one or more invocation in different threads with the same barrier.
+         *
+         * @param barrier the barrier to synchronize on.
+         * @param timeout the maximum time to wait for other threads to coalesce.
+         *
+         * @return the arrival index of the calling thread.
+         *
+         * @throws Exception when something goes wrong during synchronization.
+         */
+        int coalesce(CyclicBarrier barrier, long timeout) throws Exception;
+
+        /**
+         * Releases all threads created by {@link #concurrent(MockGroup.Task)}, invokes {@link MockGroup#verify(MockGroup.Task)}, and then waits, with the
+         * given timeout, for all threads to complete.
          * <p/>
-         * This method may <i>not</i> be invoked from a task submitted to {@link #concurrent(MockGroup.Task)} or {@link #concurrent(CyclicBarrier,
-         * CyclicBarrier, long, MockGroup.Task)}.
+         * This method may <i>not</i> be invoked from a task submitted to {@link #concurrent(MockGroup.Task)}.
          *
          * @param timeout the timeout to wait for all threads to complete.
          * @param task    the task to verify.
@@ -468,12 +511,10 @@ public class MockGroup {
         void verify(long timeout, Task task) throws Exception;
 
         /**
-         * Releases all threads created by {@link #concurrent(MockGroup.Task)} or {@link #concurrent(CyclicBarrier, CyclicBarrier, long, MockGroup.Task)},
-         * invokes {@link MockGroup#verify(MockGroup.Work)}, waits, with the given timeout, for all threads to complete, and returns whatever the
-         * <code>task</code> returned.
+         * Releases all threads created by {@link #concurrent(MockGroup.Task)}, invokes {@link MockGroup#verify(MockGroup.Work)}, waits, with the given
+         * timeout, for all threads to complete, and returns whatever the <code>task</code> returned.
          * <p/>
-         * This method may <i>not</i> be invoked from a task submitted to {@link #concurrent(MockGroup.Task)} or {@link #concurrent(CyclicBarrier,
-         * CyclicBarrier, long, MockGroup.Task)}.
+         * This method may <i>not</i> be invoked from a task submitted to {@link #concurrent(MockGroup.Task)}.
          *
          * @param timeout the timeout to wait for all threads to complete.
          * @param task    the task to verify.
@@ -501,36 +542,21 @@ public class MockGroup {
 
         private final String name;
 
-        public void serial(final CyclicBarrier before, final CyclicBarrier after, final long timeout, final Task task) throws Exception {
-            if (before != null) {
-                error.compareAndSet(false, rendezvous(before, timeout) < 0);
-            }
+        public void serial(final Task task) throws Exception {
+            task.run();
+        }
+
+        public int coalesce(final CyclicBarrier barrier, final long timeout) throws Exception {
+            int result = -1;
 
             try {
-                if (task != null) {
-                    task.run();
-                }
+                result = barrier.await(timeout, TimeUnit.MILLISECONDS);
             } finally {
-                if (after != null) {
-                    error.compareAndSet(false, rendezvous(after, timeout) < 0);
-                }
+                error.compareAndSet(false, result < 0);
             }
-        }
 
-        private int rendezvous(final CyclicBarrier barrier, final long timeout) {
-            try {
-                return barrier.await(timeout, TimeUnit.MILLISECONDS);
-            } catch (final Exception e) {
-                return -1;
-            }
-        }
 
-        public void concurrent(final CyclicBarrier before, final CyclicBarrier after, final long timeout, final Task task) throws Exception {
-            concurrent(new Task() {
-                public void run() throws Exception {
-                    serial(before, after, timeout, task);
-                }
-            });
+            return result;
         }
 
         public synchronized void concurrent(final Task task) throws Exception {

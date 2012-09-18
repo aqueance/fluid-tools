@@ -112,15 +112,30 @@ public class ContainerTerminationJobsTest extends MockGroup {
 
         final Threads threads = newThreads("Concurrency");
 
-        final CyclicBarrier barrier1 = new CyclicBarrier(2);
-        final CyclicBarrier barrier2 = new CyclicBarrier(2);
+        final CyclicBarrier barrier = new CyclicBarrier(2);
 
         // job 0 is invoked, forces the thread to wait
         jobs[0].run();
         EasyMock.expectLastCall().andAnswer(new IAnswer<Void>() {
             public Void answer() throws Throwable {
-                threads.serial(barrier1, barrier2, 100, null);
+                threads.coalesce(barrier, 100);
+                // just wait for the concurrent task to execute
+                threads.coalesce(barrier, 100);
                 return null;
+            }
+        });
+
+        // this task will be executed while jobs[0] is waiting in execution, releasing jobs[0] at completion
+        threads.concurrent(new Task() {
+            public void run() throws Exception {
+                threads.coalesce(barrier, 100);
+
+                list.remove(jobs[1]);
+                list.add(jobs[2]);
+                list.add(jobs[3]);
+                list.remove(jobs[3]);
+
+                threads.coalesce(barrier, 100);
             }
         });
 
@@ -128,16 +143,6 @@ public class ContainerTerminationJobsTest extends MockGroup {
         jobs[2].run();
 
         // no other job is invoked
-
-        // this task will be executed while jobs[0] is waiting in execution, releasing jobs[0] at completion
-        threads.concurrent(barrier1, barrier2, 100, new Task() {
-            public void run() throws Exception {
-                list.remove(jobs[1]);
-                list.add(jobs[2]);
-                list.add(jobs[3]);
-                list.remove(jobs[3]);
-            }
-        });
 
         threads.verify(500, new Task() {
             public void run() throws Exception {

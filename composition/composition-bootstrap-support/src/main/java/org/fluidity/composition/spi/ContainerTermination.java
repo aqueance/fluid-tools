@@ -37,20 +37,20 @@ import org.fluidity.foundation.Command;
  * {@linkplain org.fluidity.composition.Component @Component}
  * final class MyContainerTerminationImpl implements <span class="hl1">ContainerTermination</span> {
  *
- *     MyContainerTerminationImpl(final <span class="hl1">ContainerTermination.Jobs</span> jobs) {
- *         &hellip;
- *     }
+ *   MyContainerTerminationImpl(final <span class="hl1">ContainerTermination.Jobs</span> jobs) {
+ *       &hellip;
+ *   }
  *
-
- *     public void add(final Command.Job<Exception> job) {
- *         jobs.add(job);
- *     }
-
- *     public void remove(final Command.Job<Exception> job) {
- *         jobs.remove(job);
- *     }
  *
- *     &hellip;
+ *   public void add(final Command.Job<Exception> job) {
+ *       jobs.add(job);
+ *   }
+ *
+ *   public void remove(final Command.Job<Exception> job) {
+ *       jobs.remove(job);
+ *   }
+ *
+ *   &hellip;
  * }
  * </pre>
  *
