@@ -61,9 +61,13 @@ public class DependencyInterceptorsTest extends MockGroup {
 
     @Test
     public void testNoNode() throws Exception {
-        replay();
-        assert interceptors.replace(resolver, context, traversal, Serializable.class, null) == null;
-        verify();
+        final DependencyGraph.Node node = verify(new Work<DependencyGraph.Node>() {
+            public DependencyGraph.Node run() throws Exception {
+                return interceptors.replace(resolver, context, traversal, Serializable.class, null);
+            }
+        });
+
+        assert node == null;
     }
 
     @Test
@@ -76,9 +80,13 @@ public class DependencyInterceptorsTest extends MockGroup {
 
         EasyMock.expect(annotations.filter(EasyMock.same(context), EasyMock.aryEq(DependencyInterceptorsImpl.NO_INTERCEPTORS))).andReturn(DependencyInterceptorsImpl.NO_INTERCEPTORS);
 
-        replay();
-        assert interceptors.replace(resolver, context, traversal, Serializable.class, node) == node;
-        verify();
+        final DependencyGraph.Node replaced = verify(new Work<DependencyGraph.Node>() {
+            public DependencyGraph.Node run() throws Exception {
+                return interceptors.replace(resolver, context, traversal, Serializable.class, node);
+            }
+        });
+
+        assert replaced == node;
     }
 
     @Test
@@ -92,9 +100,13 @@ public class DependencyInterceptorsTest extends MockGroup {
         EasyMock.expect(group.instance(traversal)).andReturn(new ComponentInterceptor[0]);
         EasyMock.expect(annotations.filter(EasyMock.same(context), EasyMock.aryEq(DependencyInterceptorsImpl.NO_INTERCEPTORS))).andReturn(DependencyInterceptorsImpl.NO_INTERCEPTORS);
 
-        replay();
-        assert interceptors.replace(resolver, context, traversal, Serializable.class, node) == node;
-        verify();
+        final DependencyGraph.Node replaced = verify(new Work<DependencyGraph.Node>() {
+            public DependencyGraph.Node run() throws Exception {
+                return interceptors.replace(resolver, context, traversal, Serializable.class, node);
+            }
+        });
+
+        assert replaced == node;
     }
 
     @Test
@@ -110,9 +122,13 @@ public class DependencyInterceptorsTest extends MockGroup {
         EasyMock.expect(group.instance(traversal)).andReturn(found);
         EasyMock.expect(annotations.filter(EasyMock.same(context), EasyMock.<ComponentInterceptor[]>notNull())).andAnswer(filter(true, found));
 
-        replay();
-        assert interceptors.replace(resolver, context, traversal, Serializable.class, node) == node;
-        verify();
+        final DependencyGraph.Node replaced = verify(new Work<DependencyGraph.Node>() {
+            public DependencyGraph.Node run() throws Exception {
+                return interceptors.replace(resolver, context, traversal, Serializable.class, node);
+            }
+        });
+
+        assert replaced == node;
     }
 
     @Test
@@ -148,29 +164,45 @@ public class DependencyInterceptorsTest extends MockGroup {
                     .andReturn(dependencies[i + 1]);
         }
 
-        replay();
-        final DependencyGraph.Node replacement = interceptors.replace(resolver, context, traversal, Serializable.class, node);
-        verify();
+        final DependencyGraph.Node replacement = verify(new Work<DependencyGraph.Node>() {
+            public DependencyGraph.Node run() throws Exception {
+                return interceptors.replace(resolver, context, traversal, Serializable.class, node);
+            }
+        });
 
         assert replacement != node;
 
-        final ComponentContext context = localMock(ComponentContext.class);
+        test(new Task() {
+            public void run() throws Exception {
+                final ComponentContext context = localMock(ComponentContext.class);
 
-        EasyMock.expect((Class) node.type()).andReturn(Serializable.class);
-        EasyMock.expect(node.context()).andReturn(context);
+                EasyMock.expect((Class) node.type()).andReturn(Serializable.class);
+                EasyMock.expect(node.context()).andReturn(context);
 
-        replay();
-        assert replacement.type() == Serializable.class;
-        assert replacement.context() == context;
-        verify();
+                verify(new Task() {
+                    public void run() throws Exception {
+                        assert replacement.type() == Serializable.class;
+                        assert replacement.context() == context;
+                    }
+                });
+            }
+        });
 
-        final Object value = new Object();
+        test(new Task() {
+            public void run() throws Exception {
+                final Object value = new Object();
 
-        EasyMock.expect(dependencies[found.length].create()).andReturn(value);
+                EasyMock.expect(dependencies[found.length].create()).andReturn(value);
 
-        replay();
-        assert replacement.instance(traversal) == value;
-        verify();
+                final Object instance = verify(new Work<Object>() {
+                    public Object run() throws Exception {
+                        return replacement.instance(traversal);
+                    }
+                });
+
+                assert instance == value;
+            }
+        });
     }
 
     @Test
@@ -209,9 +241,13 @@ public class DependencyInterceptorsTest extends MockGroup {
             }
         }
 
-        replay();
-        assert interceptors.replace(resolver, context, traversal, Serializable.class, node) == null;
-        verify();
+        final DependencyGraph.Node replaced = verify(new Work<DependencyGraph.Node>() {
+            public DependencyGraph.Node run() throws Exception {
+                return interceptors.replace(resolver, context, traversal, Serializable.class, node);
+            }
+        });
+
+        assert replaced == null;
     }
 
     @Test(expectedExceptions = ComponentContainer.ResolutionException.class, expectedExceptionsMessageRegExp = ".*intercept.*")
@@ -257,12 +293,11 @@ public class DependencyInterceptorsTest extends MockGroup {
                                                dependencies[0] == null ? EasyMock.<ComponentInterceptor.Dependency>notNull() : EasyMock.same(dependencies[0])))
                 .andReturn(dependencies[1]);
 
-        replay();
-        try {
-            interceptors.replace(resolver, context, traversal, Serializable.class, node);
-        } finally {
-            verify();
-        }
+        guarantee(new Task() {
+            public void run() throws Exception {
+                interceptors.replace(resolver, context, traversal, Serializable.class, node);
+            }
+        });
     }
 
     private IAnswer<ComponentInterceptor[]> filter(final boolean empty, final ComponentInterceptor... interceptors) {

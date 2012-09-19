@@ -39,54 +39,86 @@ public class RestrictedContainerImplTest extends MockGroup {
     }
 
     @Test
-    public void testComponentAccess() throws Exception {
+    public void testComponentAccessDenied() throws Exception {
         final RestrictedContainer container = container();
 
-        replay();
-        try {
-            container.getComponent(Serializable.class);
-            assert false : "Operation should have been prevented";
-        } catch (final ComponentContainer.ResolutionException e) {
-            // this is expected
-        }
-        verify();
+        guarantee(new Task() {
+            public void run() throws Exception {
+                try {
+                    container.getComponent(Serializable.class);
+                    assert false : "Operation should have been prevented";
+                } catch (final ComponentContainer.ResolutionException e) {
+                    // this is expected
+                }
+            }
+        });
+    }
+
+    @Test
+    public void testComponentAccessAllowed() throws Exception {
+        final RestrictedContainer container = container();
 
         container.enable();
 
         final String value = "value";
         EasyMock.expect(level1.getComponent(Serializable.class)).andReturn(value);
 
-        replay();
-        assert value.equals(container.getComponent(Serializable.class));
-        verify();
+        final Serializable component = verify(new Work<Serializable>() {
+            public Serializable run() throws Exception {
+                return container.getComponent(Serializable.class);
+            }
+        });
+
+        assert value.equals(component);
     }
 
     @Test
-    public void testHierarchyAccess() throws Exception {
+    public void testHierarchyAccessDenied() throws Exception {
         final RestrictedContainer container = container();
 
         EasyMock.expect(level1.makeChildContainer()).andReturn(level2);
 
-        replay();
-        final ComponentContainer child = container.makeChildContainer();
-        verify();
+        final ComponentContainer child = verify(new Work<ComponentContainer>() {
+            public ComponentContainer run() throws Exception {
+                return container.makeChildContainer();
+            }
+        });
 
-        replay();
-        try {
-            child.getComponent(Serializable.class);
-            assert false : "Operation should have been prevented";
-        } catch (final ComponentContainer.ResolutionException e) {
-            // this is expected
-        }
-        verify();
+        guarantee(new Task() {
+            public void run() throws Exception {
+                try {
+                    child.getComponent(Serializable.class);
+                    assert false : "Operation should have been prevented";
+                } catch (final ComponentContainer.ResolutionException e) {
+                    // this is expected
+                }
+            }
+        });
+    }
+
+    @Test
+    public void testHierarchyAccessAllowed() throws Exception {
+        final RestrictedContainer container = container();
+
+        EasyMock.expect(level1.makeChildContainer()).andReturn(level2);
+
+        final ComponentContainer child = verify(new Work<ComponentContainer>() {
+            public ComponentContainer run() throws Exception {
+                return container.makeChildContainer();
+            }
+        });
 
         container.enable();
 
         final String value = "value";
         EasyMock.expect(level2.getComponent(Serializable.class)).andReturn(value);
 
-        replay();
-        assert value.equals(child.getComponent(Serializable.class));
-        verify();
+        final Serializable component = verify(new Work<Serializable>() {
+            public Serializable run() throws Exception {
+                return child.getComponent(Serializable.class);
+            }
+        });
+
+        assert value.equals(component);
     }
 }

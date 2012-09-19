@@ -76,9 +76,11 @@ public final class CustomFactoryTests extends AbstractContainerTests {
         instance.bind(EasyMock.<ComponentFactory.Registry>notNull());
         EasyMock.expectLastCall().anyTimes();
 
-        replay();
-        verifyComponent(container);
-        verify();
+        verify(new Task() {
+            public void run() throws Exception {
+                verifyComponent(container);
+            }
+        });
     }
 
     @Test
@@ -97,9 +99,11 @@ public final class CustomFactoryTests extends AbstractContainerTests {
         instance.bind(EasyMock.<ComponentFactory.Registry>notNull());
         EasyMock.expectLastCall().anyTimes();
 
-        replay();
-        verifyComponent(container);
-        verify();
+        verify(new Task() {
+            public void run() throws Exception {
+                verifyComponent(container);
+            }
+        });
     }
 
     @Test
@@ -116,9 +120,11 @@ public final class CustomFactoryTests extends AbstractContainerTests {
         instance.bind(EasyMock.<ComponentFactory.Registry>notNull());
         EasyMock.expectLastCall().anyTimes();
 
-        replay();
-        verifyComponent(container);
-        verify();
+        verify(new Task() {
+            public void run() throws Exception {
+                verifyComponent(container);
+            }
+        });
     }
 
     @Test
@@ -140,9 +146,11 @@ public final class CustomFactoryTests extends AbstractContainerTests {
         instance.bind(EasyMock.<ComponentFactory.Registry>notNull());
         EasyMock.expectLastCall().times(factories);
 
-        replay();
-        final GroupApi[] group = container.getComponentGroup(GroupApi.class);
-        verify();
+        final GroupApi[] group = verify(new Work<GroupApi[]>() {
+            public GroupApi[] run() throws Exception {
+                return container.getComponentGroup(GroupApi.class);
+            }
+        });
 
         assert group != null : GroupApi.class;
         assert group.length == 2 : group.length;
@@ -155,9 +163,11 @@ public final class CustomFactoryTests extends AbstractContainerTests {
         registry.bindComponent(DependentValue.class);
         registry.bindComponent(DynamicFactory1.class);
 
-        replay();
-        container.getComponent(DynamicComponent1.class);
-        verify();
+        verify(new Task() {
+            public void run() throws Exception {
+                container.getComponent(DynamicComponent1.class);
+            }
+        });
 
         assert false : "Dynamic dependency should have been prevented";
     }
@@ -168,9 +178,11 @@ public final class CustomFactoryTests extends AbstractContainerTests {
         registry.bindComponent(DependentValue.class);
         registry.bindComponent(DynamicFactory2.class);
 
-        replay();
-        final DynamicComponent2 component = container.getComponent(DynamicComponent2.class);
-        verify();
+        final DynamicComponent2 component = verify(new Work<DynamicComponent2>() {
+            public DynamicComponent2 run() throws Exception {
+                return container.getComponent(DynamicComponent2.class);
+            }
+        });
 
         assert component.key() != null;
     }
@@ -180,9 +192,13 @@ public final class CustomFactoryTests extends AbstractContainerTests {
         registry.bindComponent(CustomDependent.class);
         registry.bindComponent(CustomDependencyFactory.class);
 
-        replay();
-        assert container.getComponent(CustomDependent.class) != null;
-        verify();
+        final CustomDependent component = verify(new Work<CustomDependent>() {
+            public CustomDependent run() throws Exception {
+                return container.getComponent(CustomDependent.class);
+            }
+        });
+
+        assert component != null;
     }
 
     @DataProvider(name = "delegating-factories")
@@ -201,9 +217,11 @@ public final class CustomFactoryTests extends AbstractContainerTests {
         registry.bindComponent(NamedGroupMember1.class);
         registry.bindComponent(NamedGroupMember2.class);
 
-        replay();
-        final ContextProvider component = container.getComponent(ContextProvider.class);
-        verify();
+        final ContextProvider component = verify(new Work<ContextProvider>() {
+            public ContextProvider run() throws Exception {
+                return container.getComponent(ContextProvider.class);
+            }
+        });
 
         assert component != null;
         assert "name-1".equals(component.name1()) : component.name1();
@@ -347,24 +365,24 @@ public final class CustomFactoryTests extends AbstractContainerTests {
         registry.bindComponent(Secondary.class);
         registry.bindComponent(Factory.class);
 
-        replay();
-
-        switch (variant) {
-        case 0:
-        case 1:
-        case 2:
-        case 3:
-            assert container.getComponent(Main.class) != null;
-            break;
-        case 4:
-            assert container.getComponent(Main.class) == null;
-            break;
-        default:
-            assert false : variant;
-            break;
-        }
-
-        verify();
+        verify(new Task() {
+            public void run() throws Exception {
+                switch (variant) {
+                case 0:
+                case 1:
+                case 2:
+                case 3:
+                    assert container.getComponent(Main.class) != null;
+                    break;
+                case 4:
+                    assert container.getComponent(Main.class) == null;
+                    break;
+                default:
+                    assert false : variant;
+                    break;
+                }
+            }
+        });
     }
 
     @Retention(RetentionPolicy.RUNTIME)

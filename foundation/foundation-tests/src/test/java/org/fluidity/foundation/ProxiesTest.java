@@ -68,12 +68,14 @@ public class ProxiesTest extends MockGroup {
             }
         });
 
-        replay();
-        assert instance1.equals(instance1);
-        assert instance2.equals(instance2);
-        assert !instance1.equals(instance2);
-        assert !instance2.equals(instance1);
-        verify();
+        verify(new Task() {
+            public void run() throws Exception {
+                assert instance1.equals(instance1);
+                assert instance2.equals(instance2);
+                assert !instance1.equals(instance2);
+                assert !instance2.equals(instance1);
+            }
+        });
     }
 
     @Test
@@ -112,13 +114,15 @@ public class ProxiesTest extends MockGroup {
 
         EasyMock.expect(mock.id()).andReturn(1234).anyTimes();
 
-        replay();
-        assert instance1.id() == 1234;
-        assert instance2.id() == 1234;
-        assert instance1.equals(instance1);
-        assert instance2.equals(instance2);
-        assert instance1.equals(instance2);
-        assert instance2.equals(instance1);
-        verify();
+        verify(new Task() {
+            public void run() throws Exception {
+                assert instance1.id() == 1234;
+                assert instance2.id() == 1234;
+                assert instance1.equals(instance1);
+                assert instance2.equals(instance2);
+                assert instance1.equals(instance2);
+                assert instance2.equals(instance1);
+            }
+        });
     }
 }

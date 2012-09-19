@@ -63,9 +63,11 @@ public class StringsTest extends MockGroup {
 
         EasyMock.expect(annotation.annotationType()).andReturn((Class) Documented.class);
 
-        replay();
-        final String string = Strings.printAnnotation(annotation);
-        verify();
+        final String string = verify(new Work<String>() {
+            public String run() throws Exception {
+                return Strings.printAnnotation(annotation);
+            }
+        });
 
         assert String.format("@%s", Documented.class.getSimpleName()).equals(string) : string;
     }
@@ -77,9 +79,11 @@ public class StringsTest extends MockGroup {
         EasyMock.expect(annotation.annotationType()).andReturn((Class) Retention.class);
         EasyMock.expect(annotation.value()).andReturn(RetentionPolicy.RUNTIME);
 
-        replay();
-        final String string = Strings.printAnnotation(annotation);
-        verify();
+        final String string = verify(new Work<String>() {
+            public String run() throws Exception {
+                return Strings.printAnnotation(annotation);
+            }
+        });
 
         assert String.format("@%s(%s)", Retention.class.getSimpleName(), RetentionPolicy.RUNTIME).equals(string) : string;
     }
@@ -93,9 +97,11 @@ public class StringsTest extends MockGroup {
         EasyMock.expect(annotation.annotationType()).andReturn((Class) Target.class);
         EasyMock.expect(annotation.value()).andReturn(value);
 
-        replay();
-        final String string = Strings.printAnnotation(annotation);
-        verify();
+        final String string = verify(new Work<String>() {
+            public String run() throws Exception {
+                return Strings.printAnnotation(annotation);
+            }
+        });
 
         assert String.format("@%s({%s,%s})", Target.class.getSimpleName(), value[0], value[1]).equals(string) : string;
     }
@@ -107,9 +113,11 @@ public class StringsTest extends MockGroup {
         EasyMock.expect(annotation.annotationType()).andReturn((Class) ClassValued.class);
         EasyMock.expect(annotation.value()).andReturn(Object[].class);
 
-        replay();
-        final String string = Strings.printAnnotation(annotation);
-        verify();
+        final String string = verify(new Work<String>() {
+            public String run() throws Exception {
+                return Strings.printAnnotation(annotation);
+            }
+        });
 
         assert String.format("@%s.%s(Object[].class)", getClass().getSimpleName(), ClassValued.class.getSimpleName()).equals(string) : string;
     }
@@ -125,9 +133,11 @@ public class StringsTest extends MockGroup {
         EasyMock.expect(annotation.id()).andReturn(id);
         EasyMock.expect(annotation.list()).andReturn(list);
 
-        replay();
-        final String string = Strings.printAnnotation(annotation);
-        verify();
+        final String string = verify(new Work<String>() {
+            public String run() throws Exception {
+                return Strings.printAnnotation(annotation);
+            }
+        });
 
         assert String.format("@%s.%s(id=%d, list={%s,%s,%s})", getClass().getSimpleName(), MultiValued.class.getSimpleName(), id, list[0], list[1], list[2]).equals(string) : string;
     }
@@ -143,9 +153,11 @@ public class StringsTest extends MockGroup {
         EasyMock.expect(annotation.id()).andReturn(id);
         EasyMock.expect(annotation.list()).andReturn(list);
 
-        replay();
-        final String string = Strings.printAnnotation(annotation);
-        verify();
+        final String string = verify(new Work<String>() {
+            public String run() throws Exception {
+                return Strings.printAnnotation(annotation);
+            }
+        });
 
         assert String.format("@%s.%s", getClass().getSimpleName(), MultiValued.class.getSimpleName()).equals(string) : string;
     }

@@ -34,7 +34,6 @@ import org.fluidity.testing.MockGroup;
 
 import org.easymock.EasyMock;
 import org.easymock.IAnswer;
-import org.easymock.IMocksControl;
 import org.testng.annotations.Test;
 
 /**
@@ -65,6 +64,12 @@ public class ContainerBoundaryTest extends MockGroup {
         }
     }
 
+    private ContainerBoundary boundary(final ClassLoader loader) {
+        final ContainerBoundary boundary = loader == null ? new ContainerBoundary() : new ContainerBoundary(loader);
+        boundary.reset(providers);
+        return boundary;
+    }
+
     @Test
     public void populatesTopLevelContainer() throws Exception {
         final Map<String, String> properties = new HashMap<String, String>();
@@ -72,14 +77,10 @@ public class ContainerBoundaryTest extends MockGroup {
         properties.put("key2", "value2");
 
         // find the top level class loader
-        ClassLoader classLoader;
-        for (classLoader = getClass().getClassLoader(); classLoader.getParent() != null; classLoader = classLoader.getParent()) {
-            // empty
-        }
+        final ClassLoader classLoader = root();
 
         // set up the test class
-        final ContainerBoundary boundary = new ContainerBoundary(classLoader);
-        boundary.reset(providers);
+        final ContainerBoundary boundary = boundary(classLoader);
 
         boundary.setPlatformContainer(platform);
 
@@ -118,19 +119,13 @@ public class ContainerBoundaryTest extends MockGroup {
             }
         });
 
-        replay();
+        final Work<ComponentContainer> loading = loading(boundary);
 
         // first access goes through the above interaction
-        assert boundary.loadedContainer() == container;
-
-        verify();
-
-        replay();
+        assert verify(loading) == container;
 
         // second access should simply return the cached container
-        assert boundary.loadedContainer() == container;
-
-        verify();
+        assert verify(loading) == container;
     }
 
     @Test
@@ -139,8 +134,7 @@ public class ContainerBoundaryTest extends MockGroup {
         properties.put("key1", "value1");
         properties.put("key2", "value2");
 
-        final ContainerBoundary boundary = new ContainerBoundary();
-        boundary.reset(providers);
+        final ContainerBoundary boundary = boundary(null);
 
         for (final Map.Entry<String, String> entry : properties.entrySet()) {
             boundary.setBindingProperty(entry.getKey(), entry.getValue());
@@ -192,27 +186,20 @@ public class ContainerBoundaryTest extends MockGroup {
             }
         });
 
-        replay();
+
+        final Work<ComponentContainer> loading = loading(boundary);
 
         // first access goes through the above interaction
-        assert boundary.loadedContainer() == container;
-
-        verify();
-
-        replay();
+        assert verify(loading) == container;
 
         // second access should simply return the cached container
-        assert boundary.loadedContainer() == container;
-
-        verify();
+        assert verify(loading) == container;
     }
 
     @Test
     public void populatesConnectedContainer() throws Exception {
-        final ContainerBoundary boundary = new ContainerBoundary();
-        boundary.reset(providers);
+        final ContainerBoundary boundary = boundary(null);
 
-        final IMocksControl containersControl = EasyMock.createControl();
         final Map<ClassLoader, OpenComponentContainer> containers = new HashMap<ClassLoader, OpenComponentContainer>();
 
         // find all class loaders on the ancestry
@@ -222,11 +209,12 @@ public class ContainerBoundaryTest extends MockGroup {
 
         for (ClassLoader cl = ourClassLoader; cl != null; cl = cl.getParent()) {
             classLoaders.add(cl);
-            containers.put(cl, containersControl.createMock(OpenComponentContainer.class));
+            containers.put(cl, localMock(OpenComponentContainer.class));    // the local mocks ensure no method is invoked on intermediate containers
         }
 
         // find the top level class loader
         final ClassLoader classLoader = classLoaders.get(classLoaders.size() - 1);
+
 
         // make subject receive its dependencies from the top-level class loader
         setupDependencies(classLoader, true);
@@ -262,132 +250,156 @@ public class ContainerBoundaryTest extends MockGroup {
             });
         }
 
-        final OpenComponentContainer ourContainer = containers.get(ourClassLoader);
-        assert ourContainer != null;
+        final OpenComponentContainer local = containers.get(ourClassLoader);
+        assert local != null;
 
-        replay();
+        final Work<ComponentContainer> loading = loading(boundary);
 
         // first access goes through the above interaction
-        assert boundary.loadedContainer() == ourContainer;
-
-        verify();
-
-        replay();
+        assert verify(loading) == local;
 
         // second access should simply return the cached container
-        assert boundary.loadedContainer() == ourContainer;
-
-        verify();
+        assert verify(loading) == local;
 
         if (ourClassLoader.getParent() != null) {
-            replay();
 
             // access to higher level container should simply return the cached container
-            assert new ContainerBoundary(ourClassLoader.getParent()).loadedContainer() == containers.get(ourClassLoader.getParent());
+            final ComponentContainer created = verify(loading(new ContainerBoundary(ourClassLoader.getParent())));
 
-            verify();
+            assert created == containers.get(ourClassLoader.getParent());
         }
     }
 
     @Test
     public void testCreatesEmptyContainer() throws Exception {
         final ClassLoader classLoader = getClass().getClassLoader();
+        final ContainerBoundary boundary = boundary(classLoader);
 
-        final ContainerBoundary boundary = new ContainerBoundary(classLoader);
-        boundary.reset(providers);
+        test(new Task() {
+            public void run() throws Exception {
+                EasyMock.expect(providers.<ContainerProvider>findInstance(ContainerProvider.class, classLoader)).andReturn(provider);
+                EasyMock.expect(providers.<ContainerServicesFactory>findInstance(ContainerServicesFactory.class, classLoader)).andReturn(servicesFactory);
+                EasyMock.expect(providers.<LogFactory>findInstance(LogFactory.class, classLoader)).andReturn(logs);
+                EasyMock.expect(servicesFactory.containerServices(logs)).andReturn(services);
 
-        EasyMock.expect(providers.<ContainerProvider>findInstance(ContainerProvider.class, classLoader)).andReturn(provider);
-        EasyMock.expect(providers.<ContainerServicesFactory>findInstance(ContainerServicesFactory.class, classLoader)).andReturn(servicesFactory);
-        EasyMock.expect(providers.<LogFactory>findInstance(LogFactory.class, classLoader)).andReturn(logs);
-        EasyMock.expect(servicesFactory.containerServices(logs)).andReturn(services);
+                final OpenComponentContainer local = localMock(OpenComponentContainer.class);
 
-        final OpenComponentContainer container1 = localMock(OpenComponentContainer.class);
+                EasyMock.expect(provider.newContainer(services, null)).andReturn(local);
 
-        EasyMock.expect(provider.newContainer(services, null)).andReturn(container1);
+                final OpenComponentContainer created = verify(new Work<OpenComponentContainer>() {
+                    public OpenComponentContainer run() throws Exception {
+                        return boundary.create();
+                    }
+                });
 
-        replay();
-        assert  boundary.create() == container1;
-        verify();
+                assert  created == local;
+            }
+        });
 
-        final OpenComponentContainer container2 = localMock(OpenComponentContainer.class);
+        test(new Task() {
+            public void run() throws Exception {
+                final OpenComponentContainer local = localMock(OpenComponentContainer.class);
 
-        EasyMock.expect(provider.newContainer(services, null)).andReturn(container2);
+                EasyMock.expect(provider.newContainer(services, null)).andReturn(local);
 
-        replay();
-        assert boundary.create() == container2;
-        verify();
+                final OpenComponentContainer created = verify(new Work<OpenComponentContainer>() {
+                    public OpenComponentContainer run() throws Exception {
+                        return boundary.create();
+                    }
+                });
+
+                assert created == local;
+            }
+        });
     }
 
     @Test
     @SuppressWarnings("unchecked")
     public void bindsBootComponentBeforePopulationButRefusesAfter() throws Exception {
+        final ClassLoader classLoader = root();
+        final ContainerBoundary boundary = boundary(classLoader);
 
-        // find the top level class loader
+        test(new Task() {
+            public void run() throws Exception {
+
+                // make subject receive its dependencies from the top-level class loader
+                setupDependencies(classLoader, true);
+
+                final ContainerBootstrap.Callback callback[] = new ContainerBootstrap.Callback[1];
+
+                // give subject a container for that class loader
+                EasyMock.expect(bootstrap.populateContainer(EasyMock.same(services),
+                                                            EasyMock.same(provider),
+                                                            EasyMock.<Properties>notNull(),
+                                                            EasyMock.<OpenComponentContainer>same(null),
+                                                            EasyMock.same(classLoader),
+                                                            EasyMock.<PlatformContainer>isNull(),
+                                                            EasyMock.<ContainerBootstrap.Callback>notNull())).andAnswer(new IAnswer<OpenComponentContainer>() {
+                    public OpenComponentContainer answer() throws Throwable {
+                        callback[0] = (ContainerBootstrap.Callback) EasyMock.getCurrentArguments()[6];
+                        return container;
+                    }
+                });
+
+                final BootComponent1 component1 = new BootComponent1();
+                final BootComponent2 component2 = new BootComponent2();
+
+                EasyMock.expect(container.getRegistry()).andReturn(registry);
+                registry.bindInstance(component1);
+
+                EasyMock.expect(container.getRegistry()).andReturn(registry);
+                registry.bindInstance(component2);
+
+                // container is initialized
+                bootstrap.initializeContainer(container, services);
+                EasyMock.expectLastCall().andAnswer(new IAnswer<Object>() {
+                    public Object answer() throws Throwable {
+                        callback[0].containerInitialized();
+                        return null;
+                    }
+                });
+
+                // first access goes through the above interaction
+                final ComponentContainer created = verify(new Work<ComponentContainer>() {
+                    public ComponentContainer run() throws Exception {
+                        boundary.bindBootComponent(component1);
+                        boundary.bindBootComponent(component2);
+
+                        return boundary.loadedContainer();
+                    }
+                });
+
+                assert created == container;
+            }
+        });
+
+        verify(new Task() {
+            public void run() throws Exception {
+                try {
+                    boundary.bindBootComponent(new BootComponent3());
+                } catch (final IllegalStateException e) {
+                    // ignore
+                }
+            }
+        });
+    }
+
+    private Work<ComponentContainer> loading(final ContainerBoundary boundary) {
+        return new Work<ComponentContainer>() {
+            public ComponentContainer run() throws Exception {
+                return boundary.loadedContainer();
+            }
+        };
+    }
+
+    private ClassLoader root() {
         ClassLoader classLoader;
+
         for (classLoader = getClass().getClassLoader(); classLoader.getParent() != null; classLoader = classLoader.getParent()) {
             // empty
         }
 
-        // set up the test class
-        final ContainerBoundary boundary = new ContainerBoundary(classLoader);
-        boundary.reset(providers);
-
-        // make subject receive its dependencies from the top-level class loader
-        setupDependencies(classLoader, true);
-
-        final ContainerBootstrap.Callback callback[] = new ContainerBootstrap.Callback[1];
-
-        // give subject a container for that class loader
-        EasyMock.expect(bootstrap.populateContainer(EasyMock.same(services),
-                                                    EasyMock.same(provider),
-                                                    EasyMock.<Properties>notNull(),
-                                                    EasyMock.<OpenComponentContainer>same(null),
-                                                    EasyMock.same(classLoader),
-                                                    EasyMock.<PlatformContainer>isNull(),
-                                                    EasyMock.<ContainerBootstrap.Callback>notNull())).andAnswer(new IAnswer<OpenComponentContainer>() {
-            public OpenComponentContainer answer() throws Throwable {
-                callback[0] = (ContainerBootstrap.Callback) EasyMock.getCurrentArguments()[6];
-                return container;
-            }
-        });
-
-        final BootComponent1 component1 = new BootComponent1();
-        final BootComponent2 component2 = new BootComponent2();
-
-        EasyMock.expect(container.getRegistry()).andReturn(registry);
-        registry.bindInstance(component1);
-
-        EasyMock.expect(container.getRegistry()).andReturn(registry);
-        registry.bindInstance(component2);
-
-        // container is initialized
-        bootstrap.initializeContainer(container, services);
-        EasyMock.expectLastCall().andAnswer(new IAnswer<Object>() {
-            public Object answer() throws Throwable {
-                callback[0].containerInitialized();
-                return null;
-            }
-        });
-
-        replay();
-
-        boundary.bindBootComponent(component1);
-        boundary.bindBootComponent(component2);
-
-        // first access goes through the above interaction
-        assert boundary.loadedContainer() == container;
-
-        verify();
-
-        replay();
-
-        try {
-            boundary.bindBootComponent(new BootComponent3());
-        } catch (final IllegalStateException e) {
-            // ignore
-        }
-
-        verify();
+        return classLoader;
     }
 
     private static class BootComponent1 { }

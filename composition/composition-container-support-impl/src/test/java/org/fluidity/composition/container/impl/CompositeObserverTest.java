@@ -56,23 +56,35 @@ public class CompositeObserverTest extends MockGroup {
         allThree(CompositeObserver.combine(observer1, observer2, observer3));
     }
 
-    private void allThree(final ComponentContainer.Observer observer) {
-        observer1.resolved(path, Serializable.class);
-        observer2.resolved(path, Serializable.class);
-        observer3.resolved(path, Serializable.class);
+    private void allThree(final ComponentContainer.Observer observer) throws Exception {
+        test(new Task() {
+            public void run() throws Exception {
+                observer1.resolved(path, Serializable.class);
+                observer2.resolved(path, Serializable.class);
+                observer3.resolved(path, Serializable.class);
 
-        replay();
-        observer.resolved(path, Serializable.class);
-        verify();
+                verify(new Task() {
+                    public void run() throws Exception {
+                        observer.resolved(path, Serializable.class);
+                    }
+                });
+            }
+        });
 
-        final AtomicReference<Object> reference = new AtomicReference<Object>(component);
+        test(new Task() {
+            public void run() throws Exception {
+                final AtomicReference<Object> reference = new AtomicReference<Object>(component);
 
-        observer1.instantiated(path, reference);
-        observer2.instantiated(path, reference);
-        observer3.instantiated(path, reference);
+                observer1.instantiated(path, reference);
+                observer2.instantiated(path, reference);
+                observer3.instantiated(path, reference);
 
-        replay();
-        observer.instantiated(path, reference);
-        verify();
+                verify(new Task() {
+                    public void run() throws Exception {
+                        observer.instantiated(path, reference);
+                    }
+                });
+            }
+        });
     }
 }

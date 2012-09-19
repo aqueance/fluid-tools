@@ -71,7 +71,7 @@ public final class ContainerBootstrapImplTest extends MockGroup {
     }
 
     @SuppressWarnings("unchecked")
-    private Object populateContainer(final Class[] classes, final PackageBindings[] instances) {
+    private Object populateContainer(final Class[] classes, final PackageBindings[] instances) throws Exception {
         EasyMock.expect(provider.newContainer(services, platform)).andReturn(container);
         EasyMock.expect(discovery.findComponentClasses(PackageBindings.class, null, false)).andReturn(classes);
 
@@ -98,9 +98,11 @@ public final class ContainerBootstrapImplTest extends MockGroup {
             }
         });
 
-        replay();
-        bootstrap.populateContainer(services, provider, null, null, null, platform, callback);
-        verify();
+        verify(new Task() {
+            public void run() throws Exception {
+                bootstrap.populateContainer(services, provider, null, null, null, platform, callback);
+            }
+        });
 
         dependencies();
 
@@ -155,9 +157,11 @@ public final class ContainerBootstrapImplTest extends MockGroup {
         this.bindings.shutdownComponents(container);
         EasyMock.expectLastCall().times(2);
 
-        replay();
-        bootstrap.initializeContainer(container, services);
-        verify();
+        verify(new Task() {
+            public void run() throws Exception {
+                bootstrap.initializeContainer(container, services);
+            }
+        });
     }
 
     @SuppressWarnings("unchecked")
@@ -169,13 +173,11 @@ public final class ContainerBootstrapImplTest extends MockGroup {
         EasyMock.expect(container.getComponent(EasyMock.<Class>anyObject())).andReturn(object);
         callback.containerInitialized();
 
-        replay();
-
-        try {
-            bootstrap.initializeContainer(container, services);
-        } finally {
-            verify();
-        }
+        guarantee(new Task() {
+            public void run() throws Exception {
+                bootstrap.initializeContainer(container, services);
+            }
+        });
     }
 
     @SuppressWarnings("unchecked")
@@ -210,9 +212,11 @@ public final class ContainerBootstrapImplTest extends MockGroup {
 
         registry.bindInstance(EasyMock.anyObject());
 
-        replay();
-        assert container == bootstrap.populateContainer(services, provider, null, parent, null, platform, callback);
-        verify();
+        assert container == verify(new Work<OpenComponentContainer>() {
+            public OpenComponentContainer run() throws Exception {
+                return bootstrap.populateContainer(services, provider, null, parent, null, platform, callback);
+            }
+        });
     }
 
     @SuppressWarnings("unchecked")
@@ -241,9 +245,13 @@ public final class ContainerBootstrapImplTest extends MockGroup {
 
         registry.bindInstance(EasyMock.anyObject());
 
-        replay();
-        assert bootstrap.populateContainer(services, provider, null, null, null, platform, callback) != null;
-        verify();
+        final OpenComponentContainer populated = verify(new Work<OpenComponentContainer>() {
+            public OpenComponentContainer run() throws Exception {
+                return bootstrap.populateContainer(services, provider, null, null, null, platform, callback);
+            }
+        });
+
+        assert populated != null;
     }
 
     @SuppressWarnings("unchecked")
@@ -272,9 +280,11 @@ public final class ContainerBootstrapImplTest extends MockGroup {
 
         registry.bindInstance(EasyMock.anyObject());
 
-        replay();
-        assert container == bootstrap.populateContainer(services, provider, properties, parent, null, platform, callback);
-        verify();
+        assert container == verify(new Work<OpenComponentContainer>() {
+            public OpenComponentContainer run() throws Exception {
+                return bootstrap.populateContainer(services, provider, properties, parent, null, platform, callback);
+            }
+        });
     }
 
     public static class ResponsiblePackageBindingsImpl extends EmptyPackageBindings {

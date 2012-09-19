@@ -105,9 +105,11 @@ public final class ComponentInterceptorTests extends AbstractContainerTests {
 
         Interceptor.list.clear();
 
-        replay();
-        container.getComponent(RootComponent.class);
-        verify();
+        verify(new Task() {
+            public void run() throws Exception {
+                container.getComponent(RootComponent.class);
+            }
+        });
 
         check(InterceptorDependency.class);
         check(RootComponent.class);
@@ -165,9 +167,11 @@ public final class ComponentInterceptorTests extends AbstractContainerTests {
 
         Interceptor.list.clear();
 
-        replay();
-        container.getComponent(RootComponent.class);
-        verify();
+        verify(new Task() {
+            public void run() throws Exception {
+                container.getComponent(RootComponent.class);
+            }
+        });
 
         check(InterceptorDependency.class);
         check(RootComponent.class);
@@ -206,9 +210,11 @@ public final class ComponentInterceptorTests extends AbstractContainerTests {
 
         Interceptor.list.clear();
 
-        replay();
-        container.getComponent(RootComponent.class);
-        verify();
+        verify(new Task() {
+            public void run() throws Exception {
+                container.getComponent(RootComponent.class);
+            }
+        });
 
         check(InterceptorDependency.class);
         check(RootComponent.class);
@@ -252,9 +258,11 @@ public final class ComponentInterceptorTests extends AbstractContainerTests {
 
         Interceptor.list.clear();
 
-        replay();
-        container.getComponent(RootComponent.class);
-        verify();
+        verify(new Task() {
+            public void run() throws Exception {
+                container.getComponent(RootComponent.class);
+            }
+        });
 
         check(InterceptorDependency.class);
         check(RootComponent.class);

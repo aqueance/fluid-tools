@@ -118,9 +118,9 @@ public class ContainerTerminationJobsTest extends MockGroup {
         jobs[0].run();
         EasyMock.expectLastCall().andAnswer(new IAnswer<Void>() {
             public Void answer() throws Throwable {
-                threads.coalesce(barrier, 100);
+                threads.lineup(barrier, 100);
                 // just wait for the concurrent task to execute
-                threads.coalesce(barrier, 100);
+                threads.lineup(barrier, 100);
                 return null;
             }
         });
@@ -128,14 +128,14 @@ public class ContainerTerminationJobsTest extends MockGroup {
         // this task will be executed while jobs[0] is waiting in execution, releasing jobs[0] at completion
         threads.concurrent(new Task() {
             public void run() throws Exception {
-                threads.coalesce(barrier, 100);
+                threads.lineup(barrier, 100);
 
                 list.remove(jobs[1]);
                 list.add(jobs[2]);
                 list.add(jobs[3]);
                 list.remove(jobs[3]);
 
-                threads.coalesce(barrier, 100);
+                threads.lineup(barrier, 100);
             }
         });
 

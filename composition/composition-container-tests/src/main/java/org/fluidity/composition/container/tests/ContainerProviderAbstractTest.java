@@ -23,6 +23,7 @@ import org.fluidity.composition.container.DependencyInjector;
 import org.fluidity.composition.container.PlatformContainer;
 import org.fluidity.composition.container.spi.ContainerProvider;
 import org.fluidity.composition.container.spi.DependencyGraph;
+import org.fluidity.composition.container.spi.OpenComponentContainer;
 import org.fluidity.foundation.ClassDiscovery;
 import org.fluidity.foundation.NoLogFactory;
 import org.fluidity.foundation.spi.LogFactory;
@@ -56,7 +57,7 @@ public abstract class ContainerProviderAbstractTest extends MockGroup {
     }
 
     @BeforeMethod
-    public void dependencies() {
+    public final void dependencies() {
         EasyMock.expect(services.logs()).andReturn(logs).anyTimes();
         EasyMock.expect(services.classDiscovery()).andReturn(classDiscovery).anyTimes();
         EasyMock.expect(services.dependencyInjector()).andReturn(injector).anyTimes();
@@ -66,22 +67,30 @@ public abstract class ContainerProviderAbstractTest extends MockGroup {
     }
 
     @Test
-    public void createsContainer() throws Exception {
+    public final void createsContainer() throws Exception {
         EasyMock.expect(context.copy()).andReturn(copy);
 
-        replay();
-        assert provider.newContainer(services, null) != null;
-        verify();
+        final OpenComponentContainer container = verify(new Work<OpenComponentContainer>() {
+            public OpenComponentContainer run() throws Exception {
+                return provider.newContainer(services, null);
+            }
+        });
+
+        assert container != null;
     }
 
     @Test
-    public void createsPlatformContainer() throws Exception {
+    public final void createsPlatformContainer() throws Exception {
         final PlatformContainer platform = localMock(PlatformContainer.class);
 
         EasyMock.expect(context.copy()).andReturn(copy);
 
-        replay();
-        assert provider.newContainer(services, platform) != null;
-        verify();
+        final OpenComponentContainer container = verify(new Work<OpenComponentContainer>() {
+            public OpenComponentContainer run() throws Exception {
+                return provider.newContainer(services, platform);
+            }
+        });
+
+        assert container != null;
     }
 }

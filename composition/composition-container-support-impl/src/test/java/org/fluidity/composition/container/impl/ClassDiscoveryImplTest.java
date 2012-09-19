@@ -67,11 +67,13 @@ public class ClassDiscoveryImplTest extends MockGroup {
 
         ClassLoader loader = null;
         try {
-            loader = ClassLoaders.create(getClass().getClassLoader(), classDir.toURI().toURL());
+            final ClassLoader classLoader = loader = ClassLoaders.create(getClass().getClassLoader(), classDir.toURI().toURL());
 
-            replay();
-            final Class[] classes = new ClassDiscoveryImpl(log).findComponentClasses(Interface.class, loader, false);
-            verify();
+            final Class[] classes = verify(new Work<Class[]>() {
+                public Class[] run() throws Exception {
+                    return new ClassDiscoveryImpl(log).findComponentClasses(Interface.class, classLoader, false);
+                }
+            });
 
             assert new ArrayList<Class>(Arrays.asList(Impl1.class, Impl2.class, Impl3.class)).equals(new ArrayList<Class>(Arrays.asList(classes)));
         } finally {
@@ -114,24 +116,26 @@ public class ClassDiscoveryImplTest extends MockGroup {
 
         assert servicesFile.exists();
 
-        ClassLoader classLoader1 = null;
-        ClassLoader classLoader2 = null;
+        ClassLoader loader1 = null;
+        ClassLoader loader2 = null;
         try {
-            classLoader1 = ClassLoaders.create(null, classDir1.toURI().toURL());
-            classLoader2 = ClassLoaders.create(classLoader1, classDir2.toURI().toURL());
+            final ClassLoader classLoader1 = loader1 = ClassLoaders.create(null, classDir1.toURI().toURL());
+            final ClassLoader classLoader2 = loader2 = ClassLoaders.create(loader1, classDir2.toURI().toURL());
 
-            replay();
-            final Class[] classes = new ClassDiscoveryImpl(log).findComponentClasses(classLoader1.loadClass(Interface.class.getName()), classLoader2, true);
-            verify();
+            final Class[] classes = verify(new Work<Class[]>() {
+                public Class[] run() throws Exception {
+                    return new ClassDiscoveryImpl(log).findComponentClasses(classLoader1.loadClass(Interface.class.getName()), classLoader2, true);
+                }
+            });
 
-            assert new ArrayList<Class>(Arrays.asList(classLoader2.loadClass(Impl1.class.getName()))).equals(new ArrayList<Class>(Arrays.asList(classes)));
+            assert new ArrayList<Class>(Arrays.asList(loader2.loadClass(Impl1.class.getName()))).equals(new ArrayList<Class>(Arrays.asList(classes)));
         } finally {
-            if (classLoader1 != null) {
-                ((Closeable) classLoader1).close();
+            if (loader1 != null) {
+                ((Closeable) loader1).close();
             }
 
-            if (classLoader2 != null) {
-                ((Closeable) classLoader2).close();
+            if (loader2 != null) {
+                ((Closeable) loader2).close();
             }
 
             deleteDirectory(classDir1, fileList);

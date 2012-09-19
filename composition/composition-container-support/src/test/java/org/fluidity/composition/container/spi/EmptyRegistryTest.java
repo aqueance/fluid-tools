@@ -45,28 +45,42 @@ public class EmptyRegistryTest extends MockGroup {
         EasyMock.expect(mock.makeChildContainer(Components.inspect(MarkedGroupComponent.class))).andReturn(container);
         EasyMock.expect(container.getRegistry()).andReturn(registry);
 
-        replay();
-        final ComponentContainer.Registry registry = this.registry.isolateComponent(MarkedGroupComponent.class);
-        verify();
+        final ComponentContainer.Registry registry = verify(new Work<ComponentContainer.Registry>() {
+            public ComponentContainer.Registry run() throws Exception {
+                return EmptyRegistryTest.this.registry.isolateComponent(MarkedGroupComponent.class);
+            }
+        });
 
         assert registry == this.registry;
     }
 
     @Test
     public void subclassWithComponentAnnotation() throws Exception {
-        mock.bindComponent(Components.inspect(UnmarkedComponent.class));
+        test(new Task() {
+            public void run() throws Exception {
+                mock.bindComponent(Components.inspect(UnmarkedComponent.class));
 
-        replay();
-        registry.bindComponent(UnmarkedComponent.class);
-        verify();
+                verify(new Task() {
+                    public void run() throws Exception {
+                        registry.bindComponent(UnmarkedComponent.class);
+                    }
+                });
+            }
+        });
 
-        final Object component = new UnmarkedComponent();
+        test(new Task() {
+            public void run() throws Exception {
+                final Object component = new UnmarkedComponent();
 
-        mock.bindInstance(component, Components.inspect(UnmarkedComponent.class));
+                mock.bindInstance(component, Components.inspect(UnmarkedComponent.class));
 
-        replay();
-        registry.bindInstance(component);
-        verify();
+                verify(new Task() {
+                    public void run() throws Exception {
+                        registry.bindInstance(component);
+                    }
+                });
+            }
+        });
     }
 
     private interface Interface1 { }
@@ -124,9 +138,11 @@ public class EmptyRegistryTest extends MockGroup {
             }));
         }
 
-        replay();
-        registry.bindComponentGroup(GroupComponent.class, (Class<GroupComponent>[]) elements);
-        verify();
+        verify(new Task() {
+            public void run() throws Exception {
+                registry.bindComponentGroup(GroupComponent.class, (Class<GroupComponent>[]) elements);
+            }
+        });
     }
 
     interface GroupComponent { }

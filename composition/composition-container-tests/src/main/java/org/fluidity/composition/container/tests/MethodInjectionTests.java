@@ -62,9 +62,11 @@ public class MethodInjectionTests extends AbstractContainerTests {
 
         component.explicit(dependency1, dependency2);
 
-        replay();
-        container.invoke(component, injectable);
-        verify();
+        verify(new Task() {
+            public void run() throws Exception {
+                container.invoke(component, injectable);
+            }
+        });
     }
 
     @Test
@@ -74,9 +76,11 @@ public class MethodInjectionTests extends AbstractContainerTests {
 
         component.explicit(1234, "abcd", dependency1, dependency2);
 
-        replay();
-        container.invoke(component, explicit, 1234, "abcd");
-        verify();
+        verify(new Task() {
+            public void run() throws Exception {
+                container.invoke(component, explicit, 1234, "abcd");
+            }
+        });
     }
 
     @Test
@@ -87,18 +91,22 @@ public class MethodInjectionTests extends AbstractContainerTests {
         final Dependency1 local = localMock(Dependency1.class);
         component.explicit(1234, "abcd", local, dependency2);
 
-        replay();
-        container.invoke(component, explicit, 1234, "abcd", local);
-        verify();
+        verify(new Task() {
+            public void run() throws Exception {
+                container.invoke(component, explicit, 1234, "abcd", local);
+            }
+        });
     }
 
     @Test(expectedExceptions = ComponentContainer.ResolutionException.class, expectedExceptionsMessageRegExp = ".*Dependency1.*")
     public void testComplainsAboutMissingMandatoryParameter() throws Exception {
         registry.bindInstance(dependency2, Dependency2.class);
 
-        replay();
-        container.invoke(component, explicit, 1234, "abcd");
-        verify();
+        verify(new Task() {
+            public void run() throws Exception {
+                container.invoke(component, explicit, 1234, "abcd");
+            }
+        });
     }
 
     @Test
@@ -107,9 +115,11 @@ public class MethodInjectionTests extends AbstractContainerTests {
 
         component.explicit(1234, "abcd", dependency1, null);
 
-        replay();
-        container.invoke(component, explicit, 1234, "abcd");
-        verify();
+        verify(new Task() {
+            public void run() throws Exception {
+                container.invoke(component, explicit, 1234, "abcd");
+            }
+        });
     }
 
     @Test(expectedExceptions = CheckedException.class)
@@ -120,18 +130,20 @@ public class MethodInjectionTests extends AbstractContainerTests {
         component.explicit(dependency1, dependency2);
         EasyMock.expectLastCall().andThrow(new CheckedException());
 
-        replay();
-        try {
-            Exceptions.wrap(new Process<Void, Exception>() {
-                public Void run() throws Exception {
-                    container.invoke(component, injectable);
-                    return null;
+        guarantee(new Task() {
+            public void run() throws Exception {
+                try {
+                    Exceptions.wrap(new Process<Void, Exception>() {
+                        public Void run() throws Exception {
+                            container.invoke(component, injectable);
+                            return null;
+                        }
+                    });
+                } catch (Exceptions.Wrapper e) {
+                    throw e.rethrow(CheckedException.class);
                 }
-            });
-        } catch (Exceptions.Wrapper e) {
-            throw e.rethrow(CheckedException.class);
-        }
-        verify();
+            }
+        });
     }
 
     @Test
@@ -142,22 +154,34 @@ public class MethodInjectionTests extends AbstractContainerTests {
         final InjectedMethods completed = container.complete(component, InjectedMethods.class);
 
         // no parameter is @Inject-ed
-        component.explicit(1234, "abcd", null, null);
-        EasyMock.expectLastCall().times(2);
+        test(new Task() {
+            public void run() throws Exception {
+                component.explicit(1234, "abcd", null, null);
+                EasyMock.expectLastCall().times(2);
 
-        replay();
-        completed.explicit(1234, "abcd", null, null);
-        completed.explicit(1234, "abcd", null, null);
-        verify();
+                verify(new Task() {
+                    public void run() throws Exception {
+                        completed.explicit(1234, "abcd", null, null);
+                        completed.explicit(1234, "abcd", null, null);
+                    }
+                });
+            }
+        });
 
         // last two parameters are @Inject-ed
-        component.implicit(1234, "abcd", dependency1, dependency2);
-        EasyMock.expectLastCall().times(2);
+        test(new Task() {
+            public void run() throws Exception {
+                component.implicit(1234, "abcd", dependency1, dependency2);
+                EasyMock.expectLastCall().times(2);
 
-        replay();
-        completed.implicit(1234, "abcd", null, null);
-        completed.implicit(1234, "abcd", null, null);
-        verify();
+                verify(new Task() {
+                    public void run() throws Exception {
+                        completed.implicit(1234, "abcd", null, null);
+                        completed.implicit(1234, "abcd", null, null);
+                    }
+                });
+            }
+        });
     }
 
     @Test(expectedExceptions = CheckedException.class)
@@ -170,9 +194,11 @@ public class MethodInjectionTests extends AbstractContainerTests {
         component.explicit(1234, "abcd", null, null);
         EasyMock.expectLastCall().andThrow(new CheckedException());
 
-        replay();
-        completed.explicit(1234, "abcd", null, null);
-        verify();
+        verify(new Task() {
+            public void run() throws Exception {
+                completed.explicit(1234, "abcd", null, null);
+            }
+        });
     }
 
     private interface Dependency1 { }

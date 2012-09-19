@@ -75,9 +75,11 @@ public final class ComponentVariantTests extends AbstractContainerTests {
                 .andAnswer(new FactoryAnswer(Check.class, check, DependentValue.class))
                 .anyTimes();
 
-        replay();
-        verifyComponent(container);
-        verify();
+        verify(new Task() {
+            public void run() throws Exception {
+                verifyComponent(container);
+            }
+        });
 
         assert Value.dependent.context() != null;
     }
@@ -97,9 +99,11 @@ public final class ComponentVariantTests extends AbstractContainerTests {
                 .andAnswer(new FactoryAnswer(Check.class, check, DependentValue.class))
                 .anyTimes();
 
-        replay();
-        verifyComponent(container);
-        verify();
+        verify(new Task() {
+            public void run() throws Exception {
+                verifyComponent(container);
+            }
+        });
     }
 
     private void checkContext(final ComponentContext check, final ComponentContext against) {
@@ -183,14 +187,14 @@ public final class ComponentVariantTests extends AbstractContainerTests {
 
         registry.bindInstance(check);
 
-        replay();
+        verify(new Task() {
+            public void run() throws Exception {
+                verifyComponent(container);
 
-        verifyComponent(container);
-
-        // get objects that specify all contexts
-        verifyContext(container, ContextDependentValue.class);
-
-        verify();
+                // get objects that specify all contexts
+                verifyContext(container, ContextDependentValue.class);
+            }
+        });
     }
 
     @Test
@@ -211,14 +215,14 @@ public final class ComponentVariantTests extends AbstractContainerTests {
                 .andAnswer(new FactoryAnswer(Check.class, check, ContextDependentValue.class))
                 .anyTimes();
 
-        replay();
+        verify(new Task() {
+            public void run() throws Exception {
+                verifyComponent(container);
 
-        verifyComponent(container);
-
-        // get objects that specify all contexts
-        verifyContext(container, ContextDependentValue.class);
-
-        verify();
+                // get objects that specify all contexts
+                verifyContext(container, ContextDependentValue.class);
+            }
+        });
 
         // only one factory instance should be created as opposed to one for every context
         assert DependentFactory.used.size() == 1 : DependentFactory.used.size();
@@ -243,14 +247,14 @@ public final class ComponentVariantTests extends AbstractContainerTests {
                 .andAnswer(new FactoryAnswer(Check.class, check, DependentValue.class))
                 .anyTimes();
 
-        replay();
+        verify(new Task() {
+            public void run() throws Exception {
+                verifyComponent(container);
 
-        verifyComponent(container);
-
-        // get objects that specify all contexts
-        verifyContext(container, DependentFactory.class);
-
-        verify();
+                // get objects that specify all contexts
+                verifyContext(container, DependentFactory.class);
+            }
+        });
     }
 
     @Test
@@ -270,14 +274,14 @@ public final class ComponentVariantTests extends AbstractContainerTests {
                 .andAnswer(new FactoryAnswer(Check.class, check, DependentValue.class))
                 .anyTimes();
 
-        replay();
+        verify(new Task() {
+            public void run() throws Exception {
+                verifyComponent(container);
 
-        verifyComponent(container);
-
-        // get objects that specify all contexts
-        verifyContext(container, DependentFactory.class);
-
-        verify();
+                // get objects that specify all contexts
+                verifyContext(container, DependentFactory.class);
+            }
+        });
     }
 
     @Test
@@ -305,14 +309,14 @@ public final class ComponentVariantTests extends AbstractContainerTests {
                 .andAnswer(new FactoryAnswer(Check.class, check, DependentValue.class))
                 .anyTimes();
 
-        replay();
+        verify(new Task() {
+            public void run() throws Exception {
+                verifyComponent(container);
 
-        verifyComponent(container);
-
-        // get objects that specify all contexts
-        verifyContext(child, DependentFactory.class);
-
-        verify();
+                // get objects that specify all contexts
+                verifyContext(child, DependentFactory.class);
+            }
+        });
     }
 
     @Test
@@ -344,10 +348,13 @@ public final class ComponentVariantTests extends AbstractContainerTests {
             }
         });
 
-        replay();
-        final ContextProvider component = container.getComponent(ContextProvider1.class);
+        final ContextProvider component = verify(new Work<ContextProvider>() {
+            public ContextProvider run() throws Exception {
+                return container.getComponent(ContextProvider1.class);
+            }
+        });
+
         assert component != null : ContextProvider1.class;
-        verify();
 
         assert component.dependency.context().defines(Setting1.class) : Setting1.class;
         assert !component.dependency.context().defines(Setting2.class) : Setting2.class;
@@ -372,10 +379,13 @@ public final class ComponentVariantTests extends AbstractContainerTests {
             }
         });
 
-        replay();
-        final ContextProvider component = container.getComponent(ContextProvider1.class);
+        final ContextProvider component = verify(new Work<ContextProvider>() {
+            public ContextProvider run() throws Exception {
+                return container.getComponent(ContextProvider1.class);
+            }
+        });
+
         assert component != null : ContextProvider1.class;
-        verify();
 
         assert component.dependency.context().defines(Setting1.class) : Setting1.class;
         assert !component.dependency.context().defines(Setting2.class) : Setting2.class;

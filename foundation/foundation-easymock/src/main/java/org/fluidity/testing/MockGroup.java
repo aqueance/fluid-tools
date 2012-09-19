@@ -311,6 +311,7 @@ public class MockGroup {
         verify();
         return result;
     }
+
     /**
      * Invokes {@link #replay()}, executes the block, and then, unless the block throws an exception, invokes {@link #verify()}.
      *
@@ -325,10 +326,27 @@ public class MockGroup {
     }
 
     /**
+     * Invokes {@link #replay()}, executes the block, and then, regardless of whether the block throws an exception or not, invokes {@link #verify()}.
+     *
+     * @param block the block to execute.
+     *
+     * @throws Exception when some error occurs.
+     */
+    public final void guarantee(final Task block) throws Exception {
+        replay();
+
+        try {
+            block.run();
+        } finally {
+            verify();
+        }
+    }
+
+    /**
      * Calls {@link IMocksControl#replay()} on all mock objects added to the group. Mock objects are added by calling {@link #mock(Class)}, {@link
      * #niceMock(Class)}, {@link #strictMock(Class)}, and {@link #mockAll(Class, Class[])}, and their <code>local</code> counterparts.
      */
-    public final void replay() {
+    final void replay() {
         globalGroup.replay();
         localGroup.replay();
     }
@@ -337,7 +355,7 @@ public class MockGroup {
      * Calls {@link IMocksControl#verify()} on all mock objects added to the group. Mock objects are added by calling {@link #mock(Class)}, {@link
      * #niceMock(Class)}, {@link #strictMock(Class)}, and {@link #mockAll(Class, Class[])}, and their <code>local</code> counterparts.
      */
-    public final void verify() {
+    final void verify() {
         globalGroup.verify();
         localGroup.verify();
     }
@@ -346,7 +364,7 @@ public class MockGroup {
      * Calls {@link IMocksControl#reset()} on all mock objects added to the group. Mock objects are added by calling {@link #mock(Class)}, {@link
      * #niceMock(Class)}, {@link #strictMock(Class)}, and {@link #mockAll(Class, Class[])}, and their <code>local</code> counterparts.
      */
-    public final void reset() {
+    private void reset() {
         globalGroup.reset();
         localGroup.reset();
     }
@@ -413,7 +431,7 @@ public class MockGroup {
     /**
      * Allows test cases to manage interacting threads. Threads are created by the {@link #concurrent(MockGroup.Task) concurrent()} method and started /
      * stopped by the {@link #verify(long, MockGroup.Task)} and {@link #verify(long, MockGroup.Work)} methods. Threads synchronize on {@linkplain CyclicBarrier
-     * barriers} using the {@link #coalesce(CyclicBarrier, long) coalesce()}.
+     * barriers} using the {@link #lineup coalesce()}.
      * <p/>
      * {@link EasyMock} calls <b>must</b> always run in the main thread.
      * <h3>Usage</h3>
@@ -485,8 +503,9 @@ public class MockGroup {
         void concurrent(Task task) throws Exception;
 
         /**
-         * Causes all threads calling the same method with the same barrier to synchronize at the point of calling this method. Calls to this method must be
-         * paired with one or more invocation in different threads with the same barrier.
+         * Causes all threads calling the same method with the same barrier to synchronize at the point of calling this method. Invocations of method must be
+         * accompanied with {@link CyclicBarrier#getParties()} number of invocation in all different threads with the same barrier for the caller threads to
+         * pass the call without error.
          *
          * @param barrier the barrier to synchronize on.
          * @param timeout the maximum time to wait for other threads to coalesce.
@@ -495,7 +514,7 @@ public class MockGroup {
          *
          * @throws Exception when something goes wrong during synchronization.
          */
-        int coalesce(CyclicBarrier barrier, long timeout) throws Exception;
+        int lineup(CyclicBarrier barrier, long timeout) throws Exception;
 
         /**
          * Releases all threads created by {@link #concurrent(MockGroup.Task)}, invokes {@link MockGroup#verify(MockGroup.Task)}, and then waits, with the
@@ -546,7 +565,7 @@ public class MockGroup {
             task.run();
         }
 
-        public int coalesce(final CyclicBarrier barrier, final long timeout) throws Exception {
+        public int lineup(final CyclicBarrier barrier, final long timeout) throws Exception {
             int result = -1;
 
             try {

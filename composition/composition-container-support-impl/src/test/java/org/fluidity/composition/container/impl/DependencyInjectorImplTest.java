@@ -192,9 +192,11 @@ public class DependencyInjectorImplTest extends MockGroup {
 
         expectCallbacks();
 
-        replay();
-        assert component == injector.fields(component, traversal, resolver, contexts, context);
-        verify();
+        assert component == verify(new Work<FieldInjected>() {
+            public FieldInjected run() throws Exception {
+                return injector.fields(component, traversal, resolver, contexts, context);
+            }
+        });
 
         assert component.dependency == dependency : component.dependency;
 
@@ -214,9 +216,11 @@ public class DependencyInjectorImplTest extends MockGroup {
 
         expectCallbacks();
 
-        replay();
-        assert component == injector.fields(component, traversal, resolver, contexts, context);
-        verify();
+        assert component == verify(new Work<FieldInjected>() {
+            public FieldInjected run() throws Exception {
+                return injector.fields(component, traversal, resolver, contexts, context);
+            }
+        });
     }
 
     @Test
@@ -227,9 +231,11 @@ public class DependencyInjectorImplTest extends MockGroup {
 
         expectCallbacks();
 
-        replay();
-        assert component == injector.fields(component, traversal, resolver, contexts, context);
-        verify();
+        assert component == verify(new Work<OptionalFieldInjected>() {
+            public OptionalFieldInjected run() throws Exception {
+                return injector.fields(component, traversal, resolver, contexts, context);
+            }
+        });
 
         assert component.dependency == null : component.dependency;
     }
@@ -253,39 +259,55 @@ public class DependencyInjectorImplTest extends MockGroup {
 
         expectCallbacks();
 
-        replay();
-        assert injector.constructor(ConstructorInjected.class, traversal, resolver, contexts, context, constructor) != null;
-        verify();
+        final DependencyGraph.Node found = verify(new Work<DependencyGraph.Node>() {
+            public DependencyGraph.Node run() throws Exception {
+                return injector.constructor(ConstructorInjected.class, traversal, resolver, contexts, context, constructor);
+            }
+        });
+
+        assert found != null;
     }
 
     @Test
     public void handlesSpecialDependencies() throws Exception {
         final SpecialDependent component = new SpecialDependent();
 
-        final ComponentContext created = localMock(ComponentContext.class);
+        test(new Task() {
+            public void run() throws Exception {
+                final ComponentContext created = localMock(ComponentContext.class);
 
-        setupCollection(null, context,
-                        setupFieldResolution(component.getClass(), "container", container, null),
-                        setupFieldResolution(component.getClass(), "context", context, created));
+                setupCollection(null, context,
+                                setupFieldResolution(component.getClass(), "container", container, null),
+                                setupFieldResolution(component.getClass(), "context", context, created));
 
-        expectCallbacks();
+                expectCallbacks();
 
-        EasyMock.expect(created.annotation(Component.Reference.class, null)).andReturn(null);
+                EasyMock.expect(created.annotation(Component.Reference.class, null)).andReturn(null);
 
-        replay();
-        assert component == injector.fields(component, traversal, resolver, contexts, context);
-        verify();
+                assert component == verify(new Work<SpecialDependent>() {
+                    public SpecialDependent run() throws Exception {
+                        return injector.fields(component, traversal, resolver, contexts, context);
+                    }
+                });
 
-        assert component.context == created : component.context;
-        assert component.container != null : component.container;
+                assert component.context == created : component.context;
+                assert component.container != null : component.container;
+            }
+        });
 
-        EasyMock.expect(container.getComponent(ContextDefinition.class)).andReturn(context);
+        test(new Task() {
+            public void run() throws Exception {
+                EasyMock.expect(container.getComponent(ContextDefinition.class)).andReturn(context);
 
-        expectCallbacks();
+                expectCallbacks();
 
-        replay();
-        assert component.container.getComponent(ContextDefinition.class) == context;
-        verify();
+                assert context == verify(new Work<ContextDefinition>() {
+                    public ContextDefinition run() throws Exception {
+                        return component.container.getComponent(ContextDefinition.class);
+                    }
+                });
+            }
+        });
     }
 
     @Test
@@ -296,9 +318,13 @@ public class DependencyInjectorImplTest extends MockGroup {
 
         expectCallbacks();
 
-        replay();
-        assert injector.constructor(MissingGroupConsumer.class, traversal, resolver, contexts, context, constructor) != null;
-        verify();
+        final DependencyGraph.Node found = verify(new Work<DependencyGraph.Node>() {
+            public DependencyGraph.Node run() throws Exception {
+                return injector.constructor(MissingGroupConsumer.class, traversal, resolver, contexts, context, constructor);
+            }
+        });
+
+        assert found != null;
     }
 
     @Test
@@ -311,9 +337,13 @@ public class DependencyInjectorImplTest extends MockGroup {
 
         setupMethodResolution(MissingGroupConsumer.class, method, null, dependency, services);
 
-        replay();
-        assert "value".equals(injector.invoke(component, method, null, traversal, resolver, contexts, context, true));
-        verify();
+        final Object value = verify(new Work<Object>() {
+            public Object run() throws Exception {
+                return injector.invoke(component, method, null, traversal, resolver, contexts, context, true);
+            }
+        });
+
+        assert "value".equals(value);
 
         assert component.dependency == dependency;
         assert component.services == services;
@@ -326,9 +356,13 @@ public class DependencyInjectorImplTest extends MockGroup {
         final Method method = MethodInjected.class.getDeclaredMethod("implicit", Dependency.class, Service[].class);
         final DependencyImpl dependency = new DependencyImpl();
 
-        replay();
-        assert "value".equals(injector.invoke(component, method, new Object[] { dependency, null }, traversal, resolver, contexts, context, false));
-        verify();
+        final Object value = verify(new Work<Object>() {
+            public Object run() throws Exception {
+                return injector.invoke(component, method, new Object[] { dependency, null }, traversal, resolver, contexts, context, false);
+            }
+        });
+
+        assert "value".equals(value);
 
         assert component.dependency == dependency;
         assert component.services == null;

@@ -78,14 +78,26 @@ public class StreamsTest extends MockGroup {
 
         final byte[] buffer = new byte[0];
 
-        replay();
-        Streams.copy(new ByteArrayInputStream("".getBytes()), output, buffer, true, false);
-        verify();
+        test(new Task() {
+            public void run() throws Exception {
+                verify(new Task() {
+                    public void run() throws Exception {
+                        Streams.copy(new ByteArrayInputStream("".getBytes()), output, buffer, true, false);
+                    }
+                });
+            }
+        });
 
-        closeable.close();
+        test(new Task() {
+            public void run() throws Exception {
+                closeable.close();
 
-        replay();
-        Streams.copy(new ByteArrayInputStream("".getBytes()), output, buffer, true, true);
-        verify();
+                verify(new Task() {
+                    public void run() throws Exception {
+                        Streams.copy(new ByteArrayInputStream("".getBytes()), output, buffer, true, true);
+                    }
+                });
+            }
+        });
     }
 }
