@@ -39,25 +39,25 @@ public class UpdatesTest extends MockGroup {
     private final Updates.Snapshot<Object> loader = mock(Updates.Snapshot.class);
 
     private final Scheduler scheduler = mock(Scheduler.class);
-    private final Scheduler.Control control = mock(Scheduler.Control.class);
+    private final Scheduler.Task.Control control = mock(Scheduler.Task.Control.class);
     private final UpdatesImpl.Settings settings = mock(UpdatesImpl.Settings.class);
 
     private Updates updates;
 
-    public Runnable setPeriod(final boolean schedule) throws Exception {
+    public Scheduler.Task setPeriod(final boolean schedule) throws Exception {
         assert updates == null;
         final long period = schedule ? 10 : 0;
 
         EasyMock.expect(configuration.settings()).andReturn(settings);
         EasyMock.expect(settings.period()).andReturn(period);
 
-        final AtomicReference<Runnable> task = new AtomicReference<Runnable>();
+        final AtomicReference<Scheduler.Task> task = new AtomicReference<Scheduler.Task>();
 
         if (period > 0) {
-            EasyMock.expect(scheduler.invoke(EasyMock.eq(period), EasyMock.eq(period), EasyMock.<Runnable>anyObject()))
-                    .andAnswer(new IAnswer<Scheduler.Control>() {
-                        public Scheduler.Control answer() throws Throwable {
-                            task.set((Runnable) EasyMock.getCurrentArguments()[2]);
+            EasyMock.expect(scheduler.invoke(EasyMock.eq(period), EasyMock.eq(period), EasyMock.<Scheduler.Task>anyObject()))
+                    .andAnswer(new IAnswer<Scheduler.Task.Control>() {
+                        public Scheduler.Task.Control answer() throws Throwable {
+                            task.set((Scheduler.Task) EasyMock.getCurrentArguments()[2]);
                             return control;
                         }
                     });
@@ -79,7 +79,7 @@ public class UpdatesTest extends MockGroup {
 
     @Test
     public void testUpdates() throws Exception {
-        final Runnable timer = setPeriod(true);
+        final Scheduler.Task timer = setPeriod(true);
         assert timer != null;
 
         final Object context = new Object();
@@ -122,7 +122,7 @@ public class UpdatesTest extends MockGroup {
 
     @Test
     public void testNoUpdates() throws Exception {
-        final Runnable timer = setPeriod(false);
+        final Scheduler.Task timer = setPeriod(false);
         assert timer == null;
 
         final Object context = new Object();
@@ -158,7 +158,7 @@ public class UpdatesTest extends MockGroup {
 
     @Test
     public void testNoPeriod() throws Exception {
-        final Runnable timer = setPeriod(true);
+        final Scheduler.Task timer = setPeriod(true);
         assert timer != null;
 
         final Object context = new Object();
@@ -194,7 +194,7 @@ public class UpdatesTest extends MockGroup {
 
     @Test
     public void testTransparentSnapshot() throws Exception {
-        final Runnable timer = setPeriod(true);
+        final Scheduler.Task timer = setPeriod(true);
         assert timer != null;
 
         final Object context1 = new Object();

@@ -125,7 +125,7 @@ import org.fluidity.foundation.spi.PropertyProvider;
  * <ul>
  * <li>allows method parameters to vary the property queried for a given method,</li>
  * <li>is given the default {@linkplain Object#equals(Object) object identity},</li>
- * <li>may return a different value at different times if accessed outside the {@link Configuration.Query#read(Object) Configuration.Query.read()}
+ * <li>may return a different value at different times if accessed outside the {@link Configuration.Query#run Configuration.Query.read()}
  * method.</li>
  * </ul>
  * In contrast, a custom class:
@@ -152,21 +152,21 @@ public interface Configuration<T> {
 
     /**
      * Provides consistent access to the configuration settings. The methods of the settings object sent to the provided <code>query</code> will return the same
-     * value from multiple invocations during the execution of this method as long as the {@link PropertyProvider#properties(Runnable)
+     * value from multiple invocations during the execution of this method as long as the {@link PropertyProvider#properties(PropertyProvider.Query)
      * PropertyProvider.properties()} method of the underlying property provider, if found, properly implements that consistency.
      *
      * @param query the object to supply the settings implementation to.
      *
      * @return whatever the supplied <code>query</code> returns.
      */
-    <R> R query(Query<T, R> query);
+    <R> R query(Query<R, T> query);
 
     /**
-     * Groups {@link Configuration configuration} queries to provide settings consistency. Properties read in the {@link #read(Object) read()} method will be
+     * Groups {@link Configuration configuration} queries to provide settings consistency. Properties read in the {@link #run read()} method will be
      * consistent in that no property change will take place during the execution of that method. Stashing the <code>read</code> method parameter and invoking
      * its methods outside the <code>read</code> method will not have the same effect.
      * <p/>
-     * This feature is subject to {@linkplain PropertyProvider#properties(Runnable) property provider} support.
+     * This feature is subject to {@linkplain PropertyProvider#properties(PropertyProvider.Query) property provider} support.
      * <h3>Usage</h3>
      * <pre>
      * {@linkplain org.fluidity.composition.Component @Component}
@@ -193,20 +193,21 @@ public interface Configuration<T> {
      * }
      * </pre>
      *
-     * @param <T> the settings interface type.
+     * @param <P> the settings interface type.
      * @param <R> the return type of the <code>read</code> method.
      */
-    interface Query<T, R> {
+    interface Query<R, P> {
 
         /**
-         * Allows consistent access to the settings. If the underlying {@link PropertyProvider} supports it, properties will not be updated dynamically while
-         * this method executes. However, stashing the method parameter and invoking its methods outside this method will circumvent this consistency.
+         * Atomic access to the settings. If the underlying {@link PropertyProvider} {@linkplain PropertyProvider#properties(PropertyProvider.Query) supports}
+         * it, properties will not be updated dynamically while this method executes. However, stashing the method parameter and invoking its methods outside
+         * this method will circumvent consistency afforded to property access within the method.
          *
          * @param settings an object implementing the settings interface.
          *
-         * @return whatever the caller wants {@link Configuration#query(Configuration.Query) Configuration.query()} to return.
+         * @return whatever the caller wants {@link Configuration#query(Configuration.Query) Configuration.query()} returned.
          */
-        R read(T settings);
+        R run(P settings) throws Exception;
     }
 
     /**

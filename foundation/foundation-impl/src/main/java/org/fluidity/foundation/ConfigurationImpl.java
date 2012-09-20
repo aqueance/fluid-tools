@@ -67,20 +67,20 @@ final class ConfigurationImpl<T> implements Configuration<T> {
         return configuration;
     }
 
-    public <R> R query(final Query<T, R> query) {
-        if (provider == null) {
-            return query.read(configuration);
-        } else {
-            final AtomicReference<R> value = new AtomicReference<R>();
-
-            provider.properties(new Runnable() {
-                public void run() {
-                    value.set(query.read(configuration));
+    public <R> R query(final Query<R, T> query) {
+        return Exceptions.wrap(new Command.Process<R, Exception>() {
+            public R run() throws Exception {
+                if (provider == null) {
+                    return query.run(configuration);
+                } else {
+                    return provider.properties(new PropertyProvider.Query<R>() {
+                        public R run() throws Exception {
+                            return query.run(configuration);
+                        }
+                    });
                 }
-            });
-
-            return value.get();
-        }
+            }
+        });
     }
 
     /*
@@ -130,7 +130,7 @@ final class ConfigurationImpl<T> implements Configuration<T> {
 
         Collections.reverse(list);
 
-        return list.isEmpty() ? new String[] { "" } : list.toArray(new String[list.size()]);
+        return list.isEmpty() ? new String[] { "" } : Lists.asArray(list, String.class);
     }
 
     private static class PropertyLoader<T> implements InvocationHandler {

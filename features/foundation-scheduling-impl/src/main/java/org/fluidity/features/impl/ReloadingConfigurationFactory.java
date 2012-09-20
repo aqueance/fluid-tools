@@ -74,17 +74,22 @@ final class ReloadingConfigurationFactory implements ComponentFactory {
                 public Updates.Snapshot<T> create() {
                     return updates.register(configuration.settings().period(), new Updates.Snapshot<T>() {
                         private Configuration.Query<T, T> all = new Configuration.Query<T, T>() {
-                            public T read(final T settings) {
+                            public T run(final T settings) throws Exception {
                                 final Map<Method, Object> cache = new HashMap<Method, Object>();
 
                                 for (final Method method : type.getMethods()) {
-                                    cache.put(method, Exceptions.wrap(new Process<Object, Exception>() {
-                                        public Object run() throws Exception {
-                                            assert method.getParameterTypes().length == 0 : method;
-                                            method.setAccessible(true);
-                                            return method.invoke(settings);
-                                        }
-                                    }));
+                                    assert method.getParameterTypes().length == 0 : method;
+
+                                    try {
+                                        cache.put(method, Exceptions.wrap(new Process<Object, Exception>() {
+                                            public Object run() throws Exception {
+                                                method.setAccessible(true);
+                                                return method.invoke(settings);
+                                            }
+                                        }));
+                                    } catch (final Exceptions.Wrapper e) {
+                                        e.rethrow(Exception.class);
+                                    }
                                 }
 
                                 return Proxies.create(type, new InvocationHandler() {

@@ -21,6 +21,8 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.fluidity.foundation.Lists;
+
 /**
  * @author Tibor Varga
  */
@@ -34,7 +36,7 @@ final class ComponentDescriptor extends Descriptor {
     @SuppressWarnings("unchecked")
     ComponentDescriptor(final Class<BundleComponentContainer.Managed> type, final Collection<Class<? super BundleComponentContainer.Managed>> api) {
         super(type);
-        this.api = api.toArray(new Class[api.size()]);
+        this.api = Lists.asArray(api, Class.class);
     }
 
     public Set<ServiceDescriptor> dependencies() {

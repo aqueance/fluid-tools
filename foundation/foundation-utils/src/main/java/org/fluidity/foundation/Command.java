@@ -23,6 +23,8 @@ package org.fluidity.foundation;
  */
 public final class Command extends Utility {
 
+    private Command() { }
+
     /**
      * Extends the {@link Runnable} concept to commands that can throw some exception.
      *

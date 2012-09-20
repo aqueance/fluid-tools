@@ -38,6 +38,7 @@ import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.container.ContextDefinition;
 import org.fluidity.foundation.Deferred;
 import org.fluidity.foundation.Generics;
+import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.Methods;
 import org.fluidity.foundation.Strings;
 
@@ -185,7 +186,7 @@ final class ContextDefinitionImpl implements ContextDefinition {
 
                     if (!retained.isEmpty()) {
                         if (series == Component.Context.Collection.ALL) {
-                            final Annotation[] updates = retained.toArray(new Annotation[retained.size()]);
+                            final Annotation[] updates = Lists.asArray(retained, Annotation.class);
                             active.put(type, active.containsKey(type) ? combine(active.get(type), updates) : updates);
                         } else if (series == Component.Context.Collection.LAST) {
                             assert present.size() == 1 : present;
@@ -241,7 +242,7 @@ final class ContextDefinitionImpl implements ContextDefinition {
         list.addAll(Arrays.asList(present));
         list.addAll(Arrays.asList(addition));
 
-        return list.toArray(new Annotation[list.size()]);
+        return Lists.asArray(list, Annotation.class);
     }
 
     @Override

@@ -16,6 +16,7 @@
 
 package org.fluidity.foundation.jarjar;
 
+import java.io.Closeable;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -24,6 +25,7 @@ import java.util.List;
 
 import org.fluidity.foundation.Archives;
 import org.fluidity.foundation.ClassLoaders;
+import org.fluidity.foundation.Lists;
 
 import static org.fluidity.foundation.Command.Function;
 
@@ -70,15 +72,21 @@ public final class Launcher {
         urls.add(root);
         urls.addAll(Archives.Nested.dependencies(null));
 
-        final ClassLoader loader = new URLClassLoader(urls.toArray(new URL[urls.size()]), ClassLoaders.findClassLoader(main, true));
+        final ClassLoader loader = new URLClassLoader(Lists.asArray(urls, URL.class), ClassLoaders.findClassLoader(main, true));
 
-        ClassLoaders.context(loader, new Function<Object, ClassLoader, Exception>() {
-            public Object run(final ClassLoader loader) throws Exception {
-                final Method main = loader.loadClass(mainClass).getMethod("main", String[].class);
+        try {
+            ClassLoaders.context(loader, new Function<Object, ClassLoader, Exception>() {
+                public Object run(final ClassLoader loader) throws Exception {
+                    final Method main = loader.loadClass(mainClass).getMethod("main", String[].class);
 
-                main.setAccessible(true);
-                return main.invoke(null, new Object[] { args });
+                    main.setAccessible(true);
+                    return main.invoke(null, new Object[] { args });
+                }
+            });
+        } finally {
+            if (loader instanceof Closeable) {
+                ((Closeable) loader).close();
             }
-        });
+        }
     }
 }

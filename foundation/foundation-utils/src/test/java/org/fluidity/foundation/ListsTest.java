@@ -17,6 +17,7 @@
 package org.fluidity.foundation;
 
 import java.io.Serializable;
+import java.util.Arrays;
 
 import org.testng.annotations.Test;
 
@@ -55,6 +56,12 @@ public class ListsTest {
         assert list[3] == array5[0];
         assert list[4] == array5[1];
         assert list[5] == array5[2];
+    }
+
+    @Test
+    public void testArrayConversion() throws Exception {
+        final Item[] array = { new Item(), new Item(), new Item(), new Item(), new Item() };
+        assert Arrays.equals(array, Lists.asArray(Arrays.asList(array), Item.class));
     }
 
     private static class Item implements Serializable { }

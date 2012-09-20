@@ -48,6 +48,7 @@ import org.fluidity.composition.spi.EmptyPackageBindings;
 import org.fluidity.composition.spi.PackageBindings;
 import org.fluidity.foundation.ClassLoaders;
 import org.fluidity.foundation.Exceptions;
+import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.Methods;
 import org.fluidity.foundation.ServiceProviders;
 
@@ -150,7 +151,7 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
             assert false : e;
         }
 
-        final ClassLoader repository = ClassLoaders.create(null, urls.toArray(new URL[urls.size()]));
+        final ClassLoader repository = ClassLoaders.create(null, Lists.asArray(urls, URL.class));
         try {
             processClasses(repository, classesDirectory, serviceProviderMap, componentMap, componentGroupMap);
         } catch (final IOException e) {

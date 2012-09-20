@@ -22,8 +22,9 @@ import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.UUID;
 
@@ -96,18 +97,19 @@ public final class ClassLoaders extends Utility {
     }
 
     /**
-     * Finds the named resources in the class loader appropriate for the given class. See {@link #findClassLoader(Class, boolean)
-     * ClassLoaders.findClassLoader(type, true)} for the definition of <em>appropriate</em>. The resource name is computed from a format string and its
-     * parameters.
+     * Finds the named resources in the given class loader. The resource name is computed from a format string and its parameters. The returned list will not
+     *  contain duplicates.
      *
-     * @param type   the class to use the appropriate class loader for.
+     * @param loader the class loader.
      * @param format the format string.
      * @param params the parameters of the format string.
      *
      * @return the list of URLs for the resource; possibly empty.
      */
-    public static List<URL> findResources(final Class type, final String format, final Object... params) throws IOException {
-        return Collections.list(findClassLoader(type, true).getResources(absoluteResourceName(format, params)));
+    public static Collection<URL> findResources(final ClassLoader loader, final String format, final Object... params) throws IOException {
+
+        // Some dumb class loaders load JAR files more than once; hence the linked hash set
+        return new LinkedHashSet<URL>(Collections.list(loader.getResources(absoluteResourceName(format, params))));
     }
 
     /**
@@ -264,9 +266,8 @@ public final class ClassLoaders extends Utility {
      * @throws Exception when anything goes wrong.
      */
     @SuppressWarnings("unchecked")
-    public static <T> T isolate(final ClassLoader parent, final Set<URL> urls, final Class<?> type, final Method run, final Object... arguments)
-            throws Exception {
-        final ClassLoader isolated = create(parent, urls.toArray(new URL[urls.size()]));
+    public static <T> T isolate(final ClassLoader parent, final Set<URL> urls, final Class<?> type, final Method run, final Object... arguments) throws Exception {
+        final ClassLoader isolated = create(parent, Lists.asArray(urls, URL.class));
 
         try {
             // find the command

@@ -33,6 +33,7 @@ import org.fluidity.composition.ObservedComponentContainer;
 import org.fluidity.composition.container.ContainerServices;
 import org.fluidity.composition.container.ContextDefinition;
 import org.fluidity.composition.spi.ComponentInterceptor;
+import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.Proxies;
 
 /**
@@ -286,7 +287,7 @@ public abstract class EmptyComponentContainer<C extends DependencyGraph> impleme
             }
         }
 
-        return (T) Proxies.create(type.getClassLoader(), interfaces.toArray(new Class<?>[interfaces.size()]), new InvocationHandler() {
+        return (T) Proxies.create(type.getClassLoader(), Lists.asArray(interfaces, Class.class), new InvocationHandler() {
 
             private final Map<Method, Boolean> injectMap = new ConcurrentHashMap<Method, Boolean>();
 

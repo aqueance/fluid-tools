@@ -31,6 +31,7 @@ import java.util.regex.Pattern;
 import org.fluidity.deployment.plugin.spi.ServerBootstrap;
 import org.fluidity.foundation.Archives;
 import org.fluidity.foundation.ClassLoaders;
+import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.ServiceProviders;
 
 import static org.fluidity.foundation.Command.Function;
@@ -129,7 +130,7 @@ public final class WebApplicationBootstrap {
                 }
             });
 
-            bootstrapServer(httpPort, classpath, bootWar, managedApps, params.toArray(new String[params.size()]));
+            bootstrapServer(httpPort, classpath, bootWar, managedApps, Lists.asArray(params, String.class));
         } else {
             throw new RuntimeException("Not a local WAR file: " + bootUrl);
         }
@@ -140,7 +141,7 @@ public final class WebApplicationBootstrap {
                                  final File bootApp,
                                  final List<File> managedApps,
                                  final String args[]) throws Exception {
-        final URLClassLoader classLoader = new URLClassLoader(classpath.toArray(new URL[classpath.size()]));
+        final URLClassLoader classLoader = new URLClassLoader(Lists.asArray(classpath, URL.class));
         final ServerBootstrap server = ServiceProviders.findInstance(ServerBootstrap.class, classLoader);
 
         if (server != null) {

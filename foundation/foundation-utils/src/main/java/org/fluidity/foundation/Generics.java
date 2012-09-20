@@ -169,7 +169,7 @@ public final class Generics extends Utility {
      */
     public static Type[] unresolved(final Type reference) {
         final Collection<Type> list = unresolved(reference, new ArrayList<Type>());
-        return list.isEmpty() ? null : list.toArray(new Type[list.size()]);
+        return list.isEmpty() ? null : Lists.asArray(list, Type.class);
     }
 
     /**

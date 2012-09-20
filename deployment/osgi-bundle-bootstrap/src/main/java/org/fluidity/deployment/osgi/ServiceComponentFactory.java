@@ -26,6 +26,7 @@ import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.spi.ComponentFactory;
 import org.fluidity.foundation.Generics;
+import org.fluidity.foundation.Lists;
 
 /**
  * Binds registered service instances.
@@ -50,7 +51,7 @@ final class ServiceComponentFactory implements ComponentFactory {
         }
 
         this.services = map;
-        this.api = types.toArray(new Class[types.size()]);
+        this.api = Lists.asArray(types, Class.class);
     }
 
     public Instance resolve(final ComponentContext context, final Resolver dependencies) throws Exception {

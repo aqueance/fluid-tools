@@ -38,7 +38,7 @@ final class UpdatesImpl implements Updates {
         delay = configuration.settings().period();
 
         if (delay > 0) {
-            scheduler.invoke(delay, delay, new Runnable() {
+            scheduler.invoke(delay, delay, new Scheduler.Task() {
                 public void run() {
                     timestamp = System.currentTimeMillis();
                 }

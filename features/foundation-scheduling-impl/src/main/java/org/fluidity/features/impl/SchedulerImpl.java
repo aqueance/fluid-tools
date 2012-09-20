@@ -49,15 +49,15 @@ final class SchedulerImpl implements Scheduler {
         });
     }
 
-    public Control invoke(final long delay, final long period, final Runnable task) {
+    public Task.Control invoke(final long delay, final long period, final Task task) {
         return schedule(delay, period, task);
     }
 
-    public Control invoke(final long delay, final Runnable task) {
+    public Task.Control invoke(final long delay, final Task task) {
         return schedule(delay, 0, task);
     }
 
-    private Control schedule(final long delay, final long period, final Runnable command) {
+    private Task.Control schedule(final long delay, final long period, final Task command) {
         if (stopped.get()) {
             throw new IllegalStateException("Scheduler has been stopped");
         }
@@ -74,7 +74,7 @@ final class SchedulerImpl implements Scheduler {
             timer.get().schedule(task, delay);
         }
 
-        return new Control() {
+        return new Task.Control() {
             public boolean cancel() {
                 return task.cancel();
             }

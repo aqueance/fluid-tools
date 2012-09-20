@@ -38,6 +38,7 @@ import org.fluidity.composition.Components;
 import org.fluidity.composition.container.spi.ContextNode;
 import org.fluidity.composition.container.spi.DependencyResolver;
 import org.fluidity.composition.spi.ComponentFactory;
+import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.Log;
 import org.fluidity.foundation.Strings;
 import org.fluidity.foundation.spi.LogFactory;
@@ -340,7 +341,7 @@ final class SimpleContainerImpl implements ParentContainer {
                         }
                     }
 
-                    return node.instance(traversal.observed(observers.toArray(new ComponentContainer.Observer[observers.size()])));
+                    return node.instance(traversal.observed(Lists.asArray(observers, ComponentContainer.Observer.class)));
                 }
 
                 public ComponentContext context() {
@@ -430,7 +431,7 @@ final class SimpleContainerImpl implements ParentContainer {
                     output.addAll(node.instance(traversal));
                 }
 
-                return output.toArray((Object[]) Array.newInstance(api, output.size()));
+                return Lists.asArray(output, api);
             }
 
             public ComponentContext context() {

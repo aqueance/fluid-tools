@@ -49,8 +49,8 @@ public class ConfigurationTest extends MockGroup {
             return mock.property(key);
         }
 
-        public void properties(final Runnable reader) {
-            reader.run();
+        public <T> T properties(final Query<T> query) throws Exception {
+            return query.run();
         }
     };
 
@@ -112,8 +112,8 @@ public class ConfigurationTest extends MockGroup {
 
         verify(new Task() {
             public void run() throws Exception {
-                configuration.query(new Configuration.Query<Settings, Void>() {
-                    public Void read(final Settings settings) {
+                configuration.query(new Configuration.Query<Void, Settings>() {
+                    public Void run(final Settings settings) {
                         checkSettings(settings, null, "default", "value1", "value2", 5678);
                         return null;
                     }
@@ -128,8 +128,8 @@ public class ConfigurationTest extends MockGroup {
 
         verify(new Task() {
             public void run() throws Exception {
-                configuration.query(new Configuration.Query<Settings, Void>() {
-                    public Void read(final Settings settings) {
+                configuration.query(new Configuration.Query<Void, Settings>() {
+                    public Void run(final Settings settings) {
                         checkSettings(settings, null, "default", null, "default", 1234);
                         return null;
                     }
@@ -160,8 +160,8 @@ public class ConfigurationTest extends MockGroup {
 
         verify(new Task() {
             public void run() throws Exception {
-                configuration.query(new Configuration.Query<ProvidedSettings, Void>() {
-                    public Void read(final ProvidedSettings settings) {
+                configuration.query(new Configuration.Query<Void, ProvidedSettings>() {
+                    public Void run(final ProvidedSettings settings) {
                         assert "property".equals(settings.property()) : settings.property();
                         assert "provided".equals(settings.provided()) : settings.provided();
                         assert "undefined".equals(settings.undefined()) : settings.undefined();
@@ -179,8 +179,8 @@ public class ConfigurationTest extends MockGroup {
 
         verify(new Task() {
             public void run() throws Exception {
-                configuration.query(new Configuration.Query<ProvidedSettings, Void>() {
-                    public Void read(final ProvidedSettings settings) {
+                configuration.query(new Configuration.Query<Void, ProvidedSettings>() {
+                    public Void run(final ProvidedSettings settings) {
                         assert "provided".equals(settings.property()) : settings.property();
                         assert "provided".equals(settings.provided()) : settings.provided();
                         assert "undefined".equals(settings.undefined()) : settings.undefined();
@@ -255,8 +255,8 @@ public class ConfigurationTest extends MockGroup {
 
         verify(new Task() {
             public void run() throws Exception {
-                configuration.query(new Configuration.Query<CollectionSettings, Void>() {
-                    public Void read(final CollectionSettings settings) {
+                configuration.query(new Configuration.Query<Void, CollectionSettings>() {
+                    public Void run(final CollectionSettings settings) {
                         checkObjects(new int[] { 1, 2, 3 }, settings.integers());
                         checkObjects(new int[0], settings.empty_integers());
                         checkObjects(null, settings.no_integers());
@@ -279,19 +279,19 @@ public class ConfigurationTest extends MockGroup {
 
                         final Map<List<Integer>, Map<String, List<long[]>>> insane = new HashMap<List<Integer>, Map<String, List<long[]>>>();
 
-                        final HashMap<String, List<long[]>> value1 = new HashMap<String, List<long[]>>();
+                        final Map<String, List<long[]>> value1 = new HashMap<String, List<long[]>>();
                         value1.put("a", Arrays.asList(new long[][] { { 1L, 1L }, { 1L, 2L }, { 1L, 3L } }));
                         value1.put("b", Arrays.asList(new long[][] { { 2L, 1L }, { 2L, 2L } }));
                         value1.put("c", Arrays.asList(new long[][] { { 3L, 1L } }));
                         insane.put(Arrays.asList(1, 2), value1);
 
-                        final HashMap<String, List<long[]>> value2 = new HashMap<String, List<long[]>>();
+                        final Map<String, List<long[]>> value2 = new HashMap<String, List<long[]>>();
                         value2.put("d", new ArrayList<long[]>());
                         insane.put(Arrays.asList(3, 4), value2);
 
                         insane.put(Arrays.asList(5, 6), new HashMap<String, List<long[]>>());
 
-                        final HashMap<String, List<long[]>> value3 = new HashMap<String, List<long[]>>();
+                        final Map<String, List<long[]>> value3 = new HashMap<String, List<long[]>>();
                         value3.put("e", Arrays.asList(new long[][] { { 5L, 1L }, { 5L, 2L } }));
                         insane.put(Arrays.asList(7, 8), value3);
 
@@ -369,8 +369,8 @@ public class ConfigurationTest extends MockGroup {
 
         verify(new Task() {
             public void run() throws Exception {
-                configuration.query(new Configuration.Query<MultiTypeSettings, Void>() {
-                    public Void read(final MultiTypeSettings settings) {
+                configuration.query(new Configuration.Query<Void, MultiTypeSettings>() {
+                    public Void run(final MultiTypeSettings settings) {
                         assert settings.undefined() == 0L : settings.undefined();
                         assert settings.charValue() == 'x' : settings.charValue();
                         assert settings.booleanValue();
@@ -419,8 +419,8 @@ public class ConfigurationTest extends MockGroup {
 
         verify(new Task() {
             public void run() throws Exception {
-                configuration.query(new Configuration.Query<MultiTypeSettings, Void>() {
-                    public Void read(final MultiTypeSettings settings) {
+                configuration.query(new Configuration.Query<Void, MultiTypeSettings>() {
+                    public Void run(final MultiTypeSettings settings) {
                         assert settings.booleanValue();
                         assert settings.BooleanValue();
                         assert settings.byteValue() == (byte) 1 : settings.byteValue();
@@ -487,8 +487,8 @@ public class ConfigurationTest extends MockGroup {
 
         verify(new Task() {
             public void run() throws Exception {
-                configuration.query(new Configuration.Query<SubstitutedSettings, Void>() {
-                    public Void read(final SubstitutedSettings settings) {
+                configuration.query(new Configuration.Query<Void, SubstitutedSettings>() {
+                    public Void run(final SubstitutedSettings settings) {
                         assert "value11".equals(settings.property1("abcd")) : settings.property1("abcd");
                         assert "value12".equals(settings.property1("efgh")) : settings.property1("efgh");
                         assert "value21".equals(settings.property2("abcd", "efgh")) : settings.property2("abcd", "efgh");
@@ -564,8 +564,8 @@ public class ConfigurationTest extends MockGroup {
 
         verify(new Task() {
             public void run() throws Exception {
-                configuration.query(new Configuration.Query<CustomSettings, Void>() {
-                    public Void read(final CustomSettings settings) {
+                configuration.query(new Configuration.Query<Void, CustomSettings>() {
+                    public Void run(final CustomSettings settings) {
                         final int number = settings.nestedType().number;
                         assert number == 1234 : number;
                         return null;
@@ -618,8 +618,8 @@ public class ConfigurationTest extends MockGroup {
 
         verify(new Task() {
             public void run() throws Exception {
-                configuration.query(new Configuration.Query<CustomSettings, Void>() {
-                    public Void read(final CustomSettings settings) {
+                configuration.query(new Configuration.Query<Void, CustomSettings>() {
+                    public Void run(final CustomSettings settings) {
                         final int number = settings.customType().nested.number;
                         assert number == 1234 : number;
                         return null;
@@ -735,8 +735,8 @@ public class ConfigurationTest extends MockGroup {
 
         verify(new Task() {
             public void run() throws Exception {
-                configuration.query(new Configuration.Query<ListSettings, Void>() {
-                    public Void read(final ListSettings settings) {
+                configuration.query(new Configuration.Query<Void, ListSettings>() {
+                    public Void run(final ListSettings settings) {
                         checkObjects(Arrays.asList("value11", "value12"), settings.textList("red"));
                         checkObjects(new HashSet<String>(Arrays.asList("value21", "value22")), settings.textSet("green"));
                         checkArrays(new ListSettings.Item1[] { new ListSettings.Item1(12, "23"), new ListSettings.Item1(34, "45") }, settings.itemList());

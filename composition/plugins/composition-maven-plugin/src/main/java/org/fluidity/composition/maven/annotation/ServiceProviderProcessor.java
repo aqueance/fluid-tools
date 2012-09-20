@@ -89,10 +89,10 @@ public final class ServiceProviderProcessor extends AnnotationVisitor {
 
     @Override
     public void visitEnd() {
-        final String className = ClassReaders.externalName(classData);
-
         Exceptions.wrap(new Process<Void, Exception>() {
             public Void run() throws Exception {
+                final String className = ClassReaders.externalName(classData);
+
                 if (apiSet.isEmpty()) {
                     if (ClassReaders.isInterface(classData)) {
                         apiSet.add(className);

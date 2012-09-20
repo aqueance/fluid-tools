@@ -40,7 +40,28 @@ public interface PropertyProvider {
      * read from a database, this method must open an isolated transaction before running the given command and then close the transaction afterwards. Other
      * implementation may use locking to prevent changes to the properties while this method executes.
      *
-     * @param reader the command that reads properties and expects no changes in the property values while doing so.
+     * @param query the command that reads properties and expects no changes in the property values while doing so.
+     * @param <T> the type of the object returned by the reader, if any.
+     *
+     * @return whatever the query returns.
+     *
+     * @throws Exception when some error occurs.
      */
-    void properties(Runnable reader);
+    <T> T properties(Query<T> query) throws Exception;
+
+    /**
+     * Properties reader passed to {@link PropertyProvider#properties(PropertyProvider.Query)}.
+     *
+     * @param <T> the type of the returned object, if any.
+     */
+    interface Query<T> {
+
+        /**
+         * Atomic access to the properties.
+         *
+         * @return whatever the caller wants {@link PropertyProvider#properties(PropertyProvider.Query)} PropertyProvider.properties()} returned.
+         */
+        T run() throws Exception;
+    }
+
 }

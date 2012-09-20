@@ -72,7 +72,7 @@ public class InterceptorFilterImplTest extends MockGroup {
 
     @Test
     public void testNoAnnotation() throws Exception {
-        final HashMap<Class<? extends Annotation>, Annotation[]> annotations = new HashMap<Class<? extends Annotation>, Annotation[]>();
+        final Map<Class<? extends Annotation>, Annotation[]> annotations = new HashMap<Class<? extends Annotation>, Annotation[]>();
 
         EasyMock.expect(context.defined()).andReturn(annotations);
 
@@ -91,7 +91,7 @@ public class InterceptorFilterImplTest extends MockGroup {
 
     @Test
     public void test1() throws Exception {
-        final LinkedHashMap<Class<? extends Annotation>, Annotation[]> annotations = new LinkedHashMap<Class<? extends Annotation>, Annotation[]>();
+        final Map<Class<? extends Annotation>, Annotation[]> annotations = new LinkedHashMap<Class<? extends Annotation>, Annotation[]>();
 
         annotations.put(Annotation1.class, new Annotation[] { annotation1 });
         annotations.put(Annotation2.class, new Annotation[] { annotation2 });

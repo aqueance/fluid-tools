@@ -35,6 +35,7 @@ import org.fluidity.composition.container.DependencyInjector;
 import org.fluidity.composition.container.spi.ContextNode;
 import org.fluidity.composition.container.spi.DependencyGraph;
 import org.fluidity.composition.container.spi.DependencyResolver;
+import org.fluidity.foundation.Lists;
 import org.fluidity.testing.MockGroup;
 
 import org.easymock.EasyMock;
@@ -88,7 +89,7 @@ public class DependencyInjectorImplTest extends MockGroup {
                                                  createdContext, components[i]));
         }
 
-        return copies.toArray(new ContextDefinition[copies.size()]);
+        return Lists.asArray(copies, ContextDefinition.class);
     }
 
     private ContextDefinition[] setupMethodResolution(final Class<?> componentType,
@@ -109,7 +110,7 @@ public class DependencyInjectorImplTest extends MockGroup {
                                                  createdContext, components[i]));
         }
 
-        return copies.toArray(new ContextDefinition[copies.size()]);
+        return Lists.asArray(copies, ContextDefinition.class);
     }
 
     @SuppressWarnings("unchecked")

@@ -17,6 +17,7 @@
 package org.fluidity.foundation;
 
 import java.lang.reflect.Array;
+import java.util.Collection;
 
 /**
  * Utilities related to arrays.
@@ -79,5 +80,21 @@ public class Lists extends Utility {
         }
 
         return all;
+    }
+
+    /**
+     * Complements {@link java.util.Arrays#asList(Object[])} with a conversion to the opposite direction. This is a convenience method that calls {@link
+     * Collection#toArray(Object[])} on the received <code>list</code> with the <code>list</code>'s sized array and, in most cases, does all the unchecked type
+     * casts needed for the operation.
+     *
+     * @param list is the list to convert to an array; may be <code>null</code>.
+     * @param type the item type of the list/array; may not be <code>null</code>.
+     * @param <T>  the generic item type of the list/array.
+     *
+     * @return an array containing the elements of the given list; never <code>null</code>.
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> T[] asArray(final Collection<T> list, final Class<? super T> type) {
+        return list == null ? (T[]) Array.newInstance(type, 0) : list.toArray((T[]) Array.newInstance(type, list.size()));
     }
 }

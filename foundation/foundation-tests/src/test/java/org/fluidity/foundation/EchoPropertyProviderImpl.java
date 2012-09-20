@@ -44,7 +44,7 @@ public class EchoPropertyProviderImpl implements PropertyProvider {
         return key.startsWith(UNKNOWN) ? null : key;
     }
 
-    public void properties(final Runnable reader) {
-        reader.run();
+    public <T> T properties(final Query<T> query) throws Exception {
+        return query.run();
     }
 }

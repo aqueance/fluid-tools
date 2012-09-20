@@ -31,6 +31,7 @@ import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.ComponentGroup;
 import org.fluidity.composition.Optional;
+import org.fluidity.foundation.Lists;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
@@ -674,7 +675,7 @@ public final class CircularReferencesTests extends AbstractContainerTests {
                 annotations.add(context.annotation(type, null));
             }
 
-            contexts.add(annotations.toArray(new Annotation[annotations.size()]));
+            contexts.add(Lists.asArray(annotations, Annotation.class));
 
             if (call) ping();
         }

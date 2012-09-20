@@ -30,6 +30,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.fluidity.foundation.Archives;
+import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.Utility;
 
 import org.apache.maven.artifact.Artifact;
@@ -552,7 +553,7 @@ public final class DependenciesSupport extends Utility {
                     }
 
                     // next level optionals and those excluded by the current dependency will not be selected during descent
-                    return new TransitiveDependencySelector(compile, false, selectedArtifacts, excluded.toArray(new String[excluded.size()]));
+                    return new TransitiveDependencySelector(compile, false, selectedArtifacts, Lists.asArray(excluded, String.class));
                 } else {
                     return this;
                 }

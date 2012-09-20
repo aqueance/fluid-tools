@@ -34,6 +34,7 @@ import org.fluidity.deployment.osgi.BundleComponentContainer;
 import org.fluidity.deployment.osgi.Service;
 import org.fluidity.foundation.Archives;
 import org.fluidity.foundation.ClassLoaders;
+import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.ServiceProviders;
 import org.fluidity.tests.osgi.BundleTest;
 
@@ -89,8 +90,7 @@ public final class IntegrationTest {
             final List<Bundle> bundles = new ArrayList<Bundle>();
 
             // find all JAR manifests visible to our class loader
-            final List<URL> manifests = ClassLoaders.findResources(IntegrationTest.class, JarFile.MANIFEST_NAME);
-            for (final URL manifest : manifests) {
+            for (final URL manifest : ClassLoaders.findResources(ClassLoaders.findClassLoader(IntegrationTest.class, true), JarFile.MANIFEST_NAME)) {
 
                 // find and install those JAR files that have both an OSGi bundle symbolic name and our integration test marker
                 final String[] markers = Archives.mainAttributes(manifest, INTEGRATION_TEST_MARKER, Constants.BUNDLE_SYMBOLICNAME);
@@ -154,7 +154,7 @@ public final class IntegrationTest {
                 tests.add((BundleTest) system.getService(reference));
             }
 
-            return tests.toArray(new BundleTest[tests.size()]);
+            return Lists.asArray(tests, BundleTest.class);
         } catch (final Throwable problem) {
             error.set(problem);
             return new BundleTest[0];

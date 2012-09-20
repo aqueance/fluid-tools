@@ -24,22 +24,28 @@ import static org.fluidity.foundation.Command.Process;
 /**
  * A utility that allows propagation of checked exceptions through method calls that don't allow those checked exceptions thrown from inside.
  * <h3>Usage</h3>
- * Let's say some executor expects a {@link Runnable} command to run, in the same thread, and your command needs to be able to throw some checked exceptions
- * back to the caller. Assuming that the executor lets {@link RuntimeException RuntimeExceptions} thrown through:
+ * Let's say we need to execute, using <code>someObject</code>, some code from <code>someMethod</code> below within a {@link Runnable} command, and let's say
+ * that code may throw some checked exceptions. This is how you could do that using this utility class.
  * <pre>
  * public void someMethod() throws <span class="hl2">CheckedException1</span>, <span class="hl2">CheckedException2</span>, <span class="hl2">CheckedException3</span> {
+ *   final command = new Runnable() {
+ *     public void run() {
+ *
+ *       // wrap any checked exception thrown from our code enclosed in the process
+ *       <span class="hl1">Exceptions.wrap</span>(new {@linkplain Command.Process}&lt;Void, Exception>() {
+ *         public Void <span class="hl1">run</span>() throws Exception {
+ *           &hellip;
+ *           throw new <span class="hl2">CheckedException2</span>();
+ *         }
+ *       });
+ *     }
+ *   };
+ *
  *   try {
- *     executor.run(new Runnable() {
- *       public void run() {
- *         <span class="hl1">Exceptions.wrap</span>(new {@linkplain Command.Process}&lt;Void, Exception>() {
- *           public Void <span class="hl1">run</span>() throws Exception {
- *             &hellip;
- *             throw new <span class="hl2">CheckedException2</span>();
- *           }
- *         });
- *       }
- *     });
+ *     someObject.run(command);
  *   } catch (final <span class="hl1">{@linkplain Exceptions.Wrapper}</span> wrapper) {
+ *
+ *     // unwrap the checked exceptions that we can throw
  *     throw wrapper
  *         .<span class="hl1">rethrow</span><span class="hl2">(CheckedException1</span>.class)
  *         .<span class="hl1">rethrow</span><span class="hl2">(CheckedException2</span>.class)
@@ -47,7 +53,6 @@ import static org.fluidity.foundation.Command.Process;
  *   }
  * }
  * </pre>
- * <p/>
  * The above allows re-throwing either <code>CheckedException1</code>, <code>CheckedException2</code>, <code>CheckedException3</code>, or <code>wrapper</code>,
  * which is an {@linkplain RuntimeException unchecked} exception.
  *
@@ -58,20 +63,23 @@ public final class Exceptions extends Utility {
     private Exceptions() { }
 
     /**
-     * Re-trows {@link RuntimeException RuntimeExceptions} and {@link Error Errors}, and wraps checked {@link Exception Exceptions} in an {@link Wrapper}
-     * object.
+     * Executes the given command and {@linkplain Exceptions.Wrapper wraps} any exception other than {@link RuntimeException} and {@link Error} thrown
+     * therefrom.
      *
-     * @param context the action part of the "Error %s" message in the wrapper exception.
+     * @param context the action part of the "Error %s" message in the wrapped exception.
      * @param command the command to run.
+     * @param <T>     the generic return type of the command.
+     * @param <E>     the generic exception type of the command.
      *
      * @return whatever the command returns.
      */
+    @SuppressWarnings("unchecked")
     public static <T, E extends Throwable> T wrap(final String context, final Process<T, E> command) {
         try {
             try {
                 return command.run();
             } catch (final Exception e) {
-                throw unwrap(e);
+                throw Exceptions.unwrap(e);
             }
         } catch (final RuntimeException e) {
             throw e;
@@ -83,15 +91,16 @@ public final class Exceptions extends Utility {
     }
 
     /**
-     * Re-trows {@link RuntimeException RuntimeExceptions} and {@link Error Errors}, and wraps checked {@link Exception Exceptions} in an {@link Wrapper}
-     * object.
+     * Executes the given command and {@linkplain Exceptions.Wrapper wraps} any exception thrown therefrom.
      *
-     * @param command the command to run.
+     * @param command  the command to execute.
+     * @param <T>      the generic return type of the command.
+     * @param <E>     the generic exception type of the command.
      *
-     * @return whatever the command returns.
+     * @return whatever the given command returns.
      */
     public static <T, E extends Throwable> T wrap(final Process<T, E> command) {
-        return wrap(null, command);
+        return Exceptions.wrap(null, command);
     }
 
     private static Throwable unwrap(final Exception error) {

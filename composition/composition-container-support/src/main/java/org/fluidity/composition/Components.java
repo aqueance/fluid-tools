@@ -39,6 +39,7 @@ import java.util.Set;
 
 import org.fluidity.composition.spi.ComponentFactory;
 import org.fluidity.foundation.Generics;
+import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.Strings;
 import org.fluidity.foundation.Utility;
 
@@ -211,7 +212,7 @@ public final class Components extends Utility {
             interfaces.add(new Specification(api, entry.getValue()));
         }
 
-        return new Interfaces(componentClass, interfaces.toArray(new Specification[interfaces.size()]));
+        return new Interfaces(componentClass, Lists.asArray(interfaces, Specification.class));
     }
 
     /**
@@ -553,7 +554,7 @@ public final class Components extends Utility {
 
         public Specification(final Class<?> api, final Collection<Class<?>> groups) {
             this.api = api;
-            this.groups = groups == null ? new Class<?>[0] : groups.toArray(new Class<?>[groups.size()]);
+            this.groups = groups == null ? new Class<?>[0] : Lists.asArray(groups, Class.class);
         }
 
         @Override

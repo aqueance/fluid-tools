@@ -16,23 +16,26 @@
 
 package org.fluidity.features;
 
+import org.fluidity.foundation.Command;
+
 /**
  * Provides scheduled and periodic command invocation. This component keeps a hard reference to the supplied commands until their scheduled invocation is
- * canceled - either automatically or manually by calling {@link Scheduler.Control#cancel()}.
+ * canceled - either automatically or manually by calling {@link Scheduler.Task.Control#cancel()}.
  * <p/>
- * <b>NOTE</b>: This component keeps a hard reference to the tasks supplied in its {@link #invoke(long, Runnable)} and {@link #invoke(long, long, Runnable)}
- * methods. If you need periodic updates without the consequent hard reference, use {@link Updates} instead of directly using this component.
+ * <b>NOTE</b>: This component keeps a hard reference to the tasks supplied in its {@link #invoke(long, Scheduler.Task)} and {@link #invoke(long, long,
+ * Scheduler.Task)} methods. If you need periodic updates without the consequent hard reference, use {@link Updates} instead of directly using this component.
  * <h3>Usage</h3>
  * <pre>
  * {@linkplain org.fluidity.composition.Component @Component}
  * public final class <span class="hl2">MyComponent</span> {
  *
- *   private static final long period = {@linkplain java.util.concurrent.TimeUnit#MILLISECONDS}.{@linkplain java.util.concurrent.TimeUnit#convert(long, java.util.concurrent.TimeUnit) convert}(1, {@linkplain java.util.concurrent.TimeUnit#SECONDS});
+ *   private static final long period = {@linkplain java.util.concurrent.TimeUnit#MILLISECONDS}.{@linkplain java.util.concurrent.TimeUnit#convert(long,
+ * java.util.concurrent.TimeUnit) convert}(1, {@linkplain java.util.concurrent.TimeUnit#SECONDS});
  *
  *   private volatile long <span class="hl3">timestamp</span>;
  *
  *   <span class="hl2">MyComponent</span>(final <span class="hl1">Scheduler</span> scheduler) {
- *     scheduler.<span class="hl1">invoke</span>(period, period, new {@linkplain Runnable}() {
+ *     scheduler.<span class="hl1">invoke</span>(period, period, new {@linkplain Scheduler.Task}() {
  *       public void run() {
  *         <span class="hl3">timestamp</span> = {@linkplain System#currentTimeMillis()};
  *       }
@@ -57,7 +60,7 @@ public interface Scheduler {
      *
      * @return an object to stop the invocations.
      */
-    Control invoke(long delay, long period, Runnable task);
+    Task.Control invoke(long delay, long period, Task task);
 
     /**
      * Adds the given task to be invoked after <code>delay</code> milliseconds.
@@ -67,21 +70,29 @@ public interface Scheduler {
      *
      * @return an object to cancel the invocation.
      */
-    Control invoke(long delay, Runnable task);
+    Task.Control invoke(long delay, Task task);
 
     /**
-     * Controls an invocation scheduled by the <code>invoke()</code> methods of a {@link Scheduler}.
-     * <h3>Usage</h3>
-     * See {@link Scheduler}.
+     * A scheduled task.
+     *
+     * @author Tibor Varga
      */
-    interface Control {
+    interface Task extends Command.Job<RuntimeException> {
 
         /**
-         * Cancels any subsequent scheduled invocation of the task this control corresponds to.
-         *
-         * @return <code>true</code> if the call prevented one or more scheduled executions from taking place;
-         *         <code>false</code> otherwise.
+         * Controls an invocation scheduled by the <code>invoke()</code> methods of a {@link Scheduler}.
+         * <h3>Usage</h3>
+         * See {@link Scheduler}.
          */
-        boolean cancel();
+        interface Control {
+
+            /**
+             * Cancels any subsequent scheduled invocation of the task this control corresponds to.
+             *
+             * @return <code>true</code> if the call prevented one or more scheduled executions from taking place;
+             *         <code>false</code> otherwise.
+             */
+            boolean cancel();
+        }
     }
 }

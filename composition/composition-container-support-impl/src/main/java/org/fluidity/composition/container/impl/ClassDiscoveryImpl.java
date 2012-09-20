@@ -22,16 +22,14 @@ import java.io.InputStreamReader;
 import java.lang.reflect.Modifier;
 import java.net.URL;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
-import java.util.Set;
 
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ServiceProvider;
 import org.fluidity.foundation.ClassDiscovery;
 import org.fluidity.foundation.ClassLoaders;
 import org.fluidity.foundation.Exceptions;
+import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.Log;
 import org.fluidity.foundation.ServiceProviders;
 
@@ -53,91 +51,75 @@ final class ClassDiscoveryImpl implements ClassDiscovery {
     }
 
     public <T> Class<T>[] findComponentClasses(final Class<T> api, final ClassLoader classLoader, final boolean strict) {
-        final ServiceProvider annotation = api.getAnnotation(ServiceProvider.class);
-        return findComponentClasses(annotation == null ? ServiceProviders.TYPE : annotation.type(), api, classLoader, strict);
+        return Exceptions.wrap(new Process<Class<T>[], Throwable>() {
+            public Class<T>[] run() throws Throwable {
+                final ServiceProvider annotation = api.getAnnotation(ServiceProvider.class);
+                return findComponentClasses(annotation == null ? ServiceProviders.TYPE : annotation.type(), api, classLoader, strict);
+            }
+        });
     }
 
-    private <T> Class<T>[] findComponentClasses(final String type, final Class<T> api, final ClassLoader cl, final boolean strict) {
+    private <T> Class<T>[] findComponentClasses(final String type, final Class<T> api, final ClassLoader cl, final boolean strict) throws Exception {
         final ClassLoader classLoader = cl == null ? ClassLoaders.findClassLoader(api, true) : cl;
         log.debug("Loading '%s' type service provider files for %s using class loader %s", type, api, classLoader);
 
-        final String root = ServiceProviders.location(type).concat("/");
+        final Collection<Class<T>> componentList = new LinkedHashSet<Class<T>>();
 
-        final Collection<Class<T>> componentList = Exceptions.wrap(new Process<Collection<Class<T>>, Exception>() {
-            public Collection<Class<T>> run() throws Exception {
-                final Collection<Class<T>> componentList = new LinkedHashSet<Class<T>>();
+        for (final URL url : ClassLoaders.findResources(classLoader, "%s/%s", ServiceProviders.location(type), api.getName())) {
+            log.debug("Loading %s", url);
 
-                final Set<URL> loaded = new HashSet<URL>();
+            final Collection<Class<T>> localList = new LinkedHashSet<Class<T>>();
+            final BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream(), "UTF-8"));
+            String content;
 
-                for (final URL url : Collections.list(classLoader.getResources(ClassLoaders.absoluteResourceName(root.concat(api.getName()))))) {
+            try {
+                while ((content = reader.readLine()) != null) {
+                    final int hash = content.indexOf('#');
+                    final String line = (hash < 0 ? content : content.substring(0, hash)).trim();
 
-                    /* Some dumb class loaders load JAR files more than once */
-                    if (!loaded.contains(url)) {
-                        loaded.add(url);
-
-                        log.debug("Loading %s", url);
-
-                        final Collection<Class<T>> localList = new LinkedHashSet<Class<T>>();
-                        final BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream(), "UTF-8"));
-                        String line;
-
+                    if (!line.isEmpty()) {
                         try {
-                            while ((line = reader.readLine()) != null) {
-                                if (line.startsWith("#")) {
-                                    continue;
-                                }
+                            final Class<?> rawClass = classLoader.loadClass(line);
 
-                                try {
-                                    final Class<?> rawClass = classLoader.loadClass(line.trim());
+                            if (!strict || rawClass.getClassLoader() == classLoader) {
+                                if (api.isAssignableFrom(rawClass)) {
+                                    @SuppressWarnings("unchecked")
+                                    final Class<T> componentClass = (Class<T>) rawClass;
 
-                                    if (!strict || rawClass.getClassLoader() == classLoader) {
-                                        if (api.isAssignableFrom(rawClass)) {
-                                            @SuppressWarnings("unchecked")
-                                            final Class<T> componentClass = (Class<T>) rawClass;
-
-                                            if (Modifier.isAbstract(componentClass.getModifiers())) {
-                                                log.debug("Ignoring abstract service provider %s", componentClass);
-                                            } else {
-                                                if (componentList.contains(componentClass)) {
-                                                    log.error("Multiple export of %s", componentClass);
-                                                } else {
-                                                    if (localList.contains(componentClass)) {
-                                                        log.error("Duplicate %s", componentClass);
-                                                    } else {
-                                                        log.debug("Found %s", componentClass);
-                                                        localList.add(componentClass);
-                                                    }
-                                                }
-                                            }
+                                    if (Modifier.isAbstract(componentClass.getModifiers())) {
+                                        log.debug("Ignoring abstract service provider %s", componentClass);
+                                    } else {
+                                        if (componentList.contains(componentClass)) {
+                                            log.error("Multiple export of %s", componentClass);
                                         } else {
-                                            log.error("%s does not implement %s", rawClass, api);
+                                            if (localList.contains(componentClass)) {
+                                                log.error("Duplicate %s", componentClass);
+                                            } else {
+                                                log.debug("Found %s", componentClass);
+                                                localList.add(componentClass);
+                                            }
                                         }
                                     }
-                                } catch (final ClassNotFoundException e) {
-                                    log.error(e, "Invalid class name: %s", line);
+                                } else {
+                                    log.error("%s does not implement %s", rawClass, api);
                                 }
                             }
-                        } finally {
-                            try {
-                                reader.close();
-                            } catch (final IOException e) {
-                                // ignore
-                            }
+                        } catch (final ClassNotFoundException e) {
+                            log.error(e, "Invalid class name: %s", line);
                         }
-
-                        componentList.addAll(localList);
                     }
                 }
-
-                return componentList;
+            } finally {
+                try {
+                    reader.close();
+                } catch (final IOException e) {
+                    // ignore
+                }
             }
-        });
 
-        return asArray(componentList);
-    }
+            componentList.addAll(localList);
+        }
 
-    @SuppressWarnings({ "unchecked", "SuspiciousToArrayCall" })
-    private <T> Class<T>[] asArray(final Collection<Class<T>> componentList) {
-        return (Class<T>[]) componentList.toArray(new Class[componentList.size()]);
+        return Lists.asArray(componentList, Class.class);
     }
 }

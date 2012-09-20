@@ -37,7 +37,7 @@ import org.testng.annotations.Test;
  */
 public class SchedulerTest extends MockGroup {
 
-    private final Runnable task = mock(Runnable.class);
+    private final Scheduler.Task task = mock(Scheduler.Task.class);
 
     private Scheduler scheduler;
     private Command.Job<Exception> stop;
@@ -74,8 +74,8 @@ public class SchedulerTest extends MockGroup {
 
     @Test
     public void testScheduler() throws Exception {
-        final Scheduler.Control control = verify(new Work<Scheduler.Control>() {
-            public Scheduler.Control run() throws Exception {
+        final Scheduler.Task.Control control = verify(new Work<Scheduler.Task.Control>() {
+            public Scheduler.Task.Control run() throws Exception {
                 return scheduler.invoke(100, 100, task);
             }
         });
@@ -111,7 +111,7 @@ public class SchedulerTest extends MockGroup {
             public void run() throws Exception {
                 final AtomicBoolean running = new AtomicBoolean(false);
 
-                scheduler.invoke(0, new Runnable() {
+                scheduler.invoke(0, new Scheduler.Task() {
                     public void run() {
                         running.set(true);
                     }

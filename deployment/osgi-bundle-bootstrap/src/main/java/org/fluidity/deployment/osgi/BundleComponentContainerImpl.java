@@ -38,6 +38,7 @@ import org.fluidity.composition.DependencyPath;
 import org.fluidity.composition.ObservedComponentContainer;
 import org.fluidity.composition.ServiceProvider;
 import org.fluidity.foundation.ClassDiscovery;
+import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.Log;
 
 import org.osgi.framework.BundleContext;
@@ -254,8 +255,8 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
                 services.addAll(collected);
             }
 
-            this.components = components.values().toArray(new ComponentDescriptor[components.size()]);
-            this.services = services.toArray(new ServiceDescriptor[services.size()]);
+            this.components = Lists.asArray(components.values(), ComponentDescriptor.class);
+            this.services = Lists.asArray(services, ServiceDescriptor.class);
 
             // only remote services will need a dynamic service factory
             this.serviceFactory = new ServiceComponentFactory(remoteServices(services, components));
@@ -270,7 +271,7 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
                 }
             }
 
-            return remote.toArray(new ServiceDescriptor[remote.size()]);
+            return Lists.asArray(remote, ServiceDescriptor.class);
         }
 
         private boolean isServiceProvider(final Class<?> type) {
@@ -639,13 +640,12 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
                 servicesChanged(event.getType());
             }
 
+            @SuppressWarnings("unchecked")
             private ServiceReference[] references(final ServiceDescriptor service) {
                 final String filter = service.filter;
 
                 try {
-                    @SuppressWarnings("unchecked")
-                    final Collection<ServiceReference> references = context.getServiceReferences((Class) service.type, filter);
-                    return references.toArray(new ServiceReference[references.size()]);
+                    return (ServiceReference[]) Lists.asArray(context.getServiceReferences((Class) service.type, filter), ServiceReference.class);
                 } catch (final InvalidSyntaxException e) {
                     throw new IllegalStateException(filter, e);   // filter has already been used when the listener was created
                 }
