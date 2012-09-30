@@ -61,8 +61,8 @@ public class ConfigurationTest extends MockGroup {
     private <T> Configuration<T> configure(final Class<T> settingsType,
                                            final PropertyProvider provider,
                                            final T defaults,
-                                           final Configuration.Context... contexts) throws Exception{
-        EasyMock.expect(context.annotations(Configuration.Context.class)).andReturn(contexts);
+                                           final Configuration.Prefix... prefixes) throws Exception{
+        EasyMock.expect(context.annotations(Configuration.Prefix.class)).andReturn(prefixes);
         EasyMock.expect(context.annotation(Component.Reference.class, Configuration.class)).andReturn(reference);
         EasyMock.expect(reference.parameter(0)).andReturn((Class) settingsType);
 
@@ -93,22 +93,22 @@ public class ConfigurationTest extends MockGroup {
 
     @Test
     public void contextConfiguration() throws Exception {
-        final Configuration.Context context1 = localMock(Configuration.Context.class);
-        final Configuration.Context context2 = localMock(Configuration.Context.class);
-        final Configuration.Context context3 = localMock(Configuration.Context.class);
+        final Configuration.Prefix prefix1 = localMock(Configuration.Prefix.class);
+        final Configuration.Prefix prefix2 = localMock(Configuration.Prefix.class);
+        final Configuration.Prefix prefix3 = localMock(Configuration.Prefix.class);
 
-        EasyMock.expect(context1.value()).andReturn("context1");
-        EasyMock.expect(context2.value()).andReturn("context2");
-        EasyMock.expect(context3.value()).andReturn("context3");
+        EasyMock.expect(prefix1.value()).andReturn("prefix1");
+        EasyMock.expect(prefix2.value()).andReturn("prefix2");
+        EasyMock.expect(prefix3.value()).andReturn("prefix3");
 
-        final Configuration<Settings> configuration = configure(Settings.class, provider, null, context1, context2, context3);
+        final Configuration<Settings> configuration = configure(Settings.class, provider, null, prefix1, prefix2, prefix3);
 
         properties(provider, false, null, null, null, null, null, null);
-        properties(provider, true, "context1.context2.context3", null, null, null, "value2", 5678);
-        properties(provider, false, "context2.context3", null, null, null, null, null);
-        properties(provider, false, "context3", null, null, null, null, null);
-        properties(provider, false, "context1.context2", null, null, null, null, null);
-        properties(provider, false, "context1", null, null, "value1", null, null);
+        properties(provider, true, "prefix1.prefix2.prefix3", null, null, null, "value2", 5678);
+        properties(provider, false, "prefix2.prefix3", null, null, null, null, null);
+        properties(provider, false, "prefix3", null, null, null, null, null);
+        properties(provider, false, "prefix1.prefix2", null, null, null, null, null);
+        properties(provider, false, "prefix1", null, null, "value1", null, null);
 
         verify(new Task() {
             public void run() throws Exception {

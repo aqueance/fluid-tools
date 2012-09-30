@@ -39,6 +39,19 @@ public final class Command extends Utility {
     }
 
     /**
+     * Extends the {@link Runnable} concept to commands that can take some parameter and throw some exception.
+     *
+     * @author Tibor Varga
+     */
+    public interface Operation<P, E extends Throwable> {
+
+        /**
+         * Executes the command.
+         */
+        void run(P parameter) throws E;
+    }
+
+    /**
      * Extends the {@link Runnable} concept to commands that can return some value and throw some exception.
      *
      * @author Tibor Varga

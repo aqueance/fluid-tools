@@ -125,7 +125,7 @@ final class SimpleContainerImpl implements ParentContainer {
         return replacement;
     }
 
-    private static interface Resolver {
+    private interface Resolver {
 
         ComponentResolver resolver(Class<?> type);
     }
@@ -464,7 +464,7 @@ final class SimpleContainerImpl implements ParentContainer {
     /**
      * Internal interface to generalize the binding of components, including ordinary ones, factories and variant factories.
      */
-    private static interface ContentResolvers {
+    private interface ContentResolvers {
 
         /**
          * Tells if we are processing an custom component factory.

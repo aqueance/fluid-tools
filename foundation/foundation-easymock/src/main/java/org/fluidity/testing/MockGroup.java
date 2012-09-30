@@ -28,7 +28,6 @@ import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.fluidity.foundation.Command;
 import org.fluidity.foundation.Strings;
@@ -48,15 +47,15 @@ import org.testng.annotations.AfterMethod;
  * instance of this class can be used as a delegate. In that case, the actual test case must call {@link #clear() clear} method on the instance after each test
  * method.
  * <p/>
- * Mock objects are created by any of the<ul>
+ * Mock objects are created by any of the following methods:<ul>
  * <li>{@link #mock(Class) mock}, {@link #niceMock(Class) niceMock}, {@link #strictMock(Class) strictMock}, {@link #mockAll(Class, Class[]) mockAll}, and</li>
  * <li>{@link #localMock(Class) localMock}, {@link #localNiceMock(Class) localNiceMock}, {@link #localStrictMock(Class) localStrictMock}, {@link
- * #localMockAll(Class, Class[]) localMockAll}</li>
- * </ul> methods.
+ * #localMockAll(Class, Class[]) localMockAll}.</li>
+ * </ul>
  * <p/>
  * The <i>first group</i> of methods create mock objects that will be valid in any test method and <i>should be invoked to initialize instance fields</i>,
- * while the <i>second group</i> of methods create mock objects that will be valid only in the calling method and <i>should only be called from test
- * methods</i>.
+ * while the <i>second group</i> of methods create mock objects that will be valid only in the calling method and, in contrast to the first group, <i>should
+ * only be called from test methods</i>.
  * <h3>Usage</h3>
  * <h4>As a super class</h4>
  * <pre>
@@ -550,7 +549,6 @@ public class MockGroup {
      */
     private final class ThreadsImpl implements Threads {
 
-        private final AtomicBoolean error = new AtomicBoolean();
         private final List<Thread> threads = new ArrayList<Thread>();
         private final List<Exception> errors = new ArrayList<Exception>();
         private CountDownLatch latch;
@@ -566,16 +564,7 @@ public class MockGroup {
         }
 
         public int lineup(final CyclicBarrier barrier, final long timeout) throws Exception {
-            int result = -1;
-
-            try {
-                result = barrier.await(timeout, TimeUnit.MILLISECONDS);
-            } finally {
-                error.compareAndSet(false, result < 0);
-            }
-
-
-            return result;
+            return barrier.await(timeout, TimeUnit.MILLISECONDS);
         }
 
         public synchronized void concurrent(final Task task) throws Exception {
@@ -638,8 +627,6 @@ public class MockGroup {
             } finally {
                 join(timeout);
             }
-
-            assert !error.get() : "Concurrency/timing error";
         }
 
         public <T> T verify(final long timeout, final Work<T> task) throws Exception {
@@ -652,8 +639,6 @@ public class MockGroup {
             } finally {
                 join(timeout);
             }
-
-            assert !error.get() : "Concurrency/timing error";
 
             return result;
         }

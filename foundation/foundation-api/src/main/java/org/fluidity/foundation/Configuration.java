@@ -29,7 +29,7 @@ import org.fluidity.foundation.spi.PropertyProvider;
  * settings interface.
  * <p/>
  * The configuration is backed by a {@linkplain PropertyProvider property provider} component that, if implemented, will be queried for data. The properties
- * queried are determined by {@linkplain Configuration.Context context annotations} of the configured component up to the point of its dependency reference.
+ * queried are determined by {@linkplain Configuration.Prefix context annotations} of the configured component up to the point of its dependency reference.
  * <h3>Usage</h3>
  * A configuration is a group of settings consumed by the configured component. The settings are defined by the methods of a custom <em>settings
  * interface</em>, which is specified as the type parameter of the <code>Configuration</code> interface.
@@ -48,10 +48,10 @@ import org.fluidity.foundation.spi.PropertyProvider;
  * <pre>
  * // The configured component
  * {@linkplain org.fluidity.composition.Component @Component}
- * <span class="hl1">{@linkplain Context @Configuration.Context}</span>(<span class="hl3">"some.property"</span>)
+ * <span class="hl1">{@linkplain Configuration.Prefix @Configuration.Context}</span>(<span class="hl3">"some.property"</span>)
  * public final class MyComponent {
  *
- *   MyComponent(final <span class="hl1">{@linkplain Context @Configuration.Context}</span>(<span class="hl3">"prefix"</span>) <span class="hl1">Configuration</span><span class="hl2">&lt;MySettings></span> configuration) {
+ *   MyComponent(final <span class="hl1">{@linkplain Configuration.Prefix @Configuration.Context}</span>(<span class="hl3">"prefix"</span>) <span class="hl1">Configuration</span><span class="hl2">&lt;MySettings></span> configuration) {
  *     &hellip;
  *     final <span class="hl2">MySettings</span> settings = configuration<span class="hl1">.settings()</span>;
  *     &hellip;
@@ -68,7 +68,7 @@ import org.fluidity.foundation.spi.PropertyProvider;
  * <a href="#supported_types">supported return type</a>, and the methods may have any number of arguments.
  * <p/>
  * The given {@link Configuration.Property#key() property keys} are understood to be relative to the dot delimited concatenation of the value of each {@link
- * Configuration.Context @Configuration.Context} annotation in the dependency path of the configured component.
+ * Configuration.Prefix @Configuration.Context} annotation in the dependency path of the configured component.
  * <p/>
  * If the computed property has no value in the underlying property provider, the first context is stripped and the new property is queried, and this process
  * is repeated until the property provider returns a value or there is no more context to strip, then the last context is stripped from the original property
@@ -345,7 +345,7 @@ public interface Configuration<T> {
     @Documented
     @Retention(RetentionPolicy.RUNTIME)
     @Target({ ElementType.TYPE, ElementType.CONSTRUCTOR, ElementType.METHOD, ElementType.PARAMETER, ElementType.FIELD })
-    @interface Context {
+    @interface Prefix {
 
         /**
          * The property prefix to apply to all property keys specified by {@link Configuration.Property @Configuration.Property} annotated methods in the scope

@@ -17,17 +17,17 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <parent>
-        <groupId>org.fluidity</groupId>
-        <artifactId>features-root</artifactId>
+        <groupId>org.fluidity.foundation</groupId>
+        <artifactId>foundation-root</artifactId>
         <version>1.0.0-SNAPSHOT</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
-    <groupId>org.fluidity.features</groupId>
-    <artifactId>foundation-scheduling-impl</artifactId>
+    <groupId>org.fluidity.foundation</groupId>
+    <artifactId>foundation-test-support</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>jar</packaging>
-    <name>Features: Scheduling Implementation</name>
+    <name>Foundation: Core Test Support</name>
 
     <licenses>
         <license>
@@ -38,64 +38,31 @@
     </licenses>
 
     <dependencies>
-
         <dependency>
-            <groupId>${fluidity.features.groupId}</groupId>
-            <artifactId>foundation-scheduling-api</artifactId>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>foundation-api</artifactId>
             <version>${project.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>${fluidity.composition.groupId}</groupId>
-            <artifactId>composition-api</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>${fluidity.composition.groupId}</groupId>
-            <artifactId>composition-bootstrap-support</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>${fluidity.foundation.groupId}</groupId>
-            <artifactId>foundation-test-support</artifactId>
-            <version>${project.version}</version>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>${fluidity.foundation.groupId}</groupId>
+            <groupId>${project.groupId}</groupId>
             <artifactId>foundation-easymock</artifactId>
             <version>${project.version}</version>
-            <scope>test</scope>
         </dependency>
-
-        <dependency>
-            <groupId>${fluidity.features.groupId}</groupId>
-            <artifactId>logging-sink-impl</artifactId>
-            <version>${project.version}</version>
-            <scope>test</scope>
-        </dependency>
-
     </dependencies>
 
     <build>
         <plugins>
-
             <plugin>
-                <groupId>${fluidity.plugin.groupId}</groupId>
-                <artifactId>composition-maven-plugin</artifactId>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
                 <executions>
                     <execution>
-                        <goals>
-                            <goal>process-annotations</goal>
-                        </goals>
+                        <id>default-test</id>
+                        <phase>none</phase>
                     </execution>
                 </executions>
             </plugin>
-
         </plugins>
     </build>
-
 </project>

@@ -70,33 +70,33 @@ public class ConfigurationTest {
     }
 
     @Component
-    @Configuration.Context(ContextConfigured.ROOT)
+    @Configuration.Prefix(ContextConfigured.ROOT)
     @SuppressWarnings("UnusedDeclaration")
     private static class ContextConfigured {
 
         public static final String ROOT = "root";
 
-        private static final String CONTEXT1 = "context1";
-        private static final String CONTEXT2 = "context2";
+        private static final String PREFIX1 = "prefix1";
+        private static final String PREFIX2 = "prefix2";
 
-        private ContextConfigured(final @Configuration.Context(CONTEXT1) Configuration<Settings> configuration1,
-                                  final @Configuration.Context(CONTEXT2) Configuration<Settings> configuration2,
-                                  final @Configuration.Context(CONTEXT1) Configuration<Settings> configuration3) {
+        private ContextConfigured(final @Configuration.Prefix(PREFIX1) Configuration<Settings> configuration1,
+                                  final @Configuration.Prefix(PREFIX2) Configuration<Settings> configuration2,
+                                  final @Configuration.Prefix(PREFIX1) Configuration<Settings> configuration3) {
             final Settings settings1 = configuration1.settings();
             final Settings settings2 = configuration2.settings();
 
             assert settings1 != null;
-            assert String.format("%s.%s.%s", ROOT, CONTEXT1, Settings.SOME_PROPERTY).equals(settings1.property()) : settings1.property();
+            assert String.format("%s.%s.%s", ROOT, PREFIX1, Settings.SOME_PROPERTY).equals(settings1.property()) : settings1.property();
 
             assert settings2 != null;
-            assert String.format("%s.%s.%s", ROOT, CONTEXT2, Settings.SOME_PROPERTY).equals(settings2.property()) : settings2.property();
+            assert String.format("%s.%s.%s", ROOT, PREFIX2, Settings.SOME_PROPERTY).equals(settings2.property()) : settings2.property();
 
             assert configuration1 == configuration3;
 
             final Settings settings3 = configuration3.settings();
 
             assert settings3 != null;
-            assert String.format("%s.%s.%s", ROOT, CONTEXT1, Settings.SOME_PROPERTY).equals(settings3.property()) : settings3.property();
+            assert String.format("%s.%s.%s", ROOT, PREFIX1, Settings.SOME_PROPERTY).equals(settings3.property()) : settings3.property();
         }
     }
 

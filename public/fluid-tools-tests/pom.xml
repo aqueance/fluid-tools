@@ -50,6 +50,18 @@ that make use of Fluid Tools testing support classes.
             <version>${project.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>${fluidity.foundation.groupId}</groupId>
+            <artifactId>foundation-test-support</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>${fluidity.features.groupId}</groupId>
+            <artifactId>logging-sink-impl</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
     </dependencies>
 
 </project>

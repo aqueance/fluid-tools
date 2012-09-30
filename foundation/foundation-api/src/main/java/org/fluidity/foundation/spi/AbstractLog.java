@@ -137,7 +137,7 @@ public abstract class AbstractLog<T, L> implements Log<L> {
      *
      * @author Tibor Varga
      */
-    public static interface Levels<T> {
+    public interface Levels<T> {
 
         /**
          * Returns <code>true</code> if trace level logging is enabled, <code>false</code> otherwise.

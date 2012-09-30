@@ -116,7 +116,7 @@ final class ReloadingConfigurationFactory implements ComponentFactory {
     /**
      * Configuration refresh period settings.
      */
-    private static interface Settings {
+    private interface Settings {
 
         /**
          * Returns the period in milliseconds during which at most one log level check takes place per logger. May

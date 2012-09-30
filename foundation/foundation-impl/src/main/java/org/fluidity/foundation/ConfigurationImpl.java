@@ -42,11 +42,11 @@ import org.fluidity.foundation.spi.PropertyProvider;
  * @author Tibor Varga
  */
 @Component
-@Component.Context({ Configuration.Context.class, Component.Reference.class })
+@Component.Context({ Configuration.Prefix.class, Component.Reference.class })
 final class ConfigurationImpl<T> implements Configuration<T> {
 
     private final PropertyProvider provider;
-    private final T configuration;
+    private final T settings;
 
     /**
      * Constructs a new configuration object.
@@ -60,22 +60,22 @@ final class ConfigurationImpl<T> implements Configuration<T> {
 
         @SuppressWarnings("unchecked")
         final Class<T> api = (Class<T>) context.annotation(Component.Reference.class, Configuration.class).parameter(0);
-        this.configuration = Proxies.create(api, new PropertyLoader<T>(api, propertyContexts(context.annotations(Context.class)), defaults, provider));
+        this.settings = Proxies.create(api, new PropertyLoader<T>(api, propertyContexts(context.annotations(Prefix.class)), defaults, provider));
     }
 
     public T settings() {
-        return configuration;
+        return settings;
     }
 
     public <R> R query(final Query<R, T> query) {
         return Exceptions.wrap(new Command.Process<R, Exception>() {
             public R run() throws Exception {
                 if (provider == null) {
-                    return query.run(configuration);
+                    return query.run(settings);
                 } else {
                     return provider.properties(new PropertyProvider.Query<R>() {
                         public R run() throws Exception {
-                            return query.run(configuration);
+                            return query.run(settings);
                         }
                     });
                 }
@@ -101,11 +101,11 @@ final class ConfigurationImpl<T> implements Configuration<T> {
      *  - c1.
      *  - (empty prefix)
      */
-    private String[] propertyContexts(final Context[] annotations) {
+    private String[] propertyContexts(final Prefix[] annotations) {
         final List<String> contexts = new ArrayList<String>();
 
         if (annotations != null) {
-            for (final Context context : annotations) {
+            for (final Prefix context : annotations) {
                 contexts.add(context.value().concat("."));
             }
         }

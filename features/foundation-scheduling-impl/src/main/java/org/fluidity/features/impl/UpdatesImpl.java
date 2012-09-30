@@ -27,14 +27,13 @@ import org.fluidity.foundation.Configuration;
  * @author Tibor Varga
  */
 @Component
-@Component.Context(ignore = Configuration.Context.class)
 final class UpdatesImpl implements Updates {
 
     private volatile long timestamp;
 
     private final long delay;
 
-    UpdatesImpl(final Scheduler scheduler, final Configuration<Settings> configuration) {
+    UpdatesImpl(final Scheduler scheduler, @Component.Context(ignore = Configuration.Prefix.class) final Configuration<Settings> configuration) {
         delay = configuration.settings().period();
 
         if (delay > 0) {
@@ -97,7 +96,7 @@ final class UpdatesImpl implements Updates {
      *
      * @author Tibor Varga
      */
-    static interface Settings {
+    interface Settings {
 
         /**
          * The minimum number in milliseconds between subsequent calls to {@link org.fluidity.features.Updates.Snapshot#get()} of a loader passed to

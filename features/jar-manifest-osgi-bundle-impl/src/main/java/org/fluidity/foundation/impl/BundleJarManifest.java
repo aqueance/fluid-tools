@@ -244,7 +244,7 @@ public final class BundleJarManifest implements JarManifest {
     /**
      * Returns the name of the bundle activator class if Fluid Tools is used in the host Maven project.
      */
-    public static interface BootstrapDiscovery {
+    public interface BootstrapDiscovery {
 
         /**
          * Returns the name of the bundle activator class, if any.

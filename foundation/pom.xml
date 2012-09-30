@@ -43,6 +43,7 @@
         <module>foundation-utils</module>
         <module>foundation-easymock</module>
         <module>foundation-tests</module>
+        <module>foundation-test-support</module>
     </modules>
 
 </project>

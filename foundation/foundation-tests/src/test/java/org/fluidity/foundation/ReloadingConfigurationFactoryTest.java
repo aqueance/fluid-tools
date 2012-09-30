@@ -57,26 +57,26 @@ public class ReloadingConfigurationFactoryTest {
     }
 
     @Component
-    @Configuration.Context(ContextConfigured.ROOT)
+    @Configuration.Prefix(ContextConfigured.ROOT)
     private static class ContextConfigured {
 
         public static final String ROOT = "root";
 
-        private static final String CONTEXT1 = "context1";
-        private static final String CONTEXT2 = "context2";
+        private static final String PREFIX1 = "prefix1";
+        private static final String PREFIX2 = "prefix2";
 
         @SuppressWarnings("UnusedDeclaration")
-        private ContextConfigured(final @Configuration.Context(CONTEXT1) ReloadingConfiguration<Settings> configuration1,
-                                  final @Configuration.Context(CONTEXT2) ReloadingConfiguration<Settings> configuration2,
-                                  final @Configuration.Context(CONTEXT1) ReloadingConfiguration<Settings> configuration3) {
+        private ContextConfigured(final @Configuration.Prefix(PREFIX1) ReloadingConfiguration<Settings> configuration1,
+                                  final @Configuration.Prefix(PREFIX2) ReloadingConfiguration<Settings> configuration2,
+                                  final @Configuration.Prefix(PREFIX1) ReloadingConfiguration<Settings> configuration3) {
             final Settings settings1 = configuration1.snapshot().get();
             final Settings settings2 = configuration2.snapshot().get();
 
             assert settings1 != null;
-            assert String.format("%s.%s.%s", ROOT, CONTEXT1, Settings.SOME_PROPERTY).equals(settings1.property()) : settings1.property();
+            assert String.format("%s.%s.%s", ROOT, PREFIX1, Settings.SOME_PROPERTY).equals(settings1.property()) : settings1.property();
 
             assert settings2 != null;
-            assert String.format("%s.%s.%s", ROOT, CONTEXT2, Settings.SOME_PROPERTY).equals(settings2.property()) : settings2.property();
+            assert String.format("%s.%s.%s", ROOT, PREFIX2, Settings.SOME_PROPERTY).equals(settings2.property()) : settings2.property();
 
             assert configuration1 == configuration3;
         }

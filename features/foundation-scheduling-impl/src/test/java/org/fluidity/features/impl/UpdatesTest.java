@@ -20,7 +20,8 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.fluidity.features.Scheduler;
 import org.fluidity.features.Updates;
-import org.fluidity.foundation.Configuration;
+import org.fluidity.foundation.Command;
+import org.fluidity.foundation.testing.MockConfiguration;
 import org.fluidity.testing.MockGroup;
 
 import org.easymock.EasyMock;
@@ -33,14 +34,13 @@ import org.testng.annotations.Test;
  */
 public class UpdatesTest extends MockGroup {
 
-    @SuppressWarnings("unchecked")
-    private final Configuration<UpdatesImpl.Settings> configuration = mock(Configuration.class);
+    private final MockConfiguration<UpdatesImpl.Settings> configuration = MockConfiguration.create(this, UpdatesImpl.Settings.class);
+
     @SuppressWarnings("unchecked")
     private final Updates.Snapshot<Object> loader = mock(Updates.Snapshot.class);
 
     private final Scheduler scheduler = mock(Scheduler.class);
     private final Scheduler.Task.Control control = mock(Scheduler.Task.Control.class);
-    private final UpdatesImpl.Settings settings = mock(UpdatesImpl.Settings.class);
 
     private Updates updates;
 
@@ -48,8 +48,11 @@ public class UpdatesTest extends MockGroup {
         assert updates == null;
         final long period = schedule ? 10 : 0;
 
-        EasyMock.expect(configuration.settings()).andReturn(settings);
-        EasyMock.expect(settings.period()).andReturn(period);
+        configuration.expectSettings(new Command.Operation<UpdatesImpl.Settings, Exception>() {
+            public void run(final UpdatesImpl.Settings settings) throws Exception {
+                EasyMock.expect(settings.period()).andReturn(period);
+            }
+        });
 
         final AtomicReference<Scheduler.Task> task = new AtomicReference<Scheduler.Task>();
 
@@ -65,7 +68,7 @@ public class UpdatesTest extends MockGroup {
 
         updates = verify(new Work<Updates>() {
             public Updates run() throws Exception {
-                return new UpdatesImpl(scheduler, configuration);
+                return new UpdatesImpl(scheduler, configuration.get());
             }
         });
 
