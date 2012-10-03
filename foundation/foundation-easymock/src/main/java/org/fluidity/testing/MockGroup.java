@@ -117,6 +117,14 @@ import org.testng.annotations.AfterMethod;
 @SuppressWarnings("UnusedDeclaration")
 public class MockGroup {
 
+    /**
+     * The system variable that forms the base value used for {@linkplain #time(float) adjusting} {@linkplain Threads thread} synchronization timing. The
+     * default base value is 10 ms.
+     */
+    public static final String TIMING_BASE = "timing.base.ms";
+
+    private final int TIMING_BASE_MS = Integer.getInteger(TIMING_BASE, 10);
+
     private final ControlGroup globalGroup = new ControlGroup();
     private ControlGroup localGroup = new ControlGroup();
 
@@ -246,6 +254,17 @@ public class MockGroup {
     @SuppressWarnings("unchecked")
     public final <T> T localMockAll(final Class<T> mainInterface, final Class<?>... otherInterfaces) {
         return globalGroup.mockAll(mainInterface, otherInterfaces);
+    }
+
+    /**
+     * Returns an adjusted value to be used for timing. The value can be adjusted by the {@link #TIMING_BASE} system variable.
+     *
+     * @param factor the time in milliseconds to adjust.
+     *
+     * @return the adjusted time value.
+     */
+    public final long time(final float factor) {
+        return (long) ((float) TIMING_BASE_MS * factor);
     }
 
     /**
