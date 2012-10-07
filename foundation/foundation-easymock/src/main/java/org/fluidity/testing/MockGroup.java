@@ -117,14 +117,6 @@ import org.testng.annotations.AfterMethod;
 @SuppressWarnings("UnusedDeclaration")
 public class MockGroup {
 
-    /**
-     * The system variable that forms the base value used for {@linkplain #time(float) adjusting} {@linkplain Threads thread} synchronization timing. The
-     * default base value is 10 ms.
-     */
-    public static final String TIMING_BASE = "timing.base.ms";
-
-    private final int TIMING_BASE_MS = Integer.getInteger(TIMING_BASE, 10);
-
     private final ControlGroup globalGroup = new ControlGroup();
     private ControlGroup localGroup = new ControlGroup();
 
@@ -254,17 +246,6 @@ public class MockGroup {
     @SuppressWarnings("unchecked")
     public final <T> T localMockAll(final Class<T> mainInterface, final Class<?>... otherInterfaces) {
         return globalGroup.mockAll(mainInterface, otherInterfaces);
-    }
-
-    /**
-     * Returns an adjusted value to be used for timing. The value can be adjusted by the {@link #TIMING_BASE} system variable.
-     *
-     * @param factor the time in milliseconds to adjust.
-     *
-     * @return the adjusted time value.
-     */
-    public final long time(final float factor) {
-        return (long) ((float) TIMING_BASE_MS * factor);
     }
 
     /**
@@ -498,8 +479,23 @@ public class MockGroup {
     public interface Threads {
 
         /**
-         * Executes in the calling thread the given task. This is just a convenience method to visually separate the execution of the <code>task</code> from
-         * other code sequences.
+         * The system variable that forms the base value used for {@linkplain #time(float) adjusting} {@linkplain Threads thread} synchronization timing. The
+         * default base value is 10 ms.
+         */
+        String TIMING_BASE = "timing.base.ms";
+
+        /**
+         * Returns an adjusted value to be used for timing. The value can be adjusted by the {@link #TIMING_BASE} system variable.
+         *
+         * @param factor the time in milliseconds to adjust.
+         *
+         * @return the adjusted time value.
+         */
+        long time(float factor);
+
+        /**
+         * Executes in the calling thread the given task. This method is merely a visual aid to separate the execution of the <code>task</code> from other code
+         * sequences.
          * <p/>
          * This method may be invoked from a task submitted to {@link #concurrent(MockGroup.Task)}.
          *
@@ -568,15 +564,21 @@ public class MockGroup {
      */
     private final class ThreadsImpl implements Threads {
 
+        private final int TIMING_BASE_MS = Integer.getInteger(TIMING_BASE, 10);
+
         private final List<Thread> threads = new ArrayList<Thread>();
         private final List<Exception> errors = new ArrayList<Exception>();
         private CountDownLatch latch;
+
+        private final String name;
 
         private ThreadsImpl(final String name) {
             this.name = name;
         }
 
-        private final String name;
+        public long time(final float factor) {
+            return (long) ((float) TIMING_BASE_MS * factor);
+        }
 
         public void serial(final Task task) throws Exception {
             task.run();

@@ -95,7 +95,7 @@ public class SchedulerTest extends MockGroup {
 
         final Scheduler.Task.Control control = verify(new Work<Scheduler.Task.Control>() {
             public Scheduler.Task.Control run() throws Exception {
-                return scheduler.invoke(time(5), time(10), task);
+                return scheduler.invoke(threads.time(5), threads.time(10), task);
             }
         });
 
@@ -104,15 +104,15 @@ public class SchedulerTest extends MockGroup {
         task.run();
         EasyMock.expectLastCall().andAnswer(new IAnswer<Void>() {
             public Void answer() throws Throwable {
-                threads.lineup(barrier, time(5));
-                Thread.sleep(time(5));
+                threads.lineup(barrier, threads.time(5));
+                Thread.sleep(threads.time(5));
                 return null;
             }
         });
 
         verify(new Task() {
             public void run() throws Exception {
-                threads.lineup(barrier, time(10));
+                threads.lineup(barrier, threads.time(10));
             }
         });
 
@@ -123,6 +123,8 @@ public class SchedulerTest extends MockGroup {
 
     @Test
     public void testThreading() throws Exception {
+        final Threads threads = newThreads("Timing");
+
         test(new Task() {
             public void run() throws Exception {
                 settings(3, 60000);
@@ -137,7 +139,7 @@ public class SchedulerTest extends MockGroup {
                             }
                         });
 
-                        Thread.sleep(time(5));
+                        Thread.sleep(threads.time(5));
                     }
                 });
 
@@ -163,7 +165,7 @@ public class SchedulerTest extends MockGroup {
 
             test(new Task() {
                 public void run() throws Exception {
-                    Thread.sleep(time(1));
+                    Thread.sleep(threads.time(1));
 
                     final ThreadInfo thread = thread(threadControl, name);
 
@@ -180,7 +182,7 @@ public class SchedulerTest extends MockGroup {
 
         final Scheduler.Task.Control control = verify(new Work<Scheduler.Task.Control>() {
             public Scheduler.Task.Control run() throws Exception {
-                return scheduler.invoke(time(5), time(10), task);
+                return scheduler.invoke(threads.time(5), threads.time(10), task);
             }
         });
 
@@ -189,7 +191,7 @@ public class SchedulerTest extends MockGroup {
         task.run();
         EasyMock.expectLastCall().andAnswer(new IAnswer<Void>() {
             public Void answer() throws Throwable {
-                threads.lineup(barrier, time(5));
+                threads.lineup(barrier, threads.time(5));
                 throw new Error();
             }
         });
@@ -198,7 +200,7 @@ public class SchedulerTest extends MockGroup {
 
         verify(new Task() {
             public void run() throws Exception {
-                threads.lineup(barrier, time(10));
+                threads.lineup(barrier, threads.time(10));
                 Thread.yield();
             }
         });
@@ -213,16 +215,16 @@ public class SchedulerTest extends MockGroup {
 
         final Scheduler.Task.Control control = verify(new Work<Scheduler.Task.Control>() {
             public Scheduler.Task.Control run() throws Exception {
-                return scheduler.invoke(time(5), time(10), task);
+                return scheduler.invoke(threads.time(5), threads.time(10), task);
             }
         });
 
-        settings(3, time(5));
+        settings(3, threads.time(5));
 
         task.run();
         EasyMock.expectLastCall().andAnswer(new IAnswer<Void>() {
             public Void answer() throws Throwable {
-                threads.lineup(barrier, time(5));
+                threads.lineup(barrier, threads.time(5));
                 return null;
             }
         });
@@ -231,7 +233,7 @@ public class SchedulerTest extends MockGroup {
 
         verify(new Task() {
             public void run() throws Exception {
-                threads.lineup(barrier, time(10));
+                threads.lineup(barrier, threads.time(10));
             }
         });
 
@@ -244,7 +246,7 @@ public class SchedulerTest extends MockGroup {
 
         verify(new Task() {
             public void run() throws Exception {
-                Thread.sleep(time(35));   // at least 3 invocations to be ignored, each taking 10 unit times
+                Thread.sleep(threads.time(35));   // at least 3 invocations to be ignored, each taking 10 unit times
             }
         });
 
@@ -262,7 +264,7 @@ public class SchedulerTest extends MockGroup {
         task.run();
         EasyMock.expectLastCall().andAnswer(new IAnswer<Void>() {
             public Void answer() throws Throwable {
-                threads.lineup(barrier, time(5));
+                threads.lineup(barrier, threads.time(5));
                 return null;
             }
         });
@@ -271,7 +273,7 @@ public class SchedulerTest extends MockGroup {
 
         verify(new Task() {
             public void run() throws Exception {
-                threads.lineup(barrier, time(10));
+                threads.lineup(barrier, threads.time(10));
 
                 assert !control.canceled();
                 assert !control.suspended();
@@ -281,9 +283,11 @@ public class SchedulerTest extends MockGroup {
 
     @Test
     public void testDelayedInvocation() throws Exception {
+        final Threads threads = newThreads("Timing");
+
         final Scheduler.Task.Control control = verify(new Work<Scheduler.Task.Control>() {
             public Scheduler.Task.Control run() throws Exception {
-                final Scheduler.Task.Control control = scheduler.invoke(time(5), task);
+                final Scheduler.Task.Control control = scheduler.invoke(threads.time(5), task);
                 control.suspend();
                 return control;
             }
@@ -291,12 +295,12 @@ public class SchedulerTest extends MockGroup {
 
         assert control.suspended();
 
-        settings(3, time(5));
+        settings(3, threads.time(5));
 
         // suspended task should not be invoked, only settings should be checked
         verify(new Task() {
             public void run() throws Exception {
-                Thread.sleep(time(10));
+                Thread.sleep(threads.time(10));
             }
         });
 
@@ -319,18 +323,18 @@ public class SchedulerTest extends MockGroup {
 
         final Scheduler.Task.Control control = verify(new Work<Scheduler.Task.Control>() {
             public Scheduler.Task.Control run() throws Exception {
-                return scheduler.invoke(time(1), time(1), task);
+                return scheduler.invoke(threads.time(1), threads.time(1), task);
             }
         });
 
         final IAnswer<Void> exception = new IAnswer<Void>() {
             public Void answer() throws Throwable {
-                threads.lineup(barrier, time(2));
+                threads.lineup(barrier, threads.time(2));
                 throw new Exception();
             }
         };
 
-        settings(3, time(5));
+        settings(3, threads.time(5));
 
         // waiting out the penalty
 
@@ -341,15 +345,15 @@ public class SchedulerTest extends MockGroup {
 
         final long timestamp = verify(new Work<Long>() {
             public Long run() throws Exception {
-                threads.lineup(barrier, time(4));
-                threads.lineup(barrier, time(4));
-                threads.lineup(barrier, time(4));
+                threads.lineup(barrier, threads.time(4));
+                threads.lineup(barrier, threads.time(4));
+                threads.lineup(barrier, threads.time(4));
 
                 return System.currentTimeMillis();
             }
         });
 
-        Thread.sleep(time(1));
+        Thread.sleep(threads.time(1));
 
         assert !control.canceled();
         assert control.suspended();
@@ -357,7 +361,7 @@ public class SchedulerTest extends MockGroup {
         task.run();
         EasyMock.expectLastCall().andAnswer(new IAnswer<Void>() {
             public Void answer() throws Throwable {
-                threads.lineup(barrier, time(10));
+                threads.lineup(barrier, threads.time(10));
                 return null;
             }
         });
@@ -366,10 +370,10 @@ public class SchedulerTest extends MockGroup {
 
         verify(new Task() {
             public void run() throws Exception {
-                threads.lineup(barrier, time(10));
+                threads.lineup(barrier, threads.time(10));
 
                 final long elapsed = System.currentTimeMillis() - timestamp;
-                assert elapsed >= time(5) - time(2) : elapsed; // 5 units but with some allowance for variations in timing
+                assert elapsed >= threads.time(5) - threads.time(2) : elapsed; // 5 units but with some allowance for variations in timing
 
                 assert !control.canceled();
                 assert !control.suspended();
@@ -384,18 +388,18 @@ public class SchedulerTest extends MockGroup {
 
         final Scheduler.Task.Control control = verify(new Work<Scheduler.Task.Control>() {
             public Scheduler.Task.Control run() throws Exception {
-                return scheduler.invoke(time(1), time(1), task);
+                return scheduler.invoke(threads.time(1), threads.time(1), task);
             }
         });
 
         final IAnswer<Void> exception = new IAnswer<Void>() {
             public Void answer() throws Throwable {
-                threads.lineup(barrier, time(2));
+                threads.lineup(barrier, threads.time(2));
                 throw new Exception();
             }
         };
 
-        settings(3, time(5));
+        settings(3, threads.time(5));
 
         // explicit resume
 
@@ -407,13 +411,13 @@ public class SchedulerTest extends MockGroup {
 
         verify(new Task() {
             public void run() throws Exception {
-                threads.lineup(barrier, time(4));
-                threads.lineup(barrier, time(4));
-                threads.lineup(barrier, time(4));
+                threads.lineup(barrier, threads.time(4));
+                threads.lineup(barrier, threads.time(4));
+                threads.lineup(barrier, threads.time(4));
             }
         });
 
-        Thread.sleep(time(1));
+        Thread.sleep(threads.time(1));
 
         assert !control.canceled();
         assert control.suspended();
@@ -430,7 +434,7 @@ public class SchedulerTest extends MockGroup {
         task.run();
         EasyMock.expectLastCall().andAnswer(new IAnswer<Void>() {
             public Void answer() throws Throwable {
-                threads.lineup(barrier, time(10));
+                threads.lineup(barrier, threads.time(10));
                 return null;
             }
         });
@@ -439,7 +443,7 @@ public class SchedulerTest extends MockGroup {
 
         verify(new Task() {
             public void run() throws Exception {
-                threads.lineup(barrier, time(2));
+                threads.lineup(barrier, threads.time(2));
 
                 assert !control.canceled();
                 assert !control.suspended();
@@ -454,18 +458,18 @@ public class SchedulerTest extends MockGroup {
 
         final Scheduler.Task.Control control = verify(new Work<Scheduler.Task.Control>() {
             public Scheduler.Task.Control run() throws Exception {
-                return scheduler.invoke(time(1), time(1), task);
+                return scheduler.invoke(threads.time(1), threads.time(1), task);
             }
         });
 
         final IAnswer<Void> exception = new IAnswer<Void>() {
             public Void answer() throws Throwable {
-                threads.lineup(barrier, time(4));
+                threads.lineup(barrier, threads.time(4));
                 throw new Exception();
             }
         };
 
-        settings(3, time(5));
+        settings(3, threads.time(5));
 
         task.run();
         EasyMock.expectLastCall().andAnswer(exception).times(3);
@@ -475,13 +479,13 @@ public class SchedulerTest extends MockGroup {
 
         verify(new Task() {
             public void run() throws Exception {
-                threads.lineup(barrier, time(4));
-                threads.lineup(barrier, time(4));
-                threads.lineup(barrier, time(4));
+                threads.lineup(barrier, threads.time(4));
+                threads.lineup(barrier, threads.time(4));
+                threads.lineup(barrier, threads.time(4));
             }
         });
 
-        Thread.sleep(time(1));
+        Thread.sleep(threads.time(1));
 
         assert !control.canceled();
         assert control.suspended();
@@ -491,7 +495,7 @@ public class SchedulerTest extends MockGroup {
 
         verify(new Task() {
             public void run() throws Exception {
-                threads.lineup(barrier, time(10));
+                threads.lineup(barrier, threads.time(10));
                 Thread.yield();
             }
         });
