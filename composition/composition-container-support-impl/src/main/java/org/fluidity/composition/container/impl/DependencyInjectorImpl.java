@@ -507,26 +507,41 @@ final class DependencyInjectorImpl implements DependencyInjector {
             downstream = original.advance(reference, false).expand(definitions);
 
             if (componentGroup != null) {
-                if (!dependencyType.isArray()) {
-                    throw new ComponentContainer.ResolutionException("Group dependency %s of %s must be an array", dependencyType, declaringType);
-                }
-
                 final Class<?> itemType = dependencyType.getComponentType();
+
+                if (itemType == null) {
+                    throw new ComponentContainer.ResolutionException("Group dependency %s of %s must be an array",
+                                                                     Strings.printClass(false, true, dependencyType),
+                                                                     declaringType);
+                }
+
                 if (itemType.isArray()) {
-                    throw new ComponentContainer.ResolutionException("Group dependency %s of %s must be an array of non-arrays", dependencyType, declaringType);
+                    throw new ComponentContainer.ResolutionException("Group dependency %s of %s must be an array of non-arrays",
+                                                                     Strings.printClass(false, true, dependencyType),
+                                                                     declaringType);
                 }
 
-                final Class<?> groupType = componentGroup.api() == null || componentGroup.api().length != 1 ? itemType : componentGroup.api()[0];
+                final Class<?> groupType = componentGroup != null && componentGroup.api() != null && componentGroup.api().length > 0
+                                           ? componentGroup.api()[0]
+                                           : null;
 
-                if (!itemType.isAssignableFrom(groupType)) {
-                    throw new ComponentContainer.ResolutionException(
-                            "The component type of dependency specified in the %s annotation is not assignable to the dependency type %s of %s",
-                            dependencyType,
-                            ComponentGroup.class,
-                            declaringType);
+                if (groupType != null) {
+                    if (componentGroup.api().length > 1) {
+                        throw new ComponentContainer.ResolutionException("Multiple component group APIs specified for dependency %s of %s: %s",
+                                                                         Strings.printClass(false, true, dependencyType),
+                                                                         declaringType,
+                                                                         Strings.printAnnotation(componentGroup));
+                    }
+
+                    if (!itemType.isAssignableFrom(groupType)) {
+                        throw new ComponentContainer.ResolutionException("The specified component type is not assignable to the dependency type %s of %s: %s",
+                                                                         Strings.printClass(false, true, dependencyType),
+                                                                         declaringType,
+                                                                         Strings.printAnnotation(componentGroup));
+                    }
                 }
 
-                node = container.resolveGroup(itemType, downstream.advance(reference, true), traversal, reference);
+                node = container.resolveGroup(groupType == null ? itemType : groupType, downstream.advance(reference, true), traversal, reference);
             } else {
                 node = resolve(dependencyType, new Resolution() {
                     public ComponentContext context() {
