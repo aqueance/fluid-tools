@@ -127,6 +127,9 @@ public final class Deferred extends Utility {
         T invalidate();
     }
 
+    /**
+     * @author Tibor Varga
+     */
     private static class ReferenceImpl<T> implements Reference<T> {
 
         private final Factory<T> factory;
@@ -134,7 +137,7 @@ public final class Deferred extends Utility {
 
         ReferenceImpl(final Factory<T> factory) {
             this.factory = factory;
-            this.state.set(new DCL<T>(this.factory));
+            this.state.set(new DCL<T>(factory));
         }
 
         public T get() {
