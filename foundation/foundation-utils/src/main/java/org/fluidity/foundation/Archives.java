@@ -284,7 +284,7 @@ public final class Archives extends Utility {
      *
      * @throws IOException when the given URL cannot be accessed.
      */
-    public static URL rootURL() throws IOException {
+    public static URL root() throws IOException {
         return Archives.containing(Archives.class);
     }
 
@@ -406,7 +406,7 @@ public final class Archives extends Utility {
         }
 
         /**
-         * Returns the list of URLs pointing to the named list of embedded archives. The returned URLs can then be appended further nested archives or
+         * Returns the list of URLs pointing to the named list of embedded archives. The returned URLs can then be extended with further nested archives or
          * resources using the {@link Archives.Nested#formatURL(URL, String, String...) formatURL} method.
          *
          * @param name the name of the dependency list; may be <code>null</code>
@@ -416,7 +416,7 @@ public final class Archives extends Utility {
          * @throws IOException when I/O error occurs when accessing the archive.
          */
         public static Collection<URL> dependencies(final String name) throws IOException {
-            return Archives.Nested.dependencies(Archives.rootURL(), name);
+            return Archives.Nested.dependencies(Archives.root(), name);
         }
 
         /**

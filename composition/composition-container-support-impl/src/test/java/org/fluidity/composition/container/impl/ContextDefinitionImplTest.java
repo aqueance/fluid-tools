@@ -55,7 +55,7 @@ public class ContextDefinitionImplTest extends MockGroup {
 
         final Map<Class<? extends Annotation>, Annotation[]> map1 = accepted1.active();
 
-        assert !map1.isEmpty() : AnnotationMaps.toString(map1);
+        assert !map1.isEmpty() : AnnotationMaps.descriptor(map1);
         check(Accumulated.class, map1, "accumulated-1");
         check(Inherited.class, map1, "inherited-1");
         check(Immediate.class, map1, "immediate-1");
@@ -70,7 +70,7 @@ public class ContextDefinitionImplTest extends MockGroup {
 
         final Map<Class<? extends Annotation>, Annotation[]> map2 = accepted2.active();
 
-        assert !map2.isEmpty() : AnnotationMaps.toString(map2);
+        assert !map2.isEmpty() : AnnotationMaps.descriptor(map2);
         check(Accumulated.class, map2, "accumulated-1", "accumulated-2");
         check(Inherited.class, map2, "inherited-2");
         check(Immediate.class, map2, "immediate-2");
@@ -85,7 +85,7 @@ public class ContextDefinitionImplTest extends MockGroup {
 
         final Map<Class<? extends Annotation>, Annotation[]> map3 = accepted3.active();
 
-        assert !map3.isEmpty() : AnnotationMaps.toString(map3);
+        assert !map3.isEmpty() : AnnotationMaps.descriptor(map3);
         check(Accumulated.class, map3, "accumulated-1", "accumulated-2");
         check(Inherited.class, map3, "inherited-2");
         check(Immediate.class, map3, "immediate-2");
@@ -100,7 +100,7 @@ public class ContextDefinitionImplTest extends MockGroup {
 
         final Map<Class<? extends Annotation>, Annotation[]> map4 = accepted4.active();
 
-        assert !map4.isEmpty() : AnnotationMaps.toString(map4);
+        assert !map4.isEmpty() : AnnotationMaps.descriptor(map4);
         check(Accumulated.class, map4, "accumulated-1", "accumulated-2");
         check(Inherited.class, map4, "inherited-2");
         check(Immediate.class, map4);
@@ -110,7 +110,7 @@ public class ContextDefinitionImplTest extends MockGroup {
     @SuppressWarnings("ConstantConditions")
     private void check(final Class<? extends Annotation> type, final Map<Class<? extends Annotation>, Annotation[]> map, final String... values)
             throws Exception {
-        assert values.length > 0 ? map.containsKey(type) : !map.containsKey(type) : AnnotationMaps.toString(map);
+        assert values.length > 0 ? map.containsKey(type) : !map.containsKey(type) : AnnotationMaps.descriptor(map);
         final Annotation[] list = map.get(type);
         assert values.length > 0 ? list.length == values.length : list == null;
 

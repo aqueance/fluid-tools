@@ -26,10 +26,10 @@ import org.fluidity.foundation.Log;
  * to the {@link Log} interface. The prevalent implementation of this interface will be looked for as a
  * <a href="http://download.oracle.com/javase/1.5.0/docs/guide/jar/jar.html#Service Provider">JAR Service Provider</a>.
  * <p/>
- * If you use Fluid Tools composition to implement your adaptor then all you need is to annotate your implementation class as a
- * {@link org.fluidity.composition.ServiceProvider @ServiceProvider} and put it in the class path for it to be found and used, provided that there is no other
- * suitable implementation in the class path. If you use more of Fluid Tools than just the composition framework then you should also annotate your
- * implementation as a {@link org.fluidity.composition.Component @Component} for components of Fluid Tools to find it.
+ * You will need to use Fluid Tools to implement and build your adaptor, and annotate the implementation with both
+ * {@link org.fluidity.composition.ServiceProvider @ServiceProvider} and {@link org.fluidity.composition.Component @Component}. The Java archive containing the
+ * implementation must be in the class path for it to be found and used, and it must be the <i>only</i> archive in the class path that contains a {@code
+ * LogFactory} implementation
  * <p/>
  * See {@link AbstractLog} for a recommended way to adapt any logging framework to Fluid Tools.
  * <p/>

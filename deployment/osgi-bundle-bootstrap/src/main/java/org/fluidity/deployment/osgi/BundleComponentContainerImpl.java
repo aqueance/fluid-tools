@@ -57,7 +57,7 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
 
     private final BundleContext context;
     private final ComponentContainer container;
-    private final Log<BundleComponentContainerImpl> log;
+    private final Log log;
     private final ClassDiscovery discovery;
 
     BundleComponentContainerImpl(final BundleContext context,
@@ -148,7 +148,7 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
             }
         };
 
-        Logic(final BundleContext context, final ComponentContainer container, final Log<BundleComponentContainerImpl> log, final ClassDiscovery discovery) {
+        Logic(final BundleContext context, final ComponentContainer container, final Log log, final ClassDiscovery discovery) {
             this.context = context;
             this.container = container;
             this.log = log;

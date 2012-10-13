@@ -30,24 +30,27 @@ import org.fluidity.foundation.Command;
  * listed here then you might need to provide an implementation of this interface for Fluid Tools to function.
  * <p/>
  * Fluid Tools provides a {@link ContainerTermination.Jobs} component, which the custom {@link ContainerTermination} implementation must simply delegate its
- * method calls to. The only business logic in the latter is the call to {@link ContainerTermination.Jobs#flush()}. For instance, in a command line application
- * the call is triggered by the JVM shutdown.
+ * method calls to. The only business logic in the latter is the call to {@link ContainerTermination.Jobs#flush()}. In a command line application, for
+ * instance, that call is triggered by the JVM shutdown.
  * <h3>Usage</h3>
  * <pre>
  * {@linkplain org.fluidity.composition.Component @Component}
- * final class MyContainerTerminationImpl implements <span class="hl1">ContainerTermination</span> {
+ * final class <span class="hl2">MyContainerTerminationImpl</span> implements <span class="hl1">ContainerTermination</span> {
  *
- *   MyContainerTerminationImpl(final <span class="hl1">ContainerTermination.Jobs</span> jobs) {
- *       &hellip;
+ *   private final ContainerTermination.Jobs jobs;
+ *
+ *   <span class="hl2">MyContainerTerminationImpl</span>(final <span class="hl1">{@linkplain ContainerTermination.Jobs}</span>&lt;<span class="hl2">MyContainerTerminationImpl</span>> jobs) {
+ *     this.jobs = jobs;
+ *     &hellip;
  *   }
  *
  *
- *   public void add(final Command.Job<Exception> job) {
- *       jobs.add(job);
+ *   public void add(final {@linkplain org.fluidity.foundation.Command.Job}&lt;{@linkplain Exception}> job) {
+ *     jobs.{@linkplain ContainerTermination.Jobs#add(org.fluidity.foundation.Command.Job) add}(job);
  *   }
  *
- *   public void remove(final Command.Job<Exception> job) {
- *       jobs.remove(job);
+ *   public void remove(final {@linkplain org.fluidity.foundation.Command.Job}&lt;{@linkplain Exception}> job) {
+ *     jobs.{@linkplain ContainerTermination.Jobs#remove(org.fluidity.foundation.Command.Job) remove}(job);
  *   }
  *
  *   &hellip;
@@ -73,14 +76,20 @@ public interface ContainerTermination {
     void remove(Command.Job<Exception> job);
 
     /**
-     * Maintains the list of jobs on behalf of a {@link ContainerTermination} component. This component is implemented by Fluid Tools and the {@link
+     * Maintains the list of jobs on behalf of a {@link ContainerTermination} component. This component is implemented by Fluid Tools and the {@code
      * ContainerTermination} implementation is expected to use it.
+     * <p/>
+     * The type parameter is used to gain access to the {@code ContainerTermination} component using this component in order to verify that no {@linkplain
+     * Command.Job job} {@linkplain #add(org.fluidity.foundation.Command.Job) added} to this component is loaded by a class loader less stable than that of the
+     * {@code ContainerTermination} component; i.e., the class loader of all jobs added must be the same as, or in the ancestry of, the class loader of the
+     * {@code ContainerTermination} component.
      * <h3>Usage</h3>
      * See {@link ContainerTermination}.
      *
      * @author Tibor Varga
      */
-    interface Jobs {
+    @SuppressWarnings("UnusedDeclaration")
+    interface Jobs<T> {
 
         /**
          * Executes the jobs in reverse addition order. The executed jobs are then removed from the list.

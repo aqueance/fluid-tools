@@ -39,7 +39,7 @@ final class WebApplicationTermination implements ContainerTermination, ServletCo
 
     private final Jobs jobs;
 
-    WebApplicationTermination(final Jobs jobs) {
+    WebApplicationTermination(final Jobs<WebApplicationTermination> jobs) {
         this.jobs = jobs;
     }
 

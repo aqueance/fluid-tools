@@ -48,15 +48,15 @@ import org.fluidity.foundation.spi.PropertyProvider;
  * <pre>
  * // The configured component
  * {@linkplain org.fluidity.composition.Component @Component}
- * <span class="hl1">{@linkplain Configuration.Prefix @Configuration.Context}</span>(<span class="hl3">"some.property"</span>)
+ * <span class="hl1">{@linkplain Configuration.Prefix @Configuration.Prefix}</span>(<span class="hl3">"some.property"</span>)
  * public final class MyComponent {
  *
- *   MyComponent(final <span class="hl1">{@linkplain Configuration.Prefix @Configuration.Context}</span>(<span class="hl3">"prefix"</span>) <span class="hl1">Configuration</span><span class="hl2">&lt;MySettings></span> configuration) {
- *     &hellip;
+ *   MyComponent(final <span class="hl1">{@linkplain Configuration.Prefix @Configuration.Prefix}</span>(<span class="hl3">"prefix"</span>) <span class="hl1">Configuration</span><span class="hl2">&lt;MySettings></span> configuration) {
  *     final <span class="hl2">MySettings</span> settings = configuration<span class="hl1">.settings()</span>;
- *     &hellip;
+ *
  *     // query <span class="hl3">"some.property</span>.<span class="hl3">prefix</span>.<span class="hl3">property.123"</span> from the optional {@linkplain PropertyProvider} component
  *     final String property123 = settings.<span class="hl2">property</span>(<span class="hl3">123</span>);
+ *
  *     &hellip;
  *   }
  *
@@ -68,14 +68,14 @@ import org.fluidity.foundation.spi.PropertyProvider;
  * <a href="#supported_types">supported return type</a>, and the methods may have any number of arguments.
  * <p/>
  * The given {@link Configuration.Property#key() property keys} are understood to be relative to the dot delimited concatenation of the value of each {@link
- * Configuration.Prefix @Configuration.Context} annotation in the dependency path of the configured component.
+ * Configuration.Prefix @Configuration.Prefix} annotation in the dependency path of the configured component.
  * <p/>
  * If the computed property has no value in the underlying property provider, the first context is stripped and the new property is queried, and this process
  * is repeated until the property provider returns a value or there is no more context to strip, then the last context is stripped from the original property
  * and the new property is queried, and the process is repeated again.
  * <p/>
- * For instance, if the the dependency path contains <code>@Configuration.Context("a")</code>, <code>@Configuration.Context("b")</code>, and
- * <code>@Configuration.Context("c")</code>, then the method <code>@Configuration.Property(key = "property") String property()</code> will query the following
+ * For instance, if the the dependency path contains <code>@Configuration.Prefix("a")</code>, <code>@Configuration.Prefix("b")</code>, and
+ * <code>@Configuration.Prefix("c")</code>, then the method <code>@Configuration.Property(key = "property") String property()</code> will query the following
  * properties, in the given order, from its underlying property provider until it returns a value or there is no more context to strip:
  * <ul>
  * <li><code>a.b.c.property</code></li>

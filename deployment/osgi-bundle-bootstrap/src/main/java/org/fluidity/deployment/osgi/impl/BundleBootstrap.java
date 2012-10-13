@@ -125,7 +125,7 @@ public final class BundleBootstrap extends BoundaryComponent implements BundleAc
 
         private final Jobs jobs;
 
-        BundleTermination(final Jobs jobs) {
+        BundleTermination(final Jobs<BundleTermination> jobs) {
             this.jobs = jobs;
         }
 

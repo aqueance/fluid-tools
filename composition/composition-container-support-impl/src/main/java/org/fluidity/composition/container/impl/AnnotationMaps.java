@@ -63,12 +63,20 @@ final class AnnotationMaps extends Utility {
         return result;
     }
 
-    public static String toString(final Map<Class<? extends Annotation>, Annotation[]> map) {
+    public static String descriptor(final Map<Class<? extends Annotation>, Annotation[]> map) {
+        return toString(false, map);
+    }
+
+    public static String identity(final Map<Class<? extends Annotation>, Annotation[]> map) {
+        return toString(true, map);
+    }
+
+    private static String toString(final boolean identity, final Map<Class<? extends Annotation>, Annotation[]> map) {
         final Strings.Listing builder = Strings.delimited(" ");
 
         for (final Annotation[] annotations : sorted(map).values()) {
             for (final Annotation annotation : annotations) {
-                builder.add(Strings.printAnnotation(annotation));
+                builder.add(Strings.printAnnotation(identity, annotation));
             }
         }
 

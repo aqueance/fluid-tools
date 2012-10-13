@@ -32,27 +32,27 @@ import org.fluidity.foundation.Strings;
 final class ComponentCacheImpl implements ComponentCache {
 
     private final Log log;
-    private final Map<Object, Map<ComponentContext, Object>> caches;
+    private final Map<Object, Map<String, Object>> caches;
 
     ComponentCacheImpl(final Log<ComponentCacheImpl> log, boolean stateless) {
         this.log = log;
-        this.caches = stateless ? new WeakHashMap<Object, Map<ComponentContext, Object>>() : null;
+        this.caches = stateless ? new WeakHashMap<Object, Map<String, Object>>() : null;
     }
 
     public Object lookup(final Object domain, final String source, final ComponentContext context, final Class<?> api, final Entry factory) {
         assert context != null : api;
         final boolean stateful = caches == null;
 
-        Map<ComponentContext, Object> cache;
+        Map<String, Object> cache;
 
         if (stateful) {
-            cache = factory == null ? null : new HashMap<ComponentContext, Object>();
+            cache = factory == null ? null : new HashMap<String, Object>();
         } else {
             synchronized (caches) {
                 cache = caches.get(domain);
 
                 if (cache == null && factory != null) {
-                    caches.put(domain, cache = new HashMap<ComponentContext, Object>());
+                    caches.put(domain, cache = new HashMap<String, Object>());
                 }
             }
         }
@@ -60,44 +60,34 @@ final class ComponentCacheImpl implements ComponentCache {
         return cache == null ? null : lookup(cache, source, context, api, factory, log);
     }
 
-    private synchronized Object lookup(final Map<ComponentContext, Object> cache,
+    private synchronized Object lookup(final Map<String, Object> cache,
                                        final String source,
                                        final ComponentContext context,
                                        final Class<?> api,
                                        final Entry factory,
                                        final Log log) {
         final boolean report = !ComponentFactory.class.isAssignableFrom(api) && log.isInfoEnabled();
+        final String key = context.key();
 
         if (factory != null) {
-            if (!cache.containsKey(context)) {
+            if (!cache.containsKey(key)) {
                 final Object component = factory.create();
 
-                if (!cache.containsKey(context)) {
-                    cache.put(context, component);
+                if (!cache.containsKey(key)) {
+                    cache.put(key, component);
 
-                    log(report, "found", api, component, context, log, source);
+                    if (report) {
+                        log.debug("%s: using %s%s",
+                                  source,
+                                  component == null ? String.format("no %s", api.getName()) : Strings.printObjectId(component),
+                                  context.types().isEmpty() ? "" : String.format(" for %s", key));
+                    }
                 }
             }
 
-            assert cache.containsKey(context) : String.format("Component %s not found in context %s", api, context);
+            assert cache.containsKey(key) : String.format("Component %s not found in context %s", api, context);
         }
 
-        return cache.get(context);
-    }
-
-    private void log(final boolean note,
-                     final String action,
-                     final Class<?> api,
-                     final Object component,
-                     final ComponentContext context,
-                     final Log log,
-                     final String source) {
-        if (note) {
-            log.debug("%s: %s %s%s",
-                      source,
-                      action,
-                      component == null ? String.format("no %s", api.getName()) : Strings.printObjectId(component),
-                      context.types().isEmpty() ? "" : String.format(" for %s", context));
-        }
+        return cache.get(key);
     }
 }

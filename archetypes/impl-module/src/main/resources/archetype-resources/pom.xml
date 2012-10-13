@@ -36,13 +36,6 @@ limitations under the License.
 
         <dependency>
             <groupId>org.fluidity.public</groupId>
-            <artifactId>fluid-tools-component-api</artifactId>
-            <version>${symbol_dollar}{fluid.tools.version}</version>
-            <type>pom</type>
-        </dependency>
-
-        <dependency>
-            <groupId>org.fluidity.public</groupId>
             <artifactId>fluid-tools-tests</artifactId>
             <version>${symbol_dollar}{fluid.tools.version}</version>
             <type>pom</type>

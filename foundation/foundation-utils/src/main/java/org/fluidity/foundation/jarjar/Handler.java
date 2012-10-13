@@ -20,13 +20,11 @@ import java.io.ByteArrayInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.JarURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLStreamHandler;
-import java.net.UnknownServiceException;
 import java.security.AccessControlException;
 import java.security.Permission;
 import java.util.Arrays;
@@ -396,7 +394,9 @@ public final class Handler extends URLStreamHandler {
 
         @Override
         public InputStream getInputStream() throws IOException {
-            final URL url = getURL();
+            if (!getDoInput()) {
+                throw new IllegalStateException(String.format("Input stream disabled on %s", url));
+            }
 
             if (getUseCaches()) {
                 final byte[] contents = contents(url);
@@ -462,8 +462,10 @@ public final class Handler extends URLStreamHandler {
         }
 
         @Override
-        public OutputStream getOutputStream() throws IOException {
-            throw new UnknownServiceException();
+        public void setDoOutput(final boolean value) {
+            if (value) {
+                throw new IllegalStateException("Output not supported on nested URLs");
+            }
         }
     }
 }

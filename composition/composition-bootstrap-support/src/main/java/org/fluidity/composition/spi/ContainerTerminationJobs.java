@@ -21,25 +21,30 @@ import java.util.List;
 import java.util.ListIterator;
 
 import org.fluidity.composition.Component;
+import org.fluidity.composition.ComponentContext;
 import org.fluidity.foundation.Command;
 import org.fluidity.foundation.Log;
+import org.fluidity.foundation.Strings;
 
 /**
  * @author Tibor Varga
  */
-@Component(stateful = true)
-final class ContainerTerminationJobs implements ContainerTermination.Jobs {
+@Component
+@Component.Context(Component.Reference.class)
+final class ContainerTerminationJobs<T> implements ContainerTermination.Jobs<T> {
 
     private final List<Command.Job<Exception>> jobs = new ArrayList<Command.Job<Exception>>();
     private final List<Command.Job<Exception>> added = new ArrayList<Command.Job<Exception>>();
     private final List<Command.Job<Exception>> removed = new ArrayList<Command.Job<Exception>>();
 
-    private final Log<ContainerTerminationJobs> log;
+    private final Log log;
+    private final Class<?> caller;
 
     private boolean flushing;
 
-    ContainerTerminationJobs(final Log<ContainerTerminationJobs> log) {
+    ContainerTerminationJobs(final Log<ContainerTerminationJobs> log, final ComponentContext context) {
         this.log = log;
+        this.caller = context.annotation(Component.Reference.class, ContainerTermination.Jobs.class).parameter(0);
     }
 
     public void flush() {
@@ -90,11 +95,34 @@ final class ContainerTerminationJobs implements ContainerTermination.Jobs {
         }
     }
 
-    public synchronized void add(final Command.Job<Exception> job) {
-        if (flushing) {
-            added.add(job);
-        } else {
-            jobs.add(job);
+    private boolean check(final Command.Job<Exception> job, final Class<?> caller) {
+        if (job == null) {
+            throw new IllegalArgumentException(String.format("Attempted to add null job to %s", Strings.printClass(false, true, caller)));
+        }
+
+        final ClassLoader check = job.getClass().getClassLoader();
+        for (ClassLoader loader = caller.getClassLoader(); loader != null; loader = loader.getParent()) {
+            if (loader == check) {
+                return true;
+            }
+        }
+
+        return caller.getClassLoader() == null && check == null;
+    }
+
+    public void add(final Command.Job<Exception> job) {
+        if (!check(job, caller)) {
+            throw new IllegalArgumentException(String.format("The class loader of job %s is neither in the ancestry of, nor the same as, that of %s",
+                                                             Strings.printObject(false, job),
+                                                             Strings.printClass(false, true, caller)));
+        }
+
+        synchronized (this) {
+            if (flushing) {
+                added.add(job);
+            } else {
+                jobs.add(job);
+            }
         }
     }
 

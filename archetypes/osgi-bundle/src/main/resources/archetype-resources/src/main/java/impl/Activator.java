@@ -26,7 +26,7 @@ import org.osgi.framework.BundleContext;
 @Component
 final class Activator implements BundleActivator {
 
-    private final Log<?> log;
+    private final Log log;
 
     Activator(final Log<Activator> log) {
         this.log = log;

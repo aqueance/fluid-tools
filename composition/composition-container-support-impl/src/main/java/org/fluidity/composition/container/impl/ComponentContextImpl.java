@@ -40,6 +40,12 @@ final class ComponentContextImpl implements ComponentContext {
         }
     });
 
+    private final Deferred.Reference<String> identity = Deferred.reference(new Deferred.Factory<String>() {
+        public String create() {
+            return AnnotationMaps.identity(annotations);
+        }
+    });
+
     ComponentContextImpl(final Map<Class<? extends Annotation>, Annotation[]> map) {
         for (final Map.Entry<Class<? extends Annotation>, Annotation[]> entry : map.entrySet()) {
             annotations.put(entry.getKey(), entry.getValue().clone());
@@ -81,9 +87,13 @@ final class ComponentContextImpl implements ComponentContext {
         return Collections.unmodifiableSet(annotations.keySet());
     }
 
+    public String key() {
+        return identity.get();
+    }
+
     @Override
     public String toString() {
-        return AnnotationMaps.toString(annotations);
+        return AnnotationMaps.descriptor(annotations);
     }
 
     @Override

@@ -93,7 +93,7 @@ public final class OsgiApplicationBootstrap {
 
     private static final String BUNDLES = "bundles";
 
-    private final Log<OsgiApplicationBootstrap> log;
+    private final Log log;
     private final ContainerTermination termination;
     private final StartLevels levels;
 

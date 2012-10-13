@@ -530,14 +530,14 @@ final class DependencyInjectorImpl implements DependencyInjector {
                         throw new ComponentContainer.ResolutionException("Multiple component group APIs specified for dependency %s of %s: %s",
                                                                          Strings.printClass(false, true, dependencyType),
                                                                          declaringType,
-                                                                         Strings.printAnnotation(componentGroup));
+                                                                         Strings.printAnnotation(false, componentGroup));
                     }
 
                     if (!itemType.isAssignableFrom(groupType)) {
                         throw new ComponentContainer.ResolutionException("The specified component type is not assignable to the dependency type %s of %s: %s",
                                                                          Strings.printClass(false, true, dependencyType),
                                                                          declaringType,
-                                                                         Strings.printAnnotation(componentGroup));
+                                                                         Strings.printAnnotation(false, componentGroup));
                     }
                 }
 

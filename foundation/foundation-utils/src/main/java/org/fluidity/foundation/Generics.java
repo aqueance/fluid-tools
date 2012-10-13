@@ -205,6 +205,47 @@ public final class Generics extends Utility {
         }
     }
 
+    static String identity(final Type type) {
+        if (type instanceof Class) {
+            return String.format("%s@%d", Strings.printClass(false, true, (Class) type), System.identityHashCode(type));
+        } else if (type instanceof ParameterizedType) {
+            final Strings.Listing output = Strings.delimited(",");
+
+            for (final Type parameter : ((ParameterizedType) type).getActualTypeArguments()) {
+                output.append(identity(parameter));
+            }
+
+            return String.format("%s<%s>", identity(((ParameterizedType) type).getRawType()), output);
+        } else if (type instanceof GenericArrayType) {
+            return String.format("%s[]", identity(((GenericArrayType) type).getGenericComponentType()));
+        } else if (type instanceof TypeVariable) {
+            final Strings.Listing output = Strings.delimited(",");
+
+            for (final Type bound : ((TypeVariable) type).getBounds()) {
+                output.append(identity(bound));
+            }
+
+            return output.toString();
+        } else if (type instanceof WildcardType) {
+            final Strings.Listing lower = Strings.delimited(",");
+
+            for (final Type bound : ((WildcardType) type).getLowerBounds()) {
+                lower.append(identity(bound));
+            }
+
+            final Strings.Listing upper = Strings.delimited(",");
+
+            for (final Type bound : ((WildcardType) type).getUpperBounds()) {
+                upper.append(identity(bound));
+            }
+
+            return String.format("%s:%s", lower, upper);
+        }
+
+        assert false : type;
+        return null;
+    }
+
     static String toString(final Type argument) {
         return argument instanceof Class ? Strings.printClass(true, (Class) argument) : String.valueOf(argument);
     }

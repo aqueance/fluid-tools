@@ -58,7 +58,7 @@ import org.fluidity.foundation.spi.LogFactory;
  * public final class <span class="hl2">Main</span> {
  *
  *   public static void main(final String[] args) throws Exception {
- *     <span class="hl1">{@linkplain Containers}.{@linkplain Containers#global() global}()</span>().{@linkplain ComponentContainer#instantiate(Class) instantiate}(<span class="hl2">Main</span>.class).<span class="hl3">run</span>(args);
+ *     <span class="hl1">{@linkplain Containers}.{@linkplain Containers#global() global}</span>().{@linkplain ComponentContainer#instantiate(Class) instantiate}(<span class="hl2">Main</span>.class).<span class="hl3">run</span>(args);
  *   }
  *
  *   private void <span class="hl3">run</span>(final String[] parameters) throws Exception {

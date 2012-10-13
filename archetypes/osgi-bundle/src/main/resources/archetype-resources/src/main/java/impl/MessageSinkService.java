@@ -28,8 +28,8 @@ import ${package}.MessageSink;
 @Component(automatic = false)
 final class MessageSinkService implements MessageSink, BundleComponentContainer.Registration {
 
-    private final Log<?> log;
-    private Properties properties = new Properties();
+    private final Log log;
+    private final Properties properties = new Properties();
 
     MessageSinkService(final Log<MessageSinkService> log) {
         this.log = log;

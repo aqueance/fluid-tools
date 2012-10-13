@@ -37,14 +37,14 @@ import org.fluidity.foundation.Log;
 final class SchedulerImpl implements Scheduler {
 
     private final AtomicBoolean stopped = new AtomicBoolean(false);
-    private final Deferred.Reference.State<Timer> timer = Deferred.state(new Deferred.Factory<Timer>() {
+    private final Deferred.Reference<Timer> timer = Deferred.reference(new Deferred.Factory<Timer>() {
         public Timer create() {
             return new Timer(Scheduler.class.getName(), true);
         }
     });
 
     private final Configuration<Settings> configuration;
-    private final Log<?> log;
+    private final Log log;
 
     SchedulerImpl(final ContainerTermination termination,
                   final @Component.Context(ignore = Configuration.Prefix.class) Configuration<Settings> configuration,

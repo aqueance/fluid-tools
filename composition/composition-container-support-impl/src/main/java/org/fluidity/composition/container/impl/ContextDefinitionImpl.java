@@ -50,7 +50,7 @@ final class ContextDefinitionImpl implements ContextDefinition {
     private final Map<Class<? extends Annotation>, Annotation[]> defined = new LinkedHashMap<Class<? extends Annotation>, Annotation[]>();
     private final Map<Class<? extends Annotation>, Annotation[]> active = new HashMap<Class<? extends Annotation>, Annotation[]>();
 
-    private final Deferred.Reference.State<Integer> hashCode = Deferred.state(new Deferred.Factory<Integer>() {
+    private final Deferred.Reference<Integer> hashCode = Deferred.reference(new Deferred.Factory<Integer>() {
         public Integer create() {
             return AnnotationMaps.hashCode(defined);
         }
@@ -258,7 +258,7 @@ final class ContextDefinitionImpl implements ContextDefinition {
 
     @Override
     public String toString() {
-        return AnnotationMaps.toString(defined);
+        return AnnotationMaps.descriptor(defined);
     }
 
     private static class ComponentReferenceImpl implements Component.Reference {
@@ -299,7 +299,7 @@ final class ContextDefinitionImpl implements ContextDefinition {
 
         @Override
         public String toString() {
-            return Strings.printAnnotation(this);
+            return Strings.printAnnotation(false, this);
         }
     }
 }

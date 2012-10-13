@@ -22,7 +22,7 @@ package org.fluidity.composition;
  * <p/>
  * In cases where class extension is not possible, simply use the following code in the constructor, or something similar:
  * <pre>
- * {@linkplain Containers Containers}.{@linkplain org.fluidity.composition.Containers#global() global}(getClass().getClassLoader()).{@linkplain ComponentContainer#initialize(Object) initialize}(this);
+ * {@linkplain Containers Containers}.{@linkplain org.fluidity.composition.Containers#global(ClassLoader) global}(getClass().getClassLoader()).{@linkplain ComponentContainer#initialize(Object) initialize}(this);
  * </pre>
  *
  * @author Tibor Varga

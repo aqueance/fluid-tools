@@ -116,4 +116,11 @@ public interface ComponentContext {
      * @return the set of annotation types the context contains instances of.
      */
     Set<Class<? extends Annotation>> types();
+
+    /**
+     * Returns a textual representation of this context that uniquely identifies it. Used internally by Fluid Tools.
+     *
+     * @return a textual representation of this context that uniquely identifies it.
+     */
+    String key();
 }

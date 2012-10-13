@@ -30,7 +30,7 @@ final class RuntimeTermination implements ContainerTermination {
 
     private final Jobs jobs;
 
-    RuntimeTermination(final Jobs jobs) {
+    RuntimeTermination(final Jobs<RuntimeTermination> jobs) {
         this.jobs = jobs;
 
         Runtime.getRuntime().addShutdownHook(new Thread("Container shutdown") {

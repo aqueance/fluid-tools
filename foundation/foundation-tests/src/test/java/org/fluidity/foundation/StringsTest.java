@@ -65,7 +65,7 @@ public class StringsTest extends MockGroup {
 
         final String string = verify(new Work<String>() {
             public String run() throws Exception {
-                return Strings.printAnnotation(annotation);
+                return Strings.printAnnotation(false, annotation);
             }
         });
 
@@ -81,7 +81,7 @@ public class StringsTest extends MockGroup {
 
         final String string = verify(new Work<String>() {
             public String run() throws Exception {
-                return Strings.printAnnotation(annotation);
+                return Strings.printAnnotation(false, annotation);
             }
         });
 
@@ -99,7 +99,7 @@ public class StringsTest extends MockGroup {
 
         final String string = verify(new Work<String>() {
             public String run() throws Exception {
-                return Strings.printAnnotation(annotation);
+                return Strings.printAnnotation(false, annotation);
             }
         });
 
@@ -115,7 +115,7 @@ public class StringsTest extends MockGroup {
 
         final String string = verify(new Work<String>() {
             public String run() throws Exception {
-                return Strings.printAnnotation(annotation);
+                return Strings.printAnnotation(false, annotation);
             }
         });
 
@@ -135,7 +135,7 @@ public class StringsTest extends MockGroup {
 
         final String string = verify(new Work<String>() {
             public String run() throws Exception {
-                return Strings.printAnnotation(annotation);
+                return Strings.printAnnotation(false, annotation);
             }
         });
 
@@ -155,7 +155,7 @@ public class StringsTest extends MockGroup {
 
         final String string = verify(new Work<String>() {
             public String run() throws Exception {
-                return Strings.printAnnotation(annotation);
+                return Strings.printAnnotation(false, annotation);
             }
         });
 

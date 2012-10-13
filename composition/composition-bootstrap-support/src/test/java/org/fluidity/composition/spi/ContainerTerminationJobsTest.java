@@ -18,12 +18,15 @@ package org.fluidity.composition.spi;
 
 import java.util.concurrent.CyclicBarrier;
 
+import org.fluidity.composition.Component;
+import org.fluidity.composition.ComponentContext;
 import org.fluidity.foundation.Command;
 import org.fluidity.foundation.NoLogFactory;
 import org.fluidity.testing.MockGroup;
 
 import org.easymock.EasyMock;
 import org.easymock.IAnswer;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 /**
@@ -31,7 +34,7 @@ import org.testng.annotations.Test;
  */
 public class ContainerTerminationJobsTest extends MockGroup {
 
-    private final ContainerTermination.Jobs list = new ContainerTerminationJobs(NoLogFactory.consume(ContainerTerminationJobs.class));
+    private ContainerTermination.Jobs list;
     @SuppressWarnings("unchecked")
     private final Command.Job<Exception>[] jobs = new Command.Job[] {
             mock(Command.Job.class),
@@ -39,6 +42,26 @@ public class ContainerTerminationJobsTest extends MockGroup {
             mock(Command.Job.class),
             mock(Command.Job.class)
     };
+
+    @BeforeMethod
+    public void setUp() throws Exception {
+        list = jobs(ContainerTerminationJobsTest.class);
+    }
+
+    @SuppressWarnings("unchecked")
+    private ContainerTermination.Jobs jobs(final Class<?> caller) throws Exception {
+        final ComponentContext context = localMock(ComponentContext.class);
+        final Component.Reference reference = localMock(Component.Reference.class);
+
+        EasyMock.expect(context.annotation(Component.Reference.class, ContainerTermination.Jobs.class)).andReturn(reference);
+        EasyMock.expect(reference.parameter(0)).andReturn((Class) caller);
+
+        return verify(new Work<ContainerTermination.Jobs>() {
+            public ContainerTermination.Jobs run() throws Exception {
+                return new ContainerTerminationJobs(NoLogFactory.consume(ContainerTerminationJobs.class), context);
+            }
+        });
+    }
 
     @Test
     public void testAddition() throws Exception {
@@ -171,5 +194,15 @@ public class ContainerTerminationJobsTest extends MockGroup {
                 });
             }
         });
+    }
+
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void testNullJob() throws Exception {
+        list.add(null);
+    }
+
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void testClassLoaderCheck() throws Exception {
+        jobs(Object.class).add(localMock(Task.class));
     }
 }

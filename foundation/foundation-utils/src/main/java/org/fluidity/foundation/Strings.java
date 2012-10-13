@@ -21,6 +21,7 @@ import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
@@ -85,7 +86,7 @@ public final class Strings extends Utility {
     }
 
     /**
-     * Forms the simple Java-like notation of the given annotation instance. For instance:
+     * Forms the simple Java-like notation or an identifier of the given annotation instance. Examples of the Java-like notation:
      * <ul>
      * <li><code>@MyAnnotation</code>: "@MyAnnotation"</li>
      * <li><code>@MyAnnotation(1000)</code>: "@MyAnnotation(1000)"</li>
@@ -95,11 +96,12 @@ public final class Strings extends Utility {
      * <p/>
      * Parameters set to their default value are not printed.
      *
+     * @param identity   if <code>true</code>, return an identifier for the annotation, otherwise its Java-like form.
      * @param annotation the annotation instance to return the Java-like form of.
      *
-     * @return the Java-like notation for the given annotation.
+     * @return the Java-like notation or an identifier for the given annotation.
      */
-    public static String printAnnotation(final Annotation annotation) {
+    public static String printAnnotation(final boolean identity, final Annotation annotation) {
         final StringBuilder output = new StringBuilder();
 
         final Class<? extends Annotation> type = annotation.annotationType();
@@ -112,7 +114,7 @@ public final class Strings extends Utility {
         try {
             if (methods.length == 1 && methods[0].getName().equals("value")) {
                 methods[0].setAccessible(true);
-                appendValue(builder, methods[0].invoke(annotation));
+                appendValue(identity, builder, methods[0].invoke(annotation));
             } else {
                 Arrays.sort(methods, new Comparator<Method>() {
                     public int compare(final Method method1, final Method method2) {
@@ -137,7 +139,7 @@ public final class Strings extends Utility {
 
                             final StringBuilder parameter = new StringBuilder();
                             parameter.append(method.getName()).append('=');
-                            appendValue(parameter, value);
+                            appendValue(identity, parameter, value);
                             builder.append(parameter);
                         }
                     }
@@ -156,21 +158,31 @@ public final class Strings extends Utility {
         return output.toString();
     }
 
-    private static void appendValue(final StringBuilder output, final Object value) {
+    private static void appendValue(final boolean identity, final StringBuilder output, final Object value) {
         if (value instanceof Class) {
-            output.append(printClass(false, false, (Class) value)).append(".class");
+            if (identity) {
+                output.append(Generics.identity((Class) value));
+            } else {
+                output.append(printClass(false, false, (Class) value)).append(".class");
+            }
+        } else if (value instanceof Type) {
+            if (identity) {
+                output.append(Generics.identity((Type) value));
+            } else {
+                output.append(value);
+            }
         } else if (value != null) {
-            output.append(value.getClass().isArray() ? appendArray(value) : value);
+            output.append(value.getClass().isArray() ? appendArray(identity, value) : value);
         } else {
             output.append((Object) null);
         }
     }
 
-    private static String appendArray(final Object value) {
+    private static String appendArray(final boolean identity, final Object value) {
         final Listing output = new Listing(",");
 
         for (int i = 0, length = Array.getLength(value); i < length; ++i) {
-            appendValue(output.next(), Array.get(value, i));
+            appendValue(identity, output.next(), Array.get(value, i));
         }
 
         return output.surround("{}").toString();
