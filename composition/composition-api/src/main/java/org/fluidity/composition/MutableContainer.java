@@ -22,18 +22,18 @@ package org.fluidity.composition;
  * You don't directly interact with an internal interface.
  *
  * @author Tibor Varga
- * @see OpenComponentContainer
+ * @see OpenContainer
  * @see org.fluidity.composition.container.spi.EmptyComponentContainer
  */
 @SuppressWarnings("JavadocReference")
-public interface ExposedComponentContainer extends OpenComponentContainer {
+public interface MutableContainer extends OpenContainer {
 
     /**
      * Creates another container with this one as its parent.
      *
      * @return a container that defaults to this container for satisfying component dependencies.
      */
-    ExposedComponentContainer makeChildContainer();
+    MutableContainer makeChildContainer();
 
     /**
      * Returns the object through which component bindings can be added to this container.

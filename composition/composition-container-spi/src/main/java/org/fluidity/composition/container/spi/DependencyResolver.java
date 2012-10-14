@@ -21,7 +21,7 @@ import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.container.ContextDefinition;
 
 /**
- * Implemented by a {@linkplain org.fluidity.composition.ExposedComponentContainer component container} to allow a {@link
+ * Implemented by a {@linkplain org.fluidity.composition.MutableContainer component container} to allow a {@link
  * org.fluidity.composition.container.DependencyInjector} to interact with that container.
  * <h3>Usage</h3>
  * You don't interact with an internal interface.

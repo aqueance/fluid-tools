@@ -56,7 +56,7 @@ import org.fluidity.foundation.Strings;
  * href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Component_Context">User Guide</a>.
  * <p/>
  * Containers can also be used to peek into the static dependency graph of your application. This functionality is provided by the {@link
- * ObservedComponentContainer} object returned by the {@link #observed(Observer) observed()} method.
+ * ObservedContainer} object returned by the {@link #observed(Observer) observed()} method.
  * <h3>Usage</h3>
  * All examples below assume the following enclosing boilerplate:
  * <pre>
@@ -70,7 +70,7 @@ import org.fluidity.foundation.Strings;
  *     &hellip;
  *   }
  *
- *   private void myMethod() throws throws <b>SomeCheckedException</b> {
+ *   private void myMethod() throws <b>SomeCheckedException</b> {
  *     <i>&hellip; example code snippet from below &hellip;</i>
  *   }
  * }
@@ -202,8 +202,7 @@ import org.fluidity.foundation.Strings;
  * </pre></li>
  * </ul>
  * <h4>Observing Dependency Resolution</h4>
- * A container can be used to explore the static and dynamic dependencies starting at any component interface. See {@link ObservedComponentContainer} for an
- * example.
+ * A container can be used to explore the static and dynamic dependencies starting at any component interface. See {@link ObservedContainer} for an example.
  *
  * @author Tibor Varga
  */
@@ -220,7 +219,7 @@ public interface ComponentContainer {
      *
      * @return a container that defaults to this container for satisfying component dependencies.
      */
-    OpenComponentContainer makeChildContainer(Bindings... bindings);
+    OpenContainer makeChildContainer(Bindings... bindings);
 
     /**
      * Creates a domain container with this one as its parent. Dependencies of components resolved, through the returned child, in this container or its
@@ -235,7 +234,7 @@ public interface ComponentContainer {
      * @return a container that defaults to this container for satisfying component dependencies and which will also be used defaulted to by the ancestor
      *         components when they cannot resolve a dependency.
      */
-    OpenComponentContainer makeDomainContainer(Bindings... bindings);
+    OpenContainer makeDomainContainer(Bindings... bindings);
 
     /**
      * Returns a child container with this one as its parent and with the given component interceptors active, in addition to those found in the class loader
@@ -245,7 +244,7 @@ public interface ComponentContainer {
      *
      * @return a new child container.
      */
-    OpenComponentContainer intercepting(ComponentInterceptor... interceptors);
+    ComponentContainer intercepting(ComponentInterceptor... interceptors);
 
     /**
      * Returns a new container that calls the given observer whenever a dependency is resolved while resolving a component interface via the returned container.
@@ -254,7 +253,7 @@ public interface ComponentContainer {
      *
      * @return a new container instance backed by this one and using the provided resolution observer.
      */
-    ObservedComponentContainer observed(Observer observer);
+    ObservedContainer observed(Observer observer);
 
     /**
      * Resolves and injects the {@link Inject @Inject} annotated fields of the given object. You only need to use this method if the
@@ -311,8 +310,8 @@ public interface ComponentContainer {
     <T> T complete(T component, Class<? super T>... api) throws ResolutionException;
 
     /**
-     * Embodies a list of mappings from component class to component interface and / or component group. {@link OpenComponentContainer ComponentContainers} use
-     * bindings to map component and component group interfaces to component classes when resolving dependencies.
+     * Embodies a list of mappings from component class to component interface and / or component group. {@link OpenContainer ComponentContainers} use bindings
+     * to map component and component group interfaces to component classes when resolving dependencies.
      * <p/>
      * Bindings are mostly used when automatically populating an application's dependency injection container hierarchy. At build time, the
      * <code>org.fluidity.maven:composition-maven-plugin</code> produces bindings to capture the list of {@link Component @Component} annotated classes in a
@@ -325,7 +324,7 @@ public interface ComponentContainer {
      * {@linkplain Component @Component}
      * public final class MyComponentFactory {
      *
-     *   public <span class="hl2">MyComponent</span> create(final {@linkplain OpenComponentContainer} container, final <span class="hl3">MyLocalDependency</span> dependency) {
+     *   public <span class="hl2">MyComponent</span> create(final {@linkplain OpenContainer} container, final <span class="hl3">MyLocalDependency</span> dependency) {
      *     return container.instantiate(<span class="hl2">MyComponentImpl</span>.class, new <span class="hl1">ComponentContainer.Bindings</span>() {
      *       public void <span class="hl1">bindComponents</span>(final {@linkplain ComponentContainer.Registry} registry) {
      *         registry.bindInstance(dependency, <span class="hl3">MyLocalDependency</span>.class);
@@ -357,7 +356,7 @@ public interface ComponentContainer {
     }
 
     /**
-     * Allows adding component {@linkplain ComponentContainer.Bindings bindings} to a {@linkplain OpenComponentContainer dependency injection container}.
+     * Allows adding component {@linkplain ComponentContainer.Bindings bindings} to a {@linkplain OpenContainer dependency injection container}.
      * <p/>
      * The registry offers several ways to map an implementation to an interface in the host container. Which one you need depends on your requirements. These
      * methods are mostly invoked from the {@link ComponentContainer.Bindings#bindComponents(ComponentContainer.Registry) bindComponents()} method of your
@@ -373,9 +372,8 @@ public interface ComponentContainer {
      * <code>false</code>.</li>
      * <li>To register a component implementation when some or all of its dependencies are - by design - not accessible in the same container, use {@link
      * #isolateComponent(Class, Class[]) isolateComponent()} method and use the returned container's {@link
-     * ExposedComponentContainer#getRegistry() getRegistry()} method to gain access to the registry in which to bind the hidden dependencies. If the
-     * implementation is annotated with <code>@Component</code> then its {@link Component#automatic() automatic} parameter must be set to
-     * <code>false</code>.</li>
+     * MutableContainer#getRegistry() getRegistry()} method to gain access to the registry in which to bind the hidden dependencies. If the implementation is
+     * annotated with <code>@Component</code> then its {@link Component#automatic() automatic} parameter must be set to <code>false</code>.</li>
      * </ul>
      * <h3>Usage</h3>
      * <ul>
@@ -400,7 +398,7 @@ public interface ComponentContainer {
      *   // a container received from somewhere
      *   final <span class="hl2">{@linkplain ComponentContainer}</span> container = &hellip;;
      *
-     *   final <span class="hl2">{@linkplain OpenComponentContainer}</span> child = container.<span class="hl2">makeChildContainer</span>(bindings);
+     *   final <span class="hl2">{@linkplain OpenContainer}</span> child = container.<span class="hl2">makeChildContainer</span>(bindings);
      *
      *   // use the child to get a component instance
      *   final <span class="hl3">MyComponent</span> component = child.getComponent(<span class="hl3">MyComponent</span>.class);
@@ -515,7 +513,7 @@ public interface ComponentContainer {
      * Observes component dependency resolutions.
      * <h3>Usage</h3>
      * A {@link ComponentContainer} can be used to explore the static and dynamic dependencies starting at any component interface. See {@link
-     * ObservedComponentContainer} for an example.
+     * ObservedContainer} for an example.
      *
      * @author Tibor Varga
      */

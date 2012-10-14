@@ -19,6 +19,7 @@ package org.fluidity.composition;
 /**
  * The external API of a fully populated dependency injection container that that allows dynamic component lookup.
  * <h3>Usage</h3>
+ * The examples below assume the following enclosing boilerplate:
  * <pre>
  * {@linkplain Component @Component}
  * public final class MyComponent {
@@ -30,25 +31,25 @@ package org.fluidity.composition;
  *     &hellip;
  *   }
  *
- *   private void myMethod() throws throws <b>SomeCheckedException</b> {
+ *   private void myMethod() {
  *     <i>&hellip; example code snippet from below &hellip;</i>
  *   }
  * }
  * </pre>
  * <h4>Component Lookup</h4>
  * <pre>
- * final <span clas="hl2">SomeComponent</span> component = container.<span clas="hl1">getComponent</span>(<span clas="hl2">SomeComponent</span>.class);
+ * final <span class="hl2">SomeComponent</span> component = container.<span class="hl1">getComponent</span>(<span class="hl2">SomeComponent</span>.class);
  * &hellip;
  * </pre>
  * <h4>Component Group Lookup</h4>
  * <pre>
- * final <span clas="hl2">SomeGroup</span>[] group = container.<span clas="hl1">getComponentGroup</span>(<span clas="hl2">SomeGroup</span>.class);
+ * final <span class="hl2">SomeGroup</span>[] group = container.<span class="hl1">getComponentGroup</span>(<span class="hl2">SomeGroup</span>.class);
  * &hellip;
  * </pre>
  *
  * @author Tibor Varga
  */
-public interface OpenComponentContainer extends ComponentContainer {
+public interface OpenContainer extends ComponentContainer {
 
     /**
      * Looks up by interface or (super)class and returns a component. This method is provided for boundary objects (objects created outside the container by

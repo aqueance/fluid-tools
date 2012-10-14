@@ -35,8 +35,8 @@ import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentGroup;
 import org.fluidity.composition.Components;
 import org.fluidity.composition.DependencyPath;
-import org.fluidity.composition.ObservedComponentContainer;
-import org.fluidity.composition.OpenComponentContainer;
+import org.fluidity.composition.ObservedContainer;
+import org.fluidity.composition.OpenContainer;
 import org.fluidity.composition.ServiceProvider;
 import org.fluidity.foundation.ClassDiscovery;
 import org.fluidity.foundation.Lists;
@@ -193,7 +193,7 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
             final AtomicReference<Set<ServiceDescriptor>> dependencies = new AtomicReference<Set<ServiceDescriptor>>();
 
             // collects the OSGi service dependencies encountered during dependency resolution
-            final ObservedComponentContainer observed = pool.observed(new ComponentContainer.Observer() {
+            final ObservedContainer observed = pool.observed(new ComponentContainer.Observer() {
                 public void descending(final Class<?> declaringType,
                                        final Class<?> dependencyType,
                                        final Annotation[] typeAnnotations,
@@ -482,7 +482,7 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
             if (!resolved.isEmpty()) {
                 log.debug("[%s] Starting components: %s", bundleName, resolved);
 
-                final OpenComponentContainer child = container.makeChildContainer(new ComponentContainer.Bindings() {
+                final OpenContainer child = container.makeChildContainer(new ComponentContainer.Bindings() {
                     @SuppressWarnings("unchecked")
                     public void bindComponents(final ComponentContainer.Registry registry) {
                         registry.bindInstance(status);

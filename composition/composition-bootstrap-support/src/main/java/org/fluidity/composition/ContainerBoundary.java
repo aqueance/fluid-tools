@@ -71,7 +71,7 @@ import org.fluidity.foundation.spi.LogFactory;
 @SuppressWarnings("UnusedDeclaration")
 public final class ContainerBoundary implements ComponentContainer {
 
-    private static final Map<ClassLoader, ExposedComponentContainer> populatedContainers = new WeakHashMap<ClassLoader, ExposedComponentContainer>();
+    private static final Map<ClassLoader, MutableContainer> populatedContainers = new WeakHashMap<ClassLoader, MutableContainer>();
     private static final Map<ClassLoader, Map> propertiesMap = new WeakHashMap<ClassLoader, Map>();
     private static final Set<ComponentContainer> lockedContainers = new HashSet<ComponentContainer>();
     private static final Object stateLock = new Object();
@@ -190,7 +190,7 @@ public final class ContainerBoundary implements ComponentContainer {
      * <p/>
      * {@inheritDoc}
      */
-    public OpenComponentContainer makeChildContainer(final Bindings... bindings) {
+    public OpenContainer makeChildContainer(final Bindings... bindings) {
         return loadedContainer().makeChildContainer(bindings);
     }
 
@@ -199,7 +199,7 @@ public final class ContainerBoundary implements ComponentContainer {
      * <p/>
      * {@inheritDoc}
      */
-    public OpenComponentContainer makeDomainContainer(final Bindings... bindings) {
+    public OpenContainer makeDomainContainer(final Bindings... bindings) {
         return loadedContainer().makeDomainContainer(bindings);
     }
 
@@ -208,7 +208,7 @@ public final class ContainerBoundary implements ComponentContainer {
      * <p/>
      * {@inheritDoc}
      */
-    public OpenComponentContainer intercepting(final ComponentInterceptor... interceptors) {
+    public ComponentContainer intercepting(final ComponentInterceptor... interceptors) {
         return loadedContainer().intercepting(interceptors);
     }
 
@@ -217,7 +217,7 @@ public final class ContainerBoundary implements ComponentContainer {
      * <p/>
      * {@inheritDoc}
      */
-    public ObservedComponentContainer observed(final Observer observer) {
+    public ObservedContainer observed(final Observer observer) {
         return loadedContainer().observed(observer);
     }
 
@@ -302,7 +302,7 @@ public final class ContainerBoundary implements ComponentContainer {
      *
      * @return list of populated containers at and above the current class loader.
      */
-    private List<ExposedComponentContainer> makeContainer() {
+    private List<MutableContainer> makeContainer() {
         initFinder();
 
         // list of class loaders from current one up the hierarchy
@@ -326,9 +326,9 @@ public final class ContainerBoundary implements ComponentContainer {
                     }
 
                     final Map map = propertiesMap.get(loader);
-                    final ExposedComponentContainer parent = populatedContainers.get(loader.getParent());
+                    final MutableContainer parent = populatedContainers.get(loader.getParent());
 
-                    final AtomicReference<ExposedComponentContainer> container = new AtomicReference<ExposedComponentContainer>();
+                    final AtomicReference<MutableContainer> container = new AtomicReference<MutableContainer>();
 
                     final ContainerBootstrap.Callback callback = new ContainerBootstrap.Callback() {
                         public void containerInitialized() {
@@ -346,8 +346,8 @@ public final class ContainerBoundary implements ComponentContainer {
                         }
                     };
 
-                    container.set(ClassLoaders.context(loader, new Function<ExposedComponentContainer, ClassLoader, RuntimeException>() {
-                        public ExposedComponentContainer run(final ClassLoader loader) {
+                    container.set(ClassLoaders.context(loader, new Function<MutableContainer, ClassLoader, RuntimeException>() {
+                        public MutableContainer run(final ClassLoader loader) {
                             return containerBootstrap.populateContainer(findServices(loader),
                                                                         containerProvider,
                                                                         map == null ? new HashMap() : map,
@@ -368,10 +368,10 @@ public final class ContainerBoundary implements ComponentContainer {
         assert populatedContainers.containsKey(classLoader) : classLoader;
 
         // bottom up: list of containers at and above current class loader
-        final List<ExposedComponentContainer> containers = new ArrayList<ExposedComponentContainer>();
+        final List<MutableContainer> containers = new ArrayList<MutableContainer>();
 
         for (ClassLoader loader = classLoader; loader != null; loader = loader.getParent()) {
-            final ExposedComponentContainer container = populatedContainers.get(loader);
+            final MutableContainer container = populatedContainers.get(loader);
 
             if (container != null) {
                 containers.add(container);
@@ -414,9 +414,9 @@ public final class ContainerBoundary implements ComponentContainer {
      *
      * @return the loaded and populated container. If lock is <code>true</code>, the container is also initialized.
      */
-    private ExposedComponentContainer loadContainer(final boolean lock) {
+    private MutableContainer loadContainer(final boolean lock) {
         synchronized (stateLock) {
-            final List<ExposedComponentContainer> containers = makeContainer();
+            final List<MutableContainer> containers = makeContainer();
 
             boolean first = true;
             ComponentContainer initialized = null;
@@ -436,8 +436,8 @@ public final class ContainerBoundary implements ComponentContainer {
             if (initialized != null) {
 
                 // initialize containers top down
-                for (final ListIterator<ExposedComponentContainer> iterator = containers.listIterator(containers.size()); iterator.hasPrevious(); ) {
-                    final ExposedComponentContainer container = iterator.previous();
+                for (final ListIterator<MutableContainer> iterator = containers.listIterator(containers.size()); iterator.hasPrevious(); ) {
+                    final MutableContainer container = iterator.previous();
 
                     containerBootstrap.initializeContainer(container, containerServices);
 
@@ -460,7 +460,7 @@ public final class ContainerBoundary implements ComponentContainer {
      *
      * @return an empty independent container.
      */
-    /* package */ ExposedComponentContainer create() {
+    /* package */ MutableContainer create() {
         initFinder();
 
         if (findProvider(classLoader) != null) {

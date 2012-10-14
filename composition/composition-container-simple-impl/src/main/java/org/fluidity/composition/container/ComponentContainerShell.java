@@ -20,9 +20,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import org.fluidity.composition.Components;
-import org.fluidity.composition.ExposedComponentContainer;
-import org.fluidity.composition.ObservedComponentContainer;
-import org.fluidity.composition.OpenComponentContainer;
+import org.fluidity.composition.MutableContainer;
+import org.fluidity.composition.ObservedContainer;
+import org.fluidity.composition.OpenContainer;
 import org.fluidity.composition.container.spi.EmptyComponentContainer;
 
 /**
@@ -48,7 +48,7 @@ final class ComponentContainerShell extends EmptyComponentContainer<SimpleContai
         super(child ? container.newChildContainer(domain) : container, container.services(), context.copy(), observer);
     }
 
-    public ObservedComponentContainer container(final SimpleContainer container, final ContextDefinition context, final Observer observer) {
+    public ObservedContainer container(final SimpleContainer container, final ContextDefinition context, final Observer observer) {
         return new ComponentContainerShell(container, context, false, false, observer);
     }
 
@@ -62,15 +62,15 @@ final class ComponentContainerShell extends EmptyComponentContainer<SimpleContai
         return container.invoke(component, method, context.copy(), arguments, explicit);
     }
 
-    public ExposedComponentContainer makeChildContainer() {
+    public MutableContainer makeChildContainer() {
         return new ComponentContainerShell(container, context, true, false, observer);
     }
 
-    public OpenComponentContainer makeChildContainer(final Bindings... bindings) {
+    public OpenContainer makeChildContainer(final Bindings... bindings) {
         return new ComponentContainerShell(container, context, true, false, observer).addBindings(bindings);
     }
 
-    public OpenComponentContainer makeDomainContainer(final Bindings... bindings) {
+    public OpenContainer makeDomainContainer(final Bindings... bindings) {
         return new ComponentContainerShell(container, context, true, true, observer).addBindings(bindings);
     }
 
@@ -82,7 +82,7 @@ final class ComponentContainerShell extends EmptyComponentContainer<SimpleContai
         container.bindInstance(instance, interfaces);
     }
 
-    public ExposedComponentContainer makeChildContainer(final Components.Interfaces interfaces) throws BindingException {
+    public MutableContainer makeChildContainer(final Components.Interfaces interfaces) throws BindingException {
         return new ComponentContainerShell(container.linkComponent(interfaces), context, false, false, observer);
     }
 

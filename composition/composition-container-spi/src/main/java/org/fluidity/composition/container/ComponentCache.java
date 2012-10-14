@@ -25,7 +25,7 @@ import org.fluidity.composition.ComponentContext;
  * This cache is thread safe.
  * <u3>Usage</u3>
  * <pre>
- * final {@linkplain ContainerServices} services = &hellip;
+ * final {@linkplain ContainerServices} services = &hellip;;
  *
  * final <span class="hl1">ComponentCache</span> cache = services.newCache(false);
  *
@@ -37,8 +37,8 @@ import org.fluidity.composition.ComponentContext;
  *
  * &hellip;
  *
- * final {@linkplain ComponentContext} context1 = &hellip;
- * final {@linkplain ComponentContext} context2 = &hellip;
+ * final {@linkplain ComponentContext} context1 = &hellip;;
+ * final {@linkplain ComponentContext} context2 = &hellip;;
  *
  * final <span class="hl2">Object</span> instance1 = cache.<span class="hl1">lookup</span>(null, "sample", context1, <span class="hl2">Object</span>.class, factory);
  * final <span class="hl2">Object</span> instance2 = cache.<span class="hl1">lookup</span>(null, "sample", context1, <span class="hl2">Object</span>.class, factory);

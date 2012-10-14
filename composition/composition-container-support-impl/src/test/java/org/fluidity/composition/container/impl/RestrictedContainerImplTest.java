@@ -19,7 +19,7 @@ package org.fluidity.composition.container.impl;
 import java.io.Serializable;
 
 import org.fluidity.composition.ComponentContainer;
-import org.fluidity.composition.OpenComponentContainer;
+import org.fluidity.composition.OpenContainer;
 import org.fluidity.composition.container.RestrictedContainer;
 import org.fluidity.testing.MockGroup;
 
@@ -31,8 +31,8 @@ import org.testng.annotations.Test;
  */
 public class RestrictedContainerImplTest extends MockGroup {
 
-    private final OpenComponentContainer level1 = mock(OpenComponentContainer.class);
-    private final OpenComponentContainer level2 = mock(OpenComponentContainer.class);
+    private final OpenContainer level1 = mock(OpenContainer.class);
+    private final OpenContainer level2 = mock(OpenContainer.class);
 
     private RestrictedContainer container() {
         return new RestrictedContainerImpl(level1);
@@ -78,8 +78,8 @@ public class RestrictedContainerImplTest extends MockGroup {
 
         EasyMock.expect(level1.makeChildContainer()).andReturn(level2);
 
-        final OpenComponentContainer child = verify(new Work<OpenComponentContainer>() {
-            public OpenComponentContainer run() throws Exception {
+        final OpenContainer child = verify(new Work<OpenContainer>() {
+            public OpenContainer run() throws Exception {
                 return container.makeChildContainer();
             }
         });
@@ -102,8 +102,8 @@ public class RestrictedContainerImplTest extends MockGroup {
 
         EasyMock.expect(level1.makeChildContainer()).andReturn(level2);
 
-        final OpenComponentContainer child = verify(new Work<OpenComponentContainer>() {
-            public OpenComponentContainer run() throws Exception {
+        final OpenContainer child = verify(new Work<OpenContainer>() {
+            public OpenContainer run() throws Exception {
                 return container.makeChildContainer();
             }
         });

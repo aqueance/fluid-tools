@@ -52,10 +52,10 @@ public final class ContainerBootstrapImplTest extends MockGroup {
     private final ContainerServices services = mock(ContainerServices.class);
     private final ClassDiscovery discovery = mock(ClassDiscovery.class);
     private final ContainerTermination shutdown = mock(ContainerTermination.class);
-    private final ExposedComponentContainer parent = mock(ExposedComponentContainer.class);
-    private final ExposedComponentContainer container = mock(ExposedComponentContainer.class);
+    private final MutableContainer parent = mock(MutableContainer.class);
+    private final MutableContainer container = mock(MutableContainer.class);
     private final ComponentContainer.Registry registry = mock(ComponentContainer.Registry.class);
-    private final ExposedComponentContainer bindingsContainer = mock(ExposedComponentContainer.class);
+    private final MutableContainer bindingsContainer = mock(MutableContainer.class);
     private final ComponentContainer.Registry bindingsRegistry = mock(ComponentContainer.Registry.class);
     private final PackageBindings bindings = mock(PackageBindings.class);
 
@@ -211,8 +211,8 @@ public final class ContainerBootstrapImplTest extends MockGroup {
 
         registry.bindInstance(EasyMock.anyObject());
 
-        assert container == verify(new Work<ExposedComponentContainer>() {
-            public ExposedComponentContainer run() throws Exception {
+        assert container == verify(new Work<MutableContainer>() {
+            public MutableContainer run() throws Exception {
                 return bootstrap.populateContainer(services, provider, null, parent, null, platform, callback);
             }
         });
@@ -244,8 +244,8 @@ public final class ContainerBootstrapImplTest extends MockGroup {
 
         registry.bindInstance(EasyMock.anyObject());
 
-        final ExposedComponentContainer populated = verify(new Work<ExposedComponentContainer>() {
-            public ExposedComponentContainer run() throws Exception {
+        final MutableContainer populated = verify(new Work<MutableContainer>() {
+            public MutableContainer run() throws Exception {
                 return bootstrap.populateContainer(services, provider, null, null, null, platform, callback);
             }
         });
@@ -279,8 +279,8 @@ public final class ContainerBootstrapImplTest extends MockGroup {
 
         registry.bindInstance(EasyMock.anyObject());
 
-        assert container == verify(new Work<ExposedComponentContainer>() {
-            public ExposedComponentContainer run() throws Exception {
+        assert container == verify(new Work<MutableContainer>() {
+            public MutableContainer run() throws Exception {
                 return bootstrap.populateContainer(services, provider, properties, parent, null, platform, callback);
             }
         });
@@ -298,7 +298,7 @@ public final class ContainerBootstrapImplTest extends MockGroup {
             bindings.bindComponents(registry);
         }
 
-        public void initializeComponents(final OpenComponentContainer container) {
+        public void initializeComponents(final OpenContainer container) {
             bindings.initializeComponents(container);
         }
 
@@ -322,7 +322,7 @@ public final class ContainerBootstrapImplTest extends MockGroup {
             bindings.bindComponents(registry);
         }
 
-        public void initializeComponents(final OpenComponentContainer container) {
+        public void initializeComponents(final OpenContainer container) {
             bindings.initializeComponents(container);
             list.add(this);
         }
@@ -348,7 +348,7 @@ public final class ContainerBootstrapImplTest extends MockGroup {
             bindings.bindComponents(registry);
         }
 
-        public void initializeComponents(final OpenComponentContainer container) {
+        public void initializeComponents(final OpenContainer container) {
             bindings.initializeComponents(container);
             list.add(this);
         }

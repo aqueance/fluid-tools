@@ -16,14 +16,14 @@
 
 package org.fluidity.composition.container.spi;
 
-import org.fluidity.composition.ExposedComponentContainer;
+import org.fluidity.composition.MutableContainer;
 import org.fluidity.composition.ServiceProvider;
 import org.fluidity.composition.container.ContainerServices;
 import org.fluidity.composition.container.PlatformContainer;
 
 /**
- * Creates {@linkplain ExposedComponentContainer dependency injection container} instances. This is the entry point to a container implementation that hooks it
- * up to the rest of Fluid Tools.
+ * Creates {@linkplain org.fluidity.composition.MutableContainer dependency injection container} instances. This is the entry point to a container
+ * implementation that hooks it up to the rest of Fluid Tools.
  * <h3>Usage</h3>
  * You don't interact with an internal interface.
  *
@@ -40,5 +40,5 @@ public interface ContainerProvider {
      *
      * @return and empty standalone dependency injection container.
      */
-    ExposedComponentContainer newContainer(ContainerServices services, PlatformContainer platform);
+    MutableContainer newContainer(ContainerServices services, PlatformContainer platform);
 }

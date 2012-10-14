@@ -33,8 +33,8 @@ import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.DependencyPath;
 import org.fluidity.composition.Inject;
-import org.fluidity.composition.ObservedComponentContainer;
-import org.fluidity.composition.OpenComponentContainer;
+import org.fluidity.composition.ObservedContainer;
+import org.fluidity.composition.OpenContainer;
 
 import org.testng.annotations.Test;
 
@@ -196,7 +196,7 @@ public final class BasicResolutionTests extends AbstractContainerTests {
 
     @Test
     public void transientBindings() throws Exception {
-        final OpenComponentContainer child = container.makeChildContainer(new ComponentContainer.Bindings() {
+        final OpenContainer child = container.makeChildContainer(new ComponentContainer.Bindings() {
             public void bindComponents(ComponentContainer.Registry registry) {
                 registry.bindComponent(Value.class);
                 registry.bindComponent(DependentValue.class);
@@ -267,7 +267,7 @@ public final class BasicResolutionTests extends AbstractContainerTests {
         final Map<Class<?>, Class<?>> resolved = new HashMap<Class<?>, Class<?>>();
         final List<Class<?>> instantiated = new ArrayList<Class<?>>();
 
-        final ObservedComponentContainer observed = container.observed(new ComponentContainer.Observer() {
+        final ObservedContainer observed = container.observed(new ComponentContainer.Observer() {
             public void descending(final Class<?> declaringType,
                                    final Class<?> dependencyType,
                                    final Annotation[] typeAnnotations,
@@ -331,7 +331,7 @@ public final class BasicResolutionTests extends AbstractContainerTests {
 
     public static class SerializableComponent implements Serializable {
 
-        /* in real life you'd use new ContainerBoundary() here */
+        /* in real life you'd use <code>Containers.global()</code> here */
         private static ComponentContainer container;
 
         @Inject

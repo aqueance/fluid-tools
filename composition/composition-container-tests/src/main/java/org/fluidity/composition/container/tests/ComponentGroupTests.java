@@ -28,7 +28,7 @@ import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.ComponentGroup;
-import org.fluidity.composition.OpenComponentContainer;
+import org.fluidity.composition.OpenContainer;
 import org.fluidity.composition.Optional;
 import org.fluidity.composition.spi.ComponentFactory;
 import org.fluidity.foundation.Generics;
@@ -136,7 +136,7 @@ public final class ComponentGroupTests extends AbstractContainerTests {
 
     @Test
     public void testDependentGroupInHierarchy() throws Exception {
-        final OpenComponentContainer child = container.makeChildContainer(new ComponentContainer.Bindings() {
+        final OpenContainer child = container.makeChildContainer(new ComponentContainer.Bindings() {
             public void bindComponents(final ComponentContainer.Registry registry) {
                 registry.bindComponent(OrderedFilter8.class);
                 registry.bindComponent(OrderedFilter7.class);
@@ -165,7 +165,7 @@ public final class ComponentGroupTests extends AbstractContainerTests {
 
     @Test
     public void testGroupInHierarchy() throws Exception {
-        final OpenComponentContainer child = container.makeChildContainer(new ComponentContainer.Bindings() {
+        final OpenContainer child = container.makeChildContainer(new ComponentContainer.Bindings() {
             public void bindComponents(final ComponentContainer.Registry registry) {
                 registry.bindComponent(Filter2.class);
             }

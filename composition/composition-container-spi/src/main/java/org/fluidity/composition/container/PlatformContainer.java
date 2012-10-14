@@ -23,7 +23,7 @@ import org.fluidity.composition.ComponentContainer;
  * injection framework to a legacy dependency injection framework prevalent in the rest of the application.
  * <h3>Usage</h3>
  * <pre>
- * new {@linkplain org.fluidity.composition.ContainerBoundary}().setPlatformContainer(new <span class="hl1">PlatformContainer</span>() {
+ * {@linkplain org.fluidity.composition.Containers}.{@linkplain org.fluidity.composition.Containers#prepare() prepare}().{@linkplain org.fluidity.composition.ContainerBoundary#setPlatformContainer(PlatformContainer) setPlatformContainer}(new <span class="hl1">PlatformContainer</span>() {
  *   &hellip;
  * });
  * </pre>
@@ -39,18 +39,18 @@ public interface PlatformContainer {
      *
      * @return <code>true</code> if the component interface can be resolved, <code>false</code> otherwise.
      */
-    boolean containsComponent(Class<?> api, final ContextDefinition context);
+    boolean containsComponent(Class<?> api, ContextDefinition context);
 
     /**
-     * See {@link org.fluidity.composition.OpenComponentContainer#getComponent(Class)}.
+     * See {@link org.fluidity.composition.OpenContainer#getComponent(Class)}.
      *
-     * @param api     see {@link org.fluidity.composition.OpenComponentContainer#getComponent(Class)}.
+     * @param api     see {@link org.fluidity.composition.OpenContainer#getComponent(Class)}.
      * @param context the current component context.
      *
-     * @return see {@link org.fluidity.composition.OpenComponentContainer#getComponent(Class)}.
+     * @return see {@link org.fluidity.composition.OpenContainer#getComponent(Class)}.
      *
      * @throws ComponentContainer.ResolutionException
-     *          see {@link org.fluidity.composition.OpenComponentContainer#getComponent(Class)}.
+     *          see {@link org.fluidity.composition.OpenContainer#getComponent(Class)}.
      */
     <T> T getComponent(Class<T> api, ContextDefinition context) throws ComponentContainer.ResolutionException;
 
@@ -62,20 +62,20 @@ public interface PlatformContainer {
      *
      * @return <code>true</code> if the group interface can be resolved, <code>false</code> otherwise.
      */
-    boolean containsComponentGroup(Class<?> api, final ContextDefinition context);
+    boolean containsComponentGroup(Class<?> api, ContextDefinition context);
 
     /**
-     * See {@link org.fluidity.composition.OpenComponentContainer#getComponentGroup(Class)}.
+     * See {@link org.fluidity.composition.OpenContainer#getComponentGroup(Class)}.
      *
-     * @param api     see {@link org.fluidity.composition.OpenComponentContainer#getComponentGroup(Class)}.
+     * @param api     see {@link org.fluidity.composition.OpenContainer#getComponentGroup(Class)}.
      * @param context the component context prevalent at the group reference site.
      *
-     * @return see {@link org.fluidity.composition.OpenComponentContainer#getComponentGroup(Class)}.
+     * @return see {@link org.fluidity.composition.OpenContainer#getComponentGroup(Class)}.
      */
     <T> T[] getComponentGroup(Class<T> api, ContextDefinition context);
 
     /**
-     * Returns a textual identifier for the container.
+     * Returns a textual identifier for the container. Used in {@link ComponentContainer#toString()}.
      *
      * @return a textual identifier for the container.
      */

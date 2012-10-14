@@ -16,7 +16,7 @@
 
 package org.fluidity.composition.container;
 
-import org.fluidity.composition.ExposedComponentContainer;
+import org.fluidity.composition.MutableContainer;
 import org.fluidity.composition.container.spi.ContainerProvider;
 
 /**
@@ -24,7 +24,7 @@ import org.fluidity.composition.container.spi.ContainerProvider;
  */
 final class ContainerProviderImpl implements ContainerProvider {
 
-    public ExposedComponentContainer newContainer(final ContainerServices services, final PlatformContainer platform) {
+    public MutableContainer newContainer(final ContainerServices services, final PlatformContainer platform) {
         return new ComponentContainerShell(services, platform);
     }
 }

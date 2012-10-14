@@ -21,12 +21,12 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * A dependency path used when {@linkplain ObservedComponentContainer observing} dependency resolutions. Objects implementing this interface are created and
+ * A dependency path used when {@linkplain ObservedContainer observing} dependency resolutions. Objects implementing this interface are created and
  * provided to {@linkplain ComponentContainer.Observer component resolution observers} and to {@linkplain ComponentContainer.InstantiationException
  * instantiation exception} handlers. A dependency path is a list of components that depend on one another, each on the next in the path, up to the {@linkplain
  * #tail() tail} of the path, which represents the "current" component.
  * <h3>Usage</h3>
- * See {@link ObservedComponentContainer}.
+ * See {@link ObservedContainer}.
  *
  * @author Tibor Varga
  */

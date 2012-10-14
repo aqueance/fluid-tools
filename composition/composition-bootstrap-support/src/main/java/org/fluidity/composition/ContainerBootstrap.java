@@ -47,23 +47,23 @@ interface ContainerBootstrap {
      *
      * @return the container with the bindings registered.
      */
-    ExposedComponentContainer populateContainer(ContainerServices services,
+    MutableContainer populateContainer(ContainerServices services,
                                              ContainerProvider provider,
                                              Map properties,
-                                             ExposedComponentContainer parent,
+                                             MutableContainer parent,
                                              ClassLoader classLoader,
                                              PlatformContainer platform,
                                              Callback callback);
 
     /**
-     * Calls the {@link org.fluidity.composition.spi.PackageBindings#initializeComponents(OpenComponentContainer)} method on all bindings and adds shutdown tasks
+     * Calls the {@link org.fluidity.composition.spi.PackageBindings#initializeComponents(OpenContainer)} method on all bindings and adds shutdown tasks
      * to call the {@link org.fluidity.composition.spi.PackageBindings#shutdownComponents()} method on the bindings, in reverse order.
      *
-     * @param container the container, returned by the {@link #populateContainer(ContainerServices, ContainerProvider, Map, ExposedComponentContainer,
-     *                  ClassLoader, PlatformContainer, ContainerBootstrap.Callback)} method, to initialize.
+     * @param container the container, returned by the {@link #populateContainer(ContainerServices, ContainerProvider, Map, MutableContainer, ClassLoader,
+     *                  PlatformContainer, ContainerBootstrap.Callback)} method, to initialize.
      * @param services  provides basic services for containers
      */
-    void initializeContainer(OpenComponentContainer container, ContainerServices services);
+    void initializeContainer(OpenContainer container, ContainerServices services);
 
     /**
      * Notification receiver concerning container initialization / shutdown.

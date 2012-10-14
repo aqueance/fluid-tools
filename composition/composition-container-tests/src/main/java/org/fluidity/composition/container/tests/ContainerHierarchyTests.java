@@ -18,7 +18,7 @@ package org.fluidity.composition.container.tests;
 
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
-import org.fluidity.composition.OpenComponentContainer;
+import org.fluidity.composition.OpenContainer;
 
 import org.testng.annotations.Test;
 
@@ -51,7 +51,7 @@ public final class ContainerHierarchyTests extends AbstractContainerTests {
     public void dependencyFromChildResolvesInParent() throws Exception {
         registry.bindComponent(DependentValue.class);
 
-        final OpenComponentContainer child = container.makeChildContainer(new ComponentContainer.Bindings() {
+        final OpenContainer child = container.makeChildContainer(new ComponentContainer.Bindings() {
             public void bindComponents(final ComponentContainer.Registry registry) {
                 registry.bindComponent(Value.class);
             }
@@ -72,7 +72,7 @@ public final class ContainerHierarchyTests extends AbstractContainerTests {
     public void linkingComponentDependencyResolvesToOtherLinkingComponentAtHigherLevel() throws Exception {
         registry.isolateComponent(DependentValue.class);
 
-        final OpenComponentContainer child = container.makeChildContainer(new ComponentContainer.Bindings() {
+        final OpenContainer child = container.makeChildContainer(new ComponentContainer.Bindings() {
             public void bindComponents(final ComponentContainer.Registry registry) {
                 registry.isolateComponent(Value.class);
             }
@@ -86,7 +86,7 @@ public final class ContainerHierarchyTests extends AbstractContainerTests {
         registry.bindComponent(OtherDependentValue.class);
         registry.bindComponent(OtherValue.class);
 
-        final OpenComponentContainer child = container.makeChildContainer(new ComponentContainer.Bindings() {
+        final OpenContainer child = container.makeChildContainer(new ComponentContainer.Bindings() {
             public void bindComponents(final ComponentContainer.Registry registry) {
                 registry.bindComponent(DependentValue.class);
                 registry.bindComponent(Value.class);
@@ -104,7 +104,7 @@ public final class ContainerHierarchyTests extends AbstractContainerTests {
 
     @Test
     public void childContainerContainsItself() throws Exception {
-        final OpenComponentContainer childContainer = container.makeChildContainer(new ComponentContainer.Bindings() {
+        final OpenContainer childContainer = container.makeChildContainer(new ComponentContainer.Bindings() {
             public void bindComponents(final ComponentContainer.Registry registry) {
                 registry.bindComponent(ContainerDependent.class);
             }

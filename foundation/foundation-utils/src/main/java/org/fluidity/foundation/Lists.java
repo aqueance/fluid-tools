@@ -23,7 +23,7 @@ import java.util.Collection;
  * Utilities related to arrays.
  * <h3>Usage Example</h3>
  * <pre>
- * final Constructor&lt;?> constructor = &hellip;
+ * final Constructor&lt;?> constructor = &hellip;;
  *
  * final Annotation[] annotations = <span class="hl1">Lists</span>.concatenate(constructor.{@linkplain java.lang.reflect.Constructor#getDeclaringClass() getDeclaringClass}().{@linkplain Class#getAnnotations() getAnnotations}(),
  *                                                    constructor.{@linkplain java.lang.reflect.Constructor#getAnnotations() getAnnotations}(),

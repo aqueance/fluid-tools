@@ -16,20 +16,21 @@
 
 package org.fluidity.composition.container;
 
-import org.fluidity.composition.ObservedComponentContainer;
+import org.fluidity.composition.ObservedContainer;
 
 /**
- * Wraps another container and denies access to its resolution functions until {@linkplain #enable() enabled}.
+ * Wraps another container and denies access to its resolution functions until {@linkplain #enable() enabled}. This is interface is used internally to reject
+ * container access from component constructors.
  * <h3>Usage</h3>
  * <pre>
- * final <span class="hl1">RestrictedContainer</span> container = &hellip;
+ * final <span class="hl1">RestrictedContainer</span> container = &hellip;;
  * &hellip;
  * container.<span class="hl1">enable</span>();
  * </pre>
  *
  * @author Tibor Varga
  */
-public interface RestrictedContainer extends ObservedComponentContainer {
+public interface RestrictedContainer extends ObservedContainer {
 
     /**
      * Enables the resolution functions of the wrapped container.

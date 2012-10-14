@@ -30,8 +30,8 @@ import static org.fluidity.foundation.Command.Process;
  * Fluid Tool uses this component internally to inject an OSGi service as a dependency of a {@linkplain BundleComponentContainer.Managed managed component}.
  * Manual use of this component would only be necessary if you don't use such managed components.
  * <pre>
- * final <span class="hl1">BundleBoundary</span> boundary = &hellip;
- * final {@linkplain org.osgi.framework.BundleContext} context = &hellip;
+ * final <span class="hl1">BundleBoundary</span> boundary = &hellip;;
+ * final {@linkplain org.osgi.framework.BundleContext} context = &hellip;;
  * final {@linkplain org.osgi.framework.ServiceReference}&lt;<span class="hl2">RemoteComponent</span>> reference = context.getServiceReference(<span class="hl2">RemoteComponent</span>.class);
  * final <span class="hl2">RemoteComponent</span> service = boundary.<span class="hl1">imported</span>(<span class="hl2">RemoteComponent</span>.class, context.getService(reference));
  * </pre>

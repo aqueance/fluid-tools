@@ -57,7 +57,7 @@ import org.fluidity.composition.ComponentContext;
  * will indeed have a unique and isolated instance for each actual context in the application.
  * <h3>Usage</h3>
  * <pre>
- * final {@linkplain ContainerServices} services = &hellip;
+ * final {@linkplain ContainerServices} services = &hellip;;
  * final <span class="hl1">ContextDefinition</span> definition = services.emptyContext();
  * &hellip;
  * final {@linkplain ComponentContext} context = definition.create();

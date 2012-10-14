@@ -17,7 +17,7 @@
 package org.fluidity.composition.spi;
 
 import org.fluidity.composition.ComponentContainer;
-import org.fluidity.composition.OpenComponentContainer;
+import org.fluidity.composition.OpenContainer;
 import org.fluidity.composition.ServiceProvider;
 
 /**
@@ -50,7 +50,7 @@ public interface PackageBindings extends ComponentContainer.Bindings {
      * @param container is the container that was populated by the {@link
      *                  org.fluidity.composition.ComponentContainer.Bindings#bindComponents(org.fluidity.composition.ComponentContainer.Registry)} method.
      */
-    void initializeComponents(OpenComponentContainer container);
+    void initializeComponents(OpenContainer container);
 
     /**
      * Perform component specific shutdown if necessary. This method is invoked once when the container that was populated by the {@link

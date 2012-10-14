@@ -26,11 +26,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.Components;
-import org.fluidity.composition.ExposedComponentContainer;
 import org.fluidity.composition.Inject;
-import org.fluidity.composition.ObservedComponentContainer;
-import org.fluidity.composition.OpenComponentContainer;
+import org.fluidity.composition.MutableContainer;
+import org.fluidity.composition.ObservedContainer;
+import org.fluidity.composition.OpenContainer;
 import org.fluidity.composition.container.ContainerServices;
 import org.fluidity.composition.container.ContextDefinition;
 import org.fluidity.composition.spi.ComponentInterceptor;
@@ -47,7 +48,7 @@ import org.fluidity.foundation.Proxies;
  *
  * @author Tibor Varga
  */
-public abstract class EmptyComponentContainer<C extends DependencyGraph> implements ExposedComponentContainer, ObservedComponentContainer, ComponentRegistry {
+public abstract class EmptyComponentContainer<C extends DependencyGraph> implements MutableContainer, ObservedContainer, ComponentRegistry {
 
     // allows traversal path and observers to propagate between containers
     private static final ThreadLocal<DependencyGraph.Traversal> traversal = new InheritableThreadLocal<DependencyGraph.Traversal>();
@@ -105,7 +106,7 @@ public abstract class EmptyComponentContainer<C extends DependencyGraph> impleme
      *
      * @return a new container instance backed by this one and using the provided resolution observer.
      */
-    protected abstract ObservedComponentContainer container(C graph, ContextDefinition context, Observer observer);
+    protected abstract ObservedContainer container(C graph, ContextDefinition context, Observer observer);
 
     /**
      * Invokes the given method of the given object after resolving and injecting its applicable parameters that the given argument list contains no
@@ -129,7 +130,7 @@ public abstract class EmptyComponentContainer<C extends DependencyGraph> impleme
     /**
      * {@inheritDoc}
      */
-    public final ObservedComponentContainer observed(final Observer observer) {
+    public final ObservedContainer observed(final Observer observer) {
         return observer == null
                ? this
                : container(container, context, services.aggregateObserver(this.observer, observer));    // TODO: this is the only call to ContainerServices#aggregateObserver()
@@ -223,7 +224,7 @@ public abstract class EmptyComponentContainer<C extends DependencyGraph> impleme
      *
      * @return this container.
      */
-    protected final ExposedComponentContainer addBindings(final Bindings... list) {
+    protected final MutableContainer addBindings(final Bindings... list) {
         for (final Bindings bindings : list) {
             bindings.bindComponents(registry);
         }
@@ -244,7 +245,7 @@ public abstract class EmptyComponentContainer<C extends DependencyGraph> impleme
      * {@inheritDoc}
      */
     public final <T> T instantiate(final Class<T> componentClass, final Bindings... bindings) throws ResolutionException {
-        final OpenComponentContainer container = makeChildContainer(new Bindings() {
+        final OpenContainer container = makeChildContainer(new Bindings() {
             @SuppressWarnings("unchecked")
             public void bindComponents(final Registry registry) {
                 registry.bindComponent(componentClass, componentClass);
@@ -307,7 +308,7 @@ public abstract class EmptyComponentContainer<C extends DependencyGraph> impleme
     /**
      * {@inheritDoc}
      */
-    public final OpenComponentContainer intercepting(final ComponentInterceptor... interceptors) {
+    public final ComponentContainer intercepting(final ComponentInterceptor... interceptors) {
         return makeChildContainer(new Bindings() {
             @SuppressWarnings("unchecked")
             public void bindComponents(final Registry registry) {

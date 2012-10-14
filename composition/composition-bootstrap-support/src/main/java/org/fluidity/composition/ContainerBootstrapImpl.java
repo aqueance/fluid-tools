@@ -36,17 +36,17 @@ import org.fluidity.foundation.Log;
 final class ContainerBootstrapImpl implements ContainerBootstrap {
 
     @SuppressWarnings("unchecked")
-    public ExposedComponentContainer populateContainer(final ContainerServices services,
+    public MutableContainer populateContainer(final ContainerServices services,
                                                     final ContainerProvider provider,
                                                     final Map properties,
-                                                    final ExposedComponentContainer parent,
+                                                    final MutableContainer parent,
                                                     final ClassLoader classLoader,
                                                     final PlatformContainer platform,
                                                     final Callback callback) {
         final Log log = services.logs().createLog(getClass());
         final ClassDiscovery discovery = services.classDiscovery();
 
-        final ExposedComponentContainer container = parent == null ? provider.newContainer(services, platform) : parent.makeChildContainer();
+        final MutableContainer container = parent == null ? provider.newContainer(services, platform) : parent.makeChildContainer();
 
         log.debug("Created new %s%s", container, (classLoader == null ? "" : String.format(" for class loader %s", classLoader)));
 
@@ -94,7 +94,7 @@ final class ContainerBootstrapImpl implements ContainerBootstrap {
                                                       final ContainerServices services,
                                                       final Map properties,
                                                       final Class<PackageBindings>[] bindings) {
-        final ExposedComponentContainer container = provider.newContainer(services, null);
+        final MutableContainer container = provider.newContainer(services, null);
         final ComponentContainer.Registry registry = container.getRegistry();
 
         if (properties != null) {
@@ -114,7 +114,7 @@ final class ContainerBootstrapImpl implements ContainerBootstrap {
         return Arrays.asList(instances);
     }
 
-    public void initializeContainer(final OpenComponentContainer container, final ContainerServices services) {
+    public void initializeContainer(final OpenContainer container, final ContainerServices services) {
         final Log log = services.logs().createLog(getClass());
         final ContainerLifecycle lifecycle = container.getComponent(ContainerLifecycle.class);
 

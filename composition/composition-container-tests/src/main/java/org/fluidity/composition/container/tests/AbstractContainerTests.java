@@ -19,9 +19,9 @@ package org.fluidity.composition.container.tests;
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
-import org.fluidity.composition.ExposedComponentContainer;
 import org.fluidity.composition.Inject;
-import org.fluidity.composition.OpenComponentContainer;
+import org.fluidity.composition.MutableContainer;
+import org.fluidity.composition.OpenContainer;
 import org.fluidity.composition.Optional;
 import org.fluidity.testing.MockGroup;
 
@@ -36,7 +36,7 @@ public abstract class AbstractContainerTests extends MockGroup {
 
     protected final ArtifactFactory artifacts;
 
-    protected ExposedComponentContainer container;
+    protected MutableContainer container;
     protected ComponentContainer.Registry registry;
 
     public AbstractContainerTests(final ArtifactFactory artifacts) {
@@ -55,7 +55,7 @@ public abstract class AbstractContainerTests extends MockGroup {
      *
      * @param container the container to verify.
      */
-    protected void verifyComponent(final OpenComponentContainer container) {
+    protected void verifyComponent(final OpenContainer container) {
         final int originalCount = Value.instanceCount;
 
         final Key component = container.getComponent(Key.class);

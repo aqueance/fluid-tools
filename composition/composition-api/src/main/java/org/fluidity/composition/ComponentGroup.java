@@ -25,7 +25,7 @@ import java.lang.annotation.Target;
 /**
  * This annotation marks interfaces or classes that are expected to have several implementations that are used together as a group by some component. All
  * classes implementing or extending such an interface or class will be provided as a whole, in the form of an array of the marked type, to components that
- * depend on such an array or that use {@link OpenComponentContainer#getComponentGroup(Class) OpenComponentContainer.getComponentGroup()} to get one.
+ * depend on such an array or that use {@link OpenContainer#getComponentGroup(Class) OpenContainer.getComponentGroup()} to get one.
  * <p/>
  * When the group interface or class is not available to annotate, actual implementations may also be annotated with this class but in that case only those
  * implementations that are actually annotated will be found and provided as a component group.

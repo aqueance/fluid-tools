@@ -20,7 +20,7 @@ import java.util.Arrays;
 
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentGroup;
-import org.fluidity.composition.OpenComponentContainer;
+import org.fluidity.composition.OpenContainer;
 
 import org.testng.annotations.Test;
 
@@ -38,7 +38,7 @@ public final class DomainComponentTests extends AbstractContainerTests {
     public void testComponentResolution() throws Exception {
         registry.bindComponent(Component.class);
 
-        final OpenComponentContainer domain = container.makeDomainContainer(new ComponentContainer.Bindings() {
+        final OpenContainer domain = container.makeDomainContainer(new ComponentContainer.Bindings() {
             public void bindComponents(final ComponentContainer.Registry registry) {
                 registry.bindComponent(Dependency.class);
             }
@@ -58,13 +58,13 @@ public final class DomainComponentTests extends AbstractContainerTests {
     public void testDomainIsolation() throws Exception {
         registry.bindComponent(Component.class);
 
-        final OpenComponentContainer domain1 = container.makeDomainContainer(new ComponentContainer.Bindings() {
+        final OpenContainer domain1 = container.makeDomainContainer(new ComponentContainer.Bindings() {
             public void bindComponents(final ComponentContainer.Registry registry) {
                 registry.bindComponent(Dependency.class);
             }
         });
 
-        final OpenComponentContainer domain2 = container.makeDomainContainer(new ComponentContainer.Bindings() {
+        final OpenContainer domain2 = container.makeDomainContainer(new ComponentContainer.Bindings() {
             public void bindComponents(final ComponentContainer.Registry registry) {
                 registry.bindComponent(Dependency.class);
             }
@@ -93,7 +93,7 @@ public final class DomainComponentTests extends AbstractContainerTests {
         registry.bindComponent(Root.class);
         registry.bindComponent(Component.class);
 
-        final OpenComponentContainer domain = container.makeDomainContainer(new ComponentContainer.Bindings() {
+        final OpenContainer domain = container.makeDomainContainer(new ComponentContainer.Bindings() {
             public void bindComponents(final ComponentContainer.Registry registry) {
                 registry.bindComponent(Head.class);
                 registry.bindComponent(Dependency.class);
@@ -107,7 +107,7 @@ public final class DomainComponentTests extends AbstractContainerTests {
     public void testMissingDependency() throws Exception {
         registry.bindComponent(Component.class);
 
-        final OpenComponentContainer domain = container.makeDomainContainer();
+        final OpenContainer domain = container.makeDomainContainer();
 
         try {
             domain.getComponent(Component.class);
@@ -120,14 +120,14 @@ public final class DomainComponentTests extends AbstractContainerTests {
     public void testComponentGroups() throws Exception {
         registry.bindComponent(GroupMember1.class);
 
-        final OpenComponentContainer domain1 = container.makeDomainContainer(new ComponentContainer.Bindings() {
+        final OpenContainer domain1 = container.makeDomainContainer(new ComponentContainer.Bindings() {
             public void bindComponents(final ComponentContainer.Registry registry) {
                 registry.bindComponent(Dependency.class);
                 registry.bindComponent(GroupMember2.class);
             }
         });
 
-        final OpenComponentContainer domain2 = container.makeDomainContainer(new ComponentContainer.Bindings() {
+        final OpenContainer domain2 = container.makeDomainContainer(new ComponentContainer.Bindings() {
             public void bindComponents(final ComponentContainer.Registry registry) {
                 registry.bindComponent(Dependency.class);
                 registry.bindComponent(GroupMember3.class);

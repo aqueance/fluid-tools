@@ -21,8 +21,8 @@ import java.lang.reflect.Method;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.fluidity.composition.ComponentContainer;
-import org.fluidity.composition.ObservedComponentContainer;
-import org.fluidity.composition.OpenComponentContainer;
+import org.fluidity.composition.ObservedContainer;
+import org.fluidity.composition.OpenContainer;
 import org.fluidity.composition.container.RestrictedContainer;
 import org.fluidity.composition.spi.ComponentInterceptor;
 
@@ -43,27 +43,27 @@ final class RestrictedContainerImpl implements RestrictedContainer {
         this.delegate = delegate;
     }
 
-    public ObservedComponentContainer observed(final Observer observer) {
+    public ObservedContainer observed(final Observer observer) {
         return new RestrictedContainerImpl(guard, delegate.observed(observer));
     }
 
     public <T> T getComponent(final Class<T> api) throws ResolutionException {
-        return ((OpenComponentContainer) guard.access(delegate)).getComponent(api);
+        return ((OpenContainer) guard.access(delegate)).getComponent(api);
     }
 
     public <T> T[] getComponentGroup(final Class<T> api) {
-        return ((OpenComponentContainer) guard.access(delegate)).getComponentGroup(api);
+        return ((OpenContainer) guard.access(delegate)).getComponentGroup(api);
     }
 
-    public OpenComponentContainer makeChildContainer(final Bindings... bindings) {
+    public OpenContainer makeChildContainer(final Bindings... bindings) {
         return new RestrictedContainerImpl(guard, delegate.makeChildContainer(bindings));
     }
 
-    public OpenComponentContainer makeDomainContainer(final Bindings... bindings) {
+    public OpenContainer makeDomainContainer(final Bindings... bindings) {
         return new RestrictedContainerImpl(guard, delegate.makeDomainContainer(bindings));
     }
 
-    public OpenComponentContainer intercepting(final ComponentInterceptor... interceptors) {
+    public ComponentContainer intercepting(final ComponentInterceptor... interceptors) {
         return new RestrictedContainerImpl(guard, delegate.intercepting(interceptors));
     }
 
@@ -84,11 +84,11 @@ final class RestrictedContainerImpl implements RestrictedContainer {
     }
 
     public void resolveComponent(final Class<?> api) {
-        ((ObservedComponentContainer) guard.access(delegate)).resolveComponent(api);
+        ((ObservedContainer) guard.access(delegate)).resolveComponent(api);
     }
 
     public void resolveGroup(final Class<?> api) {
-        ((ObservedComponentContainer) guard.access(delegate)).resolveGroup(api);
+        ((ObservedContainer) guard.access(delegate)).resolveGroup(api);
     }
 
     public void enable() {

@@ -24,7 +24,7 @@ import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.ComponentGroup;
 import org.fluidity.composition.Components;
-import org.fluidity.composition.ExposedComponentContainer;
+import org.fluidity.composition.MutableContainer;
 import org.fluidity.composition.spi.ComponentFactory;
 import org.fluidity.testing.MockGroup;
 
@@ -38,7 +38,7 @@ import org.testng.annotations.Test;
 public class EmptyRegistryTest extends MockGroup {
 
     private final ComponentRegistry mock = mock(ComponentRegistry.class);
-    private final ExposedComponentContainer container = mock(ExposedComponentContainer.class);
+    private final MutableContainer container = mock(MutableContainer.class);
     private final ComponentContainer.Registry registry = new EmptyRegistry(mock);
 
     @Test

@@ -20,7 +20,7 @@ import java.lang.annotation.Annotation;
 import java.util.Map;
 
 import org.fluidity.composition.ComponentContext;
-import org.fluidity.composition.ExposedComponentContainer;
+import org.fluidity.composition.MutableContainer;
 
 /**
  * Internal interface used by {@link ComponentContainerAbstractTest} and its tests.
@@ -34,7 +34,7 @@ public interface ArtifactFactory {
      *
      * @return a new container implementation.
      */
-    ExposedComponentContainer createContainer();
+    MutableContainer createContainer();
 
     /**
      * Creates a component context.

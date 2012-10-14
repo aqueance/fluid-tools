@@ -75,7 +75,7 @@ package org.fluidity.composition;
  *
  * @author Tibor Varga
  */
-public interface ObservedComponentContainer extends OpenComponentContainer {
+public interface ObservedContainer extends OpenContainer {
 
     /**
      * Resolves the component bound to the given interface and all dependent components without instantiating them. Dynamic dependencies, e.g., those resolved
