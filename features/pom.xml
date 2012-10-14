@@ -43,6 +43,7 @@ This project lists the extra feature modules of Fluid Tools.
 
     <modules>
         <module>logging-slf4j-impl</module>
+        <module>logging-java-impl</module>
         <module>logging-commons-impl</module>
         <module>logging-sink-impl</module>
         <module>jar-manifest-command-launcher-impl</module>
