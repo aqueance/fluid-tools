@@ -69,7 +69,7 @@ final class GroupResolver {
         }
 
         public void instantiated(final DependencyPath path, final AtomicReference<?> ignored) {
-            final Class<?> type = path.head().type();
+            final Class<?> type = path.tail().type();
 
             if (api.isAssignableFrom(type)) {
                 synchronized (instantiated) {       // makes sure index is incremented only once for each instantiated group member class

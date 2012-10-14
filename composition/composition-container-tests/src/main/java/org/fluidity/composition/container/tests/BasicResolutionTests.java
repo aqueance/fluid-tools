@@ -34,6 +34,7 @@ import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.DependencyPath;
 import org.fluidity.composition.Inject;
 import org.fluidity.composition.ObservedComponentContainer;
+import org.fluidity.composition.OpenComponentContainer;
 
 import org.testng.annotations.Test;
 
@@ -135,10 +136,12 @@ public final class BasicResolutionTests extends AbstractContainerTests {
         final ComponentContainer container = component.container();
 
         // verify that we have the same container in our hands
-        assert container.getComponent(Key.class) == null;
+        final KeyCheck check = new KeyCheck();
+
+        assert container.initialize(check).key == null;
         registry.bindComponent(Value.class);
         registry.bindComponent(DependentValue.class);
-        assert container.getComponent(Key.class) != null;
+        assert container.initialize(check).key != null;
     }
 
     @Test(expectedExceptions = ComponentContainer.ResolutionException.class, expectedExceptionsMessageRegExp = ".*[Dd]ynamic.*Factory.*")
@@ -193,12 +196,14 @@ public final class BasicResolutionTests extends AbstractContainerTests {
 
     @Test
     public void transientBindings() throws Exception {
-        final Key value = container.getComponent(Key.class, new ComponentContainer.Bindings() {
+        final OpenComponentContainer child = container.makeChildContainer(new ComponentContainer.Bindings() {
             public void bindComponents(ComponentContainer.Registry registry) {
                 registry.bindComponent(Value.class);
                 registry.bindComponent(DependentValue.class);
             }
         });
+
+        final Key value = child.getComponent(Key.class);
 
         assert value != null;
         assert container.getComponent(Key.class) == null;
@@ -280,11 +285,11 @@ public final class BasicResolutionTests extends AbstractContainerTests {
 
             public void resolved(final DependencyPath path, final Class<?> type) {
                 assert path != null;
-                resolved.put(path.head().api(), type);
+                resolved.put(path.tail().api(), type);
             }
 
             public void instantiated(final DependencyPath path, final AtomicReference<?> ignored) {
-                instantiated.add(path.head().type());
+                instantiated.add(path.tail().type());
             }
         });
 
@@ -394,13 +399,13 @@ public final class BasicResolutionTests extends AbstractContainerTests {
     }
 
     /**
-     * Attempts dynamic component resolution.
+     * Attempts dynamic component resolution. The attempt is expected to fail.
      */
     @Component(automatic = false)
     protected static class DynamicDependent {
 
         public DynamicDependent(final ComponentContainer container) {
-            container.getComponent(ContainerDependent.class);
+            container.instantiate(ContainerDependent.class);
         }
     }
 }

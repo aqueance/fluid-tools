@@ -35,6 +35,7 @@ import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.ComponentGroup;
+import org.fluidity.composition.OpenComponentContainer;
 import org.fluidity.composition.spi.ComponentFactory;
 
 import org.easymock.EasyMock;
@@ -141,7 +142,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
         return artifacts.createContext(map);
     }
 
-    private void verifyContext(final ComponentContainer container, final Class<?> contextConsumer) {
+    private void verifyContext(final OpenComponentContainer container, final Class<?> contextConsumer) {
         final ComponentContext context0 = context(ContextProvider0.class, null);
         final ComponentContext context1 = context(ContextProvider1.class, null);
         final ComponentContext context2 = context(ContextProvider2.class, null);
@@ -292,7 +293,7 @@ public final class ComponentVariantTests extends AbstractContainerTests {
 
         final Check check = new Check();
 
-        final ComponentContainer child = container.makeChildContainer(new ComponentContainer.Bindings() {
+        final OpenComponentContainer child = container.makeChildContainer(new ComponentContainer.Bindings() {
             public void bindComponents(final ComponentContainer.Registry registry) {
                 registry.bindComponent(ContextProvider1.class);
                 registry.bindComponent(ContextProvider0.class);

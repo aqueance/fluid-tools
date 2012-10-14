@@ -16,15 +16,15 @@
 
 package org.fluidity.composition.container;
 
+import org.fluidity.composition.ExposedComponentContainer;
 import org.fluidity.composition.container.spi.ContainerProvider;
-import org.fluidity.composition.container.spi.OpenComponentContainer;
 
 /**
  * @author Tibor Varga
  */
 final class ContainerProviderImpl implements ContainerProvider {
 
-    public OpenComponentContainer newContainer(final ContainerServices services, final PlatformContainer platform) {
+    public ExposedComponentContainer newContainer(final ContainerServices services, final PlatformContainer platform) {
         return new ComponentContainerShell(services, platform);
     }
 }

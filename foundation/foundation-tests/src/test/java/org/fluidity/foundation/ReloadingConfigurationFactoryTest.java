@@ -33,15 +33,15 @@ public class ReloadingConfigurationFactoryTest {
 
     @Test
     public void testWithoutContext() throws Exception {
-        assert container.getComponent(NoContextConfigured.class) != null;
+        container.instantiate(NoContextConfigured.class);
     }
 
     @Test
     public void testWithContext() throws Exception {
-        assert container.getComponent(ContextConfigured.class) != null;
+        container.instantiate(ContextConfigured.class);
     }
 
-    @Component
+    @Component(automatic = false)
     private static class NoContextConfigured {
 
         @SuppressWarnings("UnusedDeclaration")
@@ -56,7 +56,7 @@ public class ReloadingConfigurationFactoryTest {
         }
     }
 
-    @Component
+    @Component(automatic = false)
     @Configuration.Prefix(ContextConfigured.ROOT)
     private static class ContextConfigured {
 

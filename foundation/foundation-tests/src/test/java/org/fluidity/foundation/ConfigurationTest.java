@@ -31,20 +31,20 @@ public class ConfigurationTest {
 
     @Test
     public void testWithoutContext() throws Exception {
-        assert container.getComponent(NoContextConfigured.class) != null;
+        assert container.instantiate(NoContextConfigured.class) != null;
     }
 
     @Test
     public void testWithContext() throws Exception {
-        assert container.getComponent(ContextConfigured.class) != null;
+        assert container.instantiate(ContextConfigured.class) != null;
     }
 
     @Test
     public void testDefaults() throws Exception {
-        assert container.getComponent(DefaultsTest.class) != null;
+        assert container.instantiate(DefaultsTest.class) != null;
     }
 
-    @Component
+    @Component(automatic = false)
     @SuppressWarnings("UnusedDeclaration")
     private static class NoContextConfigured {
 
@@ -56,7 +56,7 @@ public class ConfigurationTest {
         }
     }
 
-    @Component
+    @Component(automatic = false)
     @SuppressWarnings("UnusedDeclaration")
     private static class DefaultsTest {
 
@@ -69,7 +69,7 @@ public class ConfigurationTest {
         }
     }
 
-    @Component
+    @Component(automatic = false)
     @Configuration.Prefix(ContextConfigured.ROOT)
     @SuppressWarnings("UnusedDeclaration")
     private static class ContextConfigured {

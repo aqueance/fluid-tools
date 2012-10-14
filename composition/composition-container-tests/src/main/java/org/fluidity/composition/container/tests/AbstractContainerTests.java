@@ -19,7 +19,10 @@ package org.fluidity.composition.container.tests;
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
-import org.fluidity.composition.container.spi.OpenComponentContainer;
+import org.fluidity.composition.ExposedComponentContainer;
+import org.fluidity.composition.Inject;
+import org.fluidity.composition.OpenComponentContainer;
+import org.fluidity.composition.Optional;
 import org.fluidity.testing.MockGroup;
 
 import org.testng.annotations.BeforeMethod;
@@ -33,7 +36,7 @@ public abstract class AbstractContainerTests extends MockGroup {
 
     protected final ArtifactFactory artifacts;
 
-    protected OpenComponentContainer container;
+    protected ExposedComponentContainer container;
     protected ComponentContainer.Registry registry;
 
     public AbstractContainerTests(final ArtifactFactory artifacts) {
@@ -52,7 +55,7 @@ public abstract class AbstractContainerTests extends MockGroup {
      *
      * @param container the container to verify.
      */
-    protected void verifyComponent(final ComponentContainer container) {
+    protected void verifyComponent(final OpenComponentContainer container) {
         final int originalCount = Value.instanceCount;
 
         final Key component = container.getComponent(Key.class);
@@ -72,6 +75,17 @@ public abstract class AbstractContainerTests extends MockGroup {
     public interface Key {
 
         String key();
+    }
+
+    /**
+     * Allows retrieval of a {@link Key} in a container by calling <code>container.instantiate(KeyCheck.class).key</code> or
+     * <code>container.initialize(new KeyCheck()).key</code>.
+     */
+    public static final class KeyCheck {
+
+        @Inject
+        @Optional
+        public Key key;
     }
 
     /**

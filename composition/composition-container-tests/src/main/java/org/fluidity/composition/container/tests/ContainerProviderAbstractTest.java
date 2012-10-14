@@ -16,6 +16,7 @@
 
 package org.fluidity.composition.container.tests;
 
+import org.fluidity.composition.ExposedComponentContainer;
 import org.fluidity.composition.container.ComponentCache;
 import org.fluidity.composition.container.ContainerServices;
 import org.fluidity.composition.container.ContextDefinition;
@@ -23,7 +24,6 @@ import org.fluidity.composition.container.DependencyInjector;
 import org.fluidity.composition.container.PlatformContainer;
 import org.fluidity.composition.container.spi.ContainerProvider;
 import org.fluidity.composition.container.spi.DependencyGraph;
-import org.fluidity.composition.container.spi.OpenComponentContainer;
 import org.fluidity.foundation.ClassDiscovery;
 import org.fluidity.foundation.NoLogFactory;
 import org.fluidity.foundation.spi.LogFactory;
@@ -70,8 +70,8 @@ public abstract class ContainerProviderAbstractTest extends MockGroup {
     public final void createsContainer() throws Exception {
         EasyMock.expect(context.copy()).andReturn(copy);
 
-        final OpenComponentContainer container = verify(new Work<OpenComponentContainer>() {
-            public OpenComponentContainer run() throws Exception {
+        final ExposedComponentContainer container = verify(new Work<ExposedComponentContainer>() {
+            public ExposedComponentContainer run() throws Exception {
                 return provider.newContainer(services, null);
             }
         });
@@ -85,8 +85,8 @@ public abstract class ContainerProviderAbstractTest extends MockGroup {
 
         EasyMock.expect(context.copy()).andReturn(copy);
 
-        final OpenComponentContainer container = verify(new Work<OpenComponentContainer>() {
-            public OpenComponentContainer run() throws Exception {
+        final ExposedComponentContainer container = verify(new Work<ExposedComponentContainer>() {
+            public ExposedComponentContainer run() throws Exception {
                 return provider.newContainer(services, platform);
             }
         });

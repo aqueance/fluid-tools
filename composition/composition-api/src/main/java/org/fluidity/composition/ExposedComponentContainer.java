@@ -14,29 +14,26 @@
  * limitations under the License.
  */
 
-package org.fluidity.composition.container.spi;
-
-import org.fluidity.composition.ComponentContainer;
+package org.fluidity.composition;
 
 /**
- * A dependency injection container that components can be added to, using the container's {@linkplain
- * org.fluidity.composition.ComponentContainer.Registry registry}.
+ * A dependency injection container that components can be added to, using the container's {@linkplain ComponentContainer.Registry registry}.
  * <h3>Usage</h3>
  * You don't directly interact with an internal interface.
  *
  * @author Tibor Varga
- * @see ComponentContainer
- * @see EmptyComponentContainer
+ * @see OpenComponentContainer
+ * @see org.fluidity.composition.container.spi.EmptyComponentContainer
  */
 @SuppressWarnings("JavadocReference")
-public interface OpenComponentContainer extends ComponentContainer {
+public interface ExposedComponentContainer extends OpenComponentContainer {
 
     /**
      * Creates another container with this one as its parent.
      *
      * @return a container that defaults to this container for satisfying component dependencies.
      */
-    OpenComponentContainer makeChildContainer();
+    ExposedComponentContainer makeChildContainer();
 
     /**
      * Returns the object through which component bindings can be added to this container.

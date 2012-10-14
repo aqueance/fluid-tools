@@ -26,10 +26,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.Components;
+import org.fluidity.composition.ExposedComponentContainer;
 import org.fluidity.composition.Inject;
 import org.fluidity.composition.ObservedComponentContainer;
+import org.fluidity.composition.OpenComponentContainer;
 import org.fluidity.composition.container.ContainerServices;
 import org.fluidity.composition.container.ContextDefinition;
 import org.fluidity.composition.spi.ComponentInterceptor;
@@ -46,7 +47,7 @@ import org.fluidity.foundation.Proxies;
  *
  * @author Tibor Varga
  */
-public abstract class EmptyComponentContainer<C extends DependencyGraph> implements OpenComponentContainer, ObservedComponentContainer, ComponentRegistry {
+public abstract class EmptyComponentContainer<C extends DependencyGraph> implements ExposedComponentContainer, ObservedComponentContainer, ComponentRegistry {
 
     // allows traversal path and observers to propagate between containers
     private static final ThreadLocal<DependencyGraph.Traversal> traversal = new InheritableThreadLocal<DependencyGraph.Traversal>();
@@ -222,7 +223,7 @@ public abstract class EmptyComponentContainer<C extends DependencyGraph> impleme
      *
      * @return this container.
      */
-    protected final OpenComponentContainer addBindings(final Bindings... list) {
+    protected final ExposedComponentContainer addBindings(final Bindings... list) {
         for (final Bindings bindings : list) {
             bindings.bindComponents(registry);
         }
@@ -242,28 +243,14 @@ public abstract class EmptyComponentContainer<C extends DependencyGraph> impleme
     /**
      * {@inheritDoc}
      */
-    public final <T> T getComponent(final Class<T> api, final Bindings... bindings) throws ResolutionException {
-        return makeChildContainer(bindings).getComponent(api);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public final <T> T instantiate(final Class<T> componentClass) throws ResolutionException {
-        return instantiate(componentClass, null);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public final <T> T instantiate(final Class<T> componentClass, final Bindings bindings) throws ResolutionException {
-        final ComponentContainer container = makeChildContainer(new Bindings() {
+    public final <T> T instantiate(final Class<T> componentClass, final Bindings... bindings) throws ResolutionException {
+        final OpenComponentContainer container = makeChildContainer(new Bindings() {
             @SuppressWarnings("unchecked")
             public void bindComponents(final Registry registry) {
                 registry.bindComponent(componentClass, componentClass);
 
-                if (bindings != null) {
-                    bindings.bindComponents(registry);
+                for (final Bindings binding : bindings) {
+                    binding.bindComponents(registry);
                 }
             }
         });
@@ -320,7 +307,7 @@ public abstract class EmptyComponentContainer<C extends DependencyGraph> impleme
     /**
      * {@inheritDoc}
      */
-    public final ComponentContainer intercepting(final ComponentInterceptor... interceptors) {
+    public final OpenComponentContainer intercepting(final ComponentInterceptor... interceptors) {
         return makeChildContainer(new Bindings() {
             @SuppressWarnings("unchecked")
             public void bindComponents(final Registry registry) {

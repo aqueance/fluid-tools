@@ -18,6 +18,8 @@ package org.fluidity.maven;
 
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
+import org.fluidity.composition.Inject;
+import org.fluidity.composition.Optional;
 
 @Component
 public class OuterClass {
@@ -35,7 +37,14 @@ public class OuterClass {
             @Component
             class LocalClass { }
 
-            return container.getComponent(LocalClass.class);
+            class Reference {
+
+                @Inject
+                @Optional
+                LocalClass local;
+            }
+
+            return container.instantiate(Reference.class).local;
         }
     }
 }

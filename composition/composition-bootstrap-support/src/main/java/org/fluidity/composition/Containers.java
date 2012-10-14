@@ -16,7 +16,6 @@
 
 package org.fluidity.composition;
 
-import org.fluidity.composition.container.spi.OpenComponentContainer;
 import org.fluidity.foundation.Utility;
 
 /**
@@ -72,14 +71,14 @@ public final class Containers extends Utility {
     }
 
     /**
-     * Creates a new empty component container. The returned container can be populated via the {@link org.fluidity.composition.ComponentContainer.Registry
-     * registry} returned by its {@link OpenComponentContainer#getRegistry()} method.
+     * Creates a new empty component container. The returned container can be populated via the {@link ComponentContainer.Registry registry} returned by its
+     * {@link ExposedComponentContainer#getRegistry()} method.
      *
      * @param loader the class loader to find the container implementation in; may be <code>null</code>, in which case the class loader that loaded this class
      *               will be used.
      * @return a new empty component container.
      */
-    public static OpenComponentContainer create(final ClassLoader loader) {
+    public static ExposedComponentContainer create(final ClassLoader loader) {
         return new ContainerBoundary(loader == null ? Containers.class.getClassLoader() : loader).create();
     }
 }

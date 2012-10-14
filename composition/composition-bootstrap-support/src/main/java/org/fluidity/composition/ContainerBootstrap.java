@@ -21,7 +21,6 @@ import java.util.Map;
 import org.fluidity.composition.container.ContainerServices;
 import org.fluidity.composition.container.PlatformContainer;
 import org.fluidity.composition.container.spi.ContainerProvider;
-import org.fluidity.composition.container.spi.OpenComponentContainer;
 
 /**
  * Bootstraps the component container provided by a {@link ContainerProvider}.
@@ -48,23 +47,23 @@ interface ContainerBootstrap {
      *
      * @return the container with the bindings registered.
      */
-    OpenComponentContainer populateContainer(ContainerServices services,
+    ExposedComponentContainer populateContainer(ContainerServices services,
                                              ContainerProvider provider,
                                              Map properties,
-                                             OpenComponentContainer parent,
+                                             ExposedComponentContainer parent,
                                              ClassLoader classLoader,
                                              PlatformContainer platform,
                                              Callback callback);
 
     /**
-     * Calls the {@link org.fluidity.composition.spi.PackageBindings#initializeComponents(ComponentContainer)} method on all bindings and adds shutdown tasks
-     * to call the {@link org.fluidity.composition.spi.PackageBindings#shutdownComponents(ComponentContainer)} method on the bindings, in reverse order.
+     * Calls the {@link org.fluidity.composition.spi.PackageBindings#initializeComponents(OpenComponentContainer)} method on all bindings and adds shutdown tasks
+     * to call the {@link org.fluidity.composition.spi.PackageBindings#shutdownComponents()} method on the bindings, in reverse order.
      *
-     * @param container the container, returned by the {@link #populateContainer(ContainerServices, ContainerProvider, Map, OpenComponentContainer,
+     * @param container the container, returned by the {@link #populateContainer(ContainerServices, ContainerProvider, Map, ExposedComponentContainer,
      *                  ClassLoader, PlatformContainer, ContainerBootstrap.Callback)} method, to initialize.
      * @param services  provides basic services for containers
      */
-    void initializeContainer(ComponentContainer container, ContainerServices services);
+    void initializeContainer(OpenComponentContainer container, ContainerServices services);
 
     /**
      * Notification receiver concerning container initialization / shutdown.

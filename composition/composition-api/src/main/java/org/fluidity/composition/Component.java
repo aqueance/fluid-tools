@@ -102,7 +102,7 @@ public @interface Component {
 
     /**
      * Tells whether the annotated component should be singleton or a new instance must be created for every query or reference. This parameter defaults to
-     * <code>false</code>, which means that the annotated component is a singleton (or semi-singleton in case of context aware components).
+     * <code>false</code>, which means that the annotated component is a singleton (or semi-singleton in case of context dependent components).
      *
      * @return <code>true</code> if a new instance should be created for every query or dependency reference.
      */
@@ -114,7 +114,8 @@ public @interface Component {
      * identifier for a database access component, etc. The component receives, as a {@link ComponentContext} argument of its constructor, the instances of
      * its accepted annotations prevalent at the point of reference to the component.
      * <p/>
-     * A special context is the parameterized type of the dependency reference to the context aware component, {@link Component.Reference @Component.Reference}.
+     * A special context is the parameterized type of the dependency reference to the context dependent component, {@link
+     * Component.Reference @Component.Reference}.
      * <p/>
      * When the {@link #ignore()} parameter is present, it causes all definitions, up to but not including the annotated entity, of the specified context
      * annotations to be ignored by the annotated entity.

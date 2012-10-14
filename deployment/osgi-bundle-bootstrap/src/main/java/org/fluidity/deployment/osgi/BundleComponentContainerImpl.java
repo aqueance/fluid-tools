@@ -36,6 +36,7 @@ import org.fluidity.composition.ComponentGroup;
 import org.fluidity.composition.Components;
 import org.fluidity.composition.DependencyPath;
 import org.fluidity.composition.ObservedComponentContainer;
+import org.fluidity.composition.OpenComponentContainer;
 import org.fluidity.composition.ServiceProvider;
 import org.fluidity.foundation.ClassDiscovery;
 import org.fluidity.foundation.Lists;
@@ -481,7 +482,7 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
             if (!resolved.isEmpty()) {
                 log.debug("[%s] Starting components: %s", bundleName, resolved);
 
-                final ComponentContainer child = container.makeChildContainer(new ComponentContainer.Bindings() {
+                final OpenComponentContainer child = container.makeChildContainer(new ComponentContainer.Bindings() {
                     @SuppressWarnings("unchecked")
                     public void bindComponents(final ComponentContainer.Registry registry) {
                         registry.bindInstance(status);

@@ -23,7 +23,6 @@ import java.util.Map;
 import org.fluidity.composition.container.ContainerServices;
 import org.fluidity.composition.container.PlatformContainer;
 import org.fluidity.composition.container.spi.ContainerProvider;
-import org.fluidity.composition.container.spi.OpenComponentContainer;
 import org.fluidity.composition.spi.PackageBindings;
 import org.fluidity.foundation.ClassDiscovery;
 import org.fluidity.foundation.Log;
@@ -37,17 +36,17 @@ import org.fluidity.foundation.Log;
 final class ContainerBootstrapImpl implements ContainerBootstrap {
 
     @SuppressWarnings("unchecked")
-    public OpenComponentContainer populateContainer(final ContainerServices services,
+    public ExposedComponentContainer populateContainer(final ContainerServices services,
                                                     final ContainerProvider provider,
                                                     final Map properties,
-                                                    final OpenComponentContainer parent,
+                                                    final ExposedComponentContainer parent,
                                                     final ClassLoader classLoader,
                                                     final PlatformContainer platform,
                                                     final Callback callback) {
         final Log log = services.logs().createLog(getClass());
         final ClassDiscovery discovery = services.classDiscovery();
 
-        final OpenComponentContainer container = parent == null ? provider.newContainer(services, platform) : parent.makeChildContainer();
+        final ExposedComponentContainer container = parent == null ? provider.newContainer(services, platform) : parent.makeChildContainer();
 
         log.debug("Created new %s%s", container, (classLoader == null ? "" : String.format(" for class loader %s", classLoader)));
 
@@ -95,7 +94,7 @@ final class ContainerBootstrapImpl implements ContainerBootstrap {
                                                       final ContainerServices services,
                                                       final Map properties,
                                                       final Class<PackageBindings>[] bindings) {
-        final OpenComponentContainer container = provider.newContainer(services, null);
+        final ExposedComponentContainer container = provider.newContainer(services, null);
         final ComponentContainer.Registry registry = container.getRegistry();
 
         if (properties != null) {
@@ -115,7 +114,7 @@ final class ContainerBootstrapImpl implements ContainerBootstrap {
         return Arrays.asList(instances);
     }
 
-    public void initializeContainer(final ComponentContainer container, final ContainerServices services) {
+    public void initializeContainer(final OpenComponentContainer container, final ContainerServices services) {
         final Log log = services.logs().createLog(getClass());
         final ContainerLifecycle lifecycle = container.getComponent(ContainerLifecycle.class);
 

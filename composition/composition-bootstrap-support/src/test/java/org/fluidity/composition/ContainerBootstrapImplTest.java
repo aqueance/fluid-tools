@@ -25,7 +25,6 @@ import java.util.Properties;
 import org.fluidity.composition.container.ContainerServices;
 import org.fluidity.composition.container.PlatformContainer;
 import org.fluidity.composition.container.spi.ContainerProvider;
-import org.fluidity.composition.container.spi.OpenComponentContainer;
 import org.fluidity.composition.spi.ContainerTermination;
 import org.fluidity.composition.spi.EmptyPackageBindings;
 import org.fluidity.composition.spi.PackageBindings;
@@ -53,10 +52,10 @@ public final class ContainerBootstrapImplTest extends MockGroup {
     private final ContainerServices services = mock(ContainerServices.class);
     private final ClassDiscovery discovery = mock(ClassDiscovery.class);
     private final ContainerTermination shutdown = mock(ContainerTermination.class);
-    private final OpenComponentContainer parent = mock(OpenComponentContainer.class);
-    private final OpenComponentContainer container = mock(OpenComponentContainer.class);
+    private final ExposedComponentContainer parent = mock(ExposedComponentContainer.class);
+    private final ExposedComponentContainer container = mock(ExposedComponentContainer.class);
     private final ComponentContainer.Registry registry = mock(ComponentContainer.Registry.class);
-    private final OpenComponentContainer bindingsContainer = mock(OpenComponentContainer.class);
+    private final ExposedComponentContainer bindingsContainer = mock(ExposedComponentContainer.class);
     private final ComponentContainer.Registry bindingsRegistry = mock(ComponentContainer.Registry.class);
     private final PackageBindings bindings = mock(PackageBindings.class);
 
@@ -154,7 +153,7 @@ public final class ContainerBootstrapImplTest extends MockGroup {
         this.bindings.initializeComponents(container);
         EasyMock.expectLastCall().times(2);
 
-        this.bindings.shutdownComponents(container);
+        this.bindings.shutdownComponents();
         EasyMock.expectLastCall().times(2);
 
         verify(new Task() {
@@ -212,8 +211,8 @@ public final class ContainerBootstrapImplTest extends MockGroup {
 
         registry.bindInstance(EasyMock.anyObject());
 
-        assert container == verify(new Work<OpenComponentContainer>() {
-            public OpenComponentContainer run() throws Exception {
+        assert container == verify(new Work<ExposedComponentContainer>() {
+            public ExposedComponentContainer run() throws Exception {
                 return bootstrap.populateContainer(services, provider, null, parent, null, platform, callback);
             }
         });
@@ -245,8 +244,8 @@ public final class ContainerBootstrapImplTest extends MockGroup {
 
         registry.bindInstance(EasyMock.anyObject());
 
-        final OpenComponentContainer populated = verify(new Work<OpenComponentContainer>() {
-            public OpenComponentContainer run() throws Exception {
+        final ExposedComponentContainer populated = verify(new Work<ExposedComponentContainer>() {
+            public ExposedComponentContainer run() throws Exception {
                 return bootstrap.populateContainer(services, provider, null, null, null, platform, callback);
             }
         });
@@ -280,8 +279,8 @@ public final class ContainerBootstrapImplTest extends MockGroup {
 
         registry.bindInstance(EasyMock.anyObject());
 
-        assert container == verify(new Work<OpenComponentContainer>() {
-            public OpenComponentContainer run() throws Exception {
+        assert container == verify(new Work<ExposedComponentContainer>() {
+            public ExposedComponentContainer run() throws Exception {
                 return bootstrap.populateContainer(services, provider, properties, parent, null, platform, callback);
             }
         });
@@ -299,12 +298,12 @@ public final class ContainerBootstrapImplTest extends MockGroup {
             bindings.bindComponents(registry);
         }
 
-        public void initializeComponents(final ComponentContainer container) {
+        public void initializeComponents(final OpenComponentContainer container) {
             bindings.initializeComponents(container);
         }
 
-        public void shutdownComponents(final ComponentContainer container) {
-            bindings.shutdownComponents(container);
+        public void shutdownComponents() {
+            bindings.shutdownComponents();
         }
     }
 
@@ -323,13 +322,13 @@ public final class ContainerBootstrapImplTest extends MockGroup {
             bindings.bindComponents(registry);
         }
 
-        public void initializeComponents(final ComponentContainer container) {
+        public void initializeComponents(final OpenComponentContainer container) {
             bindings.initializeComponents(container);
             list.add(this);
         }
 
-        public void shutdownComponents(final ComponentContainer container) {
-            bindings.shutdownComponents(container);
+        public void shutdownComponents() {
+            bindings.shutdownComponents();
             list.remove(this);
         }
     }
@@ -349,13 +348,13 @@ public final class ContainerBootstrapImplTest extends MockGroup {
             bindings.bindComponents(registry);
         }
 
-        public void initializeComponents(final ComponentContainer container) {
+        public void initializeComponents(final OpenComponentContainer container) {
             bindings.initializeComponents(container);
             list.add(this);
         }
 
-        public void shutdownComponents(final ComponentContainer container) {
-            bindings.shutdownComponents(container);
+        public void shutdownComponents() {
+            bindings.shutdownComponents();
             list.remove(this);
         }
     }

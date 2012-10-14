@@ -18,9 +18,10 @@ package org.fluidity.composition.container.spi;
 
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.Components;
+import org.fluidity.composition.ExposedComponentContainer;
 
 /**
- * Implemented by a {@linkplain org.fluidity.composition.container.spi.OpenComponentContainer component container} to allow registration of component bindings.
+ * Implemented by a {@linkplain org.fluidity.composition.ExposedComponentContainer component container} to allow registration of component bindings.
  * This is an internal interface implemented through {@link EmptyComponentContainer}.
  * <h3>Usage</h3>
  * You don't interact with an internal interface.
@@ -60,5 +61,5 @@ public interface ComponentRegistry {
      * @throws ComponentContainer.BindingException
      *          when the implementation cannot be bound to some interface.
      */
-    OpenComponentContainer makeChildContainer(Components.Interfaces interfaces) throws ComponentContainer.BindingException;
+    ExposedComponentContainer makeChildContainer(Components.Interfaces interfaces) throws ComponentContainer.BindingException;
 }

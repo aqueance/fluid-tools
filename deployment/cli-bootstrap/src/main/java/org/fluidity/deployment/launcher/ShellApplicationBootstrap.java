@@ -18,6 +18,7 @@ package org.fluidity.deployment.launcher;
 
 import org.fluidity.composition.Component;
 import org.fluidity.composition.Containers;
+import org.fluidity.composition.Optional;
 import org.fluidity.deployment.cli.Application;
 
 /**
@@ -37,15 +38,26 @@ public final class ShellApplicationBootstrap {
      *
      * @param args the command line arguments.
      *
+     * @throws IllegalStateException if no {@link Application} component is found.
      * @throws Exception whatever {@link Application#run(String[])} throws.
      */
     public static void main(final String[] args) throws Exception {
-        final Application application = Containers.global().getComponent(Application.class);
+        Containers.global().instantiate(ShellApplicationBootstrap.class).run(args);
+    }
 
+    private final Application application;
+
+    ShellApplicationBootstrap(final @Optional Application application) {
+        this.application = application;
+    }
+
+    private void run(final String[] arguments) throws Exception {
         if (application == null) {
-            throw new IllegalStateException(String.format("Application not found; implement %s and annotate it with @%s", Application.class.getName(), Component.class.getName()));
+            throw new IllegalStateException(String.format("Application not found; implement %s and annotate it with @%s",
+                                                          Application.class.getName(),
+                                                          Component.class.getSimpleName()));
         } else {
-            application.run(args);
+            application.run(arguments);
         }
     }
 }

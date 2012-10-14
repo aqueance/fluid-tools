@@ -20,11 +20,13 @@ import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
 import org.fluidity.composition.BoundaryComponent;
+import org.fluidity.composition.ComponentGroup;
+import org.fluidity.composition.Inject;
 
 /**
  * Forwards servlet context listener callbacks to all {@link ServletContextListener ServletContextListeners} annotated with
- * {@link org.fluidity.composition.ComponentGroup @ComponentGroup}. This makes it possible to register those listeners without explicitly listing them in
- * <code>web.xml</code>.
+ * {@link ComponentGroup @ComponentGroup}. This makes it possible to register those listeners without explicitly listing them in the <code>web.xml</code>
+ * descriptor.
  * <p/>
  * <b>Note</b>: servlet specification version 3.0 and later offers an annotation based solution to the same problem, thus obsoleting the solution presented by
  * this class.
@@ -34,7 +36,7 @@ import org.fluidity.composition.BoundaryComponent;
  * &lt;web-app &hellip;>
  * &hellip;
  *   &lt;listener>
- *     &lt;description>Helps to manage a Fluid Tools container life cycle&lt;/description>
+ *     &lt;description>Helps manage the Fluid Tools container life cycle&lt;/description>
  *     &lt;display-name>Fluid Tools Servlet Context Listener&lt;/display-name>
  *     &lt;listener-class><span class="hl1">org.fluidity.composition.web.AggregatingServletContextListener</span>&lt;/listener-class>
  *   &lt;/listener>
@@ -44,14 +46,12 @@ import org.fluidity.composition.BoundaryComponent;
  */
 public final class AggregatingServletContextListener extends BoundaryComponent implements ServletContextListener {
 
-    private final ServletContextListener listeners[];
-
     /**
-     * Invoked by the servlet container to create a new instance.
+     * Never <code>null</code> as {@link org.fluidity.composition.web.impl.WebApplicationTermination} is a member.
      */
-    public AggregatingServletContextListener() {
-        listeners = container().getComponentGroup(ServletContextListener.class);
-    }
+    @Inject
+    @SuppressWarnings("MismatchedReadAndWriteOfArray")
+    private @ComponentGroup ServletContextListener listeners[];
 
     /**
      * Invoked by the servlet container.

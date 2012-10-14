@@ -37,26 +37,26 @@ public class DeferredDependencyTest {
 
     @Test
     public void testPlainDependency() throws Exception {
-        assert container.getComponent(PlainDependent.class) != null;
+        container.instantiate(PlainDependent.class);
     }
 
     @Test
     public void testContextDependency() throws Exception {
-        assert container.getComponent(ContextDependent.class) != null;
+        container.instantiate(ContextDependent.class);
     }
 
     @Test
     public void testReferenceDependency() throws Exception {
-        assert container.getComponent(ReferenceDependent.class) != null;
+        container.instantiate(ReferenceDependent.class);
     }
 
     @Test
     public void testAnnotatedDependency() throws Exception {
         AnnotatedDependencyImpl.instances.set(0);
-        assert container.getComponent(AnnotatedDependent1.class) != null;
+        container.instantiate(AnnotatedDependent1.class);
 
         AnnotatedDependencyImpl.instances.set(0);
-        assert container.getComponent(AnnotatedDependent2.class) != null;
+        container.instantiate(AnnotatedDependent2.class);
     }
 
     @Retention(RetentionPolicy.RUNTIME)
@@ -89,7 +89,7 @@ public class DeferredDependencyTest {
         public ComponentContext context;
     }
 
-    @Component
+    @Component(automatic = false)
     private static class PlainDependent {
 
         public PlainDependent(final Deferred.Reference<PlainDependency> deferred, final PlainDependency instance) {
@@ -99,7 +99,7 @@ public class DeferredDependencyTest {
         }
     }
 
-    @Component
+    @Component(automatic = false)
     private static class ContextDependent {
 
         public ContextDependent(final @Data("1") Deferred.Reference<ContextDependency> deferred1,
@@ -124,7 +124,7 @@ public class DeferredDependencyTest {
         }
     }
 
-    @Component
+    @Component(automatic = false)
     private static class ReferenceDependent {
 
         public ReferenceDependent(final Deferred.Reference<ReferenceDependency<String>> deferred1,
@@ -179,7 +179,7 @@ public class DeferredDependencyTest {
         }
     }
 
-    @Component
+    @Component(automatic = false)
     private static class AnnotatedDependent1 {
 
         public AnnotatedDependent1(final @Data("1") @Component.Deferred AnnotatedDependency deferred1,
@@ -213,7 +213,7 @@ public class DeferredDependencyTest {
         }
     }
 
-    @Component
+    @Component(automatic = false)
     private static class AnnotatedDependent2 {
 
         public AnnotatedDependent2(final @Data("3") @Component.Deferred AnnotatedDependency deferred1,

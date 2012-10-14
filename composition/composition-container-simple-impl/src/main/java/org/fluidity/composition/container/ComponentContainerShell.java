@@ -19,11 +19,11 @@ package org.fluidity.composition.container;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.Components;
+import org.fluidity.composition.ExposedComponentContainer;
 import org.fluidity.composition.ObservedComponentContainer;
+import org.fluidity.composition.OpenComponentContainer;
 import org.fluidity.composition.container.spi.EmptyComponentContainer;
-import org.fluidity.composition.container.spi.OpenComponentContainer;
 
 /**
  * This is a shell around a {@link SimpleContainer} object.
@@ -62,15 +62,15 @@ final class ComponentContainerShell extends EmptyComponentContainer<SimpleContai
         return container.invoke(component, method, context.copy(), arguments, explicit);
     }
 
-    public OpenComponentContainer makeChildContainer() {
+    public ExposedComponentContainer makeChildContainer() {
         return new ComponentContainerShell(container, context, true, false, observer);
     }
 
-    public ComponentContainer makeChildContainer(final Bindings... bindings) {
+    public OpenComponentContainer makeChildContainer(final Bindings... bindings) {
         return new ComponentContainerShell(container, context, true, false, observer).addBindings(bindings);
     }
 
-    public ComponentContainer makeDomainContainer(final Bindings... bindings) {
+    public OpenComponentContainer makeDomainContainer(final Bindings... bindings) {
         return new ComponentContainerShell(container, context, true, true, observer).addBindings(bindings);
     }
 
@@ -82,7 +82,7 @@ final class ComponentContainerShell extends EmptyComponentContainer<SimpleContai
         container.bindInstance(instance, interfaces);
     }
 
-    public OpenComponentContainer makeChildContainer(final Components.Interfaces interfaces) throws BindingException {
+    public ExposedComponentContainer makeChildContainer(final Components.Interfaces interfaces) throws BindingException {
         return new ComponentContainerShell(container.linkComponent(interfaces), context, false, false, observer);
     }
 

@@ -805,7 +805,7 @@ public final class CustomFactoryTests extends AbstractContainerTests {
 
         private DynamicComponent1(final ComponentContainer container) {
             assert container != null : ComponentContainer.class;
-            container.getComponent(Key.class);
+            container.instantiate(KeyCheck.class);
         }
     }
 
@@ -834,7 +834,7 @@ public final class CustomFactoryTests extends AbstractContainerTests {
         }
 
         public Key key() {
-            return container.getComponent(Key.class);
+            return container.instantiate(KeyCheck.class).key;
         }
     }
 

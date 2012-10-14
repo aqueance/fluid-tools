@@ -22,6 +22,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ObservedComponentContainer;
+import org.fluidity.composition.OpenComponentContainer;
 import org.fluidity.composition.container.RestrictedContainer;
 import org.fluidity.composition.spi.ComponentInterceptor;
 
@@ -47,26 +48,22 @@ final class RestrictedContainerImpl implements RestrictedContainer {
     }
 
     public <T> T getComponent(final Class<T> api) throws ResolutionException {
-        return guard.access(delegate).getComponent(api);
+        return ((OpenComponentContainer) guard.access(delegate)).getComponent(api);
     }
 
     public <T> T[] getComponentGroup(final Class<T> api) {
-        return guard.access(delegate).getComponentGroup(api);
+        return ((OpenComponentContainer) guard.access(delegate)).getComponentGroup(api);
     }
 
-    public <T> T getComponent(final Class<T> api, final Bindings... bindings) throws ResolutionException {
-        return guard.access(delegate).getComponent(api, bindings);
-    }
-
-    public ComponentContainer makeChildContainer(final Bindings... bindings) {
+    public OpenComponentContainer makeChildContainer(final Bindings... bindings) {
         return new RestrictedContainerImpl(guard, delegate.makeChildContainer(bindings));
     }
 
-    public ComponentContainer makeDomainContainer(final Bindings... bindings) {
+    public OpenComponentContainer makeDomainContainer(final Bindings... bindings) {
         return new RestrictedContainerImpl(guard, delegate.makeDomainContainer(bindings));
     }
 
-    public ComponentContainer intercepting(final ComponentInterceptor... interceptors) {
+    public OpenComponentContainer intercepting(final ComponentInterceptor... interceptors) {
         return new RestrictedContainerImpl(guard, delegate.intercepting(interceptors));
     }
 
@@ -82,11 +79,7 @@ final class RestrictedContainerImpl implements RestrictedContainer {
         return guard.access(delegate).complete(component, api);
     }
 
-    public <T> T instantiate(final Class<T> componentClass) throws ResolutionException {
-        return guard.access(delegate).instantiate(componentClass);
-    }
-
-    public <T> T instantiate(final Class<T> componentClass, final Bindings bindings) throws ResolutionException {
+    public <T> T instantiate(final Class<T> componentClass, final Bindings... bindings) throws ResolutionException {
         return guard.access(delegate).instantiate(componentClass, bindings);
     }
 
@@ -102,6 +95,9 @@ final class RestrictedContainerImpl implements RestrictedContainer {
         guard.enable();
     }
 
+    /**
+     * @author Tibor Varga
+     */
     private static class AccessGuard {
 
         private final AtomicBoolean enabled;

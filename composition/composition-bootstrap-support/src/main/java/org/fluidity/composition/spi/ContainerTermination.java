@@ -80,9 +80,9 @@ public interface ContainerTermination {
      * ContainerTermination} implementation is expected to use it.
      * <p/>
      * The type parameter is used to gain access to the {@code ContainerTermination} component using this component in order to verify that no {@linkplain
-     * Command.Job job} {@linkplain #add(org.fluidity.foundation.Command.Job) added} to this component is loaded by a class loader less stable than that of the
-     * {@code ContainerTermination} component; i.e., the class loader of all jobs added must be the same as, or in the ancestry of, the class loader of the
-     * {@code ContainerTermination} component.
+     * org.fluidity.foundation.Command.Job job} {@linkplain #add(org.fluidity.foundation.Command.Job) added} to this component is loaded by a class loader less
+     * stable than that of the {@code ContainerTermination} component; i.e., the class loader of all jobs added must be the same as, or in the ancestry of, the
+     * class loader of the {@code ContainerTermination} component.
      * <h3>Usage</h3>
      * See {@link ContainerTermination}.
      *

@@ -24,7 +24,7 @@ import java.util.Set;
  * A dependency path used when {@linkplain ObservedComponentContainer observing} dependency resolutions. Objects implementing this interface are created and
  * provided to {@linkplain ComponentContainer.Observer component resolution observers} and to {@linkplain ComponentContainer.InstantiationException
  * instantiation exception} handlers. A dependency path is a list of components that depend on one another, each on the next in the path, up to the {@linkplain
- * #head() head} of the path, which represents the "current" component.
+ * #tail() tail} of the path, which represents the "current" component.
  * <h3>Usage</h3>
  * See {@link ObservedComponentContainer}.
  *
@@ -33,11 +33,11 @@ import java.util.Set;
 public interface DependencyPath {
 
     /**
-     * The component interface at the head of the dependency path.
+     * The component interface at the tail of the dependency path.
      *
-     * @return the component interface at the head of the dependency path.
+     * @return the component interface at the tail of the dependency path.
      */
-    Element head();
+    Element tail();
 
     /**
      * The list of component interfaces or classes that comprise the dependency path.

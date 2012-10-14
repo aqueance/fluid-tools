@@ -27,7 +27,6 @@ import org.fluidity.composition.container.ContainerServices;
 import org.fluidity.composition.container.PlatformContainer;
 import org.fluidity.composition.container.internal.ContainerServicesFactory;
 import org.fluidity.composition.container.spi.ContainerProvider;
-import org.fluidity.composition.container.spi.OpenComponentContainer;
 import org.fluidity.foundation.NoLogFactory;
 import org.fluidity.foundation.spi.LogFactory;
 import org.fluidity.testing.MockGroup;
@@ -45,7 +44,7 @@ public class ContainerBoundaryTest extends MockGroup {
     private final BootstrapServices providers = mock(BootstrapServices.class);
     private final ContainerBootstrap bootstrap = mock(ContainerBootstrap.class);
     private final ContainerProvider provider = mock(ContainerProvider.class);
-    private final OpenComponentContainer container = mock(OpenComponentContainer.class);
+    private final ExposedComponentContainer container = mock(ExposedComponentContainer.class);
     private final ComponentContainer.Registry registry = mock(ComponentContainer.Registry.class);
 
     private final ContainerServicesFactory servicesFactory = mock(ContainerServicesFactory.class);
@@ -97,11 +96,11 @@ public class ContainerBoundaryTest extends MockGroup {
         EasyMock.expect(bootstrap.populateContainer(EasyMock.same(services),
                                                     EasyMock.same(provider),
                                                     EasyMock.<Properties>notNull(),
-                                                    EasyMock.<OpenComponentContainer>same(null),
+                                                    EasyMock.<ExposedComponentContainer>same(null),
                                                     EasyMock.same(classLoader),
                                                     EasyMock.same(platform),
-                                                    EasyMock.<ContainerBootstrap.Callback>notNull())).andAnswer(new IAnswer<OpenComponentContainer>() {
-            public OpenComponentContainer answer() throws Throwable {
+                                                    EasyMock.<ContainerBootstrap.Callback>notNull())).andAnswer(new IAnswer<ExposedComponentContainer>() {
+            public ExposedComponentContainer answer() throws Throwable {
 
                 // check that the properties received by bootstrap is contains exactly what we set up above
                 assert properties.equals(EasyMock.getCurrentArguments()[2]);
@@ -164,11 +163,11 @@ public class ContainerBoundaryTest extends MockGroup {
         EasyMock.expect(bootstrap.populateContainer(EasyMock.same(services),
                                                     EasyMock.same(provider),
                                                     EasyMock.<Properties>notNull(),
-                                                    EasyMock.<OpenComponentContainer>same(null),
+                                                    EasyMock.<ExposedComponentContainer>same(null),
                                                     EasyMock.same(getClass().getClassLoader()),
                                                     EasyMock.<PlatformContainer>isNull(),
-                                                    EasyMock.<ContainerBootstrap.Callback>notNull())).andAnswer(new IAnswer<OpenComponentContainer>() {
-            public OpenComponentContainer answer() throws Throwable {
+                                                    EasyMock.<ContainerBootstrap.Callback>notNull())).andAnswer(new IAnswer<ExposedComponentContainer>() {
+            public ExposedComponentContainer answer() throws Throwable {
 
                 // check that the properties received by bootstrap is contains exactly what we set up above
                 assert properties.equals(EasyMock.getCurrentArguments()[2]);
@@ -200,7 +199,7 @@ public class ContainerBoundaryTest extends MockGroup {
     public void populatesConnectedContainer() throws Exception {
         final ContainerBoundary boundary = boundary(null);
 
-        final Map<ClassLoader, OpenComponentContainer> containers = new HashMap<ClassLoader, OpenComponentContainer>();
+        final Map<ClassLoader, ExposedComponentContainer> containers = new HashMap<ClassLoader, ExposedComponentContainer>();
 
         // find all class loaders on the ancestry
         final List<ClassLoader> classLoaders = new ArrayList<ClassLoader>();
@@ -209,7 +208,7 @@ public class ContainerBoundaryTest extends MockGroup {
 
         for (ClassLoader cl = ourClassLoader; cl != null; cl = cl.getParent()) {
             classLoaders.add(cl);
-            containers.put(cl, localMock(OpenComponentContainer.class));    // the local mocks ensure no method is invoked on intermediate containers
+            containers.put(cl, localMock(ExposedComponentContainer.class));    // the local mocks ensure no method is invoked on intermediate containers
         }
 
         // find the top level class loader
@@ -222,7 +221,7 @@ public class ContainerBoundaryTest extends MockGroup {
         // go through the whole class loader ancestry
         for (final ListIterator<ClassLoader> i = classLoaders.listIterator(classLoaders.size()); i.hasPrevious();) {
             final ClassLoader cl = i.previous();
-            final OpenComponentContainer container = containers.get(cl);
+            final ExposedComponentContainer container = containers.get(cl);
 
             final ContainerBootstrap.Callback callback[] = new ContainerBootstrap.Callback[1];
 
@@ -233,8 +232,8 @@ public class ContainerBoundaryTest extends MockGroup {
                                                         EasyMock.same(containers.get(cl.getParent())),
                                                         EasyMock.same(cl),
                                                         EasyMock.<PlatformContainer>isNull(),
-                                                        EasyMock.<ContainerBootstrap.Callback>notNull())).andAnswer(new IAnswer<OpenComponentContainer>() {
-                public OpenComponentContainer answer() throws Throwable {
+                                                        EasyMock.<ContainerBootstrap.Callback>notNull())).andAnswer(new IAnswer<ExposedComponentContainer>() {
+                public ExposedComponentContainer answer() throws Throwable {
                     callback[0] = ((ContainerBootstrap.Callback) EasyMock.getCurrentArguments()[6]);
                     return container;
                 }
@@ -250,7 +249,7 @@ public class ContainerBoundaryTest extends MockGroup {
             });
         }
 
-        final OpenComponentContainer local = containers.get(ourClassLoader);
+        final ExposedComponentContainer local = containers.get(ourClassLoader);
         assert local != null;
 
         final Work<ComponentContainer> loading = loading(boundary);
@@ -282,12 +281,12 @@ public class ContainerBoundaryTest extends MockGroup {
                 EasyMock.expect(providers.<LogFactory>findInstance(LogFactory.class, classLoader)).andReturn(logs);
                 EasyMock.expect(servicesFactory.containerServices(logs)).andReturn(services);
 
-                final OpenComponentContainer local = localMock(OpenComponentContainer.class);
+                final ExposedComponentContainer local = localMock(ExposedComponentContainer.class);
 
                 EasyMock.expect(provider.newContainer(services, null)).andReturn(local);
 
-                final OpenComponentContainer created = verify(new Work<OpenComponentContainer>() {
-                    public OpenComponentContainer run() throws Exception {
+                final ExposedComponentContainer created = verify(new Work<ExposedComponentContainer>() {
+                    public ExposedComponentContainer run() throws Exception {
                         return boundary.create();
                     }
                 });
@@ -298,12 +297,12 @@ public class ContainerBoundaryTest extends MockGroup {
 
         test(new Task() {
             public void run() throws Exception {
-                final OpenComponentContainer local = localMock(OpenComponentContainer.class);
+                final ExposedComponentContainer local = localMock(ExposedComponentContainer.class);
 
                 EasyMock.expect(provider.newContainer(services, null)).andReturn(local);
 
-                final OpenComponentContainer created = verify(new Work<OpenComponentContainer>() {
-                    public OpenComponentContainer run() throws Exception {
+                final ExposedComponentContainer created = verify(new Work<ExposedComponentContainer>() {
+                    public ExposedComponentContainer run() throws Exception {
                         return boundary.create();
                     }
                 });
@@ -331,11 +330,11 @@ public class ContainerBoundaryTest extends MockGroup {
                 EasyMock.expect(bootstrap.populateContainer(EasyMock.same(services),
                                                             EasyMock.same(provider),
                                                             EasyMock.<Properties>notNull(),
-                                                            EasyMock.<OpenComponentContainer>same(null),
+                                                            EasyMock.<ExposedComponentContainer>same(null),
                                                             EasyMock.same(classLoader),
                                                             EasyMock.<PlatformContainer>isNull(),
-                                                            EasyMock.<ContainerBootstrap.Callback>notNull())).andAnswer(new IAnswer<OpenComponentContainer>() {
-                    public OpenComponentContainer answer() throws Throwable {
+                                                            EasyMock.<ContainerBootstrap.Callback>notNull())).andAnswer(new IAnswer<ExposedComponentContainer>() {
+                    public ExposedComponentContainer answer() throws Throwable {
                         callback[0] = (ContainerBootstrap.Callback) EasyMock.getCurrentArguments()[6];
                         return container;
                     }

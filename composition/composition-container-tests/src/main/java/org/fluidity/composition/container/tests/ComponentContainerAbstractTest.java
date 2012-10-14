@@ -20,10 +20,10 @@ import java.lang.annotation.Annotation;
 import java.util.Map;
 
 import org.fluidity.composition.ComponentContext;
+import org.fluidity.composition.ExposedComponentContainer;
 import org.fluidity.composition.container.ContainerServices;
 import org.fluidity.composition.container.impl.ProductionServicesFactory;
 import org.fluidity.composition.container.internal.ContainerServicesFactory;
-import org.fluidity.composition.container.spi.OpenComponentContainer;
 import org.fluidity.foundation.NoLogFactory;
 import org.fluidity.testing.MockGroup;
 
@@ -45,7 +45,7 @@ public abstract class ComponentContainerAbstractTest extends MockGroup {
      *
      * @return a new container to be tested.
      */
-    protected abstract OpenComponentContainer newContainer(final ContainerServices services);
+    protected abstract ExposedComponentContainer newContainer(final ContainerServices services);
 
     @Factory
     public Object[] tests() {
@@ -53,8 +53,7 @@ public abstract class ComponentContainerAbstractTest extends MockGroup {
         final ContainerServices services = factory.containerServices(new NoLogFactory());
 
         final ArtifactFactory containers = new ArtifactFactory() {
-
-            public OpenComponentContainer createContainer() {
+            public ExposedComponentContainer createContainer() {
                 return newContainer(services);
             }
 

@@ -17,6 +17,7 @@
 package org.fluidity.composition.spi;
 
 import org.fluidity.composition.ComponentContainer;
+import org.fluidity.composition.OpenComponentContainer;
 
 /**
  * Empty package bindings to simplify creation of actual implementations. You don't normally need to implement {@link PackageBindings} yourself but when you
@@ -61,7 +62,7 @@ public abstract class EmptyPackageBindings implements PackageBindings {
      * <p/>
      * This implementation does nothing; allows subclasses to do nothing by not overriding this method.
      */
-    public void initializeComponents(final ComponentContainer container) {
+    public void initializeComponents(final OpenComponentContainer container) {
         // empty
     }
 
@@ -70,7 +71,7 @@ public abstract class EmptyPackageBindings implements PackageBindings {
      * <p/>
      * This implementation does nothing; allows subclasses to do nothing by not overriding this method.
      */
-    public void shutdownComponents(final ComponentContainer container) {
+    public void shutdownComponents() {
         // empty
     }
 }

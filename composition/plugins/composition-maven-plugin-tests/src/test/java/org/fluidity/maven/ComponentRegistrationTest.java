@@ -20,6 +20,8 @@ import java.util.List;
 
 import org.fluidity.composition.ContainerBoundary;
 import org.fluidity.composition.Containers;
+import org.fluidity.composition.Inject;
+import org.fluidity.composition.Optional;
 import org.fluidity.foundation.ServiceProviders;
 
 import org.testng.annotations.Test;
@@ -33,22 +35,40 @@ public class ComponentRegistrationTest {
 
     @Test
     public void testComponents() throws Exception {
-        component(SimpleComponent.class, SimpleComponentImpl.class);
-        component(SuperComponent.class, InheritedComponentImpl.class);
-        component(ComponentInterface1.class, MultipleInterfacesComponent.class);
-        component(ComponentInterface2.class, SingleInterfaceComponent.class);
-        component(DefaultComponent.class, PrimaryComponentImpl.class);
-        component(FallbackComponent.class, FallbackComponentImpl.class);
+        class References {
+            @Inject public @Optional SimpleComponent simpleComponent;
+            @Inject public @Optional SuperComponent superComponent;
+            @Inject public @Optional ComponentInterface1 componentInterface1;
+            @Inject public @Optional ComponentInterface2 componentInterface2;
+            @Inject public @Optional DefaultComponent defaultComponent;
+            @Inject public @Optional FallbackComponent fallbackComponent;
+            @Inject public @Optional ManualComponent manualComponent;
+        }
 
-        assert container.getComponent(DefaultComponentImpl.class) == null;
-        assert container.getComponent(ManualComponent.class) == null;
+        final References references = container.initialize(new References());
+
+        component(references.simpleComponent, SimpleComponent.class, SimpleComponentImpl.class);
+        component(references.superComponent, SuperComponent.class, InheritedComponentImpl.class);
+        component(references.componentInterface1, ComponentInterface1.class, MultipleInterfacesComponent.class);
+        component(references.componentInterface2, ComponentInterface2.class, SingleInterfaceComponent.class);
+        component(references.defaultComponent, DefaultComponent.class, PrimaryComponentImpl.class);
+        component(references.fallbackComponent, FallbackComponent.class, FallbackComponentImpl.class);
+        component(references.manualComponent, ManualComponent.class, null);
     }
 
     @Test
     public void testServiceProviders() throws Exception {
-        serviceConsumer(SimpleServiceConsumer.class);
-        serviceConsumer(MultipleServiceConsumer.class);
-        serviceConsumer(MultipleServicesConsumer.class);
+        class References {
+            @Inject public @Optional SimpleServiceConsumer simpleServiceConsumer;
+            @Inject public @Optional MultipleServiceConsumer multipleServiceConsumer;
+            @Inject public @Optional MultipleServicesConsumer multipleServicesConsumer;
+        }
+
+        final References references = container.initialize(new References());
+
+        serviceConsumer(references.simpleServiceConsumer, SimpleServiceConsumer.class);
+        serviceConsumer(references.multipleServiceConsumer, MultipleServiceConsumer.class);
+        serviceConsumer(references.multipleServicesConsumer, MultipleServicesConsumer.class);
     }
 
     @Test
@@ -59,7 +79,11 @@ public class ComponentRegistrationTest {
 
     @Test
     public void testInnerAndLocalClasses() throws Exception {
-        final OuterClass.InnerClass inner = container.getComponent(OuterClass.InnerClass.class);
+        class Reference {
+            public @Inject @Optional OuterClass.InnerClass component;
+        }
+
+        final OuterClass.InnerClass inner = container.initialize(new Reference()).component;
         assert inner != null : String.format("Inner class %s not instantiated", OuterClass.InnerClass.class);
         assert inner.getLocal() != null : String.format("Local class not instantiated");
     }
@@ -73,14 +97,12 @@ public class ComponentRegistrationTest {
         }
     }
 
-    private <T> void component(final Class<T> componentInterface, final Class<? extends T> componentClass) {
-        final T component = container.getComponent(componentInterface);
-        assert component != null : componentInterface;
-        assert componentClass.isAssignableFrom(component.getClass()) : componentClass;
+    private <T> void component(final T component, final Class<T> componentInterface, final Class<? extends T> componentClass) {
+        assert componentClass == null || component != null : componentInterface;
+        assert componentClass == null ? component == null : componentClass == component.getClass() : componentClass;
     }
 
-    private <T> void serviceConsumer(final Class<T> consumerClass) {
-        final T consumer = container.getComponent(consumerClass);
+    private <T> void serviceConsumer(final T consumer, final Class<T> consumerClass) {
         assert consumer != null : consumerClass;
     }
 }

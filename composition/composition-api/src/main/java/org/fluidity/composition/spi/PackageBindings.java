@@ -17,6 +17,7 @@
 package org.fluidity.composition.spi;
 
 import org.fluidity.composition.ComponentContainer;
+import org.fluidity.composition.OpenComponentContainer;
 import org.fluidity.composition.ServiceProvider;
 
 /**
@@ -36,26 +37,24 @@ import org.fluidity.composition.ServiceProvider;
 public interface PackageBindings extends ComponentContainer.Bindings {
 
     /**
-     * Distinguishes package bindings from the usual JAR service providers.
+     * Distinguishes package bindings from {@linkplain org.fluidity.foundation.ServiceProviders#TYPE ordinary} service providers.
      */
     String SERVICE_TYPE = "bindings";
 
     /**
-     * Perform component specific initialization if necessary. This method is invoked once after the {@link
+     * Perform package initialization if necessary. This method is invoked once after the {@link
      * org.fluidity.composition.ComponentContainer.Bindings#bindComponents(org.fluidity.composition.ComponentContainer.Registry)
-     * ComponentContainer.Bindings.bindComponents()} method of all {@link PackageBindings} objects have been invoked and
-     * before any component is accessed in the provided container from outside the container.
+     * ComponentContainer.Bindings.bindComponents()} method of all {@link PackageBindings} objects have been invoked and before any component is accessed in
+     * the provided container from outside the container.
      *
-     * @param container is the container that was populated by the <code>ComponentContainer.Bindings.bindComponents()</code>
-     *                  method.
+     * @param container is the container that was populated by the {@link
+     *                  org.fluidity.composition.ComponentContainer.Bindings#bindComponents(org.fluidity.composition.ComponentContainer.Registry)} method.
      */
-    void initializeComponents(ComponentContainer container);
+    void initializeComponents(OpenComponentContainer container);
 
     /**
-     * Perform component specific shutdown if necessary. This method is invoked once when the application is being shut down.
-     *
-     * @param container is the container that was populated by the <code>ComponentContainer.Bindings.bindComponents()</code>
-     *                  method.
+     * Perform component specific shutdown if necessary. This method is invoked once when the container that was populated by the {@link
+     * org.fluidity.composition.ComponentContainer.Bindings#bindComponents(org.fluidity.composition.ComponentContainer.Registry)} method is being shut down.
      */
-    void shutdownComponents(ComponentContainer container);
+    void shutdownComponents();
 }

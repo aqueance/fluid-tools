@@ -16,7 +16,7 @@
 
 package org.fluidity.composition.container;
 
-import org.fluidity.composition.container.spi.OpenComponentContainer;
+import org.fluidity.composition.ExposedComponentContainer;
 import org.fluidity.composition.container.tests.ComponentContainerAbstractTest;
 
 /**
@@ -25,7 +25,7 @@ import org.fluidity.composition.container.tests.ComponentContainerAbstractTest;
 public class ComponentContainerTest extends ComponentContainerAbstractTest {
 
     @Override
-    protected OpenComponentContainer newContainer(final ContainerServices services) {
+    protected ExposedComponentContainer newContainer(final ContainerServices services) {
         return new ComponentContainerShell(services, null);
     }
 }

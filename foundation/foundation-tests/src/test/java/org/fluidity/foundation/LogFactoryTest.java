@@ -31,10 +31,10 @@ public class LogFactoryTest {
 
     @Test
     public void testLogInjection() throws Exception {
-        assert container.getComponent(Logger.class) != null;
+        container.instantiate(Logger.class);
     }
 
-    @Component
+    @Component(automatic = false)
     private static class Logger {
 
         @SuppressWarnings("UnusedDeclaration")

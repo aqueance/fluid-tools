@@ -36,11 +36,11 @@ import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.ComponentGroup;
 import org.fluidity.composition.Components;
-import org.fluidity.composition.DependencyPath;
 import org.fluidity.composition.Inject;
 import org.fluidity.composition.Optional;
 import org.fluidity.composition.container.ContextDefinition;
 import org.fluidity.composition.container.DependencyInjector;
+import org.fluidity.composition.container.ResolvedNode;
 import org.fluidity.composition.container.RestrictedContainer;
 import org.fluidity.composition.container.spi.ContextNode;
 import org.fluidity.composition.container.spi.DependencyGraph;
@@ -198,21 +198,19 @@ final class DependencyInjectorImpl implements DependencyInjector {
 
     public DependencyGraph.Node resolve(final Class<?> api, final Resolution resolution) {
         assert api != null;
-        if (ComponentContext.class.isAssignableFrom(api)) {
-            return new DependencyGraph.Node.Constant(ComponentContext.class, resolution.context(), null);
-        } else if (DependencyPath.class.isAssignableFrom(api)) {
-            return new PathNode();
-        } else if (DependencyInjector.class.isAssignableFrom(api)) {
-            return new DependencyGraph.Node.Constant(DependencyInjector.class, this, null);
-        } else if (ComponentContainer.class.isAssignableFrom(api)) {
+        if (api == ComponentContext.class) {
+            return new ResolvedNode(ComponentContext.class, resolution.context(), null);
+        } else if (api == DependencyInjector.class) {
+            return new ResolvedNode(DependencyInjector.class, this, null);
+        } else if (api == ComponentContainer.class) {
             final ComponentContainer container = resolution.container();
 
             if (container == null) {
-                return new DependencyGraph.Node.Constant(ComponentContainer.class, null, null);
+                return new ResolvedNode(ComponentContainer.class, null, null);
             } else {
                 final RestrictedContainer restricted = new RestrictedContainerImpl(container);
                 resolution.handle(restricted);
-                return new DependencyGraph.Node.Constant(RestrictedContainer.class, restricted, null);
+                return new ResolvedNode(RestrictedContainer.class, restricted, null);
             }
         } else {
             return resolution.regular();
@@ -675,23 +673,6 @@ final class DependencyInjectorImpl implements DependencyInjector {
 
         public ComponentContext context() {
             return node.context();
-        }
-    }
-
-    /**
-     * @author Tibor Varga
-     */
-    private static class PathNode implements DependencyGraph.Node {
-        public Class<?> type() {
-            return DependencyPath.class;
-        }
-
-        public Object instance(final DependencyGraph.Traversal traversal) {
-            return traversal.path();
-        }
-
-        public ComponentContext context() {
-            return null;
         }
     }
 }

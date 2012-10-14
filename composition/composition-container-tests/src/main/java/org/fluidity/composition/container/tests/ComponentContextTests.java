@@ -827,7 +827,7 @@ public final class ComponentContextTests extends AbstractContainerTests {
         }
 
         public void init() {
-            container.getComponent(ContextConsumer1.class);
+            container.instantiate(ContextConsumer1.class);
         }
     }
 

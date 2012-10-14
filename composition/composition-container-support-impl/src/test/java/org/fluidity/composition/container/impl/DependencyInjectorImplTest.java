@@ -32,6 +32,7 @@ import org.fluidity.composition.Inject;
 import org.fluidity.composition.Optional;
 import org.fluidity.composition.container.ContextDefinition;
 import org.fluidity.composition.container.DependencyInjector;
+import org.fluidity.composition.container.ResolvedNode;
 import org.fluidity.composition.container.spi.ContextNode;
 import org.fluidity.composition.container.spi.DependencyGraph;
 import org.fluidity.composition.container.spi.DependencyResolver;
@@ -145,22 +146,20 @@ public class DependencyInjectorImplTest extends MockGroup {
             EasyMock.expect(resolver.resolveGroup(EasyMock.same(dependencyType.getComponentType()),
                                                   EasyMock.same(advanced),
                                                   EasyMock.same(traversal),
-                                                  EasyMock.same(dependencyType))).andReturn(new DependencyGraph.Node.Constant(dependencyType, services, null));
+                                                  EasyMock.same(dependencyType))).andReturn(new ResolvedNode(dependencyType, services, null));
         } else if (dependencyType == ComponentContext.class) {
             EasyMock.expect(contexts.contextConsumer()).andReturn((Class) componentType);
             EasyMock.expect(context.copy()).andReturn(copy);
             EasyMock.expect(copy.accept(componentType)).andReturn(copy);
             EasyMock.expect(copy.create()).andReturn(createdContext);
+        } else if (dependencyType == ComponentContainer.class) {
+            EasyMock.expect(context.copy()).andReturn(copy);
+            EasyMock.expect(copy.expand(EasyMock.aryEq(definitions))).andReturn(copy);
+            EasyMock.expect(resolver.container(copy)).andReturn(container);
         } else {
-            if (dependencyType == ComponentContainer.class) {
-                EasyMock.expect(context.copy()).andReturn(copy);
-                EasyMock.expect(copy.expand(EasyMock.aryEq(definitions))).andReturn(copy);
-                EasyMock.expect(resolver.container(copy)).andReturn(container);
-            } else {
-                final DependencyGraph.Node.Constant node = new DependencyGraph.Node.Constant(dependencyType, component, null);
-                EasyMock.expect(resolver.resolveComponent(dependencyType, copy, traversal, dependencyType)).andReturn(node);
-                EasyMock.expect(interceptors.replace(resolver, copy, traversal, dependencyType, node)).andReturn(node);
-            }
+            final ResolvedNode node = new ResolvedNode(dependencyType, component, null);
+            EasyMock.expect(resolver.resolveComponent(dependencyType, copy, traversal, dependencyType)).andReturn(node);
+            EasyMock.expect(interceptors.replace(resolver, copy, traversal, dependencyType, node)).andReturn(node);
         }
 
         return copy;
@@ -298,13 +297,13 @@ public class DependencyInjectorImplTest extends MockGroup {
 
         test(new Task() {
             public void run() throws Exception {
-                EasyMock.expect(container.getComponent(ContextDefinition.class)).andReturn(context);
+                EasyMock.expect(container.instantiate(ContextDefinition.class)).andReturn(context);
 
                 expectCallbacks();
 
                 assert context == verify(new Work<ContextDefinition>() {
                     public ContextDefinition run() throws Exception {
-                        return component.container.getComponent(ContextDefinition.class);
+                        return component.container.instantiate(ContextDefinition.class);
                     }
                 });
             }

@@ -111,44 +111,6 @@ public interface DependencyGraph {
              */
             Node resolve();
         }
-
-        /**
-         * A {@linkplain DependencyGraph.Node dependency graph node} for an instance that is known without further resolution, or as a result of such
-         * resolution.
-         * <h3>Usage</h3>
-         * You don't interact with an internal interface.
-         *
-         * @author Tibor Varga
-         */
-        class Constant implements Node {
-
-            private final Class<?> type;
-            private final Object instance;
-            private final ComponentContext context;
-
-            /**
-             * @param type     the typ of the instance; useful when the instance is null thus its class cannot be queried.
-             * @param instance the known component instance
-             * @param context  the component context for the component instance.
-             */
-            public Constant(final Class<?> type, final Object instance, final ComponentContext context) {
-                this.type = type;
-                this.instance = instance;
-                this.context = context;
-            }
-
-            public final Class<?> type() {
-                return type;
-            }
-
-            public final Object instance(final Traversal traversal) {
-                return instance;
-            }
-
-            public ComponentContext context() {
-                return context;
-            }
-        }
     }
 
     /**

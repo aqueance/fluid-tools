@@ -42,15 +42,15 @@ public interface PlatformContainer {
     boolean containsComponent(Class<?> api, final ContextDefinition context);
 
     /**
-     * See {@link ComponentContainer#getComponent(Class)}.
+     * See {@link org.fluidity.composition.OpenComponentContainer#getComponent(Class)}.
      *
-     * @param api     see {@link ComponentContainer#getComponent(Class)}.
+     * @param api     see {@link org.fluidity.composition.OpenComponentContainer#getComponent(Class)}.
      * @param context the current component context.
      *
-     * @return see {@link ComponentContainer#getComponent(Class)}.
+     * @return see {@link org.fluidity.composition.OpenComponentContainer#getComponent(Class)}.
      *
      * @throws ComponentContainer.ResolutionException
-     *          see {@link ComponentContainer#getComponent(Class)}.
+     *          see {@link org.fluidity.composition.OpenComponentContainer#getComponent(Class)}.
      */
     <T> T getComponent(Class<T> api, ContextDefinition context) throws ComponentContainer.ResolutionException;
 
@@ -65,12 +65,12 @@ public interface PlatformContainer {
     boolean containsComponentGroup(Class<?> api, final ContextDefinition context);
 
     /**
-     * See {@link ComponentContainer#getComponentGroup(Class)}.
+     * See {@link org.fluidity.composition.OpenComponentContainer#getComponentGroup(Class)}.
      *
-     * @param api     see {@link ComponentContainer#getComponentGroup(Class)}.
+     * @param api     see {@link org.fluidity.composition.OpenComponentContainer#getComponentGroup(Class)}.
      * @param context the component context prevalent at the group reference site.
      *
-     * @return see {@link ComponentContainer#getComponentGroup(Class)}.
+     * @return see {@link org.fluidity.composition.OpenComponentContainer#getComponentGroup(Class)}.
      */
     <T> T[] getComponentGroup(Class<T> api, ContextDefinition context);
 

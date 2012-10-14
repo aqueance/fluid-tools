@@ -37,7 +37,7 @@ final class ContainerLifecycle {
 
     private ContainerBootstrap.Callback callback;
 
-    private final ComponentContainer container;
+    private final OpenComponentContainer container;
     private final List<PackageBindings> bindings;
 
     private final Set<ContainerLifecycle> children = new HashSet<ContainerLifecycle>();
@@ -45,7 +45,7 @@ final class ContainerLifecycle {
     private final AtomicBoolean shouldInitialize = new AtomicBoolean(true);
     private final AtomicBoolean shouldShutdown = new AtomicBoolean(true);
 
-    ContainerLifecycle(final ComponentContainer container, final List<PackageBindings> bindings, final ContainerBootstrap.Callback callback) {
+    ContainerLifecycle(final OpenComponentContainer container, final List<PackageBindings> bindings, final ContainerBootstrap.Callback callback) {
         this.container = container;
         this.bindings = bindings;
         this.callback = callback;
@@ -107,7 +107,7 @@ final class ContainerLifecycle {
              * Perform pre-shutdown tasks in reverse order.
              */
             for (final ListIterator i = bindings.listIterator(bindings.size()); i.hasPrevious();) {
-                ((PackageBindings) i.previous()).shutdownComponents(container);
+                ((PackageBindings) i.previous()).shutdownComponents();
             }
 
             if (callback != null) {

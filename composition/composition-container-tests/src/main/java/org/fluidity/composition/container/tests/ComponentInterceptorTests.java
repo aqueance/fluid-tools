@@ -33,6 +33,7 @@ import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.Inject;
+import org.fluidity.composition.OpenComponentContainer;
 import org.fluidity.composition.Optional;
 import org.fluidity.composition.spi.ComponentInterceptor;
 import org.fluidity.foundation.Generics;
@@ -53,7 +54,7 @@ public final class ComponentInterceptorTests extends AbstractContainerTests {
         Interceptor6.instances.set(0);
     }
 
-    private ComponentContainer child(final ComponentContainer container, final ComponentContainer.Bindings... bindings) {
+    private OpenComponentContainer child(final ComponentContainer container, final ComponentContainer.Bindings... bindings) {
         return (container == null ? this.container : container).makeDomainContainer(bindings);
     }
 
@@ -90,7 +91,7 @@ public final class ComponentInterceptorTests extends AbstractContainerTests {
             }
         };
 
-        final ComponentContainer container = child(null, interceptors, new ComponentContainer.Bindings() {
+        final OpenComponentContainer container = child(null, interceptors, new ComponentContainer.Bindings() {
             @SuppressWarnings("unchecked")
             public void bindComponents(final ComponentContainer.Registry registry) {
                 registry.bindComponent(RootComponent.class);
@@ -152,7 +153,7 @@ public final class ComponentInterceptorTests extends AbstractContainerTests {
             }
         };
 
-        final ComponentContainer container = child(child(child(null, rootInterceptors), parentInterceptors), childInterceptors, new ComponentContainer.Bindings() {
+        final OpenComponentContainer container = child(child(child(null, rootInterceptors), parentInterceptors), childInterceptors, new ComponentContainer.Bindings() {
             @SuppressWarnings("unchecked")
             public void bindComponents(final ComponentContainer.Registry registry) {
                 registry.bindComponent(RootComponent.class);
@@ -202,7 +203,7 @@ public final class ComponentInterceptorTests extends AbstractContainerTests {
             }
         };
 
-        final ComponentContainer container = child(this.container
+        final OpenComponentContainer container = child(this.container
                                                            .intercepting(new Interceptor1(), new Interceptor2())
                                                            .intercepting(new Interceptor5(new InterceptorDependency()), new Interceptor6())
                                                            .intercepting(new Interceptor3(), new Interceptor4()),
@@ -246,7 +247,7 @@ public final class ComponentInterceptorTests extends AbstractContainerTests {
             }
         };
 
-        final ComponentContainer container = child(null, interceptors, new ComponentContainer.Bindings() {
+        final OpenComponentContainer container = child(null, interceptors, new ComponentContainer.Bindings() {
             @SuppressWarnings("unchecked")
             public void bindComponents(final ComponentContainer.Registry registry) {
                 registry.bindComponent(RootComponent.class);
