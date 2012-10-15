@@ -36,6 +36,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.Optional;
+import org.fluidity.foundation.Command.Process;
 import org.fluidity.foundation.spi.PropertyProvider;
 
 /**
@@ -68,7 +69,7 @@ final class ConfigurationImpl<T> implements Configuration<T> {
     }
 
     public <R> R query(final Query<R, T> query) {
-        return Exceptions.wrap(new Command.Process<R, Exception>() {
+        return Exceptions.wrap(new Process<R, Exception>() {
             public R run() throws Exception {
                 if (provider == null) {
                     return query.run(settings);

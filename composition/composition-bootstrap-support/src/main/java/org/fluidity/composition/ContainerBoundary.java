@@ -34,10 +34,11 @@ import org.fluidity.composition.container.internal.ContainerServicesFactory;
 import org.fluidity.composition.container.spi.ContainerProvider;
 import org.fluidity.composition.spi.ComponentInterceptor;
 import org.fluidity.foundation.ClassLoaders;
-import org.fluidity.foundation.Command;
 import org.fluidity.foundation.Command.Function;
 import org.fluidity.foundation.Exceptions;
 import org.fluidity.foundation.spi.LogFactory;
+
+import static org.fluidity.foundation.Command.Job;
 
 /**
  * External access to a class loader specific <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Dependency_Injection_Concept">dependency
@@ -441,10 +442,9 @@ public final class ContainerBoundary implements ComponentContainer {
                 for (final ListIterator<MutableContainer> iterator = containers.listIterator(containers.size()); iterator.hasPrevious(); ) {
                     final MutableContainer container = iterator.previous();
 
-                    Exceptions.wrap(new Command.Process<Object, Throwable>() {
-                        public Object run() throws Throwable {
+                    Exceptions.wrap(new Job<Throwable>() {
+                        public void run() throws Throwable {
                             containerBootstrap.initializeContainer(container, containerServices);
-                            return null;
                         }
                     });
 

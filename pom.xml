@@ -278,12 +278,12 @@
                     <artifactId>maven-jar-plugin</artifactId>
                     <version>2.3.2</version>
                     <configuration>
-                      <archive>
-                        <manifestEntries>
-                            <Maven-Group-Id>${project.groupId}</Maven-Group-Id>
-                            <Maven-Artifact-Id>${project.artifactId}</Maven-Artifact-Id>
-                        </manifestEntries>
-                      </archive>
+                        <archive>
+                            <manifestEntries>
+                                <Maven-Group-Id>${project.groupId}</Maven-Group-Id>
+                                <Maven-Artifact-Id>${project.artifactId}</Maven-Artifact-Id>
+                            </manifestEntries>
+                        </archive>
                     </configuration>
                 </plugin>
 

@@ -19,6 +19,7 @@ package org.fluidity.foundation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.UndeclaredThrowableException;
 
+import static org.fluidity.foundation.Command.Job;
 import static org.fluidity.foundation.Command.Process;
 
 /**
@@ -66,15 +67,14 @@ public final class Exceptions extends Utility {
      * Executes the given command and {@linkplain Exceptions.Wrapper wraps} any exception other than {@link RuntimeException} and {@link Error} thrown
      * therefrom.
      *
-     * @param context the action part of the "Error %s" message in the wrapped exception.
+     * @param action  the action part of the "Error %s" message in the wrapped exception.
      * @param command the command to run.
      * @param <T>     the generic return type of the command.
      * @param <E>     the generic exception type of the command.
      *
      * @return whatever the command returns.
      */
-    @SuppressWarnings("unchecked")
-    public static <T, E extends Throwable> T wrap(final String context, final Process<T, E> command) {
+    public static <T, E extends Throwable> T wrap(final String action, final Process<T, E> command) {
         try {
             try {
                 return command.run();
@@ -86,7 +86,7 @@ public final class Exceptions extends Utility {
         } catch (final Error e) {
             throw e;
         } catch (final Throwable e) {
-            throw context == null ? new Wrapper(e) : new Wrapper(e, "Error %s", context);
+            throw action == null ? new Wrapper(e) : new Wrapper(e, "Error %s", action);
         }
     }
 
@@ -101,6 +101,33 @@ public final class Exceptions extends Utility {
      */
     public static <T, E extends Throwable> T wrap(final Process<T, E> command) {
         return Exceptions.wrap(null, command);
+    }
+
+    /**
+     * Executes the given command and {@linkplain Exceptions.Wrapper wraps} any exception other than {@link RuntimeException} and {@link Error} thrown
+     * therefrom.
+     *
+     * @param action  the action part of the "Error %s" message in the wrapped exception.
+     * @param command the command to run.
+     * @param <E>     the generic exception type of the command.
+     */
+    public static <E extends Throwable> void wrap(final String action, final Job<E> command) {
+        Exceptions.wrap(action, new Process<Void, Throwable>() {
+            public Void run() throws Throwable {
+                command.run();
+                return null;
+            }
+        });
+    }
+
+    /**
+     * Executes the given command and {@linkplain Exceptions.Wrapper wraps} any exception thrown therefrom.
+     *
+     * @param command  the command to execute.
+     * @param <E>     the generic exception type of the command.
+     */
+    public static <E extends Throwable> void wrap(final Job<E> command) {
+        Exceptions.wrap(null, command);
     }
 
     private static Throwable unwrap(final Exception error) {
