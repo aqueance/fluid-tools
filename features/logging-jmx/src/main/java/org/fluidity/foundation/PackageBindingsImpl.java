@@ -32,7 +32,7 @@ import org.fluidity.composition.spi.EmptyPackageBindings;
 final class PackageBindingsImpl extends EmptyPackageBindings {
 
     @Override
-    public void initializeComponents(final OpenContainer container) throws Exception {
+    public void initialize(final OpenContainer container, final ContainerTermination shutdown) throws Exception {
         final MBeanServer server = ManagementFactory.getPlatformMBeanServer();
 
         if (server != null) {
@@ -40,7 +40,7 @@ final class PackageBindingsImpl extends EmptyPackageBindings {
 
             server.registerMBean(container.instantiate(LoggingMBeanImpl.class), name);
 
-            container.getComponent(ContainerTermination.class).add(new Command.Job<Exception>() {
+            shutdown.add(new Command.Job<Exception>() {
                 public void run() throws Exception {
                     server.unregisterMBean(name);
                 }

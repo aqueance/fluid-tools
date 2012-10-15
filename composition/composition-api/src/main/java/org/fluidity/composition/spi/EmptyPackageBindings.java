@@ -33,12 +33,7 @@ import org.fluidity.composition.OpenContainer;
  *   }
  *
  *   {@linkplain Override @Override}
- *   public void <span class="hl1">initializeComponents</span>(final {@linkplain ComponentContainer} container) {
- *     &hellip;
- *   }
- *
- *   {@linkplain Override @Override}
- *   public void <span class="hl1">shutdownComponents</span>(final {@linkplain ComponentContainer} container) {
+ *   public void <span class="hl1">initialize</span>(final {@linkplain ComponentContainer} container, final {@linkplain ContainerTermination} shutdown) {
  *     &hellip;
  *   }
  * }
@@ -62,16 +57,7 @@ public abstract class EmptyPackageBindings implements PackageBindings {
      * <p/>
      * This implementation does nothing; allows subclasses to do nothing by not overriding this method.
      */
-    public void initializeComponents(final OpenContainer container) throws Exception {
-        // empty
-    }
-
-    /**
-     * {@inheritDoc}
-     * <p/>
-     * This implementation does nothing; allows subclasses to do nothing by not overriding this method.
-     */
-    public void shutdownComponents() {
+    public void initialize(final OpenContainer container, final ContainerTermination shutdown) throws Exception {
         // empty
     }
 }

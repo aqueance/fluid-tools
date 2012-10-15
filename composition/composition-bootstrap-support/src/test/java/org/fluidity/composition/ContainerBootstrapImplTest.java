@@ -21,6 +21,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.fluidity.composition.container.ContainerServices;
 import org.fluidity.composition.container.PlatformContainer;
@@ -51,7 +52,7 @@ public final class ContainerBootstrapImplTest extends MockGroup {
     private final ContainerProvider provider = mock(ContainerProvider.class);
     private final ContainerServices services = mock(ContainerServices.class);
     private final ClassDiscovery discovery = mock(ClassDiscovery.class);
-    private final ContainerTermination shutdown = mock(ContainerTermination.class);
+    private final ContainerTermination termination = mock(ContainerTermination.class);
     private final MutableContainer parent = mock(MutableContainer.class);
     private final MutableContainer container = mock(MutableContainer.class);
     private final ComponentContainer.Registry registry = mock(ComponentContainer.Registry.class);
@@ -121,44 +122,58 @@ public final class ContainerBootstrapImplTest extends MockGroup {
 
         PackageBindingsImpl.list = list;
         DependentPackageBindingsImpl.list = list;
+
         final List<PackageBindings> watched = Arrays.asList(bindings2, bindings3);
 
-        final Class[] classes = { ResponsiblePackageBindingsImpl.class, PackageBindingsImpl.class, DependentPackageBindingsImpl.class };
-        final PackageBindings[] instances = { bindings1, bindings2, bindings3 };
+        final Command.Job<Exception> job = test(new Work<Command.Job<Exception>>() {
+            public Command.Job<Exception> run() throws Exception {
+                final Class[] classes = { ResponsiblePackageBindingsImpl.class, PackageBindingsImpl.class, DependentPackageBindingsImpl.class };
+                final PackageBindings[] instances = { bindings1, bindings2, bindings3 };
 
-        final Object object = populateContainer(classes, instances);
+                final Object object = populateContainer(classes, instances);
 
-        EasyMock.expect(container.getComponent(ContainerTermination.class)).andReturn(shutdown);
-        EasyMock.expect(container.getComponent(EasyMock.<Class<?>>anyObject())).andReturn(object);
+                EasyMock.expect(container.getComponent(ContainerTermination.class)).andReturn(termination);
+                EasyMock.expect(container.getComponent(EasyMock.<Class<?>>anyObject())).andReturn(object);
 
-        shutdown.add(EasyMock.<Command.Job<Exception>>anyObject());
-        EasyMock.expectLastCall().andAnswer(new IAnswer<Object>() {
-            @SuppressWarnings("unchecked")
-            public Object answer() throws Throwable {
-                Object[] args = EasyMock.getCurrentArguments();
-                assert list.equals(watched);
+                final AtomicReference<Command.Job<Exception>> job = new AtomicReference<Command.Job<Exception>>();
 
-                // invoke the shutdown command to test de-registration
-                ((Command.Job<Exception>) args[0]).run();
+                termination.add(EasyMock.<Command.Job<Exception>>anyObject());
+                EasyMock.expectLastCall().andAnswer(new IAnswer<Object>() {
+                    @SuppressWarnings("unchecked")
+                    public Object answer() throws Throwable {
+                        Object[] args = EasyMock.getCurrentArguments();
+                        job.set(((Command.Job<Exception>) args[0]));
+                        return null;
+                    }
+                });
 
-                // check that all components have been shut down
-                assert list.isEmpty();
-                return null;
+                callback.containerInitialized();
+
+                bindings.initialize(container, termination);
+                EasyMock.expectLastCall().times(2);
+
+                verify(new Task() {
+                    public void run() throws Exception {
+                        bootstrap.initializeContainer(container, services);
+                    }
+                });
+
+                return job.get();
             }
         });
 
-        callback.containerInitialized();
-        callback.containerShutdown();
+        assert job != null;
+        assert list.equals(watched);
 
-        this.bindings.initializeComponents(container);
-        EasyMock.expectLastCall().times(2);
-
-        this.bindings.shutdownComponents();
-        EasyMock.expectLastCall().times(2);
-
-        verify(new Task() {
+        test(new Task() {
             public void run() throws Exception {
-                bootstrap.initializeContainer(container, services);
+                callback.containerShutdown();
+
+                verify(new Task() {
+                    public void run() throws Exception {
+                        job.run();
+                    }
+                });
             }
         });
     }
@@ -168,8 +183,10 @@ public final class ContainerBootstrapImplTest extends MockGroup {
     public void missingShutdownHook() throws Exception {
         final Object object = populateContainer(new Class[0], new PackageBindings[0]);
 
+        EasyMock.expect(container.getComponent(EasyMock.<Class>anyObject())).andReturn(object); // type unknown outside but component expected by recipient
         EasyMock.expect(container.getComponent(ContainerTermination.class)).andReturn(null);
-        EasyMock.expect(container.getComponent(EasyMock.<Class>anyObject())).andReturn(object);
+
+        // must always be invoked
         callback.containerInitialized();
 
         guarantee(new Task() {
@@ -298,12 +315,8 @@ public final class ContainerBootstrapImplTest extends MockGroup {
             bindings.bindComponents(registry);
         }
 
-        public void initializeComponents(final OpenContainer container) throws Exception {
-            bindings.initializeComponents(container);
-        }
-
-        public void shutdownComponents() {
-            bindings.shutdownComponents();
+        public void initialize(final OpenContainer container, final ContainerTermination shutdown) throws Exception {
+            bindings.initialize(container, shutdown);
         }
     }
 
@@ -322,14 +335,9 @@ public final class ContainerBootstrapImplTest extends MockGroup {
             bindings.bindComponents(registry);
         }
 
-        public void initializeComponents(final OpenContainer container) throws Exception {
-            bindings.initializeComponents(container);
+        public void initialize(final OpenContainer container, final ContainerTermination shutdown) throws Exception {
+            bindings.initialize(container, shutdown);
             list.add(this);
-        }
-
-        public void shutdownComponents() {
-            bindings.shutdownComponents();
-            list.remove(this);
         }
     }
 
@@ -348,14 +356,9 @@ public final class ContainerBootstrapImplTest extends MockGroup {
             bindings.bindComponents(registry);
         }
 
-        public void initializeComponents(final OpenContainer container) throws Exception {
-            bindings.initializeComponents(container);
+        public void initialize(final OpenContainer container, final ContainerTermination shutdown) throws Exception {
+            bindings.initialize(container, shutdown);
             list.add(this);
-        }
-
-        public void shutdownComponents() {
-            bindings.shutdownComponents();
-            list.remove(this);
         }
     }
 

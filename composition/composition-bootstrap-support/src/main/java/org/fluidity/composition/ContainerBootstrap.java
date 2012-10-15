@@ -56,8 +56,8 @@ interface ContainerBootstrap {
                                              Callback callback);
 
     /**
-     * Calls the {@link org.fluidity.composition.spi.PackageBindings#initializeComponents(OpenContainer)} method on all bindings and adds shutdown tasks
-     * to call the {@link org.fluidity.composition.spi.PackageBindings#shutdownComponents()} method on the bindings, in reverse order.
+     * Calls the {@link org.fluidity.composition.spi.PackageBindings#initialize(OpenContainer, org.fluidity.composition.spi.ContainerTermination)} method on
+     * all bindings.
      *
      * @param container the container, returned by the {@link #populateContainer(ContainerServices, ContainerProvider, Map, MutableContainer, ClassLoader,
      *                  PlatformContainer, ContainerBootstrap.Callback)} method, to initialize.

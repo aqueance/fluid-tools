@@ -44,17 +44,12 @@ public interface PackageBindings extends ComponentContainer.Bindings {
     /**
      * Perform package initialization if necessary. This method is invoked once after the {@link
      * org.fluidity.composition.ComponentContainer.Bindings#bindComponents(org.fluidity.composition.ComponentContainer.Registry)
-     * ComponentContainer.Bindings.bindComponents()} method of all {@link PackageBindings} objects have been invoked and before any component is accessed in
-     * the provided container from outside the container.
+     * ComponentContainer.Bindings.bindComponents()} method of all {@link PackageBindings} objects have been invoked and before any component is externally
+     * accessed in the provided container.
      *
      * @param container is the container that was populated by the {@link
      *                  org.fluidity.composition.ComponentContainer.Bindings#bindComponents(org.fluidity.composition.ComponentContainer.Registry)} method.
+     * @param shutdown  allows registration of actions to be performed when the container shuts down.
      */
-    void initializeComponents(OpenContainer container) throws Exception;
-
-    /**
-     * Perform component specific shutdown if necessary. This method is invoked once when the container that was populated by the {@link
-     * org.fluidity.composition.ComponentContainer.Bindings#bindComponents(org.fluidity.composition.ComponentContainer.Registry)} method is being shut down.
-     */
-    void shutdownComponents();
+    void initialize(OpenContainer container, ContainerTermination shutdown) throws Exception;
 }

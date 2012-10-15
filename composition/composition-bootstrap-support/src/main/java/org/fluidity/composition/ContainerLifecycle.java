@@ -18,7 +18,6 @@ package org.fluidity.composition;
 
 import java.util.HashSet;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -55,37 +54,42 @@ final class ContainerLifecycle {
         final boolean init = shouldInitialize.compareAndSet(true, false);
 
         if (init) {
-            log.debug("Initializing %s", container);
+            try {
+                final ContainerTermination termination = container.getComponent(ContainerTermination.class);
 
-            /*
-             * Perform post-registration initialization.
-             */
-            for (final PackageBindings next : bindings) {
-                next.initializeComponents(container);
-            }
-        }
-
-        // child containers are initialized next
-        for (final ContainerLifecycle child : children) {
-            child.initialize(log);
-        }
-
-        if (init) {
-            if (callback != null) {
-                callback.containerInitialized();
-            }
-
-            final ContainerTermination termination = container.getComponent(ContainerTermination.class);
-
-            if (termination == null) {
-                throw new RuntimeException(String.format("%s requires a %s component to function", container, ContainerTermination.class.getName()));
-            }
-
-            termination.add(new Command.Job<Exception>() {
-                public void run() {
-                    shutdown(log);
+                if (termination == null) {
+                    throw new RuntimeException(String.format("%s requires a %s component to function", container, ContainerTermination.class.getName()));
                 }
-            });
+
+                log.debug("Initializing %s", container);
+
+                // shutdown actions are registered first: will be run after the tasks added by bindings and child containers
+                termination.add(new Command.Job<Exception>() {
+                    public void run() {
+                        if (shouldShutdown.compareAndSet(true, false)) {
+                            if (callback != null) {
+                                callback.containerShutdown();
+                            }
+
+                            log.debug("%s shut down", container);
+                        }
+                    }
+                });
+
+                // post-registration initialization next: may add shutdown tasks
+                for (final PackageBindings next : bindings) {
+                    next.initialize(container, termination);
+                }
+
+                // child containers are initialized last: child shutdown tasks are run before any added above
+                for (final ContainerLifecycle child : children) {
+                    child.initialize(log);
+                }
+            } finally {
+                if (callback != null) {
+                    callback.containerInitialized();
+                }
+            }
         }
 
         return init;
@@ -93,28 +97,5 @@ final class ContainerLifecycle {
 
     public void addChild(final ContainerLifecycle child) {
         children.add(child);
-    }
-
-    public void shutdown(final Log log) {
-        if (shouldShutdown.compareAndSet(true, false)) {
-
-            // child containers are shut down first
-            for (final ContainerLifecycle child : children) {
-                child.shutdown(log);
-            }
-
-            /*
-             * Perform pre-shutdown tasks in reverse order.
-             */
-            for (final ListIterator i = bindings.listIterator(bindings.size()); i.hasPrevious();) {
-                ((PackageBindings) i.previous()).shutdownComponents();
-            }
-
-            if (callback != null) {
-                callback.containerShutdown();
-            }
-
-            log.debug("%s shut down", container);
-        }
     }
 }
