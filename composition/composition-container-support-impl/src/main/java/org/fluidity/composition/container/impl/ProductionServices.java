@@ -27,7 +27,8 @@ import org.fluidity.foundation.Log;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**
- * Production services for a container implementation.
+ * Production services for a container implementation. Since there is no dependency injection container available for this class, direction instantiations are
+ * unavoidable.
  *
  * @author Tibor Varga
  */

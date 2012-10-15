@@ -22,8 +22,10 @@ import org.fluidity.composition.spi.ComponentFactory;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**
- * Creates {@link Log} objects for the class specified as the type parameter of the <code>Log</code> dependency, using
- * the user provided implementation of the {@link LogFactory} interface.
+ * Creates {@link Log} objects for the class specified as the type parameter of the <code>Log</code> dependency, using the user provided implementation of the
+ * {@link LogFactory} interface.
+ * <p/>
+ * TODO: log levels
  *
  * @author Tibor Varga
  */
@@ -35,12 +37,10 @@ final class LogComponentFactory implements ComponentFactory {
 
     LogComponentFactory(final LogFactory factory) {
         this.factory = factory;
-
     }
 
     public Instance resolve(final ComponentContext context, final Resolver dependencies) throws Exception {
         return new Instance() {
-
             @SuppressWarnings("unchecked")
             public void bind(final Registry registry) throws Exception {
                 final Component.Reference reference = context.annotation(Component.Reference.class, Log.class);

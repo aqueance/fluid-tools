@@ -16,7 +16,7 @@
 
 package org.fluidity.foundation.impl;
 
-import org.fluidity.foundation.spi.AbstractLog;
+import org.fluidity.foundation.spi.LogAdapter;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,48 +24,53 @@ import org.slf4j.LoggerFactory;
 /**
  * Uses SLF4J as the underlying logging framework.
  */
-final class Slf4jLogImpl<T> extends AbstractLog<Logger, T> {
+final class Slf4jLogImpl<T> extends LogAdapter<Logger, T> {
 
     Slf4jLogImpl(final Class<?> source) {
-        super(LoggerFactory.getLogger(source.getName()), new Levels<Logger>() {
-            public boolean trace(final Logger log) {
+        super(LoggerFactory.getLogger(source.getName()));
+    }
+
+    @Override
+    protected Levels levels() {
+        return new Levels() {
+            public boolean trace() {
                 return log.isTraceEnabled();
             }
 
-            public boolean debug(final Logger log) {
+            public boolean debug() {
                 return log.isDebugEnabled();
             }
 
-            public boolean info(final Logger log) {
+            public boolean info() {
                 return log.isInfoEnabled();
             }
 
-            public boolean warning(final Logger log) {
+            public boolean warning() {
                 return log.isWarnEnabled();
             }
-        });
+        };
     }
 
     public void trace(final String format, final Object... args) {
-        if (permissions.trace) {
+        if (permissions.trace()) {
             log.trace(String.format(format, args));
         }
     }
 
     public void debug(final String format, final Object... args) {
-        if (permissions.debug) {
+        if (permissions.debug()) {
             log.debug(String.format(format, args));
         }
     }
 
     public void info(final String format, final Object... args) {
-        if (permissions.info) {
+        if (permissions.info()) {
             log.info(String.format(format, args));
         }
     }
 
     public void warning(final String format, final Object... args) {
-        if (permissions.info) {
+        if (permissions.info()) {
             log.warn(String.format(format, args));
         }
     }
@@ -75,25 +80,25 @@ final class Slf4jLogImpl<T> extends AbstractLog<Logger, T> {
     }
 
     public void trace(final Throwable exception, final String format, final Object... args) {
-        if (permissions.trace) {
+        if (permissions.trace()) {
             log.trace(String.format(format, args), exception);
         }
     }
 
     public void debug(final Throwable exception, final String format, final Object... args) {
-        if (permissions.debug) {
+        if (permissions.debug()) {
             log.debug(String.format(format, args), exception);
         }
     }
 
     public void info(final Throwable exception, final String format, final Object... args) {
-        if (permissions.info) {
+        if (permissions.info()) {
             log.info(String.format(format, args), exception);
         }
     }
 
     public void warning(final Throwable exception, final String format, final Object... args) {
-        if (permissions.info) {
+        if (permissions.info()) {
             log.warn(String.format(format, args), exception);
         }
     }

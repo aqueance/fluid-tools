@@ -31,7 +31,7 @@ import org.fluidity.foundation.Log;
  * implementation must be in the class path for it to be found and used, and it must be the <i>only</i> archive in the class path that contains a {@code
  * LogFactory} implementation
  * <p/>
- * See {@link AbstractLog} for a recommended way to adapt any logging framework to Fluid Tools.
+ * See {@link LogAdapter} for a recommended way to adapt any logging framework to Fluid Tools.
  * <p/>
  * {@link Log} objects returned by this factory are thread safe as long as the underlying log implementation is.
  *

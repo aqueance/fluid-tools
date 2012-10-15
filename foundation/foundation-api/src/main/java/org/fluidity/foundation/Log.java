@@ -49,6 +49,16 @@ package org.fluidity.foundation;
 public interface Log<T> {
 
     /**
+     * The system property that specifies whether {@link Log} instances will support dynamic update of log levels or not.
+     */
+    String LOG_LEVELS_UPDATE = "org.fluidity.logging.levels.dynamic";
+
+    /**
+     * Tells if log levels can be dynamically updated (value <code>true</code>) or not (value <code>false</code>).
+     */
+    boolean DYNAMIC = Boolean.getBoolean(Log.LOG_LEVELS_UPDATE);
+
+    /**
      * Tells if TRACE level messages will be emitted or not.
      *
      * @return <code>true</code> if TRACE level messages will be emitted, <code>false</code> if not.

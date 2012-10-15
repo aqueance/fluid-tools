@@ -75,7 +75,7 @@ public interface PlatformContainer {
     <T> T[] getComponentGroup(Class<T> api, ContextDefinition context);
 
     /**
-     * Returns a textual identifier for the container. Used in {@link ComponentContainer#toString()}.
+     * Returns a textual identifier for the container. Used in {@link Object#toString() ComponentContainer.toString()}.
      *
      * @return a textual identifier for the container.
      */
