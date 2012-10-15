@@ -20,7 +20,6 @@ import java.lang.reflect.Type;
 
 import org.fluidity.composition.container.spi.DependencyGraph;
 import org.fluidity.composition.spi.ComponentFactory;
-import org.fluidity.foundation.spi.LogFactory;
 
 /**
  * Component mapping of a {@link ComponentFactory} instance.
@@ -31,8 +30,9 @@ final class FactoryResolverInstance extends FactoryResolver {
 
     private final ComponentFactory factory;
 
-    FactoryResolverInstance(final int priority, final Class<?> api, final ComponentFactory factory, final ComponentCache cache, final LogFactory logs) {
-        super(factory.getClass(), priority, api, cache, logs);
+    FactoryResolverInstance(final int priority, final Class<?> api, final ComponentFactory factory, final ComponentCache cache) {
+        super(factory.getClass(), priority, api, cache);
+
         this.factory = factory;
     }
 

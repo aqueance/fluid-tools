@@ -30,6 +30,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
@@ -41,15 +42,15 @@ import org.fluidity.composition.spi.ComponentFactory;
 import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.Log;
 import org.fluidity.foundation.Strings;
-import org.fluidity.foundation.spi.LogFactory;
 
 /**
  * @author Tibor Varga
  */
 final class SimpleContainerImpl implements ParentContainer {
 
+    private static AtomicReference<Log> log = new AtomicReference<Log>();
+
     private final ContainerServices services;
-    private final Log log;
 
     private final ParentContainer parent;
     private final ParentContainer domain;
@@ -58,7 +59,6 @@ final class SimpleContainerImpl implements ParentContainer {
     private final Map<Class<?>, GroupResolver> groups = new HashMap<Class<?>, GroupResolver>();
 
     private final DependencyInjector injector;
-    private final LogFactory logs;
 
     SimpleContainerImpl(final ContainerServices services, final PlatformContainer platform) {
         this(platform == null ? null : new SuperContainer(platform), null, services);
@@ -69,8 +69,8 @@ final class SimpleContainerImpl implements ParentContainer {
         this.domain = domain == null ? this : domain;
         this.services = services;
         this.injector = this.services.dependencyInjector();
-        this.logs = this.services.logs();
-        this.log = this.logs.createLog(getClass());
+
+        log.compareAndSet(null, this.services.createLog(log.get(), getClass()));
     }
 
     public ContainerServices services() {
@@ -192,12 +192,12 @@ final class SimpleContainerImpl implements ParentContainer {
         final boolean isStateful = componentSpec != null && componentSpec.stateful();
         final boolean isFallback = componentSpec != null && !componentSpec.primary();
 
-        log.debug("%s: binding %s to %s (%s, %s)",
-                  this,
-                  implementation,
-                  interfaces,
-                  isStateful ? "stateful" : "stateless",
-                  isFallback ? "fallback" : "primary");
+        log.get().debug("%s: binding %s to %s (%s, %s)",
+                        this,
+                        implementation,
+                        interfaces,
+                        isStateful ? "stateful" : "stateless",
+                        isFallback ? "fallback" : "primary");
 
         bindResolvers(implementation, interfaces.api, isStateful, new ContentResolvers() {
 
@@ -206,12 +206,12 @@ final class SimpleContainerImpl implements ParentContainer {
             }
 
             public ComponentResolver component(final Class<?> api, final ComponentCache cache, final boolean resolvesFactory) {
-                return new ConstructingResolver(isFallback ? 0 : 1, api, implementation, resolvesFactory, cache, injector, logs);
+                return new ConstructingResolver(isFallback ? 0 : 1, api, implementation, resolvesFactory, cache, injector);
             }
 
             public FactoryResolver factory(final Class<?> api, final ComponentCache cache) {
                 final Class<? extends ComponentFactory> factory = implementation.asSubclass(ComponentFactory.class);
-                return new FactoryResolverClass(isFallback ? 0 : 1, api, factory, cache, logs);
+                return new FactoryResolverClass(isFallback ? 0 : 1, api, factory, cache);
             }
         });
     }
@@ -224,7 +224,7 @@ final class SimpleContainerImpl implements ParentContainer {
 
             final String value = instance instanceof String || instance instanceof Number ? String.format("'%s'", instance) : Strings.printObjectId(instance);
 
-            log.debug("%s: binding %s to %s (%s)", this, value, interfaces, isFallback ? "fallback" : "primary");
+            log.get().debug("%s: binding %s to %s (%s)", this, value, interfaces, isFallback ? "fallback" : "primary");
 
             bindResolvers(implementation, interfaces.api, false, new ContentResolvers() {
 
@@ -233,25 +233,24 @@ final class SimpleContainerImpl implements ParentContainer {
                 }
 
                 public ComponentResolver component(final Class<?> api, final ComponentCache cache, final boolean resolvesFactory) {
-                    return new InstanceResolver(isFallback ? 0 : 1, api, instance, logs);
+                    return new InstanceResolver(isFallback ? 0 : 1, api, instance);
                 }
 
                 @SuppressWarnings("ConstantConditions")
                 public FactoryResolver factory(final Class<?> api, final ComponentCache cache) {
-                    return new FactoryResolverInstance(isFallback ? 0 : 1, api, (ComponentFactory) instance, cache, logs);
+                    return new FactoryResolverInstance(isFallback ? 0 : 1, api, (ComponentFactory) instance, cache);
                 }
             });
         }
     }
 
     public SimpleContainer linkComponent(final Components.Interfaces interfaces) throws ComponentContainer.BindingException {
-        final LogFactory logs = this.logs;
         final SimpleContainer child = newChildContainer(false);
 
         child.bindComponent(interfaces);
 
         for (final Components.Specification specification : interfaces.api) {
-            bindResolver(specification.api, new LinkingResolver(child, specification.api, child.resolver(specification.api, false), logs));
+            bindResolver(specification.api, new LinkingResolver(child, specification.api, child.resolver(specification.api, false)));
         }
 
         return child;

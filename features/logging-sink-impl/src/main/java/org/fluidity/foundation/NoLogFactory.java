@@ -113,7 +113,7 @@ public final class NoLogFactory implements LogFactory {
      *
      * @return the log sink.
      */
-    @SuppressWarnings({ "unchecked", "UnusedParameters" })
+    @SuppressWarnings({ "unchecked", "UnusedDeclaration" })
     public static <T> Log<T> consume(final Class<T> ignored) {
         return (Log<T>) sink;
     }

@@ -63,7 +63,7 @@ interface ContainerBootstrap {
      *                  PlatformContainer, ContainerBootstrap.Callback)} method, to initialize.
      * @param services  provides basic services for containers
      */
-    void initializeContainer(OpenContainer container, ContainerServices services);
+    void initializeContainer(OpenContainer container, ContainerServices services) throws Exception;
 
     /**
      * Notification receiver concerning container initialization / shutdown.

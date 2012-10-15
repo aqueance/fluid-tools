@@ -32,14 +32,14 @@
         </dependency>
 
         <dependency>
-            <groupId>org.fluidity.public</groupId>
+            <groupId>${fluidity.public.groupId}</groupId>
             <artifactId>fluid-tools-cli-application</artifactId>
             <version>${project.version}</version>
             <type>pom</type>
         </dependency>
 
         <dependency>
-            <groupId>org.fluidity.deployment</groupId>
+            <groupId>${fluidity.deployment.groupId}</groupId>
             <artifactId>osgi-application-bootstrap</artifactId>
             <version>${project.version}</version>
         </dependency>

@@ -22,7 +22,6 @@ import java.lang.reflect.Type;
 
 import org.fluidity.composition.container.spi.DependencyGraph;
 import org.fluidity.foundation.Generics;
-import org.fluidity.foundation.spi.LogFactory;
 
 /**
  * Component resolver that works by instantiating a class.
@@ -34,7 +33,6 @@ final class ConstructingResolver extends AbstractResolver {
     private final DependencyInjector injector;
 
     private final Class<?> componentClass;
-
     private final Constructor<?> constructor;
     private final boolean ignoreContext;
 
@@ -43,9 +41,9 @@ final class ConstructingResolver extends AbstractResolver {
                          final Class<?> componentClass,
                          final boolean ignoreContext,
                          final ComponentCache cache,
-                         final DependencyInjector injector,
-                         final LogFactory logs) {
-        super(priority, api, cache, logs);
+                         final DependencyInjector injector) {
+        super(priority, api, cache);
+
         this.ignoreContext = ignoreContext;
         this.injector = injector;
         this.componentClass = componentClass;

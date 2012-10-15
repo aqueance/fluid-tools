@@ -19,6 +19,7 @@ package org.fluidity.composition;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.fluidity.composition.container.ContainerServices;
 import org.fluidity.composition.container.PlatformContainer;
@@ -35,6 +36,8 @@ import org.fluidity.foundation.Log;
  */
 final class ContainerBootstrapImpl implements ContainerBootstrap {
 
+    private static AtomicReference<Log> log = new AtomicReference<Log>();
+
     @SuppressWarnings("unchecked")
     public MutableContainer populateContainer(final ContainerServices services,
                                                     final ContainerProvider provider,
@@ -43,7 +46,7 @@ final class ContainerBootstrapImpl implements ContainerBootstrap {
                                                     final ClassLoader classLoader,
                                                     final PlatformContainer platform,
                                                     final Callback callback) {
-        final Log log = services.logs().createLog(getClass());
+        final Log log = log(services);
         final ClassDiscovery discovery = services.classDiscovery();
 
         final MutableContainer container = parent == null ? provider.newContainer(services, platform) : parent.makeChildContainer();
@@ -114,8 +117,8 @@ final class ContainerBootstrapImpl implements ContainerBootstrap {
         return Arrays.asList(instances);
     }
 
-    public void initializeContainer(final OpenContainer container, final ContainerServices services) {
-        final Log log = services.logs().createLog(getClass());
+    public void initializeContainer(final OpenContainer container, final ContainerServices services) throws Exception {
+        final Log log = log(services);
         final ContainerLifecycle lifecycle = container.getComponent(ContainerLifecycle.class);
 
         if (lifecycle == null) {
@@ -123,6 +126,11 @@ final class ContainerBootstrapImpl implements ContainerBootstrap {
         }
 
         lifecycle.initialize(log);
+    }
+
+    private Log log(final ContainerServices services) {
+        log.compareAndSet(null, services.createLog(log.get(), getClass()));
+        return log.get();
     }
 }
 

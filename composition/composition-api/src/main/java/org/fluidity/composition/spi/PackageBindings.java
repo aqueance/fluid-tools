@@ -50,7 +50,7 @@ public interface PackageBindings extends ComponentContainer.Bindings {
      * @param container is the container that was populated by the {@link
      *                  org.fluidity.composition.ComponentContainer.Bindings#bindComponents(org.fluidity.composition.ComponentContainer.Registry)} method.
      */
-    void initializeComponents(OpenContainer container);
+    void initializeComponents(OpenContainer container) throws Exception;
 
     /**
      * Perform component specific shutdown if necessary. This method is invoked once when the container that was populated by the {@link

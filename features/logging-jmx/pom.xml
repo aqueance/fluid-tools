@@ -18,16 +18,16 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <parent>
         <groupId>org.fluidity</groupId>
-        <artifactId>fluid-tools</artifactId>
+        <artifactId>features-root</artifactId>
         <version>1.0.0-SNAPSHOT</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
-    <groupId>org.fluidity</groupId>
-    <artifactId>features-root</artifactId>
+    <groupId>org.fluidity.features</groupId>
+    <artifactId>logging-jmx</artifactId>
     <version>1.0.0-SNAPSHOT</version>
-    <packaging>pom</packaging>
-    <name>Fluid Tools: Feature Modules</name>
+    <packaging>jar</packaging>
+    <name>Fluid Tools: Logging Management with JMX</name>
 
     <licenses>
         <license>
@@ -38,19 +38,36 @@
     </licenses>
 
     <description><![CDATA[
-This project lists the extra feature modules of Fluid Tools.
+This project is intended to be the Fluid Tools dependency of applications
+that use JMX to dynamically change log levels at run time.
     ]]></description>
 
-    <modules>
-        <module>logging-slf4j-impl</module>
-        <module>logging-java-impl</module>
-        <module>logging-commons-impl</module>
-        <module>logging-sink-impl</module>
-        <module>logging-jmx</module>
-        <module>jar-manifest-command-launcher-impl</module>
-        <module>jar-manifest-osgi-bundle-impl</module>
-        <module>foundation-scheduling-api</module>
-        <module>foundation-scheduling-impl</module>
-    </modules>
+    <dependencies>
+
+        <dependency>
+            <groupId>${fluidity.composition.groupId}</groupId>
+            <artifactId>composition-bootstrap-support</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+    </dependencies>
+
+    <build>
+        <plugins>
+
+            <plugin>
+                <groupId>${fluidity.plugin.groupId}</groupId>
+                <artifactId>composition-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>process-annotations</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+        </plugins>
+    </build>
 
 </project>

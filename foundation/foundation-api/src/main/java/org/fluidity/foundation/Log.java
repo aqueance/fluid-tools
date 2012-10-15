@@ -22,9 +22,12 @@ package org.fluidity.foundation;
  * <p/>
  * Message formatting conforms to the Java print format specification.
  * <p/>
- * The injected instance will be backed by one of the popular logging frameworks; which one is used depends on the {@link
- * org.fluidity.foundation.spi.LogFactory} found in the class path. If no specific logging framework is configured, Fluid Tools provides a default factory that
- * forwards all log messages to the standard output stream.
+ * The injected instance will be backed by an actual logging framework; which one is used depends on the {@link org.fluidity.foundation.spi.LogFactory} found
+ * in the class path. Fluid Tools implements adapters for popular frameworks; see the <a
+ * href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Logging_Alternatives">User Guide</a> for details. If no specific logging framework is configured,
+ * the default one will be used that forwards all log messages to the standard output stream.
+ * <h3>Log Levels</h3>
+ * Log levels are queried from the underlying logging framework and cached. Invoke {@link LogLevels#updated()} to trigger reloading the log level permissions.
  * <h3>Usage</h3>
  * <pre>
  * {@linkplain org.fluidity.composition.Component @Component}
@@ -47,16 +50,6 @@ package org.fluidity.foundation;
  */
 @SuppressWarnings({ "UnusedDeclaration", "JavadocReference" })
 public interface Log<T> {
-
-    /**
-     * The system property that specifies whether {@link Log} instances will support dynamic update of log levels or not.
-     */
-    String LOG_LEVELS_UPDATE = "org.fluidity.logging.levels.dynamic";
-
-    /**
-     * Tells if log levels can be dynamically updated (value <code>true</code>) or not (value <code>false</code>).
-     */
-    boolean DYNAMIC = Boolean.getBoolean(Log.LOG_LEVELS_UPDATE);
 
     /**
      * Tells if TRACE level messages will be emitted or not.

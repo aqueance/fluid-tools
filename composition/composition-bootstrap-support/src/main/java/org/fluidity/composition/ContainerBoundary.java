@@ -34,7 +34,9 @@ import org.fluidity.composition.container.internal.ContainerServicesFactory;
 import org.fluidity.composition.container.spi.ContainerProvider;
 import org.fluidity.composition.spi.ComponentInterceptor;
 import org.fluidity.foundation.ClassLoaders;
+import org.fluidity.foundation.Command;
 import org.fluidity.foundation.Command.Function;
+import org.fluidity.foundation.Exceptions;
 import org.fluidity.foundation.spi.LogFactory;
 
 /**
@@ -439,7 +441,12 @@ public final class ContainerBoundary implements ComponentContainer {
                 for (final ListIterator<MutableContainer> iterator = containers.listIterator(containers.size()); iterator.hasPrevious(); ) {
                     final MutableContainer container = iterator.previous();
 
-                    containerBootstrap.initializeContainer(container, containerServices);
+                    Exceptions.wrap(new Command.Process<Object, Throwable>() {
+                        public Object run() throws Throwable {
+                            containerBootstrap.initializeContainer(container, containerServices);
+                            return null;
+                        }
+                    });
 
                     if (container == initialized) {
                         break;

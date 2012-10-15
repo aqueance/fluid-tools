@@ -24,8 +24,6 @@ import org.fluidity.foundation.spi.LogFactory;
 /**
  * Creates {@link Log} objects for the class specified as the type parameter of the <code>Log</code> dependency, using the user provided implementation of the
  * {@link LogFactory} interface.
- * <p/>
- * TODO: log levels
  *
  * @author Tibor Varga
  */

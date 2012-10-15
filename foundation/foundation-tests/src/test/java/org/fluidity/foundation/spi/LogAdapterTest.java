@@ -16,7 +16,7 @@
 
 package org.fluidity.foundation.spi;
 
-import org.fluidity.foundation.Log;
+import org.fluidity.foundation.LogLevels;
 import org.fluidity.testing.MockGroup;
 
 import org.easymock.EasyMock;
@@ -30,41 +30,11 @@ public class LogAdapterTest extends MockGroup {
     private final LogAdapter.Levels levels = mock(LogAdapter.Levels.class);
     private final Logger logger = new Logger();
 
-    public LogAdapterTest() {
-        System.setProperty(Log.LOG_LEVELS_UPDATE, "true");
-    }
-
-    @Test
-    public void testStatic() throws Exception {
-        EasyMock.expect(levels.trace()).andReturn(true);
-        EasyMock.expect(levels.debug()).andReturn(false);
-        EasyMock.expect(levels.info()).andReturn(true);
-        EasyMock.expect(levels.warning()).andReturn(false);
-
-        final Adapter log = verify(new Work<Adapter>() {
-            public Adapter run() throws Exception {
-                return new Adapter(false, logger);
-            }
-        });
-
-        final Task assertions = new Task() {
-            public void run() throws Exception {
-                assert log.isTraceEnabled();
-                assert !log.isDebugEnabled();
-                assert log.isInfoEnabled();
-                assert !log.isWarningEnabled();
-            }
-        };
-
-        verify(assertions);
-        verify(assertions);
-    }
-
     @Test
     public void testDynamic() throws Exception {
         final Adapter log = verify(new Work<Adapter>() {
             public Adapter run() throws Exception {
-                return new Adapter(true, logger);
+                return new Adapter(logger);
             }
         });
 
@@ -83,8 +53,19 @@ public class LogAdapterTest extends MockGroup {
                         assert log.isWarningEnabled();
                     }
                 });
+
+                verify(new Task() {
+                    public void run() throws Exception {
+                        assert !log.isTraceEnabled();
+                        assert log.isDebugEnabled();
+                        assert !log.isInfoEnabled();
+                        assert log.isWarningEnabled();
+                    }
+                });
             }
         });
+
+        LogLevels.updated();
 
         test(new Task() {
             public void run() throws Exception {
@@ -109,8 +90,8 @@ public class LogAdapterTest extends MockGroup {
 
     private final class Adapter extends LogAdapter<Logger, Object> {
 
-        Adapter(final boolean dynamic, final Logger log) {
-            super(dynamic, log);
+        Adapter(final Logger log) {
+            super(log);
         }
 
         @Override

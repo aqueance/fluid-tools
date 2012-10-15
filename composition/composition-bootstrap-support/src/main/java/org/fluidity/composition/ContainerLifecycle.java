@@ -51,7 +51,7 @@ final class ContainerLifecycle {
         this.callback = callback;
     }
 
-    public boolean initialize(final Log log) {
+    public boolean initialize(final Log log) throws Exception {
         final boolean init = shouldInitialize.compareAndSet(true, false);
 
         if (init) {

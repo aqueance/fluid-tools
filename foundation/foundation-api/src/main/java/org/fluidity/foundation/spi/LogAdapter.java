@@ -17,6 +17,7 @@
 package org.fluidity.foundation.spi;
 
 import org.fluidity.foundation.Log;
+import org.fluidity.foundation.LogLevels;
 
 /**
  * The recommended super class for log implementations.
@@ -53,7 +54,7 @@ import org.fluidity.foundation.Log;
  *   }
  *
  *   public void trace(final String message, final Object... args) {
- *     if (<span class="hl1">{@linkplain LogAdapter#permissions}.trace()</span>) {
+ *     if (<span class="hl1">{@linkplain LogAdapter#permissions()}.trace</span>) {
  *       <span class="hl1">log</span>.<b>trace</b>(message, args);
  *     }
  *   }
@@ -89,10 +90,9 @@ public abstract class LogAdapter<T, L> implements Log<L> {
      */
     protected final T log;
 
-    /**
-     * Flags for the various log level permissions.
-     */
-    protected final Levels permissions;
+    private final Levels levels;
+    private volatile long timestamp;
+    private Permissions permissions;
 
     /**
      * Creates a log instance.
@@ -100,54 +100,58 @@ public abstract class LogAdapter<T, L> implements Log<L> {
      * @param log the external log type.
      */
     protected LogAdapter(final T log) {
-        this(DYNAMIC, log);
-    }
-
-    /**
-     * Used internally to test dynamic log levels.
-     *
-     * @param dynamic tells whether to support dynamic log levels or not.
-     * @param log     the external log type.
-     */
-    LogAdapter(boolean dynamic, final T log) {
         this.log = log;
-        this.permissions = dynamic ? new DynamicLevels(levels()) : new StaticLevels(levels());
+        this.levels = levels();
     }
 
     /**
-     * Returns the logging framework specific adapter that queries the log levels of the encapsulated logger. Do <i>not</i> call this from concrete subclasses.
-     * Use the {@link #permissions} variable instead.
+     * Returns the logging framework specific adapter that queries the log levels of the encapsulated logger. Do <i>not</i> call this from concrete subclasses
+     * but use the {@link #permissions()} method instead.
      *
      * @return the logging framework specific adapter that queries the log levels of the encapsulated logger.
      */
     protected abstract Levels levels();
 
     /**
+     * Flags for the various log level permissions.
+     */
+    protected final Permissions permissions() {
+        final long updated = LogLevels.updated;                 // LogLevels.updated is volatile, avoid excessive access
+
+        if (updated > timestamp || permissions == null) {       // this is a read barrier as timestamp is volatile
+            permissions = new Permissions(levels);
+            timestamp = updated;                                // this is a write barrier as timestamp is volatile
+        }
+
+        return permissions;
+    }
+
+    /**
      * {@inheritDoc}
      */
     public final boolean isTraceEnabled() {
-        return permissions.trace();
+        return permissions().trace;
     }
 
     /**
      * {@inheritDoc}
      */
     public final boolean isDebugEnabled() {
-        return permissions.debug();
+        return permissions().debug;
     }
 
     /**
      * {@inheritDoc}
      */
     public final boolean isInfoEnabled() {
-        return permissions.info();
+        return permissions().info;
     }
 
     /**
      * {@inheritDoc}
      */
     public final boolean isWarningEnabled() {
-        return permissions.warning();
+        return permissions().warning;
     }
 
     /**
@@ -194,66 +198,19 @@ public abstract class LogAdapter<T, L> implements Log<L> {
      *
      * @author Tibor Varga
      */
-    private static class StaticLevels implements Levels {
+    protected static final class Permissions {
 
-        private final boolean trace;
-        private final boolean debug;
-        private final boolean info;
-        private final boolean warning;
+        public final boolean trace;
+        public final boolean debug;
+        public final boolean info;
+        public final boolean warning;
 
-        StaticLevels(final Levels levels) {
+        Permissions(final Levels levels) {
             assert levels != null;
             trace = levels.trace();
             debug = levels.debug();
             info = levels.info();
             warning = levels.warning();
-        }
-
-        public boolean trace() {
-            return trace;
-        }
-
-        public boolean debug() {
-            return debug;
-        }
-
-        public boolean info() {
-            return info;
-        }
-
-        public boolean warning() {
-            return warning;
-        }
-    }
-
-    /**
-     * Always queries the log levels.
-     *
-     * @author Tibor Varga
-     */
-    private static class DynamicLevels implements Levels {
-
-        private final Levels levels;
-
-        DynamicLevels(final Levels levels) {
-            assert levels != null;
-            this.levels = levels;
-        }
-
-        public boolean trace() {
-            return levels.trace();
-        }
-
-        public boolean debug() {
-            return levels.debug();
-        }
-
-        public boolean info() {
-            return levels.info();
-        }
-
-        public boolean warning() {
-            return levels.warning();
         }
     }
 }

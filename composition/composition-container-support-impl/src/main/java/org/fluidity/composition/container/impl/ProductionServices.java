@@ -70,11 +70,11 @@ final class ProductionServices implements ContainerServices {
         return CompositeObserver.combine(observers);
     }
 
-    public LogFactory logs() {
-        return logs;
-    }
-
     public ComponentCache newCache(final boolean stateless) {
         return new ComponentCacheImpl(cacheLog, stateless);
+    }
+
+    public Log createLog(final Log log, final Class<?> source) {
+        return log == null ? logs.createLog(source) : log;
     }
 }

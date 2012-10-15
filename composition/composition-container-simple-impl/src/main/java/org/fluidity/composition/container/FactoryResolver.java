@@ -33,7 +33,6 @@ import org.fluidity.composition.container.spi.DependencyGraph;
 import org.fluidity.composition.spi.ComponentFactory;
 import org.fluidity.foundation.Generics;
 import org.fluidity.foundation.Lists;
-import org.fluidity.foundation.spi.LogFactory;
 
 /**
  * Component resolver for a {@link ComponentFactory} component.
@@ -56,12 +55,9 @@ abstract class FactoryResolver extends AbstractResolver {
 
     private final Class<? extends ComponentFactory> factoryClass;
 
-    protected FactoryResolver(final Class<? extends ComponentFactory> factoryClass,
-                              final int priority,
-                              final Class<?> api,
-                              final ComponentCache cache,
-                              final LogFactory logs) {
-        super(priority, api, cache, logs);
+    protected FactoryResolver(final Class<? extends ComponentFactory> factoryClass, final int priority, final Class<?> api, final ComponentCache cache) {
+        super(priority, api, cache);
+
         this.factoryClass = factoryClass;
     }
 

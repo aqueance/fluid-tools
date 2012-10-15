@@ -30,8 +30,8 @@ import org.fluidity.composition.spi.EmptyPackageBindings;
 import org.fluidity.composition.spi.PackageBindings;
 import org.fluidity.foundation.ClassDiscovery;
 import org.fluidity.foundation.Command;
+import org.fluidity.foundation.Log;
 import org.fluidity.foundation.NoLogFactory;
-import org.fluidity.foundation.spi.LogFactory;
 import org.fluidity.testing.MockGroup;
 
 import org.easymock.EasyMock;
@@ -44,7 +44,7 @@ import org.testng.annotations.Test;
  */
 public final class ContainerBootstrapImplTest extends MockGroup {
 
-    private final LogFactory logs = new NoLogFactory();
+    private final Log log = NoLogFactory.consume(getClass());
 
     private final ContainerBootstrap.Callback callback = mock(ContainerBootstrap.Callback.class);
     private final PlatformContainer platform = mock(PlatformContainer.class);
@@ -65,7 +65,7 @@ public final class ContainerBootstrapImplTest extends MockGroup {
     public void dependencies() {
         bootstrap = new ContainerBootstrapImpl();
 
-        EasyMock.expect(services.logs()).andReturn(logs).anyTimes();
+        EasyMock.expect(services.createLog(EasyMock.<Log>anyObject(), EasyMock.<Class<?>>anyObject())).andReturn(log).anyTimes();
         EasyMock.expect(services.classDiscovery()).andReturn(discovery).anyTimes();
     }
 
@@ -298,7 +298,7 @@ public final class ContainerBootstrapImplTest extends MockGroup {
             bindings.bindComponents(registry);
         }
 
-        public void initializeComponents(final OpenContainer container) {
+        public void initializeComponents(final OpenContainer container) throws Exception {
             bindings.initializeComponents(container);
         }
 
@@ -322,7 +322,7 @@ public final class ContainerBootstrapImplTest extends MockGroup {
             bindings.bindComponents(registry);
         }
 
-        public void initializeComponents(final OpenContainer container) {
+        public void initializeComponents(final OpenContainer container) throws Exception {
             bindings.initializeComponents(container);
             list.add(this);
         }
@@ -348,7 +348,7 @@ public final class ContainerBootstrapImplTest extends MockGroup {
             bindings.bindComponents(registry);
         }
 
-        public void initializeComponents(final OpenContainer container) {
+        public void initializeComponents(final OpenContainer container) throws Exception {
             bindings.initializeComponents(container);
             list.add(this);
         }

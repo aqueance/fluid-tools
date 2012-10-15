@@ -19,7 +19,7 @@ package org.fluidity.composition.container;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.container.spi.DependencyGraph;
 import org.fluidity.foundation.ClassDiscovery;
-import org.fluidity.foundation.spi.LogFactory;
+import org.fluidity.foundation.Log;
 
 /**
  * Common services for container implementations. This is an internal interface to be used by dependency injection container implementations.
@@ -87,13 +87,6 @@ public interface ContainerServices {
     ComponentContainer.Observer aggregateObserver(ComponentContainer.Observer... observers);
 
     /**
-     * Returns the logger factory to use by the container.
-     *
-     * @return the logger factory to use by the container; never <code>null</code>.
-     */
-    LogFactory logs();
-
-    /**
      * Creates and returns a new component cache instance.
      *
      * @param stateless specifies whether the component can actually be cached or not. Value <code>true</code> means the component can be cached.
@@ -101,4 +94,14 @@ public interface ContainerServices {
      * @return a new component cache instance; never <code>null</code>.
      */
     ComponentCache newCache(boolean stateless);
+
+    /**
+     * Create an {@link Log} instance, once per source class.
+     *
+     * @param log    the {@link Log} instance the source class currently has.
+     * @param source the source class.
+     *
+     * @return the instance the source class currently has, unless it is <code>null</code>, in which case a new instance is returned.
+     */
+    Log createLog(Log log, Class<?> source);
 }

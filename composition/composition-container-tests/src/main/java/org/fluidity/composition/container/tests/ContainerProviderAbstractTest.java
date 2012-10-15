@@ -25,8 +25,8 @@ import org.fluidity.composition.container.PlatformContainer;
 import org.fluidity.composition.container.spi.ContainerProvider;
 import org.fluidity.composition.container.spi.DependencyGraph;
 import org.fluidity.foundation.ClassDiscovery;
+import org.fluidity.foundation.Log;
 import org.fluidity.foundation.NoLogFactory;
-import org.fluidity.foundation.spi.LogFactory;
 import org.fluidity.testing.MockGroup;
 
 import org.easymock.EasyMock;
@@ -40,7 +40,7 @@ import org.testng.annotations.Test;
  */
 public abstract class ContainerProviderAbstractTest extends MockGroup {
 
-    private final LogFactory logs = new NoLogFactory();
+    private final Log log = NoLogFactory.consume(getClass());
 
     private final ContainerServices services = mock(ContainerServices.class);
     private final ClassDiscovery classDiscovery = mock(ClassDiscovery.class);
@@ -58,7 +58,7 @@ public abstract class ContainerProviderAbstractTest extends MockGroup {
 
     @BeforeMethod
     public final void dependencies() {
-        EasyMock.expect(services.logs()).andReturn(logs).anyTimes();
+        EasyMock.expect(services.createLog(EasyMock.<Log>anyObject(), EasyMock.<Class<?>>anyObject())).andReturn(log).anyTimes();
         EasyMock.expect(services.classDiscovery()).andReturn(classDiscovery).anyTimes();
         EasyMock.expect(services.dependencyInjector()).andReturn(injector).anyTimes();
         EasyMock.expect(services.newCache(EasyMock.anyBoolean())).andReturn(componentCache).anyTimes();

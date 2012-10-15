@@ -53,25 +53,25 @@ final class JavaLogImpl<T> extends LogAdapter<Logger, T> {
     }
 
     public void trace(final String format, final Object... args) {
-        if (permissions.trace()) {
+        if (permissions().trace) {
             log.log(Level.FINEST, String.format(format, args));
         }
     }
 
     public void debug(final String format, final Object... args) {
-        if (permissions.debug()) {
+        if (permissions().debug) {
             log.log(Level.FINE, String.format(format, args));
         }
     }
 
     public void info(final String format, final Object... args) {
-        if (permissions.info()) {
+        if (permissions().info) {
             log.log(Level.INFO, String.format(format, args));
         }
     }
 
     public void warning(final String format, final Object... args) {
-        if (permissions.info()) {
+        if (permissions().info) {
             log.log(Level.WARNING, String.format(format, args));
         }
     }
@@ -81,25 +81,25 @@ final class JavaLogImpl<T> extends LogAdapter<Logger, T> {
     }
 
     public void trace(final Throwable exception, final String format, final Object... args) {
-        if (permissions.trace()) {
+        if (permissions().trace) {
             log.log(Level.FINEST, String.format(format, args), exception);
         }
     }
 
     public void debug(final Throwable exception, final String format, final Object... args) {
-        if (permissions.debug()) {
+        if (permissions().debug) {
             log.log(Level.FINE, String.format(format, args), exception);
         }
     }
 
     public void info(final Throwable exception, final String format, final Object... args) {
-        if (permissions.info()) {
+        if (permissions().info) {
             log.log(Level.INFO, String.format(format, args), exception);
         }
     }
 
     public void warning(final Throwable exception, final String format, final Object... args) {
-        if (permissions.info()) {
+        if (permissions().info) {
             log.log(Level.WARNING, String.format(format, args), exception);
         }
     }

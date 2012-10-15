@@ -21,7 +21,6 @@ import java.lang.reflect.Type;
 
 import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.container.spi.DependencyGraph;
-import org.fluidity.foundation.spi.LogFactory;
 
 /**
  * Links a component binding in the parent container to a resolver in the child. The component when looked up in the parent ends up handled by the child.
@@ -33,8 +32,8 @@ final class LinkingResolver extends AbstractResolver {
     private final SimpleContainer target;
     private ComponentResolver delegate;
 
-    LinkingResolver(final SimpleContainer container, final Class<?> api, final ComponentResolver delegate, final LogFactory logs) {
-        super(delegate.priority(), api, null, logs);
+    LinkingResolver(final SimpleContainer container, final Class<?> api, final ComponentResolver delegate) {
+        super(delegate.priority(), api, null);
 
         this.delegate = delegate;
         this.target = container;

@@ -21,7 +21,6 @@ import java.lang.reflect.Type;
 
 import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.container.spi.DependencyGraph;
-import org.fluidity.foundation.spi.LogFactory;
 
 /**
  * Component mapping for a pre-instantiated component.
@@ -33,8 +32,9 @@ final class InstanceResolver extends AbstractResolver {
     private final Object instance;
     private final Class<?> componentClass;
 
-    InstanceResolver(final int priority, final Class<?> api, final Object instance, final LogFactory logs) {
-        super(priority, api, null, logs);
+    InstanceResolver(final int priority, final Class<?> api, final Object instance) {
+        super(priority, api, null);
+
         this.instance = instance;
         this.componentClass = this.instance.getClass();
     }

@@ -62,7 +62,7 @@ public abstract class EmptyPackageBindings implements PackageBindings {
      * <p/>
      * This implementation does nothing; allows subclasses to do nothing by not overriding this method.
      */
-    public void initializeComponents(final OpenContainer container) {
+    public void initializeComponents(final OpenContainer container) throws Exception {
         // empty
     }
 

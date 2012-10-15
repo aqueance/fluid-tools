@@ -23,8 +23,6 @@ import java.util.HashSet;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.container.spi.DependencyGraph;
-import org.fluidity.foundation.Log;
-import org.fluidity.foundation.spi.LogFactory;
 
 /**
  * Common functionality for component resolvers.
@@ -34,17 +32,15 @@ import org.fluidity.foundation.spi.LogFactory;
 abstract class AbstractResolver implements ComponentResolver {
 
     private final int priority;
-    protected final Log log;
     protected final Class<?> api;
     protected final ComponentCache cache;
 
     private final Collection<Class<?>> groups = new HashSet<Class<?>>();
 
-    protected AbstractResolver(final int priority, final Class<?> api, final ComponentCache cache, final LogFactory logs) {
+    protected AbstractResolver(final int priority, final Class<?> api, final ComponentCache cache) {
         this.priority = priority;
         this.api = api;
         this.cache = cache;
-        this.log = logs.createLog(getClass());
     }
 
     public int priority() {

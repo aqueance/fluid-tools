@@ -52,25 +52,25 @@ final class CommonsLogImpl<T> extends LogAdapter<Log, T> {
     }
 
     public void trace(final String format, final Object... args) {
-        if (permissions.trace()) {
+        if (permissions().trace) {
             log.trace(String.format(format, args));
         }
     }
 
     public void debug(final String format, final Object... args) {
-        if (permissions.debug()) {
+        if (permissions().debug) {
             log.debug(String.format(format, args));
         }
     }
 
     public void info(final String format, final Object... args) {
-        if (permissions.info()) {
+        if (permissions().info) {
             log.info(String.format(format, args));
         }
     }
 
     public void warning(final String format, final Object... args) {
-        if (permissions.info()) {
+        if (permissions().info) {
             log.warn(String.format(format, args));
         }
     }
@@ -80,25 +80,25 @@ final class CommonsLogImpl<T> extends LogAdapter<Log, T> {
     }
 
     public void trace(final Throwable exception, final String format, final Object... args) {
-        if (permissions.trace()) {
+        if (permissions().trace) {
             log.trace(String.format(format, args), exception);
         }
     }
 
     public void debug(final Throwable exception, final String format, final Object... args) {
-        if (permissions.debug()) {
+        if (permissions().debug) {
             log.debug(String.format(format, args), exception);
         }
     }
 
     public void info(final Throwable exception, final String format, final Object... args) {
-        if (permissions.info()) {
+        if (permissions().info) {
             log.info(String.format(format, args), exception);
         }
     }
 
     public void warning(final Throwable exception, final String format, final Object... args) {
-        if (permissions.info()) {
+        if (permissions().info) {
             log.warn(String.format(format, args), exception);
         }
     }
