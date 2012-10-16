@@ -207,8 +207,9 @@ public @interface Component {
             LAST,
 
             /**
-             * The only instance of the context annotation passed to the component that accepts that context annotation is the one annotating the immediate
-             * dependency reference to that component.
+             * The only instance of the context annotation passed to the component that accepts that context annotation is the one annotating the class, the
+             * injected constructor or method, the injected dependency reference to that component and is closest among these to the dependency reference.
+             * Further restrictions can be made using the {@link Target @Target} annotation.
              */
             IMMEDIATE,
 

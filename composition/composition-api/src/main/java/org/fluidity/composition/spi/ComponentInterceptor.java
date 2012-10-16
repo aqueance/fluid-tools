@@ -69,7 +69,7 @@ public interface ComponentInterceptor {
      * The interceptor cannot invoke {@link ComponentInterceptor.Dependency#create()} in this method.
      *
      * @param reference  the fully specified reference to the dependency, including type parameters, if any.
-     * @param context    the component context at the dependency reference.
+     * @param context    the component context at the dependency reference, with none of the context annotations accepted by the interceptor missing.
      * @param dependency the dependency to intercept; never <code>null</code>.
      *
      * @return the replaced dependency; may be <code>null</code>.
