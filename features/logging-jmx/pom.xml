@@ -56,6 +56,13 @@ that use JMX to dynamically change log levels at run time.
             <version>${project.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>${fluidity.foundation.groupId}</groupId>
+            <artifactId>foundation-easymock</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+
     </dependencies>
 
     <build>

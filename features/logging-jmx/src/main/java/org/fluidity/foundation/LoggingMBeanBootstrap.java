@@ -29,14 +29,16 @@ import org.fluidity.composition.spi.EmptyPackageBindings;
  * @author Tibor Varga
  */
 @SuppressWarnings("UnusedDeclaration")
-final class PackageBindingsImpl extends EmptyPackageBindings {
+final class LoggingMBeanBootstrap extends EmptyPackageBindings {
+
+    static final String MBEAN_NAME = String.format("org.fluidity.management:type=%s", Strings.printClass(false, false, LoggingMBean.class));
 
     @Override
     public void initialize(final OpenContainer container, final ContainerTermination shutdown) throws Exception {
         final MBeanServer server = ManagementFactory.getPlatformMBeanServer();
 
         if (server != null) {
-            final ObjectName name = new ObjectName(String.format("org.fluidity.management:type=%s", Strings.printClass(false, false, LoggingMBean.class)));
+            final ObjectName name = new ObjectName(MBEAN_NAME);
 
             server.registerMBean(container.instantiate(LoggingMBeanImpl.class), name);
 

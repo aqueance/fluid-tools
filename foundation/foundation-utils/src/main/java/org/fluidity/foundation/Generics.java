@@ -58,21 +58,26 @@ public final class Generics extends Utility {
             }
         } else if (type instanceof TypeVariable) {
             final Type[] bounds = ((TypeVariable) type).getBounds();
-            return bounds != null && bounds.length > 0 ? rawType(bounds[0]) : Object.class;
+            return bounds != null && bounds.length == 1 ? rawType(bounds[0]) : Object.class;
         } else if (type instanceof WildcardType) {
-            return Object.class;
+            final WildcardType wildcard = (WildcardType) type;
+
+            final Type[] lowerBounds = wildcard.getLowerBounds();
+            final Type[] upperBounds = wildcard.getUpperBounds();
+
+            return lowerBounds.length == 1 ? rawType(lowerBounds[0]) : upperBounds.length == 1 ? rawType(upperBounds[0]) : Object.class;
         }
 
         return null;
     }
 
     /**
-     * Returns the type parameter at the given index in the list of type parameters for the given parameterized type.
+     * Returns the type parameter at the given index in the list of type parameters for the given type.
      *
-     * @param type  the parameterized type.
+     * @param type  the class or parameterized type.
      * @param index the index.
      *
-     * @return the type parameter at the given index or <code>null</code> if the parameterized type is not a parameterized type or the index is out of range.
+     * @return the type parameter at the given index or <code>null</code> if the type is not a class or parameterized type, or the index is out of range.
      */
     public static Type typeParameter(final Type type, final int index) {
         if (type instanceof ParameterizedType) {
@@ -81,6 +86,13 @@ public final class Generics extends Utility {
             if (arguments != null && arguments.length > index) {
                 final Type argument = arguments[index];
                 return argument instanceof WildcardType ? rawType(rawType(((ParameterizedType) type).getRawType()).getTypeParameters()[index]) : argument;
+            }
+        } else if (type instanceof Class) {
+            final TypeVariable[] parameters = ((Class) type).getTypeParameters();
+
+            if (parameters != null && parameters.length > index) {
+                final Type[] bounds = parameters[index].getBounds();
+                return bounds.length == 1 ? bounds[0] : Object.class;
             }
         }
 
@@ -113,7 +125,7 @@ public final class Generics extends Utility {
      *
      * @return the resolved type variable if resolution was possible, <code>null</code> otherwise.
      */
-    public static Type resolve(final Type reference, final TypeVariable variable) {
+    static Type resolve(final Type reference, final TypeVariable variable) {
         if (reference instanceof ParameterizedType) {
             final String name = variable.getName();
 
@@ -198,7 +210,12 @@ public final class Generics extends Utility {
         } else if (outbound instanceof TypeVariable) {
             return resolve(inbound, (TypeVariable) outbound);
         } else if (outbound instanceof WildcardType) {
-            return Object.class;
+            final WildcardType original = (WildcardType) outbound;
+
+            final Type[] lowerBounds = original.getLowerBounds();
+            final Type[] upperBounds = original.getUpperBounds();
+
+            return lowerBounds.length == 1 ? lowerBounds[0] : upperBounds.length == 1 ? upperBounds[0] : Object.class;
         } else {
             assert false : outbound;
             return null;
@@ -248,6 +265,149 @@ public final class Generics extends Utility {
 
     static String toString(final Type argument) {
         return argument instanceof Class ? Strings.printClass(true, (Class) argument) : String.valueOf(argument);
+    }
+
+    /**
+     * Returns the type that the given <code>specific</code> class provides as a specialization of the <code>generic</code> type. The {@linkplain
+     * #rawType(Type) raw} type of the returned type will be <code>generic</code>.
+     *
+     * @param specific the class that is assumed to specialize the given <code>generic</code> type.
+     * @param generic  the generic type that is expected to be specialized by the given <code>specific</code>.
+     *
+     * @return the type of the <code>specific</code> class that specializes the <code>generic</code> type; or <code>null</code> if the <code>specific</code>
+     *         class is not a specialization of the <code>generic</code> type.
+     */
+    public static Type specializedType(final Class specific, final Class generic) {
+        return specializedType(specific, generic, specific, generic);
+    }
+
+    private static Type specializedType(final Type specific, final Type generic, final Class<?> rawSpecific, final Class rawGeneric) {
+        if (rawGeneric == rawSpecific) {
+            return specific;
+        } else {
+            if (rawGeneric.isAssignableFrom(rawSpecific)) {
+                final boolean specificInterface = rawSpecific.isInterface();
+                final Class<?> superclass = rawSpecific.getSuperclass();
+
+                if (!specificInterface && rawGeneric.isAssignableFrom(superclass)) {
+                    if (rawGeneric == superclass) {
+                        return rawSpecific.getGenericSuperclass();
+                    } else {
+                        return specializedType(rawSpecific.getGenericSuperclass(), generic, superclass, rawGeneric);
+                    }
+                } else if (specificInterface && rawGeneric.isAssignableFrom(Object.class)) {
+                    return generic;
+                } else {
+                    final Class<?>[] interfaces = rawSpecific.getInterfaces();
+                    final Type[] types = rawSpecific.getGenericInterfaces();
+
+                    for (int i = 0, limit = types.length; i < limit; i++) {
+                        final Class<?> api = interfaces[i];
+
+                        if (rawGeneric == api) {
+                            return types[i];
+                        } else if (rawGeneric.isAssignableFrom(api)) {
+                            return specializedType(types[i], generic, rawType(types[i]), rawGeneric);
+                        }
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Performs compatibility checks on the full generic type of a reference and the type of an object being assigned to it. This is a generalization of {@link
+     * Class#isAssignableFrom(Class)} to {@linkplain Type generic} types.
+     *
+     * @param reference the reference to which an object is being assigned.
+     * @param type      the type of the object being assigned to the <code>reference</code>.
+     *
+     * @return <code>true</code> if the <code>type</code> is assignable to the
+     */
+    public static boolean isAssignable(final Type reference, final Type type) {
+        return isAssignable(reference, type, rawType(reference), rawType(type));
+    }
+
+    private static boolean isAssignable(final Type reference, final Type type, final Class<?> rawReference, final Class<?> rawType) {
+        if (rawType == null || !rawReference.isAssignableFrom(rawType)) {
+            return false;
+        } else if (rawReference.isArray() && rawType.isArray()) {
+            return isAssignable(reference instanceof GenericArrayType ? ((GenericArrayType) reference).getGenericComponentType() : rawReference.getComponentType(),
+                                type instanceof GenericArrayType ? ((GenericArrayType) type).getGenericComponentType() : rawType.getComponentType(),
+                                rawReference.getComponentType(),
+                                rawType.getComponentType());
+        } else if (rawReference.isArray()) {
+            return false;
+        } else if (rawType.isArray()) {
+            return rawReference == Object.class;
+        } else if (reference instanceof WildcardType) {
+            for (final Type bound : ((WildcardType) reference).getLowerBounds()) {
+                if (!isAssignable(type, bound, rawType, rawType(bound))) {
+                    return false;
+                }
+            }
+
+            for (final Type bound : ((WildcardType) reference).getUpperBounds()) {
+                if (!isAssignable(bound, type, rawType(bound), rawType)) {
+                    return false;
+                }
+            }
+
+            return true;
+        } else if (rawReference != rawType) {
+            return isAssignable(reference, specializedType(type, reference, rawType, rawReference));
+        } else if (reference instanceof Class) {
+            if (type instanceof Class) {
+                return true;
+            } else if (type instanceof ParameterizedType) {
+                for (final TypeVariable variable : rawReference.getTypeParameters()) {
+                    final Type resolved = resolve(type, variable);
+                    final Class<?> rawResolved = rawType(resolved);
+
+                    for (final Type bound : variable.getBounds()) {
+                        if (!isAssignable(bound, resolved, rawType(bound), rawResolved)) {
+                            return false;
+                        }
+                    }
+                }
+
+                return true;
+            }
+        } else if (reference instanceof ParameterizedType) {
+            final Type[] referenceArguments = ((ParameterizedType) reference).getActualTypeArguments();
+
+            if (type instanceof Class) {
+                final TypeVariable[] typeParameters = rawType.getTypeParameters();
+
+                for (int i = 0, limit = typeParameters.length; i < limit; i++) {
+                    for (final Type bound : typeParameters[i].getBounds()) {
+                        if (!isAssignable(referenceArguments[i], bound)) {
+                            return false;
+                        }
+                    }
+                }
+
+                return true;
+            } else if (type instanceof ParameterizedType) {
+                //noinspection ConstantConditions
+                assert rawReference == rawType : String.format("%s != %s", toString(reference), toString(type));
+                final Type[] typeArguments = ((ParameterizedType) type).getActualTypeArguments();
+
+                for (int i = 0, limit = typeArguments.length; i < limit; i++) {
+                    if (!isAssignable(referenceArguments[i], typeArguments[i])) {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+        } else if (reference instanceof TypeVariable && type instanceof TypeVariable) {
+            return true;    // we don't have enough information to distinguish between the variables
+        }
+
+        return false;
     }
 
     private static class GenericArrayTypeImpl implements GenericArrayType {

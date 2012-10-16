@@ -35,6 +35,7 @@ import org.testng.annotations.Test;
 /**
  * @author Tibor Varga
  */
+@SuppressWarnings("unchecked")
 public class DependencyInterceptorsTest extends MockGroup {
 
     private final InterceptorFilter annotations = mock(InterceptorFilter.class);

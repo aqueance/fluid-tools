@@ -28,6 +28,7 @@ import org.fluidity.composition.container.ContextDefinition;
 import org.fluidity.composition.container.spi.DependencyGraph;
 import org.fluidity.composition.container.spi.DependencyResolver;
 import org.fluidity.composition.spi.ComponentInterceptor;
+import org.fluidity.foundation.Generics;
 import org.fluidity.foundation.Log;
 import org.fluidity.foundation.Strings;
 
@@ -99,16 +100,21 @@ final class DependencyInterceptorsImpl implements DependencyInterceptors {
             final List<String> applied = new ArrayList<String>();
 
             for (final ComponentInterceptor interceptor : interceptors) {
-                final ComponentInterceptor.Dependency dependency = interceptor.intercept(reference,
-                                                                                         context.copy().accept(interceptor.getClass()).create(),
-                                                                                         next.get());
+                final Type type = Generics.typeParameter(Generics.specializedType(interceptor.getClass(), ComponentInterceptor.class), 0);
 
-                if (dependency == null) {
-                    return null;
+                if (type == Object.class || Generics.isAssignable(reference, type)) {
+                    @SuppressWarnings("unchecked")
+                    final ComponentInterceptor.Dependency dependency = interceptor.intercept(reference,
+                                                                                             context.copy().accept(interceptor.getClass()).create(),
+                                                                                             next.get());
+
+                    if (dependency == null) {
+                        return null;
+                    }
+
+                    next.set(dependency);
+                    applied.add(Strings.printClass(false, false, interceptor.getClass()));
                 }
-
-                next.set(dependency);
-                applied.add(Strings.printClass(false, false, interceptor.getClass()));
             }
 
             log.debug("%s: interceptors for %s: %s", container, context, applied);
