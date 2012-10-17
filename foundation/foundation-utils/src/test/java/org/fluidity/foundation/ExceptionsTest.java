@@ -78,7 +78,7 @@ public class ExceptionsTest {
                 }
             } catch (final Throwable e) {
 
-                    // should not have come here
+                // should not have come here
                 assert false : e;
             }
         } catch (final Exception e) {
@@ -95,15 +95,15 @@ public class ExceptionsTest {
         try {
             Exceptions.wrap(new Job<Exception>() {
                 public void run() throws Exception {
-                    throw new UndeclaredThrowableException(new InvocationTargetException(new RuntimeException(new InvocationTargetException(new UndeclaredThrowableException(original)))));
+                    Exceptions.wrap(new Job<Exception>() {
+                        public void run() throws Exception {
+                            throw new UndeclaredThrowableException(new InvocationTargetException(new RuntimeException(new InvocationTargetException(new UndeclaredThrowableException(original)))));
+                        }
+                    });
                 }
             });
         } catch (final Exceptions.Wrapper e) {
-            try {
-                e.rethrow(Exception.class);
-            } catch (final Exception thrown) {
-                assert thrown == original : thrown;
-            }
+            assert e.getCause() == original : e.getCause();
         }
     }
 }
