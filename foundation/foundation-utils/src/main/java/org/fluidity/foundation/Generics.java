@@ -529,15 +529,15 @@ public final class Generics extends Utility {
         /*
          * http://bugs.sun.com/view_bug.do?bug_id=5087240:
          *
-         * Inner class constructor generic types array does not contain the enclosing classes and the closure context.
-         * The enclosing classes are on the beginning of the params array while the closure context are on the end.
+         * Inner class constructor generic parameter types array contains the enclosing non-static classes whereas the parameter types and parameter
+         * annotations array do not.
          *
-         * TODO: test this thoroughly on various JVMs
+         * The enclosing non-static classes are assumed to be in the beginning of the array.
          */
         if (hidden > 0) {
             for (int i = nesting; i < params.length - hidden; ++i) {
                 if (Generics.rawType(types[i - nesting]) != params[i]) {
-                    throw new IllegalStateException(String.format("Could not match parameter types of %s constructor: classes: %s, types: %s on %s %s version %s virtual machine for %s Java %s",
+                    throw new IllegalStateException(String.format("Could not match parameter types of %s constructor: classes: %s, types: %s, on %s %s version %s virtual machine for %s Java %s",
                                                                   type,
                                                                   Arrays.toString(params),
                                                                   Arrays.toString(types),

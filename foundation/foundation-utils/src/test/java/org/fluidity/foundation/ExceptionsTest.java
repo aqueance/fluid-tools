@@ -99,20 +99,66 @@ public class ExceptionsTest {
 
     @Test(dataProvider = "exceptions")
     public void testUnwrapping(final Exception original) {
+        final UndeclaredThrowableException wrapped =
+                new UndeclaredThrowableException(
+                        new InvocationTargetException(
+                                new Exceptions.Wrapper(
+                                        new InvocationTargetException(
+                                                new RuntimeException(
+                                                        new UndeclaredThrowableException(
+                                                                new InvocationTargetException(original)))))));
+
+        @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
+        final Throwable unwrapped = Exceptions.unwrap(wrapped);
+        assert unwrapped == original : unwrapped;
+
         try {
             Exceptions.wrap(new Job<Exception>() {
                 public void run() throws Exception {
                     Exceptions.wrap(new Job<Exception>() {
                         public void run() throws Exception {
-                            throw new UndeclaredThrowableException(
-                                    new InvocationTargetException(
-                                            new Exceptions.Wrapper(
-                                                    new InvocationTargetException(
-                                                            new RuntimeException(
-                                                                    new UndeclaredThrowableException(
-                                                                            new InvocationTargetException(original)))))));
+                            throw wrapped;
                         }
                     });
+                }
+            });
+        } catch (final Exceptions.Wrapper e) {
+            assert e.getCause() == original : e.getCause();
+        } catch (final RuntimeException e) {
+            assert e == original : e;
+        }
+    }
+
+    @Test(dataProvider = "exceptions")
+    public void testCustomWrapper(final Exception original) throws Exception {
+
+        class MyWrapper extends Exception {
+
+            MyWrapper(final Throwable cause) {
+                super(cause);
+            }
+        }
+
+        final UndeclaredThrowableException wrapped =
+                new UndeclaredThrowableException(
+                        new InvocationTargetException(
+                                new Exceptions.Wrapper(
+                                        new InvocationTargetException(
+                                                new MyWrapper(
+                                                        new UndeclaredThrowableException(
+                                                                new InvocationTargetException(original)))))));
+
+        @SuppressWarnings("unchecked")
+        final Exceptions.Tunnel tunnel = Exceptions.checked(MyWrapper.class);
+
+        @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
+        final Throwable unwrapped = tunnel.unwrap(wrapped);
+        assert unwrapped == original : unwrapped;
+
+        try {
+            tunnel.wrap(new Job<Exception>() {
+                public void run() throws Exception {
+                    throw wrapped;
                 }
             });
         } catch (final Exceptions.Wrapper e) {

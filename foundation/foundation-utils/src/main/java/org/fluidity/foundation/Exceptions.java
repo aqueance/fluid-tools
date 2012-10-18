@@ -18,6 +18,8 @@ package org.fluidity.foundation;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.UndeclaredThrowableException;
+import java.util.Collection;
+import java.util.HashSet;
 
 import static org.fluidity.foundation.Command.Job;
 import static org.fluidity.foundation.Command.Process;
@@ -61,85 +63,199 @@ import static org.fluidity.foundation.Command.Process;
  */
 public final class Exceptions extends Utility {
 
+    @SuppressWarnings("unchecked")
+    private static final Tunnel tunnel = new Tunnel();
+
     private Exceptions() { }
 
     /**
-     * Executes the given command and {@linkplain Exceptions.Wrapper wraps} any exception other than {@link RuntimeException} and {@link Error} thrown
-     * therefrom.
-     *
-     * @param action  the action part of the "Error %s" message in the wrapped exception.
-     * @param command the command to run.
-     * @param <T>     the generic return type of the command.
-     * @param <E>     the generic exception type of the command.
-     *
-     * @return whatever the command returns.
+     * See {@link Tunnel#wrap(String, Command.Process)} with no custom wrappers {@linkplain Exceptions#checked(Class[]) specified}.
      */
     public static <T, E extends Throwable> T wrap(final String action, final Process<T, E> command) {
-        try {
-            try {
-                return command.run();
-            } catch (final Exception e) {
-                throw Exceptions.unwrap(e);
-            }
-        } catch (final RuntimeException e) {
-            throw e;
-        } catch (final Error e) {
-            throw e;
-        } catch (final Throwable e) {
-            throw action == null ? new Wrapper(e) : new Wrapper(e, "Error %s", action);
-        }
+        return Exceptions.tunnel.wrap(action, command);
     }
 
     /**
-     * Executes the given command and {@linkplain Exceptions.Wrapper wraps} any exception thrown therefrom.
-     *
-     * @param command  the command to execute.
-     * @param <T>      the generic return type of the command.
-     * @param <E>     the generic exception type of the command.
-     *
-     * @return whatever the given command returns.
+     * See {@link Tunnel#wrap(Command.Process)} with no custom wrappers {@linkplain Exceptions#checked(Class[]) specified}.
      */
     public static <T, E extends Throwable> T wrap(final Process<T, E> command) {
-        return Exceptions.wrap(null, command);
+        return Exceptions.tunnel.wrap(null, command);
     }
 
     /**
-     * Executes the given command and {@linkplain Exceptions.Wrapper wraps} any exception other than {@link RuntimeException} and {@link Error} thrown
-     * therefrom.
-     *
-     * @param action  the action part of the "Error %s" message in the wrapped exception.
-     * @param command the command to run.
-     * @param <E>     the generic exception type of the command.
+     * See {@link Tunnel#wrap(String, Command.Job)} with no custom wrappers {@linkplain Exceptions#checked(Class[]) specified}.
      */
     public static <E extends Throwable> void wrap(final String action, final Job<E> command) {
-        Exceptions.wrap(action, new Process<Void, Throwable>() {
-            public Void run() throws Throwable {
-                command.run();
-                return null;
-            }
-        });
+        Exceptions.tunnel.wrap(action, command);
     }
 
     /**
-     * Executes the given command and {@linkplain Exceptions.Wrapper wraps} any exception thrown therefrom.
-     *
-     * @param command  the command to execute.
-     * @param <E>     the generic exception type of the command.
+     * See {@link Tunnel#wrap(Command.Job)} with no custom wrappers {@linkplain Exceptions#checked(Class[]) specified}.
      */
     public static <E extends Throwable> void wrap(final Job<E> command) {
-        Exceptions.wrap(null, command);
+        Exceptions.tunnel.wrap(null, command);
     }
 
-    private static Throwable unwrap(final Exception error) {
-        Throwable cause = error;
+    /**
+     * See {@link Tunnel#unwrap(Exception)} with no custom wrappers {@linkplain Exceptions#checked(Class[]) specified}.
+     */
+    public static Throwable unwrap(final Exception error) {
+        return Exceptions.tunnel.unwrap(error);
+    }
 
-        for (Class type = cause.getClass();
-             cause.getCause() != null && (cause instanceof UndeclaredThrowableException || cause instanceof InvocationTargetException || type == RuntimeException.class || type == Wrapper.class);
-             cause = cause.getCause(), type = cause.getClass()) {
-            // empty
+    /**
+     * Returns an exceptions tunnel that also unwraps the given list of wrapper exceptions and their subclasses.
+     *
+     * @param wrappers a list of exception types to unwrap in exception chains.
+     *
+     * @return an {@link Tunnel} that can unwrap the given exceptions in addition to those it already {@linkplain Tunnel#unwrap(Exception) knows} about.
+     */
+    public static Tunnel checked(final Class<? extends Exception>... wrappers) {
+        return wrappers == null || wrappers.length == 0 ? tunnel : new Tunnel(wrappers);
+    }
+
+    /**
+     * Implements the actual exception wrapping / unwrapping functionality described at {@link Exceptions}.
+     * <h3>Usage</h3>
+     * See {@link Exceptions}, substituting an instance of this class acquired through {@link Exceptions#checked(Class[]) Exceptions.checked()} in place of
+     * <code>Exceptions</code> in the static method call <code>Exceptions.wrap(…)</code>.
+     *
+     * @author Tibor Varga
+     * @see Exceptions#checked(Class[])
+     */
+    public static final class Tunnel {
+
+        private final Class<Exception>[] wrappers;
+
+        @SuppressWarnings("unchecked")
+        Tunnel(final Class<? extends Exception>... wrappers) {
+            final Collection<Class<? extends Exception>> list = new HashSet<Class<? extends Exception>>();
+
+            list.add(UndeclaredThrowableException.class);
+            list.add(InvocationTargetException.class);
+
+            for (final Class<? extends Exception> type : wrappers) {
+                if (type != null && !isChecked(list, type)) {
+                    list.add(type);
+                }
+            }
+
+            this.wrappers = (Class<Exception>[]) Lists.asArray(list, Class.class);
         }
 
-        return cause;
+        private boolean isChecked(final Collection<Class<? extends Exception>> list, final Class<? extends Exception> error) {
+            for (final Class<? extends Exception> type : list) {
+                if (type.isAssignableFrom(error)) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private boolean isChecked(final Class<? extends Throwable> error) {
+            for (final Class<Exception> type : wrappers) {
+                if (type.isAssignableFrom(error)) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /**
+         * Executes the given command and {@linkplain Exceptions.Wrapper wraps} any exception other than {@link RuntimeException} and {@link Error} thrown
+         * therefrom.
+         *
+         * @param action  the action part of the "Error %s" message in the wrapped exception.
+         * @param command the command to run.
+         * @param <T>     the generic return type of the command.
+         * @param <E>     the generic exception type of the command.
+         *
+         * @return whatever the command returns.
+         */
+        public <T, E extends Throwable> T wrap(final String action, final Process<T, E> command) {
+            try {
+                try {
+                    return command.run();
+                } catch (final Exception e) {
+                    throw unwrap(e);
+                }
+            } catch (final RuntimeException e) {
+                throw e;
+            } catch (final Error e) {
+                throw e;
+            } catch (final Throwable e) {
+                throw action == null ? new Wrapper(e) : new Wrapper(e, "Error %s", action);
+            }
+        }
+
+        /**
+         * Executes the given command and {@linkplain Exceptions.Wrapper wraps} any exception thrown therefrom.
+         *
+         * @param command  the command to execute.
+         * @param <T>      the generic return type of the command.
+         * @param <E>     the generic exception type of the command.
+         *
+         * @return whatever the given command returns.
+         */
+        public <T, E extends Throwable> T wrap(final Process<T, E> command) {
+            return wrap(null, command);
+        }
+
+        /**
+         * Executes the given command and {@linkplain Exceptions.Wrapper wraps} any exception other than {@link RuntimeException} and {@link Error} thrown
+         * therefrom.
+         *
+         * @param action  the action part of the "Error %s" message in the wrapped exception.
+         * @param command the command to run.
+         * @param <E>     the generic exception type of the command.
+         */
+        public <E extends Throwable> void wrap(final String action, final Job<E> command) {
+            wrap(action, new Process<Void, Throwable>() {
+                public Void run() throws Throwable {
+                    command.run();
+                    return null;
+                }
+            });
+        }
+
+        /**
+         * Executes the given command and {@linkplain Exceptions.Wrapper wraps} any exception thrown therefrom.
+         *
+         * @param command  the command to execute.
+         * @param <E>     the generic exception type of the command.
+         */
+        public <E extends Throwable> void wrap(final Job<E> command) {
+            wrap(null, command);
+        }
+
+        /**
+         * Unwraps a chain of exception wrappers from the <i>head</i> of the exception chain starting at the specified <code>error</code>. Exceptions recognized as
+         * wrappers are:<ul>
+         * <li><code>any subclass of {@link UndeclaredThrowableException}</code>,</li>
+         * <li><code>any subclass of {@link InvocationTargetException}</code>,</li>
+         * <li><code>any subclass of any exception type passed to {@link Exceptions#checked(Class[])},</li>
+         * <li><code>{@link RuntimeException}</code>,</li>
+         * <li><code>{@link Exceptions.Wrapper}</code>.</li>
+         * </ul>
+         *
+         * @param error the head of the exception chain to unwrap.
+         *
+         * @return the first non-wrapper exception in the chain.
+         */
+        public Throwable unwrap(final Exception error) {
+            Throwable cause = error;
+
+            for (Class type = cause.getClass();
+                 cause.getCause() != null
+                 && (isChecked(cause.getClass()) || type == RuntimeException.class || type == Wrapper.class);
+                 cause = cause.getCause(), type = cause.getClass()) {
+                // empty
+            }
+
+            return cause;
+        }
     }
 
     /**
