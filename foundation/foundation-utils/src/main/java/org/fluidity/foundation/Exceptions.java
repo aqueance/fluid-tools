@@ -134,7 +134,7 @@ public final class Exceptions extends Utility {
         Throwable cause = error;
 
         for (Class type = cause.getClass();
-             cause.getCause() != null && (cause instanceof UndeclaredThrowableException || cause instanceof InvocationTargetException || type == RuntimeException.class);
+             cause.getCause() != null && (cause instanceof UndeclaredThrowableException || cause instanceof InvocationTargetException || type == RuntimeException.class || type == Wrapper.class);
              cause = cause.getCause(), type = cause.getClass()) {
             // empty
         }

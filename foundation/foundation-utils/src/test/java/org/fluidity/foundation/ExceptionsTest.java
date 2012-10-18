@@ -19,6 +19,7 @@ package org.fluidity.foundation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.UndeclaredThrowableException;
 
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import static org.fluidity.foundation.Command.Job;
@@ -88,22 +89,36 @@ public class ExceptionsTest {
         }
     }
 
-    @Test
-    public void testUnwrapping() throws Exception {
-        final Exception original = new Exception();
+    @DataProvider(name = "exceptions")
+    public Object[][] exceptions() throws Exception {
+        return new Object[][] {
+                new Object[] { new Exception() },
+                new Object[] { new RuntimeException() },
+        };
+    }
 
+    @Test(dataProvider = "exceptions")
+    public void testUnwrapping(final Exception original) {
         try {
             Exceptions.wrap(new Job<Exception>() {
                 public void run() throws Exception {
                     Exceptions.wrap(new Job<Exception>() {
                         public void run() throws Exception {
-                            throw new UndeclaredThrowableException(new InvocationTargetException(new RuntimeException(new InvocationTargetException(new UndeclaredThrowableException(original)))));
+                            throw new UndeclaredThrowableException(
+                                    new InvocationTargetException(
+                                            new Exceptions.Wrapper(
+                                                    new InvocationTargetException(
+                                                            new RuntimeException(
+                                                                    new UndeclaredThrowableException(
+                                                                            new InvocationTargetException(original)))))));
                         }
                     });
                 }
             });
         } catch (final Exceptions.Wrapper e) {
             assert e.getCause() == original : e.getCause();
+        } catch (final RuntimeException e) {
+            assert e == original : e;
         }
     }
 }
