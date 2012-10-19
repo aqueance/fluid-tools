@@ -227,6 +227,19 @@ public class StringsTest extends MockGroup {
         assert "[item]".equals(listing.toString()) : listing;
     }
 
+    @Test
+    public void testClassNamesWithDollarSign() throws Exception {
+        checkClassName(Name$1.Name$2.class, "StringsTest.Name$1.Name$2", false, false);
+        checkClassName(Name$1.Name$2.class, "class StringsTest.Name$1.Name$2", true, false);
+        checkClassName(Name$1.Name$2.class, "org.fluidity.foundation.StringsTest.Name$1.Name$2", false, true);
+        checkClassName(Name$1.Name$2.class, "class org.fluidity.foundation.StringsTest.Name$1.Name$2", true, true);
+    }
+
+    private void checkClassName(final Class<?> type, final String expected, final boolean textual, final boolean qualified) {
+        final String actual = Strings.printClass(textual, qualified, type);
+        assert expected.equals(actual) : String.format("Expected '%s', got '%s'", expected, actual);
+    }
+
     private void check(final String expected, final String actual) {
         assert expected.equals(actual) : String.format("Expected %s, got %s", expected, actual);
     }
@@ -252,5 +265,10 @@ public class StringsTest extends MockGroup {
         public String toString() {
             return getClass().getSimpleName();
         }
+    }
+
+    @SuppressWarnings("UnusedDeclaration")
+    private static class Name$1 {
+        private static class Name$2 { }
     }
 }

@@ -71,23 +71,29 @@ public final class Strings extends Utility {
             builder.append("[]");
         }
 
-        final String typeName;
+        return builder.insert(0, className(componentType, textual, qualified)).toString();
+    }
 
-        if (textual) {
-            if (Annotation.class.isAssignableFrom(type)) {
-                typeName = "@".concat(componentType.toString());
-            } else {
-                typeName = componentType.toString();
-            }
-        } else if (qualified) {
-            typeName = componentType.getName();
-        } else {
-            final String name = componentType.getName();
-            typeName = name.contains(".") ? name.substring(name.lastIndexOf(".") + 1) : name;
+    private static String className(final Class type, final boolean kind, final boolean qualified) {
+        assert type != null;
+        final Listing name = Strings.delimited(".");
+
+        Class last = type;
+        for (Class enclosing = type; enclosing != null; enclosing = enclosing.getEnclosingClass()) {
+            name.previous();
+            name.prepend(enclosing.getSimpleName());
+            last = enclosing;
         }
 
-        // TODO: handle cases where $ is part of the class name
-        return builder.insert(0, typeName.replace('$', '.')).toString();
+        if (qualified) {
+            final String lastName = last.getName();
+            final int dot = lastName.lastIndexOf('.');
+
+            name.previous();
+            name.prepend(dot > 0 ? lastName.substring(0, dot) : lastName);
+        }
+
+        return kind ? String.format("%s %s", type.isInterface() ? Annotation.class.isAssignableFrom(type) ? "@interface" : "interface" : "class", name) : name.toString();
     }
 
     /**
@@ -372,6 +378,15 @@ public final class Strings extends Utility {
          */
         public final StringBuilder next() {
             return builder.length() > 0 ? builder.append(delimiter) : builder;
+        }
+
+        /**
+         * Prepends the delimiter to the string builder if it is not empty.
+         *
+         * @return the underlying {@link StringBuilder} object.
+         */
+        public final StringBuilder previous() {
+            return builder.length() > 0 ? builder.insert(0, delimiter) : builder;
         }
 
         /**
