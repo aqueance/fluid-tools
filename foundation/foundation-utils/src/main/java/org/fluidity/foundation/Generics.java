@@ -263,8 +263,46 @@ public final class Generics extends Utility {
         return null;
     }
 
-    static String toString(final Type argument) {
-        return argument instanceof Class ? Strings.printClass(true, (Class) argument) : String.valueOf(argument);
+    /**
+     * Returns a textual representation of the given type with complete type information.
+     *
+     * @param argument the generic type to convert to String.
+     *
+     * @return a textual representation of the given type with complete type information.
+     */
+    public static String toString(final Type argument) {
+        if (argument instanceof Class) {
+            final Class type = (Class) argument;
+            return Strings.printClass(true, type);
+        } else if (argument instanceof ParameterizedType) {
+            return String.format("%s<%s>",
+                                 toString(Generics.rawType(argument)),
+                                 Strings.delimited(", ").list(((ParameterizedType) argument).getActualTypeArguments()));
+        } else if (argument instanceof GenericArrayType) {
+            return String.format("%s[]", toString(((GenericArrayType) argument).getGenericComponentType()));
+        } else if (argument instanceof TypeVariable) {
+            final TypeVariable variable = (TypeVariable) argument;
+            final Type[] bounds = variable.getBounds();
+
+            return bounds.length == 1 && bounds[0] == Object.class
+                   ? variable.getName()
+                   : String.format("%s extends %s", variable.getName(), Strings.delimited(" & ").list(bounds));
+        } else if (argument instanceof WildcardType) {
+            final WildcardType wildcard = (WildcardType) argument;
+            final Type[] upperBounds = wildcard.getUpperBounds();
+            final Type[] lowerBounds = wildcard.getLowerBounds();
+
+            final String upper = upperBounds.length == 1 && upperBounds[0] == Object.class
+                                 ? ""
+                                 : String.format(" extends %s", Strings.delimited(" & ").list(upperBounds));
+
+            final String lower = lowerBounds.length == 0 ? "" : String.format(" super %s", Strings.delimited(" & ").list(lowerBounds));
+
+            return String.format("?%s%s", upper, lower);
+        } else {
+            assert false : argument.getClass();
+            return argument.toString();
+        }
     }
 
     /**
@@ -441,7 +479,7 @@ public final class Generics extends Utility {
 
         @Override
         public String toString() {
-            return String.format("%s[]", Generics.toString(componentType));
+            return String.format("%s[]", componentType.toString());
         }
     }
 
@@ -496,10 +534,11 @@ public final class Generics extends Utility {
             final Strings.Listing parameters = Strings.delimited();
 
             for (final Type argument : arguments) {
-                parameters.add(Generics.toString(argument));
+                parameters.add(argument.toString());
             }
 
-            return String.format("%s<%s>", Generics.toString(getRawType()), parameters);
+            final Type rawType = getRawType();
+            return String.format("%s<%s>", rawType instanceof Class ? ((Class) rawType).getName() : rawType.toString(), parameters);
         }
     }
 
@@ -514,33 +553,30 @@ public final class Generics extends Utility {
         final Class<?> type = constructor.getDeclaringClass();
         final Class[] params = constructor.getParameterTypes();
         final Type[] types = constructor.getGenericParameterTypes();
+        final Annotation[][] annotations = constructor.getParameterAnnotations();
 
-        final int hidden = params.length - types.length;
+        final Class<?> enclosing = type.getEnclosingClass();
 
-        int levels = -1;   // top-level class is never static and yet it is an enclosing class
-        for (Class enclosing = type; enclosing != null; enclosing = enclosing.getEnclosingClass()) {
-            if (!Modifier.isStatic(enclosing.getModifiers())) {
-                ++levels;
-            }
-        }
-
-        final int nesting = levels;
+        final int enclosingTypes = enclosing == null || Modifier.isStatic(type.getModifiers()) ? 0 : 1;
+        final int missingTypes = params.length - types.length;
 
         /*
          * http://bugs.sun.com/view_bug.do?bug_id=5087240:
          *
-         * Inner class constructor generic parameter types array contains the enclosing non-static classes whereas the parameter types and parameter
-         * annotations array do not.
+         * Non-static inner class constructor generic parameter types array and parameter annotations array might not contain entry for the enclosing class
+         * whereas the parameter types array always does. Furthermore, the closure variables might not be present in the generic parameter type and parameter
+          * annotation arrays but are present in the parameter type array at the end.
          *
-         * The enclosing non-static classes are assumed to be in the beginning of the array.
+         * The enclosing class is assumed to be in the beginning of the arrays when present while closure variables are assumed to be at the end.
          */
-        if (hidden > 0) {
-            for (int i = nesting; i < params.length - hidden; ++i) {
-                if (Generics.rawType(types[i - nesting]) != params[i]) {
-                    throw new IllegalStateException(String.format("Could not match parameter types of %s constructor: classes: %s, types: %s, on %s %s version %s virtual machine for %s Java %s",
-                                                                  type,
-                                                                  Arrays.toString(params),
-                                                                  Arrays.toString(types),
+        if (missingTypes > 0) {
+            for (int i = enclosingTypes; i < params.length - missingTypes + enclosingTypes; ++i) {
+                if (Generics.rawType(types[i - enclosingTypes]) != params[i]) {
+                    throw new IllegalStateException(String.format("Could not match parameter types of %s constructor; classes: %s, types: %s, annotations: %s, on %s %s version %s virtual machine for %s Java %s",
+                                                                  Strings.printObject(false, type),
+                                                                  Strings.printObject(false, params),
+                                                                  Strings.printObject(false, types),
+                                                                  Strings.printObject(false, annotations),
                                                                   System.getProperty("java.vm.vendor"),
                                                                   System.getProperty("java.vm.name"),
                                                                   System.getProperty("java.vm.version"),
@@ -550,18 +586,23 @@ public final class Generics extends Utility {
             }
         }
 
-        final Annotation[][] parameterAnnotations = constructor.getParameterAnnotations();
-
         return new Parameters() {
-
-            public Type genericType(final int index) {
-                final int nested = index - nesting;
-                return hidden == 0 ? types[index] : nested < 0 || nested >= types.length ? params[index] : types[nested];
+            public int size() {
+                return params.length;
             }
 
-            public Annotation[] getAnnotations(final int index) {
-                final int nested = index - nesting;
-                return nested < 0 || nested >= parameterAnnotations.length ? NO_ANNOTATION : parameterAnnotations[nested];
+            public Class<?> type(final int index) {
+                return params[index];
+            }
+
+            public Type genericType(final int index) {
+                final int nested = missingTypes > 0 ? index - enclosingTypes : index;
+                return nested < 0 || nested >= types.length ? params[index] : types[nested];
+            }
+
+            public Annotation[] annotations(final int index) {
+                final int nested = index - enclosingTypes;
+                return nested < 0 || nested >= annotations.length ? NO_ANNOTATION : annotations[nested];
             }
         };
     }
@@ -572,6 +613,22 @@ public final class Generics extends Utility {
      * @author Tibor Varga
      */
     public interface Parameters {
+
+        /**
+         * Returns the number of parameters.
+         *
+         * @return the number of parameters.
+         */
+        int size();
+
+        /**
+         * Returns the parameter type at the given index.
+         *
+         * @param index the parameter index.
+         *
+         * @return the parameter type at the given index.
+         */
+        Class<?> type(int index);
 
         /**
          * Returns the generic parameter type at the given index.
@@ -589,6 +646,6 @@ public final class Generics extends Utility {
          *
          * @return the list of annotations specified for the parameter at the given index.
          */
-        Annotation[] getAnnotations(int index);
+        Annotation[] annotations(int index);
     }
 }

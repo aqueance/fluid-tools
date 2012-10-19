@@ -461,7 +461,7 @@ abstract class FactoryResolver extends AbstractResolver {
             }
 
             final Generics.Parameters parameters = Generics.describe(constructor);
-            final Annotation[] parameterAnnotations = parameters.getAnnotations(parameter);
+            final Annotation[] parameterAnnotations = parameters.annotations(parameter);
 
             return dependency(api,
                               parameters.genericType(parameter),

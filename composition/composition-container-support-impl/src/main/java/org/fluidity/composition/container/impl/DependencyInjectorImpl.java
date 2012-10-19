@@ -285,7 +285,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
                 }
 
                 public Annotation[] annotations() {
-                    return Lists.concatenate(Annotation.class, constructorAnnotations, descriptor.getAnnotations(index));
+                    return Lists.concatenate(Annotation.class, constructorAnnotations, descriptor.annotations(index));
                 }
 
                 public void set(final DependencyGraph.Node node) {

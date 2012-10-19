@@ -17,6 +17,8 @@
 package org.fluidity.foundation;
 
 import java.io.Serializable;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.GenericArrayType;
 import java.lang.reflect.ParameterizedType;
@@ -394,8 +396,8 @@ public class GenericsTest {
     @Test
     public void testAssignmentChecks() throws Exception {
 
-        // generic parameter types: I, F, I<I1, I2, I3>, F<I4>, I[], I<? super I4, ?, ?>, P<T>
-        final Type[] types = H.class.getDeclaredConstructor(I.class, F1.class, I.class, F1.class, I[].class, I.class, P.class).getGenericParameterTypes();
+        // generic parameter types: I, F, I<I1, I2, I3>, F<I4>, I[], I<? super I4, ?, ?>, P<T>, F1<I4>[][]
+        final Type[] types = H.class.getDeclaredConstructors()[0].getGenericParameterTypes();
 
         assert Generics.isAssignable(types[0], G1.class);
         assert !Generics.isAssignable(G1.class, types[0]);
@@ -457,6 +459,115 @@ public class GenericsTest {
         assert !Generics.isAssignable(types[4], Object.class);
         assert !Generics.isAssignable(types[5], Object.class);
         assert !Generics.isAssignable(types[6], Object.class);
+    }
+
+    @Test
+    public void testNonStaticInnerClasses() throws Exception {
+        checkParameters(GenericsTest.class, Generics.describe(X1.class.getConstructors()[0]), false, false);
+        checkParameters(X1.class, Generics.describe(X1.X2.class.getConstructors()[0]), true, false);
+        checkParameters(X1.X2.class, Generics.describe(X1.X2.X3.class.getConstructors()[0]), true, true);
+        checkParameters(X1.X2.X3.class, Generics.describe(X1.X2.X3.X4.class.getConstructors()[0]), false, true);
+
+        final @A2 P2<I> context1 = null;
+        final @A3 P3<I> context2 = null;
+
+        @SuppressWarnings("UnusedParameters")
+        class Closure1 {
+            public Closure1(final @A1 P1 p1) {
+                assert context1 == null;
+                assert context2 == null;
+            }
+        }
+
+        @SuppressWarnings("UnusedParameters")
+        class Closure2 {
+            public Closure2(final @A1 P1<I> p1) {
+                assert context1 == null;
+                assert context2 == null;
+            }
+        }
+
+        checkParameters(GenericsTest.class, Generics.describe(Closure1.class.getConstructors()[0]), false, false, false);
+        checkParameters(GenericsTest.class, Generics.describe(Closure2.class.getConstructors()[0]), true, false, false);
+
+        final Generics.Parameters params = Generics.describe(E1.class.getDeclaredConstructors()[0]);
+        assert params.size() == 2 : params.size();
+        assert params.genericType(0) == String.class : params.genericType(0);
+        assert params.genericType(1) == int.class : params.genericType(1);
+    }
+
+    @Test
+    public void testStringValues() throws Exception {
+        checkText(Generics.toString(Q.class), Strings.printClass(true, Q.class));
+        checkText(Generics.toString(D.class.getGenericSuperclass()),
+                  String.format("%s<%s, %s, %s>",
+                                A.class.toString().replace('$', '.'),
+                                Strings.printObject(true, I1.class),
+                                Strings.printObject(true, I2.class),
+                                Strings.printObject(true, I3.class)));
+
+        // generic parameter types: I, F, I<I1, I2, I3>, F<I4>, I[], I<? super I4, ?, ?>, P<T>, F1<I4>[][]
+        final Type[] types = H.class.getDeclaredConstructors()[0].getGenericParameterTypes();
+
+        checkText(Generics.toString(types[5]),
+                  String.format("%s<? super %s, ? extends %s, ?>",
+                                I.class.toString().replace('$', '.'),
+                                Strings.printClass(true, I1.class),
+                                Strings.printClass(true, I2.class)));
+
+        checkText(Generics.toString(types[7]),
+                  String.format("%s<%s>[][]",
+                                F1.class.toString().replace('$', '.'),
+                                Strings.printClass(true, I4.class)));
+    }
+
+    private void checkText(final String actual, final String expected) {
+        assert expected.equals(actual) : String.format("Expected %s, got %s", expected, actual);
+    }
+
+    private void checkParameters(final Class<?> enclosing, final Generics.Parameters params, final boolean generic1, final boolean generic2) {
+        assert params.size() == 3 : params.size();
+        assert params.genericType(0) == enclosing : params.genericType(0);
+
+        assert Generics.rawType(params.genericType(1)) == P1.class : params.genericType(1);
+        assert params.type(1) == P1.class : params.type(1);
+        assert !generic1 || Generics.typeParameter(params.genericType(1), 0) == I.class : params.genericType(1);
+
+        assert Generics.rawType(params.genericType(2)) == P2.class : params.genericType(2);
+        assert params.type(2) == P2.class : params.type(2);
+        assert !generic2 || Generics.typeParameter(params.genericType(2), 0) == I.class : params.genericType(2);
+
+        assert params.annotations(0).length == 0 : Strings.printObject(false, params.annotations(0));
+        assert params.annotations(1)[0].annotationType() == A1.class : params.annotations(1)[0].annotationType();
+        assert params.annotations(2)[0].annotationType() == A2.class : params.annotations(2)[0].annotationType();
+    }
+
+    private void checkParameters(final Class<?> enclosing,
+                                 final Generics.Parameters params,
+                                 final boolean generic1,
+                                 final boolean generic2,
+                                 final boolean generic3) {
+        assert params.size() == 4 : params.size();
+        assert params.genericType(0) == enclosing : params.genericType(0);
+
+        assert Generics.rawType(params.genericType(1)) == P1.class : params.genericType(1);
+        assert params.type(1) == P1.class : params.type(1);
+        assert !generic1 || Generics.typeParameter(params.genericType(1), 0) == I.class : params.genericType(1);
+
+        assert Generics.rawType(params.genericType(2)) == P2.class : params.genericType(2);
+        assert params.type(2) == P2.class : params.type(2);
+        assert !generic2 || Generics.typeParameter(params.genericType(2), 0) == I.class : params.genericType(2);
+
+        assert Generics.rawType(params.genericType(3)) == P3.class : params.genericType(3);
+        assert params.type(3) == P3.class : params.type(3);
+        assert !generic3 || Generics.typeParameter(params.genericType(3), 0) == I.class : params.genericType(3);
+
+        assert params.annotations(0).length == 0 : Strings.printObject(false, params.annotations(0));
+
+        // annotations on closure variables may be lost in some JVMs...
+        assert params.annotations(1).length == 0 || params.annotations(1)[0].annotationType() == A1.class : Strings.printObject(false, params.annotations(1));
+        assert params.annotations(2).length == 0 || params.annotations(2)[0].annotationType() == A2.class : Strings.printObject(false, params.annotations(2));
+        assert params.annotations(3).length == 0 || params.annotations(3)[0].annotationType() == A3.class : Strings.printObject(false, params.annotations(3));
     }
 
     private void checkRawType(final Type type, final Class<?> expected) {
@@ -538,6 +649,47 @@ public class GenericsTest {
     @SuppressWarnings({ "UnusedDeclaration" })
     private static class H {
 
-        private <X> H(final I p1, final F1 p2, final I<I1, I2, I3> p3, final F1<I4> p4, final I[] p5, final I<? super I1, ? extends I2, ?> p6, final P<X> p7) { }
+        private <X> H(final I p1, final F1 p2, final I<I1, I2, I3> p3, final F1<I4> p4, final I[] p5, final I<? super I1, ? extends I2, ?> p6, final P<X> p7, final F1<I4>[][] p8) { }
     }
+
+    @SuppressWarnings("UnusedDeclaration")
+    private interface P1<T> { }
+
+    @SuppressWarnings("UnusedDeclaration")
+    private interface P2<T> { }
+
+    @SuppressWarnings("UnusedDeclaration")
+    private interface P3<T> { }
+
+    @Retention(RetentionPolicy.RUNTIME)
+    private @interface A1 { }
+
+    @Retention(RetentionPolicy.RUNTIME)
+    private @interface A2 { }
+
+    @Retention(RetentionPolicy.RUNTIME)
+    private @interface A3 { }
+
+    @SuppressWarnings("UnusedDeclaration")
+    private class X1 {
+
+        public X1(final @A1 P1 p1, final @A2 P2 p2) { }
+
+        private class X2 {
+
+            public X2(final @A1 P1<I> p1, final @A2 P2 p2) { }
+
+            private class X3 {
+
+                public X3(final @A1 P1<I> p1, final @A2 P2<I> p2) { }
+
+                private class X4 {
+
+                    public X4(final @A1 P1 p1, final @A2 P2<I> p2) { }
+                }
+            }
+        }
+    }
+
+    private enum E1 { A, B, C }
 }

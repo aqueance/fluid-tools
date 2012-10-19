@@ -74,15 +74,20 @@ public final class Strings extends Utility {
         final String typeName;
 
         if (textual) {
-            typeName = componentType.toString();
+            if (Annotation.class.isAssignableFrom(type)) {
+                typeName = "@".concat(componentType.toString());
+            } else {
+                typeName = componentType.toString();
+            }
         } else if (qualified) {
             typeName = componentType.getName();
         } else {
             final String name = componentType.getName();
-            typeName = name.contains(".") ? name.substring(name.lastIndexOf(".") + 1).replace('$', '.') : name;
+            typeName = name.contains(".") ? name.substring(name.lastIndexOf(".") + 1) : name;
         }
 
-        return builder.insert(0, typeName).toString();
+        // TODO: handle cases where $ is part of the class name
+        return builder.insert(0, typeName.replace('$', '.')).toString();
     }
 
     /**
@@ -257,8 +262,12 @@ public final class Strings extends Utility {
 
                 final String array = text.surround("[]").toString();
                 return identify ? String.format("%x@%s", System.identityHashCode(object), array) : array;
+            } else if (Annotation.class.isAssignableFrom(type)) {
+                return printObject(identify, ((Annotation) object).annotationType());
             } else if (Proxy.isProxyClass(type) && !Proxies.isIdentified(object)) {
                 return identify ? printObjectId(object) : String.format("proxy%s", interfaces(type));
+            } else if (object instanceof Type) {
+                return Generics.toString((Type) object);
             } else {
                 try {
                     return (String) type.getDeclaredMethod("toString").invoke(object);
@@ -379,9 +388,9 @@ public final class Strings extends Utility {
          *
          * @return the underlying {@link StringBuilder} object.
          */
-        public final StringBuilder list(final Collection<String> list) {
-            for (final String text : list) {
-                next().append(text);
+        public final StringBuilder list(final Collection<?> list) {
+            for (final Object text : list) {
+                next().append(text instanceof String ? text: Strings.printObject(false, text));
             }
 
             return builder;
@@ -392,9 +401,9 @@ public final class Strings extends Utility {
          *
          * @return the underlying {@link StringBuilder} object.
          */
-        public final StringBuilder list(final String... list) {
-            for (final String text : list) {
-                next().append(text);
+        public final StringBuilder list(final Object... list) {
+            for (final Object text : list) {
+                next().append(text instanceof String ? text: Strings.printObject(false, text));
             }
 
             return builder;

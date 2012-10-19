@@ -33,6 +33,10 @@ import org.testng.annotations.Test;
 @SuppressWarnings("unchecked")
 public class StringsTest extends MockGroup {
 
+    private String className(final Class<?> type) {
+        return type.getName().replace('$', '.');
+    }
+
     @Test
     public void ordinaryType() throws Exception {
         final String string = Strings.printClass(true, Object.class);
@@ -42,7 +46,7 @@ public class StringsTest extends MockGroup {
     @Test
     public void ordinaryName() throws Exception {
         final String string = Strings.printClass(false, Object.class);
-        assert Object.class.getName().equals(string) : string;
+        assert className(Object.class).equals(string) : string;
     }
 
     @Test
@@ -168,9 +172,9 @@ public class StringsTest extends MockGroup {
         final Object proxy2 = Proxies.create(getClass().getClassLoader(), new Class[] { Interface1.class, Interface2.class }, null);
         final Object object3 = new Default();
 
-        final String text1 = String.format("proxy@%x[%s,%s]", System.identityHashCode(proxy1), Interface1.class.getName(), Interface2.class.getName());
-        final String text2 = String.format("proxy@%x[%s,%s]", System.identityHashCode(proxy2), Interface1.class.getName(), Interface2.class.getName());
-        final String text3 = String.format("%s@%x", Default.class.getName(), System.identityHashCode(object3));
+        final String text1 = String.format("proxy@%x[%s,%s]", System.identityHashCode(proxy1), className(Interface1.class), className(Interface2.class));
+        final String text2 = String.format("proxy@%x[%s,%s]", System.identityHashCode(proxy2), className(Interface1.class), className(Interface2.class));
+        final String text3 = String.format("%s@%x", className(Default.class), System.identityHashCode(object3));
 
         check(text1, Strings.printObjectId(proxy1));
         check(text2, Strings.printObjectId(proxy2));
@@ -186,11 +190,11 @@ public class StringsTest extends MockGroup {
         final Object object4 = new Overridden();
         final Object object5 = new Default();
 
-        final String text1 = String.format("proxy[%s,%s]", Interface1.class.getName(), Interface2.class.getName());
-        final String text2 = String.format("proxy@%x[%s,%s]", System.identityHashCode(proxy2), Interface1.class.getName(), Interface2.class.getName());
-        final String text3 = String.format("%s@%x", Default.class.getName(), System.identityHashCode(object3));
+        final String text1 = String.format("proxy[%s,%s]", className(Interface1.class), className(Interface2.class));
+        final String text2 = String.format("proxy@%x[%s,%s]", System.identityHashCode(proxy2), className(Interface1.class), className(Interface2.class));
+        final String text3 = String.format("%s@%x", className(Default.class), System.identityHashCode(object3));
         final String text4 = object4.toString();
-        final String text5 = String.format("%s", Default.class.getName());
+        final String text5 = String.format("%s", className(Default.class));
 
         check(text1, Strings.printObject(false, proxy1));
         check(text2, Strings.printObject(true, proxy2));
