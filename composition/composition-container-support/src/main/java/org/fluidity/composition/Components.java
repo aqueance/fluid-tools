@@ -494,7 +494,7 @@ public final class Components extends Utility {
 
         @Override
         public String toString() {
-            final Strings.Listing text = Strings.delimited();
+            final Lists.Delimited text = Lists.delimited();
 
             for (final Components.Specification specification : api) {
                 text.add(Strings.printClass(true, specification.api));

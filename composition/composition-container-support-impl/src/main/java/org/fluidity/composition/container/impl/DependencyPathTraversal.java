@@ -36,6 +36,7 @@ import org.fluidity.composition.container.ContextDefinition;
 import org.fluidity.composition.container.ResolvedNode;
 import org.fluidity.composition.container.spi.DependencyGraph;
 import org.fluidity.foundation.Deferred;
+import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.Proxies;
 import org.fluidity.foundation.Strings;
 
@@ -325,7 +326,7 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
         }
 
         public String toString(final boolean api) {
-            final Strings.Listing text = Strings.delimited();
+            final Lists.Delimited text = Lists.delimited();
 
             for (final ActualElement type : list) {
                 @SuppressWarnings("MismatchedQueryAndUpdateOfStringBuilder")

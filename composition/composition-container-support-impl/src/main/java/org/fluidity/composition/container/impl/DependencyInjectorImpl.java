@@ -339,7 +339,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
                             } catch (final ComponentContainer.InjectionException e) {
                                 throw e;
                             } catch (final Exception e) {
-                                throw new IllegalStateException(String.format("Invoking %s with %s", constructor, Strings.printObjectId(arguments)), e);
+                                throw new IllegalStateException(String.format("Invoking %s with %s", constructor, Strings.printId(arguments)), e);
                             }
                             return component;
                         }

@@ -222,7 +222,7 @@ final class SimpleContainerImpl implements ParentContainer {
             final Component componentSpec = implementation.getAnnotation(Component.class);
             final boolean isFallback = componentSpec != null && !componentSpec.primary();
 
-            final String value = instance instanceof String || instance instanceof Number ? String.format("'%s'", instance) : Strings.printObjectId(instance);
+            final String value = instance instanceof String || instance instanceof Number ? String.format("'%s'", instance) : Strings.printId(instance);
 
             log.get().debug("%s: binding %s to %s (%s)", this, value, interfaces, isFallback ? "fallback" : "primary");
 

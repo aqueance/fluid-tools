@@ -64,5 +64,27 @@ public class ListsTest {
         assert Arrays.equals(array, Lists.asArray(Arrays.asList(array), Item.class));
     }
 
+    @Test
+    public void testListSurrounding() throws Exception {
+        final Lists.Delimited listing = Lists.delimited();
+
+        listing.add("item");
+        listing.surround("|");
+        assert "|item|".equals(listing.toString()) : listing;
+
+        listing.surround("[]");
+        assert "[|item|]".equals(listing.toString()) : listing;
+
+        listing.surround("({})");
+        assert "({[|item|]})".equals(listing.toString()) : listing;
+
+        listing.surround("<|>");
+        assert "<|({[|item|]})|>".equals(listing.toString()) : listing;
+
+        listing.set("item");
+        listing.prepend("[").append("]");
+        assert "[item]".equals(listing.toString()) : listing;
+    }
+
     private static class Item implements Serializable { }
 }

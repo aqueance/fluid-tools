@@ -31,8 +31,8 @@ import org.fluidity.deployment.osgi.impl.BundleBootstrap;
 import org.fluidity.deployment.plugin.spi.JarManifest;
 import org.fluidity.foundation.Archives;
 import org.fluidity.foundation.ClassLoaders;
+import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.Methods;
-import org.fluidity.foundation.Strings;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.project.MavenProject;
@@ -91,7 +91,7 @@ public final class BundleJarManifest implements JarManifest {
     }
 
     public void processManifest(final MavenProject project, final Attributes attributes, final List<String> paths, final Collection<Artifact> dependencies) {
-        final String classpath = Strings.delimited(",", paths);
+        final String classpath = Lists.delimited(",", paths);
 
         if (!classpath.isEmpty()) {
             attributes.putValue(BUNDLE_CLASSPATH, classpath);

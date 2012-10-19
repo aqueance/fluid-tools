@@ -791,7 +791,7 @@ public class ConfigurationTest extends MockGroup {
     }
 
     private static String array(final Object actual) {
-        final Strings.Listing text = Strings.delimited();
+        final Lists.Delimited text = Lists.delimited();
 
         for (int i = 0, length = Array.getLength(actual); i < length; ++i) {
             text.next().append(Array.get(actual, i));

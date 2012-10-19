@@ -35,8 +35,8 @@ import java.util.jar.JarInputStream;
 
 import org.fluidity.foundation.Archives;
 import org.fluidity.foundation.ClassLoaders;
+import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.Streams;
-import org.fluidity.foundation.Strings;
 
 /**
  * {@linkplain URLStreamHandler Stream protocol handler} to work with resources inside JAR archives embedded in other JAR archives, ad infinitum.
@@ -144,7 +144,7 @@ public final class Handler extends URLStreamHandler {
         }
 
         final String stem = root.toExternalForm();
-        final Strings.Listing specification = Strings.delimited(DELIMITER);
+        final Lists.Delimited specification = Lists.delimited(DELIMITER);
 
         if (PROTOCOL.equals(root.getProtocol())) {
             specification.set(stem);

@@ -39,8 +39,8 @@ import org.fluidity.deployment.maven.ArchivesSupport;
 import org.fluidity.deployment.maven.DependenciesSupport;
 import org.fluidity.deployment.plugin.spi.JarManifest;
 import org.fluidity.foundation.Archives;
+import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.Streams;
-import org.fluidity.foundation.Strings;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.Profile;
@@ -217,13 +217,13 @@ public final class IncludeJarsMojo extends AbstractMojo {
                             }
                         }
 
-                        mainAttributes.putValue(Archives.Nested.attribute(id), Strings.delimited(" ", dependencyList));
+                        mainAttributes.putValue(Archives.Nested.attribute(id), Lists.delimited(" ", dependencyList));
                         dependencyMap.put(dependencyPath, dependencies);
                     }
                 }
 
                 if (!profiles.isEmpty()) {
-                    log.warn(String.format("No profile(s) found matching the execution IDs %s", Strings.delimited(profiles)));
+                    log.warn(String.format("No profile(s) found matching the execution IDs %s", Lists.delimited(profiles)));
                 }
 
                 if (!dependencyMap.isEmpty()) {

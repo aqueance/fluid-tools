@@ -23,7 +23,6 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.lang.reflect.Type;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Comparator;
 
 /**
@@ -72,28 +71,6 @@ public final class Strings extends Utility {
         }
 
         return builder.insert(0, className(componentType, textual, qualified)).toString();
-    }
-
-    private static String className(final Class type, final boolean kind, final boolean qualified) {
-        assert type != null;
-        final Listing name = Strings.delimited(".");
-
-        Class last = type;
-        for (Class enclosing = type; enclosing != null; enclosing = enclosing.getEnclosingClass()) {
-            name.previous();
-            name.prepend(enclosing.getSimpleName());
-            last = enclosing;
-        }
-
-        if (qualified) {
-            final String lastName = last.getName();
-            final int dot = lastName.lastIndexOf('.');
-
-            name.previous();
-            name.prepend(dot > 0 ? lastName.substring(0, dot) : lastName);
-        }
-
-        return kind ? String.format("%s %s", type.isInterface() ? Annotation.class.isAssignableFrom(type) ? "@interface" : "interface" : "class", name) : name.toString();
     }
 
     /**
@@ -169,6 +146,113 @@ public final class Strings extends Utility {
         return output.toString();
     }
 
+    /**
+     * For proxies, it returns <code>"proxy@&lt;identity hash code>[&lt;list of interfaces>]"</code>; for ordinary classes, it returns <code>"&lt;fully
+     * qualified class name>@&lt;identity hash code>"</code>; arrays are printed as described at {@link #printClass(boolean, Class)}.
+     * <p/>
+     * Arrays are printed as the list of individual items, surrounded with brackets.
+     *
+     * @param object the object to print; may be <code>null</code>.
+     *
+     * @return the proxy friendly run-time identity of the given object.
+     */
+    public static String printId(final Object object) {
+        if (object == null) {
+            return String.valueOf(object);
+        } else {
+            final Class<?> type = object.getClass();
+
+            if (type.isArray()) {
+                final Lists.Delimited text = Lists.delimited();
+
+                for (int i = 0, limit = Array.getLength(object); i < limit; ++i) {
+                    text.add(Strings.printId(Array.get(object, i)));
+                }
+
+                return text.surround("[]").toString();
+            } else {
+                return Proxy.isProxyClass(type)
+                       ? String.format("proxy@%x%s", System.identityHashCode(object), interfaces(type))
+                       : String.format("%s@%x", printClass(false, type), System.identityHashCode(object));
+            }
+        }
+    }
+
+    /**
+     * Returns a textual representation of the given object. In particular:<ul>
+     * <li>if the object is <code>null</code>, returns <code>"null"</code>;</li>
+     * <li>if the object is a proxy and has {@linkplain Proxies.Identity custom identity}, {@link Proxies.Identity#toString(Object) Proxies.Identity.toString()}
+     * is invoked with the object and its result is returned;</li>
+     * <li>if the object is a proxy, has no {@linkplain Proxies.Identity custom identity}, and <code>identity</code> is <code>false</code>, then
+     * <code>"proxy[&lt;list of interfaces>]"</code> is returned;</li>
+     * <li>if the object is a proxy, has no {@linkplain Proxies.Identity custom identity}, and <code>identity</code> is <code>true</code>, then {@link
+     * #printId  Strings.printId()} is invoked and returned;</li>
+     * <li>if the object overrides {@link Object#toString()}, the result of invoking that method is returned;</li>
+     * <li>Otherwise if <code>identity</code> is <code>true</code> then {@link #printId Strings.printId()} is invoked and returned, else the
+     * fully qualified name of the object type is returned.</li>
+     * </ul>
+     * <p/>
+     * Arrays are printed as the list of individual items, surrounded with brackets.
+     *
+     * @param identify tells if object identity is to be printed in absence of a custom {@link Object#toString()} method (<code>true</code>) or just the
+     *                 type identity (<code>false</code>).
+     * @param object   the object to print; may be <code>null</code>.
+     *
+     * @return the the proxy friendly textual representation, if any, or the identity of the given object.
+     */
+    public static String printObject(final boolean identify, final Object object) {
+        if (object == null) {
+            return String.valueOf(object);
+        } else {
+            final Class<?> type = object.getClass();
+
+            if (type.isArray()) {
+                final Lists.Delimited text = Lists.delimited();
+
+                for (int i = 0, limit = Array.getLength(object); i < limit; ++i) {
+                    text.add(Strings.printObject(identify, Array.get(object, i)));
+                }
+
+                final String array = text.surround("[]").toString();
+                return identify ? String.format("%x@%s", System.identityHashCode(object), array) : array;
+            } else if (Annotation.class.isAssignableFrom(type)) {
+                return printObject(identify, ((Annotation) object).annotationType());
+            } else if (Proxy.isProxyClass(type) && !Proxies.isIdentified(object)) {
+                return identify ? printId(object) : String.format("proxy%s", interfaces(type));
+            } else if (object instanceof Type) {
+                return Generics.toString((Type) object);
+            } else {
+                try {
+                    return (String) type.getDeclaredMethod("toString").invoke(object);
+                } catch (final Exception e) {
+                    return identify ? printId(object) : printClass(false, type);
+                }
+            }
+        }
+    }
+
+    private static String className(final Class type, final boolean kind, final boolean qualified) {
+        assert type != null;
+        final Lists.Delimited name = Lists.delimited(".");
+
+        Class last = type;
+        for (Class enclosing = type; enclosing != null; enclosing = enclosing.getEnclosingClass()) {
+            name.previous();
+            name.prepend(enclosing.getSimpleName());
+            last = enclosing;
+        }
+
+        if (qualified) {
+            final String lastName = last.getName();
+            final int dot = lastName.lastIndexOf('.');
+
+            name.previous();
+            name.prepend(dot > 0 ? lastName.substring(0, dot) : lastName);
+        }
+
+        return kind ? String.format("%s %s", type.isInterface() ? Annotation.class.isAssignableFrom(type) ? "@interface" : "interface" : "class", name) : name.toString();
+    }
+
     private static void appendValue(final boolean identity, final StringBuilder output, final Object value) {
         if (value instanceof Class) {
             if (identity) {
@@ -190,7 +274,7 @@ public final class Strings extends Utility {
     }
 
     private static String appendArray(final boolean identity, final Object value) {
-        final Listing output = new Listing(",");
+        final Lists.Delimited output = Lists.delimited(",");
 
         for (int i = 0, length = Array.getLength(value); i < length; ++i) {
             appendValue(identity, output.next(), Array.get(value, i));
@@ -199,308 +283,13 @@ public final class Strings extends Utility {
         return output.surround("{}").toString();
     }
 
-    /**
-     * For proxies, it returns <code>"proxy@&lt;identity hash code>[&lt;list of interfaces>]"</code>; for ordinary classes, it returns <code>"&lt;fully
-     * qualified class name>@&lt;identity hash code>"</code>; arrays are printed as described at {@link #printClass(boolean, Class)}.
-     * <p/>
-     * Arrays are printed as the list of individual items, surrounded with brackets.
-     *
-     * @param object the object to print; may be <code>null</code>.
-     *
-     * @return the proxy friendly run-time identity of the given object.
-     */
-    public static String printObjectId(final Object object) {
-        if (object == null) {
-            return String.valueOf(object);
-        } else {
-            final Class<?> type = object.getClass();
-
-            if (type.isArray()) {
-                final Listing text = delimited();
-
-                for (int i = 0, limit = Array.getLength(object); i < limit; ++i) {
-                    text.add(Strings.printObjectId(Array.get(object, i)));
-                }
-
-                return text.surround("[]").toString();
-            } else {
-                return Proxy.isProxyClass(type)
-                       ? String.format("proxy@%x%s", System.identityHashCode(object), interfaces(type))
-                       : String.format("%s@%x", printClass(false, type), System.identityHashCode(object));
-            }
-        }
-    }
-
-    /**
-     * Returns a textual representation of the given object. In particular:<ul>
-     * <li>if the object is <code>null</code>, returns <code>"null"</code>;</li>
-     * <li>if the object is a proxy and has {@linkplain Proxies.Identity custom identity}, {@link Proxies.Identity#toString(Object) Proxies.Identity.toString()}
-     * is invoked with the object and its result is returned;</li>
-     * <li>if the object is a proxy, has no {@linkplain Proxies.Identity custom identity}, and <code>identity</code> is <code>false</code>, then
-     * <code>"proxy[&lt;list of interfaces>]"</code> is returned;</li>
-     * <li>if the object is a proxy, has no {@linkplain Proxies.Identity custom identity}, and <code>identity</code> is <code>true</code>, then {@link
-     * #printObjectId(Object)  Strings.printObjectId()} is invoked and returned;</li>
-     * <li>if the object overrides {@link Object#toString()}, the result of invoking that method is returned;</li>
-     * <li>Otherwise if <code>identity</code> is <code>true</code> then {@link #printObjectId(Object) Strings.printObjectId()} is invoked and returned, else the
-     * fully qualified name of the object type is returned.</li>
-     * </ul>
-     * <p/>
-     * Arrays are printed as the list of individual items, surrounded with brackets.
-     *
-     * @param identify tells if object identity is to be printed in absence of a custom {@link Object#toString()} method (<code>true</code>) or just the
-     *                 type identity (<code>false</code>).
-     * @param object   the object to print; may be <code>null</code>.
-     *
-     * @return the the proxy friendly textual representation, if any, or the identity of the given object.
-     */
-    public static String printObject(final boolean identify, final Object object) {
-        if (object == null) {
-            return String.valueOf(object);
-        } else {
-            final Class<?> type = object.getClass();
-
-            if (type.isArray()) {
-                final Listing text = delimited();
-
-                for (int i = 0, limit = Array.getLength(object); i < limit; ++i) {
-                    text.add(Strings.printObject(identify, Array.get(object, i)));
-                }
-
-                final String array = text.surround("[]").toString();
-                return identify ? String.format("%x@%s", System.identityHashCode(object), array) : array;
-            } else if (Annotation.class.isAssignableFrom(type)) {
-                return printObject(identify, ((Annotation) object).annotationType());
-            } else if (Proxy.isProxyClass(type) && !Proxies.isIdentified(object)) {
-                return identify ? printObjectId(object) : String.format("proxy%s", interfaces(type));
-            } else if (object instanceof Type) {
-                return Generics.toString((Type) object);
-            } else {
-                try {
-                    return (String) type.getDeclaredMethod("toString").invoke(object);
-                } catch (final Exception e) {
-                    return identify ? printObjectId(object) : printClass(false, type);
-                }
-            }
-        }
-    }
-
     private static String interfaces(final Class<?> type) {
-        final Listing listing = new Listing(",");
+        final Lists.Delimited listing = Lists.delimited(",");
 
         for (final Class<?> api : type.getInterfaces()) {
             listing.add(printClass(false, api));
         }
 
         return listing.surround("[]").toString();
-    }
-
-    /**
-     * Returns a comma delimited {@linkplain Strings.Listing string listing} tool.
-     *
-     * @return a comma delimited {@linkplain Strings.Listing string listing} tool.
-     */
-    public static Listing delimited() {
-        return delimited(", ");
-    }
-
-    /**
-     * Returns a comma delimited list of the given items.
-     *
-     * @return a comma delimited list of the given items.
-     */
-    public static String delimited(final Collection<String> items) {
-        return delimited().list(items).toString();
-    }
-
-    /**
-     * Returns a comma delimited list of the given items.
-     *
-     * @return a comma delimited list of the given items.
-     */
-    public static String delimited(final String[] items) {
-        return delimited().list(items).toString();
-    }
-
-    /**
-     * Returns {@linkplain Strings.Listing string listing} tool with the given delimiter.
-     *
-     * @return {@linkplain Strings.Listing string listing} tool with the given delimiter.
-     */
-    public static Listing delimited(final String delimiter) {
-        return new Listing(delimiter);
-    }
-
-    /**
-     * Returns a delimited list of the given items.
-     *
-     * @return a delimited list of the given items.
-     */
-    public static String delimited(final String delimiter, final Collection<String> items) {
-        return new Listing(delimiter).list(items).toString();
-    }
-
-    /**
-     * Returns a delimited list of the given items.
-     *
-     * @return a delimited list of the given items.
-     */
-    public static String delimited(final String delimiter, final String[] items) {
-        return new Listing(delimiter).list(items).toString();
-    }
-
-    /**
-     * A string listing tool that makes working with a {@link StringBuilder} simpler when collecting list items.
-     *
-     * @author Tibor Varga
-     */
-    public static class Listing {
-
-        /**
-         * The underlying {@link StringBuilder} object.
-         */
-        public final StringBuilder builder = new StringBuilder();
-
-        private final String delimiter;
-
-        /**
-         * Creates a new string listing tool with the given delimiter.
-         *
-         * @param delimiter the delimiter.
-         */
-        protected Listing(final String delimiter) {
-            this.delimiter = delimiter;
-        }
-
-        /**
-         * Appends the delimiter to the string builder if it is not empty.
-         *
-         * @return the underlying {@link StringBuilder} object.
-         */
-        public final StringBuilder next() {
-            return builder.length() > 0 ? builder.append(delimiter) : builder;
-        }
-
-        /**
-         * Prepends the delimiter to the string builder if it is not empty.
-         *
-         * @return the underlying {@link StringBuilder} object.
-         */
-        public final StringBuilder previous() {
-            return builder.length() > 0 ? builder.insert(0, delimiter) : builder;
-        }
-
-        /**
-         * Collects the given text, appending the delimiter as necessary.
-         *
-         * @return the underlying {@link StringBuilder} object.
-         */
-        public final StringBuilder add(final String text) {
-            return next().append(text);
-        }
-
-        /**
-         * Collects the given list of texts, appending the delimiter as necessary.
-         *
-         * @return the underlying {@link StringBuilder} object.
-         */
-        public final StringBuilder list(final Collection<?> list) {
-            for (final Object text : list) {
-                next().append(text instanceof String ? text: Strings.printObject(false, text));
-            }
-
-            return builder;
-        }
-
-        /**
-         * Collects the given list of texts, appending the delimiter as necessary.
-         *
-         * @return the underlying {@link StringBuilder} object.
-         */
-        public final StringBuilder list(final Object... list) {
-            for (final Object text : list) {
-                next().append(text instanceof String ? text: Strings.printObject(false, text));
-            }
-
-            return builder;
-        }
-
-        /**
-         * Sets the value of the listing.
-         *
-         * @param text the new value of the list.
-         *
-         * @return the underlying {@link StringBuilder} object.
-         */
-        public StringBuilder set(final String text) {
-            builder.setLength(0);
-            builder.append(text);
-            return builder;
-        }
-
-        /**
-         * Appends some text to the list <i>without</i> the delimiter.
-         *
-         * @param text the text to append to the list.
-         *
-         * @return the underlying {@link StringBuilder} object.
-         */
-        public StringBuilder append(final String text) {
-            return builder.append(text);
-        }
-
-        /**
-         * Copies the first half of <code>bracket</code> to the beginning of the list and the second half to the end.
-         *
-         * @param bracket the character pairs to surround the current value with; may have odd number of characters, in which case the middle one will be
-         *                copied to both ends.
-         *
-         * @return the underlying {@link StringBuilder} object.
-         */
-        public StringBuilder surround(final String bracket) {
-            if (!bracket.isEmpty()) {
-                final int length = bracket.length();
-                final int half = length >>> 1;
-                surround(bracket.substring(0, half + length % 2), bracket.substring(half));
-            }
-
-            return builder;
-        }
-
-        /**
-         * Copies the <code>prefix</code> to the beginning of the list and <code>suffix</code> to the end.
-         *
-         * @param prefix the text to prepend to the current value.
-         * @param suffix the text to append to the current value.
-         *
-         * @return the underlying {@link StringBuilder} object.
-         */
-        public StringBuilder surround(final String prefix, final String suffix) {
-            return builder.insert(0, prefix).append(suffix);
-        }
-
-        /**
-         * Copies the <code>prefix</code> to the beginning of the list.
-         *
-         * @param prefix the text to prepend to the current value.
-         *
-         * @return the underlying {@link StringBuilder} object.
-         */
-        public StringBuilder prepend(final String prefix) {
-            return builder.insert(0, prefix);
-        }
-
-        /**
-         * Tells if the underlying {@link StringBuilder} is empty.
-         *
-         * @return <code>true</code> if the underlying {@link StringBuilder} is empty; <code>false</code> otherwise.
-         */
-        public boolean isEmpty() {
-            return builder.length() == 0;
-        }
-
-        @Override
-        public String toString() {
-            return builder.toString();
-        }
     }
 }

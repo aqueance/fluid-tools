@@ -22,6 +22,7 @@ import java.util.Comparator;
 import java.util.Map;
 import java.util.TreeMap;
 
+import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.Strings;
 import org.fluidity.foundation.Utility;
 
@@ -72,15 +73,15 @@ final class AnnotationMaps extends Utility {
     }
 
     private static String toString(final boolean identity, final Map<Class<? extends Annotation>, Annotation[]> map) {
-        final Strings.Listing builder = Strings.delimited(" ");
+        final Lists.Delimited list = Lists.delimited(" ");
 
         for (final Annotation[] annotations : sorted(map).values()) {
             for (final Annotation annotation : annotations) {
-                builder.add(Strings.printAnnotation(identity, annotation));
+                list.add(Strings.printAnnotation(identity, annotation));
             }
         }
 
-        return builder.toString();
+        return list.toString();
     }
 
     private static Map<Class<? extends Annotation>, Annotation[]> sorted(final Map<Class<? extends Annotation>, Annotation[]> map) {

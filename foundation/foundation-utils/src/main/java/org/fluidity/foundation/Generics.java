@@ -180,8 +180,7 @@ public final class Generics extends Utility {
      * @return an array of {@link TypeVariable} or {@link WildcardType} objects, or <code>null</code> if no unresolved variable was found.
      */
     public static Type[] unresolved(final Type reference) {
-        final Collection<Type> list = unresolved(reference, new ArrayList<Type>());
-        return list.isEmpty() ? null : Lists.asArray(list, Type.class);
+        return Lists.asArray(unresolved(reference, new ArrayList<Type>()), Type.class, false);
     }
 
     /**
@@ -226,7 +225,7 @@ public final class Generics extends Utility {
         if (type instanceof Class) {
             return String.format("%s@%d", Strings.printClass(false, true, (Class) type), System.identityHashCode(type));
         } else if (type instanceof ParameterizedType) {
-            final Strings.Listing output = Strings.delimited(",");
+            final Lists.Delimited output = Lists.delimited(",");
 
             for (final Type parameter : ((ParameterizedType) type).getActualTypeArguments()) {
                 output.append(identity(parameter));
@@ -236,7 +235,7 @@ public final class Generics extends Utility {
         } else if (type instanceof GenericArrayType) {
             return String.format("%s[]", identity(((GenericArrayType) type).getGenericComponentType()));
         } else if (type instanceof TypeVariable) {
-            final Strings.Listing output = Strings.delimited(",");
+            final Lists.Delimited output = Lists.delimited(",");
 
             for (final Type bound : ((TypeVariable) type).getBounds()) {
                 output.append(identity(bound));
@@ -244,13 +243,13 @@ public final class Generics extends Utility {
 
             return output.toString();
         } else if (type instanceof WildcardType) {
-            final Strings.Listing lower = Strings.delimited(",");
+            final Lists.Delimited lower = Lists.delimited(",");
 
             for (final Type bound : ((WildcardType) type).getLowerBounds()) {
                 lower.append(identity(bound));
             }
 
-            final Strings.Listing upper = Strings.delimited(",");
+            final Lists.Delimited upper = Lists.delimited(",");
 
             for (final Type bound : ((WildcardType) type).getUpperBounds()) {
                 upper.append(identity(bound));
@@ -277,7 +276,7 @@ public final class Generics extends Utility {
         } else if (argument instanceof ParameterizedType) {
             return String.format("%s<%s>",
                                  toString(Generics.rawType(argument)),
-                                 Strings.delimited(", ").list(((ParameterizedType) argument).getActualTypeArguments()));
+                                 Lists.delimited(", ", ((ParameterizedType) argument).getActualTypeArguments()));
         } else if (argument instanceof GenericArrayType) {
             return String.format("%s[]", toString(((GenericArrayType) argument).getGenericComponentType()));
         } else if (argument instanceof TypeVariable) {
@@ -286,7 +285,7 @@ public final class Generics extends Utility {
 
             return bounds.length == 1 && bounds[0] == Object.class
                    ? variable.getName()
-                   : String.format("%s extends %s", variable.getName(), Strings.delimited(" & ").list(bounds));
+                   : String.format("%s extends %s", variable.getName(), Lists.delimited(" & ", bounds));
         } else if (argument instanceof WildcardType) {
             final WildcardType wildcard = (WildcardType) argument;
             final Type[] upperBounds = wildcard.getUpperBounds();
@@ -294,9 +293,9 @@ public final class Generics extends Utility {
 
             final String upper = upperBounds.length == 1 && upperBounds[0] == Object.class
                                  ? ""
-                                 : String.format(" extends %s", Strings.delimited(" & ").list(upperBounds));
+                                 : " extends ".concat(Lists.delimited(" & ", upperBounds));
 
-            final String lower = lowerBounds.length == 0 ? "" : String.format(" super %s", Strings.delimited(" & ").list(lowerBounds));
+            final String lower = lowerBounds.length == 0 ? "" : " super ".concat(Lists.delimited(" & ", lowerBounds));
 
             return String.format("?%s%s", upper, lower);
         } else {
@@ -531,7 +530,7 @@ public final class Generics extends Utility {
 
         @Override
         public String toString() {
-            final Strings.Listing parameters = Strings.delimited();
+            final Lists.Delimited parameters = Lists.delimited();
 
             for (final Type argument : arguments) {
                 parameters.add(argument.toString());

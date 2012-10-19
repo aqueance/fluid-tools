@@ -23,7 +23,7 @@ import java.util.Properties;
 import java.util.jar.Attributes;
 
 import org.fluidity.deployment.plugin.spi.JarManifest;
-import org.fluidity.foundation.Strings;
+import org.fluidity.foundation.Lists;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.License;
@@ -112,7 +112,7 @@ public class BundleJarManifestTest {
 
         manifest.processManifest(project, attributes, dependencies, Collections.<Artifact>emptyList());
 
-        assert Strings.delimited(",", dependencies).equals(attributes.getValue(BUNDLE_CLASSPATH));
+        assert Lists.delimited(",", dependencies).equals(attributes.getValue(BUNDLE_CLASSPATH));
 
         final String version = attributes.getValue(BUNDLE_VERSION);
         assert BundleJarManifest.DEFAULT_BUNDLE_VERSION.equals(version) : version;

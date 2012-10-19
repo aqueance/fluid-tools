@@ -176,10 +176,10 @@ public class StringsTest extends MockGroup {
         final String text2 = String.format("proxy@%x[%s,%s]", System.identityHashCode(proxy2), className(Interface1.class), className(Interface2.class));
         final String text3 = String.format("%s@%x", className(Default.class), System.identityHashCode(object3));
 
-        check(text1, Strings.printObjectId(proxy1));
-        check(text2, Strings.printObjectId(proxy2));
-        check(text3, Strings.printObjectId(object3));
-        check(String.format("[%s, %s, %s]", text1, text2, text3), Strings.printObjectId(new Object[] { proxy1, proxy2, object3 }));
+        check(text1, Strings.printId(proxy1));
+        check(text2, Strings.printId(proxy2));
+        check(text3, Strings.printId(object3));
+        check(String.format("[%s, %s, %s]", text1, text2, text3), Strings.printId(new Object[] { proxy1, proxy2, object3 }));
     }
 
     @Test
@@ -203,28 +203,6 @@ public class StringsTest extends MockGroup {
         check(text5, Strings.printObject(false, object5));
         check(String.format("[%s, %s, %s, %s, %s]", text1, Strings.printObject(false, proxy2), Strings.printObject(false, object3), text4, text5),
               Strings.printObject(false, new Object[] { proxy1, proxy2, object3, object4, object5 }));
-    }
-
-    @Test
-    public void testListSurrounding() throws Exception {
-        final Strings.Listing listing = Strings.delimited();
-
-        listing.add("item");
-        listing.surround("|");
-        assert "|item|".equals(listing.toString()) : listing;
-
-        listing.surround("[]");
-        assert "[|item|]".equals(listing.toString()) : listing;
-
-        listing.surround("({})");
-        assert "({[|item|]})".equals(listing.toString()) : listing;
-
-        listing.surround("<|>");
-        assert "<|({[|item|]})|>".equals(listing.toString()) : listing;
-
-        listing.set("item");
-        listing.prepend("[").append("]");
-        assert "[item]".equals(listing.toString()) : listing;
     }
 
     @Test

@@ -28,6 +28,7 @@ import java.util.TreeSet;
 import org.fluidity.composition.Component;
 import org.fluidity.composition.container.ContextDefinition;
 import org.fluidity.composition.spi.ComponentInterceptor;
+import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.Strings;
 
 /**
@@ -101,7 +102,7 @@ final class InterceptorFilterImpl implements InterceptorFilter {
         }
 
         public String toString(final boolean full) {
-            final Strings.Listing annotations = Strings.delimited();
+            final Lists.Delimited annotations = Lists.delimited();
 
             if (full) {
                 for (final Class<? extends Annotation> type : context) {

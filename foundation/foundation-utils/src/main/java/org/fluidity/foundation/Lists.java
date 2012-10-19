@@ -93,8 +93,235 @@ public class Lists extends Utility {
      *
      * @return an array containing the elements of the given list; never <code>null</code>.
      */
-    @SuppressWarnings("unchecked")
     public static <T> T[] asArray(final Collection<T> list, final Class<? super T> type) {
-        return list == null ? (T[]) Array.newInstance(type, 0) : list.toArray((T[]) Array.newInstance(type, list.size()));
+        return asArray(list, type, true);
+    }
+
+    /**
+     * Complements {@link java.util.Arrays#asList(Object[])} with a conversion to the opposite direction. This is a convenience method that calls {@link
+     * Collection#toArray(Object[])} on the received <code>list</code> with the <code>list</code>'s sized array and, in most cases, does all the unchecked type
+     * casts needed for the operation.
+     *
+     * @param list  is the list to convert to an array; may be <code>null</code>.
+     * @param type  the item type of the list/array; may not be <code>null</code>.
+     * @param empty tells whether an <code>null</code> or empty list should be returned as an empty array (value <code>true</code>) or <code>null</code> (value
+     *              <code>false</code>).
+     * @param <T>   the generic item type of the list/array.
+     *
+     * @return an array containing the elements of the given list; may be <code>null</code> if <code>empty</code> is <code>false</code>.
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> T[] asArray(final Collection<T> list, final Class<? super T> type, final boolean empty) {
+        return list == null || list.isEmpty() ? empty ? (T[]) Array.newInstance(type, 0) : null : list.toArray((T[]) Array.newInstance(type, list.size()));
+    }
+
+    /**
+     * Returns a comma {@linkplain Lists.Delimited delimited list}.
+     *
+     * @return a comma {@linkplain Lists.Delimited delimited list}.
+     */
+    public static Delimited delimited() {
+        return delimited(", ");
+    }
+
+    /**
+     * Returns a comma delimited list of the given items.
+     *
+     * @return a comma delimited list of the given items.
+     */
+    public static String delimited(final Collection<?> items) {
+        return delimited().list(items).toString();
+    }
+
+    /**
+     * Returns a comma delimited list of the given items.
+     *
+     * @return a comma delimited list of the given items.
+     */
+    public static String delimited(final Object... items) {
+        return delimited().list(items).toString();
+    }
+
+    /**
+     * Returns {@linkplain Lists.Delimited delimited list} with the given delimiter.
+     *
+     * @return {@linkplain Lists.Delimited delimited list} with the given delimiter.
+     */
+    public static Delimited delimited(final String delimiter) {
+        return new Delimited(delimiter);
+    }
+
+    /**
+     * Returns a delimited list of the given items.
+     *
+     * @return a delimited list of the given items.
+     */
+    public static String delimited(final String delimiter, final Collection<?> items) {
+        return new Delimited(delimiter).list(items).toString();
+    }
+
+    /**
+     * Returns a delimited list of the given items.
+     *
+     * @return a delimited list of the given items.
+     */
+    public static String delimited(final String delimiter, final Object... items) {
+        return new Delimited(delimiter).list(items).toString();
+    }
+
+    /**
+     * A string listing tool that makes working with a {@link StringBuilder} simpler when collecting list items.
+     *
+     * @author Tibor Varga
+     */
+    public static final class Delimited {
+
+        /**
+         * The underlying {@link StringBuilder} object.
+         */
+        public final StringBuilder builder = new StringBuilder();
+
+        private final String delimiter;
+
+        /**
+         * Creates a new string listing tool with the given delimiter.
+         *
+         * @param delimiter the delimiter.
+         */
+        Delimited(final String delimiter) {
+            this.delimiter = delimiter;
+        }
+
+        /**
+         * Appends the delimiter to the string builder if it is not empty.
+         *
+         * @return the underlying {@link StringBuilder} object.
+         */
+        public StringBuilder next() {
+            return builder.length() > 0 ? builder.append(delimiter) : builder;
+        }
+
+        /**
+         * Prepends the delimiter to the string builder if it is not empty.
+         *
+         * @return the underlying {@link StringBuilder} object.
+         */
+        public StringBuilder previous() {
+            return builder.length() > 0 ? builder.insert(0, delimiter) : builder;
+        }
+
+        /**
+         * Collects the given text, appending the delimiter as necessary.
+         *
+         * @return the underlying {@link StringBuilder} object.
+         */
+        public StringBuilder add(final Object text) {
+            return next().append(text);
+        }
+
+        /**
+         * Collects the given list of texts, appending the delimiter as necessary.
+         *
+         * @return the underlying {@link StringBuilder} object.
+         */
+        public StringBuilder list(final Collection<?> list) {
+            for (final Object text : list) {
+                next().append(text instanceof String ? text: Strings.printObject(false, text));
+            }
+
+            return builder;
+        }
+
+        /**
+         * Collects the given list of texts, appending the delimiter as necessary.
+         *
+         * @return the underlying {@link StringBuilder} object.
+         */
+        public StringBuilder list(final Object... list) {
+            for (final Object text : list) {
+                next().append(text instanceof String ? text: Strings.printObject(false, text));
+            }
+
+            return builder;
+        }
+
+        /**
+         * Sets the value of the listing.
+         *
+         * @param text the new value of the list.
+         *
+         * @return the underlying {@link StringBuilder} object.
+         */
+        public StringBuilder set(final Object text) {
+            builder.setLength(0);
+            builder.append(text);
+            return builder;
+        }
+
+        /**
+         * Appends some text to the list <i>without</i> the delimiter.
+         *
+         * @param text the text to append to the list.
+         *
+         * @return the underlying {@link StringBuilder} object.
+         */
+        public StringBuilder append(final Object text) {
+            return builder.append(text);
+        }
+
+        /**
+         * Copies the first half of <code>bracket</code> to the beginning of the list and the second half to the end.
+         *
+         * @param bracket the character pairs to surround the current value with; may have odd number of characters, in which case the middle one will be
+         *                copied to both ends.
+         *
+         * @return the underlying {@link StringBuilder} object.
+         */
+        public StringBuilder surround(final String bracket) {
+            if (!bracket.isEmpty()) {
+                final int length = bracket.length();
+                final int half = length >>> 1;
+                surround(bracket.substring(0, half + length % 2), bracket.substring(half));
+            }
+
+            return builder;
+        }
+
+        /**
+         * Copies the <code>prefix</code> to the beginning of the list and <code>suffix</code> to the end.
+         *
+         * @param prefix the text to prepend to the current value.
+         * @param suffix the text to append to the current value.
+         *
+         * @return the underlying {@link StringBuilder} object.
+         */
+        public StringBuilder surround(final String prefix, final String suffix) {
+            return builder.insert(0, prefix).append(suffix);
+        }
+
+        /**
+         * Copies the <code>prefix</code> to the beginning of the list.
+         *
+         * @param prefix the text to prepend to the current value.
+         *
+         * @return the underlying {@link StringBuilder} object.
+         */
+        public StringBuilder prepend(final String prefix) {
+            return builder.insert(0, prefix);
+        }
+
+        /**
+         * Tells if the underlying {@link StringBuilder} is empty.
+         *
+         * @return <code>true</code> if the underlying {@link StringBuilder} is empty; <code>false</code> otherwise.
+         */
+        public boolean isEmpty() {
+            return builder.length() == 0;
+        }
+
+        @Override
+        public String toString() {
+            return builder.toString();
+        }
     }
 }
