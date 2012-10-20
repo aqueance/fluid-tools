@@ -25,7 +25,7 @@ import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.spi.ComponentFactory;
-import org.fluidity.features.ReloadingConfiguration;
+import org.fluidity.features.DynamicConfiguration;
 import org.fluidity.features.Updates;
 import org.fluidity.foundation.Configuration;
 import org.fluidity.foundation.Deferred;
@@ -37,15 +37,15 @@ import static org.fluidity.foundation.Command.Process;
 /**
  * @author Tibor Varga
  */
-@Component(api = ReloadingConfiguration.class)
+@Component(api = DynamicConfiguration.class)
 @Component.Context(Component.Reference.class)
-final class ReloadingConfigurationFactory implements ComponentFactory {
+final class DynamicConfigurationFactory implements ComponentFactory {
 
     public Instance resolve(final ComponentContext context, final Resolver dependencies) throws Exception {
-        final Component.Reference reference = context.annotation(Component.Reference.class, ReloadingConfiguration.class);
+        final Component.Reference reference = context.annotation(Component.Reference.class, DynamicConfiguration.class);
         final Class<?> api = reference.parameter(0);
 
-        dependencies.discover(ReloadingConfigurationImpl.class);
+        dependencies.discover(DynamicConfigurationImpl.class);
 
         for (final Method method : api.getMethods()) {
             if (method.getParameterTypes().length > 0) {
@@ -58,21 +58,21 @@ final class ReloadingConfigurationFactory implements ComponentFactory {
             @SuppressWarnings("unchecked")
             public void bind(final Registry registry) throws Exception {
                 registry.bindInstance(api, Class.class);
-                registry.bindComponent(ReloadingConfigurationImpl.class);
+                registry.bindComponent(DynamicConfigurationImpl.class);
             }
         };
     }
 
     @Component(automatic = false)
     @Component.Context(Component.Reference.class)
-    private static class ReloadingConfigurationImpl<T> implements ReloadingConfiguration<T> {
+    private static class DynamicConfigurationImpl<T> implements DynamicConfiguration<T> {
 
         private final Deferred.Reference<Updates.Snapshot<T>> snapshot;
 
-        ReloadingConfigurationImpl(final Class<T> type, final Configuration<T> delegate, final Configuration<Settings> configuration, final Updates updates) {
+        DynamicConfigurationImpl(final Class<T> type, final Configuration<T> delegate, final Configuration<Settings> configuration, final Updates updates) {
             this.snapshot = Deferred.reference(new Deferred.Factory<Updates.Snapshot<T>>() {
                 public Updates.Snapshot<T> create() {
-                    return updates.register(configuration.settings().period(), new Updates.Snapshot<T>() {
+                    return updates.snapshot(configuration.settings().period(), new Updates.Snapshot<T>() {
                         private Configuration.Query<T, T> all = new Configuration.Query<T, T>() {
                             public T run(final T settings) throws Exception {
                                 final Map<Method, Object> cache = new HashMap<Method, Object>();
@@ -124,7 +124,7 @@ final class ReloadingConfigurationFactory implements ComponentFactory {
          *
          * @return the period in milliseconds.
          */
-        @Configuration.Property(key = ReloadingConfiguration.CONFIGURATION_REFRESH_PERIOD, undefined = "30000")
+        @Configuration.Property(key = DynamicConfiguration.CONFIGURATION_REFRESH_PERIOD, undefined = "30000")
         long period();
     }
 }

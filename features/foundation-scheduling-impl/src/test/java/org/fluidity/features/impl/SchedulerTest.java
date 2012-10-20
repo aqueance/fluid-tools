@@ -41,7 +41,7 @@ import org.testng.annotations.Test;
  */
 public class SchedulerTest extends MockGroup {
 
-    private final MockConfiguration<SchedulerImpl.Settings> configuration = MockConfiguration.create(this, SchedulerImpl.Settings.class);
+    private final MockConfiguration.Direct<SchedulerImpl.Settings> configuration = MockConfiguration.direct(this, SchedulerImpl.Settings.class);
 
     private final Scheduler.Task task = mock(Scheduler.Task.class);
     private final Log<SchedulerImpl> log = NoLogFactory.consume(SchedulerImpl.class);

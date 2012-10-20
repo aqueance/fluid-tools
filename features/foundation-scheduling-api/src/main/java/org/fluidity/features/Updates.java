@@ -17,7 +17,7 @@
 package org.fluidity.features;
 
 /**
- * Periodic update facility. Components wishing to periodically update some data should call {@link #register(long, Snapshot)} upon initialization and then
+ * Periodic update facility. Components wishing to periodically update some data should call {@link #snapshot(long, Snapshot)} upon initialization and then
  * use {@link Snapshot#get()} on the returned snapshot every time they wish to access the periodically updated data.
  * <p/>
  * <b>NOTE</b>: This component is designed not to keep a hard reference to any object that registers for updates and thus is a preferred way to the
@@ -37,7 +37,7 @@ package org.fluidity.features;
  *   private final <span class="hl1">Updates.Snapshot</span>&lt;<span class="hl3">Data</span>> data;
  *
  *   <span class="hl2">MyComponent</span>(final <span class="hl1">Updates</span> updates) {
- *     data = updates.<span class="hl1">register</span>(period, new <span class="hl1">Updates.Snapshot</span>&lt;<span class="hl3">Data</span>>() {
+ *     data = updates.<span class="hl1">snapshot</span>(period, new <span class="hl1">Updates.Snapshot</span>&lt;<span class="hl3">Data</span>>() {
  *       public <span class="hl3">Data</span> get() {
  *         return &hellip;;  // update the data
  *       }
@@ -69,17 +69,23 @@ public interface Updates {
     String UPDATE_GRANULARITY = "org.fluidity.features.update-granularity-ms";
 
     /**
-     * Registers an object to periodically update data with.
+     * Creates a periodically updated on-demand snapshot for some data. The the data is loaded by the given <code>loader</code>, which will be invoked <id>no
+     * more frequently</id> than every <code>period</code> milliseconds.
      * <p/>
-     * The data update is implemented by the supplied <code>loader</code>, which will be invoked at most once every <code>period</code> milliseconds. The data
-     * will be loaded once before this method returns and after that only if the {@link Snapshot#get()} method is invoked on the returned value.
+     * The actual data update is implemented by the supplied <code>loader</code>, which will be invoked at most once every <code>period</code> milliseconds.
+     * The data will be loaded once before this method returns and after that <i>only</i> when the {@link Snapshot#get()} method is invoked on the returned
+     * value.
+     * <p/>
+     * The {@linkplain Updates#UPDATE_GRANULARITY update granularity} configured for this component will pose as the lower bound to any <i>positive</i>
+     * <code>period</code> specified to this method.If the <code>period</code> specified is <code>0</code>, the snapshot will be taken once and then cached
+     * forever. If the <code>period</code> is negative, no snapshot will be cached and the loader will be invoked at every invocation of {@link Snapshot#get()}.
      *
      * @param period the number of milliseconds that must pass between subsequent calls to {@link Snapshot#get()} on the provided <code>loader</code>.
      * @param loader the object that can refresh the data.
      *
      * @return an object through which the up-to-date data can be obtained.
      */
-    <T> Snapshot<T> register(long period, Snapshot<T> loader);
+    <T> Snapshot<T> snapshot(long period, Snapshot<T> loader);
 
     /**
      * Represents some data that may be periodically refreshed by the {@link Updates} component.

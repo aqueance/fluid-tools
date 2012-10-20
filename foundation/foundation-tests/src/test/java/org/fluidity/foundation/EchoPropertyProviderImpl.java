@@ -17,7 +17,7 @@
 package org.fluidity.foundation;
 
 import org.fluidity.composition.Component;
-import org.fluidity.features.ReloadingConfiguration;
+import org.fluidity.features.DynamicConfiguration;
 import org.fluidity.features.Updates;
 import org.fluidity.foundation.spi.PropertyProvider;
 
@@ -31,7 +31,7 @@ public class EchoPropertyProviderImpl implements PropertyProvider {
 
     private static final String[] known = new String[] {
             Updates.UPDATE_GRANULARITY,
-            ReloadingConfiguration.CONFIGURATION_REFRESH_PERIOD
+            DynamicConfiguration.CONFIGURATION_REFRESH_PERIOD
     };
 
     public Object property(final String key) {

@@ -19,7 +19,7 @@ package org.fluidity.foundation;
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.Containers;
-import org.fluidity.features.ReloadingConfiguration;
+import org.fluidity.features.DynamicConfiguration;
 import org.fluidity.features.Updates;
 
 import org.testng.annotations.Test;
@@ -27,7 +27,7 @@ import org.testng.annotations.Test;
 /**
  * @author Tibor Varga
  */
-public class ReloadingConfigurationFactoryTest {
+public class DynamicConfigurationFactoryTest {
 
     private final ComponentContainer container = Containers.global();
 
@@ -45,7 +45,7 @@ public class ReloadingConfigurationFactoryTest {
     private static class NoContextConfigured {
 
         @SuppressWarnings("UnusedDeclaration")
-        private NoContextConfigured(final ReloadingConfiguration<Settings> configuration) {
+        private NoContextConfigured(final DynamicConfiguration<Settings> configuration) {
             final Updates.Snapshot<Settings> snapshot = configuration.snapshot();
 
             assert snapshot != null;
@@ -66,9 +66,9 @@ public class ReloadingConfigurationFactoryTest {
         private static final String PREFIX2 = "prefix2";
 
         @SuppressWarnings("UnusedDeclaration")
-        private ContextConfigured(final @Configuration.Prefix(PREFIX1) ReloadingConfiguration<Settings> configuration1,
-                                  final @Configuration.Prefix(PREFIX2) ReloadingConfiguration<Settings> configuration2,
-                                  final @Configuration.Prefix(PREFIX1) ReloadingConfiguration<Settings> configuration3) {
+        private ContextConfigured(final @Configuration.Prefix(PREFIX1) DynamicConfiguration<Settings> configuration1,
+                                  final @Configuration.Prefix(PREFIX2) DynamicConfiguration<Settings> configuration2,
+                                  final @Configuration.Prefix(PREFIX1) DynamicConfiguration<Settings> configuration3) {
             final Settings settings1 = configuration1.snapshot().get();
             final Settings settings2 = configuration2.snapshot().get();
 

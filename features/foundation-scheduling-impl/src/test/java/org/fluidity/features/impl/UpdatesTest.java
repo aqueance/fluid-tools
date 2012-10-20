@@ -34,7 +34,7 @@ import org.testng.annotations.Test;
  */
 public class UpdatesTest extends MockGroup {
 
-    private final MockConfiguration<UpdatesImpl.Settings> configuration = MockConfiguration.create(this, UpdatesImpl.Settings.class);
+    private final MockConfiguration.Direct<UpdatesImpl.Settings> configuration = MockConfiguration.direct(this, UpdatesImpl.Settings.class);
 
     @SuppressWarnings("unchecked")
     private final Updates.Snapshot<Object> loader = mock(Updates.Snapshot.class);
@@ -94,7 +94,7 @@ public class UpdatesTest extends MockGroup {
 
                 return verify(new Work<Updates.Snapshot<Object>>() {
                     public Updates.Snapshot<Object> run() throws Exception {
-                        return updates.register(100, loader);
+                        return updates.snapshot(100, loader);
                     }
                 });
             }
@@ -137,7 +137,7 @@ public class UpdatesTest extends MockGroup {
 
                 return verify(new Work<Updates.Snapshot<Object>>() {
                     public Updates.Snapshot<Object> run() throws Exception {
-                        return updates.register(100, loader);
+                        return updates.snapshot(100, loader);
                     }
                 });
             }
@@ -173,7 +173,7 @@ public class UpdatesTest extends MockGroup {
 
                 return verify(new Work<Updates.Snapshot<Object>>() {
                     public Updates.Snapshot<Object> run() throws Exception {
-                        return updates.register(0, loader);
+                        return updates.snapshot(0, loader);
                     }
                 });
             }
@@ -205,7 +205,7 @@ public class UpdatesTest extends MockGroup {
 
         final Updates.Snapshot<Object> snapshot = verify(new Work<Updates.Snapshot<Object>>() {
             public Updates.Snapshot<Object> run() throws Exception {
-                return updates.register(-1, loader);
+                return updates.snapshot(-1, loader);
             }
         });
 

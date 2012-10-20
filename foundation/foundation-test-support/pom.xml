@@ -45,6 +45,12 @@
         </dependency>
 
         <dependency>
+            <groupId>${fluidity.features.groupId}</groupId>
+            <artifactId>foundation-scheduling-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>foundation-easymock</artifactId>
             <version>${project.version}</version>

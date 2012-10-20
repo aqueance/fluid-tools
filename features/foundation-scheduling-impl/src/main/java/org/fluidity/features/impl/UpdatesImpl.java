@@ -45,7 +45,7 @@ final class UpdatesImpl implements Updates {
         }
     }
 
-    public synchronized <T> Snapshot<T> register(final long period, final Snapshot<T> loader) {
+    public synchronized <T> Snapshot<T> snapshot(final long period, final Snapshot<T> loader) {
         final long interval = period > 0 ? delay : period;  // period set: delay determines special behavior, period does otherwise
 
         if (interval < 0) {
@@ -100,7 +100,7 @@ final class UpdatesImpl implements Updates {
 
         /**
          * The minimum number in milliseconds between subsequent calls to {@link org.fluidity.features.Updates.Snapshot#get()} of a loader passed to
-         * {@link org.fluidity.features.Updates#register(long, org.fluidity.features.Updates.Snapshot)}.
+         * {@link org.fluidity.features.Updates#snapshot(long, Updates.Snapshot)}.
          *
          * @return a number greater than 0.
          */

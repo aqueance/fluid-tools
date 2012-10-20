@@ -51,7 +51,7 @@ package org.fluidity.features;
  * @author Tibor Varga
  */
 @SuppressWarnings("JavadocReference")
-public interface ReloadingConfiguration<T> {
+public interface DynamicConfiguration<T> {
 
     String CONFIGURATION_REFRESH_PERIOD = "org.fluidity.features.configuration-refresh-period-ms";
 
