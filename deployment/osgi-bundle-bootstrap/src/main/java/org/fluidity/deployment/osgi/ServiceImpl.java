@@ -78,6 +78,6 @@ final class ServiceImpl implements Service {
 
     @Override
     public String toString() {
-        return Strings.printAnnotation(false, this);
+        return Strings.describeAnnotation(false, this);
     }
 }

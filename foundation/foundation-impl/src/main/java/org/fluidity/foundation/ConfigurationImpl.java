@@ -198,7 +198,7 @@ final class ConfigurationImpl<T> implements Configuration<T> {
                     try {
                         return composite(type, suffix);
                     } catch (final Exception e) {
-                        throw new IllegalArgumentException(String.format("Could not create objects of type %s", Strings.printClass(false, type)), e);
+                        throw new IllegalArgumentException(String.format("Could not create objects of type %s", Strings.formatClass(false, true, type)), e);
                     }
                 } else {
                     if (provider != null) {
@@ -240,13 +240,12 @@ final class ConfigurationImpl<T> implements Configuration<T> {
                     } else if (type.isArray()) {
                         itemType = Generics.arrayComponentType(genericType);
                     } else {
-                        throw new IllegalArgumentException(String.format("Type %s is neither an array, nor a collection nor a map", Strings.printClass(false,
-                                                                                                                                                       type)));
+                        throw new IllegalArgumentException(String.format("Type %s is neither an array, nor a collection nor a map",
+                                                                         Strings.formatClass(false, true, type)));
                     }
 
                     for (final String id : identifiers) {
-                        final Object value = property(split,
-                                                      grouping,
+                        final Object value = property(split, grouping,
                                                       null,
                                                       null,
                                                       null,
@@ -286,8 +285,8 @@ final class ConfigurationImpl<T> implements Configuration<T> {
 
                         return array;
                     } else {
-                        throw new IllegalArgumentException(String.format("Type %s is neither an array, nor a collection nor a map", Strings.printClass(false,
-                                                                                                                                                       type)));
+                        throw new IllegalArgumentException(String.format("Type %s is neither an array, nor a collection nor a map",
+                                                                         Strings.formatClass(false, true, type)));
                     }
                 } else {
                     return null;
@@ -395,7 +394,7 @@ final class ConfigurationImpl<T> implements Configuration<T> {
                 return booleanToPrimitive(PRIMITIVE_TYPES.get(target), target, (Boolean) value);
             }
 
-            throw new IllegalArgumentException(String.format("Cannot convert %s to type %s", value, Strings.printClass(false, target)));
+            throw new IllegalArgumentException(String.format("Cannot convert %s to type %s", value, Strings.formatClass(false, true, target)));
         }
 
         Object arrayValue(final Object value, final Class<?> target, final Type generic, final String delimiter, final String groupers, final String suffix, final ClassLoader loader) {
@@ -427,14 +426,20 @@ final class ConfigurationImpl<T> implements Configuration<T> {
                     collection.add(convert(item, componentType, generic, delimiter, groupers, suffix, loader));
                 }
             } else {
-                throw new IllegalArgumentException(String.format("Cannot convert %s to type %s collection", value, Strings.printClass(false, componentType)));
+                throw new IllegalArgumentException(String.format("Cannot convert %s to type %s collection", value, Strings.formatClass(false, true, componentType)));
             }
 
             return collection;
         }
 
         @SuppressWarnings("unchecked")
-        Object collectionValue(final Object value, final Class<?> target, final Type generic, final String delimiter, final String groupers, final String suffix, final ClassLoader loader) {
+        Object collectionValue(final Object value,
+                               final Class<?> target,
+                               final Type generic,
+                               final String delimiter,
+                               final String groupers,
+                               final String suffix,
+                               final ClassLoader loader) {
             final Collection collection;
 
             if (target == Set.class) {
@@ -442,9 +447,8 @@ final class ConfigurationImpl<T> implements Configuration<T> {
             } else if (target == List.class) {
                 collection = new ArrayList();
             } else {
-                throw new IllegalArgumentException(String.format("Collection type %s not supported (it is neither Set, List nor Map)", Strings.printClass(
-                        false,
-                        target)));
+                throw new IllegalArgumentException(String.format("Collection type %s not supported (it is neither Set, List nor Map)",
+                                                                 Strings.formatClass(false, true, target)));
             }
 
             final Type parameterType = Generics.typeParameter(generic, 0);
@@ -462,9 +466,10 @@ final class ConfigurationImpl<T> implements Configuration<T> {
                     collection.add(convert(item, Generics.rawType(parameterType), parameterType, delimiter, groupers, suffix, loader));
                 }
             } else {
-                throw new IllegalArgumentException(String.format("Cannot convert %s to type %s<%s>", value, target, Strings.printClass(false,
-                                                                                                                                       Generics.rawType(
-                                                                                                                                               parameterType))));
+                throw new IllegalArgumentException(String.format("Cannot convert %s to type %s<%s>",
+                                                                 value,
+                                                                 target,
+                                                                 Strings.formatClass(false, true, Generics.rawType(parameterType))));
             }
 
             return collection;
@@ -621,7 +626,7 @@ final class ConfigurationImpl<T> implements Configuration<T> {
                     }
                 }
 
-                throw new IllegalArgumentException(String.format("Cannot convert %s to type %s", text, Strings.printClass(false, target)));
+                throw new IllegalArgumentException(String.format("Cannot convert %s to type %s", text, Strings.formatClass(false, true, target)));
             }
         }
 
@@ -647,7 +652,7 @@ final class ConfigurationImpl<T> implements Configuration<T> {
                 }
             }
 
-            throw new IllegalArgumentException(String.format("Cannot convert %s to type %s", number, Strings.printClass(false, target)));
+            throw new IllegalArgumentException(String.format("Cannot convert %s to type %s", number, Strings.formatClass(false, true, target)));
         }
 
         Object booleanToPrimitive(final PrimitiveType type, final Class<?> target, final boolean flag) {
@@ -672,7 +677,7 @@ final class ConfigurationImpl<T> implements Configuration<T> {
                 }
             }
 
-            throw new IllegalArgumentException(String.format("Cannot convert %s to type %s", flag, Strings.printClass(false, target)));
+            throw new IllegalArgumentException(String.format("Cannot convert %s to type %s", flag, Strings.formatClass(false, true, target)));
         }
     }
 

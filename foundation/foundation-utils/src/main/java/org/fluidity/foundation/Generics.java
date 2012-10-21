@@ -223,7 +223,7 @@ public final class Generics extends Utility {
 
     static String identity(final Type type) {
         if (type instanceof Class) {
-            return String.format("%s@%d", Strings.printClass(false, true, (Class) type), System.identityHashCode(type));
+            return String.format("%s@%d", Strings.formatClass(false, true, (Class) type), System.identityHashCode(type));
         } else if (type instanceof ParameterizedType) {
             final Lists.Delimited output = Lists.delimited(",");
 
@@ -265,21 +265,21 @@ public final class Generics extends Utility {
     /**
      * Returns a textual representation of the given type with complete type information.
      *
-     * @param argument the generic type to convert to String.
      * @param qualified if <code>true</code>, the type's fully qualified name is used, otherwise its simple name is used.
+     * @param argument  the generic type to convert to String.
      *
      * @return a textual representation of the given type with complete type information.
      */
-    public static String toString(final Type argument, final boolean qualified) {
+    public static String toString(final boolean qualified, final Type argument) {
         if (argument instanceof Class) {
             final Class type = (Class) argument;
-            return Strings.printClass(false, qualified, type);
+            return Strings.formatClass(false, qualified, type);
         } else if (argument instanceof ParameterizedType) {
             return String.format("%s<%s>",
-                                 toString(Generics.rawType(argument), qualified),
+                                 Generics.toString(qualified, Generics.rawType(argument)),
                                  Generics.toString(", ", qualified, ((ParameterizedType) argument).getActualTypeArguments()));
         } else if (argument instanceof GenericArrayType) {
-            return String.format("%s[]", toString(((GenericArrayType) argument).getGenericComponentType(), qualified));
+            return String.format("%s[]", Generics.toString(qualified, ((GenericArrayType) argument).getGenericComponentType()));
         } else if (argument instanceof TypeVariable) {
             final TypeVariable variable = (TypeVariable) argument;
             final Type[] bounds = variable.getBounds();
@@ -309,7 +309,7 @@ public final class Generics extends Utility {
         final Lists.Delimited delimited = Lists.delimited(delimiter);
 
         for (final Type type : argument) {
-            delimited.add(Generics.toString(type, qualified));
+            delimited.add(Generics.toString(qualified, type));
         }
 
         return delimited.toString();
@@ -440,7 +440,7 @@ public final class Generics extends Utility {
                 return true;
             } else if (type instanceof ParameterizedType) {
                 //noinspection ConstantConditions
-                assert rawReference == rawType : String.format("%s != %s", toString(reference, false), toString(type, false));
+                assert rawReference == rawType : String.format("%s != %s", toString(false, reference), toString(false, type));
                 final Type[] typeArguments = ((ParameterizedType) type).getActualTypeArguments();
 
                 for (int i = 0, limit = typeArguments.length; i < limit; i++) {
@@ -583,10 +583,10 @@ public final class Generics extends Utility {
             for (int i = enclosingTypes; i < params.length - missingTypes + enclosingTypes; ++i) {
                 if (Generics.rawType(types[i - enclosingTypes]) != params[i]) {
                     throw new IllegalStateException(String.format("Could not match parameter types of %s constructor; classes: %s, types: %s, annotations: %s, on %s %s version %s virtual machine for %s Java %s",
-                                                                  Strings.printObject(false, type),
-                                                                  Strings.printObject(false, params),
-                                                                  Strings.printObject(false, types),
-                                                                  Strings.printObject(false, annotations),
+                                                                  Strings.formatObject(false, true, type),
+                                                                  Strings.formatObject(false, true, params),
+                                                                  Strings.formatObject(false, true, types),
+                                                                  Strings.formatObject(false, true, annotations),
                                                                   System.getProperty("java.vm.vendor"),
                                                                   System.getProperty("java.vm.name"),
                                                                   System.getProperty("java.vm.version"),

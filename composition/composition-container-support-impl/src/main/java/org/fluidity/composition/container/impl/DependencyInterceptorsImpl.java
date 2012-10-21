@@ -113,7 +113,7 @@ final class DependencyInterceptorsImpl implements DependencyInterceptors {
                     }
 
                     next.set(dependency);
-                    applied.add(Strings.printClass(false, false, interceptor.getClass()));
+                    applied.add(Strings.formatClass(false, false, interceptor.getClass()));
                 }
             }
 

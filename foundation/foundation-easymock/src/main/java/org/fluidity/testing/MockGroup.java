@@ -590,7 +590,7 @@ public class MockGroup {
 
         public synchronized void concurrent(final Task task) throws Exception {
             assert task != null;
-            assert latch == null : String.format("Calls to %s.concurrent(...) may not be nested", Strings.printClass(false, false, MockGroup.Threads.class));
+            assert latch == null : String.format("Calls to %s.concurrent(...) may not be nested", Strings.formatClass(false, false, MockGroup.Threads.class));
             threads.add(new Thread(String.format("%s %s [%d]", MockGroup.class.getSimpleName(), name, threads.size())) {
                 public void run() {
                     try {
@@ -640,7 +640,7 @@ public class MockGroup {
         }
 
         public final void verify(final long timeout, final Task task) throws Exception {
-            assert latch == null : String.format("Calls to %s.verify(...) may not be nested", Strings.printClass(false, false, MockGroup.Threads.class));
+            assert latch == null : String.format("Calls to %s.verify(...) may not be nested", Strings.formatClass(false, false, MockGroup.Threads.class));
             release();
 
             try {
@@ -651,7 +651,7 @@ public class MockGroup {
         }
 
         public <T> T verify(final long timeout, final Work<T> task) throws Exception {
-            assert latch == null : String.format("Calls to %s.verify(...) may not be nested", Strings.printClass(false, false, MockGroup.Threads.class));
+            assert latch == null : String.format("Calls to %s.verify(...) may not be nested", Strings.formatClass(false, false, MockGroup.Threads.class));
             release();
 
             final T result;

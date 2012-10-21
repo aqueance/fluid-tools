@@ -299,7 +299,7 @@ final class ContextDefinitionImpl implements ContextDefinition {
 
         @Override
         public String toString() {
-            return Strings.printAnnotation(false, this);
+            return Strings.describeAnnotation(false, this);
         }
     }
 }

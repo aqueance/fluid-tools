@@ -106,13 +106,12 @@ final class InterceptorFilterImpl implements InterceptorFilter {
 
             if (full) {
                 for (final Class<? extends Annotation> type : context) {
-                    annotations.add("@").append(Strings.printClass(false, false, type));
+                    annotations.add("@").append(Strings.formatClass(false, false, type));
                 }
             }
 
-            return annotations.isEmpty()
-                   ? Strings.printClass(false, false, type)
-                   : String.format("%s (%s)", Strings.printClass(false, false, type), annotations);
+            final String kind = Strings.formatClass(false, false, type);
+            return annotations.isEmpty() ? kind : String.format("%s (%s)", kind, annotations);
         }
 
         @Override

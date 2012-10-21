@@ -77,7 +77,7 @@ final class AnnotationMaps extends Utility {
 
         for (final Annotation[] annotations : sorted(map).values()) {
             for (final Annotation annotation : annotations) {
-                list.add(Strings.printAnnotation(identity, annotation));
+                list.add(Strings.describeAnnotation(identity, annotation));
             }
         }
 

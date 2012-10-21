@@ -97,7 +97,7 @@ final class ContainerTerminationJobs<T> implements ContainerTermination.Jobs<T> 
 
     private boolean check(final Command.Job<Exception> job, final Class<?> caller) {
         if (job == null) {
-            throw new IllegalArgumentException(String.format("Attempted to add null job to %s", Strings.printClass(false, true, caller)));
+            throw new IllegalArgumentException(String.format("Attempted to add null job to %s", Strings.formatClass(false, true, caller)));
         }
 
         final ClassLoader check = job.getClass().getClassLoader();
@@ -113,8 +113,8 @@ final class ContainerTerminationJobs<T> implements ContainerTermination.Jobs<T> 
     public void add(final Command.Job<Exception> job) {
         if (!check(job, caller)) {
             throw new IllegalArgumentException(String.format("The class loader of job %s is neither in the ancestry of, nor the same as, that of %s",
-                                                             Strings.printObject(false, job),
-                                                             Strings.printClass(false, true, caller)));
+                                                             Strings.formatObject(false, true, job),
+                                                             Strings.formatClass(false, true, caller)));
         }
 
         synchronized (this) {

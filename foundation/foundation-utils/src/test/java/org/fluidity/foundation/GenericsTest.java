@@ -498,27 +498,25 @@ public class GenericsTest {
 
     @Test
     public void testStringValues() throws Exception {
-        checkText(Generics.toString(Q.class, true), Strings.printClass(false, true, Q.class));
-        checkText(Generics.toString(D.class.getGenericSuperclass(), true),
+        checkText(Generics.toString(true, Q.class), Strings.formatClass(false, true, Q.class));
+        checkText(Generics.toString(true, D.class.getGenericSuperclass()),
                   String.format("%s<%s, %s, %s>",
-                                Strings.printClass(false, true, A.class),
-                                Strings.printClass(false, true, I1.class),
-                                Strings.printClass(false, true, I2.class),
-                                Strings.printClass(false, true, I3.class)));
+                                Strings.formatClass(false, true, A.class),
+                                Strings.formatClass(false, true, I1.class),
+                                Strings.formatClass(false, true, I2.class),
+                                Strings.formatClass(false, true, I3.class)));
 
         // generic parameter types: I, F, I<I1, I2, I3>, F<I4>, I[], I<? super I4, ?, ?>, P<T>, F1<I4>[][]
         final Type[] types = H.class.getDeclaredConstructors()[0].getGenericParameterTypes();
 
-        checkText(Generics.toString(types[5], false),
+        checkText(Generics.toString(false, types[5]),
                   String.format("%s<? super %s, ? extends %s, ?>",
-                                Strings.printClass(false, false, I.class),
-                                Strings.printClass(false, false, I1.class),
-                                Strings.printClass(false, false, I2.class)));
+                                Strings.formatClass(false, false, I.class),
+                                Strings.formatClass(false, false, I1.class),
+                                Strings.formatClass(false, false, I2.class)));
 
-        checkText(Generics.toString(types[7], false),
-                  String.format("%s<%s>[][]",
-                                Strings.printClass(false, false, F1.class),
-                                Strings.printClass(false, false, I4.class)));
+        checkText(Generics.toString(false, types[7]),
+                  String.format("%s<%s>[][]", Strings.formatClass(false, false, F1.class), Strings.formatClass(false, false, I4.class)));
     }
 
     private void checkText(final String actual, final String expected) {
@@ -537,7 +535,7 @@ public class GenericsTest {
         assert params.type(2) == P2.class : params.type(2);
         assert !generic2 || Generics.typeParameter(params.genericType(2), 0) == I.class : params.genericType(2);
 
-        assert params.annotations(0).length == 0 : Strings.printObject(false, params.annotations(0));
+        assert params.annotations(0).length == 0 : Strings.formatObject(false, true, params.annotations(0));
         assert params.annotations(1)[0].annotationType() == A1.class : params.annotations(1)[0].annotationType();
         assert params.annotations(2)[0].annotationType() == A2.class : params.annotations(2)[0].annotationType();
     }
@@ -562,12 +560,18 @@ public class GenericsTest {
         assert params.type(3) == P3.class : params.type(3);
         assert !generic3 || Generics.typeParameter(params.genericType(3), 0) == I.class : params.genericType(3);
 
-        assert params.annotations(0).length == 0 : Strings.printObject(false, params.annotations(0));
+        assert params.annotations(0).length == 0 : Strings.formatObject(false, true, params.annotations(0));
 
         // annotations on closure variables may be lost in some JVMs...
-        assert params.annotations(1).length == 0 || params.annotations(1)[0].annotationType() == A1.class : Strings.printObject(false, params.annotations(1));
-        assert params.annotations(2).length == 0 || params.annotations(2)[0].annotationType() == A2.class : Strings.printObject(false, params.annotations(2));
-        assert params.annotations(3).length == 0 || params.annotations(3)[0].annotationType() == A3.class : Strings.printObject(false, params.annotations(3));
+        assert params.annotations(1).length == 0 || params.annotations(1)[0].annotationType() == A1.class : Strings.formatObject(false,
+                                                                                                                                 true,
+                                                                                                                                 params.annotations(1));
+        assert params.annotations(2).length == 0 || params.annotations(2)[0].annotationType() == A2.class : Strings.formatObject(false,
+                                                                                                                                 true,
+                                                                                                                                 params.annotations(2));
+        assert params.annotations(3).length == 0 || params.annotations(3)[0].annotationType() == A3.class : Strings.formatObject(false,
+                                                                                                                                 true,
+                                                                                                                                 params.annotations(3));
     }
 
     private void checkRawType(final Type type, final Class<?> expected) {

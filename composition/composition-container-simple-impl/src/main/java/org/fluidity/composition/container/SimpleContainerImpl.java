@@ -185,7 +185,9 @@ final class SimpleContainerImpl implements ParentContainer {
         final boolean isAnonymousClass = implementation.isAnonymousClass();
 
         if (isSyntheticClass || isAnonymousClass) {
-            throw new ComponentContainer.BindingException("Component %s is not instantiable (%s)", implementation, isSyntheticClass ? "synthetic" : "anonymous");
+            throw new ComponentContainer.BindingException("Component %s is not instantiable (%s)",
+                                                          Strings.formatClass(true, true, implementation),
+                                                          isSyntheticClass ? "synthetic" : "anonymous");
         }
 
         final Component componentSpec = implementation.getAnnotation(Component.class);
@@ -194,7 +196,7 @@ final class SimpleContainerImpl implements ParentContainer {
 
         log.get().debug("%s: binding %s to %s (%s, %s)",
                         this,
-                        implementation,
+                        Strings.formatClass(true, true, implementation),
                         interfaces,
                         isStateful ? "stateful" : "stateless",
                         isFallback ? "fallback" : "primary");
@@ -222,7 +224,7 @@ final class SimpleContainerImpl implements ParentContainer {
             final Component componentSpec = implementation.getAnnotation(Component.class);
             final boolean isFallback = componentSpec != null && !componentSpec.primary();
 
-            final String value = instance instanceof String || instance instanceof Number ? String.format("'%s'", instance) : Strings.printId(instance);
+            final String value = instance instanceof String || instance instanceof Number ? String.format("'%s'", instance) : Strings.formatId(instance);
 
             log.get().debug("%s: binding %s to %s (%s)", this, value, interfaces, isFallback ? "fallback" : "primary");
 

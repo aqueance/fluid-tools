@@ -59,7 +59,7 @@ public final class Proxies extends Utility {
         }
 
         public String toString(final Object instance) {
-            return Strings.printObject(false, instance);
+            return Strings.formatObject(false, true, instance);
         }
     };
 

@@ -39,25 +39,25 @@ public class StringsTest extends MockGroup {
 
     @Test
     public void ordinaryType() throws Exception {
-        final String string = Strings.printClass(true, Object.class);
+        final String string = Strings.formatClass(true, true, Object.class);
         assert Object.class.toString().equals(string) : string;
     }
 
     @Test
     public void ordinaryName() throws Exception {
-        final String string = Strings.printClass(false, Object.class);
+        final String string = Strings.formatClass(false, true, Object.class);
         assert className(Object.class).equals(string) : string;
     }
 
     @Test
     public void oneDimensionalArray() throws Exception {
-        final String string = Strings.printClass(true, String[].class);
+        final String string = Strings.formatClass(true, true, String[].class);
         assert String.format("%s[]", String.class).equals(string) : string;
     }
 
     @Test
     public void threeDimensionalArray() throws Exception {
-        final String string = Strings.printClass(true, String[][][].class);
+        final String string = Strings.formatClass(true, true, String[][][].class);
         assert String.format("%s[][][]", String.class).equals(string) : string;
     }
 
@@ -69,7 +69,7 @@ public class StringsTest extends MockGroup {
 
         final String string = verify(new Work<String>() {
             public String run() throws Exception {
-                return Strings.printAnnotation(false, annotation);
+                return Strings.describeAnnotation(false, annotation);
             }
         });
 
@@ -85,7 +85,7 @@ public class StringsTest extends MockGroup {
 
         final String string = verify(new Work<String>() {
             public String run() throws Exception {
-                return Strings.printAnnotation(false, annotation);
+                return Strings.describeAnnotation(false, annotation);
             }
         });
 
@@ -103,7 +103,7 @@ public class StringsTest extends MockGroup {
 
         final String string = verify(new Work<String>() {
             public String run() throws Exception {
-                return Strings.printAnnotation(false, annotation);
+                return Strings.describeAnnotation(false, annotation);
             }
         });
 
@@ -119,7 +119,7 @@ public class StringsTest extends MockGroup {
 
         final String string = verify(new Work<String>() {
             public String run() throws Exception {
-                return Strings.printAnnotation(false, annotation);
+                return Strings.describeAnnotation(false, annotation);
             }
         });
 
@@ -139,7 +139,7 @@ public class StringsTest extends MockGroup {
 
         final String string = verify(new Work<String>() {
             public String run() throws Exception {
-                return Strings.printAnnotation(false, annotation);
+                return Strings.describeAnnotation(false, annotation);
             }
         });
 
@@ -159,7 +159,7 @@ public class StringsTest extends MockGroup {
 
         final String string = verify(new Work<String>() {
             public String run() throws Exception {
-                return Strings.printAnnotation(false, annotation);
+                return Strings.describeAnnotation(false, annotation);
             }
         });
 
@@ -176,10 +176,10 @@ public class StringsTest extends MockGroup {
         final String text2 = String.format("proxy@%x[%s,%s]", System.identityHashCode(proxy2), className(Interface1.class), className(Interface2.class));
         final String text3 = String.format("%s@%x", className(Default.class), System.identityHashCode(object3));
 
-        check(text1, Strings.printId(proxy1));
-        check(text2, Strings.printId(proxy2));
-        check(text3, Strings.printId(object3));
-        check(String.format("[%s, %s, %s]", text1, text2, text3), Strings.printId(new Object[] { proxy1, proxy2, object3 }));
+        check(text1, Strings.formatId(proxy1));
+        check(text2, Strings.formatId(proxy2));
+        check(text3, Strings.formatId(object3));
+        check(String.format("[%s, %s, %s]", text1, text2, text3), Strings.formatId(new Object[] { proxy1, proxy2, object3 }));
     }
 
     @Test
@@ -196,13 +196,13 @@ public class StringsTest extends MockGroup {
         final String text4 = object4.toString();
         final String text5 = String.format("%s", className(Default.class));
 
-        check(text1, Strings.printObject(false, proxy1));
-        check(text2, Strings.printObject(true, proxy2));
-        check(text3, Strings.printObject(true, object3));
-        check(text4, Strings.printObject(false, object4));
-        check(text5, Strings.printObject(false, object5));
-        check(String.format("[%s, %s, %s, %s, %s]", text1, Strings.printObject(false, proxy2), Strings.printObject(false, object3), text4, text5),
-              Strings.printObject(false, new Object[] { proxy1, proxy2, object3, object4, object5 }));
+        check(text1, Strings.formatObject(false, true, proxy1));
+        check(text2, Strings.formatObject(true, true, proxy2));
+        check(text3, Strings.formatObject(true, true, object3));
+        check(text4, Strings.formatObject(false, true, object4));
+        check(text5, Strings.formatObject(false, true, object5));
+        check(String.format("[%s, %s, %s, %s, %s]", text1, Strings.formatObject(false, true, proxy2), Strings.formatObject(false, true, object3), text4, text5),
+              Strings.formatObject(false, true, new Object[] { proxy1, proxy2, object3, object4, object5 }));
     }
 
     @Test
@@ -214,7 +214,7 @@ public class StringsTest extends MockGroup {
     }
 
     private void checkClassName(final Class<?> type, final String expected, final boolean textual, final boolean qualified) {
-        final String actual = Strings.printClass(textual, qualified, type);
+        final String actual = Strings.formatClass(textual, qualified, type);
         assert expected.equals(actual) : String.format("Expected '%s', got '%s'", expected, actual);
     }
 

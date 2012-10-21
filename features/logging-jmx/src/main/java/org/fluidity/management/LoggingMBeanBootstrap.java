@@ -33,7 +33,7 @@ import org.fluidity.foundation.Strings;
 @SuppressWarnings("UnusedDeclaration")
 final class LoggingMBeanBootstrap extends EmptyPackageBindings {
 
-    static final String MBEAN_NAME = String.format("org.fluidity.management:type=%s", Strings.printClass(false, false, LoggingMBean.class));
+    static final String MBEAN_NAME = String.format("org.fluidity.management:type=%s", Strings.formatClass(false, false, LoggingMBean.class));
 
     @Override
     public void initialize(final OpenContainer container, final ContainerTermination shutdown) throws Exception {

@@ -339,7 +339,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
                             } catch (final ComponentContainer.InjectionException e) {
                                 throw e;
                             } catch (final Exception e) {
-                                throw new IllegalStateException(String.format("Invoking %s with %s", constructor, Strings.printId(arguments)), e);
+                                throw new IllegalStateException(String.format("Invoking %s with %s", constructor, Strings.formatId(arguments)), e);
                             }
                             return component;
                         }
@@ -509,13 +509,13 @@ final class DependencyInjectorImpl implements DependencyInjector {
 
                 if (itemType == null) {
                     throw new ComponentContainer.ResolutionException("Group dependency %s of %s must be an array",
-                                                                     Strings.printClass(false, true, dependencyType),
+                                                                     Strings.formatClass(false, true, dependencyType),
                                                                      declaringType);
                 }
 
                 if (itemType.isArray()) {
                     throw new ComponentContainer.ResolutionException("Group dependency %s of %s must be an array of non-arrays",
-                                                                     Strings.printClass(false, true, dependencyType),
+                                                                     Strings.formatClass(false, true, dependencyType),
                                                                      declaringType);
                 }
 
@@ -526,16 +526,16 @@ final class DependencyInjectorImpl implements DependencyInjector {
                 if (groupType != null) {
                     if (componentGroup.api().length > 1) {
                         throw new ComponentContainer.ResolutionException("Multiple component group APIs specified for dependency %s of %s: %s",
-                                                                         Strings.printClass(false, true, dependencyType),
+                                                                         Strings.formatClass(false, true, dependencyType),
                                                                          declaringType,
-                                                                         Strings.printAnnotation(false, componentGroup));
+                                                                         Strings.describeAnnotation(false, componentGroup));
                     }
 
                     if (!itemType.isAssignableFrom(groupType)) {
                         throw new ComponentContainer.ResolutionException("The specified component type is not assignable to the dependency type %s of %s: %s",
-                                                                         Strings.printClass(false, true, dependencyType),
+                                                                         Strings.formatClass(false, true, dependencyType),
                                                                          declaringType,
-                                                                         Strings.printAnnotation(false, componentGroup));
+                                                                         Strings.describeAnnotation(false, componentGroup));
                     }
                 }
 
@@ -664,7 +664,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
 
             if (instance == null && mandatory) {
                 throw new ComponentContainer.ResolutionException("Dependency %s of %s cannot be satisfied",
-                                                                 Strings.printClass(true, dependencyType),
+                                                                 Strings.formatClass(true, true, dependencyType),
                                                                  declaringType);
             } else {
                 return instance;

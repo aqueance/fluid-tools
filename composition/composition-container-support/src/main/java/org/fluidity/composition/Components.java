@@ -497,10 +497,10 @@ public final class Components extends Utility {
             final Lists.Delimited text = Lists.delimited();
 
             for (final Components.Specification specification : api) {
-                text.add(Strings.printClass(true, specification.api));
+                text.add(Strings.formatClass(true, true, specification.api));
 
                 if (specification.groups.length > 0) {
-                    text.append(" group ").append(Arrays.toString(specification.groups));
+                    text.append(" group ").append(Strings.formatObject(false, true, specification.groups));
                 }
             }
 
@@ -559,7 +559,7 @@ public final class Components extends Utility {
 
         @Override
         public String toString() {
-            return String.format("%s: %s", api, Arrays.toString(groups));
+            return String.format("%s: %s", api, Strings.formatObject(false, true, groups));
         }
 
         @Override

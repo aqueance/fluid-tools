@@ -79,7 +79,7 @@ final class ComponentCacheImpl implements ComponentCache {
                     if (report) {
                         log.debug("%s: using %s%s",
                                   source,
-                                  component == null ? String.format("no %s", api.getName()) : Strings.printId(component),
+                                  component == null ? String.format("no %s", api.getName()) : Strings.formatId(component),
                                   context.types().isEmpty() ? "" : String.format(" for %s", key));
                     }
                 }

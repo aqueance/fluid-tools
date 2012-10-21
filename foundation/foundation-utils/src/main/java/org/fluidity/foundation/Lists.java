@@ -220,26 +220,26 @@ public class Lists extends Utility {
         }
 
         /**
-         * Collects the given list of texts, appending the delimiter as necessary.
+         * Collects the given list of objects, appending the delimiter as necessary.
          *
          * @return the underlying {@link StringBuilder} object.
          */
         public StringBuilder list(final Collection<?> list) {
             for (final Object text : list) {
-                next().append(text instanceof String ? text: Strings.printObject(false, text));
+                next().append(text instanceof String ? text: Strings.formatObject(false, true, text));
             }
 
             return builder;
         }
 
         /**
-         * Collects the given list of texts, appending the delimiter as necessary.
+         * Collects the given list of objects, appending the delimiter as necessary.
          *
          * @return the underlying {@link StringBuilder} object.
          */
         public StringBuilder list(final Object... list) {
             for (final Object text : list) {
-                next().append(text instanceof String ? text: Strings.printObject(false, text));
+                next().append(text instanceof String ? text: Strings.formatObject(false, true, text));
             }
 
             return builder;

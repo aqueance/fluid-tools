@@ -290,7 +290,7 @@ public final class StandaloneJarMojo extends AbstractMojo {
                     }
 
                     if (log.isDebugEnabled()) {
-                        log.debug(String.format("Invoking manifest handler: %s", Strings.printObject(false, handler)));
+                        log.debug(String.format("Invoking manifest handler: %s", Strings.formatObject(false, true, handler)));
                         log.debug(String.format("Packaged dependencies: %s", dependencies));
                     }
 
