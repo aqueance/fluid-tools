@@ -17,7 +17,6 @@
 package org.fluidity.foundation.spi;
 
 import org.fluidity.foundation.Log;
-import org.fluidity.foundation.LogLevels;
 
 /**
  * The recommended super class for log implementations.
@@ -116,11 +115,19 @@ public abstract class LogAdapter<T, L> implements Log<L> {
      * Flags for the various log level permissions.
      */
     protected final Permissions permissions() {
-        final long updated = LogLevels.updated;                 // LogLevels.updated is volatile, avoid excessive access
+        long updated = LogLevels.updated;
 
-        if (updated > timestamp || permissions == null) {       // this is a read barrier as timestamp is volatile
+        /*
+         * Under heavy load, multiple threads may query the log levels concurrently, causing a slow logging framework like Log4j to delay all threads involved.
+         * To avoid that, we would have to synchronization, causing a small delay on all threads with all logging frameworks. Decided to keep this code faster
+         * instead.
+         *
+         * If you end up with a performance problem due to concurrent log level queries, use a logging framework that does not spend excessive time deciding if
+         * a logging level enabled or not.
+         */
+        if (updated > timestamp || permissions == null) {   // this is a read barrier as timestamp is volatile
             permissions = new Permissions(levels);
-            timestamp = updated;                                // this is a write barrier as timestamp is volatile
+            timestamp = updated;                            // this is a write barrier as timestamp is volatile
         }
 
         return permissions;

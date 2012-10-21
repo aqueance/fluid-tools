@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.fluidity.foundation;
+package org.fluidity.management;
 
 import java.lang.management.ManagementFactory;
 import java.util.concurrent.atomic.AtomicReference;
@@ -26,6 +26,7 @@ import javax.management.ObjectName;
 
 import org.fluidity.composition.OpenContainer;
 import org.fluidity.composition.spi.ContainerTermination;
+import org.fluidity.foundation.Command;
 import org.fluidity.testing.MockGroup;
 
 import org.easymock.EasyMock;

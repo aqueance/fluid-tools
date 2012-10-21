@@ -16,7 +16,6 @@
 
 package org.fluidity.foundation.spi;
 
-import org.fluidity.foundation.LogLevels;
 import org.fluidity.testing.MockGroup;
 
 import org.easymock.EasyMock;

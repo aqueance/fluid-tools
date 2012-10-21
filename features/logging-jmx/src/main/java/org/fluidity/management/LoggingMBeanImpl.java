@@ -14,12 +14,15 @@
  * limitations under the License.
  */
 
-package org.fluidity.foundation;
+package org.fluidity.management;
 
 import javax.management.MBeanInfo;
 import javax.management.MBeanOperationInfo;
 import javax.management.NotCompliantMBeanException;
 import javax.management.StandardMBean;
+
+import org.fluidity.foundation.Methods;
+import org.fluidity.foundation.spi.LogLevels;
 
 /**
  * @author Tibor Varga

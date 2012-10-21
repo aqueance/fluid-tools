@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.fluidity.foundation;
+package org.fluidity.management;
 
 import java.lang.management.ManagementFactory;
 
@@ -24,6 +24,8 @@ import javax.management.ObjectName;
 import org.fluidity.composition.OpenContainer;
 import org.fluidity.composition.spi.ContainerTermination;
 import org.fluidity.composition.spi.EmptyPackageBindings;
+import org.fluidity.foundation.Command;
+import org.fluidity.foundation.Strings;
 
 /**
  * @author Tibor Varga

@@ -27,7 +27,8 @@ package org.fluidity.foundation;
  * href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Logging_Alternatives">User Guide</a> for details. If no specific logging framework is configured,
  * the default one will be used that forwards all log messages to the standard output stream.
  * <h3>Log Levels</h3>
- * Log levels are queried from the underlying logging framework and cached. Invoke {@link LogLevels#updated()} to trigger reloading the log level permissions.
+ * Log levels are queried from the underlying logging framework and cached. Invoke {@link org.fluidity.foundation.spi.LogLevels#updated()} to trigger reloading
+ * the log level permissions.
  * <h3>Usage</h3>
  * <pre>
  * {@linkplain org.fluidity.composition.Component @Component}

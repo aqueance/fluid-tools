@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.fluidity.foundation;
+package org.fluidity.management;
 
 /**
  * JMX managed bean interface for logging related items.

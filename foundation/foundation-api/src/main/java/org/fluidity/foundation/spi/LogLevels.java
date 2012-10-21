@@ -14,30 +14,30 @@
  * limitations under the License.
  */
 
-package org.fluidity.foundation;
+package org.fluidity.foundation.spi;
 
 /**
- * Allows triggering dynamic reconfiguration of log levels. Log levels are loaded for each {@linkplain Log logger} the first time it is used and then cached
- * until {@link #updated()} is invoked.
+ * Allows triggering dynamic reconfiguration of log levels. Log levels are loaded for each {@linkplain org.fluidity.foundation.Log logger} the first time it is
+ * used and then the levels are cached until {@link #updated()} is invoked.
  *
  * @author Tibor Varga
  */
 public final class LogLevels {
 
     /**
-     * Used internally to trigger switching dynamic log level updates.
+     * Used internally to trigger reloading log levels.
      */
-    public static volatile long updated;
-
-    private LogLevels() {
-        throw new UnsupportedOperationException(String.format("No instance allowed of %s", getClass()));
-    }
+    static volatile long updated;
 
     /**
-     * Notifies the logging system that log levels may have changed. The next time a log message is emitted through any {@linkplain Log logger}, its log levels
-     * will be queried from the underlying logging framework and cached until this method is invoked again.
+     * Records the fact that log levels may have changed. The next time a log message is emitted through any {@linkplain org.fluidity.foundation.Log logger},
+     * its log levels will be queried from the underlying logging framework and cached until this method is invoked again.
      */
     public static void updated() {
         updated = System.currentTimeMillis();
+    }
+
+    private LogLevels() {
+        throw new UnsupportedOperationException(String.format("No instance allowed of %s", getClass()));
     }
 }
