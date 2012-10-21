@@ -51,7 +51,7 @@ final class ServiceComponentFactory implements ComponentFactory {
         }
 
         this.services = map;
-        this.api = Lists.asArray(types, Class.class);
+        this.api = Lists.asArray(Class.class, types);
     }
 
     public Instance resolve(final ComponentContext context, final Resolver dependencies) throws Exception {

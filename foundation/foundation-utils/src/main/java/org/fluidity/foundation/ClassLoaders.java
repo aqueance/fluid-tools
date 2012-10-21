@@ -267,7 +267,7 @@ public final class ClassLoaders extends Utility {
      */
     @SuppressWarnings("unchecked")
     public static <T> T isolate(final ClassLoader parent, final Set<URL> urls, final Class<?> type, final Method run, final Object... arguments) throws Exception {
-        final ClassLoader isolated = create(parent, Lists.asArray(urls, URL.class));
+        final ClassLoader isolated = create(parent, Lists.asArray(URL.class, urls));
 
         try {
             // find the command

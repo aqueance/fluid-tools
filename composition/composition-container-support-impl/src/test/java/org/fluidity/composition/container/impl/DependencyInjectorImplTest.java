@@ -90,7 +90,7 @@ public class DependencyInjectorImplTest extends MockGroup {
                                                  createdContext, components[i]));
         }
 
-        return Lists.asArray(copies, ContextDefinition.class);
+        return Lists.asArray(ContextDefinition.class, copies);
     }
 
     private ContextDefinition[] setupMethodResolution(final Class<?> componentType,
@@ -111,7 +111,7 @@ public class DependencyInjectorImplTest extends MockGroup {
                                                  createdContext, components[i]));
         }
 
-        return Lists.asArray(copies, ContextDefinition.class);
+        return Lists.asArray(ContextDefinition.class, copies);
     }
 
     @SuppressWarnings("unchecked")

@@ -256,8 +256,8 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
                 services.addAll(collected);
             }
 
-            this.components = Lists.asArray(components.values(), ComponentDescriptor.class);
-            this.services = Lists.asArray(services, ServiceDescriptor.class);
+            this.components = Lists.asArray(ComponentDescriptor.class, components.values());
+            this.services = Lists.asArray(ServiceDescriptor.class, services);
 
             // only remote services will need a dynamic service factory
             this.serviceFactory = new ServiceComponentFactory(remoteServices(services, components));
@@ -272,7 +272,7 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
                 }
             }
 
-            return Lists.asArray(remote, ServiceDescriptor.class);
+            return Lists.asArray(ServiceDescriptor.class, remote);
         }
 
         private boolean isServiceProvider(final Class<?> type) {
@@ -646,7 +646,7 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
                 final String filter = service.filter;
 
                 try {
-                    return (ServiceReference[]) Lists.asArray(context.getServiceReferences((Class) service.type, filter), ServiceReference.class);
+                    return (ServiceReference[]) Lists.asArray(ServiceReference.class, context.getServiceReferences((Class) service.type, filter));
                 } catch (final InvalidSyntaxException e) {
                     throw new IllegalStateException(filter, e);   // filter has already been used when the listener was created
                 }

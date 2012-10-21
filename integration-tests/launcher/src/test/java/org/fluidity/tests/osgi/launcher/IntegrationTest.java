@@ -154,7 +154,7 @@ public final class IntegrationTest {
                 tests.add((BundleTest) system.getService(reference));
             }
 
-            return Lists.asArray(tests, BundleTest.class);
+            return Lists.asArray(BundleTest.class, tests);
         } catch (final Throwable problem) {
             error.set(problem);
             return new BundleTest[0];

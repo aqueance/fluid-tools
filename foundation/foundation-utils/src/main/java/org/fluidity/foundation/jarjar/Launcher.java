@@ -72,7 +72,7 @@ public final class Launcher {
         urls.add(root);
         urls.addAll(Archives.Nested.dependencies(null));
 
-        final ClassLoader loader = new URLClassLoader(Lists.asArray(urls, URL.class), ClassLoaders.findClassLoader(main, true));
+        final ClassLoader loader = new URLClassLoader(Lists.asArray(URL.class, urls), ClassLoaders.findClassLoader(main, true));
 
         try {
             ClassLoaders.context(loader, new Function<Object, ClassLoader, Exception>() {

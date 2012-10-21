@@ -212,7 +212,7 @@ public final class Components extends Utility {
             interfaces.add(new Specification(api, entry.getValue()));
         }
 
-        return new Interfaces(componentClass, Lists.asArray(interfaces, Specification.class));
+        return new Interfaces(componentClass, Lists.asArray(Specification.class, interfaces));
     }
 
     /**
@@ -554,7 +554,7 @@ public final class Components extends Utility {
 
         public Specification(final Class<?> api, final Collection<Class<?>> groups) {
             this.api = api;
-            this.groups = groups == null ? new Class<?>[0] : Lists.asArray(groups, Class.class);
+            this.groups = groups == null ? new Class<?>[0] : Lists.asArray(Class.class, groups);
         }
 
         @Override

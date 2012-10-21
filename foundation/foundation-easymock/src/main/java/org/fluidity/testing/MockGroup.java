@@ -28,6 +28,7 @@ import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.fluidity.foundation.Command;
 import org.fluidity.foundation.Strings;
@@ -294,24 +295,6 @@ public class MockGroup {
     }
 
     /**
-     * Invokes {@link #replay()}, executes the block, and then, unless the block throws an exception, invokes {@link #verify()}, and returns whatever the block
-     * returns.
-     *
-     * @param block the block to execute.
-     * @param <T>   the type of the block's return value.
-     *
-     * @return whatever the <code>block</code> returns.
-     *
-     * @throws Exception when some error occurs.
-     */
-    public final <T> T verify(final Work<T> block) throws Exception {
-        replay();
-        final T result = block.run();
-        verify();
-        return result;
-    }
-
-    /**
      * Invokes {@link #replay()}, executes the block, and then, unless the block throws an exception, invokes {@link #verify()}.
      *
      * @param block the block to execute.
@@ -336,6 +319,44 @@ public class MockGroup {
 
         try {
             block.run();
+        } finally {
+            verify();
+        }
+    }
+
+    /**
+     * Invokes {@link #replay()}, executes the block, and then, unless the block throws an exception, invokes {@link #verify()}, and returns whatever the block
+     * returns.
+     *
+     * @param block the block to execute.
+     * @param <T>   the type of the block's return value.
+     *
+     * @return whatever the <code>block</code> returns.
+     *
+     * @throws Exception when some error occurs.
+     */
+    public final <T> T verify(final Work<T> block) throws Exception {
+        replay();
+        final T result = block.run();
+        verify();
+        return result;
+    }
+
+    /**
+     * Invokes {@link #replay()}, executes the block, and then, regardless of whether the block throws an exception or not, invokes {@link #verify()}, and,
+     * unless the block threw an exception, returns whatever the block returns.
+     *
+     * @param block the block to execute.
+     * @param <T>   the type of the block's return value.
+     *
+     * @return whatever the <code>block</code> returns.
+     *
+     * @throws Exception when some error occurs.
+     */
+    public final <T> T guarantee(final Work<T> block) throws Exception {
+        replay();
+        try {
+            return block.run();
         } finally {
             verify();
         }
@@ -531,7 +552,7 @@ public class MockGroup {
         int lineup(CyclicBarrier barrier, long timeout) throws Exception;
 
         /**
-         * Releases all threads created by {@link #concurrent(MockGroup.Task)}, invokes {@link MockGroup#verify(MockGroup.Task)}, and then waits, with the
+         * Releases all threads created by {@link #concurrent(MockGroup.Task)}, invokes {@link MockGroup#verify(MockGroup.Task)}, and then waits, for the
          * given timeout, for all threads to complete.
          * <p/>
          * This method may <i>not</i> be invoked from a task submitted to {@link #concurrent(MockGroup.Task)}.
@@ -544,7 +565,20 @@ public class MockGroup {
         void verify(long timeout, Task task) throws Exception;
 
         /**
-         * Releases all threads created by {@link #concurrent(MockGroup.Task)}, invokes {@link MockGroup#verify(MockGroup.Work)}, waits, with the given
+         * Releases all threads created by {@link #concurrent(MockGroup.Task)}, invokes {@link MockGroup#guarantee(MockGroup.Task)}, and then waits, with the
+         * given timeout, for all threads to complete.
+         * <p/>
+         * This method may <i>not</i> be invoked from a task submitted to {@link #concurrent(MockGroup.Task)}.
+         *
+         * @param timeout the timeout to wait for all threads to complete.
+         * @param task    the task to verify.
+         *
+         * @throws Exception whatever the <code>task</code> throws.
+         */
+        void guarantee(long timeout, Task task) throws Exception;
+
+        /**
+         * Releases all threads created by {@link #concurrent(MockGroup.Task)}, invokes {@link MockGroup#verify(MockGroup.Work)}, waits, for the given
          * timeout, for all threads to complete, and returns whatever the <code>task</code> returned.
          * <p/>
          * This method may <i>not</i> be invoked from a task submitted to {@link #concurrent(MockGroup.Task)}.
@@ -557,6 +591,32 @@ public class MockGroup {
          * @throws Exception whatever the <code>task</code> throws.
          */
         <T> T verify(long timeout, Work<T> task) throws Exception;
+
+        /**
+         * Releases all threads created by {@link #concurrent(MockGroup.Task)}, invokes {@link MockGroup#guarantee(MockGroup.Work)}, waits, for the given
+         * timeout, for all threads to complete, and returns whatever the <code>task</code> returned.
+         * <p/>
+         * This method may <i>not</i> be invoked from a task submitted to {@link #concurrent(MockGroup.Task)}.
+         *
+         * @param timeout the timeout to wait for all threads to complete.
+         * @param task    the task to verify.
+         *
+         * @return whatever the <code>task</code> returns.
+         *
+         * @throws Exception whatever the <code>task</code> throws.
+         */
+        <T> T guarantee(long timeout, Work<T> task) throws Exception;
+
+        /**
+         * Releases all threads created by {@link #concurrent(MockGroup.Task)} and then waits for the given timeout for all threads to complete.
+         * <p/>
+         * This method may <i>not</i> be invoked from a task submitted to {@link #concurrent(MockGroup.Task)}.
+         *
+         * @param timeout the timeout to wait for all threads to complete.
+         *
+         * @throws Exception whatever the <code>task</code> throws.
+         */
+        void release(long timeout) throws Exception;
     }
 
     /**
@@ -590,7 +650,7 @@ public class MockGroup {
 
         public synchronized void concurrent(final Task task) throws Exception {
             assert task != null;
-            assert latch == null : String.format("Calls to %s.concurrent(...) may not be nested", Strings.formatClass(false, false, MockGroup.Threads.class));
+            checkNesting("concurrent");
             threads.add(new Thread(String.format("%s %s [%d]", MockGroup.class.getSimpleName(), name, threads.size())) {
                 public void run() {
                     try {
@@ -619,18 +679,26 @@ public class MockGroup {
             }
         }
 
-        private synchronized void join(final long timeout) {
+        private synchronized void join(final long timeout) throws Exception {
             try {
+                boolean completed = false;
+
                 try {
-                    latch.await(timeout, TimeUnit.MILLISECONDS);
+                    completed = latch.await(timeout, TimeUnit.MILLISECONDS);
                 } catch (final Exception e) {
                     synchronized (errors) {
                         errors.add(e);
                     }
                 }
 
-                for (final Exception error : errors) {
-                    error.printStackTrace();
+                if (errors.isEmpty()) {
+                    if (!completed) {
+                        throw new TimeoutException("Thread completion");
+                    }
+                } else {
+                    for (final Exception error : errors) {
+                        error.printStackTrace();
+                    }
                 }
 
                 assert errors.isEmpty();
@@ -640,7 +708,7 @@ public class MockGroup {
         }
 
         public final void verify(final long timeout, final Task task) throws Exception {
-            assert latch == null : String.format("Calls to %s.verify(...) may not be nested", Strings.formatClass(false, false, MockGroup.Threads.class));
+            checkNesting("verify");
             release();
 
             try {
@@ -650,8 +718,19 @@ public class MockGroup {
             }
         }
 
+        public final void guarantee(final long timeout, final Task task) throws Exception {
+            checkNesting("guarantee");
+            release();
+
+            try {
+                MockGroup.this.guarantee(task);
+            } finally {
+                join(timeout);
+            }
+        }
+
         public <T> T verify(final long timeout, final Work<T> task) throws Exception {
-            assert latch == null : String.format("Calls to %s.verify(...) may not be nested", Strings.formatClass(false, false, MockGroup.Threads.class));
+            checkNesting("verify");
             release();
 
             final T result;
@@ -662,6 +741,30 @@ public class MockGroup {
             }
 
             return result;
+        }
+
+        public <T> T guarantee(final long timeout, final Work<T> task) throws Exception {
+            checkNesting("guarantee");
+            release();
+
+            final T result;
+            try {
+                result = MockGroup.this.guarantee(task);
+            } finally {
+                join(timeout);
+            }
+
+            return result;
+        }
+
+        public void release(final long timeout) throws Exception {
+            checkNesting("release");
+            release();
+            join(timeout);
+        }
+
+        private void checkNesting(final String invoked) {
+            assert latch == null : String.format("Calls to %1$s.%2$s(...) may not be nested with calls to %1$s.concurrent(...), %1$s.verify(...), %1$s.guarantee(...), or %1$s.release(...)", Strings.formatClass(false, false, Threads.class), invoked);
         }
     }
 

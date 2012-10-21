@@ -130,7 +130,7 @@ public final class WebApplicationBootstrap {
                 }
             });
 
-            bootstrapServer(httpPort, classpath, bootWar, managedApps, Lists.asArray(params, String.class));
+            bootstrapServer(httpPort, classpath, bootWar, managedApps, Lists.asArray(String.class, params));
         } else {
             throw new RuntimeException("Not a local WAR file: " + bootUrl);
         }
@@ -141,7 +141,7 @@ public final class WebApplicationBootstrap {
                                  final File bootApp,
                                  final List<File> managedApps,
                                  final String args[]) throws Exception {
-        final URLClassLoader classLoader = new URLClassLoader(Lists.asArray(classpath, URL.class));
+        final URLClassLoader classLoader = new URLClassLoader(Lists.asArray(URL.class, classpath));
         final ServerBootstrap server = ServiceProviders.findInstance(ServerBootstrap.class, classLoader);
 
         if (server != null) {

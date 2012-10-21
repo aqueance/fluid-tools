@@ -48,7 +48,7 @@ public class EmbeddedJarClassLoadingTest {
             urls.add(Handler.formatURL(root, null, path));
         }
 
-        return new URLClassLoader(Lists.asArray(urls, URL.class), parent);
+        return new URLClassLoader(Lists.asArray(URL.class, urls), parent);
     }
 
     @BeforeMethod

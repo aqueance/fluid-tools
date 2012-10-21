@@ -342,7 +342,7 @@ final class SimpleContainerImpl implements ParentContainer {
                         }
                     }
 
-                    return node.instance(traversal.observed(Lists.asArray(observers, ComponentContainer.Observer.class)));
+                    return node.instance(traversal.observed(Lists.asArray(ComponentContainer.Observer.class, observers)));
                 }
 
                 public ComponentContext context() {
@@ -432,7 +432,7 @@ final class SimpleContainerImpl implements ParentContainer {
                     output.addAll(node.instance(traversal));
                 }
 
-                return Lists.asArray(output, api);
+                return Lists.asArray(api, output);
             }
 
             public ComponentContext context() {

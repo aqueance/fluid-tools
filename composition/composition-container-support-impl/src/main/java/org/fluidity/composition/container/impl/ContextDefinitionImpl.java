@@ -186,7 +186,7 @@ final class ContextDefinitionImpl implements ContextDefinition {
 
                     if (!retained.isEmpty()) {
                         if (series == Component.Context.Collection.ALL) {
-                            final Annotation[] updates = Lists.asArray(retained, Annotation.class);
+                            final Annotation[] updates = Lists.asArray(Annotation.class, retained);
                             active.put(type, active.containsKey(type) ? combine(active.get(type), updates) : updates);
                         } else if (series == Component.Context.Collection.LAST) {
                             assert present.size() == 1 : present;
@@ -242,7 +242,7 @@ final class ContextDefinitionImpl implements ContextDefinition {
         list.addAll(Arrays.asList(present));
         list.addAll(Arrays.asList(addition));
 
-        return Lists.asArray(list, Annotation.class);
+        return Lists.asArray(Annotation.class, list);
     }
 
     @Override

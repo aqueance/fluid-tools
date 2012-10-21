@@ -120,6 +120,6 @@ final class ClassDiscoveryImpl implements ClassDiscovery {
             componentList.addAll(localList);
         }
 
-        return Lists.asArray(componentList, Class.class);
+        return Lists.asArray(Class.class, componentList);
     }
 }

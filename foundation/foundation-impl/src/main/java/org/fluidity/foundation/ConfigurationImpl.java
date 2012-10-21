@@ -131,7 +131,7 @@ final class ConfigurationImpl<T> implements Configuration<T> {
 
         Collections.reverse(list);
 
-        return list.isEmpty() ? new String[] { "" } : Lists.asArray(list, String.class);
+        return list.isEmpty() ? new String[] { "" } : Lists.asArray(String.class, list);
     }
 
     private static class PropertyLoader<T> implements InvocationHandler {

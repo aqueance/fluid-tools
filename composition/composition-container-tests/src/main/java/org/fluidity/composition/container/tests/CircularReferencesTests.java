@@ -675,7 +675,7 @@ public final class CircularReferencesTests extends AbstractContainerTests {
                 annotations.add(context.annotation(type, null));
             }
 
-            contexts.add(Lists.asArray(annotations, Annotation.class));
+            contexts.add(Lists.asArray(Annotation.class, annotations));
 
             if (call) ping();
         }

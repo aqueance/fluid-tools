@@ -16,15 +16,23 @@
 
 package org.fluidity.testing;
 
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.TimeoutException;
+
+import org.fluidity.foundation.Command;
+
 import org.easymock.EasyMock;
 import org.testng.annotations.Test;
 
+/**
+ * @author Tibor Varga
+ */
 public class MockGroupTest extends MockGroup {
-
-    private final VarargsComponent component = mock(VarargsComponent.class);
 
     @Test
     public void testVarargsMatching() throws Exception {
+        final VarargsComponent component = mock(VarargsComponent.class);
+
         final String expected = "x";
         final String prefix = "0";
         final String[] arguments = {"1", "2", "3"};
@@ -47,5 +55,62 @@ public class MockGroupTest extends MockGroup {
     public interface VarargsComponent {
 
         String method(final String prefix, final String... values);
+    }
+
+    @Test(expectedExceptions = TimeoutException.class)
+    public void testDeadLock() throws Exception {
+        final DeadLock deadLock = new DeadLock();
+
+        final Threads threads = newThreads("dead-lock");
+
+        final CyclicBarrier barrier = new CyclicBarrier(2);
+
+        threads.concurrent(new Task() {
+            public void run() throws Exception {
+                deadLock.lock12(new Command.Job<Exception>() {
+                    public void run() throws Exception {
+                        threads.lineup(barrier, threads.time(5));
+                    }
+                });
+            }
+        });
+
+        threads.concurrent(new Task() {
+            public void run() throws Exception {
+                deadLock.lock21(new Command.Job<Exception>() {
+                    public void run() throws Exception {
+                        threads.lineup(barrier, threads.time(5));
+                    }
+                });
+            }
+        });
+
+        threads.release(threads.time(10));
+    }
+
+    private static final class DeadLock {
+
+        private final Object lock1 = new Object();
+        private final Object lock2 = new Object();
+
+        public void lock12(final Command.Job<Exception> checkpoint) throws Exception {
+            synchronized(lock1) {
+                checkpoint.run();
+
+                synchronized(lock2) {
+                    System.out.println("lock12");
+                }
+            }
+        }
+
+        public void lock21(final Command.Job<Exception> checkpoint) throws Exception  {
+            synchronized(lock2) {
+                checkpoint.run();
+
+                synchronized(lock1) {
+                    System.out.println("lock21");
+                }
+            }
+        }
     }
 }

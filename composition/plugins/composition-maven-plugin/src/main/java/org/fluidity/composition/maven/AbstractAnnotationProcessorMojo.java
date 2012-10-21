@@ -151,7 +151,7 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
             assert false : e;
         }
 
-        final ClassLoader repository = ClassLoaders.create(null, Lists.asArray(urls, URL.class));
+        final ClassLoader repository = ClassLoaders.create(null, Lists.asArray(URL.class, urls));
         try {
             processClasses(repository, classesDirectory, serviceProviderMap, componentMap, componentGroupMap);
         } catch (final IOException e) {

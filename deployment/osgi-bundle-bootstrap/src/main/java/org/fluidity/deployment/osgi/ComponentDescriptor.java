@@ -36,7 +36,7 @@ final class ComponentDescriptor extends Descriptor {
     @SuppressWarnings("unchecked")
     ComponentDescriptor(final Class<BundleComponentContainer.Managed> type, final Collection<Class<? super BundleComponentContainer.Managed>> api) {
         super(type);
-        this.api = Lists.asArray(api, Class.class);
+        this.api = Lists.asArray(Class.class, api);
     }
 
     public Set<ServiceDescriptor> dependencies() {

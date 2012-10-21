@@ -313,7 +313,7 @@ abstract class FactoryResolver extends AbstractResolver {
                     nodes.add(new NodeDependency<Object>(traversal, descend(Generics.rawType(type), Generics.propagate(reference, type), annotations[i])));
                 }
 
-                return Lists.asArray(nodes, ComponentFactory.Dependency.class);
+                return Lists.asArray(ComponentFactory.Dependency.class, nodes);
             }
 
             public ComponentFactory.Container local(final Class<?> type, final Bindings bindings) {

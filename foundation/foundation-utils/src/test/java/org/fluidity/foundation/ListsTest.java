@@ -61,7 +61,7 @@ public class ListsTest {
     @Test
     public void testArrayConversion() throws Exception {
         final Item[] array = { new Item(), new Item(), new Item(), new Item(), new Item() };
-        assert Arrays.equals(array, Lists.asArray(Arrays.asList(array), Item.class));
+        assert Arrays.equals(array, Lists.asArray(Item.class, Arrays.asList(array)));
     }
 
     @Test

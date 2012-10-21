@@ -87,13 +87,12 @@ public class Lists extends Utility {
      * Collection#toArray(Object[])} on the received <code>list</code> with the <code>list</code>'s sized array and, in most cases, does all the unchecked type
      * casts needed for the operation.
      *
-     * @param list is the list to convert to an array; may be <code>null</code>.
      * @param type the item type of the list/array; may not be <code>null</code>.
-     * @param <T>  the generic item type of the list/array.
+     * @param list is the list to convert to an array; may be <code>null</code>.
      *
      * @return an array containing the elements of the given list; never <code>null</code>.
      */
-    public static <T> T[] asArray(final Collection<T> list, final Class<? super T> type) {
+    public static <T> T[] asArray(final Class<? super T> type, final Collection<T> list) {
         return asArray(list, type, true);
     }
 

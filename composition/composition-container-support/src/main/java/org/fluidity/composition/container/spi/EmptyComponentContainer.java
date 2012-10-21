@@ -275,7 +275,7 @@ public abstract class EmptyComponentContainer<C extends DependencyGraph> impleme
             }
         }
 
-        return (T) Proxies.create(type.getClassLoader(), Lists.asArray(interfaces, Class.class), new InvocationHandler() {
+        return (T) Proxies.create(type.getClassLoader(), Lists.asArray(Class.class, interfaces), new InvocationHandler() {
 
             private final Map<Method, Boolean> injectMap = new ConcurrentHashMap<Method, Boolean>();
 

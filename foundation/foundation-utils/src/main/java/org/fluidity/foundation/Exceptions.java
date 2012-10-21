@@ -140,7 +140,7 @@ public final class Exceptions extends Utility {
                 }
             }
 
-            this.wrappers = (Class<Exception>[]) Lists.asArray(list, Class.class);
+            this.wrappers = (Class<Exception>[]) Lists.asArray(Class.class, list);
         }
 
         private boolean isChecked(final Collection<Class<? extends Exception>> list, final Class<? extends Exception> error) {

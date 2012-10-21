@@ -553,7 +553,7 @@ public final class DependenciesSupport extends Utility {
                     }
 
                     // next level optionals and those excluded by the current dependency will not be selected during descent
-                    return new TransitiveDependencySelector(compile, false, selectedArtifacts, Lists.asArray(excluded, String.class));
+                    return new TransitiveDependencySelector(compile, false, selectedArtifacts, Lists.asArray(String.class, excluded));
                 } else {
                     return this;
                 }
