@@ -265,7 +265,7 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
         generator.visit(V1_5, ACC_FINAL | ACC_PUBLIC, ClassReaders.internalName(className), null, EMPTY_BINDINGS_CLASS_NAME, null);
 
         {
-            final String constructorDesc = Type.getMethodDescriptor(Type.getType(Void.TYPE));
+            final String constructorDesc = Type.getMethodDescriptor(Type.getType(void.class));
             final MethodVisitor method = generator.visitMethod(ACC_PUBLIC, ClassReaders.CONSTRUCTOR_METHOD_NAME, constructorDesc, null, null);
             method.visitCode();
 

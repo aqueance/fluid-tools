@@ -180,7 +180,7 @@ public final class Strings extends Utility {
                 for (final Method method : methods) {
 
                     // not every Annotation class is an annotation that has method signature restriction imposed on by the compiler...
-                    if (method.getParameterTypes().length == 0 && method.getReturnType() != Void.TYPE) {
+                    if (method.getParameterTypes().length == 0 && method.getReturnType() != void.class) {
                         final Object fallback = method.getDefaultValue();
                         final Class<?> parameterType = method.getReturnType();
 

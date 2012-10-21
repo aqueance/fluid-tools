@@ -122,14 +122,14 @@ import org.fluidity.foundation.Strings;
  *
  * final <span class="hl2">MyHelper1</span> helper1 = child.<span class="hl1">instantiate</span>(<span class="hl2">MyHelper1</span>.class, new {@linkplain ComponentContainer.Bindings}() {
  *   public void bindComponents({@linkplain ComponentContainer.Registry} registry) {
- *     registry.bindInstance(1234, Integer.TYPE);
+ *     registry.bindInstance(1234, int.class);
  *     &hellip;
  *   }
  * });
  *
  * final <span class="hl2">MyHelper2</span> helper2 = child.<span class="hl1">instantiate</span>(<span class="hl2">MyHelper2</span>.class, new {@linkplain ComponentContainer.Bindings}() {
  *   public void bindComponents({@linkplain ComponentContainer.Registry} registry) {
- *     registry.bindInstance(5678, Integer.TYPE);
+ *     registry.bindInstance(5678, int.class);
  *     &hellip;
  *   }
  * };
@@ -180,7 +180,7 @@ import org.fluidity.foundation.Strings;
  * }
  *
  * final Method method = <span class="hl2">MyHelper</span>.class.getMethod("<span class="hl2">someMethod</span>",
- *                                                Integer.TYPE,
+ *                                                int.class,
  *                                                MyDependency1.class,
  *                                                MyDependency2.class);
  *

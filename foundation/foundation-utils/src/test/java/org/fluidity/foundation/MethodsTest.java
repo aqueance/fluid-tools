@@ -38,6 +38,7 @@ public class MethodsTest {
                 capture.floatMethod();
                 capture.doubleMethod();
                 capture.booleanMethod();
+                capture.charMethod();
                 capture.VoidMethod();
                 capture.ObjectMethod();
                 capture.StringMethod();
@@ -45,7 +46,7 @@ public class MethodsTest {
             }
         });
 
-        assert methods.length == 12 : Arrays.toString(methods);
+        assert methods.length == 13 : Arrays.toString(methods);
         assert "voidMethod".equals(methods[0].getName()) : methods[0];
         assert "byteMethod".equals(methods[1].getName()) : methods[1];
         assert "shortMethod".equals(methods[2].getName()) : methods[2];
@@ -54,10 +55,11 @@ public class MethodsTest {
         assert "floatMethod".equals(methods[5].getName()) : methods[5];
         assert "doubleMethod".equals(methods[6].getName()) : methods[6];
         assert "booleanMethod".equals(methods[7].getName()) : methods[7];
-        assert "VoidMethod".equals(methods[8].getName()) : methods[8];
-        assert "ObjectMethod".equals(methods[9].getName()) : methods[9];
-        assert "StringMethod".equals(methods[10].getName()) : methods[10];
-        assert "FloatMethod".equals(methods[11].getName()) : methods[11];
+        assert "charMethod".equals(methods[8].getName()) : methods[8];
+        assert "VoidMethod".equals(methods[9].getName()) : methods[9];
+        assert "ObjectMethod".equals(methods[10].getName()) : methods[10];
+        assert "StringMethod".equals(methods[11].getName()) : methods[11];
+        assert "FloatMethod".equals(methods[12].getName()) : methods[12];
     }
 
     interface VariousMethods {
@@ -69,6 +71,7 @@ public class MethodsTest {
         float floatMethod();
         double doubleMethod();
         boolean booleanMethod();
+        char charMethod();
         Void VoidMethod();
         Object ObjectMethod();
         String StringMethod();

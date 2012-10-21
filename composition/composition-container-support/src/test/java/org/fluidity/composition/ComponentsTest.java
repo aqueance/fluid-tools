@@ -365,13 +365,14 @@ public class ComponentsTest {
 
     @Test
     public void primitiveTypes() throws Exception {
-        checkPrimitive(Byte.class, Byte.TYPE);
-        checkPrimitive(Short.class, Short.TYPE);
-        checkPrimitive(Integer.class, Integer.TYPE);
-        checkPrimitive(Long.class, Long.TYPE);
-        checkPrimitive(Float.class, Float.TYPE);
-        checkPrimitive(Double.class, Double.TYPE);
-        checkPrimitive(Boolean.class, Boolean.TYPE);
+        checkPrimitive(Byte.class, byte.class);
+        checkPrimitive(Short.class, short.class);
+        checkPrimitive(Integer.class, int.class);
+        checkPrimitive(Long.class, long.class);
+        checkPrimitive(Float.class, float.class);
+        checkPrimitive(Double.class, double.class);
+        checkPrimitive(Boolean.class, boolean.class);
+        checkPrimitive(Character.class, char.class);
     }
 
     private void checkPrimitive(final Class<?> type, final Class<?> primitive) {

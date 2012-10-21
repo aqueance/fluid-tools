@@ -177,7 +177,7 @@ public interface ComponentFactory {
      *                                                       Dependency1.class,
      *                                                       Dependency2.class,
      *                                                       String.class,
-     *                                                       Integer.TYPE);
+     *                                                       int.class);
      *   final Dependency<?>[] <span class="hl3">parameters</span> = dependencies.{@linkplain ComponentFactory.Resolver#resolve(Class, java.lang.reflect.Method) resolve}(null, <span class="hl2">method</span>);
      *
      *   return new {@linkplain ComponentFactory.Instance Instance}() {

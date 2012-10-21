@@ -74,6 +74,8 @@ public final class Methods extends Utility {
                             return 0.0F;
                         } else if (type == double.class) {
                             return 0.0;
+                        } else if (type == char.class) {
+                            return '\0';
                         } else {
                             return null;
                         }
