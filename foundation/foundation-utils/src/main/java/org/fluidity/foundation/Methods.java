@@ -18,6 +18,8 @@ package org.fluidity.foundation;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Collection;
 
 /**
  * Convenience methods on methods.
@@ -29,36 +31,58 @@ public final class Methods extends Utility {
     private Methods() { }
 
     /**
-     * Finds a method object in a refactoring friendly way. Let's say you need to find the {@link java.io.Closeable#close()} method at run time. Here's how you
-     * do that with this method:
+     * Finds method objects in a refactoring friendly way.
+     * <p/>
+     * <b>Note</b>: only works on interface methods.
+     * <h3>Usage</h3>
+     * Let's say you need to find the {@link java.io.Closeable#close()} method at run time:
      * <pre>
      * final {@linkplain Method} closeMethod = <span class="hl1">Methods.get</span>(<span class="hl2">Closeable</span>.class, new <span class="hl1">Methods.Invoker</span>&lt;<span class="hl2">Closeable</span>>() {
-     *   public void <span class="hl1">invoke</span>(final <span class="hl2">Closeable</span> dummy) {
-     *     dummy.<span class="hl2">close</span>();
+     *   public void <span class="hl1">invoke</span>(final <span class="hl2">Closeable</span> capture) {
+     *     capture.<span class="hl2">close</span>();
      *   }
-     * });
+     * })[0];
      * </pre>
-     * This works only on interface methods.
      *
-     * @param type    the class that directly or indirectly defines the method you seek.
-     * @param invoker code that invokes the method on a dummy implementation of its owning interface.
+     * @param type    the interface that directly or indirectly defines the method you seek.
+     * @param invoker code that invokes the method on the supplied implementation of the specified interface <code>type</code>.
      *
      * @return the method object.
      */
-    public static <T> Method get(final Class<T> type, final Invoker<T> invoker) {
-        try {
-            invoker.invoke(Proxies.create(type, new InvocationHandler() {
-                public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
-                    throw new Capture(method);
-                }
-            }));
+    public static <T> Method[] get(final Class<T> type, final Invoker<T> invoker) {
+        final Collection<Method> methods = new ArrayList<Method>();
 
-            throw new IllegalStateException("Desired method not called or exceptions not thrown");
-        } catch (final Capture e) {
-            return e.method;
-        } catch (final Throwable e) {
-            throw new IllegalStateException(e);
-        }
+        Exceptions.wrap(new Command.Job<Throwable>() {
+            public void run() throws Throwable {
+                invoker.invoke(Proxies.create(type, new InvocationHandler() {
+                    public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
+                        methods.add(method);
+
+                        final Class<?> type = method.getReturnType();
+
+                        if (type == boolean.class) {
+                            return Boolean.FALSE;
+                        } else if (type == byte.class) {
+                            return (byte) 0;
+                        } else if (type == short.class) {
+                            return (short) 0;
+                        } else if (type == int.class) {
+                            return 0;
+                        } else if (type == long.class) {
+                            return 0L;
+                        } else if (type == float.class) {
+                            return 0.0F;
+                        } else if (type == double.class) {
+                            return 0.0;
+                        } else {
+                            return null;
+                        }
+                    }
+                }));
+            }
+        });
+
+        return Lists.asArray(Method.class, methods);
     }
 
     /**
@@ -78,14 +102,5 @@ public final class Methods extends Utility {
          * @throws Throwable listed for semantic purposes; should never actually be thrown.
          */
         void invoke(T capture) throws Throwable;
-    }
-
-    private static class Capture extends Error {
-
-        public final Method method;
-
-        private Capture(final Method method) {
-            this.method = method;
-        }
     }
 }

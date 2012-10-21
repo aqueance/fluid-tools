@@ -60,7 +60,7 @@ final class ContextDefinitionImpl implements ContextDefinition {
         public void invoke(final Component.Context capture) throws Throwable {
             capture.collect();
         }
-    }).getDefaultValue();
+    })[0].getDefaultValue();
 
     ContextDefinitionImpl() {
         // empty

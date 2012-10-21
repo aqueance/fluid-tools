@@ -93,7 +93,7 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
             public void invoke(final PackageBindings capture) {
                 capture.bindComponents(null);
             }
-        });
+        })[0];
 
         final Class<?>[] implementedParameters = implementedMethod.getParameterTypes();
         assert implementedParameters.length == 1 : implementedMethod;
@@ -104,7 +104,7 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
             public void invoke(final ComponentContainer.Registry capture) {
                 capture.bindComponent(null);
             }
-        });
+        })[0];
 
         final Class<?>[] invokedParameter = invokedMethod.getParameterTypes();
         assert invokedParameter.length == 2 : invokedMethod;

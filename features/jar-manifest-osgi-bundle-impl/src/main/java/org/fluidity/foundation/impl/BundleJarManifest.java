@@ -165,7 +165,7 @@ public final class BundleJarManifest implements JarManifest {
                     public void invoke(final BootstrapDiscovery capture) {
                         capture.activator();
                     }
-                });
+                })[0];
 
                 urls.add((Archives.containing(BootstrapDiscovery.class)));
                 urls.add((Archives.containing(BootstrapDiscoveryImpl.class)));

@@ -39,17 +39,15 @@ public class MethodInjectionTests extends AbstractContainerTests {
     private final Dependency1 dependency1 = mock(Dependency1.class);
     private final Dependency2 dependency2 = mock(Dependency2.class);
 
-    private final Method injectable = Methods.get(InjectedMethods.class, new Methods.Invoker<InjectedMethods>() {
+    private final Method[] methods = Methods.get(InjectedMethods.class, new Methods.Invoker<InjectedMethods>() {
         public void invoke(final InjectedMethods capture) throws Throwable {
             capture.explicit(null, null);
-        }
-    });
-
-    private final Method explicit = Methods.get(InjectedMethods.class, new Methods.Invoker<InjectedMethods>() {
-        public void invoke(final InjectedMethods capture) throws Throwable {
             capture.explicit(0, null, null, null);
         }
     });
+
+    private final Method injectable = methods[0];
+    private final Method explicit = methods[1];
 
     public MethodInjectionTests(final ArtifactFactory artifacts) {
         super(artifacts);

@@ -46,7 +46,7 @@ final class LoggingMBeanImpl extends StandardMBean implements LoggingMBean {
         public void invoke(final LoggingMBean capture) throws Throwable {
             capture.logLevelsUpdated();
         }
-    }).getName();
+    })[0].getName();
 
     @Override
     protected String getDescription(final MBeanOperationInfo info) {
