@@ -266,26 +266,27 @@ public final class Generics extends Utility {
      * Returns a textual representation of the given type with complete type information.
      *
      * @param argument the generic type to convert to String.
+     * @param qualified if <code>true</code>, the type's fully qualified name is used, otherwise its simple name is used.
      *
      * @return a textual representation of the given type with complete type information.
      */
-    public static String toString(final Type argument) {
+    public static String toString(final Type argument, final boolean qualified) {
         if (argument instanceof Class) {
             final Class type = (Class) argument;
-            return Strings.printClass(true, type);
+            return Strings.printClass(false, qualified, type);
         } else if (argument instanceof ParameterizedType) {
             return String.format("%s<%s>",
-                                 toString(Generics.rawType(argument)),
-                                 Lists.delimited(", ", ((ParameterizedType) argument).getActualTypeArguments()));
+                                 toString(Generics.rawType(argument), qualified),
+                                 Generics.toString(", ", qualified, ((ParameterizedType) argument).getActualTypeArguments()));
         } else if (argument instanceof GenericArrayType) {
-            return String.format("%s[]", toString(((GenericArrayType) argument).getGenericComponentType()));
+            return String.format("%s[]", toString(((GenericArrayType) argument).getGenericComponentType(), qualified));
         } else if (argument instanceof TypeVariable) {
             final TypeVariable variable = (TypeVariable) argument;
             final Type[] bounds = variable.getBounds();
 
             return bounds.length == 1 && bounds[0] == Object.class
                    ? variable.getName()
-                   : String.format("%s extends %s", variable.getName(), Lists.delimited(" & ", bounds));
+                   : String.format("%s extends %s", variable.getName(), Generics.toString(" & ", qualified, bounds));
         } else if (argument instanceof WildcardType) {
             final WildcardType wildcard = (WildcardType) argument;
             final Type[] upperBounds = wildcard.getUpperBounds();
@@ -293,9 +294,9 @@ public final class Generics extends Utility {
 
             final String upper = upperBounds.length == 1 && upperBounds[0] == Object.class
                                  ? ""
-                                 : " extends ".concat(Lists.delimited(" & ", upperBounds));
+                                 : " extends ".concat(Generics.toString(" & ", qualified, upperBounds));
 
-            final String lower = lowerBounds.length == 0 ? "" : " super ".concat(Lists.delimited(" & ", lowerBounds));
+            final String lower = lowerBounds.length == 0 ? "" : " super ".concat(Generics.toString(" & ", qualified, lowerBounds));
 
             return String.format("?%s%s", upper, lower);
         } else {
@@ -304,16 +305,26 @@ public final class Generics extends Utility {
         }
     }
 
-    /**
-     * Returns the type that the given <code>specific</code> class provides as a specialization of the <code>generic</code> type. The {@linkplain
-     * #rawType(Type) raw} type of the returned type will be <code>generic</code>.
-     *
-     * @param specific the class that is assumed to specialize the given <code>generic</code> type.
-     * @param generic  the generic type that is expected to be specialized by the given <code>specific</code>.
-     *
-     * @return the type of the <code>specific</code> class that specializes the <code>generic</code> type; or <code>null</code> if the <code>specific</code>
-     *         class is not a specialization of the <code>generic</code> type.
-     */
+    private static String toString(final String delimiter, final boolean qualified, final Type... argument) {
+        final Lists.Delimited delimited = Lists.delimited(delimiter);
+
+        for (final Type type : argument) {
+            delimited.add(Generics.toString(type, qualified));
+        }
+
+        return delimited.toString();
+    }
+
+        /**
+        * Returns the type that the given <code>specific</code> class provides as a specialization of the <code>generic</code> type. The {@linkplain
+        * #rawType(Type) raw} type of the returned type will be <code>generic</code>.
+        *
+        * @param specific the class that is assumed to specialize the given <code>generic</code> type.
+        * @param generic  the generic type that is expected to be specialized by the given <code>specific</code>.
+        *
+        * @return the type of the <code>specific</code> class that specializes the <code>generic</code> type; or <code>null</code> if the <code>specific</code>
+        *         class is not a specialization of the <code>generic</code> type.
+        */
     public static Type specializedType(final Class specific, final Class generic) {
         return specializedType(specific, generic, specific, generic);
     }
@@ -429,7 +440,7 @@ public final class Generics extends Utility {
                 return true;
             } else if (type instanceof ParameterizedType) {
                 //noinspection ConstantConditions
-                assert rawReference == rawType : String.format("%s != %s", toString(reference), toString(type));
+                assert rawReference == rawType : String.format("%s != %s", toString(reference, false), toString(type, false));
                 final Type[] typeArguments = ((ParameterizedType) type).getActualTypeArguments();
 
                 for (int i = 0, limit = typeArguments.length; i < limit; i++) {

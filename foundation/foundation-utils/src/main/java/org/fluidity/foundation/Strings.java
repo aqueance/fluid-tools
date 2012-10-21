@@ -220,7 +220,7 @@ public final class Strings extends Utility {
             } else if (Proxy.isProxyClass(type) && !Proxies.isIdentified(object)) {
                 return identify ? printId(object) : String.format("proxy%s", interfaces(type));
             } else if (object instanceof Type) {
-                return Generics.toString((Type) object);
+                return Generics.toString((Type) object, true);
             } else {
                 try {
                     return (String) type.getDeclaredMethod("toString").invoke(object);

@@ -498,27 +498,27 @@ public class GenericsTest {
 
     @Test
     public void testStringValues() throws Exception {
-        checkText(Generics.toString(Q.class), Strings.printClass(true, Q.class));
-        checkText(Generics.toString(D.class.getGenericSuperclass()),
+        checkText(Generics.toString(Q.class, true), Strings.printClass(false, true, Q.class));
+        checkText(Generics.toString(D.class.getGenericSuperclass(), true),
                   String.format("%s<%s, %s, %s>",
-                                A.class.toString().replace('$', '.'),
-                                Strings.printObject(true, I1.class),
-                                Strings.printObject(true, I2.class),
-                                Strings.printObject(true, I3.class)));
+                                Strings.printClass(false, true, A.class),
+                                Strings.printClass(false, true, I1.class),
+                                Strings.printClass(false, true, I2.class),
+                                Strings.printClass(false, true, I3.class)));
 
         // generic parameter types: I, F, I<I1, I2, I3>, F<I4>, I[], I<? super I4, ?, ?>, P<T>, F1<I4>[][]
         final Type[] types = H.class.getDeclaredConstructors()[0].getGenericParameterTypes();
 
-        checkText(Generics.toString(types[5]),
+        checkText(Generics.toString(types[5], false),
                   String.format("%s<? super %s, ? extends %s, ?>",
-                                I.class.toString().replace('$', '.'),
-                                Strings.printClass(true, I1.class),
-                                Strings.printClass(true, I2.class)));
+                                Strings.printClass(false, false, I.class),
+                                Strings.printClass(false, false, I1.class),
+                                Strings.printClass(false, false, I2.class)));
 
-        checkText(Generics.toString(types[7]),
+        checkText(Generics.toString(types[7], false),
                   String.format("%s<%s>[][]",
-                                F1.class.toString().replace('$', '.'),
-                                Strings.printClass(true, I4.class)));
+                                Strings.printClass(false, false, F1.class),
+                                Strings.printClass(false, false, I4.class)));
     }
 
     private void checkText(final String actual, final String expected) {
