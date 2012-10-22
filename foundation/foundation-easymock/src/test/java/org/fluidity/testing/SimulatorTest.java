@@ -80,7 +80,7 @@ public class SimulatorTest extends Simulator {
         final CyclicBarrier barrier = new CyclicBarrier(2);
 
         threads.concurrent(new Task.Concurrent() {
-            public Task run(final MockObjects.Concurrent ignored) throws Exception {
+            public Task run(final MockObjects ignored) throws Exception {
                 return new Task() {
                     public void run() throws Exception {
                         deadLock.lock12(new Command.Job<Exception>() {
@@ -94,7 +94,7 @@ public class SimulatorTest extends Simulator {
         });
 
         threads.concurrent(new Task.Concurrent() {
-            public Task run(final MockObjects.Concurrent ignored) throws Exception {
+            public Task run(final MockObjects ignored) throws Exception {
                 return new Task() {
                     public void run() throws Exception {
                         deadLock.lock21(new Command.Job<Exception>() {
@@ -126,8 +126,7 @@ public class SimulatorTest extends Simulator {
         final DeadLock deadLock = new DeadLock();
 
         threads.concurrent(new Task.Concurrent() {
-            public Task run(final MockObjects.Concurrent factory) throws Exception {
-
+            public Task run(final MockObjects factory) throws Exception {
                 @SuppressWarnings("unchecked")
                 final Command.Job<Exception> command = (Command.Job<Exception>) factory.normal(Command.Job.class);
 
@@ -143,8 +142,7 @@ public class SimulatorTest extends Simulator {
         });
 
         threads.concurrent(new Task.Concurrent() {
-            public Task run(final MockObjects.Concurrent factory) throws Exception {
-
+            public Task run(final MockObjects factory) throws Exception {
                 @SuppressWarnings("unchecked")
                 final Command.Job<Exception> command = (Command.Job<Exception>) factory.normal(Command.Job.class);
 
@@ -196,8 +194,8 @@ public class SimulatorTest extends Simulator {
         final Threads threads = newThreads("concurrent");
 
         final Task.Concurrent task = new Task.Concurrent() {
-            public Task run(final MockObjects.Concurrent factory) throws Exception {
-                final Runnable dependency = factory.normal(Runnable.class, composite);
+            public Task run(final MockObjects factory) throws Exception {
+                final Runnable dependency = composite.normal();
 
                 dependency.run();
                 EasyMock.expectLastCall().andAnswer(new IAnswer<Object>() {

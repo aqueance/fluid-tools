@@ -154,7 +154,7 @@ public class ContainerTerminationJobsTest extends Simulator {
 
         // this task will be executed while jobs[0] is waiting in execution, releasing jobs[0] at completion
         threads.concurrent(new Task.Concurrent() {
-            public Task run(final MockObjects.Concurrent ignored) throws Exception {
+            public Task run(final MockObjects ignored) throws Exception {
                 return new Task() {
                     public void run() throws Exception {
                         threads.lineup(barrier, 100);

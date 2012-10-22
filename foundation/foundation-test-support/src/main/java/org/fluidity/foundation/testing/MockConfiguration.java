@@ -42,7 +42,7 @@ public final class MockConfiguration {
      * Creates a new static configuration mock object.
      *
      * @param type  the configuration settings class.
-     * @param mocks the {@link Simulator.MockObjects} to create mock objects with.
+     * @param mocks the {@link org.fluidity.testing.Simulator.MockObjects} to create mock objects with.
      * @param <P>   the generic configuration settings type.
      *
      * @return a new instance of this class.
@@ -55,7 +55,7 @@ public final class MockConfiguration {
      * Creates a new dynamic configuration mock object.
      *
      * @param type  the configuration settings class.
-     * @param mocks the {@link Simulator.MockObjects} to create mock objects with.
+     * @param mocks the {@link org.fluidity.testing.Simulator.MockObjects} to create mock objects with.
      * @param <P>   the generic configuration settings type.
      *
      * @return a new instance of this class.

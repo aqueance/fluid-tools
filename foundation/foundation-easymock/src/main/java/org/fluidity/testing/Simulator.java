@@ -25,6 +25,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.fluidity.foundation.Command;
 import org.fluidity.foundation.Proxies;
@@ -126,6 +127,8 @@ public class Simulator {
 
     private MockControl arguments = newLocalObjects();    // must be defined after groups have been initialized
 
+    final AtomicReference<CompositeFactory> locals = new AtomicReference<CompositeFactory>();
+
     /**
      * Default constructor; does nothing.
      */
@@ -164,8 +167,7 @@ public class Simulator {
     }
 
     /**
-     * Command to feed to {@link Simulator#test(Simulator.Work)}, {@link Simulator#verify(Simulator.Work)}, or {@link Simulator.Threads#verify(long,
-     * Simulator.Work)}.
+     * Encapsulates a sequence of code, to execute as part of some test case, that returns some value.
      * <h3>Usage</h3>
      * See {@link Simulator}.
      *
@@ -174,8 +176,7 @@ public class Simulator {
     public interface Work<T> extends Command.Process<T, Exception> { }
 
     /**
-     * Command to feed to {@link Simulator#test(Simulator.Task)}, {@link Simulator#verify(Simulator.Task)}, or {@link Simulator.Threads#verify(long,
-     * Simulator.Task)}, {@link Simulator.Threads#serial(Simulator.Task)}, and {@link Simulator.Threads#concurrent(Simulator.Task.Concurrent)}.
+     * Encapsulates a sequence of code to execute as part of some test case.
      * <h3>Usage</h3>
      * See {@link Simulator}.
      *
@@ -188,7 +189,7 @@ public class Simulator {
          *
          * @author Tibor Varga
          */
-        interface Concurrent extends Command.Function<Task, MockObjects.Concurrent, Exception> {
+        interface Concurrent extends Command.Function<Task, MockObjects, Exception> {
 
             /**
              * Creates mock objects using the supplied <code>factory</code>, sets up expectations therewith, and then returns a task that will, in a separate
@@ -198,7 +199,7 @@ public class Simulator {
              *
              * @return a task to run concurrently.
              */
-            Task run(MockObjects.Concurrent factory) throws Exception;
+            Task run(MockObjects factory) throws Exception;
         }
     }
 
@@ -381,8 +382,8 @@ public class Simulator {
 
     /**
      * Creates a composite mock object using the given mock object for the <i>main</i> thread, which must be the current thread. The composite mock object
-     * can then be used when creating thread local mock objects for the same dependency using the {@link Simulator.MockObjects.Concurrent} methods, an instance
-     * of which is received by concurrent task factories passed to {@link Simulator.Threads#concurrent(Simulator.Task.Concurrent)}.
+     * can then be used to create thread local mock objects for the same dependency using the {@link Simulator.Composite#normal()}, {@link
+     * Simulator.Composite#lenient()}, and {@link Simulator.Composite#ordered()} methods.
      *
      * @param type the dependency class to mock.
      * @param mock the mock object created for the main thread.
@@ -413,8 +414,33 @@ public class Simulator {
                 local.set(mock);
             }
 
+            public T normal() {
+                return factory("normal").normal(type, this);
+            }
+
+            public T lenient() {
+                return factory("lenient").lenient(type, this);
+            }
+
+            public T ordered() {
+                return factory("ordered").ordered(type, this);
+            }
+
             public T dependency() {
                 return proxy;
+            }
+
+            private CompositeFactory factory(final String method) {
+                final CompositeFactory factory = locals.get();
+
+                if (factory == null) {
+                    throw new IllegalStateException(String.format("%s.%s() can only be invoked from %s.concurrent(...)",
+                                                                  Strings.formatClass(false, true, Composite.class),
+                                                                  method,
+                                                                  Strings.formatClass(false, true, Threads.class)));
+                }
+
+                return factory;
             }
         };
     }
@@ -433,7 +459,7 @@ public class Simulator {
     public interface MockObjects {
 
         /**
-         * Creates an {@link EasyMock#createMock(Class) normal mock object}.
+         * Creates a {@link EasyMock#createMock(Class) normal mock object}.
          *
          * @param interfaceClass the interface to mock.
          * @param <T>            the interface class.
@@ -461,55 +487,15 @@ public class Simulator {
          * @return the mock object for the interface.
          */
         <T> T ordered(Class<T> interfaceClass);
-
-        /**
-         * TODO
-         *
-         * @author Tibor Varga
-         */
-        interface Concurrent extends MockObjects {
-
-            /**
-             * Creates an {@link EasyMock#createMock(Class) normal mock object} for a concurrent thread, for the given <code>composite</code>.
-             *
-             * @param interfaceClass the interface to mock.
-             * @param composite      the composite object the new mock object is a thread local delegate of.
-             * @param <T>            the interface class.
-             *
-             * @return the mock object for the interface.
-             */
-            <T> T normal(Class<T> interfaceClass, Composite<T> composite);
-
-            /**
-             * Creates a {@link EasyMock#createNiceMock(Class) nice mock object} for a concurrent thread, for the given <code>composite</code>.
-             *
-             * @param interfaceClass the interface to mock.
-             * @param composite      the composite object the new mock object is a thread local delegate of.
-             * @param <T>            the interface class.
-             *
-             * @return the mock object for the interface.
-             */
-            <T> T lenient(Class<T> interfaceClass, Composite<T> composite);
-
-            /**
-             * Creates a {@link EasyMock#createStrictMock(Class) strict mock object} for a concurrent thread, for the given <code>composite</code>.
-             *
-             * @param interfaceClass the interface to mock.
-             * @param composite      the composite object the new mock object is a thread local delegate of.
-             * @param <T>            the interface class.
-             *
-             * @return the mock object for the interface.
-             */
-            <T> T ordered(Class<T> interfaceClass, Composite<T> composite);
-        }
     }
 
     /**
-     * Allows test cases to manage interacting threads. Threads are created by the {@link #concurrent(Simulator.Task.Concurrent) concurrent()} method and started /
-     * stopped by the {@link #verify(long, Simulator.Task)} and {@link #verify(long, Simulator.Work)} methods. Threads synchronize on {@linkplain CyclicBarrier
-     * barriers} using the {@link #lineup coalesce()}.
+     * Allows test cases to manage interacting threads. Threads are created by the {@link #concurrent(Simulator.Task.Concurrent) concurrent()} method and
+     * started / stopped by the {@link #verify(long, Simulator.Task)}, {@link #verify(long, Simulator.Work)}, {@link #guarantee(long, Simulator.Task)}, or
+     * {@link #guarantee(long, Simulator.Work)} method.
      * <p/>
-     * {@link EasyMock} calls <b>must</b> always run in the main thread.
+     * Threads synchronize on {@linkplain CyclicBarrier barriers} using the {@link #lineup lineup()} method and relative time can be given using {@link
+     * #time(float)}.
      * <h3>Usage</h3>
      * <pre>
      * &#64;Test
@@ -521,32 +507,30 @@ public class Simulator {
      *
      *   &hellip;
      *
-     *   threads.<span class="hl1">serial</span>(new {@linkplain Simulator.Task Task}() {
-     *     public void run() throws Exception {
-     *       &hellip;
-     *       thread.<span class="hl1">coalesce</span>(barrier, 100);
-     *       &hellip;
-     *       thread.<span class="hl1">coalesce</span>(barrier, 100);
-     *       &hellip;
+     *   threads.<span class="hl1">concurrent</span>(new {@linkplain Simulator.Task.Concurrent Task.Concurrent}() {
+     *     public {@linkplain Simulator.Task Task} run(final {@link Simulator.MockObjects MockObjects} factory) throws Exception {
+     *       return new {@linkplain Simulator.Task Task}() {
+     *         public void run() throws Exception {
+     *           &hellip;
+     *           thread.<span class="hl1">lineup</span>(barrier, threads.<span class="hl1">time</span>(10));
+     *           &hellip;
+     *           thread.<span class="hl1">lineup</span>(barrier, threads.<span class="hl1">time</span>(10));
+     *           &hellip;
+     *         }
+     *       }
      *     }
      *   });
      *
      *   &hellip;
      *
-     *   threads.<span class="hl1">concurrent</span>(new {@linkplain Simulator.Task Task}() {
+     *   threads.<span class="hl1">verify</span>(threads.<span class="hl1">time</span>(30), new {@linkplain Simulator.Task Task}() {
      *     public void run() throws Exception {
      *       &hellip;
-     *       thread.<span class="hl1">coalesce</span>(barrier, 100);
+     *       thread.<span class="hl1">lineup</span>(barrier, threads.<span class="hl1">time</span>(10));
      *       &hellip;
-     *       thread.<span class="hl1">coalesce</span>(barrier, 100);
+     *       thread.<span class="hl1">lineup</span>(barrier, threads.<span class="hl1">time</span>(10));
      *       &hellip;
      *     }
-     *   });
-     *
-     *   &hellip;
-     *
-     *   threads.<span class="hl1">verify</span>(500, new {@linkplain Simulator.Task Task}() {
-     *     &hellip;
      *   });
      * }
      * </pre>
@@ -668,17 +652,45 @@ public class Simulator {
     }
 
     /**
-     * Composite mock object. A composite is used in concurrent tests to multiplex thread specific mock objects of some dependency of the object under test.
+     * Composite mock object. A composite is used in multi-threaded tests to create thread specific mock objects of some dependency of the object under test.
      * <p/>
-     * The composite is created in the <i>main</i> thread for each dependency of the object under test that will be invoked concurrently, and the object under
-     * test is initialized with the composite's {@linkplain #dependency concurrent} object of each such dependency instead of a mock object as it would be in
-     * a serial test case.
+     * The composite is created in the <i>main</i> thread for each dependency of the object under test that will be invoked concurrently, and a composite mock
+     * object, returned by the {@link #dependency()} method, is passed to the object under test instead of a mock object as would be in a serial test case.
      * <p/>
-     * Each concurrent thread must create its own mock object for each dependency it sets up expectations on, using the concurrent version of the mock object
-     * factory methods.
+     * Each concurrent thread must create its own mock object for each dependency it sets up expectations on, using one of the {@link #normal()}, {@link
+     * #lenient()}, and {@link #ordered()} methods of this interface.
      * <h3>Usage</h3>
+     * Assuming <code>SomComponent</code> with a <code>Dependency</code> dependency, the following example shows the use of composites and thread local mock
+     * objects.
      * <pre>
-     *     TODO
+     * public class SomeComponentTest extends {@linkplain Simulator} {
+     *
+     *   private final <span class="hl1">Composite</span>&lt;<span class="hl2">Dependency</span>> composite = <span class="hl1">{@linkplain Simulator#composite(Class, Object) composite}</span>(<span class="hl2">Dependency</span>.class, dependencies().normal(<span class="hl2">Dependency</span>.class));
+     *   private final SomeComponent component = new SomeComponent(<span class="hl1">composite</span>.{@linkplain #dependency() dependency}());
+     *
+     *   &hellip;
+     *
+     *   &#64;Test
+     *   public void testConcurrency() throws Exception {
+     *     final {@linkplain Simulator.Threads Threads} threads = {@linkplain Simulator#newThreads(String) newThreads}("concurrency");
+     *
+     *     threads.{@linkplain Simulator.Threads#concurrent(Simulator.Task.Concurrent) concurrent}(new {@linkplain Simulator.Task.Concurrent Task.Concurrent}() {
+     *       public {@linkplain Simulator.Task Task} run(final {@linkplain Simulator.MockObjects MockObjects} factory) throws Exception {
+     *         final <span class="hl2">Dependency</span> dependency = <span class="hl1">composite</span>.{@linkplain #normal() normal}():
+     *
+     *         &hellip;
+     *
+     *         return new {@linkplain Simulator.Task Task}() {
+     *           &hellip;
+     *         }
+     *       }
+     *     });
+     *
+     *     &hellip;
+     *
+     *     threads.{@linkplain Simulator.Threads#guarantee(long, org.fluidity.testing.Simulator.Task) guarantee}(&hellip;);
+     *   }
+     * }
      * </pre>
      *
      * @param <T> the type for the mock object.
@@ -686,18 +698,86 @@ public class Simulator {
     public interface Composite<T> {
 
         /**
-         * TODO
+         * Returns the composite object to pass to the object under test. The returned object is not a mock object, it cannot be used to set up expectations.
+         * To set up expectations, use the original object passed to {@link Simulator#composite(Class, Object)} when creating this object in the main thread,
+         * and create new mock objects in other threads using one of the {@link #normal()}, {@link #lenient()}, and {@link #ordered()} methods.
          *
-         * @return the concurrent mock object to initialize the object under test with.
+         * @return the composite object to pass to the object under test.
          */
         T dependency();
 
         /**
-         * TODO
+         * Creates a new normal mock object using the {@link MockObjects#normal(Class)} method passed to the concurrent task this method is invoked from, and
+         * adds it to this composite object to be used in the thread corresponding to that concurrent task.
          *
-         * @param mock the mock object to use in this thread.
+         * @return a new normal mock object.
+         */
+        T normal();
+
+        /**
+         * Creates a new lenient mock object using the {@link MockObjects#lenient(Class)} method passed to the concurrent task this method is invoked from, and
+         * adds it to this composite object to be used in the thread corresponding to that concurrent task.
+         *
+         * @return a new lenient mock object.
+         */
+        T lenient();
+
+        /**
+         * Creates a new ordered mock object using the {@link MockObjects#ordered(Class)} method passed to the concurrent task this method is invoked from, and
+         * adds it to this composite object to be used in the thread corresponding to that concurrent task.
+         *
+         * @return a new ordered mock object.
+         */
+        T ordered();
+
+        /**
+         * Tells this composite object to use the given mock object in the calling thread. You <i>only</i> use this method if the calling thread was <i>not</i>
+         * created by a call to {@link Simulator.Threads#concurrent(Simulator.Task.Concurrent)}.
+         *
+         * @param mock the mock object to use in the calling thread.
          */
         void use(T mock);
+    }
+
+    /**
+     * Used to create thread local mock objects for {@linkplain Composite composites}.
+     *
+     * @author Tibor Varga
+     */
+    private interface CompositeFactory {
+
+        /**
+         * Creates an {@link org.easymock.EasyMock#createMock(Class) normal mock object} for a concurrent thread, for the given <code>composite</code>.
+         *
+         * @param type      the interface to mock.
+         * @param composite the composite object the new mock object is a thread local delegate of.
+         * @param <T>       the interface class.
+         *
+         * @return the mock object for the interface.
+         */
+        <T> T normal(Class<T> type, Composite<T> composite);
+
+        /**
+         * Creates a {@link org.easymock.EasyMock#createNiceMock(Class) nice mock object} for a concurrent thread, for the given <code>composite</code>.
+         *
+         * @param type      the interface to mock.
+         * @param composite the composite object the new mock object is a thread local delegate of.
+         * @param <T>       the interface class.
+         *
+         * @return the mock object for the interface.
+         */
+        <T> T lenient(Class<T> type, Composite<T> composite);
+
+        /**
+         * Creates a {@link org.easymock.EasyMock#createStrictMock(Class) strict mock object} for a concurrent thread, for the given <code>composite</code>.
+         *
+         * @param type      the interface to mock.
+         * @param composite the composite object the new mock object is a thread local delegate of.
+         * @param <T>       the interface class.
+         *
+         * @return the mock object for the interface.
+         */
+        <T> T ordered(Class<T> type, Composite<T> composite);
     }
 
     /**
@@ -729,14 +809,29 @@ public class Simulator {
             return barrier.await(timeout, TimeUnit.MILLISECONDS);
         }
 
-        public synchronized void concurrent(final Task.Concurrent factory) throws Exception {
-            assert factory != null;
-            checkNesting("concurrent");
+        public synchronized void concurrent(final Task.Concurrent tasks) throws Exception {
+            assert tasks != null;
+
+            final String method = "concurrent";
+            if (locals.get() != null) {
+                throw new IllegalStateException(String.format("%s.%s(...) cannot be called recursively",
+                                                              Strings.formatClass(false, true, Threads.class),
+                                                              method));
+            }
+            checkNesting(method);
 
             final List<Task> composites = new ArrayList<Task>();
+            final ConcurrentFactory factory = new ConcurrentFactory(composites, newLocalObjects());
 
-            final Task task = factory.run(new ConcurrentFactory(composites, newLocalObjects()));
-            assert task != null;
+            final Task task;
+
+            try {
+                locals.set(factory);
+                task = tasks.run(factory);
+                assert task != null;
+            } finally {
+                locals.set(null);
+            }
 
             threads.add(new Thread(String.format("%s %s [%d]", Simulator.class.getSimpleName(), name, threads.size())) {
                 public void run() {
@@ -871,50 +966,50 @@ public class Simulator {
         private void checkNesting(final String invoked) {
             assert latch == null : String.format("Calls to %1$s.%2$s(...) may not be nested with calls to %1$s.concurrent(...), %1$s.verify(...), or %1$s.guarantee(...)", Strings.formatClass(false, false, Threads.class), invoked);
         }
+    }
 
-        private class ConcurrentFactory implements MockObjects.Concurrent {
+    private static class ConcurrentFactory implements CompositeFactory, MockObjects {
 
-            private final List<Task> composites;
-            private final MockControl group;
+        private final List<Task> composites;
+        private final MockObjects factory;
 
-            public ConcurrentFactory(final List<Task> composites, final MockControl group) {
-                this.composites = composites;
-                this.group = group;
-            }
+        public ConcurrentFactory(final List<Task> composites, final MockObjects factory) {
+            this.composites = composites;
+            this.factory = factory;
+        }
 
-            private <T> T init(final Composite<T> composite, final T mock) {
-                composites.add(new Task() {
-                    public void run() throws Exception {
-                        composite.use(mock);
-                    }
-                });
+        private <T> T init(final Composite<T> composite, final T mock) {
+            composites.add(new Task() {
+                public void run() throws Exception {
+                    composite.use(mock);
+                }
+            });
 
-                return mock;
-            }
+            return mock;
+        }
 
-            public <T> T normal(final Class<T> interfaceClass, final Composite<T> composite) {
-                return init(composite, group.normal(interfaceClass));
-            }
+        public <T> T normal(final Class<T> type, final Composite<T> composite) {
+            return init(composite, factory.normal(type));
+        }
 
-            public <T> T lenient(final Class<T> interfaceClass, final Composite<T> composite) {
-                return init(composite, group.lenient(interfaceClass));
-            }
+        public <T> T lenient(final Class<T> type, final Composite<T> composite) {
+            return init(composite, factory.lenient(type));
+        }
 
-            public <T> T ordered(final Class<T> interfaceClass, final Composite<T> composite) {
-                return init(composite, group.ordered(interfaceClass));
-            }
+        public <T> T ordered(final Class<T> type, final Composite<T> composite) {
+            return init(composite, factory.ordered(type));
+        }
 
-            public <T> T normal(final Class<T> interfaceClass) {
-                return group.normal(interfaceClass);
-            }
+        public <T> T normal(final Class<T> interfaceClass) {
+            return factory.normal(interfaceClass);
+        }
 
-            public <T> T lenient(final Class<T> interfaceClass) {
-                return group.lenient(interfaceClass);
-            }
+        public <T> T lenient(final Class<T> interfaceClass) {
+            return factory.lenient(interfaceClass);
+        }
 
-            public <T> T ordered(final Class<T> interfaceClass) {
-                return group.ordered(interfaceClass);
-            }
+        public <T> T ordered(final Class<T> interfaceClass) {
+            return factory.ordered(interfaceClass);
         }
     }
 
