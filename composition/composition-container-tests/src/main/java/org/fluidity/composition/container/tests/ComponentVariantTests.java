@@ -49,7 +49,7 @@ import org.testng.annotations.Test;
 @SuppressWarnings("unchecked")
 public final class ComponentVariantTests extends AbstractContainerTests {
 
-    private final ComponentFactory factory = mock(ComponentFactory.class);
+    private final ComponentFactory factory = dependencies().normal(ComponentFactory.class);
 
     public ComponentVariantTests(final ArtifactFactory factory) {
         super(factory);

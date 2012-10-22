@@ -22,7 +22,7 @@ import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContext;
 import org.fluidity.foundation.Command;
 import org.fluidity.foundation.NoLogFactory;
-import org.fluidity.testing.MockGroup;
+import org.fluidity.testing.Simulator;
 
 import org.easymock.EasyMock;
 import org.easymock.IAnswer;
@@ -32,15 +32,17 @@ import org.testng.annotations.Test;
 /**
  * @author Tibor Varga
  */
-public class ContainerTerminationJobsTest extends MockGroup {
+public class ContainerTerminationJobsTest extends Simulator {
+
+    private final MockObjects dependencies = dependencies();
 
     private ContainerTermination.Jobs list;
     @SuppressWarnings("unchecked")
     private final Command.Job<Exception>[] jobs = new Command.Job[] {
-            mock(Command.Job.class),
-            mock(Command.Job.class),
-            mock(Command.Job.class),
-            mock(Command.Job.class)
+            dependencies.normal(Command.Job.class),
+            dependencies.normal(Command.Job.class),
+            dependencies.normal(Command.Job.class),
+            dependencies.normal(Command.Job.class)
     };
 
     @BeforeMethod
@@ -50,8 +52,10 @@ public class ContainerTerminationJobsTest extends MockGroup {
 
     @SuppressWarnings("unchecked")
     private ContainerTermination.Jobs jobs(final Class<?> caller) throws Exception {
-        final ComponentContext context = localMock(ComponentContext.class);
-        final Component.Reference reference = localMock(Component.Reference.class);
+        final MockObjects arguments = arguments();
+
+        final ComponentContext context = arguments.normal(ComponentContext.class);
+        final Component.Reference reference = arguments.normal(Component.Reference.class);
 
         EasyMock.expect(context.annotation(Component.Reference.class, ContainerTermination.Jobs.class)).andReturn(reference);
         EasyMock.expect(reference.parameter(0)).andReturn((Class) caller);
@@ -149,16 +153,20 @@ public class ContainerTerminationJobsTest extends MockGroup {
         });
 
         // this task will be executed while jobs[0] is waiting in execution, releasing jobs[0] at completion
-        threads.concurrent(new Task() {
-            public void run() throws Exception {
-                threads.lineup(barrier, 100);
+        threads.concurrent(new Task.Concurrent() {
+            public Task run(final MockObjects.Concurrent ignored) throws Exception {
+                return new Task() {
+                    public void run() throws Exception {
+                        threads.lineup(barrier, 100);
 
-                list.remove(jobs[1]);
-                list.add(jobs[2]);
-                list.add(jobs[3]);
-                list.remove(jobs[3]);
+                        list.remove(jobs[1]);
+                        list.add(jobs[2]);
+                        list.add(jobs[3]);
+                        list.remove(jobs[3]);
 
-                threads.lineup(barrier, 100);
+                        threads.lineup(barrier, 100);
+                    }
+                };
             }
         });
 
@@ -203,6 +211,6 @@ public class ContainerTerminationJobsTest extends MockGroup {
 
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void testClassLoaderCheck() throws Exception {
-        jobs(Object.class).add(localMock(Task.class));
+        jobs(Object.class).add(arguments().normal(Task.class));
     }
 }

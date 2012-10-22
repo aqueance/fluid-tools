@@ -33,7 +33,7 @@ import org.fluidity.foundation.ClassDiscovery;
 import org.fluidity.foundation.Command;
 import org.fluidity.foundation.Log;
 import org.fluidity.foundation.NoLogFactory;
-import org.fluidity.testing.MockGroup;
+import org.fluidity.testing.Simulator;
 
 import org.easymock.EasyMock;
 import org.easymock.IAnswer;
@@ -43,27 +43,28 @@ import org.testng.annotations.Test;
 /**
  * @author Tibor Varga
  */
-public final class ContainerBootstrapImplTest extends MockGroup {
+public final class ContainerBootstrapImplTest extends Simulator {
 
+    private final MockObjects dependencies = dependencies();
     private final Log log = NoLogFactory.consume(getClass());
 
-    private final ContainerBootstrap.Callback callback = mock(ContainerBootstrap.Callback.class);
-    private final PlatformContainer platform = mock(PlatformContainer.class);
-    private final ContainerProvider provider = mock(ContainerProvider.class);
-    private final ContainerServices services = mock(ContainerServices.class);
-    private final ClassDiscovery discovery = mock(ClassDiscovery.class);
-    private final ContainerTermination termination = mock(ContainerTermination.class);
-    private final MutableContainer parent = mock(MutableContainer.class);
-    private final MutableContainer container = mock(MutableContainer.class);
-    private final ComponentContainer.Registry registry = mock(ComponentContainer.Registry.class);
-    private final MutableContainer bindingsContainer = mock(MutableContainer.class);
-    private final ComponentContainer.Registry bindingsRegistry = mock(ComponentContainer.Registry.class);
-    private final PackageBindings bindings = mock(PackageBindings.class);
+    private final ContainerBootstrap.Callback callback = dependencies.normal(ContainerBootstrap.Callback.class);
+    private final PlatformContainer platform = dependencies.normal(PlatformContainer.class);
+    private final ContainerProvider provider = dependencies.normal(ContainerProvider.class);
+    private final ContainerServices services = dependencies.normal(ContainerServices.class);
+    private final ClassDiscovery discovery = dependencies.normal(ClassDiscovery.class);
+    private final ContainerTermination termination = dependencies.normal(ContainerTermination.class);
+    private final MutableContainer parent = dependencies.normal(MutableContainer.class);
+    private final MutableContainer container = dependencies.normal(MutableContainer.class);
+    private final ComponentContainer.Registry registry = dependencies.normal(ComponentContainer.Registry.class);
+    private final MutableContainer bindingsContainer = dependencies.normal(MutableContainer.class);
+    private final ComponentContainer.Registry bindingsRegistry = dependencies.normal(ComponentContainer.Registry.class);
+    private final PackageBindings bindings = dependencies.normal(PackageBindings.class);
 
     private ContainerBootstrap bootstrap;
 
     @BeforeMethod
-    public void dependencies() {
+    public void setup() {
         bootstrap = new ContainerBootstrapImpl();
 
         EasyMock.expect(services.createLog(EasyMock.<Log>anyObject(), EasyMock.<Class<?>>anyObject())).andReturn(log).anyTimes();
@@ -104,7 +105,7 @@ public final class ContainerBootstrapImplTest extends MockGroup {
             }
         });
 
-        dependencies();
+        setup();
 
         return list[0];
     }

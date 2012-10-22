@@ -22,7 +22,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import org.fluidity.testing.MockGroup;
+import org.fluidity.testing.Simulator;
 
 import org.easymock.EasyMock;
 import org.testng.annotations.Test;
@@ -31,7 +31,7 @@ import org.testng.annotations.Test;
  * @author Tibor Varga
  */
 @SuppressWarnings("unchecked")
-public class StringsTest extends MockGroup {
+public class StringsTest extends Simulator {
 
     private String className(final Class<?> type) {
         return type.getName().replace('$', '.');
@@ -63,7 +63,7 @@ public class StringsTest extends MockGroup {
 
     @Test
     public void nakedAnnotation() throws Exception {
-        final Documented annotation = localMock(Documented.class);
+        final Documented annotation = arguments().normal(Documented.class);
 
         EasyMock.expect(annotation.annotationType()).andReturn((Class) Documented.class);
 
@@ -78,7 +78,7 @@ public class StringsTest extends MockGroup {
 
     @Test
     public void plainValueAnnotation() throws Exception {
-        final Retention annotation = localMock(Retention.class);
+        final Retention annotation = arguments().normal(Retention.class);
 
         EasyMock.expect(annotation.annotationType()).andReturn((Class) Retention.class);
         EasyMock.expect(annotation.value()).andReturn(RetentionPolicy.RUNTIME);
@@ -94,7 +94,7 @@ public class StringsTest extends MockGroup {
 
     @Test
     public void arrayValueAnnotation() throws Exception {
-        final Target annotation = localMock(Target.class);
+        final Target annotation = arguments().normal(Target.class);
 
         final ElementType[] value = { ElementType.FIELD, ElementType.METHOD };
 
@@ -112,7 +112,7 @@ public class StringsTest extends MockGroup {
 
     @Test
     public void classArrayValueAnnotation() throws Exception {
-        final ClassValued annotation = localMock(ClassValued.class);
+        final ClassValued annotation = arguments().normal(ClassValued.class);
 
         EasyMock.expect(annotation.annotationType()).andReturn((Class) ClassValued.class);
         EasyMock.expect(annotation.value()).andReturn(Object[].class);
@@ -128,7 +128,7 @@ public class StringsTest extends MockGroup {
 
     @Test
     public void multiValueAnnotation() throws Exception {
-        final MultiValued annotation = localMock(MultiValued.class);
+        final MultiValued annotation = arguments().normal(MultiValued.class);
 
         final int id = 1234;
         final String[] list = { "abcd", "efgh", "ijkl" };
@@ -148,7 +148,7 @@ public class StringsTest extends MockGroup {
 
     @Test
     public void defaultValueAnnotation() throws Exception {
-        final MultiValued annotation = localMock(MultiValued.class);
+        final MultiValued annotation = arguments().normal(MultiValued.class);
 
         final int id = -1;
         final String[] list = { };

@@ -26,7 +26,7 @@ import org.fluidity.composition.container.spi.DependencyGraph;
 import org.fluidity.composition.container.spi.DependencyResolver;
 import org.fluidity.composition.spi.ComponentInterceptor;
 import org.fluidity.foundation.NoLogFactory;
-import org.fluidity.testing.MockGroup;
+import org.fluidity.testing.Simulator;
 
 import org.easymock.EasyMock;
 import org.easymock.IAnswer;
@@ -36,27 +36,29 @@ import org.testng.annotations.Test;
  * @author Tibor Varga
  */
 @SuppressWarnings("unchecked")
-public class DependencyInterceptorsTest extends MockGroup {
+public class DependencyInterceptorsTest extends Simulator {
 
-    private final InterceptorFilter annotations = mock(InterceptorFilter.class);
-    private final ContextDefinition context = mock(ContextDefinition.class);
-    private final ContextDefinition copy = mock(ContextDefinition.class);
-    private final ContextDefinition accepted = mock(ContextDefinition.class);
-    private final ComponentContext passed = mock(ComponentContext.class);
+    private final MockObjects dependencies = dependencies();
 
-    private final DependencyResolver resolver = mock(DependencyResolver.class);
-    private final DependencyGraph.Traversal traversal = mock(DependencyGraph.Traversal.class);
-    private final DependencyGraph.Node node = mock(DependencyGraph.Node.class);
-    private final DependencyGraph.Node group = mock(DependencyGraph.Node.class);
+    private final InterceptorFilter annotations = dependencies.normal(InterceptorFilter.class);
+    private final ContextDefinition context = dependencies.normal(ContextDefinition.class);
+    private final ContextDefinition copy = dependencies.normal(ContextDefinition.class);
+    private final ContextDefinition accepted = dependencies.normal(ContextDefinition.class);
+    private final ComponentContext passed = dependencies.normal(ComponentContext.class);
 
-    private final ComponentInterceptor interceptor1 = mock(ComponentInterceptor.class);
-    private final ComponentInterceptor.Dependency dependency1 = mock(ComponentInterceptor.Dependency.class);
+    private final DependencyResolver resolver = dependencies.normal(DependencyResolver.class);
+    private final DependencyGraph.Traversal traversal = dependencies.normal(DependencyGraph.Traversal.class);
+    private final DependencyGraph.Node node = dependencies.normal(DependencyGraph.Node.class);
+    private final DependencyGraph.Node group = dependencies.normal(DependencyGraph.Node.class);
 
-    private final ComponentInterceptor interceptor2 = mock(ComponentInterceptor.class);
-    private final ComponentInterceptor.Dependency dependency2 = mock(ComponentInterceptor.Dependency.class);
+    private final ComponentInterceptor interceptor1 = dependencies.normal(ComponentInterceptor.class);
+    private final ComponentInterceptor.Dependency dependency1 = dependencies.normal(ComponentInterceptor.Dependency.class);
 
-    private final ComponentInterceptor interceptor3 = mock(ComponentInterceptor.class);
-    private final ComponentInterceptor.Dependency dependency3 = mock(ComponentInterceptor.Dependency.class);
+    private final ComponentInterceptor interceptor2 = dependencies.normal(ComponentInterceptor.class);
+    private final ComponentInterceptor.Dependency dependency2 = dependencies.normal(ComponentInterceptor.Dependency.class);
+
+    private final ComponentInterceptor interceptor3 = dependencies.normal(ComponentInterceptor.class);
+    private final ComponentInterceptor.Dependency dependency3 = dependencies.normal(ComponentInterceptor.Dependency.class);
 
     private final DependencyInterceptors interceptors = new DependencyInterceptorsImpl(annotations, NoLogFactory.consume(DependencyInterceptorsImpl.class));
 
@@ -175,7 +177,7 @@ public class DependencyInterceptorsTest extends MockGroup {
 
         test(new Task() {
             public void run() throws Exception {
-                final ComponentContext context = localMock(ComponentContext.class);
+                final ComponentContext context = arguments().normal(ComponentContext.class);
 
                 EasyMock.expect((Class) node.type()).andReturn(Serializable.class);
                 EasyMock.expect(node.context()).andReturn(context);

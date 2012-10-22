@@ -27,7 +27,7 @@ import org.fluidity.composition.container.spi.DependencyGraph;
 import org.fluidity.foundation.ClassDiscovery;
 import org.fluidity.foundation.Log;
 import org.fluidity.foundation.NoLogFactory;
-import org.fluidity.testing.MockGroup;
+import org.fluidity.testing.Simulator;
 
 import org.easymock.EasyMock;
 import org.testng.annotations.BeforeMethod;
@@ -38,17 +38,18 @@ import org.testng.annotations.Test;
  *
  * @author Tibor Varga
  */
-public abstract class ContainerProviderAbstractTest extends MockGroup {
+public abstract class ContainerProviderAbstractTest extends Simulator {
 
+    private final MockObjects dependencies = dependencies();
     private final Log log = NoLogFactory.consume(getClass());
 
-    private final ContainerServices services = mock(ContainerServices.class);
-    private final ClassDiscovery classDiscovery = mock(ClassDiscovery.class);
-    private final DependencyGraph.Traversal traversal = mock(DependencyGraph.Traversal.class);
-    private final DependencyInjector injector = mock(DependencyInjector.class);
-    private final ComponentCache componentCache = mock(ComponentCache.class);
-    private final ContextDefinition context = mock(ContextDefinition.class);
-    private final ContextDefinition copy = mock(ContextDefinition.class);
+    private final ContainerServices services = dependencies.normal(ContainerServices.class);
+    private final ClassDiscovery classDiscovery = dependencies.normal(ClassDiscovery.class);
+    private final DependencyGraph.Traversal traversal = dependencies.normal(DependencyGraph.Traversal.class);
+    private final DependencyInjector injector = dependencies.normal(DependencyInjector.class);
+    private final ComponentCache componentCache = dependencies.normal(ComponentCache.class);
+    private final ContextDefinition context = dependencies.normal(ContextDefinition.class);
+    private final ContextDefinition copy = dependencies.normal(ContextDefinition.class);
 
     private final ContainerProvider provider;      // to be provided by subclasses
 
@@ -57,7 +58,7 @@ public abstract class ContainerProviderAbstractTest extends MockGroup {
     }
 
     @BeforeMethod
-    public final void dependencies() {
+    public final void setup() {
         EasyMock.expect(services.createLog(EasyMock.<Log>anyObject(), EasyMock.<Class<?>>anyObject())).andReturn(log).anyTimes();
         EasyMock.expect(services.classDiscovery()).andReturn(classDiscovery).anyTimes();
         EasyMock.expect(services.dependencyInjector()).andReturn(injector).anyTimes();
@@ -81,7 +82,7 @@ public abstract class ContainerProviderAbstractTest extends MockGroup {
 
     @Test
     public final void createsPlatformContainer() throws Exception {
-        final PlatformContainer platform = localMock(PlatformContainer.class);
+        final PlatformContainer platform = arguments().normal(PlatformContainer.class);
 
         EasyMock.expect(context.copy()).andReturn(copy);
 

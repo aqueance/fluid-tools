@@ -45,9 +45,11 @@ import org.testng.annotations.Test;
 @SuppressWarnings("unchecked")
 public final class CustomFactoryTests extends AbstractContainerTests {
 
+    private final MockObjects dependencies = dependencies();
+
     @SuppressWarnings("unchecked")
-    private final ComponentFactory factory = mock(ComponentFactory.class);
-    private final ComponentFactory.Instance instance = mock(ComponentFactory.Instance.class);
+    private final ComponentFactory factory = dependencies.normal(ComponentFactory.class);
+    private final ComponentFactory.Instance instance = dependencies.normal(ComponentFactory.Instance.class);
 
     public CustomFactoryTests(final ArtifactFactory factory) {
         super(factory);

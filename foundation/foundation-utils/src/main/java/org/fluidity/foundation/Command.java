@@ -46,7 +46,7 @@ public final class Command extends Utility {
     public interface Operation<P, E extends Throwable> {
 
         /**
-         * Executes the command.
+         * Executes the command with the given parameter.
          */
         void run(P parameter) throws E;
     }
@@ -72,7 +72,7 @@ public final class Command extends Utility {
     public interface Function<R, P, E extends Throwable> {
 
         /**
-         * Executes the command.
+         * Executes the command with the given parameter.
          */
         R run(P parameter) throws E;
     }

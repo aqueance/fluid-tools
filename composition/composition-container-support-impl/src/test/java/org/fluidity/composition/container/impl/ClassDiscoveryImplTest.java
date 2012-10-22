@@ -31,7 +31,6 @@ import org.fluidity.foundation.ClassLoaders;
 import org.fluidity.foundation.Log;
 import org.fluidity.foundation.NoLogFactory;
 import org.fluidity.foundation.Streams;
-import org.fluidity.testing.MockGroup;
 
 import org.testng.annotations.Test;
 
@@ -39,7 +38,7 @@ import org.testng.annotations.Test;
  * @author Tibor Varga
  */
 @SuppressWarnings({ "unchecked", "ResultOfMethodCallIgnored" })
-public class ClassDiscoveryImplTest extends MockGroup {
+public class ClassDiscoveryImplTest {
 
     private final Log<ClassDiscoveryImpl> log = NoLogFactory.consume(ClassDiscoveryImpl.class);
 
@@ -69,11 +68,7 @@ public class ClassDiscoveryImplTest extends MockGroup {
         try {
             final ClassLoader classLoader = loader = ClassLoaders.create(getClass().getClassLoader(), classDir.toURI().toURL());
 
-            final Class[] classes = verify(new Work<Class[]>() {
-                public Class[] run() throws Exception {
-                    return new ClassDiscoveryImpl(log).findComponentClasses(Interface.class, classLoader, false);
-                }
-            });
+            final Class[] classes = new ClassDiscoveryImpl(log).findComponentClasses(Interface.class, classLoader, false);
 
             assert new ArrayList<Class>(Arrays.asList(Impl1.class, Impl2.class, Impl3.class)).equals(new ArrayList<Class>(Arrays.asList(classes)));
         } finally {
@@ -122,11 +117,7 @@ public class ClassDiscoveryImplTest extends MockGroup {
             final ClassLoader classLoader1 = loader1 = ClassLoaders.create(null, classDir1.toURI().toURL());
             final ClassLoader classLoader2 = loader2 = ClassLoaders.create(loader1, classDir2.toURI().toURL());
 
-            final Class[] classes = verify(new Work<Class[]>() {
-                public Class[] run() throws Exception {
-                    return new ClassDiscoveryImpl(log).findComponentClasses(classLoader1.loadClass(Interface.class.getName()), classLoader2, true);
-                }
-            });
+            final Class[] classes = new ClassDiscoveryImpl(log).findComponentClasses(classLoader1.loadClass(Interface.class.getName()), classLoader2, true);
 
             assert new ArrayList<Class>(Arrays.asList(loader2.loadClass(Impl1.class.getName()))).equals(new ArrayList<Class>(Arrays.asList(classes)));
         } finally {

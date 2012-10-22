@@ -28,7 +28,7 @@ import org.fluidity.foundation.Command;
 import org.fluidity.foundation.Log;
 import org.fluidity.foundation.NoLogFactory;
 import org.fluidity.foundation.testing.MockConfiguration;
-import org.fluidity.testing.MockGroup;
+import org.fluidity.testing.Simulator;
 
 import org.easymock.EasyMock;
 import org.easymock.IAnswer;
@@ -39,12 +39,13 @@ import org.testng.annotations.Test;
 /**
  * @author Tibor Varga
  */
-public class SchedulerTest extends MockGroup {
+public class SchedulerTest extends Simulator {
 
-    private final MockConfiguration.Direct<SchedulerImpl.Settings> configuration = MockConfiguration.direct(this, SchedulerImpl.Settings.class);
-
-    private final Scheduler.Task task = mock(Scheduler.Task.class);
+    private final MockObjects dependencies = dependencies();
     private final Log<SchedulerImpl> log = NoLogFactory.consume(SchedulerImpl.class);
+
+    private final MockConfiguration.Direct<SchedulerImpl.Settings> configuration = MockConfiguration.direct(SchedulerImpl.Settings.class, dependencies);
+    private final Scheduler.Task task = dependencies.normal(Scheduler.Task.class);
 
     private Scheduler scheduler;
     private Command.Job<Exception> stop;
@@ -52,7 +53,7 @@ public class SchedulerTest extends MockGroup {
     @BeforeMethod
     public void setUp() throws Exception {
         assert stop == null;
-        final ContainerTermination termination = localMock(ContainerTermination.class);
+        final ContainerTermination termination = arguments().normal(ContainerTermination.class);
 
         termination.add(EasyMock.<Command.Job<Exception>>notNull());
         EasyMock.expectLastCall().andAnswer(new IAnswer<Void>() {

@@ -21,7 +21,7 @@ import java.io.Serializable;
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.OpenContainer;
 import org.fluidity.composition.container.RestrictedContainer;
-import org.fluidity.testing.MockGroup;
+import org.fluidity.testing.Simulator;
 
 import org.easymock.EasyMock;
 import org.testng.annotations.Test;
@@ -29,10 +29,12 @@ import org.testng.annotations.Test;
 /**
  * @author Tibor Varga
  */
-public class RestrictedContainerImplTest extends MockGroup {
+public class RestrictedContainerImplTest extends Simulator {
 
-    private final OpenContainer level1 = mock(OpenContainer.class);
-    private final OpenContainer level2 = mock(OpenContainer.class);
+    private final MockObjects dependencies = dependencies();
+
+    private final OpenContainer level1 = dependencies.normal(OpenContainer.class);
+    private final OpenContainer level2 = dependencies.normal(OpenContainer.class);
 
     private RestrictedContainer container() {
         return new RestrictedContainerImpl(level1);

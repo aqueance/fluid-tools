@@ -20,14 +20,13 @@ import org.fluidity.features.DynamicConfiguration;
 import org.fluidity.features.Updates;
 import org.fluidity.foundation.Command;
 import org.fluidity.foundation.Configuration;
-import org.fluidity.testing.MockGroup;
+import org.fluidity.testing.Simulator;
 
 import org.easymock.EasyMock;
 import org.easymock.IAnswer;
 
 /**
- * Helps unit testing components that depend on {@link org.fluidity.foundation.Configuration} or {@link org.fluidity.features.DynamicConfiguration} and use
- * {@link MockGroup} to implement the tests.
+ * Helps unit testing components that depend on {@link Configuration} or {@link DynamicConfiguration} and use {@link Simulator} to implement the tests.
  * <h3>Usage</h3>
  * <h4>Direct Configuration</h4>
  * See {@link org.fluidity.foundation.testing.MockConfiguration.Direct}
@@ -42,38 +41,37 @@ public final class MockConfiguration {
     /**
      * Creates a new static configuration mock object.
      *
-     * @param factory the {@link MockGroup} to use to create mock objects.
-     * @param type    the configuration settings class.
-     * @param <P>     the generic configuration settings type.
+     * @param type  the configuration settings class.
+     * @param mocks the {@link Simulator.MockObjects} to create mock objects with.
+     * @param <P>   the generic configuration settings type.
      *
      * @return a new instance of this class.
      */
-    public static <P> Direct<P> direct(final MockGroup factory, final Class<P> type) {
-        return new Direct<P>(factory, type);
+    public static <P> Direct<P> direct(final Class<P> type, final Simulator.MockObjects mocks) {
+        return new Direct<P>(type, mocks);
     }
 
     /**
      * Creates a new dynamic configuration mock object.
      *
-     * @param factory the {@link MockGroup} to use to create mock objects.
-     * @param type    the configuration settings class.
-     * @param <P>     the generic configuration settings type.
+     * @param type  the configuration settings class.
+     * @param mocks the {@link Simulator.MockObjects} to create mock objects with.
+     * @param <P>   the generic configuration settings type.
      *
      * @return a new instance of this class.
      */
-    public static <P> Cached<P> cached(final MockGroup factory, final Class<P> type) {
-        return new Cached<P>(factory, type);
+    public static <P> Cached<P> cached(final Class<P> type, final Simulator.MockObjects mocks) {
+        return new Cached<P>(type, mocks);
     }
 
     /**
      * Helps unit testing components that depend on {@link Configuration}.
      * <h3>Usage</h3>
-     * <h4>Static Configuration</h4>
      * <pre>
-     * public class <span class="hl2">Foo</span>Test extends {@linkplain MockGroup} {
+     * public class <span class="hl2">Foo</span>Test extends {@linkplain Simulator} {
      *
      *   private final <span class="hl1">MockConfiguration.Direct</span>&lt;<span class="hl2">Foo.Settings</span>> configuration
-     *       = <span class="hl1">MockConfiguration</span>.{@linkplain MockConfiguration#direct(MockGroup, Class) direct}(this, <span class="hl2">Foo.Settings</span>.class);
+     *       = <span class="hl1">MockConfiguration</span>.{@linkplain MockConfiguration#direct(Class, Simulator.MockObjects) direct}({@linkplain org.fluidity.testing.Simulator#dependencies() dependencies}(), <span class="hl2">Foo.Settings</span>.class);
      *
      *   &hellip;
      *
@@ -116,9 +114,9 @@ public final class MockConfiguration {
         private final P settings;
 
         @SuppressWarnings("unchecked")
-        Direct(final MockGroup factory, final Class<P> type) {
-            configuration = (Configuration<P>) factory.mock(Configuration.class);
-            settings = factory.niceMock(type);
+        Direct(final Class<P> type, final Simulator.MockObjects mocks) {
+            configuration = (Configuration<P>) mocks.normal(Configuration.class);
+            settings = mocks.lenient(type);
         }
 
         /**
@@ -165,13 +163,13 @@ public final class MockConfiguration {
     }
 
     /**
-     * Helps unit testing components that depend on a {@link DynamicConfiguration} component and use {@link MockGroup} to implement the tests.
+     * Helps unit testing components that depend on a {@link DynamicConfiguration} component and use {@link Simulator} to implement the tests.
      * <h3>Usage</h3>
      * <pre>
-     * public class <span class="hl2">Foo</span>Test extends {@linkplain MockGroup} {
+     * public class <span class="hl2">Foo</span>Test extends {@linkplain Simulator} {
      *
      *   private final <span class="hl1">MockConfiguration.Cached</span>&lt;<span class="hl2">Foo.Settings</span>> configuration
-     *       = <span class="hl1">MockConfiguration</span>.{@linkplain MockConfiguration#cached(MockGroup, Class) cached}(this, <span class="hl2">Foo.Settings</span>.class);
+     *       = <span class="hl1">MockConfiguration</span>.{@linkplain MockConfiguration#cached(Class, Simulator.MockObjects) cached}({@linkplain Simulator#dependencies() dependencies}(), <span class="hl2">Foo.Settings</span>.class);
      *
      *   &hellip;
      *
@@ -202,10 +200,10 @@ public final class MockConfiguration {
         private final P settings;
 
         @SuppressWarnings("unchecked")
-        Cached(final MockGroup factory, final Class<P> type) {
-            configuration = (DynamicConfiguration<P>) factory.mock(DynamicConfiguration.class);
-            snapshot = (Updates.Snapshot<P>) factory.mock(Updates.Snapshot.class);
-            settings = factory.niceMock(type);
+        Cached(final Class<P> type, final Simulator.MockObjects mocks) {
+            configuration = (DynamicConfiguration<P>) mocks.normal(DynamicConfiguration.class);
+            snapshot = (Updates.Snapshot<P>) mocks.normal(Updates.Snapshot.class);
+            settings = mocks.lenient(type);
         }
 
         /**

@@ -30,7 +30,7 @@ import java.util.Set;
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContext;
 import org.fluidity.foundation.spi.PropertyProvider;
-import org.fluidity.testing.MockGroup;
+import org.fluidity.testing.Simulator;
 
 import org.easymock.EasyMock;
 import org.testng.annotations.DataProvider;
@@ -40,10 +40,12 @@ import org.testng.annotations.Test;
  * @author Tibor Varga
  */
 @SuppressWarnings("UnusedDeclaration")
-public class ConfigurationTest extends MockGroup {
+public class ConfigurationTest extends Simulator {
+
+    private final MockObjects dependencies = dependencies();
 
     private final PropertyProvider provider = new PropertyProvider() {
-        private final PropertyProvider mock = mock(PropertyProvider.class);
+        private final PropertyProvider mock = dependencies.normal(PropertyProvider.class);
 
         public Object property(final String key) {
             return mock.property(key);
@@ -54,8 +56,8 @@ public class ConfigurationTest extends MockGroup {
         }
     };
 
-    private final ComponentContext context = mock(ComponentContext.class);
-    private final Component.Reference reference = mock(Component.Reference.class);
+    private final ComponentContext context = dependencies.normal(ComponentContext.class);
+    private final Component.Reference reference = dependencies.normal(Component.Reference.class);
 
     @SuppressWarnings("unchecked")
     private <T> Configuration<T> configure(final Class<T> settingsType,
@@ -93,9 +95,11 @@ public class ConfigurationTest extends MockGroup {
 
     @Test
     public void contextConfiguration() throws Exception {
-        final Configuration.Prefix prefix1 = localMock(Configuration.Prefix.class);
-        final Configuration.Prefix prefix2 = localMock(Configuration.Prefix.class);
-        final Configuration.Prefix prefix3 = localMock(Configuration.Prefix.class);
+        final MockObjects arguments = arguments();
+
+        final Configuration.Prefix prefix1 = arguments.normal(Configuration.Prefix.class);
+        final Configuration.Prefix prefix2 = arguments.normal(Configuration.Prefix.class);
+        final Configuration.Prefix prefix3 = arguments.normal(Configuration.Prefix.class);
 
         EasyMock.expect(prefix1.value()).andReturn("prefix1");
         EasyMock.expect(prefix2.value()).andReturn("prefix2");
@@ -467,7 +471,7 @@ public class ConfigurationTest extends MockGroup {
         final SubstitutedSettings defaults;
 
         if (useDefaults) {
-            defaults = localMock(SubstitutedSettings.class);
+            defaults = arguments().normal(SubstitutedSettings.class);
         } else {
             defaults = null;
         }

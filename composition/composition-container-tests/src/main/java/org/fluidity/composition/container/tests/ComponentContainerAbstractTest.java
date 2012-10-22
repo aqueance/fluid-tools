@@ -25,7 +25,7 @@ import org.fluidity.composition.container.ContainerServices;
 import org.fluidity.composition.container.impl.ProductionServicesFactory;
 import org.fluidity.composition.container.internal.ContainerServicesFactory;
 import org.fluidity.foundation.NoLogFactory;
-import org.fluidity.testing.MockGroup;
+import org.fluidity.testing.Simulator;
 
 import org.testng.annotations.Factory;
 import org.testng.annotations.Test;
@@ -36,7 +36,7 @@ import org.testng.annotations.Test;
  *
  * @author Tibor Varga
  */
-public abstract class ComponentContainerAbstractTest extends MockGroup {
+public abstract class ComponentContainerAbstractTest extends Simulator {
 
     /**
      * Creates a new container. This method is called for each test case.

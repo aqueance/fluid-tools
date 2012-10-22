@@ -25,7 +25,6 @@ import java.util.Map;
 
 import org.fluidity.composition.Component;
 import org.fluidity.composition.container.ContextDefinition;
-import org.fluidity.testing.MockGroup;
 
 import org.testng.annotations.Test;
 
@@ -33,7 +32,7 @@ import org.testng.annotations.Test;
  * @author Tibor Varga
  */
 @SuppressWarnings("UnusedDeclaration")
-public class ContextDefinitionImplTest extends MockGroup {
+public class ContextDefinitionImplTest {
 
     @Test
     public void testExpansion() throws Exception {

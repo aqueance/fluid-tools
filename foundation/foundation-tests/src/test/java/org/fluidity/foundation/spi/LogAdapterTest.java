@@ -16,7 +16,7 @@
 
 package org.fluidity.foundation.spi;
 
-import org.fluidity.testing.MockGroup;
+import org.fluidity.testing.Simulator;
 
 import org.easymock.EasyMock;
 import org.testng.annotations.Test;
@@ -24,9 +24,9 @@ import org.testng.annotations.Test;
 /**
  * @author Tibor Varga
  */
-public class LogAdapterTest extends MockGroup {
+public class LogAdapterTest extends Simulator {
 
-    private final LogAdapter.Levels levels = mock(LogAdapter.Levels.class);
+    private final LogAdapter.Levels levels = dependencies().normal(LogAdapter.Levels.class);
     private final Logger logger = new Logger();
 
     @Test

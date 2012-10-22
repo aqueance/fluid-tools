@@ -21,19 +21,21 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.DependencyPath;
-import org.fluidity.testing.MockGroup;
+import org.fluidity.testing.Simulator;
 
 import org.testng.annotations.Test;
 
 /**
  * @author Tibor Varga
  */
-public class CompositeObserverTest extends MockGroup {
+public class CompositeObserverTest extends Simulator {
 
-    private final ComponentContainer.Observer observer1 = mock(ComponentContainer.Observer.class);
-    private final ComponentContainer.Observer observer2 = mock(ComponentContainer.Observer.class);
-    private final ComponentContainer.Observer observer3 = mock(ComponentContainer.Observer.class);
-    private final DependencyPath path = mock(DependencyPath.class);
+    private final MockObjects dependencies = dependencies();
+
+    private final ComponentContainer.Observer observer1 = dependencies.normal(ComponentContainer.Observer.class);
+    private final ComponentContainer.Observer observer2 = dependencies.normal(ComponentContainer.Observer.class);
+    private final ComponentContainer.Observer observer3 = dependencies.normal(ComponentContainer.Observer.class);
+    private final DependencyPath path = dependencies.normal(DependencyPath.class);
     private final Object component = new Object();
 
     @Test

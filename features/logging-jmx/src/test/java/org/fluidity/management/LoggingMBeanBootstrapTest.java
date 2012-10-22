@@ -27,7 +27,7 @@ import javax.management.ObjectName;
 import org.fluidity.composition.OpenContainer;
 import org.fluidity.composition.spi.ContainerTermination;
 import org.fluidity.foundation.Command;
-import org.fluidity.testing.MockGroup;
+import org.fluidity.testing.Simulator;
 
 import org.easymock.EasyMock;
 import org.easymock.IAnswer;
@@ -36,10 +36,12 @@ import org.testng.annotations.Test;
 /**
  * @author Tibor Varga
  */
-public class LoggingMBeanBootstrapTest extends MockGroup {
+public class LoggingMBeanBootstrapTest extends Simulator {
 
-    private final OpenContainer container = mock(OpenContainer.class);
-    private final ContainerTermination shutdown = mock(ContainerTermination.class);
+    private final MockObjects dependencies = dependencies();
+
+    private final OpenContainer container = dependencies.normal(OpenContainer.class);
+    private final ContainerTermination shutdown = dependencies.normal(ContainerTermination.class);
 
     private final LoggingMBeanBootstrap bootstrap = new LoggingMBeanBootstrap();
 

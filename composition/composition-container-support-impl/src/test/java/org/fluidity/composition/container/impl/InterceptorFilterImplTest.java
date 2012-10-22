@@ -29,7 +29,7 @@ import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.container.ContextDefinition;
 import org.fluidity.composition.spi.ComponentInterceptor;
-import org.fluidity.testing.MockGroup;
+import org.fluidity.testing.Simulator;
 
 import org.easymock.EasyMock;
 import org.testng.annotations.Test;
@@ -37,11 +37,13 @@ import org.testng.annotations.Test;
 /**
  * @author Tibor Varga
  */
-public class InterceptorFilterImplTest extends MockGroup {
+public class InterceptorFilterImplTest extends Simulator {
 
-    private final ContextDefinition context = mock(ContextDefinition.class);
-    private final ContextDefinition copy = mock(ContextDefinition.class);
-    private final ContextDefinition accepted = mock(ContextDefinition.class);
+    private final MockObjects dependencies = dependencies();
+
+    private final ContextDefinition context = dependencies.normal(ContextDefinition.class);
+    private final ContextDefinition copy = dependencies.normal(ContextDefinition.class);
+    private final ContextDefinition accepted = dependencies.normal(ContextDefinition.class);
 
     private final ComponentInterceptor[] interceptors = {
             new ComponentInterceptor1(),
@@ -51,11 +53,11 @@ public class InterceptorFilterImplTest extends MockGroup {
             new ComponentInterceptor5(),
     };
 
-    private final Annotation1 annotation1 = mock(Annotation1.class);
-    private final Annotation2 annotation2 = mock(Annotation2.class);
-    private final Annotation3 annotation3 = mock(Annotation3.class);
-    private final Annotation4 annotation4 = mock(Annotation4.class);
-    private final Annotation5 annotation5 = mock(Annotation5.class);
+    private final Annotation1 annotation1 = dependencies.normal(Annotation1.class);
+    private final Annotation2 annotation2 = dependencies.normal(Annotation2.class);
+    private final Annotation3 annotation3 = dependencies.normal(Annotation3.class);
+    private final Annotation4 annotation4 = dependencies.normal(Annotation4.class);
+    private final Annotation5 annotation5 = dependencies.normal(Annotation5.class);
 
     private final InterceptorFilter filter = new InterceptorFilterImpl();
 

@@ -23,7 +23,7 @@ import org.fluidity.composition.Inject;
 import org.fluidity.composition.MutableContainer;
 import org.fluidity.composition.OpenContainer;
 import org.fluidity.composition.Optional;
-import org.fluidity.testing.MockGroup;
+import org.fluidity.testing.Simulator;
 
 import org.testng.annotations.BeforeMethod;
 
@@ -32,7 +32,7 @@ import org.testng.annotations.BeforeMethod;
  *
  * @author Tibor Varga
  */
-public abstract class AbstractContainerTests extends MockGroup {
+public abstract class AbstractContainerTests extends Simulator {
 
     protected final ArtifactFactory artifacts;
 

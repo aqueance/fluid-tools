@@ -22,7 +22,7 @@ import org.fluidity.features.Scheduler;
 import org.fluidity.features.Updates;
 import org.fluidity.foundation.Command;
 import org.fluidity.foundation.testing.MockConfiguration;
-import org.fluidity.testing.MockGroup;
+import org.fluidity.testing.Simulator;
 
 import org.easymock.EasyMock;
 import org.easymock.IAnswer;
@@ -32,15 +32,15 @@ import org.testng.annotations.Test;
 /**
  * @author Tibor Varga
  */
-public class UpdatesTest extends MockGroup {
+public class UpdatesTest extends Simulator {
 
-    private final MockConfiguration.Direct<UpdatesImpl.Settings> configuration = MockConfiguration.direct(this, UpdatesImpl.Settings.class);
+    private final MockObjects dependencies = dependencies();
+    private final MockConfiguration.Direct<UpdatesImpl.Settings> configuration = MockConfiguration.direct(UpdatesImpl.Settings.class, dependencies);
 
     @SuppressWarnings("unchecked")
-    private final Updates.Snapshot<Object> loader = mock(Updates.Snapshot.class);
-
-    private final Scheduler scheduler = mock(Scheduler.class);
-    private final Scheduler.Task.Control control = mock(Scheduler.Task.Control.class);
+    private final Updates.Snapshot<Object> loader = dependencies.normal(Updates.Snapshot.class);
+    private final Scheduler scheduler = dependencies.normal(Scheduler.class);
+    private final Scheduler.Task.Control control = dependencies.normal(Scheduler.Task.Control.class);
 
     private Updates updates;
 

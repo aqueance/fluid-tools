@@ -22,14 +22,14 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import org.fluidity.testing.MockGroup;
+import org.fluidity.testing.Simulator;
 
 import org.testng.annotations.Test;
 
 /**
  * @author Tibor Varga
  */
-public class StreamsTest extends MockGroup {
+public class StreamsTest extends Simulator {
 
     @Test
     public void testCopying() throws Exception {
@@ -62,7 +62,7 @@ public class StreamsTest extends MockGroup {
 
     @Test
     public void testClosing() throws Exception {
-        final Closeable closeable = localMock(Closeable.class);
+        final Closeable closeable = arguments().normal(Closeable.class);
 
         final OutputStream output = new OutputStream() {
             @Override

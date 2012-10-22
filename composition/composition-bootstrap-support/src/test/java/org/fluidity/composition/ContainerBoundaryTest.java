@@ -29,7 +29,7 @@ import org.fluidity.composition.container.internal.ContainerServicesFactory;
 import org.fluidity.composition.container.spi.ContainerProvider;
 import org.fluidity.foundation.NoLogFactory;
 import org.fluidity.foundation.spi.LogFactory;
-import org.fluidity.testing.MockGroup;
+import org.fluidity.testing.Simulator;
 
 import org.easymock.EasyMock;
 import org.easymock.IAnswer;
@@ -38,19 +38,20 @@ import org.testng.annotations.Test;
 /**
  * @author Tibor Varga
  */
-public class ContainerBoundaryTest extends MockGroup {
+public class ContainerBoundaryTest extends Simulator {
 
-    private final PlatformContainer platform = mock(PlatformContainer.class);
-    private final BootstrapServices providers = mock(BootstrapServices.class);
-    private final ContainerBootstrap bootstrap = mock(ContainerBootstrap.class);
-    private final ContainerProvider provider = mock(ContainerProvider.class);
-    private final MutableContainer container = mock(MutableContainer.class);
-    private final ComponentContainer.Registry registry = mock(ComponentContainer.Registry.class);
-
-    private final ContainerServicesFactory servicesFactory = mock(ContainerServicesFactory.class);
-    private final ContainerServices services = mock(ContainerServices.class);
-
+    private final MockObjects dependencies = dependencies();
     private final LogFactory logs = new NoLogFactory();
+
+    private final PlatformContainer platform = dependencies.normal(PlatformContainer.class);
+    private final BootstrapServices providers = dependencies.normal(BootstrapServices.class);
+    private final ContainerBootstrap bootstrap = dependencies.normal(ContainerBootstrap.class);
+    private final ContainerProvider provider = dependencies.normal(ContainerProvider.class);
+    private final MutableContainer container = dependencies.normal(MutableContainer.class);
+    private final ComponentContainer.Registry registry = dependencies.normal(ComponentContainer.Registry.class);
+
+    private final ContainerServicesFactory servicesFactory = dependencies.normal(ContainerServicesFactory.class);
+    private final ContainerServices services = dependencies.normal(ContainerServices.class);
 
     private void setupDependencies(final ClassLoader classLoader, final boolean assign) {
         EasyMock.expect(providers.<ContainerBootstrap>findInstance(ContainerBootstrap.class, classLoader)).andReturn(assign ? bootstrap : null);
@@ -208,7 +209,7 @@ public class ContainerBoundaryTest extends MockGroup {
 
         for (ClassLoader cl = ourClassLoader; cl != null; cl = cl.getParent()) {
             classLoaders.add(cl);
-            containers.put(cl, localMock(MutableContainer.class));    // these local mocks ensure no method is invoked on intermediate containers
+            containers.put(cl, arguments().normal(MutableContainer.class));    // these local mocks ensure no method is invoked on intermediate containers
         }
 
         // find the top level class loader
@@ -271,6 +272,8 @@ public class ContainerBoundaryTest extends MockGroup {
 
     @Test
     public void testCreatesEmptyContainer() throws Exception {
+        final MockObjects arguments = arguments();
+
         final ClassLoader classLoader = getClass().getClassLoader();
         final ContainerBoundary boundary = boundary(classLoader);
 
@@ -281,7 +284,7 @@ public class ContainerBoundaryTest extends MockGroup {
                 EasyMock.expect(providers.<LogFactory>findInstance(LogFactory.class, classLoader)).andReturn(logs);
                 EasyMock.expect(servicesFactory.containerServices(logs)).andReturn(services);
 
-                final MutableContainer local = localMock(MutableContainer.class);
+                final MutableContainer local = arguments.normal(MutableContainer.class);
 
                 EasyMock.expect(provider.newContainer(services, null)).andReturn(local);
 
@@ -297,7 +300,7 @@ public class ContainerBoundaryTest extends MockGroup {
 
         test(new Task() {
             public void run() throws Exception {
-                final MutableContainer local = localMock(MutableContainer.class);
+                final MutableContainer local = arguments.normal(MutableContainer.class);
 
                 EasyMock.expect(provider.newContainer(services, null)).andReturn(local);
 

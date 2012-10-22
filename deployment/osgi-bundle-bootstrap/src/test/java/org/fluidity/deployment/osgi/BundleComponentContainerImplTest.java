@@ -33,7 +33,7 @@ import org.fluidity.composition.Containers;
 import org.fluidity.foundation.ClassDiscovery;
 import org.fluidity.foundation.Log;
 import org.fluidity.foundation.NoLogFactory;
-import org.fluidity.testing.MockGroup;
+import org.fluidity.testing.Simulator;
 
 import org.easymock.EasyMock;
 import org.easymock.IAnswer;
@@ -52,39 +52,40 @@ import org.testng.annotations.Test;
  * @author Tibor Varga
  */
 @SuppressWarnings("unchecked")
-public class BundleComponentContainerImplTest extends MockGroup {
+public class BundleComponentContainerImplTest extends Simulator {
 
     private final ComponentContainer root = Containers.global();
+    private final MockObjects dependencies = dependencies();
 
-    private final Bundle bundle = mock(Bundle.class);
-    private final BundleContext context = mock(BundleContext.class);
-    private final ClassDiscovery discovery = mock(ClassDiscovery.class);
+    private final Bundle bundle = dependencies.normal(Bundle.class);
+    private final BundleContext context = dependencies.normal(BundleContext.class);
+    private final ClassDiscovery discovery = dependencies.normal(ClassDiscovery.class);
 
-    private final ServiceInterface1 service1 = mock(ServiceInterface1.class);
-    private final ServiceInterface2 service2 = mock(ServiceInterface2.class);
-    private final BundleComponentContainer.Managed item = mock(BundleComponentContainer.Managed.class);
+    private final ServiceInterface1 service1 = dependencies.normal(ServiceInterface1.class);
+    private final ServiceInterface2 service2 = dependencies.normal(ServiceInterface2.class);
+    private final BundleComponentContainer.Managed item = dependencies.normal(BundleComponentContainer.Managed.class);
 
-    private final ServiceRegistration registration = mock(ServiceRegistration.class);
+    private final ServiceRegistration registration = dependencies.normal(ServiceRegistration.class);
 
-    private final ServiceReference reference1 = mock(ServiceReference.class);
-    private final ServiceReference reference2 = mock(ServiceReference.class);
+    private final ServiceReference reference1 = dependencies.normal(ServiceReference.class);
+    private final ServiceReference reference2 = dependencies.normal(ServiceReference.class);
 
-    private final Consumer consumer1 = mock(Consumer.class);
-    private final Consumer consumer2 = mock(Consumer.class);
+    private final Consumer consumer1 = dependencies.normal(Consumer.class);
+    private final Consumer consumer2 = dependencies.normal(Consumer.class);
 
-    private final BundleComponentContainer.Managed component1 = mock(BundleComponentContainer.Managed.class);
-    private final BundleComponentContainer.Managed component2 = mock(BundleComponentContainer.Managed.class);
-    private final BundleComponentContainer.Managed component3 = mock(BundleComponentContainer.Managed.class);
-    private final BundleComponentContainer.Managed component4 = mock(BundleComponentContainer.Managed.class);
-    private final BundleComponentContainer.Managed component5 = mock(BundleComponentContainer.Managed.class);
-    private final BundleComponentContainer.Managed component6 = mock(BundleComponentContainer.Managed.class);
+    private final BundleComponentContainer.Managed component1 = dependencies.normal(BundleComponentContainer.Managed.class);
+    private final BundleComponentContainer.Managed component2 = dependencies.normal(BundleComponentContainer.Managed.class);
+    private final BundleComponentContainer.Managed component3 = dependencies.normal(BundleComponentContainer.Managed.class);
+    private final BundleComponentContainer.Managed component4 = dependencies.normal(BundleComponentContainer.Managed.class);
+    private final BundleComponentContainer.Managed component5 = dependencies.normal(BundleComponentContainer.Managed.class);
+    private final BundleComponentContainer.Managed component6 = dependencies.normal(BundleComponentContainer.Managed.class);
 
-    private final ServiceInterface1 service3 = mock(ServiceInterface1.class);
-    private final ServiceReference reference3 = mock(ServiceReference.class);
+    private final ServiceInterface1 service3 = dependencies.normal(ServiceInterface1.class);
+    private final ServiceReference reference3 = dependencies.normal(ServiceReference.class);
 
     private ComponentContainer container;
 
-    private final BundleComponentContainer.Registration.Listener<Consumer> source = mock(BundleComponentContainer.Registration.Listener.class);
+    private final BundleComponentContainer.Registration.Listener<Consumer> source = dependencies.normal(BundleComponentContainer.Registration.Listener.class);
     private Log<BundleComponentContainerImpl> log = NoLogFactory.consume(BundleComponentContainerImpl.class);
 
     @BeforeMethod
@@ -95,7 +96,7 @@ public class BundleComponentContainerImplTest extends MockGroup {
         Service2.delegate = service1;
         ServiceDependent1.delegate = item;
         ServiceDependent2.delegate = item;
-        Source.delegate = source;
+        EventSource.delegate = source;
         Component1Service12.delegate = component1;
         Component2Service2.delegate = component2;
         Component3Service1.delegate = component3;
@@ -440,10 +441,10 @@ public class BundleComponentContainerImplTest extends MockGroup {
 
     @Test
     public void testEventSourcesAndConsumers1() throws Exception {
-        final Class<Source> componentClass = Source.class;
+        final Class<EventSource> componentClass = EventSource.class;
         final BundleComponentContainer services = discover(StatusCheck.class, componentClass);
 
-        final Source source = new Source();
+        final EventSource source = new EventSource();
 
         // service listener registration
         final ListenerSpec spec = test(new Work<ListenerSpec>() {
@@ -452,7 +453,7 @@ public class BundleComponentContainerImplTest extends MockGroup {
 
                 EasyMock.expect(source.type()).andReturn(Consumer.class);
                 noServices(Consumer.class, null);
-                Source.delegate.start();
+                EventSource.delegate.start();
 
                 verify(new Task() {
                     public void run() throws Exception {
@@ -475,7 +476,7 @@ public class BundleComponentContainerImplTest extends MockGroup {
             public void run() throws Exception {
                 resolveService(reference1, consumer1);
                 EasyMock.expect(reference1.getPropertyKeys()).andReturn(new String[0]);
-                Source.delegate.serviceAdded(EasyMock.same(consumer1), EasyMock.<Properties>eq(new Properties()));
+                EventSource.delegate.serviceAdded(EasyMock.same(consumer1), EasyMock.<Properties>eq(new Properties()));
 
                 verify(event(spec.listener(), ServiceEvent.REGISTERED, reference1));
             }
@@ -492,7 +493,7 @@ public class BundleComponentContainerImplTest extends MockGroup {
                 resolveService(reference2, consumer2);
                 EasyMock.expect(reference2.getPropertyKeys()).andReturn(new String[] { key });
                 EasyMock.expect(reference2.getProperty(key)).andReturn(properties.getProperty(key));
-                Source.delegate.serviceAdded(EasyMock.same(consumer2), EasyMock.<Properties>eq(properties));
+                EventSource.delegate.serviceAdded(EasyMock.same(consumer2), EasyMock.<Properties>eq(properties));
 
                 verify(event(spec.listener(), ServiceEvent.REGISTERED, reference2));
             }
@@ -502,7 +503,7 @@ public class BundleComponentContainerImplTest extends MockGroup {
         test(new Task() {
             public void run() throws Exception {
                 resolveService(reference1, consumer1);
-                Source.delegate.serviceRemoved(EasyMock.same(consumer1));
+                EventSource.delegate.serviceRemoved(EasyMock.same(consumer1));
 
                 verify(event(spec.listener(), ServiceEvent.UNREGISTERING, reference1));
             }
@@ -513,7 +514,7 @@ public class BundleComponentContainerImplTest extends MockGroup {
             public void run() throws Exception {
                 resolveService(reference1, consumer1);
                 EasyMock.expect(reference1.getPropertyKeys()).andReturn(new String[0]);
-                Source.delegate.serviceAdded(EasyMock.same(consumer1), EasyMock.eq(new Properties()));
+                EventSource.delegate.serviceAdded(EasyMock.same(consumer1), EasyMock.eq(new Properties()));
 
                 verify(event(spec.listener(), ServiceEvent.REGISTERED, reference1));
             }
@@ -524,7 +525,7 @@ public class BundleComponentContainerImplTest extends MockGroup {
             public void run() throws Exception {
                 resolveService(reference2, consumer2);
 
-                Source.delegate.serviceRemoved(EasyMock.same(consumer2));
+                EventSource.delegate.serviceRemoved(EasyMock.same(consumer2));
 
                 verify(event(spec.listener(), ServiceEvent.UNREGISTERING, reference2));
             }
@@ -535,7 +536,7 @@ public class BundleComponentContainerImplTest extends MockGroup {
             public void run() throws Exception {
                 resolveService(reference1, consumer1);
 
-                Source.delegate.serviceRemoved(EasyMock.same(consumer1));
+                EventSource.delegate.serviceRemoved(EasyMock.same(consumer1));
 
                 verify(event(spec.listener(), ServiceEvent.UNREGISTERING, reference1));
             }
@@ -545,7 +546,7 @@ public class BundleComponentContainerImplTest extends MockGroup {
         test(new Task() {
             public void run() throws Exception {
                 context.removeServiceListener(spec.listener());
-                Source.delegate.stop();
+                EventSource.delegate.stop();
 
                 verify(new Task() {
                     public void run() throws Exception {
@@ -558,10 +559,10 @@ public class BundleComponentContainerImplTest extends MockGroup {
 
     @Test
     public void testEventSourcesAndConsumers2() throws Exception {
-        final Class<Source> componentClass = Source.class;
+        final Class<EventSource> componentClass = EventSource.class;
         final BundleComponentContainer services = discover(StatusCheck.class, componentClass);
 
-        final Source source = new Source();
+        final EventSource source = new EventSource();
 
         // service listener registration
         final ListenerSpec spec = test(new Work<ListenerSpec>() {
@@ -572,7 +573,7 @@ public class BundleComponentContainerImplTest extends MockGroup {
                 EasyMock.expect(reference1.getPropertyKeys()).andReturn(new String[0]);
                 EasyMock.expect(source.type()).andReturn(Consumer.class);
                 source.serviceAdded(EasyMock.same(consumer1), EasyMock.<Properties>notNull());
-                Source.delegate.start();
+                EventSource.delegate.start();
 
                 verify(new Task() {
                     public void run() throws Exception {
@@ -595,7 +596,7 @@ public class BundleComponentContainerImplTest extends MockGroup {
             public void run() throws Exception {
                 resolveService(reference2, consumer2);
                 EasyMock.expect(reference2.getPropertyKeys()).andReturn(new String[0]);
-                Source.delegate.serviceAdded(EasyMock.same(consumer2), EasyMock.eq(new Properties()));
+                EventSource.delegate.serviceAdded(EasyMock.same(consumer2), EasyMock.eq(new Properties()));
 
                 verify(event(spec.listener(), ServiceEvent.REGISTERED, reference2));
             }
@@ -605,7 +606,7 @@ public class BundleComponentContainerImplTest extends MockGroup {
         test(new Task() {
             public void run() throws Exception {
                 resolveService(reference1, consumer1);
-                Source.delegate.serviceRemoved(EasyMock.same(consumer1));
+                EventSource.delegate.serviceRemoved(EasyMock.same(consumer1));
 
                 verify(event(spec.listener(), ServiceEvent.UNREGISTERING, reference1));
             }
@@ -616,7 +617,7 @@ public class BundleComponentContainerImplTest extends MockGroup {
             public void run() throws Exception {
                 resolveService(reference1, consumer1);
                 EasyMock.expect(reference1.getPropertyKeys()).andReturn(new String[0]);
-                Source.delegate.serviceAdded(EasyMock.same(consumer1), EasyMock.eq(new Properties()));
+                EventSource.delegate.serviceAdded(EasyMock.same(consumer1), EasyMock.eq(new Properties()));
 
                 verify(event(spec.listener(), ServiceEvent.REGISTERED, reference1));
             }
@@ -626,7 +627,7 @@ public class BundleComponentContainerImplTest extends MockGroup {
         test(new Task() {
             public void run() throws Exception {
                 context.removeServiceListener(spec.listener());
-                Source.delegate.stop();
+                EventSource.delegate.stop();
 
                 verify(new Task() {
                     public void run() throws Exception {
@@ -1333,7 +1334,7 @@ public class BundleComponentContainerImplTest extends MockGroup {
 
     public interface Consumer extends BundleComponentContainer.Managed { }
 
-    public static class Source implements BundleComponentContainer.Registration.Listener<Consumer> {
+    public static class EventSource implements BundleComponentContainer.Registration.Listener<Consumer> {
 
         private static BundleComponentContainer.Registration.Listener<Consumer> delegate;
 

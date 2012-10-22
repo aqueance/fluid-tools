@@ -26,7 +26,7 @@ import org.fluidity.composition.ComponentGroup;
 import org.fluidity.composition.Components;
 import org.fluidity.composition.MutableContainer;
 import org.fluidity.composition.spi.ComponentFactory;
-import org.fluidity.testing.MockGroup;
+import org.fluidity.testing.Simulator;
 
 import org.easymock.EasyMock;
 import org.testng.annotations.Test;
@@ -35,15 +35,18 @@ import org.testng.annotations.Test;
  * @author Tibor Varga
  */
 @SuppressWarnings({ "unchecked", "UnusedDeclaration" })
-public class EmptyRegistryTest extends MockGroup {
+public class EmptyRegistryTest extends Simulator {
 
-    private final ComponentRegistry mock = mock(ComponentRegistry.class);
-    private final MutableContainer container = mock(MutableContainer.class);
-    private final ComponentContainer.Registry registry = new EmptyRegistry(mock);
+    private final MockObjects dependencies = dependencies();
+
+    private final MutableContainer container = dependencies.normal(MutableContainer.class);
+    private final ComponentRegistry delegate = dependencies.normal(ComponentRegistry.class)
+            ;
+    private final ComponentContainer.Registry registry = new EmptyRegistry(delegate);
 
     @Test
     public void linkingContainer() throws Exception {
-        EasyMock.expect(mock.makeChildContainer(Components.inspect(MarkedGroupComponent.class))).andReturn(container);
+        EasyMock.expect(delegate.makeChildContainer(Components.inspect(MarkedGroupComponent.class))).andReturn(container);
         EasyMock.expect(container.getRegistry()).andReturn(registry);
 
         final ComponentContainer.Registry registry = verify(new Work<ComponentContainer.Registry>() {
@@ -59,7 +62,7 @@ public class EmptyRegistryTest extends MockGroup {
     public void subclassWithComponentAnnotation() throws Exception {
         test(new Task() {
             public void run() throws Exception {
-                mock.bindComponent(Components.inspect(UnmarkedComponent.class));
+                delegate.bindComponent(Components.inspect(UnmarkedComponent.class));
 
                 verify(new Task() {
                     public void run() throws Exception {
@@ -73,7 +76,7 @@ public class EmptyRegistryTest extends MockGroup {
             public void run() throws Exception {
                 final Object component = new UnmarkedComponent();
 
-                mock.bindInstance(component, Components.inspect(UnmarkedComponent.class));
+                delegate.bindInstance(component, Components.inspect(UnmarkedComponent.class));
 
                 verify(new Task() {
                     public void run() throws Exception {
@@ -134,7 +137,7 @@ public class EmptyRegistryTest extends MockGroup {
 
         final Collection<Class<?>> groups = Collections.<Class<?>>singletonList(GroupComponent.class);
         for (final Class type : elements) {
-            mock.bindComponent(new Components.Interfaces(type, new Components.Specification[] {
+            delegate.bindComponent(new Components.Interfaces(type, new Components.Specification[] {
                     new Components.Specification(type, groups)
             }));
         }

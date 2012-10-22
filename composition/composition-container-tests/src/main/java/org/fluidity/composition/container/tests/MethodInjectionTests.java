@@ -35,9 +35,11 @@ import static org.fluidity.foundation.Command.Job;
 @SuppressWarnings("unchecked")
 public class MethodInjectionTests extends AbstractContainerTests {
 
-    private final InjectedMethods component = mock(InjectedMethods.class);
-    private final Dependency1 dependency1 = mock(Dependency1.class);
-    private final Dependency2 dependency2 = mock(Dependency2.class);
+    private final MockObjects dependencies = dependencies();
+
+    private final InjectedMethods component = dependencies.normal(InjectedMethods.class);
+    private final Dependency1 dependency1 = dependencies.normal(Dependency1.class);
+    private final Dependency2 dependency2 = dependencies.normal(Dependency2.class);
 
     private final Method[] methods = Methods.get(InjectedMethods.class, new Methods.Invoker<InjectedMethods>() {
         public void invoke(final InjectedMethods capture) throws Throwable {
@@ -86,7 +88,7 @@ public class MethodInjectionTests extends AbstractContainerTests {
         registry.bindInstance(dependency1, Dependency1.class);
         registry.bindInstance(dependency2, Dependency2.class);
 
-        final Dependency1 local = localMock(Dependency1.class);
+        final Dependency1 local = arguments().normal(Dependency1.class);
         component.explicit(1234, "abcd", local, dependency2);
 
         verify(new Task() {
