@@ -66,13 +66,7 @@ final class ContainerLifecycle {
                 // shutdown actions are registered first: will be run after the tasks added by bindings and child containers
                 termination.add(new Command.Job<Exception>() {
                     public void run() {
-                        if (shouldShutdown.compareAndSet(true, false)) {
-                            if (callback != null) {
-                                callback.containerShutdown();
-                            }
-
-                            log.debug("%s shut down", container);
-                        }
+                        shutdown(log);
                     }
                 });
 
@@ -93,6 +87,21 @@ final class ContainerLifecycle {
         }
 
         return init;
+    }
+
+    private void shutdown(final Log log) {
+        if (shouldShutdown.compareAndSet(true, false)) {
+            if (callback != null) {
+                callback.containerShutdown();
+            }
+
+            // make sure the children are shut down before this container
+            for (final ContainerLifecycle child : children) {
+                child.shutdown(log);
+            }
+
+            log.debug("%s shut down", container);
+        }
     }
 
     public void addChild(final ContainerLifecycle child) {

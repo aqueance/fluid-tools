@@ -20,16 +20,11 @@ import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
 import org.fluidity.composition.BoundaryComponent;
-import org.fluidity.composition.ComponentGroup;
 import org.fluidity.composition.Inject;
+import org.fluidity.composition.spi.ContainerTermination;
 
 /**
- * Forwards servlet context listener callbacks to all {@link ServletContextListener ServletContextListeners} annotated with
- * {@link ComponentGroup @ComponentGroup}. This makes it possible to register those listeners without explicitly listing them in the <code>web.xml</code>
- * descriptor.
- * <p/>
- * <b>Note</b>: servlet specification version 3.0 and later offers an annotation based solution to the same problem, thus obsoleting the solution presented by
- * this class.
+ * Adapts the Fluid Tools container life-cycle to the web application life-cycle.
  * <h3>Usage</h3>
  * This listener is registered in a <code>web.xml</code> descriptor of a web application.
  * <pre>
@@ -37,21 +32,22 @@ import org.fluidity.composition.Inject;
  * &hellip;
  *   &lt;listener>
  *     &lt;description>Helps manage the Fluid Tools container life cycle&lt;/description>
- *     &lt;display-name>Fluid Tools Servlet Context Listener&lt;/display-name>
- *     &lt;listener-class><span class="hl1">org.fluidity.composition.web.AggregatingServletContextListener</span>&lt;/listener-class>
+ *     &lt;display-name>Fluid Tools Web Application Life-Cycle Listener&lt;/display-name>
+ *     &lt;listener-class><span class="hl1">org.fluidity.composition.web.ContextLifeCycleListener</span>&lt;/listener-class>
  *   &lt;/listener>
  * &hellip;
  * &lt;/web-app>
  * </pre>
  */
-public final class AggregatingServletContextListener extends BoundaryComponent implements ServletContextListener {
+public final class ContextLifeCycleListener extends BoundaryComponent implements ServletContextListener {
+
+    @Inject
+    private ContainerTermination.Jobs<ContextLifeCycleListener> jobs;
 
     /**
-     * Never <code>null</code> as {@link org.fluidity.composition.web.impl.WebApplicationTermination} is a member.
+     * Default constructor to be used by the servlet container.
      */
-    @Inject
-    @SuppressWarnings("MismatchedReadAndWriteOfArray")
-    private @ComponentGroup ServletContextListener listeners[];
+    public ContextLifeCycleListener() { }
 
     /**
      * Invoked by the servlet container.
@@ -59,9 +55,7 @@ public final class AggregatingServletContextListener extends BoundaryComponent i
      * @param event the event that trigger the invocation.
      */
     public void contextInitialized(final ServletContextEvent event) {
-        for (final ServletContextListener listener : listeners) {
-            listener.contextInitialized(event);
-        }
+        // empty
     }
 
     /**
@@ -70,8 +64,6 @@ public final class AggregatingServletContextListener extends BoundaryComponent i
      * @param event the event that trigger the invocation.
      */
     public void contextDestroyed(final ServletContextEvent event) {
-        for (final ServletContextListener listener : listeners) {
-            listener.contextDestroyed(event);
-        }
+        jobs.flush();
     }
 }

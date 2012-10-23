@@ -16,30 +16,24 @@
 
 package org.fluidity.composition.web.impl;
 
-import javax.servlet.ServletContextEvent;
-import javax.servlet.ServletContextListener;
-
 import org.fluidity.composition.Component;
-import org.fluidity.composition.ComponentGroup;
 import org.fluidity.composition.spi.ContainerTermination;
+import org.fluidity.composition.web.ContextLifeCycleListener;
 import org.fluidity.foundation.Command;
 
 /**
- * Implements the component shutdown mechanism for web applications. The implementation requires either to be explicitly registered as a
- * <code>ServletContextListeners</code> or a mechanism that finds this class and forwards listener method invocations to it. Fluid Tools has such mechanism in
- * the form of a <code>ServletContextListeners</code>, <code>AggregatingServletContextListener</code>, which uses service provider discovery to find any
- * implementation of the <code>ServletContextListeners</code> interface, including this class, as long the implementation is marked by the {@link
- * ComponentGroup @ComponentGroup} annotation.
+ * Implements the component shutdown mechanism for web applications. The implementation requires, to be able to serve its function, {@link
+ * ContextLifeCycleListener} to be registered as a <code>ServletContextListeners</code>.
  *
  * @author Tibor Varga
  */
-@Component
-@ComponentGroup(api = ServletContextListener.class)
-final class WebApplicationTermination implements ContainerTermination, ServletContextListener {
+@Component(api = { WebApplicationTermination.class, ContainerTermination.class })
+final class WebApplicationTermination implements ContainerTermination {
 
     private final Jobs jobs;
 
-    WebApplicationTermination(final Jobs<WebApplicationTermination> jobs) {
+    // we must use the jobs instance flushed by ContextLifeCycleListener
+    WebApplicationTermination(final Jobs<ContextLifeCycleListener> jobs) {
         this.jobs = jobs;
     }
 
@@ -49,13 +43,5 @@ final class WebApplicationTermination implements ContainerTermination, ServletCo
 
     public void remove(final Command.Job<Exception> job) {
         jobs.remove(job);
-    }
-
-    public void contextInitialized(final ServletContextEvent event) {
-        // empty
-    }
-
-    public void contextDestroyed(final ServletContextEvent event) {
-        jobs.flush();
     }
 }
