@@ -45,10 +45,10 @@ public class SchedulerTest extends Simulator {
     private final Log<SchedulerImpl> log = NoLogFactory.consume(SchedulerImpl.class);
 
     private final MockConfiguration.Direct<SchedulerImpl.Settings> configuration = MockConfiguration.direct(SchedulerImpl.Settings.class, dependencies);
-    private final Scheduler.Task task = dependencies.normal(Scheduler.Task.class);
 
     private Scheduler scheduler;
     private Command.Job<Exception> stop;
+    private Scheduler.Task task;
 
     @BeforeMethod
     public void setUp() throws Exception {
@@ -71,6 +71,8 @@ public class SchedulerTest extends Simulator {
         });
 
         assert stop != null;
+
+        task = concurrent().normal(Scheduler.Task.class);
     }
 
     @AfterMethod
@@ -78,6 +80,7 @@ public class SchedulerTest extends Simulator {
         assert scheduler != null;
         stop.run();
         stop = null;
+        task = null;
     }
 
     private void settings(final int errorLimit, final long errorPenalty) throws Exception {

@@ -163,7 +163,7 @@ public final class IncludeJarsMojo extends AbstractMojo {
                 final Map<String, Collection<Artifact>> dependencyMap = new LinkedHashMap<String, Collection<Artifact>>();
 
                 final URL packageURL = packageFile.toURI().toURL();
-                final Manifest manifest = Archives.loadManifest(packageURL);
+                final Manifest manifest = Archives.manifest(packageURL);
                 final Attributes mainAttributes = manifest.getMainAttributes();
 
                 for (final Profile profile : project.getModel().getProfiles()) {
@@ -236,8 +236,8 @@ public final class IncludeJarsMojo extends AbstractMojo {
                     final byte[] buffer = new byte[1024 * 1024];
 
                     // copy the original archive, excluding entries from our dependency paths
-                    Archives.readEntries(packageURL, new Archives.Entry() {
-                        public boolean matches(final JarEntry entry) throws IOException {
+                    Archives.read(packageURL, new Archives.Reader() {
+                        public boolean matches(final URL url, final JarEntry entry) throws IOException {
                             final String name = entry.getName();
 
                             if (name.equals(JarFile.MANIFEST_NAME) || name.equals(ArchivesSupport.META_INF)) {
@@ -253,7 +253,7 @@ public final class IncludeJarsMojo extends AbstractMojo {
                             return true;
                         }
 
-                        public boolean read(final JarEntry entry, final InputStream stream) throws IOException {
+                        public boolean read(final URL url, final JarEntry entry, final InputStream stream) throws IOException {
                             outputStream.putNextEntry(new JarEntry(entry.getName()));
                             Streams.copy(stream, outputStream, buffer, false, false);
                             return true;

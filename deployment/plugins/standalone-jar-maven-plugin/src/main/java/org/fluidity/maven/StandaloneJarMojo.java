@@ -21,6 +21,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -336,12 +337,12 @@ public final class StandaloneJarMojo extends AbstractMojo {
 
                                 // got to check if our project artifact is something we have created in a previous run
                                 // i.e., if it contains the project artifact we're about to copy
-                                int processed = Archives.readEntries(dependency.toURI().toURL(), new Archives.Entry() {
-                                    public boolean matches(final JarEntry entry) throws IOException {
+                                int processed = Archives.read(dependency.toURI().toURL(), new Archives.Reader() {
+                                    public boolean matches(final URL url, final JarEntry entry) throws IOException {
                                         return entryName.equals(entry.getName());
                                     }
 
-                                    public boolean read(final JarEntry entry, final InputStream stream) throws IOException {
+                                    public boolean read(final URL url, final JarEntry entry, final InputStream stream) throws IOException {
                                         Streams.copy(stream, outputStream, buffer, true, false);
                                         return false;
                                     }

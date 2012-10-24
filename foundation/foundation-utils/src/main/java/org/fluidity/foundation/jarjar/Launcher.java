@@ -61,7 +61,7 @@ public final class Launcher {
         final Class<?> main = Launcher.class;
 
         final URL root = Archives.containing(main);
-        final String mainClass = Archives.mainAttributes(root, ORIGINAL_MAIN_CLASS)[0];
+        final String mainClass = Archives.attributes(root, ORIGINAL_MAIN_CLASS)[0];
 
         if (mainClass == null) {
             throw new IllegalStateException(String.format("%s is not a defined in the %s manifest", ORIGINAL_MAIN_CLASS, root));

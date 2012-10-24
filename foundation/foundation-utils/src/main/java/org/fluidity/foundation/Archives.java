@@ -33,20 +33,20 @@ import java.util.jar.Manifest;
 import org.fluidity.foundation.jarjar.Handler;
 
 /**
- * Convenience methods to work with JAR archives.
+ * Convenience methods to work with Java archives.
  * <h3>Usage Example</h3>
  * <pre>
- * {@link Archives#readEntries(java.net.URL, org.fluidity.foundation.Archives.Entry) Archives.readEntries}({@linkplain Archives#containing(Class) Archives.containing}(getClass()), new <span class="hl1">Archives.Entry</span>() {
- *   public boolean <span class="hl1">matches</span>(final {@linkplain JarEntry} entry) throws {@linkplain IOException} {
+ * {@link Archives#read(URL, Archives.Reader) Archives.read}({@linkplain Archives#containing(Class) Archives.containing}(getClass()), new <span class="hl1">Archives.Reader</span>() {
+ *   public boolean <span class="hl1">matches</span>(final {@linkplain URL} url, final {@linkplain JarEntry} entry) throws {@linkplain IOException} {
+ *     &hellip;
  *     return true;
  *   }
  *
- *   public boolean <span class="hl1">read</span>(final {@linkplain JarEntry} entry, final {@linkplain InputStream} stream) throws {@linkplain IOException} {
- *     System.out.println(entry.{@linkplain JarEntry#getName() getName}());
+ *   public boolean <span class="hl1">read</span>(final {@linkplain URL} url, final {@linkplain JarEntry} entry, final {@linkplain InputStream} stream) throws {@linkplain IOException} {
+ *     &hellip;
  *     return true;
  *   }
  * });
- *
  * </pre>
  *
  * @author Tibor Varga
@@ -93,19 +93,43 @@ public final class Archives extends Utility {
     /**
      * Reads entries from a JAR file.
      *
-     * @param jar    the URL of the JAR file.
-     * @param reader the object that reads the JAR entries.
+     * @param url    the URL of the Java archives.
+     * @param reader the reader to process the archive entries.
      *
      * @return the number of entries read.
      *
      * @throws IOException when something goes wrong reading the JAR file.
      */
-    public static int readEntries(final URL jar, final Entry reader) throws IOException {
-        assert jar != null;
-        final InputStream stream = jar.openStream();
+    public static int read(final URL url, final Reader reader) throws IOException {
+        assert url != null;
+        final InputStream stream = url.openStream();
+        assert stream != null;
 
         try {
-            return Archives.readEntries(stream, reader);
+            final JarInputStream jar = new JarInputStream(stream, false);
+
+            int count = 0;
+            for (JarEntry entry; (entry = jar.getNextJarEntry()) != null; ) {
+                try {
+                    if (!entry.isDirectory()) {
+                        if (reader.matches(url, entry)) {
+                            ++count;
+
+                            if (!reader.read(url, entry, jar)) {
+                                break;
+                            }
+                        }
+                    }
+                } finally {
+                    try {
+                        jar.closeEntry();
+                    } catch (final IOException e) {
+                        // ignore
+                    }
+                }
+            }
+
+            return count;
         } finally {
             try {
                 stream.close();
@@ -116,80 +140,27 @@ public final class Archives extends Utility {
     }
 
     /**
-     * Reads entries from a JAR file. The input stream will <em>not</em> be {@linkplain InputStream#close() closed} by this method.
-     *
-     * @param input  the stream to load the JAR file from.
-     * @param reader the object that reads the JAR entries.
-     *
-     * @return the number of entries read.
-     *
-     * @throws IOException when something goes wrong reading the JAR file.
-     */
-    public static int readEntries(final InputStream input, final Entry reader) throws IOException {
-        assert input != null;
-        final JarInputStream stream = new JarInputStream(input, false);
-
-        int count = 0;
-        JarEntry entry;
-        while ((entry = stream.getNextJarEntry()) != null) {
-            try {
-                if (!entry.isDirectory()) {
-                    if (reader.matches(entry)) {
-                        ++count;
-
-                        if (!reader.read(entry, stream)) {
-                            break;
-                        }
-                    }
-                }
-            } finally {
-                try {
-                    stream.closeEntry();
-                } catch (final IOException e) {
-                    // ignore
-                }
-            }
-        }
-
-        return count;
-    }
-
-    /**
-     * Reads the main attributes from the manifest of the JAR file where the given class was loaded from.
-     *
-     * @param type  the class whose source JAR is to be processed.
-     * @param names the list of attribute names to load.
-     *
-     * @return an array of strings, each being the value of the attribute name at the same index in the <code>names</code> parameter or <code>null</code>.
-     */
-    public static String[] mainAttributes(final Class<?> type, final String... names) throws IOException {
-        return Archives.attributes(ClassLoaders.findClassResource(type), names);
-    }
-
-    /**
      * Returns the main attributes with the given names from manifest of the JAR file identified by the given URL.
      *
      * @param url   the URL, pointing either to a JAR resource or an archive itself.
      * @param names the list of attribute names to load.
      *
-     * @return an array of strings, each being the value of the attribute name at the same index in the <code>names</code> parameter or <code>null</code>; may
-     *         be <code>null</code> if the <code>url</code> parameter is <code>null</code>.
+     * @return an array of strings, each being the value of the attribute name at the same index in the <code>names</code> parameter or <code>null</code>;
+     *         never <code>null</code>.
      *
      * @throws IOException when an I/O error occurs when accessing its manifest
      */
-    public static String[] mainAttributes(final URL url, final String... names) throws IOException {
-        return url == null ? null : Archives.attributes(url, names);
-    }
-
-    private static String[] attributes(final URL url, final String... names) throws IOException {
-        final Manifest manifest = Archives.loadManifest(url);
-        final Attributes attributes = manifest == null ? null : manifest.getMainAttributes();
-
+    public static String[] attributes(final URL url, final String... names) throws IOException {
         final String[] list = new String[names.length];
 
-        if (attributes != null) {
-            for (int i = 0, limit = names.length; i < limit; i++) {
-                list[i] = attributes.getValue(names[i]);
+        if (url != null) {
+            final Manifest manifest = Archives.manifest(url);
+            final Attributes attributes = manifest == null ? null : manifest.getMainAttributes();
+
+            if (attributes != null) {
+                for (int i = 0, limit = names.length; i < limit; i++) {
+                    list[i] = attributes.getValue(names[i]);
+                }
             }
         }
 
@@ -197,16 +168,16 @@ public final class Archives extends Utility {
     }
 
     /**
-     * Loads the JAR manifest from the given URL. Supports URLs pointing to a Java archive, JAR resource URLs pointing to any resource in a Java archive, URLs
+     * Loads the JAR manifest from the given URL. Supports URLs pointing to a Java archive, URLs pointing to any resource in a Java archive, URLs
      * pointing to a {@link JarFile#MANIFEST_NAME}, and URLs from which {@link JarFile#MANIFEST_NAME} can be loaded.
      *
      * @param url the URL.
      *
-     * @return the JAR manifest.
+     * @return the JAR manifest; may be <code>null</code> if not found or has neither main nor entry attributes.
      *
      * @throws IOException when reading the URL contents fails.
      */
-    public static Manifest loadManifest(final URL url) throws IOException {
+    public static Manifest manifest(final URL url) throws IOException {
         final URL jar = Archives.containing(url);
         Manifest manifest = jar == null ? null : jarManifest(jar);
 
@@ -289,48 +260,51 @@ public final class Archives extends Utility {
     }
 
     /**
-     * Used by {@link Archives#readEntries(URL, Archives.Entry) Archives.readEntries()} to select and read entries in a JAR file.
+     * Used by {@link Archives#read(URL, Archives.Reader) Archives.read()} to select and read entries in a JAR file. The reader will not be invoked for
+     * directory entries.
      * <h3>Usage</h3>
      * See {@link Archives}.
      *
      * @author Tibor Varga
      */
-    public interface Entry {
+    public interface Reader {
 
         /**
-         * Tells if the {@link #read(JarEntry, InputStream) Entry.read()} method should be invoked with the given entry.
+         * Tells if the {@link #read(URL, JarEntry, InputStream) read()} method should be invoked with the given entry.
          *
-         * @param entry the entry to decide about; never <code>null</code>.
+         * @param url   the URL passed to the originating {@link Archives#read(URL, Archives.Reader) Archives.read()} call.
+         * @param entry the entry in <code>url</code> to decide about; never <code>null</code>.
          *
-         * @return <code>true</code> if the given entry should be passed to the {@link #read(JarEntry, InputStream) Entry.read()} method, <code>false</code> if
+         * @return <code>true</code> if the given entry should be passed to the {@link #read(URL, JarEntry, InputStream) read()} method, <code>false</code> if
          *         not.
          *
          * @throws IOException when something goes wrong reading the JAR file.
          */
-        boolean matches(JarEntry entry) throws IOException;
+        boolean matches(URL url, JarEntry entry) throws IOException;
 
         /**
          * Reads the given entry.
          *
-         * @param entry  the entry to read.
+         * @param url    the URL passed to the originating {@link Archives#read(URL, Archives.Reader) Archives.read()} call.
+         * @param entry  the entry in <code>url</code> to read.
          * @param stream the stream containing the entry's content; must <em>not</em> be {@link InputStream#close() closed} by the receiver.
          *
          * @return <code>true</code> if further searching is needed, <code>false</code> if search should terminate.
          *
          * @throws IOException when something goes wrong reading the JAR file.
          */
-        boolean read(JarEntry entry, InputStream stream) throws IOException;
+        boolean read(URL url, JarEntry entry, InputStream stream) throws IOException;
     }
 
     /**
-     * Convenience methods to handle nested JAR archives.
+     * Convenience methods to handle nested Java archives.
      * <h3>Usage</h3>
      * <pre>
      * for (final URL <span class="hl2">url</span> : <span class="hl1">Archives.Nested</span>.<span class="hl1">{@linkplain #dependencies(String) dependencies}</span>("widgets")) {
      *
      *     // make sure to select only those archives that have the
      *     // mandatory "Widget-Name" manifest attribute
-     *     if ({@linkplain Archives}.{@linkplain Archives#mainAttributes(java.net.URL, String...) mainAttributes}(<span class="hl2">url</span>, "Widget-Name")[0] != null) {
+     *     if ({@linkplain Archives}.{@linkplain Archives#attributes(URL, String...) attributes}(<span class="hl2">url</span>, "Widget-Name")[0] != null) {
      *         &hellip;
      *     }
      * }
@@ -353,15 +327,15 @@ public final class Archives extends Utility {
         private Nested() { }
 
         /**
-         * Creates a URL to either a JAR archive nested in other JAR archives at any level, or an entry therein, depending on the absence or presence of the
+         * Creates a URL to either a Java archive nested in other archives at any level, or an entry therein, depending on the absence or presence of the
          * <code>file</code> parameter, respectively.
          *
-         * @param root  the URL of the (possibly nested) JAR archive.
-         * @param file  optional file path inside the nested JAR archive; may be <code>null</code>.
-         * @param paths the list of JAR archive paths relative to the preceding JAR archive in the list, or the <code>root</code> archive in case of the first
+         * @param root  the URL of the (possibly nested) Java archive.
+         * @param file  optional file path inside the nested archive; may be <code>null</code>.
+         * @param paths the list of Java archive entries in the preceding archive in the list, or the <code>root</code> archive in case of the first
          *              path; may be empty.
          *
-         * @return either a <code>jarjar:</code> or a <code>jar:</code> URL to either a JAR archive nested in other JAR archives at any level, or the given
+         * @return either a <code>jarjar:</code> or a <code>jar:</code> URL to either a Java archive nested in other archives at any level, or the given
          *         <code>file</code> entry therein, respectively.
          *
          * @throws IOException when URL handling fails.
@@ -372,7 +346,7 @@ public final class Archives extends Utility {
 
         /**
          * Returns the root URL of the given URL returned by a previous call to {@link #formatURL(URL, String, String...) formatURL()}. The returned URL can
-         * then be fed back to {@link #formatURL(URL, String, String...) formatURL()} to target other nested JAR archives.
+         * then be fed back to {@link #formatURL(URL, String, String...) formatURL()} to target other nested Java archives.
          *
          * @param url the URL to return the root of.
          *
@@ -385,10 +359,10 @@ public final class Archives extends Utility {
         }
 
         /**
-         * Unloads a AR archive identified by its URL that was previously loaded to cache nested JAR archives found within. The protocol of the URL must either
-         * be "jar" or "jarjar", as produced by {@link org.fluidity.foundation.jarjar.Handler#formatURL(java.net.URL, String, String...)}.
+         * Unloads a AR archive identified by its URL that was previously loaded to cache nested archives found within. The protocol of the URL must either be
+         * "jar" or "jarjar", as produced by {@link org.fluidity.foundation.jarjar.Handler#formatURL(java.net.URL, String, String...)}.
          *
-         * @param url the URL to the JAR archive to unload.
+         * @param url the URL to the Java archive to unload.
          */
         public static void unload(final URL url) throws IOException {
             Handler.unload(url);
@@ -431,8 +405,7 @@ public final class Archives extends Utility {
          * @throws IOException when I/O error occurs when accessing the archive.
          */
         public static Collection<URL> dependencies(final URL archive, final String name) throws IOException {
-            final String dependencies = archive == null ? null : Archives.mainAttributes(archive, Archives.Nested.attribute(name))[0];
-
+            final String dependencies = Archives.attributes(archive, Archives.Nested.attribute(name))[0];
             final Collection<URL> urls = new ArrayList<URL>();
 
             if (dependencies != null) {

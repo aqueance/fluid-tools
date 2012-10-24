@@ -21,6 +21,10 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.jar.JarEntry;
 
 import org.fluidity.foundation.Archives;
 import org.fluidity.foundation.Streams;
@@ -64,11 +68,26 @@ public class HandlerTest {
         assertContent(caching, container, "level2.txt", "level 2", "level1-2.jar", "level2.jar");
         assertContent(caching, container, "level3.txt", "level 3", "level1-1.jar", "level2.jar", "level3.jar");
         assertContent(caching, container, "level3.txt", "level 3", "level1-2.jar", "level2.jar", "level3.jar");
+
+        {
+            final URL root = getClass().getClassLoader().getResource(container);
+            final URL level1 = Handler.formatURL(root, "level1-2.jar");
+            final URL level2 = Handler.formatURL(level1, "level2.jar");
+            final URL level3 = Handler.formatURL(level2, "level3.jar");
+
+            final URLConnection connection = Handler.formatURL(level3, "level3.txt").openConnection();
+            connection.setUseCaches(caching);
+
+            final String expected = "level 3";
+            final String actual = Streams.load(connection.getInputStream(), "ASCII", BUFFER, true).replaceAll("\n", "");
+
+            assert expected.equals(actual) : String.format("Expected '%s', got '%s'", expected, actual);
+        }
     }
 
     @Test
     public void testCaching() throws Exception {
-        final URL url = Handler.formatURL(getClass().getClassLoader().getResource(container), "level1-2.jar", "level2.jar", "level3.jar");
+        final URL url = Handler.formatURL(getClass().getClassLoader().getResource(container), "level3.txt", "level1-2.jar", "level2.jar", "level3.jar");
 
         Handler.load(new URL(url.getFile()));
         Archives.Nested.unload(url);
@@ -76,10 +95,36 @@ public class HandlerTest {
 
     @Test
     public void testFormatting() throws Exception {
-        final URL expected = Handler.formatURL(getClass().getClassLoader().getResource(container), "level1-2.jar", "level2.jar", "level3.jar");
-        verify(expected, Handler.formatURL(Handler.rootURL(expected), "level1-2.jar", "level2.jar", "level3.jar"));
-        verify(expected, Handler.formatURL(Handler.formatURL(Handler.rootURL(expected), null, "level2.jar", "level3.jar"), "level1-2.jar"));
-        verify(expected, Handler.formatURL(Handler.formatURL(Handler.rootURL(expected), null, "level2.jar"), "level1-2.jar", "level3.jar"));
+        final URL expected = Handler.formatURL(getClass().getClassLoader().getResource(container), null, "level1-2.jar", "level2.jar", "level3.jar");
+        verify(expected, Handler.formatURL(Handler.rootURL(expected), null, "level1-2.jar", "level2.jar", "level3.jar"));
+        verify(expected, Handler.formatURL(Handler.formatURL(Handler.rootURL(expected), null, "level1-2.jar", "level2.jar"), null, "level3.jar"));
+        verify(expected, Handler.formatURL(Handler.formatURL(Handler.formatURL(Handler.rootURL(expected), null, "level1-2.jar"), null, "level2.jar"), null, "level3.jar"));
+        verify(expected, Handler.formatURL(Handler.formatURL(Handler.formatURL(Handler.formatURL(Handler.rootURL(expected), "level1-2.jar"), "level2.jar"), "level3.jar"), null));
+    }
+
+    @Test
+    public void testExploration() throws Exception {
+        final List<String> files = new ArrayList<String>();
+
+        Archives.read(getClass().getClassLoader().getResource(container), new Archives.Reader() {
+            public boolean matches(final URL url, final JarEntry entry) throws IOException {
+                final String name = entry.getName();
+
+                if (name.endsWith(".txt")) {
+                    files.add(name);
+                }
+
+                return true;
+            }
+
+            public boolean read(final URL url, final JarEntry entry, final InputStream stream) throws IOException {
+                Archives.read(Archives.Nested.formatURL(url, entry.getName()), this);
+                return true;
+            }
+        });
+
+        final List expected = Arrays.asList("level0.txt", "level1.txt", "level2.txt", "level3.txt", "level1.txt", "level2.txt", "level3.txt");
+        assert files.equals(expected) : String.format("Expected %s, got %s", expected, files);
     }
 
     private void verify(final URL expected, final URL actual) {
@@ -119,8 +164,7 @@ public class HandlerTest {
         final URLConnection connection = Handler.formatURL(getClass().getClassLoader().getResource(container), file, path).openConnection();
         connection.setUseCaches(caching);
 
-        final InputStream stream = connection.getInputStream();
-        final String loaded = Streams.load(stream, "ASCII", BUFFER, true).replaceAll("\n", "");
+        final String loaded = Streams.load(connection.getInputStream(), "ASCII", BUFFER, true).replaceAll("\n", "");
         assert content.equals(loaded) : String.format("Expected '%s', got '%s'", content, loaded);
     }
 }

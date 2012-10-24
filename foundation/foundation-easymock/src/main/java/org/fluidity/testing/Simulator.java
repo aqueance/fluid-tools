@@ -155,6 +155,16 @@ public class Simulator {
     }
 
     /**
+     * Returns a new {@link MockObjects} factory to create mock objects with for concurrent access. Independent mock objects will be discarded after the test
+     * method in which they were created completes.
+     *
+     * @return a {@link MockObjects} object.
+     */
+    public final MockObjects concurrent() {
+        return newLocalObjects();
+    }
+
+    /**
      * Called after each test method to clear method and thread local mock objects.
      *
      * @throws Exception
@@ -445,7 +455,7 @@ public class Simulator {
         };
     }
 
-    final synchronized MockControl newLocalObjects() {
+    private synchronized MockControl newLocalObjects() {
         final MockControl control = new ControlGroup();
         transients.add(control);
         return control;
@@ -805,10 +815,6 @@ public class Simulator {
             task.run();
         }
 
-        public int lineup(final CyclicBarrier barrier, final long timeout) throws Exception {
-            return barrier.await(timeout, TimeUnit.MILLISECONDS);
-        }
-
         public synchronized void concurrent(final Task.Concurrent tasks) throws Exception {
             assert tasks != null;
 
@@ -821,7 +827,7 @@ public class Simulator {
             checkNesting(method);
 
             final List<Task> composites = new ArrayList<Task>();
-            final ConcurrentFactory factory = new ConcurrentFactory(composites, newLocalObjects());
+            final ConcurrentFactory factory = new ConcurrentFactory(composites, Simulator.this.concurrent());
 
             final Task task;
 
@@ -850,6 +856,10 @@ public class Simulator {
                     }
                 }
             });
+        }
+
+        public int lineup(final CyclicBarrier barrier, final long timeout) throws Exception {
+            return barrier.await(timeout, TimeUnit.MILLISECONDS);
         }
 
         private synchronized void release() {

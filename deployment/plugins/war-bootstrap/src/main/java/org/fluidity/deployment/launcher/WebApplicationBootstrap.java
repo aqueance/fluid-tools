@@ -111,22 +111,22 @@ public final class WebApplicationBootstrap {
 
             classpath.add(war);
 
-            Archives.readEntries(war, new Archives.Entry() {
+            Archives.read(war, new Archives.Reader() {
                 private final String bootEntry = "WEB-INF/boot/";
 
-                public boolean matches(final JarEntry entry) throws IOException {
+                public boolean matches(final URL url, final JarEntry entry) throws IOException {
                     final String entryName = entry.getName();
                     final boolean matches = entryName.startsWith(bootEntry) && !entryName.equals(bootEntry);
 
                     if (matches) {
-                        classpath.add(Archives.Nested.formatURL(war, null, entryName));
+                        classpath.add(Archives.Nested.formatURL(url, null, entryName));
                     }
 
                     return false;
                 }
 
-                public boolean read(final JarEntry entry, final InputStream stream) throws IOException {
-                    return false;
+                public boolean read(final URL url, final JarEntry entry, final InputStream stream) throws IOException {
+                    return true;
                 }
             });
 

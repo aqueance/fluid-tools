@@ -232,9 +232,9 @@ public final class DependenciesSupport extends Utility {
 
     private static String[] projectId(final Class<?> type) throws MojoExecutionException {
         try {
-            final String[] spec = Archives.mainAttributes(type, MANIFEST_MAVEN_GROUP_ID, MANIFEST_MAVEN_ARTIFACT_ID);
+            final String[] spec = Archives.attributes(Archives.containing(type), MANIFEST_MAVEN_GROUP_ID, MANIFEST_MAVEN_ARTIFACT_ID);
 
-            if (spec == null || spec.length != 2 || spec[0] == null || spec[1] == null) {
+            if (spec[0] == null || spec[1] == null) {
                 throw new MojoExecutionException(String.format("Could not find Maven project for %s", type));
             }
 

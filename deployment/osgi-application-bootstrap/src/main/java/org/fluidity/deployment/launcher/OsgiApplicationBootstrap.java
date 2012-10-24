@@ -174,7 +174,7 @@ public final class OsgiApplicationBootstrap {
         for (final URL url : Archives.Nested.dependencies(BUNDLES)) {
 
             // make sure to select only those archives that have an OSGi bundle symbolic name (it is a mandatory OSGi header)
-            if (Archives.mainAttributes(url, Constants.BUNDLE_SYMBOLICNAME)[0] != null) {
+            if (Archives.attributes(url, Constants.BUNDLE_SYMBOLICNAME)[0] != null) {
                 jars.add(url);
             }
         }

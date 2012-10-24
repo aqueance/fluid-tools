@@ -153,16 +153,20 @@ public final class Handler extends URLStreamHandler {
 
             if (connection instanceof JarURLConnection) {
 
-                // we have a JAR URL but we need the enclosed URL and the JAR file path relative to the URL, separately
+                // we have a JAR URL but we need the enclosed URL and the JAR resource name relative to the URL, separately
                 final URL url = ((JarURLConnection) connection).getJarFileURL();
 
                 if (PROTOCOL.equals(url.getProtocol())) {
                     specification.set(url.toExternalForm());
                 } else {
-                    final String path = root.getPath().split(Archives.DELIMITER, -1)[1];      // parsing a JAR URL, not our own URL
-
                     specification.set(PROTOCOL).append(':').append(url.toExternalForm());
-                    specification.add(path);
+                }
+
+                // find the JAR resource, if any
+                final String[] parts = root.getPath().split(Archives.DELIMITER);
+
+                if (parts.length > 1) {
+                    specification.add(parts[1]);
                 }
             } else {
                 specification.set(PROTOCOL).append(':').append(stem);
