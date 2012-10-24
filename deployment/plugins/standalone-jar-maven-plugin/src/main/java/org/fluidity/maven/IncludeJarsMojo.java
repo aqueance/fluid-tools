@@ -236,7 +236,7 @@ public final class IncludeJarsMojo extends AbstractMojo {
                     final byte[] buffer = new byte[1024 * 1024];
 
                     // copy the original archive, excluding entries from our dependency paths
-                    Archives.read(packageURL, new Archives.Reader() {
+                    Archives.read(packageURL, new Archives.Entry() {
                         public boolean matches(final URL url, final JarEntry entry) throws IOException {
                             final String name = entry.getName();
 

@@ -111,7 +111,7 @@ public final class WebApplicationBootstrap {
 
             classpath.add(war);
 
-            Archives.read(war, new Archives.Reader() {
+            Archives.read(war, new Archives.Entry() {
                 private final String bootEntry = "WEB-INF/boot/";
 
                 public boolean matches(final URL url, final JarEntry entry) throws IOException {
@@ -119,7 +119,7 @@ public final class WebApplicationBootstrap {
                     final boolean matches = entryName.startsWith(bootEntry) && !entryName.equals(bootEntry);
 
                     if (matches) {
-                        classpath.add(Archives.Nested.formatURL(url, null, entryName));
+                        classpath.add(Archives.Nested.formatURL(url, entryName, null));
                     }
 
                     return false;

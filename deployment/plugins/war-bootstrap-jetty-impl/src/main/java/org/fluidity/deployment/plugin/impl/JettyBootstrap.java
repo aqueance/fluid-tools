@@ -90,7 +90,7 @@ public final class JettyBootstrap implements ServerBootstrap {
             if (classPath != null) {
                 for (final String path : classPath.split("[,;]")) {
                     final Resource resource = getContext().newResource(path.trim());
-                    addURL(resource.toString().endsWith("/") ? resource.getURL() : Archives.Nested.formatURL(resource.getURL(), null));
+                    addURL(resource.toString().endsWith("/") ? resource.getURL() : Archives.Nested.formatURL(resource.getURL(), (String) null));
                 }
             }
         }

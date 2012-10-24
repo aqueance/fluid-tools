@@ -36,7 +36,7 @@ import org.fluidity.foundation.jarjar.Handler;
  * Convenience methods to work with Java archives.
  * <h3>Usage Example</h3>
  * <pre>
- * {@link Archives#read(URL, Archives.Reader) Archives.read}({@linkplain Archives#containing(Class) Archives.containing}(getClass()), new <span class="hl1">Archives.Reader</span>() {
+ * {@link Archives#read(URL, Archives.Entry) Archives.read}({@linkplain Archives#containing(Class) Archives.containing}(getClass()), new <span class="hl1">Archives.Entry</span>() {
  *   public boolean <span class="hl1">matches</span>(final {@linkplain URL} url, final {@linkplain JarEntry} entry) throws {@linkplain IOException} {
  *     &hellip;
  *     return true;
@@ -100,7 +100,7 @@ public final class Archives extends Utility {
      *
      * @throws IOException when something goes wrong reading the JAR file.
      */
-    public static int read(final URL url, final Reader reader) throws IOException {
+    public static int read(final URL url, final Entry reader) throws IOException {
         assert url != null;
         final InputStream stream = url.openStream();
         assert stream != null;
@@ -260,19 +260,19 @@ public final class Archives extends Utility {
     }
 
     /**
-     * Used by {@link Archives#read(URL, Archives.Reader) Archives.read()} to select and read entries in a JAR file. The reader will not be invoked for
+     * Used by {@link Archives#read(URL, Archives.Entry) Archives.read()} to select and read entries in a JAR file. The reader will not be invoked for
      * directory entries.
      * <h3>Usage</h3>
      * See {@link Archives}.
      *
      * @author Tibor Varga
      */
-    public interface Reader {
+    public interface Entry {
 
         /**
          * Tells if the {@link #read(URL, JarEntry, InputStream) read()} method should be invoked with the given entry.
          *
-         * @param url   the URL passed to the originating {@link Archives#read(URL, Archives.Reader) Archives.read()} call.
+         * @param url   the URL passed to the originating {@link Archives#read(URL, Archives.Entry) Archives.read()} call.
          * @param entry the entry in <code>url</code> to decide about; never <code>null</code>.
          *
          * @return <code>true</code> if the given entry should be passed to the {@link #read(URL, JarEntry, InputStream) read()} method, <code>false</code> if
@@ -285,7 +285,7 @@ public final class Archives extends Utility {
         /**
          * Reads the given entry.
          *
-         * @param url    the URL passed to the originating {@link Archives#read(URL, Archives.Reader) Archives.read()} call.
+         * @param url    the URL passed to the originating {@link Archives#read(URL, Archives.Entry) Archives.read()} call.
          * @param entry  the entry in <code>url</code> to read.
          * @param stream the stream containing the entry's content; must <em>not</em> be {@link InputStream#close() closed} by the receiver.
          *
@@ -327,26 +327,26 @@ public final class Archives extends Utility {
         private Nested() { }
 
         /**
-         * Creates a URL to either a Java archive nested in other archives at any level, or an entry therein, depending on the absence or presence of the
-         * <code>file</code> parameter, respectively.
+         * Creates a URL to either a JAR archive nested in other JAR archives at any level, or a resource entry in such a potentially nested archive, depending
+         * on whether the last item in the <code>path</code> list is <code>null</code> or not, respectively.
          *
-         * @param root  the URL of the (possibly nested) Java archive.
-         * @param file  optional file path inside the nested archive; may be <code>null</code>.
-         * @param paths the list of Java archive entries in the preceding archive in the list, or the <code>root</code> archive in case of the first
-         *              path; may be empty.
+         * @param root the URL of the (possibly already nested) JAR archive.
+         * @param path the list of entry names within the preceding archive entry in the list, or the <code>root</code> archive in case of the first
+         *             path; may be empty, in which case the <code>root</code> URL is returned. If the last item is <code>null</code>, the returned URL will
+         *             point to a nested archive; if the last item is <i>not</i> <code>null</code>, the returned URL will point to a JAR resource inside a
+         *             (potentially nested) archive.
          *
-         * @return either a <code>jarjar:</code> or a <code>jar:</code> URL to either a Java archive nested in other archives at any level, or the given
-         *         <code>file</code> entry therein, respectively.
+         * @return either a <code>jarjar:</code> pointing to a nested archive, or a <code>jar:</code> URL pointing to a JAR resource.
          *
          * @throws IOException when URL handling fails.
          */
-        public static URL formatURL(final URL root, final String file, final String... paths) throws IOException {
-            return Handler.formatURL(root, file, paths);
+        public static URL formatURL(final URL root, final String... path) throws IOException {
+            return Handler.formatURL(root, path);
         }
 
         /**
-         * Returns the root URL of the given URL returned by a previous call to {@link #formatURL(URL, String, String...) formatURL()}. The returned URL can
-         * then be fed back to {@link #formatURL(URL, String, String...) formatURL()} to target other nested Java archives.
+         * Returns the root URL of the given URL returned by a previous call to {@link #formatURL(URL, String...) formatURL()}. The returned URL can
+         * then be fed back to {@link #formatURL(URL, String...) formatURL()} to target other nested Java archives.
          *
          * @param url the URL to return the root of.
          *
@@ -360,7 +360,7 @@ public final class Archives extends Utility {
 
         /**
          * Unloads a AR archive identified by its URL that was previously loaded to cache nested archives found within. The protocol of the URL must either be
-         * "jar" or "jarjar", as produced by {@link org.fluidity.foundation.jarjar.Handler#formatURL(java.net.URL, String, String...)}.
+         * "jar" or "jarjar", as produced by {@link Handler#formatURL(URL, String...)}.
          *
          * @param url the URL to the Java archive to unload.
          */
@@ -381,7 +381,7 @@ public final class Archives extends Utility {
 
         /**
          * Returns the list of URLs pointing to the named list of embedded archives. The returned URLs can then be extended with further nested archives or
-         * resources using the {@link Archives.Nested#formatURL(URL, String, String...) formatURL} method.
+         * resources using the {@link Archives.Nested#formatURL(URL, String...) formatURL} method.
          *
          * @param name the name of the dependency list; may be <code>null</code>
          *
@@ -395,7 +395,7 @@ public final class Archives extends Utility {
 
         /**
          * Returns the list of URLs pointing to the named list of embedded archives. The returned URLs can then be appended further nested archives or
-         * resources using the {@link Archives.Nested#formatURL(URL, String, String...) formatURL} method.
+         * resources using the {@link Archives.Nested#formatURL(URL, String...) formatURL} method.
          *
          * @param archive the URL to the Java archive to inspect
          * @param name    the name of the dependency list; may be <code>null</code>
@@ -410,7 +410,7 @@ public final class Archives extends Utility {
 
             if (dependencies != null) {
                 for (final String dependency : dependencies.split(" ")) {
-                    urls.add(Handler.formatURL(archive, null, dependency));
+                    urls.add(Handler.formatURL(archive, dependency, null));
                 }
             }
 

@@ -45,7 +45,7 @@ import org.fluidity.foundation.Streams;
  * ordinary {@link java.net.URLClassLoader} to work with JAR archives embedded in other JAR archives, enabling packaged Java applications without loss of
  * functionality such as signed JAR files, etc.
  * <p/>
- * To use this stream handler, all you need to do is {@linkplain #formatURL(URL, String, String...) create} URLs that map to this stream protocol handler. For
+ * To use this stream handler, all you need to do is {@linkplain #formatURL(URL, String...) create} URLs that map to this stream protocol handler. For
  * example, if you have a JAR archive named <code>my-archive.jar</code> that embeds another JAR archive, <code>my-dependency.jar</code>, the following will
  * create an URL that can then be fed to an URL class loader:
  * <pre>
@@ -125,22 +125,24 @@ public final class Handler extends URLStreamHandler {
     }
 
     /**
-     * Creates a URL to either a JAR archive nested in other JAR archives at any level, or an entry therein, depending on the absence or presence of the
-     * <code>file</code> parameter, respectively.
+     * Creates a URL to either a JAR archive nested in other JAR archives at any level, or a resource entry in such a potentially nested archive, depending on
+     * whether the last item in the <code>path</code> list is <code>null</code> or not, respectively.
      *
-     * @param root  the URL of the (possibly nested) JAR archive.
-     * @param file  optional file path inside the nested JAR archive; may be <code>null</code>.
-     * @param paths the list of JAR archive paths relative to the preceding JAR archive in the list, or the <code>root</code> archive in case of the first
-     *              path; may be empty.
+     * @param root the URL of the (possibly already nested) JAR archive.
+     * @param path the list of entry names within the preceding archive entry in the list, or the <code>root</code> archive in case of the first
+     *             path; may be empty, in which case the <code>root</code> URL is returned. If the last item is <code>null</code>, the returned URL will point
+     *             to a nested archive; if the last item is <i>not</i> <code>null</code>, the returned URL will point to a JAR resource inside a (potentially
+     *             nested) archive.
      *
-     * @return either a <code>jarjar:</code> or a <code>jar:</code> URL to either a JAR archive nested in other JAR archives at any level, or the given
-     *         <code>file</code> entry therein, respectively.
+     * @return either a <code>jarjar:</code> pointing to a nested archive, or a <code>jar:</code> URL pointing to a JAR resource.
      *
      * @throws IOException when URL handling fails.
      */
-    public static URL formatURL(final URL root, final String file, final String... paths) throws IOException {
+    public static URL formatURL(final URL root, final String... path) throws IOException {
         if (root == null) {
             return null;
+        } else if (path != null && path.length == 0) {
+            return root;
         }
 
         final String stem = root.toExternalForm();
@@ -173,17 +175,21 @@ public final class Handler extends URLStreamHandler {
             }
         }
 
-        for (final String path : paths) {
-            specification.add(ClassLoaders.absoluteResourceName(path));
+        for (int i = 0, count = path == null ? -1 : path.length - 1; i < count; i++) {
+            //noinspection ConstantConditions
+            specification.add(ClassLoaders.absoluteResourceName(path[i]));
         }
 
         if (!specification.toString().contains(DELIMITER)) {
             specification.set(stem);
         }
 
-        if (file != null) {
+        assert path == null || path.length > 0;
+        final String entry = path == null ? null : path[path.length - 1];
+
+        if (entry != null) {
             specification.surround(Archives.PROTOCOL, Archives.DELIMITER);
-            specification.append(file);
+            specification.append(entry);
         }
 
         try {
@@ -194,8 +200,8 @@ public final class Handler extends URLStreamHandler {
     }
 
     /**
-     * Returns the root URL of the given URL returned by a previous call to {@link #formatURL(URL, String, String...)}. The returned URL can then be fed back
-     * to {@link #formatURL(URL, String, String...)} to target other nested JAR archives.
+     * Returns the root URL of the given URL returned by a previous call to {@link #formatURL(URL, String...)}. The returned URL can then be fed back
+     * to {@link #formatURL(URL, String...)} to target other nested JAR archives.
      *
      * @param url the URL to return the root of.
      *

@@ -67,7 +67,7 @@ public final class ArchivesSupport extends Utility {
                             final Log log,
                             final Feed feed) throws IOException {
         for (File input; (input = feed.next()) != null; ) {
-            Archives.read(input.toURI().toURL(), new Archives.Reader() {
+            Archives.read(input.toURI().toURL(), new Archives.Entry() {
                 public boolean matches(final URL url, final JarEntry entry) throws IOException {
 
                     // read all entries except the MANIFEST

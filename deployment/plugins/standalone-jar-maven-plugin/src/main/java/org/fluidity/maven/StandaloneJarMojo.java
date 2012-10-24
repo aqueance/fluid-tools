@@ -337,7 +337,7 @@ public final class StandaloneJarMojo extends AbstractMojo {
 
                                 // got to check if our project artifact is something we have created in a previous run
                                 // i.e., if it contains the project artifact we're about to copy
-                                int processed = Archives.read(dependency.toURI().toURL(), new Archives.Reader() {
+                                int processed = Archives.read(dependency.toURI().toURL(), new Archives.Entry() {
                                     public boolean matches(final URL url, final JarEntry entry) throws IOException {
                                         return entryName.equals(entry.getName());
                                     }
