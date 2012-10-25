@@ -17,6 +17,7 @@
 package org.fluidity.foundation;
 
 import java.io.BufferedInputStream;
+import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.JarURLConnection;
@@ -102,11 +103,12 @@ public final class Archives extends Utility {
      */
     public static int read(final URL url, final Entry reader) throws IOException {
         assert url != null;
-        final InputStream stream = url.openStream();
-        assert stream != null;
+        final InputStream content = url.openStream();
+        assert content != null;
 
         try {
-            final JarInputStream jar = new JarInputStream(stream, false);
+            final JarInputStream jar = new JarInputStream(content, false);
+            final InputStream stream = new OpenInputStream(jar);
 
             int count = 0;
             for (JarEntry entry; (entry = jar.getNextJarEntry()) != null; ) {
@@ -115,7 +117,7 @@ public final class Archives extends Utility {
                         if (reader.matches(url, entry)) {
                             ++count;
 
-                            if (!reader.read(url, entry, jar)) {
+                            if (!reader.read(url, entry, stream)) {
                                 break;
                             }
                         }
@@ -132,7 +134,7 @@ public final class Archives extends Utility {
             return count;
         } finally {
             try {
-                stream.close();
+                content.close();
             } catch (final IOException e) {
                 // ignore
             }
@@ -415,6 +417,23 @@ public final class Archives extends Utility {
             }
 
             return urls;
+        }
+    }
+
+    /**
+     * Rejects calls to {@link #close()} and delegates all other methods to an actual stream.
+     *
+     * @author Tibor Varga
+     */
+    private static class OpenInputStream extends FilterInputStream {
+
+        OpenInputStream(final InputStream delegate) {
+            super(delegate);
+        }
+
+        @Override
+        public void close() throws IOException {
+            throw new IOException("Entry content stream cannot be closed");
         }
     }
 }
