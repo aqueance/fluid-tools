@@ -26,6 +26,7 @@ import java.util.LinkedHashSet;
 
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ServiceProvider;
+import org.fluidity.foundation.Archives;
 import org.fluidity.foundation.ClassDiscovery;
 import org.fluidity.foundation.ClassLoaders;
 import org.fluidity.foundation.Exceptions;
@@ -69,7 +70,7 @@ final class ClassDiscoveryImpl implements ClassDiscovery {
             log.debug("Loading %s", url);
 
             final Collection<Class<T>> localList = new LinkedHashSet<Class<T>>();
-            final BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream(), "UTF-8"));
+            final BufferedReader reader = new BufferedReader(new InputStreamReader(Archives.open(url), "UTF-8"));
             String content;
 
             try {

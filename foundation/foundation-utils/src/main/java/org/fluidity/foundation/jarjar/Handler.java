@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.JarURLConnection;
 import java.net.MalformedURLException;
+import java.net.Proxy;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLStreamHandler;
@@ -45,7 +46,7 @@ import org.fluidity.foundation.Streams;
  * ordinary {@link java.net.URLClassLoader} to work with JAR archives embedded in other JAR archives, enabling packaged Java applications without loss of
  * functionality such as signed JAR files, etc.
  * <p/>
- * To use this stream handler, all you need to do is {@linkplain #formatURL(URL, String...) create} URLs that map to this stream protocol handler. For
+ * To use this stream handler, all you need to do is {@linkplain #formatURL(URL, Proxy, String...) create} URLs that map to this stream protocol handler. For
  * example, if you have a JAR archive named <code>my-archive.jar</code> that embeds another JAR archive, <code>my-dependency.jar</code>, the following will
  * create an URL that can then be fed to an URL class loader:
  * <pre>
@@ -104,6 +105,15 @@ public final class Handler extends URLStreamHandler {
     }
 
     @Override
+    protected URLConnection openConnection(final URL url, final Proxy proxy) throws IOException {
+        return new Connection(url, proxy);
+    }
+
+    static URLConnection connection(final URL url, final Proxy proxy) throws IOException {
+        return proxy == null || proxy.type() == Proxy.Type.DIRECT ? url.openConnection() : url.openConnection(proxy);
+    }
+
+    @Override
     protected void parseURL(final URL url, final String spec, final int start, final int limit) {
         final String string = spec.substring(start, limit);
         final int delimiter = string.indexOf(DELIMITER);
@@ -128,17 +138,18 @@ public final class Handler extends URLStreamHandler {
      * Creates a URL to either a JAR archive nested in other JAR archives at any level, or a resource entry in such a potentially nested archive, depending on
      * whether the last item in the <code>path</code> list is <code>null</code> or not, respectively.
      *
-     * @param root the URL of the (possibly already nested) JAR archive.
-     * @param path the list of entry names within the preceding archive entry in the list, or the <code>root</code> archive in case of the first
-     *             path; may be empty, in which case the <code>root</code> URL is returned. If the last item is <code>null</code>, the returned URL will point
-     *             to a nested archive; if the last item is <i>not</i> <code>null</code>, the returned URL will point to a JAR resource inside a (potentially
-     *             nested) archive.
+     * @param root  the URL of the (possibly already nested) JAR archive.
+     * @param proxy the proxy to use to connect to the URL; may be <code>null</code>.
+     * @param path  the list of entry names within the preceding archive entry in the list, or the <code>root</code> archive in case of the first
+     *              path; may be empty, in which case the <code>root</code> URL is returned. If the last item is <code>null</code>, the returned URL will point
+     *              to a nested archive; if the last item is <i>not</i> <code>null</code>, the returned URL will point to a JAR resource inside a (potentially
+     *              nested) archive.
      *
      * @return either a <code>jarjar:</code> pointing to a nested archive, or a <code>jar:</code> URL pointing to a JAR resource.
      *
      * @throws IOException when URL handling fails.
      */
-    public static URL formatURL(final URL root, final String... path) throws IOException {
+    public static URL formatURL(final URL root, final Proxy proxy, final String... path) throws IOException {
         if (root == null) {
             return null;
         } else if (path != null && path.length == 0) {
@@ -151,7 +162,7 @@ public final class Handler extends URLStreamHandler {
         if (PROTOCOL.equals(root.getProtocol())) {
             specification.set(stem);
         } else {
-            final URLConnection connection = root.openConnection();
+            final URLConnection connection = connection(root, proxy);
 
             if (connection instanceof JarURLConnection) {
 
@@ -200,48 +211,50 @@ public final class Handler extends URLStreamHandler {
     }
 
     /**
-     * Returns the root URL of the given URL returned by a previous call to {@link #formatURL(URL, String...)}. The returned URL can then be fed back
-     * to {@link #formatURL(URL, String...)} to target other nested JAR archives.
+     * Returns the root URL of the given URL returned by a previous call to {@link #formatURL(URL, Proxy, String...)}. The returned URL can then be fed back
+     * to {@link #formatURL(URL, Proxy, String...)} to target other nested JAR archives.
      *
-     * @param url the URL to return the root of.
+     * @param url   the URL to return the root of.
+     * @param proxy the proxy to use to connect to the URL; may be <code>null</code>.
      *
      * @return the root URL.
      *
      * @throws IOException when processing the URL fails.
      */
-    public static URL rootURL(final URL url) throws IOException {
-        final URL jarjar = unwrap(url);
+    public static URL rootURL(final URL url, final Proxy proxy) throws IOException {
+        final URL jarjar = unwrap(url, proxy);
         return PROTOCOL.equals(jarjar.getProtocol()) ? new URL(jarjar.getHost()) : url;
     }
 
     /**
      * Unloads the contents of the given URL from the caches.
      *
-     * @param url the URL to unload the contents of.
+     * @param url   the URL to unload the contents of.
+     * @param proxy the proxy to use to connect to the URL; may be <code>null</code>.
      *
      * @throws IOException when processing the URL fails.
      */
-    public static void unload(final URL url) throws IOException {
-        final URL jarjar = unwrap(url);
+    public static void unload(final URL url, final Proxy proxy) throws IOException {
+        final URL jarjar = unwrap(url, proxy);
 
         if (PROTOCOL.equals(jarjar.getProtocol())) {
             contents.remove(new URL(jarjar.getHost()));
         }
     }
 
-    private static URL unwrap(final URL url) throws IOException {
-        return url.openConnection() instanceof JarURLConnection ? new URL(url.getFile()) : url;
+    private static URL unwrap(final URL url, final Proxy proxy) throws IOException {
+        return (connection(url, proxy)) instanceof JarURLConnection ? new URL(url.getFile()) : url;
     }
 
     private static final Map<URL, Map<String, byte[]>> contents = new HashMap<URL, Map<String, byte[]>>();
 
-    static byte[] contents(final URL url) throws IOException {
-        final byte[] data = load(url).get(url.getPath());
+    static byte[] contents(final URL url, final Proxy proxy) throws IOException {
+        final byte[] data = load(url, proxy).get(url.getPath());
         return data == null ? null : data;
     }
 
     @SuppressWarnings("SynchronizationOnLocalVariableOrMethodParameter")
-    static Map<String, byte[]> load(final URL url) throws IOException {
+    static Map<String, byte[]> load(final URL url, final Proxy proxy) throws IOException {
         assert url != null;
 
         final URL root = new URL(url.getHost());
@@ -263,7 +276,7 @@ public final class Handler extends URLStreamHandler {
                     }
                 }
 
-                final URLConnection connection = root.openConnection();
+                final URLConnection connection = connection(root, proxy);
                 connection.setUseCaches(true);
 
                 load(content, new HashMap<Metadata, String>(), new byte[1024 * 1024], "", new JarInputStream(connection.getInputStream()));
@@ -384,12 +397,18 @@ public final class Handler extends URLStreamHandler {
     private static class Connection extends URLConnection {
 
         private final URLConnection root;
+        private final Proxy proxy;
 
         Connection(final URL url) throws IOException {
+            this(url, null);
+        }
+
+        Connection(final URL url, final Proxy proxy) throws IOException {
             super(url);
+            this.proxy = proxy;
 
             // the host part of our root URL itself is an URL
-            this.root = new URL(getURL().getHost()).openConnection();
+            this.root = Handler.connection(new URL(getURL().getHost()), proxy);
         }
 
         @Override
@@ -409,7 +428,7 @@ public final class Handler extends URLStreamHandler {
             }
 
             if (getUseCaches()) {
-                final byte[] contents = contents(url);
+                final byte[] contents = Handler.contents(url, proxy);
 
                 if (contents == null) {
                     throw new FileNotFoundException(url.toExternalForm());

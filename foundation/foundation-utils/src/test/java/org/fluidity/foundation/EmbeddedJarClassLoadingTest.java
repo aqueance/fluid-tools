@@ -25,8 +25,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.fluidity.foundation.jarjar.Handler;
-
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -45,7 +43,7 @@ public class EmbeddedJarClassLoadingTest {
 
         urls.add(root);
         for (final String path : paths) {
-            urls.add(Handler.formatURL(root, path, null));
+            urls.add(Archives.Nested.formatURL(root, path, null));
         }
 
         return new URLClassLoader(Lists.asArray(URL.class, urls), parent);

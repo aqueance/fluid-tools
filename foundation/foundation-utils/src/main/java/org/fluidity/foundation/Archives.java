@@ -21,6 +21,7 @@ import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.JarURLConnection;
+import java.net.Proxy;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
@@ -103,7 +104,7 @@ public final class Archives extends Utility {
      */
     public static int read(final URL url, final Entry reader) throws IOException {
         assert url != null;
-        final InputStream content = url.openStream();
+        final InputStream content = Archives.open(url);
         assert content != null;
 
         try {
@@ -139,6 +140,23 @@ public final class Archives extends Utility {
                 // ignore
             }
         }
+    }
+
+    /**
+     * Opens an {@link InputStream} to the contents of the given URL.
+     *
+     * @param url the URL to open.
+     *
+     * @return an {@link InputStream}; never <code>null</code>.
+     *
+     * @throws IOException if the stream cannot be open.
+     */
+    public static InputStream open(final URL url) throws IOException {
+        return connection(url).getInputStream();
+    }
+
+    private static URLConnection connection(final URL url) throws IOException {
+        return url.openConnection();    // TODO: proxy?
     }
 
     /**
@@ -205,16 +223,16 @@ public final class Archives extends Utility {
         InputStream stream;
 
         try {
-            stream = new URL(String.format("%s%s%s%s", PROTOCOL, url.toExternalForm(), DELIMITER, JarFile.MANIFEST_NAME)).openStream();
+            stream = Archives.open(new URL(String.format("%s%s%s%s", PROTOCOL, url.toExternalForm(), DELIMITER, JarFile.MANIFEST_NAME)));
         } catch (final IOException e) {
-            stream = new URL(new URL(url, "/"), JarFile.MANIFEST_NAME).openStream();
+            stream = Archives.open(new URL(new URL(url, "/"), JarFile.MANIFEST_NAME));
         }
 
         return new BufferedInputStream(stream);
     }
 
     private static Manifest jarManifest(final URL url) throws IOException {
-        final JarInputStream stream = new JarInputStream(url.openStream(), false);
+        final JarInputStream stream = new JarInputStream(Archives.open(url), false);
 
         try {
             return stream.getManifest();
@@ -246,7 +264,7 @@ public final class Archives extends Utility {
      * @throws IOException when the given URL cannot be accessed.
      */
     public static URL containing(final URL url) throws IOException {
-        final URLConnection connection = url.openConnection();
+        final URLConnection connection = connection(url);
         return connection instanceof JarURLConnection ? ((JarURLConnection) connection).getJarFileURL() : null;
     }
 
@@ -343,7 +361,7 @@ public final class Archives extends Utility {
          * @throws IOException when URL handling fails.
          */
         public static URL formatURL(final URL root, final String... path) throws IOException {
-            return Handler.formatURL(root, path);
+            return Handler.formatURL(root, null, path);
         }
 
         /**
@@ -357,17 +375,17 @@ public final class Archives extends Utility {
          * @throws IOException when processing the URL fails.
          */
         public static URL rootURL(final URL url) throws IOException {
-            return Handler.rootURL(url);
+            return Handler.rootURL(url, null);
         }
 
         /**
          * Unloads a AR archive identified by its URL that was previously loaded to cache nested archives found within. The protocol of the URL must either be
-         * "jar" or "jarjar", as produced by {@link Handler#formatURL(URL, String...)}.
+         * "jar" or "jarjar", as produced by {@link Handler#formatURL(URL, Proxy, String...)}.
          *
          * @param url the URL to the Java archive to unload.
          */
         public static void unload(final URL url) throws IOException {
-            Handler.unload(url);
+            Handler.unload(url, null);
         }
 
         /**
@@ -412,7 +430,7 @@ public final class Archives extends Utility {
 
             if (dependencies != null) {
                 for (final String dependency : dependencies.split(" ")) {
-                    urls.add(Handler.formatURL(archive, dependency, null));
+                    urls.add(Handler.formatURL(archive, null, dependency, null));
                 }
             }
 

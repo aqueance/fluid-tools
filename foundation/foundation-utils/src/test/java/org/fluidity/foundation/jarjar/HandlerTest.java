@@ -71,11 +71,11 @@ public class HandlerTest {
 
         {
             final URL root = getClass().getClassLoader().getResource(container);
-            final URL level1 = Handler.formatURL(root, "level1-2.jar");
-            final URL level2 = Handler.formatURL(level1, "level2.jar");
-            final URL level3 = Handler.formatURL(level2, "level3.jar");
+            final URL level1 = Handler.formatURL(root, null, "level1-2.jar");
+            final URL level2 = Handler.formatURL(level1, null, "level2.jar");
+            final URL level3 = Handler.formatURL(level2, null, "level3.jar");
 
-            final URLConnection connection = Handler.formatURL(level3, "level3.txt").openConnection();
+            final URLConnection connection = Handler.formatURL(level3, null, "level3.txt").openConnection();
             connection.setUseCaches(caching);
 
             final String expected = "level 3";
@@ -87,22 +87,22 @@ public class HandlerTest {
 
     @Test
     public void testCaching() throws Exception {
-        final URL url = Handler.formatURL(getClass().getClassLoader().getResource(container), "level1-2.jar", "level2.jar", "level3.jar", "level3.txt");
+        final URL url = Handler.formatURL(getClass().getClassLoader().getResource(container), null, "level1-2.jar", "level2.jar", "level3.jar", "level3.txt");
 
-        Handler.load(new URL(url.getFile()));
+        Handler.load(new URL(url.getFile()), null);
         Archives.Nested.unload(url);
     }
 
     @Test
     public void testFormatting() throws Exception {
-        final URL expected = Handler.formatURL(getClass().getClassLoader().getResource(container), "level1-2.jar", "level2.jar", "level3.jar", null);
-        verify(expected, Handler.formatURL(Handler.rootURL(expected), "level1-2.jar", "level2.jar", "level3.jar", null));
-        verify(expected, Handler.formatURL(Handler.formatURL(Handler.rootURL(expected), "level1-2.jar", "level2.jar", null), "level3.jar", null));
-        verify(expected, Handler.formatURL(Handler.formatURL(Handler.formatURL(Handler.rootURL(expected), "level1-2.jar", null), "level2.jar", null), "level3.jar", null));
+        final URL expected = Handler.formatURL(getClass().getClassLoader().getResource(container), null, "level1-2.jar", "level2.jar", "level3.jar", null);
+        verify(expected, Handler.formatURL(Handler.rootURL(expected, null), null, "level1-2.jar", "level2.jar", "level3.jar", null));
+        verify(expected, Handler.formatURL(Handler.formatURL(Handler.rootURL(expected, null), null, "level1-2.jar", "level2.jar", null), null, "level3.jar", null));
+        verify(expected, Handler.formatURL(Handler.formatURL(Handler.formatURL(Handler.rootURL(expected, null), null, "level1-2.jar", null), null, "level2.jar", null), null, "level3.jar", null));
 
-        final URL level3 = Handler.formatURL(Handler.formatURL(Handler.formatURL(Handler.rootURL(expected), "level1-2.jar"), "level2.jar"), "level3.jar");
-        verify(expected, Handler.formatURL(level3, (String) null));
-        verify(expected, Handler.formatURL(level3, (String[]) null));
+        final URL level3 = Handler.formatURL(Handler.formatURL(Handler.formatURL(Handler.rootURL(expected, null), null, "level1-2.jar"), null, "level2.jar"), null, "level3.jar");
+        verify(expected, Handler.formatURL(level3, null, (String) null));
+        verify(expected, Handler.formatURL(level3, null, (String[]) null));
     }
 
     @Test
@@ -142,8 +142,8 @@ public class HandlerTest {
         final String some = "some";
         final String path = some.concat("/path");
         final String folder = path.concat("/");
-        final URL folderBase = Handler.formatURL(new URL(root), level1, level2, folder);
-        final URL fileBase = Handler.formatURL(new URL(root), level1, level2, path);
+        final URL folderBase = Handler.formatURL(new URL(root), null, level1, level2, folder);
+        final URL fileBase = Handler.formatURL(new URL(root), null, level1, level2, path);
 
         final String relative = "relative/path";
         checkURL(folderBase, String.format("jar:%s:%s%s%s%s%s%s%s/%s", Handler.PROTOCOL, root, Handler.DELIMITER, level1, Handler.DELIMITER, level2, "!/", path, relative), relative);
@@ -164,7 +164,7 @@ public class HandlerTest {
     }
 
     private void assertContent(final boolean caching, final String container, final String content, final String... path) throws IOException {
-        final URLConnection connection = Handler.formatURL(getClass().getClassLoader().getResource(container), path).openConnection();
+        final URLConnection connection = Handler.formatURL(getClass().getClassLoader().getResource(container), null, path).openConnection();
         connection.setUseCaches(caching);
 
         final String loaded = Streams.load(connection.getInputStream(), "ASCII", BUFFER, true).replaceAll("\n", "");

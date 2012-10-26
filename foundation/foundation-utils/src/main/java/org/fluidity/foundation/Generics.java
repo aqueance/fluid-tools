@@ -180,7 +180,7 @@ public final class Generics extends Utility {
      * @return an array of {@link TypeVariable} or {@link WildcardType} objects, or <code>null</code> if no unresolved variable was found.
      */
     public static Type[] unresolved(final Type reference) {
-        return Lists.asArray(unresolved(reference, new ArrayList<Type>()), Type.class, false);
+        return Lists.asArray(Type.class, false, unresolved(reference, new ArrayList<Type>()));
     }
 
     /**

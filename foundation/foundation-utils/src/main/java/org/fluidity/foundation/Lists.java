@@ -93,7 +93,7 @@ public class Lists extends Utility {
      * @return an array containing the elements of the given list; never <code>null</code>.
      */
     public static <T> T[] asArray(final Class<? super T> type, final Collection<T> list) {
-        return asArray(list, type, true);
+        return asArray(type, true, list);
     }
 
     /**
@@ -101,17 +101,16 @@ public class Lists extends Utility {
      * Collection#toArray(Object[])} on the received <code>list</code> with the <code>list</code>'s sized array and, in most cases, does all the unchecked type
      * casts needed for the operation.
      *
-     * @param list  is the list to convert to an array; may be <code>null</code>.
      * @param type  the item type of the list/array; may not be <code>null</code>.
-     * @param empty tells whether an <code>null</code> or empty list should be returned as an empty array (value <code>true</code>) or <code>null</code> (value
+     * @param array tells whether a <code>null</code> or empty list should be returned as an empty array (value <code>true</code>) or <code>null</code> (value
      *              <code>false</code>).
-     * @param <T>   the generic item type of the list/array.
+     * @param list  is the list to convert to an array; may be <code>null</code>.
      *
      * @return an array containing the elements of the given list; may be <code>null</code> if <code>empty</code> is <code>false</code>.
      */
     @SuppressWarnings("unchecked")
-    public static <T> T[] asArray(final Collection<T> list, final Class<? super T> type, final boolean empty) {
-        return list == null || list.isEmpty() ? empty ? (T[]) Array.newInstance(type, 0) : null : list.toArray((T[]) Array.newInstance(type, list.size()));
+    public static <T> T[] asArray(final Class<? super T> type, final boolean array, final Collection<T> list) {
+        return list == null || list.isEmpty() ? array ? (T[]) Array.newInstance(type, 0) : null : list.toArray((T[]) Array.newInstance(type, list.size()));
     }
 
     /**

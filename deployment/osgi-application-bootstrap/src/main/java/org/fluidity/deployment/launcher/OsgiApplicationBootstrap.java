@@ -137,12 +137,12 @@ public final class OsgiApplicationBootstrap {
         final String application = System.getProperty(APPLICATION_PROPERTIES);
         final Properties distribution = loadProperties(application == null
                                                        ? ClassLoaders.readResource(getClass(), APPLICATION_PROPERTIES)
-                                                       : new URL(interpolator.interpolate(application)).openStream(), defaults);
+                                                       : Archives.open(new URL(interpolator.interpolate(application))), defaults);
 
         final String deployment = System.getProperty(DEPLOYMENT_PROPERTIES);
         final Properties properties = deployment == null
                                       ? distribution
-                                      : loadProperties(new URL(interpolator.interpolate(deployment)).openStream(), distribution);
+                                      : loadProperties(Archives.open(new URL(interpolator.interpolate(deployment))), distribution);
 
         final Map<String, String> config = new HashMap<String, String>();
 
