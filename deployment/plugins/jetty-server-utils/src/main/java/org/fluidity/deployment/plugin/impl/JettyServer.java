@@ -73,6 +73,8 @@ public final class JettyServer extends Utility {
             server.setStopAtShutdown(true);
             server.start();
             server.join();
+        } catch (final InterruptedException e) {
+            Thread.currentThread().interrupt();
         } catch (final Exception e) {
             throw new RuntimeException("Starting server", e);
         }

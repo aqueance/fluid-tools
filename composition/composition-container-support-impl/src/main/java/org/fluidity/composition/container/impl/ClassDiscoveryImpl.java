@@ -70,7 +70,7 @@ final class ClassDiscoveryImpl implements ClassDiscovery {
             log.debug("Loading %s", url);
 
             final Collection<Class<T>> localList = new LinkedHashSet<Class<T>>();
-            final BufferedReader reader = new BufferedReader(new InputStreamReader(Archives.open(url), "UTF-8"));
+            final BufferedReader reader = new BufferedReader(new InputStreamReader(Archives.open(true, url), "UTF-8"));
             String content;
 
             try {

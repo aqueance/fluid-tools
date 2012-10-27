@@ -20,18 +20,21 @@ import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
 import org.fluidity.composition.BoundaryComponent;
+import org.fluidity.composition.Component;
 import org.fluidity.composition.Inject;
 import org.fluidity.composition.spi.ContainerTermination;
+import org.fluidity.composition.web.impl.TerminationControl;
 
 /**
  * Adapts the Fluid Tools container life-cycle to the web application life-cycle.
  * <h3>Usage</h3>
- * This listener is registered in a <code>web.xml</code> descriptor of a web application.
+ * This listener is registered in a <code>web.xml</code> descriptor of a web application prior to Servlet 3.0. For Servlet 3.0 applications, the archive
+ * containing this class ships with a web fragment that does the same.
  * <pre>
  * &lt;web-app &hellip;>
  * &hellip;
  *   &lt;listener>
- *     &lt;description>Helps manage the Fluid Tools container life cycle&lt;/description>
+ *     &lt;description>Manages the Fluid Tools container life cycle&lt;/description>
  *     &lt;display-name>Fluid Tools Web Application Life-Cycle Listener&lt;/display-name>
  *     &lt;listener-class><span class="hl1">org.fluidity.composition.web.ContextLifeCycleListener</span>&lt;/listener-class>
  *   &lt;/listener>
@@ -40,6 +43,10 @@ import org.fluidity.composition.spi.ContainerTermination;
  * </pre>
  */
 public final class ContextLifeCycleListener extends BoundaryComponent implements ServletContextListener {
+
+    static {
+        Instance.registered = true;
+    }
 
     @Inject
     private ContainerTermination.Jobs<ContextLifeCycleListener> jobs;
@@ -65,5 +72,20 @@ public final class ContextLifeCycleListener extends BoundaryComponent implements
      */
     public void contextDestroyed(final ServletContextEvent event) {
         jobs.flush();
+    }
+
+    /**
+     * @author Tibor Varga
+     */
+    @Component
+    private static class Instance implements TerminationControl {
+
+        // cannot use instance field: getting the instance injected would trigger dependency injection, which would cause WebApplicationTermination to call
+        // #present() before this flag could be set
+        static volatile boolean registered;
+
+        public boolean present() {
+            return Instance.registered;
+        }
     }
 }

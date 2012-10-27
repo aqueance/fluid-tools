@@ -407,6 +407,8 @@ public final class Handler extends URLStreamHandler {
             super(url);
             this.proxy = proxy;
 
+            assert !PROTOCOL.equals(new URL(getURL().getHost()).getProtocol()) : getURL();
+
             // the host part of our root URL itself is an URL
             this.root = Handler.connection(new URL(getURL().getHost()), proxy);
         }
@@ -419,6 +421,12 @@ public final class Handler extends URLStreamHandler {
         @Override
         public Permission getPermission() throws IOException {
             return root.getPermission();
+        }
+
+        @Override
+        public void setUseCaches(final boolean flag) {
+            super.setUseCaches(flag);
+            root.setUseCaches(flag);
         }
 
         @Override

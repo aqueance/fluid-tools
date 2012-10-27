@@ -218,7 +218,7 @@ public final class StandaloneWarMojo extends AbstractMojo {
                     if (iterator.hasNext()) {
                         final File file = iterator.next().getFile();
                         final URL url = file.toURI().toURL();
-                        mainClass.compareAndSet(null, Archives.attributes(url, Attributes.Name.MAIN_CLASS.toString())[0]);
+                        mainClass.compareAndSet(null, Archives.attributes(false, url, Attributes.Name.MAIN_CLASS.toString())[0]);
                         return file;
                     } else {
                         return null;
@@ -249,7 +249,7 @@ public final class StandaloneWarMojo extends AbstractMojo {
 
                 final String bootDirectory = Archives.WEB_INF.concat("/boot/");
 
-                final Manifest manifest = Archives.manifest(packageFile.toURI().toURL());
+                final Manifest manifest = Archives.manifest(false, packageFile.toURI().toURL());
                 final Attributes mainAttributes = manifest.getMainAttributes();
 
                 if (mainAttributes.getValue(Attributes.Name.MAIN_CLASS) != null) {

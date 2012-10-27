@@ -78,6 +78,8 @@ public final class WebApplicationBootstrap {
             assert bootWar.exists() : bootWar;
 
             int httpPort = 0;
+            boolean extract = false;
+
             final List<String> params = new ArrayList<String>();
 
             for (int i = 0; i < args.length; i++) {
@@ -88,19 +90,23 @@ public final class WebApplicationBootstrap {
                     assert file.exists() : file;
 
                     managedApps.add(file);
-                } else if (args.length > i && param.equals("-http")) {
-                    if (args.length > i + 1) {
+                } else if (param.equals("-http")) {
+                    final int j = i + 1;
+
+                    if (args.length > j) {
                         try {
-                            httpPort = Integer.parseInt(args[i + 1]);
-                            ++i;
+                            httpPort = Integer.parseInt(args[j]);
+                            i = j;
                         } catch (final NumberFormatException e) {
-                            if (!args[i + 1].endsWith(".war")) {
-                                throw new RuntimeException(String.format("Parameter %s is not a port number", args[i + 1]));
+                            if (!args[j].startsWith("-")) {
+                                throw new RuntimeException(String.format("Parameter %s is not a port number", args[j]));
                             }
                         }
                     } else {
                         httpPort = 80;
                     }
+                } else if (param.equals("-extract")) {
+                    extract = true;
                 } else {
                     params.add(param);
                 }
@@ -109,9 +115,7 @@ public final class WebApplicationBootstrap {
             final URL war = Archives.containing(WebApplicationBootstrap.class);
             final List<URL> classpath = new ArrayList<URL>();
 
-            classpath.add(war);
-
-            Archives.read(war, new Archives.Entry() {
+            Archives.read(true, war, new Archives.Entry() {
                 private final String bootEntry = "WEB-INF/boot/";
 
                 public boolean matches(final URL url, final JarEntry entry) throws IOException {
@@ -130,13 +134,14 @@ public final class WebApplicationBootstrap {
                 }
             });
 
-            bootstrapServer(httpPort, classpath, bootWar, managedApps, Lists.asArray(String.class, params));
+            bootstrapServer(httpPort, extract, classpath, bootWar, managedApps, Lists.asArray(String.class, params));
         } else {
             throw new RuntimeException("Not a local WAR file: " + bootUrl);
         }
     }
 
     private void bootstrapServer(final int httpPort,
+                                 final boolean extract,
                                  final List<URL> classpath,
                                  final File bootApp,
                                  final List<File> managedApps,
@@ -147,7 +152,7 @@ public final class WebApplicationBootstrap {
         if (server != null) {
             ClassLoaders.context(classLoader, new Function<Void, ClassLoader, Exception>() {
                 public Void run(final ClassLoader loader) throws Exception {
-                    server.bootstrap(httpPort, bootApp, managedApps, args);
+                    server.bootstrap(httpPort, extract, bootApp, managedApps, args);
                     return null;
                 }
             });

@@ -13,16 +13,10 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 *#<?xml version="1.0"?>
-<web-app id="simple-webapp" version="2.4"
-         xmlns="http://java.sun.com/xml/ns/j2ee"
+<web-app id="simple-webapp" version="2.5"
+         xmlns="http://java.sun.com/xml/ns/javaee"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd">
-
-    <listener>
-        <description>Helps to manage the Fluid Tools container life cycle</description>
-        <display-name>Fluid Tools Servlet Context Listener</display-name>
-        <listener-class>org.fluidity.composition.web.AggregatingServletContextListener</listener-class>
-    </listener>
+         xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd">
 
     <servlet>
         <servlet-name>my-servlet</servlet-name>

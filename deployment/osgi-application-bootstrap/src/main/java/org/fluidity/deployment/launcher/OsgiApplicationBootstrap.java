@@ -137,12 +137,12 @@ public final class OsgiApplicationBootstrap {
         final String application = System.getProperty(APPLICATION_PROPERTIES);
         final Properties distribution = loadProperties(application == null
                                                        ? ClassLoaders.readResource(getClass(), APPLICATION_PROPERTIES)
-                                                       : Archives.open(new URL(interpolator.interpolate(application))), defaults);
+                                                       : Archives.open(true, new URL(interpolator.interpolate(application))), defaults);
 
         final String deployment = System.getProperty(DEPLOYMENT_PROPERTIES);
         final Properties properties = deployment == null
                                       ? distribution
-                                      : loadProperties(Archives.open(new URL(interpolator.interpolate(deployment))), distribution);
+                                      : loadProperties(Archives.open(true, new URL(interpolator.interpolate(deployment))), distribution);
 
         final Map<String, String> config = new HashMap<String, String>();
 
@@ -174,7 +174,7 @@ public final class OsgiApplicationBootstrap {
         for (final URL url : Archives.Nested.dependencies(BUNDLES)) {
 
             // make sure to select only those archives that have an OSGi bundle symbolic name (it is a mandatory OSGi header)
-            if (Archives.attributes(url, Constants.BUNDLE_SYMBOLICNAME)[0] != null) {
+            if (Archives.attributes(true, url, Constants.BUNDLE_SYMBOLICNAME)[0] != null) {
                 jars.add(url);
             }
         }

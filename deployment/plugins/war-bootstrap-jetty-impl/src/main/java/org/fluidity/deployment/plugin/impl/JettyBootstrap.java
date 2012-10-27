@@ -37,21 +37,23 @@ import org.eclipse.jetty.webapp.WebAppContext;
  */
 public final class JettyBootstrap implements ServerBootstrap {
 
-    public void bootstrap(final int httpPort, final File bootApp, final List<File> managedApps, final String args[]) throws IOException {
-        final WebAppContext defaultContext = deployWar(bootApp, true);
+    public void bootstrap(final int httpPort, final boolean extract, final File bootApp, final List<File> managedApps, final String args[]) throws IOException {
+        final WebAppContext defaultContext = deployWar(bootApp, true, extract);
         final List<WebAppContext> contextList = new ArrayList<WebAppContext>();
 
         for (final File app : managedApps) {
-            contextList.add(deployWar(app, false));
+            contextList.add(deployWar(app, false, extract));
         }
 
         JettyServer.start(httpPort, defaultContext, contextList);
     }
 
-    private WebAppContext deployWar(final File warFile, final boolean root) throws IOException {
+    private WebAppContext deployWar(final File warFile, final boolean root, final boolean extract) throws IOException {
         final WebAppContext context = new WebAppContext();
+
+        context.setThrowUnavailableOnStartupException(true);    // stops Jetty from swallowing exceptions on deployment
         context.setExtractWAR(false);
-        context.setCopyWebInf(false);
+        context.setCopyWebInf(extract);
         context.setClassLoader(new InlineWebAppClassLoader(context));
 
         final String archiveName = warFile.getName();

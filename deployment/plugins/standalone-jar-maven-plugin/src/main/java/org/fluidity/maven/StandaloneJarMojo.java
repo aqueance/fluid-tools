@@ -179,19 +179,7 @@ public final class StandaloneJarMojo extends AbstractMojo {
             final JarOutputStream outputStream = new JarOutputStream(new FileOutputStream(file));
 
             try {
-                final Manifest manifest;
-
-                final JarFile jarInput = new JarFile(packageFile);
-                try {
-                    manifest = jarInput.getManifest();
-                } finally {
-                    try {
-                        jarInput.close();
-                    } catch (final IOException ignored) {
-                        // ignored
-                    }
-                }
-
+                final Manifest manifest = Archives.manifest(false, packageFile.toURI().toURL());
                 final Attributes mainAttributes = manifest.getMainAttributes();
 
                 if (mainAttributes.get(Attributes.Name.CLASS_PATH) != null) {
@@ -337,7 +325,7 @@ public final class StandaloneJarMojo extends AbstractMojo {
 
                                 // got to check if our project artifact is something we have created in a previous run
                                 // i.e., if it contains the project artifact we're about to copy
-                                int processed = Archives.read(dependency.toURI().toURL(), new Archives.Entry() {
+                                int processed = Archives.read(false, dependency.toURI().toURL(), new Archives.Entry() {
                                     public boolean matches(final URL url, final JarEntry entry) throws IOException {
                                         return entryName.equals(entry.getName());
                                     }

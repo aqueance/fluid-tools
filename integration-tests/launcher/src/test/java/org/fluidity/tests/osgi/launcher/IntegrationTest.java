@@ -93,7 +93,7 @@ public final class IntegrationTest {
             for (final URL manifest : ClassLoaders.findResources(ClassLoaders.findClassLoader(IntegrationTest.class, true), JarFile.MANIFEST_NAME)) {
 
                 // find and install those JAR files that have both an OSGi bundle symbolic name and our integration test marker
-                final String[] markers = Archives.attributes(manifest, INTEGRATION_TEST_MARKER, Constants.BUNDLE_SYMBOLICNAME);
+                final String[] markers = Archives.attributes(true, manifest, INTEGRATION_TEST_MARKER, Constants.BUNDLE_SYMBOLICNAME);
 
                 if (markers[0] != null && markers[1] != null) {
                     final Bundle bundle = system.installBundle(Archives.containing(manifest).toExternalForm());

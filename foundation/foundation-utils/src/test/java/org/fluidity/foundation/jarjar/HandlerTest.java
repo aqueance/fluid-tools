@@ -109,7 +109,7 @@ public class HandlerTest {
     public void testExploration() throws Exception {
         final List<String> files = new ArrayList<String>();
 
-        Archives.read(getClass().getClassLoader().getResource(container), new Archives.Entry() {
+        Archives.read(true, getClass().getClassLoader().getResource(container), new Archives.Entry() {
             public boolean matches(final URL url, final JarEntry entry) throws IOException {
                 final String name = entry.getName();
 
@@ -121,7 +121,7 @@ public class HandlerTest {
             }
 
             public boolean read(final URL url, final JarEntry entry, final InputStream stream) throws IOException {
-                Archives.read(Archives.Nested.formatURL(url, entry.getName()), this);
+                Archives.read(true, Archives.Nested.formatURL(url, entry.getName()), this);
                 return true;
             }
         });

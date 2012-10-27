@@ -20,6 +20,7 @@ import org.fluidity.composition.Component;
 import org.fluidity.composition.spi.ContainerTermination;
 import org.fluidity.composition.web.ContextLifeCycleListener;
 import org.fluidity.foundation.Command;
+import org.fluidity.foundation.Strings;
 
 /**
  * Implements the component shutdown mechanism for web applications. The implementation requires, to be able to serve its function, {@link
@@ -27,21 +28,31 @@ import org.fluidity.foundation.Command;
  *
  * @author Tibor Varga
  */
-@Component(api = { WebApplicationTermination.class, ContainerTermination.class })
+@Component
 final class WebApplicationTermination implements ContainerTermination {
 
     private final Jobs jobs;
+    private final TerminationControl control;
 
     // we must use the jobs instance flushed by ContextLifeCycleListener
-    WebApplicationTermination(final Jobs<ContextLifeCycleListener> jobs) {
+    WebApplicationTermination(final Jobs<ContextLifeCycleListener> jobs, final TerminationControl control) {
         this.jobs = jobs;
+        this.control = control;
     }
 
     public void add(final Command.Job<Exception> job) {
+        checkControl();
         jobs.add(job);
     }
 
     public void remove(final Command.Job<Exception> job) {
+        checkControl();
         jobs.remove(job);
+    }
+
+    private void checkControl() {
+        if (!control.present()) {
+            throw new IllegalStateException(String.format("%s has not been registered", Strings.formatClass(false, true, ContextLifeCycleListener.class)));
+        }
     }
 }

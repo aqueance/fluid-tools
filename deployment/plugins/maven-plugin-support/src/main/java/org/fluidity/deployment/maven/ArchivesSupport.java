@@ -21,7 +21,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.Arrays;
-import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -67,7 +66,7 @@ public final class ArchivesSupport extends Utility {
                             final Log log,
                             final Feed feed) throws IOException {
         for (File input; (input = feed.next()) != null; ) {
-            Archives.read(input.toURI().toURL(), new Archives.Entry() {
+            Archives.read(true, input.toURI().toURL(), new Archives.Entry() {
                 public boolean matches(final URL url, final JarEntry entry) throws IOException {
 
                     // read all entries except the MANIFEST
@@ -142,11 +141,8 @@ public final class ArchivesSupport extends Utility {
         }
 
         for (File input; (input = feed.next()) != null; ) {
-            final JarFile jar = new JarFile(input);
-
-            try {
-                for (final Enumeration<JarEntry> entries = jar.entries(); entries.hasMoreElements(); ) {
-                    final JarEntry entry = entries.nextElement();
+            Archives.read(true, input.toURI().toURL(), new Archives.Entry() {
+                public boolean matches(final URL url, final JarEntry entry) throws IOException {
                     final String entryName = entry.getName();
 
                     final boolean done = copied.contains(entryName);
@@ -154,15 +150,17 @@ public final class ArchivesSupport extends Utility {
                     final boolean index = entryName.equals(Archives.INDEX_NAME);
                     final boolean signature = entryName.startsWith(Archives.META_INF) && entryName.toUpperCase().endsWith(".SF");
 
-                    if (!done && !manifest && !index && !signature && feed.include(entry)) {
-                        copied.add(entryName);
-                        output.putNextEntry(entry);
-                        Streams.copy(jar.getInputStream(entry), output, buffer, true, false);
-                    }
+                    return !done && !manifest && !index && !signature && feed.include(entry);
                 }
-            } finally {
-                jar.close();
-            }
+
+                public boolean read(final URL url, final JarEntry entry, final InputStream stream) throws IOException {
+                    copied.add(entry.getName());
+                    output.putNextEntry(entry);
+                    Streams.copy(stream, output, buffer, false, false);
+
+                    return true;
+                }
+            });
         }
     }
 
@@ -194,7 +192,7 @@ public final class ArchivesSupport extends Utility {
     }
 
     /**
-     * Provides {@link JarFile} input files to {@link ArchivesSupport#load(Map, Map, byte[], Log, ArchivesSupport.Feed)} and {@link
+     * Provides input files to {@link ArchivesSupport#load(Map, Map, byte[], Log, ArchivesSupport.Feed)} and {@link
      * ArchivesSupport#expand(JarOutputStream, byte[], Map, ArchivesSupport.Feed)}.
      *
      * @author Tibor Varga
