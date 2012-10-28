@@ -123,22 +123,11 @@ public final class Handler extends URLStreamHandler {
          *  * relative path: not supported, considered illegal
          *  * absolute path: supported
          *  * query string: handled by caller
-         *  * reference: supported and retained in enclosed URL
          */
 
         assert PROTOCOL.equals(url.getProtocol()) : url;
 
-        final String string;
-
-        String reference = url.getRef();
-        final int separator = reference == null ? -1 : reference.indexOf(DELIMITER);
-        if (separator > -1) {
-            assert reference != null;
-            string = spec.substring(start, limit).concat(reference.substring(separator));
-            reference = reference.substring(0, separator);
-        } else {
-            string = spec.substring(start, limit);
-        }
+        final String string = spec.substring(start, limit);
 
         if (string.contains(".".concat(DELIMITER))) {
             throw new IllegalArgumentException(String.format("No relative %s URLs supported", PROTOCOL));
@@ -149,27 +138,45 @@ public final class Handler extends URLStreamHandler {
                 throw new IllegalArgumentException(String.format("%s URLs must refer to an entry", PROTOCOL));
             }
 
-            final String base = string.substring(0, delimiter);
-            final String host = reference == null ? base : String.format("%s#%s", base, reference);
+            final String enclosed = string.substring(0, delimiter);
 
             try {
-                final URL enclosed = new URL(host);
+                final URL valid = new URL(enclosed);
 
-                if (PROTOCOL.equals(enclosed.getProtocol())) {
+                if (PROTOCOL.equals(valid.getProtocol())) {
                     throw new IllegalArgumentException(String.format("%s URLs may not enclose a %1$s URL", PROTOCOL));
                 }
             } catch (final MalformedURLException e) {
                 throw new IllegalArgumentException(String.format("%s URLs must enclose a valid URL", PROTOCOL));
             }
 
-            setURL(url, PROTOCOL, host, -1, null, null, string.substring(delimiter), null, null);
+            setURL(url, PROTOCOL, null, -1, null, null, enclosed.concat(string.substring(delimiter)), null, null);
         }
+    }
+
+    /**
+     * Returns the part of the nested archive URL that identifies the outermost enclosing archive.
+     */
+    private static URL enclosedURL(final URL url) throws MalformedURLException {
+        final String path = url.getPath();
+        final int delimiter = path.indexOf(DELIMITER);
+
+        return new URL(delimiter < 0 ? path : path.substring(0, delimiter));
+    }
+
+    /**
+     * Returns the part of the nested archive URL that identifies the list of archives, each nested in the outermost archive.
+     */
+    private static String path(final URL url) {
+        final String path = url.getFile();
+        final int delimiter = path.indexOf(DELIMITER);
+        return delimiter < 0 ? path : path.substring(delimiter);
     }
 
     @Override
     protected String toExternalForm(final URL url) {
         try {
-            return String.format("%s:%s%s", url.getProtocol(), new URL(url.getHost()).toExternalForm(), url.getPath());
+            return String.format("%s:%s%s", url.getProtocol(), enclosedURL(url).toExternalForm(), path(url));
         } catch (final IOException e) {
             throw new IllegalStateException(e);
         }
@@ -212,7 +219,7 @@ public final class Handler extends URLStreamHandler {
                 }
 
                 // find the JAR resource, if any
-                final String[] parts = root.getPath().split(Archives.DELIMITER);
+                final String[] parts = path(root).split(Archives.DELIMITER);
 
                 if (parts.length > 1) {
                     specification.add(parts[1]);
@@ -258,7 +265,7 @@ public final class Handler extends URLStreamHandler {
      */
     public static URL rootURL(final URL url) throws IOException {
         final URL jarjar = unwrap(url);
-        return PROTOCOL.equals(jarjar.getProtocol()) ? new URL(jarjar.getHost()) : url;
+        return PROTOCOL.equals(jarjar.getProtocol()) ? enclosedURL(jarjar) : url;
     }
 
     /**
@@ -272,7 +279,7 @@ public final class Handler extends URLStreamHandler {
         final URL jarjar = unwrap(url);
 
         if (PROTOCOL.equals(jarjar.getProtocol())) {
-            contents.remove(new URL(jarjar.getHost()));
+            contents.remove(enclosedURL(jarjar));
         }
     }
 
@@ -284,7 +291,7 @@ public final class Handler extends URLStreamHandler {
     private static final Map<URL, Map<String, byte[]>> contents = new HashMap<URL, Map<String, byte[]>>();
 
     static byte[] contents(final URL url, final Proxy proxy) throws IOException {
-        final byte[] data = load(url, proxy).get(url.getPath());
+        final byte[] data = load(url, proxy).get(path(url));
         return data == null ? null : data;
     }
 
@@ -292,7 +299,7 @@ public final class Handler extends URLStreamHandler {
     static Map<String, byte[]> load(final URL url, final Proxy proxy) throws IOException {
         assert url != null;
 
-        final URL root = new URL(url.getHost());
+        final URL root = enclosedURL(url);
         Map<String, byte[]> content = contents.get(root);
 
         if (content == null) {
@@ -442,10 +449,10 @@ public final class Handler extends URLStreamHandler {
             super(url);
             this.proxy = proxy;
 
-            assert !PROTOCOL.equals(new URL(getURL().getHost()).getProtocol()) : getURL();
+            assert !PROTOCOL.equals(enclosedURL(getURL()).getProtocol()) : getURL();
 
             // the host part of our root URL itself is an URL
-            this.root = Handler.connection(new URL(getURL().getHost()), proxy);
+            this.root = Handler.connection(enclosedURL(getURL()), proxy);
         }
 
         @Override
@@ -482,7 +489,7 @@ public final class Handler extends URLStreamHandler {
                 final JarInputStream container = new JarInputStream(root.getInputStream());
 
                 // each successive path is nested in the stream at the previous index
-                final String[] paths = url.getPath().split(DELIMITER);
+                final String[] paths = path(url).split(DELIMITER);
 
                 // first stream is the container
                 JarInputStream stream = container;

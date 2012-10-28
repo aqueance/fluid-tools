@@ -300,7 +300,7 @@ public final class Archives extends Utility {
      *
      * @return the URL for the Java archive that the given URL is relative to; may be <code>null</code> if the given URL is not relative to a Java archive.
      *
-     * @throws IOException when the given URL cannot be accessed.
+     * @throws IOException when the Java URL cannot be created.
      */
     public static URL containing(final URL url) throws IOException {
         if (url != null && Archives.PROTOCOL.equals(url.getProtocol())) {
@@ -415,7 +415,7 @@ public final class Archives extends Utility {
          *
          * @param url the URL to return the root of.
          *
-         * @return the root URL.
+         * @return the root URL, which may be the given <code>url</code>; never <code>null</code>.
          *
          * @throws IOException when processing the URL fails.
          */

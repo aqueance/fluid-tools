@@ -100,7 +100,7 @@ public class HandlerTest {
         verify(expected, Handler.formatURL(level3, (String) null));
         verify(expected, Handler.formatURL(level3, (String[]) null));
 
-        final URL insane = Handler.formatURL(new URL("http://xxx:yyy@insane.org/whatever.jar?query=param#reference"), "level1.jar", "level2.jar", "level3.jar", null);
+        final URL insane = Handler.formatURL(new URL("http://xxx:yyy@insane.org/whatever.jar?query=param"), "level1.jar", "level2.jar", "level3.jar", null);
         verify(insane, Handler.formatURL(Handler.formatURL(Handler.formatURL(Handler.rootURL(insane), "level1.jar", null), "level2.jar", null), "level3.jar", null));
     }
 
