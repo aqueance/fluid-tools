@@ -31,7 +31,7 @@ import org.testng.annotations.Test;
 /**
  * @author Tibor Varga
  */
-public class EmbeddedJarClassLoadingTest {
+public class NestedArchivesTest {
 
     private final String container = "samples.jar";
     private final URL root = getClass().getClassLoader().getResource(container);

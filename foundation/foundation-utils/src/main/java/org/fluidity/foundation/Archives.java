@@ -20,8 +20,6 @@ import java.io.BufferedInputStream;
 import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.JarURLConnection;
-import java.net.Proxy;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
@@ -84,7 +82,7 @@ public final class Archives extends Utility {
     /**
      * The JAR resource URL protocol.
      */
-    public static final String PROTOCOL = "jar:";
+    public static final String PROTOCOL = "jar";
     /**
      * The JAR resource URL path component delimiter in a valid URL.
      */
@@ -196,6 +194,36 @@ public final class Archives extends Utility {
     }
 
     /**
+     * Returns the main attributes with the given names from manifest of the JAR file identified by the given URL.
+     *
+     * @param cached tells whether a previously cached archive, if any, should be used (value <code>true</code>), or a newly loaded one (value
+     *               <code>false</code>).
+     * @param url    the URL, pointing either to a JAR resource or an archive itself.
+     * @param names  the list of attribute names to load.
+     *
+     * @return an array of strings, each being the value of the attribute name at the same index in the <code>names</code> parameter or <code>null</code>;
+     *         never <code>null</code>.
+     *
+     * @throws IOException when an I/O error occurs when accessing its manifest
+     */
+    public static String[] attributes(final boolean cached, final URL url, final Attributes.Name... names) throws IOException {
+        final String[] list = new String[names.length];
+
+        if (url != null) {
+            final Manifest manifest = Archives.manifest(cached, url);
+            final Attributes attributes = manifest == null ? null : manifest.getMainAttributes();
+
+            if (attributes != null) {
+                for (int i = 0, limit = names.length; i < limit; i++) {
+                    list[i] = attributes.getValue(names[i]);
+                }
+            }
+        }
+
+        return list;
+    }
+
+    /**
      * Loads the JAR manifest from the given URL. Supports URLs pointing to a Java archive, URLs pointing to any resource in a Java archive, URLs
      * pointing to a {@link JarFile#MANIFEST_NAME}, and URLs from which {@link JarFile#MANIFEST_NAME} can be loaded.
      *
@@ -233,7 +261,7 @@ public final class Archives extends Utility {
         InputStream stream;
 
         try {
-            stream = Archives.open(cached, new URL(String.format("%s%s%s%s", PROTOCOL, url.toExternalForm(), DELIMITER, JarFile.MANIFEST_NAME)));
+            stream = Archives.open(cached, new URL(String.format("%s:%s%s%s", PROTOCOL, url.toExternalForm(), DELIMITER, JarFile.MANIFEST_NAME)));
         } catch (final IOException e) {
             stream = Archives.open(cached, new URL(new URL(url, "/"), JarFile.MANIFEST_NAME));
         }
@@ -265,17 +293,24 @@ public final class Archives extends Utility {
     }
 
     /**
-     * Returns the URL for JAR file that the given URL is relative to.
+     * Returns the URL for the Java archive that the given URL is relative to. The returned URL, when not <code>null</code> can be used with a {@link
+     * URLClassLoader}.
      *
      * @param url the nested URL.
      *
-     * @return the URL for JAR file that the given URL is relative to; may be <code>null</code> if the given URL is not relative to a JAR file.
+     * @return the URL for the Java archive that the given URL is relative to; may be <code>null</code> if the given URL is not relative to a Java archive.
      *
      * @throws IOException when the given URL cannot be accessed.
      */
     public static URL containing(final URL url) throws IOException {
-        final URLConnection connection = connection(url);
-        return connection instanceof JarURLConnection ? ((JarURLConnection) connection).getJarFileURL() : null;
+        if (url != null && Archives.PROTOCOL.equals(url.getProtocol())) {
+            final String file = url.getFile();
+            final int delimiter = file.indexOf(DELIMITER);
+
+            return new URL(delimiter == -1 ? file : file.substring(0, delimiter));
+        }
+
+        return null;
     }
 
     /**
@@ -371,7 +406,7 @@ public final class Archives extends Utility {
          * @throws IOException when URL handling fails.
          */
         public static URL formatURL(final URL root, final String... path) throws IOException {
-            return Handler.formatURL(root, null, path);
+            return Handler.formatURL(root, path);
         }
 
         /**
@@ -385,17 +420,17 @@ public final class Archives extends Utility {
          * @throws IOException when processing the URL fails.
          */
         public static URL rootURL(final URL url) throws IOException {
-            return Handler.rootURL(url, null);
+            return Handler.rootURL(url);
         }
 
         /**
          * Unloads a AR archive identified by its URL that was previously loaded to cache nested archives found within. The protocol of the URL must either be
-         * "jar" or "jarjar", as produced by {@link Handler#formatURL(URL, Proxy, String...)}.
+         * "jar" or "jarjar", as produced by {@link Handler#formatURL(URL, String...)}.
          *
          * @param url the URL to the Java archive to unload.
          */
         public static void unload(final URL url) throws IOException {
-            Handler.unload(url, null);
+            Handler.unload(url);
         }
 
         /**
@@ -440,7 +475,7 @@ public final class Archives extends Utility {
 
             if (dependencies != null) {
                 for (final String dependency : dependencies.split(" ")) {
-                    urls.add(Handler.formatURL(archive, null, dependency, null));
+                    urls.add(Handler.formatURL(archive, dependency, null));
                 }
             }
 

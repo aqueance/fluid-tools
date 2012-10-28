@@ -20,7 +20,6 @@ import java.io.ByteArrayInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.JarURLConnection;
 import java.net.MalformedURLException;
 import java.net.Proxy;
 import java.net.URL;
@@ -46,7 +45,7 @@ import org.fluidity.foundation.Streams;
  * ordinary {@link java.net.URLClassLoader} to work with JAR archives embedded in other JAR archives, enabling packaged Java applications without loss of
  * functionality such as signed JAR files, etc.
  * <p/>
- * To use this stream handler, all you need to do is {@linkplain #formatURL(URL, Proxy, String...) create} URLs that map to this stream protocol handler. For
+ * To use this stream handler, all you need to do is {@linkplain #formatURL(URL, String...) create} URLs that map to this stream protocol handler. For
  * example, if you have a JAR archive named <code>my-archive.jar</code> that embeds another JAR archive, <code>my-dependency.jar</code>, the following will
  * create an URL that can then be fed to an URL class loader:
  * <pre>
@@ -115,13 +114,55 @@ public final class Handler extends URLStreamHandler {
 
     @Override
     protected void parseURL(final URL url, final String spec, final int start, final int limit) {
-        final String string = spec.substring(start, limit);
-        final int delimiter = string.indexOf(DELIMITER);
 
-        if (delimiter < 0) {
-            setURL(url, PROTOCOL, string, -1, null, null, "", null, null);
+        /*
+         * This method handles URL composition. The base URL is "url" while the one to compose with it is spec.substring(start, limit), which never contains
+         * a protocol.
+         *
+         * The following cases are possible:
+         *  * relative path: not supported, considered illegal
+         *  * absolute path: supported
+         *  * query string: handled by caller
+         *  * reference: supported and retained in enclosed URL
+         */
+
+        assert PROTOCOL.equals(url.getProtocol()) : url;
+
+        final String string;
+
+        String reference = url.getRef();
+        final int separator = reference == null ? -1 : reference.indexOf(DELIMITER);
+        if (separator > -1) {
+            assert reference != null;
+            string = spec.substring(start, limit).concat(reference.substring(separator));
+            reference = reference.substring(0, separator);
         } else {
-            setURL(url, url.getProtocol(), string.substring(0, delimiter), -1, null, null, string.substring(delimiter), null, null);
+            string = spec.substring(start, limit);
+        }
+
+        if (string.contains(".".concat(DELIMITER))) {
+            throw new IllegalArgumentException(String.format("No relative %s URLs supported", PROTOCOL));
+        } else {
+            final int delimiter = string.indexOf(DELIMITER);
+
+            if (delimiter <= 0) {
+                throw new IllegalArgumentException(String.format("%s URLs must refer to an entry", PROTOCOL));
+            }
+
+            final String base = string.substring(0, delimiter);
+            final String host = reference == null ? base : String.format("%s#%s", base, reference);
+
+            try {
+                final URL enclosed = new URL(host);
+
+                if (PROTOCOL.equals(enclosed.getProtocol())) {
+                    throw new IllegalArgumentException(String.format("%s URLs may not enclose a %1$s URL", PROTOCOL));
+                }
+            } catch (final MalformedURLException e) {
+                throw new IllegalArgumentException(String.format("%s URLs must enclose a valid URL", PROTOCOL));
+            }
+
+            setURL(url, PROTOCOL, host, -1, null, null, string.substring(delimiter), null, null);
         }
     }
 
@@ -139,7 +180,6 @@ public final class Handler extends URLStreamHandler {
      * whether the last item in the <code>path</code> list is <code>null</code> or not, respectively.
      *
      * @param root  the URL of the (possibly already nested) JAR archive.
-     * @param proxy the proxy to use to connect to the URL; may be <code>null</code>.
      * @param path  the list of entry names within the preceding archive entry in the list, or the <code>root</code> archive in case of the first
      *              path; may be empty, in which case the <code>root</code> URL is returned. If the last item is <code>null</code>, the returned URL will point
      *              to a nested archive; if the last item is <i>not</i> <code>null</code>, the returned URL will point to a JAR resource inside a (potentially
@@ -149,7 +189,7 @@ public final class Handler extends URLStreamHandler {
      *
      * @throws IOException when URL handling fails.
      */
-    public static URL formatURL(final URL root, final Proxy proxy, final String... path) throws IOException {
+    public static URL formatURL(final URL root, final String... path) throws IOException {
         if (root == null) {
             return null;
         } else if (path != null && path.length == 0) {
@@ -162,13 +202,9 @@ public final class Handler extends URLStreamHandler {
         if (PROTOCOL.equals(root.getProtocol())) {
             specification.set(stem);
         } else {
-            final URLConnection connection = connection(root, proxy);
+            final URL url = Archives.containing(root);
 
-            if (connection instanceof JarURLConnection) {
-
-                // we have a JAR URL but we need the enclosed URL and the JAR resource name relative to the URL, separately
-                final URL url = ((JarURLConnection) connection).getJarFileURL();
-
+            if (url != null) {
                 if (PROTOCOL.equals(url.getProtocol())) {
                     specification.set(url.toExternalForm());
                 } else {
@@ -199,7 +235,7 @@ public final class Handler extends URLStreamHandler {
         final String entry = path == null ? null : path[path.length - 1];
 
         if (entry != null) {
-            specification.surround(Archives.PROTOCOL, Archives.DELIMITER);
+            specification.surround(Archives.PROTOCOL.concat(":"), Archives.DELIMITER);
             specification.append(entry);
         }
 
@@ -211,39 +247,38 @@ public final class Handler extends URLStreamHandler {
     }
 
     /**
-     * Returns the root URL of the given URL returned by a previous call to {@link #formatURL(URL, Proxy, String...)}. The returned URL can then be fed back
-     * to {@link #formatURL(URL, Proxy, String...)} to target other nested JAR archives.
+     * Returns the root URL of the given URL returned by a previous call to {@link #formatURL(URL, String...)}. The returned URL can then be fed back
+     * to {@link #formatURL(URL, String...)} to target other nested JAR archives.
      *
-     * @param url   the URL to return the root of.
-     * @param proxy the proxy to use to connect to the URL; may be <code>null</code>.
+     * @param url the URL to return the root of.
      *
      * @return the root URL.
      *
      * @throws IOException when processing the URL fails.
      */
-    public static URL rootURL(final URL url, final Proxy proxy) throws IOException {
-        final URL jarjar = unwrap(url, proxy);
+    public static URL rootURL(final URL url) throws IOException {
+        final URL jarjar = unwrap(url);
         return PROTOCOL.equals(jarjar.getProtocol()) ? new URL(jarjar.getHost()) : url;
     }
 
     /**
      * Unloads the contents of the given URL from the caches.
      *
-     * @param url   the URL to unload the contents of.
-     * @param proxy the proxy to use to connect to the URL; may be <code>null</code>.
+     * @param url the URL to unload the contents of.
      *
      * @throws IOException when processing the URL fails.
      */
-    public static void unload(final URL url, final Proxy proxy) throws IOException {
-        final URL jarjar = unwrap(url, proxy);
+    public static void unload(final URL url) throws IOException {
+        final URL jarjar = unwrap(url);
 
         if (PROTOCOL.equals(jarjar.getProtocol())) {
             contents.remove(new URL(jarjar.getHost()));
         }
     }
 
-    private static URL unwrap(final URL url, final Proxy proxy) throws IOException {
-        return (connection(url, proxy)) instanceof JarURLConnection ? new URL(url.getFile()) : url;
+    private static URL unwrap(final URL url) throws IOException {
+        final URL root = Archives.containing(url);
+        return root == null ? url : root;
     }
 
     private static final Map<URL, Map<String, byte[]>> contents = new HashMap<URL, Map<String, byte[]>>();

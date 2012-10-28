@@ -18,7 +18,6 @@ package org.fluidity.foundation.jarjar;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
@@ -37,7 +36,7 @@ import org.testng.annotations.Test;
  */
 public class HandlerTest {
 
-    private final String container = "level0.jar";
+    private final URL container = getClass().getClassLoader().getResource("level0.jar");
     private static final byte[] BUFFER = new byte[128];
 
     @DataProvider(name = "caching")
@@ -50,44 +49,41 @@ public class HandlerTest {
 
     @Test(dataProvider = "caching")
     public void testHandler(final boolean caching) throws Exception {
-        assertContent(caching, container, "level 0", "level0.txt");
-        assertContent(caching, container, "level 1", "level1-1.jar", "level1.txt");
-        assertContent(caching, container, "level 1", "level1-2.jar", "level1.txt");
-        assertContent(caching, container, "level 2", "level1-1.jar", "level2.jar", "level2.txt");
-        assertContent(caching, container, "level 2", "level1-2.jar", "level2.jar", "level2.txt");
-        assertContent(caching, container, "level 3", "level1-1.jar", "level2.jar", "level3.jar", "level3.txt");
-        assertContent(caching, container, "level 3", "level1-2.jar", "level2.jar", "level3.jar", "level3.txt");
+        assertContent(caching, "level 0", "level0.txt");
+        assertContent(caching, "level 1", "level1-1.jar", "level1.txt");
+        assertContent(caching, "level 1", "level1-2.jar", "level1.txt");
+        assertContent(caching, "level 2", "level1-1.jar", "level2.jar", "level2.txt");
+        assertContent(caching, "level 2", "level1-2.jar", "level2.jar", "level2.txt");
+        assertContent(caching, "level 3", "level1-1.jar", "level2.jar", "level3.jar", "level3.txt");
+        assertContent(caching, "level 3", "level1-2.jar", "level2.jar", "level3.jar", "level3.txt");
     }
 
     @Test(dataProvider = "caching")
     public void testURL(final boolean caching) throws Exception {
-        assertContent(caching, container, "level 0", "level0.txt");
-        assertContent(caching, container, "level 1", "level1-1.jar", "level1.txt");
-        assertContent(caching, container, "level 1", "level1-2.jar", "level1.txt");
-        assertContent(caching, container, "level 2", "level1-1.jar", "level2.jar", "level2.txt");
-        assertContent(caching, container, "level 2", "level1-2.jar", "level2.jar", "level2.txt");
-        assertContent(caching, container, "level 3", "level1-1.jar", "level2.jar", "level3.jar", "level3.txt");
-        assertContent(caching, container, "level 3", "level1-2.jar", "level2.jar", "level3.jar", "level3.txt");
+        assertContent(caching, "level 0", "level0.txt");
+        assertContent(caching, "level 1", "level1-1.jar", "level1.txt");
+        assertContent(caching, "level 1", "level1-2.jar", "level1.txt");
+        assertContent(caching, "level 2", "level1-1.jar", "level2.jar", "level2.txt");
+        assertContent(caching, "level 2", "level1-2.jar", "level2.jar", "level2.txt");
+        assertContent(caching, "level 3", "level1-1.jar", "level2.jar", "level3.jar", "level3.txt");
+        assertContent(caching, "level 3", "level1-2.jar", "level2.jar", "level3.jar", "level3.txt");
 
         {
-            final URL root = getClass().getClassLoader().getResource(container);
-            final URL level1 = Handler.formatURL(root, null, "level1-2.jar");
-            final URL level2 = Handler.formatURL(level1, null, "level2.jar");
-            final URL level3 = Handler.formatURL(level2, null, "level3.jar");
+            final URL root = container;
+            final URL level1 = Handler.formatURL(root, "level1-2.jar");
+            final URL level2 = Handler.formatURL(level1, "level2.jar");
+            final URL level3 = Handler.formatURL(level2, "level3.jar");
 
-            final URLConnection connection = Handler.formatURL(level3, null, "level3.txt").openConnection();
+            final URLConnection connection = Handler.formatURL(level3, "level3.txt").openConnection();
             connection.setUseCaches(caching);
 
-            final String expected = "level 3";
-            final String actual = Streams.load(connection.getInputStream(), "ASCII", BUFFER, true).replaceAll("\n", "");
-
-            assert expected.equals(actual) : String.format("Expected '%s', got '%s'", expected, actual);
+            verify("level 3", Streams.load(connection.getInputStream(), "ASCII", BUFFER, true).replaceAll("\n", ""));
         }
     }
 
     @Test
     public void testCaching() throws Exception {
-        final URL url = Handler.formatURL(getClass().getClassLoader().getResource(container), null, "level1-2.jar", "level2.jar", "level3.jar", "level3.txt");
+        final URL url = Handler.formatURL(container, "level1-2.jar", "level2.jar", "level3.jar", "level3.txt");
 
         Handler.load(new URL(url.getFile()), null);
         Archives.Nested.unload(url);
@@ -95,21 +91,24 @@ public class HandlerTest {
 
     @Test
     public void testFormatting() throws Exception {
-        final URL expected = Handler.formatURL(getClass().getClassLoader().getResource(container), null, "level1-2.jar", "level2.jar", "level3.jar", null);
-        verify(expected, Handler.formatURL(Handler.rootURL(expected, null), null, "level1-2.jar", "level2.jar", "level3.jar", null));
-        verify(expected, Handler.formatURL(Handler.formatURL(Handler.rootURL(expected, null), null, "level1-2.jar", "level2.jar", null), null, "level3.jar", null));
-        verify(expected, Handler.formatURL(Handler.formatURL(Handler.formatURL(Handler.rootURL(expected, null), null, "level1-2.jar", null), null, "level2.jar", null), null, "level3.jar", null));
+        final URL expected = Handler.formatURL(container, "level1-2.jar", "level2.jar", "level3.jar", null);
+        verify(expected, Handler.formatURL(Handler.rootURL(expected), "level1-2.jar", "level2.jar", "level3.jar", null));
+        verify(expected, Handler.formatURL(Handler.formatURL(Handler.rootURL(expected), "level1-2.jar", "level2.jar", null), "level3.jar", null));
+        verify(expected, Handler.formatURL(Handler.formatURL(Handler.formatURL(Handler.rootURL(expected), "level1-2.jar", null), "level2.jar", null), "level3.jar", null));
 
-        final URL level3 = Handler.formatURL(Handler.formatURL(Handler.formatURL(Handler.rootURL(expected, null), null, "level1-2.jar"), null, "level2.jar"), null, "level3.jar");
-        verify(expected, Handler.formatURL(level3, null, (String) null));
-        verify(expected, Handler.formatURL(level3, null, (String[]) null));
+        final URL level3 = Handler.formatURL(Handler.formatURL(Handler.formatURL(Handler.rootURL(expected), "level1-2.jar"), "level2.jar"), "level3.jar");
+        verify(expected, Handler.formatURL(level3, (String) null));
+        verify(expected, Handler.formatURL(level3, (String[]) null));
+
+        final URL insane = Handler.formatURL(new URL("http://xxx:yyy@insane.org/whatever.jar?query=param#reference"), "level1.jar", "level2.jar", "level3.jar", null);
+        verify(insane, Handler.formatURL(Handler.formatURL(Handler.formatURL(Handler.rootURL(insane), "level1.jar", null), "level2.jar", null), "level3.jar", null));
     }
 
     @Test
     public void testExploration() throws Exception {
         final List<String> files = new ArrayList<String>();
 
-        Archives.read(true, getClass().getClassLoader().getResource(container), new Archives.Entry() {
+        Archives.read(true, container, new Archives.Entry() {
             public boolean matches(final URL url, final JarEntry entry) throws IOException {
                 final String name = entry.getName();
 
@@ -126,48 +125,23 @@ public class HandlerTest {
             }
         });
 
-        final List expected = Arrays.asList("level0.txt", "level1.txt", "level2.txt", "level3.txt", "level1.txt", "level2.txt", "level3.txt");
-        assert files.equals(expected) : String.format("Expected %s, got %s", expected, files);
+        verify(Arrays.asList("level0.txt", "level1.txt", "level2.txt", "level3.txt", "level1.txt", "level2.txt", "level3.txt"), files);
     }
 
-    private void verify(final URL expected, final URL actual) {
+    private void verify(final Object expected, final Object actual) {
         assert expected.equals(actual) : String.format("%nExpected %s,%n     got %s", expected, actual);
     }
 
     @Test
     public void testParsing() throws Exception {
-        final String root = "file:/root.jar";
-        final String level1 = "level1.jar";
-        final String level2 = "level2.jar";
-        final String some = "some";
-        final String path = some.concat("/path");
-        final String folder = path.concat("/");
-        final URL folderBase = Handler.formatURL(new URL(root), null, level1, level2, folder);
-        final URL fileBase = Handler.formatURL(new URL(root), null, level1, level2, path);
+        final URL archive = Handler.formatURL(new URL("file:/root.jar"), "level1.jar", "level2.jar", "some/path");
+        final URL nested = Handler.formatURL(new URL("file:/root.jar"), "level1.jar", "level2.jar", "some/path", null);
 
-        final String relative = "relative/path";
-        checkURL(folderBase, String.format("jar:%s:%s%s%s%s%s%s%s/%s", Handler.PROTOCOL, root, Handler.DELIMITER, level1, Handler.DELIMITER, level2, "!/", path, relative), relative);
-        checkURL(fileBase, String.format("jar:%s:%s%s%s%s%s%s%s/%s", Handler.PROTOCOL, root, Handler.DELIMITER, level1, Handler.DELIMITER, level2, "!/", some, relative), relative);
-
-        final String backtrack = "../".concat(relative);
-        checkURL(folderBase, String.format("jar:%s:%s%s%s%s%s%s%s/%s", Handler.PROTOCOL, root, Handler.DELIMITER, level1, Handler.DELIMITER, level2, "!/", some, relative), backtrack);
-        checkURL(fileBase, String.format("jar:%s:%s%s%s%s%s%s%s", Handler.PROTOCOL, root, Handler.DELIMITER, level1, Handler.DELIMITER, level2, "!/", relative), backtrack);
-
-        final String absolute = "/absolute/path";
-        checkURL(folderBase, String.format("jar:%s:%s%s%s%s%s%s%s", Handler.PROTOCOL, root, Handler.DELIMITER, level1, Handler.DELIMITER, level2, "!/", absolute.substring(1)), absolute);
-        checkURL(fileBase, String.format("jar:%s:%s%s%s%s%s%s%s", Handler.PROTOCOL, root, Handler.DELIMITER, level1, Handler.DELIMITER, level2, "!/", absolute.substring(1)), absolute);
+        assert Archives.PROTOCOL.equals(archive.getProtocol()) : archive;
+        assert Archives.Nested.PROTOCOL.equals(nested.getProtocol()) : nested;
     }
 
-    private void checkURL(final URL base, final String expected, final String override) throws MalformedURLException {
-        final String actual = new URL(base, override).toExternalForm();
-        assert expected.equals(actual) : String.format("Expected '%s', got '%s'", expected, actual);
-    }
-
-    private void assertContent(final boolean caching, final String container, final String content, final String... path) throws IOException {
-        final URLConnection connection = Handler.formatURL(getClass().getClassLoader().getResource(container), null, path).openConnection();
-        connection.setUseCaches(caching);
-
-        final String loaded = Streams.load(connection.getInputStream(), "ASCII", BUFFER, true).replaceAll("\n", "");
-        assert content.equals(loaded) : String.format("Expected '%s', got '%s'", content, loaded);
+    private void assertContent(final boolean caching, final String content, final String... path) throws IOException {
+        verify(content, Streams.load(Archives.open(caching, Handler.formatURL(container, path)), "ASCII", BUFFER, true).replaceAll("\n", ""));
     }
 }
