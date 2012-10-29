@@ -92,6 +92,7 @@ public final class ServiceProviders extends Utility {
         return list;
     }
 
+    // TODO: need to find a way to call ClassDiscoveryImpl... Class.forName() is invoked internally and that is a no-no
     private static <T> Iterator<T> providers(final Class<T> interfaceClass, final ClassLoader classLoader) {
         try {
 

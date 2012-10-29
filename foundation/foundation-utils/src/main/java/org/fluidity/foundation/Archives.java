@@ -17,6 +17,7 @@
 package org.fluidity.foundation;
 
 import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -29,6 +30,8 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.JarInputStream;
 import java.util.jar.Manifest;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 import org.fluidity.foundation.jarjar.Handler;
 
@@ -91,7 +94,9 @@ public final class Archives extends Utility {
     private Archives() { }
 
     /**
-     * Reads entries from a JAR file.
+     * Reads entries from a JAR file. If present, the archive manifest is read first after the archive has been {@linkplain
+     * JarInputStream#JarInputStream(InputStream, boolean) verified} but its {@linkplain JarEntry entry details} will be restricted to those available in a
+     * {@link ZipEntry}.
      *
      * @param cached tells whether a previously cached archive, if any, should be used (value <code>true</code>), or a newly loaded one (value
      *               <code>false</code>).
@@ -104,11 +109,42 @@ public final class Archives extends Utility {
      */
     public static int read(final boolean cached, final URL url, final Entry reader) throws IOException {
         assert url != null;
-        final InputStream content = Archives.open(cached, url);
-        assert content != null;
+        final byte[] data = Streams.load(Archives.open(cached, url), new byte[16384], true);
+        final InputStream content = new ByteArrayInputStream(data);
 
         try {
-            final JarInputStream jar = new JarInputStream(content, false);
+            final JarInputStream jar = new JarInputStream(content, true);
+
+            ZipEntry manifest;
+
+            final ZipInputStream zip = new ZipInputStream(new ByteArrayInputStream(data));
+            try {
+                manifest = zip.getNextEntry();
+
+                if (manifest != null) {
+                    final String name = manifest.getName();
+
+                    if (name.equals(META_INF.concat("/"))) {
+                        zip.closeEntry();
+                        manifest = zip.getNextEntry();
+                    }
+
+                    if (manifest != null && !name.equals(JarFile.MANIFEST_NAME)) {
+                        manifest = null;
+                    }
+
+                    if (manifest != null) {
+                        final JarEntry entry = new JarEntry(manifest);
+
+                        if (reader.matches(url, entry)) {
+                            reader.read(url, entry, new OpenInputStream(zip));
+                        }
+                    }
+                }
+            } finally {
+                zip.close();
+            }
+
             final InputStream stream = new OpenInputStream(jar);
 
             int count = 0;
@@ -124,21 +160,13 @@ public final class Archives extends Utility {
                         }
                     }
                 } finally {
-                    try {
-                        jar.closeEntry();
-                    } catch (final IOException e) {
-                        // ignore
-                    }
+                    jar.closeEntry();
                 }
             }
 
             return count;
         } finally {
-            try {
-                content.close();
-            } catch (final IOException e) {
-                // ignore
-            }
+            content.close();
         }
     }
 
@@ -240,13 +268,22 @@ public final class Archives extends Utility {
         Manifest manifest = jar == null ? null : jarManifest(cached, jar);
 
         if (manifest == null) {
-            final InputStream stream = manifestStream(cached, url);
             manifest = new Manifest();
 
+            InputStream stream;
+
             try {
-                manifest.read(stream);
-            } finally {
-                stream.close();
+                stream = manifestStream(cached, url);
+            } catch (final IOException e) {
+                stream = null;
+            }
+
+            if (stream != null) {
+                try {
+                    manifest.read(stream);
+                } finally {
+                    stream.close();
+                }
             }
 
             if (manifest.getMainAttributes().isEmpty() && manifest.getEntries().isEmpty()) {
@@ -263,7 +300,11 @@ public final class Archives extends Utility {
         try {
             stream = Archives.open(cached, new URL(String.format("%s:%s%s%s", PROTOCOL, url.toExternalForm(), DELIMITER, JarFile.MANIFEST_NAME)));
         } catch (final IOException e) {
-            stream = Archives.open(cached, new URL(new URL(url, "/"), JarFile.MANIFEST_NAME));
+            try {
+                stream = Archives.open(cached, new URL(new URL(url, "/"), JarFile.MANIFEST_NAME));
+            } catch (final IOException ignored) {
+                return null;
+            }
         }
 
         return new BufferedInputStream(stream);

@@ -249,7 +249,7 @@ public final class Exceptions extends Utility {
 
             for (Class type = cause.getClass();
                  cause.getCause() != null
-                 && (isChecked(cause.getClass()) || type == RuntimeException.class || type == Wrapper.class);
+                 && (isChecked(cause.getClass()) || type == RuntimeException.class || (type == Wrapper.class && !((Wrapper) cause).informative()));
                  cause = cause.getCause(), type = cause.getClass()) {
                 // empty
             }
@@ -266,12 +266,16 @@ public final class Exceptions extends Utility {
      */
     public static final class Wrapper extends RuntimeException {
 
+        private final boolean informative;
+
         Wrapper(final Throwable cause) {
             super(cause);
+            this.informative = false;
         }
 
         Wrapper(final Throwable cause, final String format, final Object... args) {
             super(String.format(format, args), cause);
+            this.informative = true;
         }
 
         /**
@@ -294,6 +298,10 @@ public final class Exceptions extends Utility {
             } else {
                 return this;
             }
+        }
+
+        boolean informative() {
+            return informative;
         }
     }
 }

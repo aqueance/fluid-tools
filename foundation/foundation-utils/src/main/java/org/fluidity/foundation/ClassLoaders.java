@@ -25,7 +25,6 @@ import java.net.URLClassLoader;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
-import java.util.Set;
 import java.util.UUID;
 
 import org.apache.xbean.classloader.JarFileClassLoader;
@@ -266,7 +265,7 @@ public final class ClassLoaders extends Utility {
      * @throws Exception when anything goes wrong.
      */
     @SuppressWarnings("unchecked")
-    public static <T> T isolate(final ClassLoader parent, final Set<URL> urls, final Class<?> type, final Method run, final Object... arguments) throws Exception {
+    public static <T> T isolate(final ClassLoader parent, final Collection<URL> urls, final Class<?> type, final Method run, final Object... arguments) throws Exception {
         final ClassLoader isolated = create(parent, Lists.asArray(URL.class, urls));
 
         try {

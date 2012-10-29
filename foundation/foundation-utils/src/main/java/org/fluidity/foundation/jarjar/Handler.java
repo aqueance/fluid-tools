@@ -32,6 +32,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 import org.fluidity.foundation.Archives;
 import org.fluidity.foundation.ClassLoaders;
@@ -321,7 +323,12 @@ public final class Handler extends URLStreamHandler {
                 final URLConnection connection = connection(root, proxy);
                 connection.setUseCaches(true);
 
-                load(content, new HashMap<Metadata, String>(), new byte[1024 * 1024], "", new JarInputStream(connection.getInputStream()));
+                final ZipInputStream stream = new ZipInputStream(connection.getInputStream());
+                try {
+                    load(content, new HashMap<Metadata, String>(), new byte[1024 * 1024], "", stream, stream.getNextEntry());
+                } catch (final IOException e) {
+                    stream.close();
+                }
 
                 return content;
             }
@@ -377,46 +384,52 @@ public final class Handler extends URLStreamHandler {
         }
     }
 
-    private static void load(final Map<String, byte[]> content, final Map<Metadata, String> meta, byte[] buffer, final String base, final JarInputStream stream) throws IOException {
-        try {
-            for (JarEntry next; (next = stream.getNextJarEntry()) != null; stream.closeEntry()) {
-                final String name = next.getName();
-                final String entry = String.format("%s%s%s", base, DELIMITER, name);
+    private static void load(final Map<String, byte[]> content,
+                             final Map<Metadata, String> meta,
+                             byte[] buffer,
+                             final String base,
+                             final ZipInputStream stream,
+                             final ZipEntry first) throws IOException {
+        for (ZipEntry next = first; next != null; stream.closeEntry(), next = stream.getNextEntry()) {
+            final String name = next.getName();
 
+            if (!name.endsWith("/")) {
+                final String entry = String.format("%s%s%s", base, DELIMITER, name);
                 final byte[] bytes = Streams.load(stream, buffer, false);
 
-                if (new JarInputStream(new ByteArrayInputStream(bytes)).getManifest() != null) {
-                    final Metadata metadata = new Metadata(name, next.getSize(), next.getCrc());
-                    final String reference = meta.get(metadata);
+                final ZipInputStream nested = new ZipInputStream(new ByteArrayInputStream(bytes));
+                try {
+                    final ZipEntry check = nested.getNextEntry();
 
-                    if (reference == null) {
-                        meta.put(metadata, entry);
-                        content.put(entry, bytes);
+                    if (check != null) {
+                        final Metadata metadata = new Metadata(name, next.getSize(), next.getCrc());
+                        final String reference = meta.get(metadata);
 
-                        load(content, meta, buffer, entry, new JarInputStream(new ByteArrayInputStream(bytes), false));
-                    } else {
-                        content.put(entry, content.get(reference));
+                        if (reference == null) {
+                            meta.put(metadata, entry);
+                            content.put(entry, bytes);
 
-                        final Map<String, byte[]> entries = new HashMap<String, byte[]>();
-                        final String prefix = reference.concat(DELIMITER);
+                            load(content, meta, buffer, entry, nested, check);
+                        } else {
+                            content.put(entry, content.get(reference));
 
-                        for (final Map.Entry<String, byte[]> candidate : content.entrySet()) {
-                            final String key = candidate.getKey();
+                            final Map<String, byte[]> entries = new HashMap<String, byte[]>();
+                            final String prefix = reference.concat(DELIMITER);
 
-                            if (key.startsWith(prefix)) {
-                                entries.put(entry.concat(key.substring(reference.length())), candidate.getValue());
+                            for (final Map.Entry<String, byte[]> candidate : content.entrySet()) {
+                                final String key = candidate.getKey();
+
+                                if (key.startsWith(prefix)) {
+                                    entries.put(entry.concat(key.substring(reference.length())), candidate.getValue());
+                                }
                             }
-                        }
 
-                        content.putAll(entries);
+                            content.putAll(entries);
+                        }
                     }
+                } finally {
+                    nested.close();
                 }
-            }
-        } finally {
-            try {
-                stream.close();
-            } catch (final IOException e) {
-                // ignore
             }
         }
     }

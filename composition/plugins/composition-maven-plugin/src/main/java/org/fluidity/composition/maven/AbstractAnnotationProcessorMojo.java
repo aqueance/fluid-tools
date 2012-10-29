@@ -46,6 +46,7 @@ import org.fluidity.composition.maven.annotation.ProcessorCallback;
 import org.fluidity.composition.maven.annotation.ServiceProviderProcessor;
 import org.fluidity.composition.spi.EmptyPackageBindings;
 import org.fluidity.composition.spi.PackageBindings;
+import org.fluidity.deployment.maven.DependenciesSupport;
 import org.fluidity.foundation.ClassLoaders;
 import org.fluidity.foundation.Exceptions;
 import org.fluidity.foundation.Lists;
@@ -145,7 +146,9 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
             urls.add(classesDirectory.toURI().toURL());
 
             for (final Artifact artifact : (Set<Artifact>) project.getArtifacts()) {
-                urls.add(artifact.getFile().toURI().toURL());
+                if (DependenciesSupport.JAR_TYPE.equals(artifact.getType())) {
+                    urls.add(artifact.getFile().toURI().toURL());
+                }
             }
         } catch (final MalformedURLException e) {
             assert false : e;

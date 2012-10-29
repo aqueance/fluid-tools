@@ -128,6 +128,14 @@ public class HandlerTest {
         verify(Arrays.asList("level0.txt", "level1.txt", "level2.txt", "level3.txt", "level1.txt", "level2.txt", "level3.txt"), files);
     }
 
+    @Test
+    public void testRelativeURLs() throws Exception {
+        verify(Handler.formatURL(container, "level1-2.jar", "level2.jar", "level2.txt"),
+               new URL(Handler.formatURL(container, "level1-2.jar", "level2.jar", "level3.jar"), "level2.txt"));
+        verify(Handler.formatURL(container, "level2-2.jar"),
+               new URL(Handler.formatURL(container, "level1-2.jar"), "level2-2.jar"));
+    }
+
     private void verify(final Object expected, final Object actual) {
         assert expected.equals(actual) : String.format("%nExpected %s,%n     got %s", expected, actual);
     }
