@@ -16,6 +16,7 @@
 
 package org.fluidity.foundation;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.util.Collection;
@@ -69,31 +70,45 @@ public final class Exceptions extends Utility {
     private Exceptions() { }
 
     /**
-     * See {@link Tunnel#wrap(String, Command.Process)} with no custom wrappers {@linkplain Exceptions#checked(Class[]) specified}.
-     */
-    public static <T, E extends Throwable> T wrap(final String label, final Process<T, E> command) {
-        return Exceptions.tunnel.wrap(label, command);
-    }
-
-    /**
      * See {@link Tunnel#wrap(Command.Process)} with no custom wrappers {@linkplain Exceptions#checked(Class[]) specified}.
      */
     public static <T, E extends Throwable> T wrap(final Process<T, E> command) {
-        return Exceptions.tunnel.wrap(null, command);
+        return Exceptions.tunnel.wrap(null, null, command);
     }
 
     /**
-     * See {@link Tunnel#wrap(String, Command.Job)} with no custom wrappers {@linkplain Exceptions#checked(Class[]) specified}.
+     * See {@link Tunnel#wrap(Class, Command.Process)} with no custom wrappers {@linkplain Exceptions#checked(Class[]) specified}.
      */
-    public static <E extends Throwable> void wrap(final String label, final Job<E> command) {
-        Exceptions.tunnel.wrap(label, command);
+    public static <T, E extends Throwable> T wrap(final Class<? extends RuntimeException> wrapper, final Process<T, E> command) {
+        return Exceptions.tunnel.wrap(wrapper, command);
+    }
+
+    /**
+     * See {@link Tunnel#wrap(Object, Class, Command.Process)} with no custom wrappers {@linkplain Exceptions#checked(Class[]) specified}.
+     */
+    public static <T, E extends Throwable> T wrap(final Object label, final Class<? extends RuntimeException> wrapper, final Process<T, E> command) {
+        return Exceptions.tunnel.wrap(label, wrapper, command);
     }
 
     /**
      * See {@link Tunnel#wrap(Command.Job)} with no custom wrappers {@linkplain Exceptions#checked(Class[]) specified}.
      */
     public static <E extends Throwable> void wrap(final Job<E> command) {
-        Exceptions.tunnel.wrap(null, command);
+        Exceptions.tunnel.wrap(null, null, command);
+    }
+
+    /**
+     * See {@link Tunnel#wrap(Class, Command.Job)} with no custom wrappers {@linkplain Exceptions#checked(Class[]) specified}.
+     */
+    public static <E extends Throwable> void wrap(final Class<? extends RuntimeException> wrapper, final Job<E> command) {
+        Exceptions.tunnel.wrap(wrapper, command);
+    }
+
+    /**
+     * See {@link Tunnel#wrap(Object, Class, Command.Job)} with no custom wrappers {@linkplain Exceptions#checked(Class[]) specified}.
+     */
+    public static <E extends Throwable> void wrap(final Object label, final Class<? extends RuntimeException> wrapper, final Job<E> command) {
+        Exceptions.tunnel.wrap(label, wrapper, command);
     }
 
     /**
@@ -164,33 +179,6 @@ public final class Exceptions extends Utility {
         }
 
         /**
-         * Executes the given command and {@linkplain Exceptions.Wrapper wraps} any exception other than {@link RuntimeException} and {@link Error} thrown
-         * therefrom.
-         *
-         * @param label   the variable part of the "Error %s" message in the wrapped exception.
-         * @param command the command to run.
-         * @param <T>     the generic return type of the command.
-         * @param <E>     the generic exception type of the command.
-         *
-         * @return whatever the command returns.
-         */
-        public <T, E extends Throwable> T wrap(final String label, final Process<T, E> command) {
-            try {
-                try {
-                    return command.run();
-                } catch (final Exception e) {
-                    throw unwrap(e);
-                }
-            } catch (final RuntimeException e) {
-                throw e;
-            } catch (final Error e) {
-                throw e;
-            } catch (final Throwable e) {
-                throw label == null ? new Wrapper(e) : new Wrapper(e, "Error %s", label);
-            }
-        }
-
-        /**
          * Executes the given command and {@linkplain Exceptions.Wrapper wraps} any exception thrown therefrom.
          *
          * @param command the command to execute.
@@ -200,24 +188,68 @@ public final class Exceptions extends Utility {
          * @return whatever the given command returns.
          */
         public <T, E extends Throwable> T wrap(final Process<T, E> command) {
-            return wrap(null, command);
+            return wrap(null, null, command);
+        }
+
+        /**
+         * Executes the given command and {@linkplain Exceptions.Wrapper wraps} any exception thrown therefrom.
+         *
+         * @param command the command to execute.
+         * @param wrapper the exception class to use to wrap the exception thrown by the command; may be <code>null</code>, in which case {@link Wrapper} will
+         *                be used.
+         * @param <T>     the generic return type of the command.
+         * @param <E>     the generic exception type of the command.
+         *
+         * @return whatever the given command returns.
+         */
+        public <T, E extends Throwable> T wrap(final Class<? extends RuntimeException> wrapper, final Process<T, E> command) {
+            return wrap(null, wrapper, command);
         }
 
         /**
          * Executes the given command and {@linkplain Exceptions.Wrapper wraps} any exception other than {@link RuntimeException} and {@link Error} thrown
          * therefrom.
          *
-         * @param label   the variable part of the "Error %s" message in the wrapped exception.
+         * @param label   the error message in the wrapped exception; use {@link Deferred.Label}s to defer computing the label.
+         * @param wrapper the exception class to use to wrap the exception thrown by the command; may be <code>null</code>, in which case {@link Wrapper} will
+         *                be used.
          * @param command the command to run.
-         * @param <E>     the generic exception type of the command.
+         * @return whatever the command returns.
          */
-        public <E extends Throwable> void wrap(final String label, final Job<E> command) {
-            wrap(label, new Process<Void, Throwable>() {
-                public Void run() throws Throwable {
-                    command.run();
-                    return null;
+        public <T, E extends Throwable> T wrap(final Object label, final Class<? extends RuntimeException> wrapper, final Process<T, E> command) {
+            try {
+                try {
+                    return command.run();
+                } catch (final Exception e) {
+                    throw unwrap(e);
                 }
-            });
+            } catch (final Error e) {
+                throw e;
+            } catch (final RuntimeException e) {
+                throw e;
+            } catch (final Throwable e) {
+                assert !(e instanceof Error);
+                throw wrapped(label, wrapper, e);
+            }
+        }
+
+        @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
+        private RuntimeException wrapped(final Object label, final Class<? extends RuntimeException> wrapper, final Throwable e) {
+            try {
+                final Class<? extends RuntimeException> type = wrapper == null ? Wrapper.class : wrapper;
+
+                return label == null
+                       ? constructor(type, Throwable.class).newInstance(e)
+                       : constructor(type, String.class, Throwable.class).newInstance(label.toString(), e);
+            } catch (final Exception error) {
+                throw new AssertionError(error);
+            }
+        }
+
+        private Constructor<? extends RuntimeException> constructor(final Class<? extends RuntimeException> type, final Class<?>... parameters) throws Exception {
+            final Constructor<? extends RuntimeException> constructor = type.getDeclaredConstructor(parameters);
+            constructor.setAccessible(true);
+            return constructor;
         }
 
         /**
@@ -227,7 +259,37 @@ public final class Exceptions extends Utility {
          * @param <E>     the generic exception type of the command.
          */
         public <E extends Throwable> void wrap(final Job<E> command) {
-            wrap(null, command);
+            wrap(null, null, command);
+        }
+
+        /**
+         * Executes the given command and {@linkplain Exceptions.Wrapper wraps} any exception thrown therefrom.
+         *
+         * @param command the command to execute.
+         * @param wrapper the exception class to use to wrap the exception thrown by the command; may be <code>null</code>, in which case {@link Wrapper} will
+         *                be used.
+         * @param <E>     the generic exception type of the command.
+         */
+        public <E extends Throwable> void wrap(final Class<? extends RuntimeException> wrapper, final Job<E> command) {
+            wrap(null, wrapper, command);
+        }
+
+        /**
+         * Executes the given command and {@linkplain Exceptions.Wrapper wraps} any exception other than {@link RuntimeException} and {@link Error} thrown
+         * therefrom.
+         *
+         * @param label   the error message in the wrapped exception.
+         * @param wrapper the exception class to use to wrap the exception thrown by the command; may be <code>null</code>, in which case {@link Wrapper} will
+         *                be used.
+         * @param command the command to run.
+         */
+        public <E extends Throwable> void wrap(final Object label, final Class<? extends RuntimeException> wrapper, final Job<E> command) {
+            wrap(label, wrapper, new Process<Void, Throwable>() {
+                public Void run() throws Throwable {
+                    command.run();
+                    return null;
+                }
+            });
         }
 
         /**
@@ -259,7 +321,7 @@ public final class Exceptions extends Utility {
     }
 
     /**
-     * An unchecked exception that wraps a checked exception. Thrown by {@link Exceptions#wrap(Command.Process)} and {@link Exceptions#wrap(String,
+     * An unchecked exception that wraps a checked exception. Thrown by {@link Exceptions#wrap(Command.Process)} and {@link Exceptions#wrap(Object, Class,
      * Command.Process)}.
      * <h3>Usage</h3>
      * See {@link Exceptions} for an example.
@@ -273,8 +335,9 @@ public final class Exceptions extends Utility {
             this.informative = false;
         }
 
-        Wrapper(final Throwable cause, final String format, final Object... args) {
-            super(String.format(format, args), cause);
+        @SuppressWarnings("UnusedDeclaration")
+        Wrapper(final String message, final Throwable cause) {
+            super(message, cause);
             this.informative = true;
         }
 

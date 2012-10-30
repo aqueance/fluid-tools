@@ -45,6 +45,7 @@ import org.fluidity.composition.container.RestrictedContainer;
 import org.fluidity.composition.container.spi.ContextNode;
 import org.fluidity.composition.container.spi.DependencyGraph;
 import org.fluidity.composition.container.spi.DependencyResolver;
+import org.fluidity.foundation.Deferred;
 import org.fluidity.foundation.Exceptions;
 import org.fluidity.foundation.Generics;
 import org.fluidity.foundation.Lists;
@@ -308,42 +309,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
                 final List<RestrictedContainer> containers = new ArrayList<RestrictedContainer>();
 
                 try {
-                    return injectFields(fields, traversal, containers, Exceptions.wrap(String.format("instantiating %s", componentClass), new Process<Object, Exception>() {
-                        public Object run() throws Exception {
-                            final Object[] arguments = arguments(constructor.getDeclaringClass(), traversal, containers, parameters);
-
-                            final Object cached = container.cached(api, componentContext);
-
-                            if (cached == null) {
-                                traversal.instantiating(componentClass);
-                                return traversal.instantiated(componentClass, construct(arguments));
-                            } else {
-                                return cached;
-                            }
-                        }
-
-                        private Object construct(final Object[] arguments) {
-                            final Object component;
-
-                            try {
-                                try {
-                                    component = Exceptions.wrap(new Process<Object, Exception>() {
-                                        public Object run() throws Exception {
-                                            constructor.setAccessible(true);
-                                            return constructor.newInstance(arguments);
-                                        }
-                                    });
-                                } catch (final Exceptions.Wrapper wrapper) {
-                                    throw wrapper.rethrow(ComponentContainer.InjectionException.class);
-                                }
-                            } catch (final ComponentContainer.InjectionException e) {
-                                throw e;
-                            } catch (final Exception e) {
-                                throw new IllegalStateException(String.format("Invoking %s with %s", constructor, Strings.formatId(arguments)), e);
-                            }
-                            return component;
-                        }
-                    }));
+                    return injectFields(fields, traversal, containers, instantiate(containers, traversal));
                 } finally {
                     enableContainers(containers);
                 }
@@ -351,6 +317,30 @@ final class DependencyInjectorImpl implements DependencyInjector {
 
             public ComponentContext context() {
                 return componentContext;
+            }
+
+            private Object instantiate(final List<RestrictedContainer> containers, final DependencyGraph.Traversal traversal) {
+                final Object[] arguments = arguments(constructor.getDeclaringClass(), traversal, containers, parameters);
+
+                final Object cached = container.cached(api, componentContext);
+
+                if (cached == null) {
+                    final Deferred.Label label = Deferred.label("Invoking %s with %s", constructor, Deferred.label(new Deferred.Factory<String>() {
+                        public String create() {
+                            return Strings.formatId(arguments);
+                        }
+                    }));
+
+                    traversal.instantiating(componentClass);
+                    return traversal.instantiated(componentClass, Exceptions.wrap(label, ComponentContainer.ResolutionException.class, new Process<Object, Exception>() {
+                        public Object run() throws Exception {
+                            constructor.setAccessible(true);
+                            return constructor.newInstance(arguments);
+                        }
+                    }));
+                } else {
+                    return cached;
+                }
             }
         };
     }
@@ -365,7 +355,13 @@ final class DependencyInjectorImpl implements DependencyInjector {
                                 final DependencyGraph.Traversal traversal,
                                 final List<RestrictedContainer> containers,
                                 final Object instance) {
-        return Exceptions.wrap(String.format("setting %s fields", instance.getClass()), new Process<Object, Exception>() {
+        final Deferred.Label label = Deferred.label("Setting %s fields", Deferred.label(new Deferred.Factory<String>() {
+            public String create() {
+                return Strings.formatClass(false, true, instance.getClass());
+            }
+        }));
+
+        return Exceptions.wrap(label, ComponentContainer.ResolutionException.class, new Process<Object, Exception>() {
             public Object run() throws Exception {
                 for (final Map.Entry<Field, DependencyGraph.Node> entry : fieldNodes.entrySet()) {
                     final Field field = entry.getKey();

@@ -17,6 +17,7 @@
 package org.fluidity.foundation;
 
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.testng.annotations.Test;
 
@@ -58,5 +59,29 @@ public class DeferredTest {
 
         final String second = reference.get();
         assert second == null : second;
+    }
+
+    @Test
+    public void testLabels() throws Exception {
+        final String text = "some text 1";
+
+        final Object label1 = Deferred.label("some %s %d", "text", 1);
+
+        assert text.equals(label1.toString()) : label1;
+
+        final AtomicInteger counter = new AtomicInteger();
+
+        final Object label2 = Deferred.label(new Deferred.Factory<String>() {
+            public String create() {
+                counter.incrementAndGet();
+                return text;
+            }
+        });
+
+        assert counter.get() == 0 : counter.get();
+        assert text.equals(label2.toString()) : label2;
+        assert counter.get() == 1 : counter.get();
+        assert text.equals(label2.toString()) : label2;
+        assert counter.get() == 1 : counter.get();
     }
 }

@@ -23,6 +23,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContainer;
@@ -40,6 +41,7 @@ import org.fluidity.foundation.Lists;
 import org.fluidity.testing.Simulator;
 
 import org.easymock.EasyMock;
+import org.easymock.IAnswer;
 import org.testng.annotations.Test;
 
 /**
@@ -211,7 +213,7 @@ public class DependencyInjectorImplTest extends Simulator {
     }
 
     @Test(expectedExceptions = ComponentContainer.ResolutionException.class, expectedExceptionsMessageRegExp = ".*Dependency.*")
-    public void complainsAboutMissingFields() throws Exception {
+    public void complainsAboutUnsatisfiedFields() throws Exception {
         final FieldInjected component = new FieldInjected();
 
         setupCollection(null, context,
@@ -220,7 +222,7 @@ public class DependencyInjectorImplTest extends Simulator {
 
         expectCallbacks();
 
-        assert component == verify(new Work<FieldInjected>() {
+        verify(new Work<FieldInjected>() {
             public FieldInjected run() throws Exception {
                 return injector.fields(component, traversal, resolver, contexts, context);
             }
@@ -257,7 +259,8 @@ public class DependencyInjectorImplTest extends Simulator {
 
         setupCollection(ConstructorInjected.class, context, setupConstructorResolution(ConstructorInjected.class, constructor, null, dependency, services));
 
-        EasyMock.expect(context.create()).andReturn(arguments().normal(ComponentContext.class));
+        final ComponentContext passed = arguments().normal(ComponentContext.class);
+        EasyMock.expect(context.create()).andReturn(passed);
 
         ConstructorInjected.expectedGroupSize = services.length;
 
@@ -270,6 +273,25 @@ public class DependencyInjectorImplTest extends Simulator {
         });
 
         assert found != null;
+
+        EasyMock.expect(resolver.cached(ConstructorInjected.class, passed)).andReturn(null);
+        traversal.instantiating(ConstructorInjected.class);
+        traversal.instantiated(EasyMock.same(ConstructorInjected.class), EasyMock.notNull());
+
+        final AtomicReference component = new AtomicReference();
+
+        EasyMock.expectLastCall().andAnswer(new IAnswer<Object>() {
+            public Object answer() throws Throwable {
+                component.set(EasyMock.getCurrentArguments()[1]);
+                return null;
+            }
+        });
+
+        assert component.get() == verify(new Work<Object>() {
+            public Object run() throws Exception {
+                return found.instance(traversal);
+            }
+        });
     }
 
     @Test
@@ -400,8 +422,8 @@ public class DependencyInjectorImplTest extends Simulator {
 
         public static int expectedGroupSize;
 
-        @SuppressWarnings("UnusedParameters")
-        public ConstructorInjected(final Dependency dependency, final @ComponentGroup Service[] services) {
+        @SuppressWarnings({ "UnusedParameters", "UnusedDeclaration" })
+        private ConstructorInjected(final Dependency dependency, final @ComponentGroup Service[] services) {
             assert dependency != null;
 
             assert services != null;

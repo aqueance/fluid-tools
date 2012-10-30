@@ -159,7 +159,7 @@ public interface DependencyGraph {
          * org.fluidity.composition.ComponentContainer.Observer#instantiated(DependencyPath,
          * java.util.concurrent.atomic.AtomicReference) ComponentContainer.Observer.instantiated()} for details.
          * <p/>
-         * <b>Note:</b> the receiver will not call any method on the
+         * <b>Note:</b> the receiver will <i>not</i> call any method on the
          * instantiated object while executing this method.
          *
          * @param type      the type just instantiated.

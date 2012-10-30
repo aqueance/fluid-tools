@@ -76,6 +76,35 @@ public final class Deferred extends Utility {
     }
 
     /**
+     * Creates a lazy-initialized label from the given <code>format</code> and <code>arguments</code>. The arguments are evaluated the first time
+     * {@link Deferred.Label#toString()} is invoked.
+     *
+     * @param format    the Java format specification.
+     * @param arguments the details to format.
+     *
+     * @return a lazy initialized {@link Label} object; never <code>null</code>.
+     */
+    public static Label label(final String format, final Object... arguments) {
+        return new LabelImpl(new Factory<String>() {
+            public String create() {
+                return String.format(format, arguments);
+            }
+        });
+    }
+
+    /**
+     * Creates a lazy-initialized label that is produced by the given <code>factory</code>. The factory is invoked the first time {@link
+     * Deferred.Label#toString()} is invoked.
+     *
+     * @param factory the factory to produce the label.
+     *
+     * @return a lazy initialized {@link Label} object; never <code>null</code>.
+     */
+    public static Label label(final Factory<String> factory) {
+        return new LabelImpl(factory);
+    }
+
+    /**
      * A factory of some object to be {@link Deferred lazily} instantiated. This is used by {@link Deferred#reference(Factory)}.
      * <h3>Usage</h3>
      * See {@link Deferred}.
@@ -125,6 +154,24 @@ public final class Deferred extends Utility {
          * @return the cached object; may be <code>null</code> if the object has not yet been {@linkplain #resolved() resolved}.
          */
         T invalidate();
+    }
+
+    /**
+     * A lazy-initialized label. Labels are essentially objects with a single {@link Object#toString()} method that returns some text that is expensive to
+     * compute.
+     *
+     * @author Tibor Varga
+     * @see Deferred#label(Deferred.Factory)
+     * @see Deferred#label(String, Object...)
+     */
+    public interface Label {
+
+        /**
+         * Initializes and returns the label's value.
+         *
+         * @return the label value.
+         */
+        String toString();
     }
 
     /**
@@ -188,6 +235,23 @@ public final class Deferred extends Utility {
             public boolean resolved() {
                 return delegate != null;
             }
+        }
+    }
+
+    /**
+     * @author Tibor Varga
+     */
+    private static class LabelImpl implements Label {
+
+        private final Reference<String> text;
+
+        public LabelImpl(final Factory<String> factory) {
+            this.text = reference(factory);
+        }
+
+        @Override
+        public String toString() {
+            return text.get();
         }
     }
 }

@@ -593,6 +593,16 @@ public interface ComponentContainer {
         public InjectionException(final String format, final Object... data) {
             super(String.format(format, data));
         }
+
+        /**
+         * Creates a new instance using the given message text and with the given cause.
+         *
+         * @param cause   the exception that triggered this error.
+         * @param message the error message.
+         */
+        public InjectionException(final String message, final Throwable cause) {
+            super(message, cause);
+        }
     }
 
     /**
@@ -619,6 +629,16 @@ public interface ComponentContainer {
          */
         public ResolutionException(final String format, final Object... data) {
             super(format, data);
+        }
+
+        /**
+         * Creates a new instance using the given message text and with the given cause.
+         *
+         * @param cause   the exception that triggered this error.
+         * @param message the error message.
+         */
+        public ResolutionException(final String message, final Throwable cause) {
+            super(message, cause);
         }
     }
 
@@ -690,6 +710,16 @@ public interface ComponentContainer {
          */
         public BindingException(final String format, final Object... data) {
             super(format, data);
+        }
+
+        /**
+         * Creates a new instance using the given message text and with the given cause.
+         *
+         * @param cause   the exception that triggered this error.
+         * @param message the error message.
+         */
+        public BindingException(final String message, final Throwable cause) {
+            super(message, cause);
         }
     }
 }

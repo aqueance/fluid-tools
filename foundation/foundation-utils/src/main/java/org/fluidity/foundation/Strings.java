@@ -37,8 +37,8 @@ public final class Strings extends Utility {
     /**
      * Returns a textual representation of the given object. In particular:<ul>
      * <li>if the object is <code>null</code>, returns <code>"null"</code>;</li>
-     * <li>if the object is a proxy and has {@linkplain Proxies.Identity custom identity}, {@link Proxies.Identity#toString(Object) Proxies.Identity.toString()}
-     * is invoked with the object and its result is returned;</li>
+     * <li>if the object is a proxy and has {@linkplain Proxies.Identity custom identity}, {@link Proxies.Identity#toString(Object)
+     * Proxies.Identity.toString()} is invoked with the object and its result is returned;</li>
      * <li>if the object is a proxy, has no {@linkplain Proxies.Identity custom identity}, and <code>identity</code> is <code>false</code>, then
      * <code>"proxy[&lt;list of interfaces>]"</code> is returned;</li>
      * <li>if the object is a proxy, has no {@linkplain Proxies.Identity custom identity}, and <code>identity</code> is <code>true</code>, then {@link
@@ -50,11 +50,11 @@ public final class Strings extends Utility {
      * <p/>
      * Arrays are formatted as the list of individual items, surrounded with brackets.
      *
-     *
-     * @param identify tells if object identity is to be formatted in absence of a custom {@link Object#toString()} method (<code>true</code>) or just the
-     *                 type identity (<code>false</code>).
-     * @param qualified
-     * @param object   the object to format; may be <code>null</code>.
+     * @param identify  tells if object identity is to be formatted in absence of a custom {@link Object#toString()} method (<code>true</code>) or just the
+     *                  type identity (<code>false</code>).
+     * @param qualified specifies whether the fully qualified class name of the object should be used (value <code>true</code>) or only its name (value
+     *                  <code>false</code>).
+     * @param object    the object to format; may be <code>null</code>.
      *
      * @return the the proxy friendly textual representation, if any, or the identity of the given object.
      */

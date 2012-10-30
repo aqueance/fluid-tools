@@ -130,7 +130,7 @@ public class ExceptionsTest {
     }
 
     @Test(dataProvider = "exceptions")
-    public void testCustomWrapper(final Exception original) throws Exception {
+    public void testUnknownWrapper(final Exception original) throws Exception {
 
         class MyWrapper extends Exception {
 
@@ -163,6 +163,70 @@ public class ExceptionsTest {
             });
         } catch (final Exceptions.Wrapper e) {
             assert e.getCause() == original : e.getCause();
+        } catch (final RuntimeException e) {
+            assert e == original : e;
+        }
+    }
+
+    @SuppressWarnings("UnusedDeclaration")
+    private static class CustomWrapper extends RuntimeException {
+
+        CustomWrapper(final Throwable cause) {
+            super(cause);
+        }
+
+        CustomWrapper(final String message, final Throwable cause) {
+            super(message, cause);
+        }
+    }
+
+    @Test(dataProvider = "exceptions")
+    public void testLabels(final Exception original) throws Exception {
+        final UndeclaredThrowableException wrapped =
+                new UndeclaredThrowableException(
+                        new InvocationTargetException(
+                                new Exceptions.Wrapper(
+                                        new InvocationTargetException(
+                                                new RuntimeException(
+                                                        new UndeclaredThrowableException(
+                                                                new InvocationTargetException(original)))))));
+
+        final Deferred.Label message = Deferred.label("testing");
+
+        try {
+            Exceptions.wrap(null, CustomWrapper.class, new Job<Throwable>() {
+                public void run() throws Throwable {
+                    throw wrapped;
+                }
+            });
+        } catch (final CustomWrapper e) {
+            assert e.getCause() == original : e.getCause();
+        } catch (final RuntimeException e) {
+            assert e == original : e;
+        }
+
+        try {
+            Exceptions.wrap(message, CustomWrapper.class, new Job<Throwable>() {
+                public void run() throws Throwable {
+                    throw wrapped;
+                }
+            });
+        } catch (final CustomWrapper e) {
+            assert e.getCause() == original : e.getCause();
+            assert message.toString().equals(e.getMessage()) : e.getMessage();
+        } catch (final RuntimeException e) {
+            assert e == original : e;
+        }
+
+        try {
+            Exceptions.wrap(message, null, new Job<Throwable>() {
+                public void run() throws Throwable {
+                    throw wrapped;
+                }
+            });
+        } catch (final Exceptions.Wrapper e) {
+            assert e.getCause() == original : e.getCause();
+            assert message.toString().equals(e.getMessage()) : e.getMessage();
         } catch (final RuntimeException e) {
             assert e == original : e;
         }
