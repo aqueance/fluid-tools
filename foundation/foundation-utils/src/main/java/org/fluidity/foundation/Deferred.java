@@ -76,8 +76,8 @@ public final class Deferred extends Utility {
     }
 
     /**
-     * Creates a lazy-initialized label from the given <code>format</code> and <code>arguments</code>. The arguments are evaluated the first time
-     * {@link Deferred.Label#toString()} is invoked.
+     * Creates a lazy-initialized label from the given <code>format</code> and <code>arguments</code>. The arguments are evaluated every time {@link
+     * Deferred.Label#toString()} is invoked.
      *
      * @param format    the Java format specification.
      * @param arguments the details to format.
@@ -93,8 +93,8 @@ public final class Deferred extends Utility {
     }
 
     /**
-     * Creates a lazy-initialized label that is produced by the given <code>factory</code>. The factory is invoked the first time {@link
-     * Deferred.Label#toString()} is invoked.
+     * Creates a lazy-initialized label that is produced by the given <code>factory</code>. The factory is invoked every time {@link Deferred.Label#toString()}
+     * is invoked.
      *
      * @param factory the factory to produce the label.
      *
@@ -243,15 +243,15 @@ public final class Deferred extends Utility {
      */
     private static class LabelImpl implements Label {
 
-        private final Reference<String> text;
+        private final Factory<String> text;
 
         public LabelImpl(final Factory<String> factory) {
-            this.text = reference(factory);
+            this.text = factory;
         }
 
         @Override
         public String toString() {
-            return text.get();
+            return text.create();
         }
     }
 }

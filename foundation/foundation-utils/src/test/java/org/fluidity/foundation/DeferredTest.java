@@ -82,6 +82,6 @@ public class DeferredTest {
         assert text.equals(label2.toString()) : label2;
         assert counter.get() == 1 : counter.get();
         assert text.equals(label2.toString()) : label2;
-        assert counter.get() == 1 : counter.get();
+        assert counter.get() == 2 : counter.get();
     }
 }
