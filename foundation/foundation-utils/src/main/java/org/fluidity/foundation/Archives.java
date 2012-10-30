@@ -113,6 +113,7 @@ public final class Archives extends Utility {
         final InputStream content = new ByteArrayInputStream(data);
 
         try {
+            int count = 0;
             final JarInputStream jar = new JarInputStream(content, true);
 
             ZipEntry manifest;
@@ -137,7 +138,11 @@ public final class Archives extends Utility {
                         final JarEntry entry = new JarEntry(manifest);
 
                         if (reader.matches(url, entry)) {
-                            reader.read(url, entry, new OpenInputStream(zip));
+                            ++count;
+
+                            if (!reader.read(url, entry, new OpenInputStream(zip))) {
+                                return count;
+                            }
                         }
                     }
                 }
@@ -147,7 +152,6 @@ public final class Archives extends Utility {
 
             final InputStream stream = new OpenInputStream(jar);
 
-            int count = 0;
             for (JarEntry entry; (entry = jar.getNextJarEntry()) != null; ) {
                 try {
                     if (!entry.isDirectory()) {
@@ -155,7 +159,7 @@ public final class Archives extends Utility {
                             ++count;
 
                             if (!reader.read(url, entry, stream)) {
-                                break;
+                                return count;
                             }
                         }
                     }
