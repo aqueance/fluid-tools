@@ -18,6 +18,7 @@ package org.fluidity.foundation;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -85,6 +86,35 @@ public final class Methods extends Utility {
         });
 
         return Lists.asArray(Method.class, methods);
+    }
+
+    /**
+     * Invokes the given <code>method</code> on the given <code>target</code> with the given <code>arguments</code>. All checked exceptions thrown from the
+     * method will be wrapped in {@link Exceptions.Wrapper}.
+     *
+     * @param restricted tells if the <code>method</code> should be made {@linkplain Method#setAccessible(boolean) accessible} before invoked (value
+     *                   <code>true</code>) or not (value <code>false</code>).
+     * @param method     the method to invoke; may not be <code>null</code>.
+     * @param target     the object to invoke the method on; may be <code>null</code> if the method is {@linkplain Modifier#isStatic(int) static}.
+     * @param arguments  the arguments to pass to the method.
+     *
+     * @return whatever the method returns.
+     *
+     * @throws Exceptions.Wrapper wraps all checked exceptions thrown by the method.
+     */
+    @SuppressWarnings("unchecked")
+    public static Object invoke(final boolean restricted, final Method method, final Object target, final Object... arguments) throws Exceptions.Wrapper {
+        assert target != null || Modifier.isStatic(method.getModifiers()) : method;
+
+        if (restricted) {
+            method.setAccessible(true);
+        }
+
+        return Exceptions.wrap(new Command.Process<Object, Throwable>() {
+            public Object run() throws Throwable {
+                return method.invoke(target, arguments);
+            }
+        });
     }
 
     /**

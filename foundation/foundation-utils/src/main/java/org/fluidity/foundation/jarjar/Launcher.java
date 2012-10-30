@@ -17,7 +17,6 @@
 package org.fluidity.foundation.jarjar;
 
 import java.io.Closeable;
-import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
@@ -26,6 +25,7 @@ import java.util.List;
 import org.fluidity.foundation.Archives;
 import org.fluidity.foundation.ClassLoaders;
 import org.fluidity.foundation.Lists;
+import org.fluidity.foundation.Methods;
 
 import static org.fluidity.foundation.Command.Function;
 
@@ -77,10 +77,7 @@ public final class Launcher {
         try {
             ClassLoaders.context(loader, new Function<Object, ClassLoader, Exception>() {
                 public Object run(final ClassLoader loader) throws Exception {
-                    final Method main = loader.loadClass(mainClass).getMethod("main", String[].class);
-
-                    main.setAccessible(true);
-                    return main.invoke(null, new Object[] { args });
+                    return Methods.invoke(true, loader.loadClass(mainClass).getMethod("main", String[].class), null, new Object[] { args });
                 }
             });
         } finally {

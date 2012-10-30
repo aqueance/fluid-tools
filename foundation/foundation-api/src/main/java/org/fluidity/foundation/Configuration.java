@@ -359,17 +359,11 @@ public interface Configuration<T> {
     /**
      * Adds a more descriptive error message to exceptions that occur while loading properties and converting them to settings.
      */
-    class PropertyException extends RuntimeException {
+    final class PropertyException extends RuntimeException {
 
-        /**
-         * Creates a new instance.
-         *
-         * @param cause  the original exception to decorate.
-         * @param format the message format.
-         * @param args   the message parameters.
-         */
-        public PropertyException(final Exception cause, final String format, final Object... args) {
-            super(String.format(format, args), cause);
+        @SuppressWarnings("UnusedDeclaration")
+        PropertyException(final String message, final Throwable cause) {
+            super(message, cause);
         }
     }
 }

@@ -161,22 +161,22 @@ final class ConfigurationImpl<T> implements Configuration<T> {
             final Class<?> type = method.getReturnType();
             final Type genericType = method.getGenericReturnType();
 
-            try {
-                return property(setting.split(),
-                                setting.grouping(),
-                                String.format(setting.ids(), args),
-                                String.format(setting.list(), args),
-                                String.format(setting.undefined(), args),
-                                type,
-                                genericType,
-                                prefixes,
-                                String.format(setting.key(), args),
-                                defaults,
-                                method,
-                                args);
-            } catch (final Exception e) {
-                throw new PropertyException(e, method.toGenericString());
-            }
+            return Exceptions.wrap(method.toGenericString(), PropertyException.class, new Process<Object, Throwable>() {
+                public Object run() throws Throwable {
+                    return property(setting.split(),
+                                    setting.grouping(),
+                                    String.format(setting.ids(), args),
+                                    String.format(setting.list(), args),
+                                    String.format(setting.undefined(), args),
+                                    type,
+                                    genericType,
+                                    prefixes,
+                                    String.format(setting.key(), args),
+                                    defaults,
+                                    method,
+                                    args);
+                }
+            });
         }
 
         private Object property(final String split,
@@ -190,7 +190,7 @@ final class ConfigurationImpl<T> implements Configuration<T> {
                                 final String suffix,
                                 final T defaults,
                                 final Method method,
-                                final Object[] args) throws Exception {
+                                final Object[] args) {
             if (ids == null || ids.isEmpty()) {
                 Object value = null;
 
@@ -208,7 +208,7 @@ final class ConfigurationImpl<T> implements Configuration<T> {
                     }
 
                     if (value == null) {
-                        final Object fallback = defaults == null ? null : method.invoke(defaults, args);
+                        final Object fallback = defaults == null ? null : Methods.invoke(false, method, defaults, args);
                         value = fallback == null ? (undefined.length() == 0 ? null : undefined) : fallback;
                     }
 
@@ -298,7 +298,7 @@ final class ConfigurationImpl<T> implements Configuration<T> {
             return !type.isArray() && !type.isPrimitive() && !Enum.class.isAssignableFrom(type) && !type.getName().startsWith("java.");
         }
 
-        private Object composite(final Class<?> type, final String suffix) throws Exception {
+        private Object composite(final Class<?> type, final String suffix) throws IllegalAccessException, InstantiationException {
             if (type.isInterface()) {
                 return Proxies.create(type, new InvocationHandler() {
                     public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {

@@ -30,9 +30,8 @@ import org.fluidity.features.Updates;
 import org.fluidity.foundation.Configuration;
 import org.fluidity.foundation.Deferred;
 import org.fluidity.foundation.Exceptions;
+import org.fluidity.foundation.Methods;
 import org.fluidity.foundation.Proxies;
-
-import static org.fluidity.foundation.Command.Process;
 
 /**
  * @author Tibor Varga
@@ -81,12 +80,7 @@ final class DynamicConfigurationFactory implements ComponentFactory {
                                     assert method.getParameterTypes().length == 0 : method;
 
                                     try {
-                                        cache.put(method, Exceptions.wrap(new Process<Object, Exception>() {
-                                            public Object run() throws Exception {
-                                                method.setAccessible(true);
-                                                return method.invoke(settings);
-                                            }
-                                        }));
+                                        cache.put(method, Methods.invoke(true, method, settings));
                                     } catch (final Exceptions.Wrapper e) {
                                         e.rethrow(Exception.class);
                                     }

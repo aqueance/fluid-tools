@@ -205,7 +205,7 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
         }
     }
 
-    private Object instantiate(final Class<?> api, final DependencyGraph.Node node, final ActualElement element, final DependencyGraph.Traversal traversal) {
+    Object instantiate(final Class<?> api, final DependencyGraph.Node node, final ActualElement element, final DependencyGraph.Traversal traversal) {
         final ActualPath path = resolutionPath.get().descend(element, node.context());
 
         return descend(path, new Descent<Object>() {
@@ -232,10 +232,10 @@ final class DependencyPathTraversal implements DependencyGraph.Traversal {
         });
     }
 
-    private DependencyGraph.Node resolve(final Class<?> api,
-                                         final ActualPath path,
-                                         final DependencyGraph.Node node,
-                                         final DependencyGraph.Traversal traversal) throws CircularReferencesException {
+    DependencyGraph.Node resolve(final Class<?> api,
+                                 final ActualPath path,
+                                 final DependencyGraph.Node node,
+                                 final DependencyGraph.Traversal traversal) throws CircularReferencesException {
         final ComponentContext context = node.context();
 
         final Descent<DependencyGraph.Node> descent = new Descent<DependencyGraph.Node>() {

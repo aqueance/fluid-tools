@@ -81,8 +81,8 @@ public final class Strings extends Utility {
                 return Generics.toString(qualified, (Type) object);
             } else {
                 try {
-                    return (String) type.getDeclaredMethod("toString").invoke(object);
-                } catch (final Exception e) {
+                    return (String) Methods.invoke(false, type.getDeclaredMethod("toString"), object);
+                } catch (final NoSuchMethodException e) {
                     return identify ? formatId(object) : Strings.formatClass(false, qualified, type);
                 }
             }

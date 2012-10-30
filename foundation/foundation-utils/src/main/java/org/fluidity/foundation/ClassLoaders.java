@@ -262,22 +262,28 @@ public final class ClassLoaders extends Utility {
      *
      * @return whatever the command returns.
      *
-     * @throws Exception when anything goes wrong.
+     * @throws ClassNotFoundException when the given class could not be found in the given URLs.
+     * @throws InstantiationException when the given class could not be instantiated.
+     * @throws Exceptions.Wrapper when anything else goes wrong.
      */
     @SuppressWarnings("unchecked")
-    public static <T> T isolate(final ClassLoader parent, final Collection<URL> urls, final Class<?> type, final Method run, final Object... arguments) throws Exception {
+    public static <T> T isolate(final ClassLoader parent, final Collection<URL> urls, final Class<?> type, final Method run, final Object... arguments)
+            throws Exceptions.Wrapper, ClassNotFoundException, InstantiationException {
         final ClassLoader isolated = create(parent, Lists.asArray(URL.class, urls));
 
         try {
+
             // find the command
             final Object command = isolated.loadClass(type.getName()).newInstance();
 
             // find the method to call in the other class loader
             final Method method = isolated.loadClass(run.getDeclaringClass().getName()).getDeclaredMethod(run.getName(), run.getParameterTypes());
 
-            // see if the class loader can see the ContainerBoundary and BundleBootstrap classes and if so, set the bundle activator
-            method.setAccessible(true);
-            return (T) method.invoke(command, arguments);
+            return (T) Methods.invoke(true, method, command, arguments);
+        } catch (final NoSuchMethodException e) {
+            throw new AssertionError(e);
+        } catch (final IllegalAccessException e) {
+            throw new AssertionError(e);
         } finally {
             try {
                 ((Closeable) isolated).close();

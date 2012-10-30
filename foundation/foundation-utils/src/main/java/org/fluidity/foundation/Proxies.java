@@ -225,7 +225,7 @@ public final class Proxies extends Utility {
                     e.rethrow(type);
                 }
 
-                throw e.rethrow(Throwable.class);
+                throw e;
             }
         }
 

@@ -325,11 +325,11 @@ final class DependencyInjectorImpl implements DependencyInjector {
                 final Object cached = container.cached(api, componentContext);
 
                 if (cached == null) {
-                    final Deferred.Label label = Deferred.label("Invoking %s with %s", constructor, Deferred.label(new Deferred.Factory<String>() {
+                    final Deferred.Label label = Deferred.label(new Deferred.Factory<String>() {
                         public String create() {
-                            return Strings.formatId(arguments);
+                            return String.format("Invoking %s with %s", constructor, Strings.formatId(arguments));
                         }
-                    }));
+                    });
 
                     traversal.instantiating(componentClass);
                     return traversal.instantiated(componentClass, Exceptions.wrap(label, ComponentContainer.ResolutionException.class, new Process<Object, Exception>() {
@@ -355,11 +355,11 @@ final class DependencyInjectorImpl implements DependencyInjector {
                                 final DependencyGraph.Traversal traversal,
                                 final List<RestrictedContainer> containers,
                                 final Object instance) {
-        final Deferred.Label label = Deferred.label("Setting %s fields", Deferred.label(new Deferred.Factory<String>() {
+        final Deferred.Label label = Deferred.label(new Deferred.Factory<String>() {
             public String create() {
-                return Strings.formatClass(false, true, instance.getClass());
+                return String.format("Setting %s fields", Strings.formatClass(false, true, instance.getClass()));
             }
-        }));
+        });
 
         return Exceptions.wrap(label, ComponentContainer.ResolutionException.class, new Process<Object, Exception>() {
             public Object run() throws Exception {
