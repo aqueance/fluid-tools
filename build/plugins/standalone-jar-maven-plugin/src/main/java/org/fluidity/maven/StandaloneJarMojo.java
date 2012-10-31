@@ -233,6 +233,12 @@ public final class StandaloneJarMojo extends AbstractMojo {
                 final Collection<Dependency> pluginDependencies = project.getPlugin(pluginKey).getDependencies();
                 final Artifact pluginArtifact = project.getPluginArtifactMap().get(pluginKey);
 
+                final String original = mainAttributes.getValue(JarManifest.CREATED_BY);
+                mainAttributes.putValue(JarManifest.CREATED_BY,
+                                        original == null
+                                        ? JarManifest.CREATOR_ID
+                                        : original.contains(JarManifest.CREATOR_ID) ? original : String.format("%s, %s", JarManifest.CREATOR_ID, original));
+
                 for (final JarManifest handler : handlers) {
                     final Class<? extends JarManifest> handlerClass = handler.getClass();
 

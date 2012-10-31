@@ -63,6 +63,7 @@ import static org.osgi.framework.Constants.EXPORT_PACKAGE;
 import static org.osgi.framework.Constants.FRAGMENT_HOST;
 import static org.osgi.framework.Constants.IMPORT_PACKAGE;
 import static org.osgi.framework.Constants.REQUIRE_BUNDLE;
+import static org.osgi.framework.Constants.REQUIRE_CAPABILITY;
 
 /**
  * Modifies the JAR manifest of the host project's artifact to make the artifact a self-containing OSGi bundle. That is, the project's dependencies will be
@@ -108,6 +109,14 @@ public final class BundleJarManifest implements JarManifest {
             public String get() {
                 final String year = project.getInceptionYear();
                 return year == null ? null : String.format("Copyright %s (c) %s. All rights reserved.", project.getOrganization().getName(), year);
+            }
+        });
+        addEntry(attributes, REQUIRE_CAPABILITY, new Metadata() {
+            public String get() {
+
+                // http://www.oracle.com/technetwork/java/javase/versioning-naming-139433.html
+                final String[] version = System.getProperty("java.version").split("\\.");
+                return String.format("osgi.ee;filter:=(&(osgi.ee=JavaSE)(version>=%s.%s))", version[0], version[1]);
             }
         });
 
@@ -313,7 +322,7 @@ public final class BundleJarManifest implements JarManifest {
     }
 
     /**
-     * Encapsulates the action of getting some metadata. The idea is to be able to chain getters without considering <code>null</code> values along the way.
+     * Encapsulates the computation of some metadata. The idea is to be able to chain getters without considering <code>null</code> values along the way.
      */
     private interface Metadata {
 

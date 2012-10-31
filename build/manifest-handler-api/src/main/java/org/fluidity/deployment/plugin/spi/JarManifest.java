@@ -36,6 +36,16 @@ import org.apache.maven.project.MavenProject;
 public interface JarManifest {
 
     /**
+     * Identifies Fluid Tools as the creator of standalone archives; to be used with the {@link #CREATED_BY} manifest header.
+     */
+    String CREATOR_ID = "Fluid Tools";
+
+    /**
+     * Manifest header that identifies the tool that created the archive.
+     */
+    String CREATED_BY = "Created-By";
+
+    /**
      * Maven profile names for the implementation project to declare dependencies <em>not to include</em>, <em>to include</em>, or <em>to unpack</em>,
      * respectively, in the project artifact being processed.
      */
