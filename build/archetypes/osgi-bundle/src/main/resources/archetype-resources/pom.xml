@@ -1,0 +1,172 @@
+#*
+Copyright (c) 2006-2012 Tibor Adam Varga (tibor.adam.varga on gmail)
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*#
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>\${groupId}</groupId>
+    <artifactId>\${artifactId}</artifactId>
+    <packaging>jar</packaging>
+    <version>\${version}</version>
+
+    <name>\${projectName}</name>
+
+#set( $symbol_dollar = '$' )
+    <dependencies>
+
+        <dependency>
+            <groupId>org.osgi</groupId>
+            <artifactId>org.osgi.core</artifactId>
+            <version>${symbol_dollar}{osgi.specification.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!--
+        Depending on the intended use, you may want to move here the
+        dependencies from either the "standalone" or the "stripped" profile
+        and delete the profiles themselves.
+
+        The "standalone" variant produces a complete OSGi bundle while the
+        "stripped" variant can only be deployed in a standalone OSGi
+        application matching the fluidity-archetype-standalone-osgi archetype.
+        -->
+
+    </dependencies>
+
+    <profiles>
+        <profile>
+            <id>standalone</id>
+            <activation><property><name>standalone-bundles</name></property></activation>
+
+            <dependencies>
+
+<!-- Add the dependencies of the bundle, e.g.:
+                <dependency>
+                    <groupId>${symbol_dollar}{project.groupId}</groupId>
+                    <artifactId>some-bundle-dependency</artifactId>
+                    <version>${symbol_dollar}{project.version}</version>
+                </dependency>
+-->
+
+                <dependency>
+                    <groupId>${fluidity.public.groupId}</groupId>
+                    <artifactId>fluid-tools-osgi-bundle</artifactId>
+                    <version>${symbol_dollar}{fluid.tools.version}</version>
+                    <type>pom</type>
+                </dependency>
+
+<!-- Uncomment and modify to make available to the bundle a suitable logging framework.
+                <dependency>
+                    <groupId>${fluidity.features.groupId}</groupId>
+                    <artifactId>logging-commons-impl</artifactId>
+                    <version>${symbol_dollar}{fluid.tools.version}</version>
+                </dependency>
+
+                <dependency>
+                    <groupId>commons-logging</groupId>
+                    <artifactId>commons-logging</artifactId>
+                    <version>1.1.1</version>
+                </dependency>
+-->
+            </dependencies>
+        </profile>
+
+        <profile>
+            <id>stripped</id>
+            <activation><property><name>!standalone-bundles</name></property></activation>
+
+            <dependencies>
+
+<!-- Add the dependencies of the bundle, e.g.:
+                <dependency>
+                    <groupId>${symbol_dollar}{project.groupId}</groupId>
+                    <artifactId>some-bundle-dependency</artifactId>
+                    <version>${symbol_dollar}{project.version}</version>
+
+                    <exclusions>
+                        <exclusion>
+                            <groupId>${fluidity.public.groupId}</groupId>
+                            <artifactId>fluid-tools-component-api</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+-->
+
+                <dependency>
+                    <groupId>${fluidity.public.groupId}</groupId>
+                    <artifactId>fluid-tools-osgi-bundle</artifactId>
+                    <version>${symbol_dollar}{fluid.tools.version}</version>
+                    <type>pom</type>
+                    <scope>provided</scope>
+                </dependency>
+
+                <dependency>
+                    <groupId>${fluidity.deployment.groupId}</groupId>
+                    <artifactId>osgi-bundle-bootstrap</artifactId>
+                    <version>${symbol_dollar}{fluid.tools.version}</version>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
+
+    <build>
+        <plugins>
+
+            <plugin>
+                <groupId>${fluidity.plugin.groupId}</groupId>
+                <artifactId>composition-maven-plugin</artifactId>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+
+                <configuration>
+                    <archive>
+                        <manifestEntries>
+                            <Import-Package>${symbol_dollar}{osgi.import.core}</Import-Package>
+<!-- Sample package export:
+                            <Export-Package>${package};version=${symbol_dollar}{version:project.version}</Export-Package>
+-->
+                            <Bundle-RequiredExecutionEnvironment>J2SE-1.5</Bundle-RequiredExecutionEnvironment>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>${fluidity.plugin.groupId}</groupId>
+                <artifactId>standalone-jar-maven-plugin</artifactId>
+
+<!-- Comment out to overwrite the original artifact rather than creating a new one with the given classifier. -->
+                <configuration>
+                    <classifier>bundle</classifier>
+                </configuration>
+
+                <dependencies>
+                    <dependency>
+                        <groupId>${fluidity.features.groupId}</groupId>
+                        <artifactId>jar-manifest-osgi-bundle-impl</artifactId>
+                        <version>${symbol_dollar}{fluid.tools.version}</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+
+        </plugins>
+    </build>
+
+</project>

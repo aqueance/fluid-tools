@@ -17,13 +17,13 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <parent>
-        <groupId>org.fluidity.deployment</groupId>
-        <artifactId>deployment-root</artifactId>
+        <groupId>org.fluidity.platform</groupId>
+        <artifactId>deployment</artifactId>
         <version>1.0.0-SNAPSHOT</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
-    <groupId>org.fluidity.deployment</groupId>
+    <groupId>org.fluidity.platform</groupId>
     <artifactId>osgi-bundle-bootstrap</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>jar</packaging>
@@ -94,13 +94,6 @@
             <plugin>
                 <groupId>${fluidity.plugin.groupId}</groupId>
                 <artifactId>composition-maven-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>process-annotations</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
         </plugins>
     </build>

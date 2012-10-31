@@ -339,7 +339,7 @@ public final class Archives extends Utility {
 
     /**
      * Returns the URL for the Java archive that the given URL is relative to. The returned URL, when not <code>null</code> can be used with a {@link
-     * URLClassLoader}.
+     * java.net.URLClassLoader}.
      *
      * @param url the nested URL.
      *

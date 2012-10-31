@@ -18,13 +18,13 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <parent>
         <groupId>org.fluidity</groupId>
-        <artifactId>fluid-tools</artifactId>
+        <artifactId>platform</artifactId>
         <version>1.0.0-SNAPSHOT</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
-    <groupId>org.fluidity.composition</groupId>
-    <artifactId>composition-root</artifactId>
+    <groupId>org.fluidity.platform</groupId>
+    <artifactId>composition</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Composition: Composition Tools Modules</name>
@@ -47,7 +47,6 @@
         <module>composition-bootstrap-support</module>
         <module>composition-command-line-impl</module>
         <module>composition-web-impl</module>
-        <module>plugins</module>
     </modules>
 
 </project>

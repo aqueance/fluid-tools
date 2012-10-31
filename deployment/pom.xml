@@ -18,13 +18,13 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <parent>
         <groupId>org.fluidity</groupId>
-        <artifactId>fluid-tools</artifactId>
+        <artifactId>platform</artifactId>
         <version>1.0.0-SNAPSHOT</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
-    <groupId>org.fluidity.deployment</groupId>
-    <artifactId>deployment-root</artifactId>
+    <groupId>org.fluidity.platform</groupId>
+    <artifactId>deployment</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Deployment Tools Modules</name>
@@ -44,7 +44,6 @@
         <module>osgi-composition-api</module>
         <module>osgi-bundle-bootstrap</module>
         <module>osgi-application-bootstrap</module>
-        <module>plugins</module>
     </modules>
 
 </project>

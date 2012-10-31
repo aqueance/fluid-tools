@@ -18,13 +18,13 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <parent>
         <groupId>org.fluidity</groupId>
-        <artifactId>fluid-tools</artifactId>
+        <artifactId>platform</artifactId>
         <version>1.0.0-SNAPSHOT</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
-    <groupId>org.fluidity.foundation</groupId>
-    <artifactId>foundation-root</artifactId>
+    <groupId>org.fluidity.platform</groupId>
+    <artifactId>foundation</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Foundation: Foundation Tools Modules</name>
@@ -42,7 +42,6 @@
         <module>foundation-impl</module>
         <module>foundation-utils</module>
         <module>foundation-easymock</module>
-        <module>foundation-tests</module>
         <module>foundation-test-support</module>
     </modules>
 
