@@ -25,6 +25,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
@@ -76,11 +77,6 @@ public final class Archives extends Utility {
      * Name of the JAR index file in JAR files.
      */
     public static final String INDEX_NAME = String.format("%s/INDEX.LIST", META_INF);
-
-    /**
-     * The JAR manifest attribute to list the embedded JAR files within a Java archive.
-     */
-    private static final String NESTED_DEPENDENCIES = "Nested-Dependencies";
 
     /**
      * The JAR resource URL protocol.
@@ -425,6 +421,11 @@ public final class Archives extends Utility {
     public static final class Nested extends Utility {
 
         /**
+         * The JAR manifest attribute to list the embedded JAR files within a Java archive.
+         */
+        private static final String DEPENDENCIES = "Nested-Dependencies";
+
+        /**
          * The URL protocol understood by the embedded JAR URL handler.
          */
         public static final String PROTOCOL = Handler.PROTOCOL;
@@ -486,7 +487,7 @@ public final class Archives extends Utility {
          * @return the JAR manifest entry listing the embedded dependency paths for the given name.
          */
         public static String attribute(final String name) {
-            return name == null || name.isEmpty() ? NESTED_DEPENDENCIES : String.format("%s-%s", NESTED_DEPENDENCIES, name);
+            return name == null || name.isEmpty() ? DEPENDENCIES : String.format("%s-%s", DEPENDENCIES, name);
         }
 
         /**
@@ -525,6 +526,54 @@ public final class Archives extends Utility {
             }
 
             return urls;
+        }
+
+        /**
+         * Returns the list of custom nested dependency names in the given archive. The returned names can then be fed to {@link #dependencies(String)}.
+         *
+         * @return a possibly empty list of nested dependencies; never <code>null</code>.
+         *
+         * @throws IOException when reading the archive fails.
+         */
+        public static String[] list() throws IOException {
+            return list(Archives.manifest(true, Archives.root()));
+        }
+
+        /**
+         * Returns the list of custom nested dependency names in the given archive. The returned names can then be fed to {@link #dependencies(URL, String)}.
+         *
+         * @param archive the archive to look for nested dependencies in.
+         *
+         * @return a possibly empty list of nested dependencies; never <code>null</code>.
+         *
+         * @throws IOException when reading the archive fails.
+         */
+        public static String[] list(final URL archive) throws IOException {
+            return list(Archives.manifest(true, archive));
+        }
+
+        /**
+         * Returns the list of custom nested dependency names in the given archive. The returned names can then be fed to {@link #dependencies(URL, String)}.
+         *
+         * @param manifest the manifest entries to check for nested dependency headers.
+         *
+         * @return a possibly empty list of nested dependencies; never <code>null</code>.
+         */
+        public static String[] list(final Manifest manifest) {
+            final List<String> list = new ArrayList<String>();
+
+            final String prefix = DEPENDENCIES.concat("-");
+            final int length = prefix.length();
+
+            for (final Object name : manifest.getMainAttributes().keySet()) {
+                final String key = name != null ? name.toString() : null;
+
+                if (key != null && key.startsWith(prefix)) {
+                    list.add(key.substring(length));
+                }
+            }
+
+            return Lists.asArray(String.class, list);
         }
     }
 

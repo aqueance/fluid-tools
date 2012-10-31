@@ -171,21 +171,26 @@ public final class StandaloneJarMojo extends AbstractMojo {
             throw new MojoExecutionException(String.format("No %s implementation found", JarManifest.class.getName()));
         }
 
-        final Collection<Artifact> compileDependencies = DependenciesSupport.compileDependencies(repositorySystem, repositorySession, repositories, project, true);
-        final Collection<Artifact> runtimeDependencies = DependenciesSupport.runtimeDependencies(repositorySystem, repositorySession, repositories, project, true);
-
         try {
+            final Manifest manifest = Archives.manifest(false, packageFile.toURI().toURL());
+
+            if (Archives.Nested.list(manifest).length > 0) {
+                throw new MojoExecutionException(String.format("Will not embed project artifact as it contains custom nested dependencies; configure the 'include' goal to follow this one"));
+            }
+
+            final Attributes mainAttributes = manifest.getMainAttributes();
+
+            if (mainAttributes.get(Attributes.Name.CLASS_PATH) != null) {
+                throw new MojoExecutionException(String.format("Manifest contains %s", Attributes.Name.CLASS_PATH));
+            }
+
             final File file = createTempFile();
             final JarOutputStream outputStream = new JarOutputStream(new FileOutputStream(file));
 
+            final Collection<Artifact> compileDependencies = DependenciesSupport.compileDependencies(repositorySystem, repositorySession, repositories, project, true);
+            final Collection<Artifact> runtimeDependencies = DependenciesSupport.runtimeDependencies(repositorySystem, repositorySession, repositories, project, true);
+
             try {
-                final Manifest manifest = Archives.manifest(false, packageFile.toURI().toURL());
-                final Attributes mainAttributes = manifest.getMainAttributes();
-
-                if (mainAttributes.get(Attributes.Name.CLASS_PATH) != null) {
-                    throw new MojoExecutionException(String.format("Manifest contains %s", Attributes.Name.CLASS_PATH));
-                }
-
                 final String dependencyPath = Archives.META_INF.concat("/dependencies/");
                 final List<String> dependencyList = new ArrayList<String>();
 
