@@ -29,6 +29,7 @@ import org.fluidity.composition.Component;
 import org.fluidity.composition.container.ContextDefinition;
 import org.fluidity.composition.spi.ComponentInterceptor;
 import org.fluidity.foundation.Lists;
+import org.fluidity.foundation.Methods;
 import org.fluidity.foundation.Strings;
 
 /**
@@ -80,6 +81,12 @@ final class InterceptorFilterImpl implements InterceptorFilter {
      */
     private static class Descriptor implements Comparable<Descriptor> {
 
+        private static String collection = Methods.get(Component.Context.class, new Methods.Invoker<Component.Context>() {
+            public void invoke(final Component.Context capture) throws Throwable {
+                capture.collect();
+            }
+        })[0].getName();
+
         public final Class<?> type;
         public final Collection<Class<? extends Annotation>> context;
         public final ComponentInterceptor interceptor;
@@ -89,11 +96,26 @@ final class InterceptorFilterImpl implements InterceptorFilter {
         Descriptor(final ComponentInterceptor interceptor, final Map<Class<? extends Annotation>, Integer> indexes) {
             this.type = interceptor.getClass();
 
-            final Component.Context annotation = this.type.getAnnotation(Component.Context.class);
-            this.context = annotation == null ? Collections.<Class<? extends Annotation>>emptyList() : Arrays.asList(annotation.value());
+            final Component.Context context = this.type.getAnnotation(Component.Context.class);
+
+            this.context = context == null ? Collections.<Class<? extends Annotation>>emptyList() : Arrays.asList(context.value());
+
+            for (final Class<? extends Annotation> annotation : this.context) {
+                final Component.Context specification = annotation.getAnnotation(Component.Context.class);
+
+                if (specification == null || specification.collect() != Component.Context.Collection.IMMEDIATE) {
+                    throw new IllegalArgumentException(String.format("Context annotation type %s used by component interceptor %s must have a @%s(%s = %s) annotation",
+                                                                     Strings.formatClass(false, true, annotation),
+                                                                     Strings.formatClass(false, true, this.type),
+                                                                     Strings.formatClass(false, false, Component.Context.class),
+                                                                     collection,
+                                                                     Component.Context.Collection.IMMEDIATE.name()));
+                }
+            }
+
             this.interceptor = interceptor;
 
-            this.index = max(context, indexes);
+            this.index = max(this.context, indexes);
         }
 
         @Override
@@ -137,7 +159,7 @@ final class InterceptorFilterImpl implements InterceptorFilter {
             return that.index.compareTo(this.index);
         }
 
-        private static Integer max(final Collection<Class<? extends Annotation>> annotations, final Map<Class<? extends Annotation>, Integer> indexes) {
+        private Integer max(final Collection<Class<? extends Annotation>> annotations, final Map<Class<? extends Annotation>, Integer> indexes) {
             int value = -1;
 
             for (final Class<? extends Annotation> annotation : annotations) {

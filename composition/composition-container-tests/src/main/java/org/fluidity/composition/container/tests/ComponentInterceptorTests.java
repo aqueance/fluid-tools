@@ -71,7 +71,7 @@ public final class ComponentInterceptorTests extends AbstractContainerTests {
             assert list != null : String.format("No interceptors applied to %s", type);
 
             final List<Class<? extends ComponentInterceptor>> expected = Arrays.asList(interceptors);
-            assert new ArrayList<Class<?>>(list).equals(expected) : String.format("Expected for %s %s, got %s", type, expected, list);
+            assert new ArrayList<Class<?>>(list).equals(expected) : String.format("For %s%nexpected %s%n     got %s", type, expected, list);
         }
     }
 
@@ -82,6 +82,7 @@ public final class ComponentInterceptorTests extends AbstractContainerTests {
             public void bindComponents(final ComponentContainer.Registry registry) {
                 registry.bindInstance(ComponentInterceptorTests.this);
                 registry.bindComponent(InterceptorDependency.class);
+                registry.bindComponent(Interceptor0.class);
                 registry.bindComponent(Interceptor1.class);
                 registry.bindComponent(Interceptor2.class);
                 registry.bindComponent(Interceptor3.class);
@@ -114,10 +115,10 @@ public final class ComponentInterceptorTests extends AbstractContainerTests {
 
         check(InterceptorDependency.class);
         check(RootComponent.class);
-        check(Dependency1.class, Interceptor2.class, Interceptor6.class);
-        check(Dependency11.class, Interceptor4.class, Interceptor3.class, Interceptor1.class, Interceptor6.class);
-        check(Dependency12.class, Interceptor5.class, Interceptor4.class, Interceptor1.class, Interceptor6.class);
-        check(Dependency13.class, Interceptor3.class, Interceptor4.class, Interceptor1.class, Interceptor6.class);
+        check(Dependency1.class, Interceptor2.class, Interceptor1.class, Interceptor6.class);
+        check(Dependency11.class, Interceptor4.class, Interceptor3.class, Interceptor6.class);
+        check(Dependency12.class, Interceptor5.class, Interceptor4.class, Interceptor6.class);
+        check(Dependency13.class, Interceptor3.class, Interceptor4.class, Interceptor6.class);
         check(Dependency2.class, Interceptor2.class, Interceptor6.class);
         check(Dependency21.class, Interceptor3.class, Interceptor4.class, Interceptor5.class, Interceptor6.class);
 
@@ -132,6 +133,7 @@ public final class ComponentInterceptorTests extends AbstractContainerTests {
             public void bindComponents(final ComponentContainer.Registry registry) {
                 registry.bindInstance(ComponentInterceptorTests.this);
                 registry.bindComponent(InterceptorDependency.class);
+                registry.bindComponent(Interceptor0.class);
                 registry.bindComponent(Interceptor1.class);
                 registry.bindComponent(Interceptor2.class);
             }
@@ -176,10 +178,10 @@ public final class ComponentInterceptorTests extends AbstractContainerTests {
 
         check(InterceptorDependency.class);
         check(RootComponent.class);
-        check(Dependency1.class, Interceptor2.class, Interceptor6.class);
-        check(Dependency11.class, Interceptor4.class, Interceptor3.class, Interceptor1.class, Interceptor6.class);
-        check(Dependency12.class, Interceptor5.class, Interceptor4.class, Interceptor1.class, Interceptor6.class);
-        check(Dependency13.class, Interceptor3.class, Interceptor4.class, Interceptor1.class, Interceptor6.class);
+        check(Dependency1.class, Interceptor2.class, Interceptor1.class, Interceptor6.class);
+        check(Dependency11.class, Interceptor4.class, Interceptor3.class, Interceptor6.class);
+        check(Dependency12.class, Interceptor5.class, Interceptor4.class, Interceptor6.class);
+        check(Dependency13.class, Interceptor3.class, Interceptor4.class, Interceptor6.class);
         check(Dependency2.class, Interceptor2.class, Interceptor6.class);
         check(Dependency21.class, Interceptor3.class, Interceptor4.class, Interceptor5.class, Interceptor6.class);
 
@@ -204,7 +206,7 @@ public final class ComponentInterceptorTests extends AbstractContainerTests {
         };
 
         final OpenContainer container = child(this.container
-                                                  .intercepting(new Interceptor1(), new Interceptor2())
+                                                  .intercepting(new Interceptor0(), new Interceptor1(), new Interceptor2())
                                                   .intercepting(new Interceptor5(new InterceptorDependency()), new Interceptor6())
                                                   .intercepting(new Interceptor3(), new Interceptor4()),
                                               bindings);
@@ -219,10 +221,10 @@ public final class ComponentInterceptorTests extends AbstractContainerTests {
 
         check(InterceptorDependency.class);
         check(RootComponent.class);
-        check(Dependency1.class, Interceptor2.class, Interceptor6.class);
-        check(Dependency11.class, Interceptor4.class, Interceptor3.class, Interceptor1.class, Interceptor6.class);
-        check(Dependency12.class, Interceptor5.class, Interceptor4.class, Interceptor1.class, Interceptor6.class);
-        check(Dependency13.class, Interceptor3.class, Interceptor4.class, Interceptor1.class, Interceptor6.class);
+        check(Dependency1.class, Interceptor2.class, Interceptor1.class, Interceptor6.class);
+        check(Dependency11.class, Interceptor4.class, Interceptor3.class, Interceptor6.class);
+        check(Dependency12.class, Interceptor5.class, Interceptor4.class, Interceptor6.class);
+        check(Dependency13.class, Interceptor3.class, Interceptor4.class, Interceptor6.class);
         check(Dependency2.class, Interceptor2.class, Interceptor6.class);
         check(Dependency21.class, Interceptor3.class, Interceptor4.class, Interceptor5.class, Interceptor6.class);
 
@@ -237,6 +239,7 @@ public final class ComponentInterceptorTests extends AbstractContainerTests {
             public void bindComponents(final ComponentContainer.Registry registry) {
                 registry.bindInstance(ComponentInterceptorTests.this);
                 registry.bindComponent(InterceptorDependency.class);
+                registry.bindComponent(Interceptor0.class);
                 registry.bindComponent(Interceptor1.class);
                 registry.bindComponent(Interceptor2.class);
                 registry.bindComponent(Interceptor3.class);
@@ -267,7 +270,7 @@ public final class ComponentInterceptorTests extends AbstractContainerTests {
 
         check(InterceptorDependency.class);
         check(RootComponent.class);
-        check(Dependency1.class, Interceptor2.class, Interceptor6.class);
+        check(Dependency1.class, Interceptor2.class, Interceptor1.class, Interceptor6.class);
         check(Dependency2.class, Interceptor2.class, Interceptor6.class);
         check(Dependency11.class);
         check(Dependency12.class);
@@ -337,7 +340,10 @@ public final class ComponentInterceptorTests extends AbstractContainerTests {
         }
     }
 
-    @Component.Context({ Annotation01.class, Annotation02.class, Annotation1.class })
+    @Component.Context({ Annotation01.class, Annotation02.class, Annotation1.class })   // will never match in this test
+    private static class Interceptor0 extends Interceptor { }
+
+    @Component.Context({ Annotation01.class, Annotation1.class })
     private static class Interceptor1 extends Interceptor { }
 
     @Component.Context({ Annotation01.class, Annotation2.class })
@@ -386,17 +392,17 @@ public final class ComponentInterceptorTests extends AbstractContainerTests {
 
     @Retention(RetentionPolicy.RUNTIME)
     @Target({ ElementType.PARAMETER, ElementType.FIELD, ElementType.TYPE })
-    @Component.Context(collect = Component.Context.Collection.ALL)
+    @Component.Context(collect = Component.Context.Collection.IMMEDIATE)
     @interface Annotation01 { }
 
     @Retention(RetentionPolicy.RUNTIME)
     @Target({ ElementType.PARAMETER, ElementType.FIELD, ElementType.TYPE })
-    @Component.Context(collect = Component.Context.Collection.LAST)
+    @Component.Context(collect = Component.Context.Collection.IMMEDIATE)
     @interface Annotation02 { }
 
     @Retention(RetentionPolicy.RUNTIME)
     @Target({ElementType.PARAMETER, ElementType.FIELD})
-    @Component.Context(collect = Component.Context.Collection.LAST)
+    @Component.Context(collect = Component.Context.Collection.IMMEDIATE)
     @interface Annotation1 { }
 
     @Retention(RetentionPolicy.RUNTIME)

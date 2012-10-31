@@ -274,17 +274,22 @@ public class InterceptorFilterImplTest extends Simulator {
     private static class ComponentInterceptor5 extends EmptyInterceptor {}
 
     @Retention(RetentionPolicy.RUNTIME)
+    @Component.Context(collect = Component.Context.Collection.IMMEDIATE)
     private @interface Annotation1 {}
 
     @Retention(RetentionPolicy.RUNTIME)
+    @Component.Context(collect = Component.Context.Collection.IMMEDIATE)
     private @interface Annotation2 {}
 
     @Retention(RetentionPolicy.RUNTIME)
+    @Component.Context(collect = Component.Context.Collection.IMMEDIATE)
     private @interface Annotation3 {}
 
     @Retention(RetentionPolicy.RUNTIME)
+    @Component.Context(collect = Component.Context.Collection.IMMEDIATE)
     private @interface Annotation4 {}
 
     @Retention(RetentionPolicy.RUNTIME)
+    @Component.Context(collect = Component.Context.Collection.IMMEDIATE)
     private @interface Annotation5 {}
 }
