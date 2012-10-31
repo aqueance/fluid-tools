@@ -264,6 +264,7 @@ public interface ComponentFactory {
          * @param api         the component interface to resolve, or <code>null</code> of it can be derived from the <code>reference</code> parameter.
          * @param reference   the reference to use when resolving the component or <code>null</code> to use the component interface.
          * @param annotations the annotations at the point of reference to the dependency; may be <code>null</code>.
+         * @param <T>         the type of the dependency to resolve.
          *
          * @return an object that can return an instance of the resolved dependency.
          */
@@ -341,7 +342,7 @@ public interface ComponentFactory {
          * #instantiate(ComponentFactory.Dependency[])}.
          *
          * @param object the object to wrap as a dependency.
-         * @param <T> the type of the object.
+         * @param <T>    the dependency type the given <code>object</code> satisfies.
          *
          * @return the dependency whose {@link ComponentFactory.Dependency#instance()} method will return the given <code>object</code>.
          */
@@ -378,6 +379,7 @@ public interface ComponentFactory {
          *                       ComponentContainer.Registry.bindComponent()}.
          * @param interfaces     see {@link org.fluidity.composition.ComponentContainer.Registry#bindComponent(Class, Class...)
          *                       ComponentContainer.Registry.bindComponent()}.
+         * @param <T>            the component class to bind.
          *
          * @throws ComponentContainer.BindingException
          *          see {@link org.fluidity.composition.ComponentContainer.Registry#bindComponent(Class, Class...)
@@ -392,6 +394,7 @@ public interface ComponentFactory {
          *                   ComponentContainer.Registry.bindInstance()}.
          * @param interfaces see {@link org.fluidity.composition.ComponentContainer.Registry#bindInstance(Object, Class...)
          *                   ComponentContainer.Registry.bindInstance()}.
+         * @param <T>        the type of component to bind.
          *
          * @throws ComponentContainer.BindingException
          *          see {@link org.fluidity.composition.ComponentContainer.Registry#bindInstance(Object, Class...)
@@ -458,6 +461,7 @@ public interface ComponentFactory {
          * @param api         the component interface to resolve; may not be <code>null</code>.
          * @param constructor constructor to derive context annotations from.
          * @param parameter   index of the constructor parameter to derive generic type and context annotations from.
+         * @param <T>         the type of the dependency to resolve.
          *
          * @return an object that can return an instance of the resolved dependency.
          */
@@ -473,6 +477,7 @@ public interface ComponentFactory {
          *                  the method's declaring class will be used.
          * @param method    method to derive context annotations from.
          * @param parameter index of the constructor parameter to derive generic type and context annotations from.
+         * @param <T>       the type of the dependency to resolve.
          *
          * @return an object that can return an instance of the resolved dependency.
          */
@@ -487,6 +492,7 @@ public interface ComponentFactory {
          * @param type  the component class to resolve the dependency of; used to derive context annotations from; may be <code>null</code>, in which case
          *              the field's declaring class will be used.
          * @param field field to derive generic type and context annotations from.
+         * @param <T>   the type of the dependency to resolve.
          *
          * @return an object that can return an instance of the resolved dependency.
          */
@@ -532,6 +538,7 @@ public interface ComponentFactory {
              *                       ComponentContainer.Registry.bindComponent()}.
              * @param interfaces     see {@link org.fluidity.composition.ComponentContainer.Registry#bindComponent(Class, Class...)
              *                       ComponentContainer.Registry.bindComponent()}.
+             * @param <T>            the component class to bind.
              *
              * @throws ComponentContainer.BindingException
              *          see {@link org.fluidity.composition.ComponentContainer.Registry#bindComponent(Class, Class...)

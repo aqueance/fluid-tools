@@ -147,7 +147,7 @@ public final class Components extends Utility {
      *
      * @param componentClass the component class to inspect.
      * @param restrictions   optional list of component interfaces to use instead of whatever the algorithm would find.
-     * @param <T>            the component class.
+     * @param <T>            the component class to inspect.
      *
      * @return an object listing all component interfaces and the set of component group interfaces for each.
      *

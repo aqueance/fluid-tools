@@ -57,8 +57,8 @@ import org.fluidity.composition.ComponentGroup;
  * }
  * </pre>
  *
- * @param <T> is the optional type of the dependency this interceptor expects; when resolved by an interceptor, it will be invoked <i>only</i> for dependency
- *            references that are compatible with this type.
+ * @param <T> the optional type of the dependency this interceptor expects; when specified by an interceptor class, the corresponding interceptor will
+ *           <i>only</i> be invoked for dependency references that are compatible with this type.
  *
  * @author Tibor Varga
  */
@@ -82,7 +82,7 @@ public interface ComponentInterceptor<T> {
     /**
      * A dependency that can be replaced by a {@link ComponentInterceptor}.
      *
-     * @param <T> the optional type parameter of the component represented by this dependency.
+     * @param <T> the optional type of the component represented by this dependency.
      *
      * @author Tibor Varga
      */

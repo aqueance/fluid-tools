@@ -46,6 +46,7 @@ public interface PlatformContainer {
      *
      * @param api     see {@link org.fluidity.composition.OpenContainer#getComponent(Class)}.
      * @param context the current component context.
+     * @param <T>     the component type to return.
      *
      * @return see {@link org.fluidity.composition.OpenContainer#getComponent(Class)}.
      *
@@ -69,6 +70,7 @@ public interface PlatformContainer {
      *
      * @param api     see {@link org.fluidity.composition.OpenContainer#getComponentGroup(Class)}.
      * @param context the component context prevalent at the group reference site.
+     * @param <T>     the component group type to return.
      *
      * @return see {@link org.fluidity.composition.OpenContainer#getComponentGroup(Class)}.
      */

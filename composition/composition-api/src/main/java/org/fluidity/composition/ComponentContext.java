@@ -78,6 +78,7 @@ public interface ComponentContext {
      * order they were encountered in the reference path.
      *
      * @param type the annotation type to return instances of.
+     * @param <T>  the annotation type.
      *
      * @return all context annotations of the given type, or an empty array or <code>null</code> if none present.
      *
@@ -92,6 +93,7 @@ public interface ComponentContext {
      *
      * @param type   the annotation type to return instances of.
      * @param caller the optional caller to mention in the exception thrown when no annotation of the given type is present; may be <code>null</code>.
+     * @param <T>    the annotation type.
      *
      * @return the last context annotation of the given type or <code>null</code> if none present.
      *

@@ -44,6 +44,7 @@ public interface LogFactory {
      * Creates a log whose output is annotated by the given class.
      *
      * @param source the class to annotate log messages with.
+     * @param <T>    the type of the given <code>source</code> class to which the returned {@link Log} instance belongs.
      *
      * @return a log sink.
      */

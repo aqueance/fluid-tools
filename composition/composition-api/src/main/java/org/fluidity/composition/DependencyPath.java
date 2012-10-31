@@ -95,7 +95,7 @@ public interface DependencyPath {
          * Returns, if defined, the annotation with the given class at this element.
          *
          * @param type the annotation type to find.
-         * @param <T>  the annotation type to find.
+         * @param <T>  the annotation type.
          *
          * @return the annotation with the given type defined at this element or <code>null</code> if not found.
          */

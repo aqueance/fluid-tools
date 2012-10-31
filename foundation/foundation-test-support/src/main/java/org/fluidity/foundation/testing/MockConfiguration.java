@@ -43,7 +43,7 @@ public final class MockConfiguration {
      *
      * @param type  the configuration settings class.
      * @param mocks the {@link org.fluidity.testing.Simulator.MockObjects} to create mock objects with.
-     * @param <P>   the generic configuration settings type.
+     * @param <P>   the settings interface type to implement by the returned configuration.
      *
      * @return a new instance of this class.
      */
@@ -56,7 +56,7 @@ public final class MockConfiguration {
      *
      * @param type  the configuration settings class.
      * @param mocks the {@link org.fluidity.testing.Simulator.MockObjects} to create mock objects with.
-     * @param <P>   the generic configuration settings type.
+     * @param <P>   the settings interface type to implement by the returned configuration.
      *
      * @return a new instance of this class.
      */
@@ -103,7 +103,7 @@ public final class MockConfiguration {
      * }
      * </pre>
      *
-     * @param <P> The generic settings type.
+     * @param <P> the settings interface type to implement by the mocked configuration.
      *
      * @author Tibor Varga
      * @see MockConfiguration
@@ -188,7 +188,7 @@ public final class MockConfiguration {
      * }
      * </pre>
      *
-     * @param <P> The generic settings type.
+     * @param <P> the settings interface type to implement by the mocked dynamic configuration.
      *
      * @author Tibor Varga
      * @see MockConfiguration

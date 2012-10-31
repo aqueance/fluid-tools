@@ -31,8 +31,9 @@ import static org.fluidity.foundation.Command.Function;
 
 /**
  * Launches a main class from a JAR file using a class loader that can load classes from JAR files nested inside the main JAR. Nested JAR files must be located
- * in the path denoted by the manifest attribute named in {@link Archives#NESTED_DEPENDENCIES}. The main class to be loaded is defined by the manifest attribute named
- * in {@link #ORIGINAL_MAIN_CLASS}. The <code>Main-Class</code> manifest attribute has to point to this class, obviously.
+ * in the path denoted by the manifest attribute name returned by {@link org.fluidity.foundation.Archives.Nested#attribute(String)
+ * Archives.Nested.attribute(null)}. The main class to be loaded is defined by the manifest attribute named in {@link #ORIGINAL_MAIN_CLASS}. The
+ * <code>Main-Class</code> manifest attribute has to point to this class, obviously.
  * <p/>
  * The above manifest attributes are set by the appropriate {@link org.fluidity.deployment.plugin.spi.JarManifest} processor when used by the
  * <code>org.fluidity.maven:standalone-jar-maven-plugin</code> Maven plugin.

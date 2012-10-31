@@ -181,6 +181,8 @@ public class Simulator {
      * <h3>Usage</h3>
      * See {@link Simulator}.
      *
+     * @param <T> the type of the object returned by the implementing closure.
+     *
      * @author Tibor Varga
      */
     public interface Work<T> extends Command.Process<T, Exception> { }
@@ -336,6 +338,7 @@ public class Simulator {
      * parameters at the matched invocation.
      *
      * @param expected the array of expected values.
+     * @param <T>      the component type of the expected array.
      *
      * @return the method parameter.
      */
@@ -352,6 +355,7 @@ public class Simulator {
      * parameters at the matched invocation.
      *
      * @param expected the array of expected values.
+     * @param <T>      the component type of the expected array.
      *
      * @return the method parameter.
      */
@@ -368,6 +372,7 @@ public class Simulator {
      * <code>expected.length</code> number of non-<code>null</code> values.
      *
      * @param expected an array of <code>null</code> values, of the expected size.
+     * @param <T>      the component type of the expected array.
      *
      * @return the method parameter.
      */
@@ -397,7 +402,7 @@ public class Simulator {
      *
      * @param type the dependency class to mock.
      * @param mock the mock object created for the main thread.
-     * @param <T>  the generic type of the dependency being mocked.
+     * @param <T>  the type of the mocked dependency.
      *
      * @return a composite mock object suitable for multi-threaded access.
      */
@@ -472,7 +477,7 @@ public class Simulator {
          * Creates a {@link EasyMock#createMock(Class) normal mock object}.
          *
          * @param interfaceClass the interface to mock.
-         * @param <T>            the interface class.
+         * @param <T>            the type to mock.
          *
          * @return the mock object for the interface.
          */
@@ -482,7 +487,7 @@ public class Simulator {
          * Creates a {@link EasyMock#createNiceMock(Class) nice mock object}.
          *
          * @param interfaceClass the interface to mock.
-         * @param <T>            the interface class.
+         * @param <T>            the type to mock.
          *
          * @return the mock object for the interface.
          */
@@ -492,7 +497,7 @@ public class Simulator {
          * Creates a {@link EasyMock#createStrictMock(Class) strict mock object}.
          *
          * @param interfaceClass the interface to mock.
-         * @param <T>            the interface class.
+         * @param <T>            the type to mock.
          *
          * @return the mock object for the interface.
          */
@@ -632,33 +637,35 @@ public class Simulator {
 
         /**
          * Releases all threads created by {@link #concurrent(Simulator.Task.Concurrent)}, invokes {@link Simulator#verify(Simulator.Work)}, waits, for the given
-         * timeout, for all threads to complete, and returns whatever the <code>task</code> returned.
+         * timeout, for all threads to complete, and returns whatever the <code>block</code> returned.
          * <p/>
-         * This method may <i>not</i> be invoked from a task submitted to {@link #concurrent(Simulator.Task.Concurrent)}.
+         * This method may <i>not</i> be invoked from a block submitted to {@link #concurrent(Simulator.Task.Concurrent)}.
          *
          * @param timeout the timeout to wait for all threads to complete.
-         * @param task    the task to verify.
+         * @param block   the block containing the calls to verify.
+         * @param <T>     the type returned by the block.
          *
          * @return whatever the <code>task</code> returns.
          *
          * @throws Exception whatever the <code>task</code> throws.
          */
-        <T> T verify(long timeout, Work<T> task) throws Exception;
+        <T> T verify(long timeout, Work<T> block) throws Exception;
 
         /**
          * Releases all threads created by {@link #concurrent(Simulator.Task.Concurrent)}, invokes {@link Simulator#guarantee(Simulator.Work)}, waits, for the given
-         * timeout, for all threads to complete, and returns whatever the <code>task</code> returned.
+         * timeout, for all threads to complete, and returns whatever the <code>block</code> returned.
          * <p/>
-         * This method may <i>not</i> be invoked from a task submitted to {@link #concurrent(Simulator.Task.Concurrent)}.
+         * This method may <i>not</i> be invoked from a block submitted to {@link #concurrent(Simulator.Task.Concurrent)}.
          *
          * @param timeout the timeout to wait for all threads to complete.
-         * @param task    the task to verify.
+         * @param block   the block containing the calls to verify.
+         * @param <T>     the type returned by the block.
          *
-         * @return whatever the <code>task</code> returns.
+         * @return whatever the <code>block</code> returns.
          *
-         * @throws Exception whatever the <code>task</code> throws.
+         * @throws Exception whatever the <code>block</code> throws.
          */
-        <T> T guarantee(long timeout, Work<T> task) throws Exception;
+        <T> T guarantee(long timeout, Work<T> block) throws Exception;
     }
 
     /**
@@ -703,7 +710,7 @@ public class Simulator {
      * }
      * </pre>
      *
-     * @param <T> the type for the mock object.
+     * @param <T> the type of the mock object.
      */
     public interface Composite<T> {
 
@@ -761,7 +768,7 @@ public class Simulator {
          *
          * @param type      the interface to mock.
          * @param composite the composite object the new mock object is a thread local delegate of.
-         * @param <T>       the interface class.
+         * @param <T>       the type to mock.
          *
          * @return the mock object for the interface.
          */
@@ -772,7 +779,7 @@ public class Simulator {
          *
          * @param type      the interface to mock.
          * @param composite the composite object the new mock object is a thread local delegate of.
-         * @param <T>       the interface class.
+         * @param <T>       the type to mock.
          *
          * @return the mock object for the interface.
          */
@@ -783,7 +790,7 @@ public class Simulator {
          *
          * @param type      the interface to mock.
          * @param composite the composite object the new mock object is a thread local delegate of.
-         * @param <T>       the interface class.
+         * @param <T>       the type to mock.
          *
          * @return the mock object for the interface.
          */
@@ -939,8 +946,8 @@ public class Simulator {
             });
         }
 
-        public <T> T verify(final long timeout, final Work<T> task) throws Exception {
-            assert task != null;
+        public <T> T verify(final long timeout, final Work<T> block) throws Exception {
+            assert block != null;
             checkNesting("verify");
 
             return Simulator.this.verify(new Work<T>() {
@@ -948,7 +955,7 @@ public class Simulator {
                     release();
 
                     try {
-                        return task.run();
+                        return block.run();
                     } finally {
                         join(timeout);
                     }
@@ -956,8 +963,8 @@ public class Simulator {
             });
         }
 
-        public <T> T guarantee(final long timeout, final Work<T> task) throws Exception {
-            assert task != null;
+        public <T> T guarantee(final long timeout, final Work<T> block) throws Exception {
+            assert block != null;
             checkNesting("guarantee");
 
             return Simulator.this.guarantee(new Work<T>() {
@@ -965,7 +972,7 @@ public class Simulator {
                     release();
 
                     try {
-                        return task.run();
+                        return block.run();
                     } finally {
                         join(timeout);
                     }

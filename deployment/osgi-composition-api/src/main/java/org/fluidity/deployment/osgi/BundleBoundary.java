@@ -48,6 +48,7 @@ public interface BundleBoundary {
      *
      * @param type   the Java interface of the remote object.
      * @param remote the object from another bundle.
+     * @param <T>    the type of the given <code>remote</code> object to import.
      *
      * @return the wrapped service.
      */
@@ -63,6 +64,7 @@ public interface BundleBoundary {
      * @param type   the Java interface of the local object.
      * @param remote the remote object, the bundle of which the local object must be able to find classes in.
      * @param local  the local object to be invoked by the client or any other object from its bundle.
+     * @param <T>    the type of the given <code>local</code> object to export.
      *
      * @return the wrapped local object.
      */
@@ -76,7 +78,7 @@ public interface BundleBoundary {
      * @param local   the local object.
      * @param command the command to allow with the tunneling class loader.
      * @param <T>     the return type of the command.
-     * @param <E>     the exception type throws by the command.
+     * @param <E>     the exception type thrown by the command.
      *
      * @return whatever the command returns.
      */

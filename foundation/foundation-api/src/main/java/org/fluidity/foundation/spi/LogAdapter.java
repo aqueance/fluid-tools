@@ -77,17 +77,18 @@ import org.fluidity.foundation.Log;
  * }
  * </pre>
  *
- * @param <T> the underlying log type.
+ * @param <L> the type of the underlying logger.
+ * @param <T> identifies the class to which a component instance implementing the {@link Log} interface belongs.
  *
  * @author Tibor Varga
  */
 @SuppressWarnings("JavadocReference")
-public abstract class LogAdapter<T, L> implements Log<L> {
+public abstract class LogAdapter<L, T> implements Log<T> {
 
     /**
      * The external log instance passed to the constructor.
      */
-    protected final T log;
+    protected final L log;
 
     private final Levels levels;
     private volatile long timestamp;
@@ -98,7 +99,7 @@ public abstract class LogAdapter<T, L> implements Log<L> {
      *
      * @param log the external log type.
      */
-    protected LogAdapter(final T log) {
+    protected LogAdapter(final L log) {
         this.log = log;
         this.levels = levels();
     }

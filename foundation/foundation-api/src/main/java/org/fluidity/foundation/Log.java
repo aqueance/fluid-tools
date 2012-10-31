@@ -46,6 +46,7 @@ package org.fluidity.foundation;
  *   }
  * }
  * </pre>
+ * @param <T> identifies the class to which a component instance implementing the {@link Log} interface belongs.
  *
  * @author Tibor Varga
  */

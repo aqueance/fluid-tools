@@ -67,7 +67,7 @@ public final class Deferred extends Utility {
      * invoked.
      *
      * @param factory the factory to create the referred to object.
-     * @param <T>     the class of the lazily instantiated object.
+     * @param <T>     the type of the lazily instantiated object.
      *
      * @return a deferred reference to the object created by the given factory.
      */
@@ -109,7 +109,7 @@ public final class Deferred extends Utility {
      * <h3>Usage</h3>
      * See {@link Deferred}.
      *
-     * @param <T> the class of the created object.
+     * @param <T> the type of the object created by this factory.
      *
      * @author Tibor Varga
      */
@@ -128,7 +128,7 @@ public final class Deferred extends Utility {
      * <h3>Usage</h3>
      * See {@link Deferred}.
      *
-     * @param <T> the class of the cached object.
+     * @param <T> the type of the object cached by this reference.
      *
      * @author Tibor Varga
      */

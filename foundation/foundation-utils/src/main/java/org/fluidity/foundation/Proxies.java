@@ -68,6 +68,7 @@ public final class Proxies extends Utility {
      *
      * @param type    the interface to implement with a proxy.
      * @param handler the handler that implements the interface's methods.
+     * @param <T>     the type the returned proxy will implement.
      *
      * @return a proxy implementing the given interface.
      */
@@ -83,6 +84,7 @@ public final class Proxies extends Utility {
      * @param type     the interface to implement with a proxy.
      * @param identity the object that computes object identity for the returned proxy.
      * @param handler  the handler that implements the interface's methods.
+     * @param <T>      the type the returned proxy will implement.
      *
      * @return a proxy implementing the given interface.
      */

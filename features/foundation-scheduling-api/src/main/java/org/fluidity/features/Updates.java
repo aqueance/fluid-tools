@@ -82,6 +82,7 @@ public interface Updates {
      *
      * @param period the number of milliseconds that must pass between subsequent calls to {@link Snapshot#get()} on the provided <code>loader</code>.
      * @param loader the object that can refresh the data.
+     * @param <T>    the type of data the given <code>loader</code> provides.
      *
      * @return an object through which the up-to-date data can be obtained.
      */
@@ -92,7 +93,7 @@ public interface Updates {
      * <h3>Usage</h3>
      * See {@link Updates}.
      *
-     * @param <T> the type of the data.
+     * @param <T> the type of data this snapshot represents.
      *
      * @author Tibor Varga
      */

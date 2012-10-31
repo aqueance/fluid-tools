@@ -25,6 +25,8 @@ import java.util.Date;
 /**
  * Logs to the standard output. All log levels are enabled.
  *
+ * @param <T> identifies the class to which an instance belongs.
+ *
  * @author Tibor Varga
  */
 final class StandardOutLog<T> implements Log<T> {

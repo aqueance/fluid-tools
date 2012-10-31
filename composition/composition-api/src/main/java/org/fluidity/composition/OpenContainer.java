@@ -60,6 +60,7 @@ public interface OpenContainer extends ComponentContainer {
      * components in this container.
      *
      * @param api a class object that was used to bind a component to; never <code>null</code>.
+     * @param <T> the component type to return.
      *
      * @return the component bound to the give class or <code>null</code> when none was found.
      *
@@ -78,6 +79,7 @@ public interface OpenContainer extends ComponentContainer {
      * components in this container.
      *
      * @param api the group interface class.
+     * @param <T> the component group type to return.
      *
      * @return an array of components that belong to the given group; may be <code>null</code>.
      */

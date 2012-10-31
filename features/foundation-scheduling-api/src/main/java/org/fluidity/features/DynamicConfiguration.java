@@ -46,7 +46,7 @@ package org.fluidity.features;
  * }
  * </pre>
  *
- * @param <T> the settings interface.
+ * @param <T> the settings interface type to implement.
  *
  * @author Tibor Varga
  */

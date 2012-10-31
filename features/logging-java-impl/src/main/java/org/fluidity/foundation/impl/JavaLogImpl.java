@@ -24,6 +24,10 @@ import org.fluidity.foundation.spi.LogAdapter;
 
 /**
  * Uses <code>java.util.logging</code> as the underlying logging framework.
+ *
+ * @param <T> identifies the class to which an instance belongs.
+ *
+ * @author Tibor Varga
  */
 final class JavaLogImpl<T> extends LogAdapter<Logger, T> {
 

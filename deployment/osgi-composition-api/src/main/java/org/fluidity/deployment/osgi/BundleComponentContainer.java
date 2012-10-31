@@ -194,6 +194,8 @@ public interface BundleComponentContainer {
          * <p/>
          * This is a {@link Managed} component thus the start / stop logic described therein applies.
          *
+         * @param <T> the type of the component whose registration events this is a listener for.
+         *
          * @author Tibor Varga
          */
         interface Listener<T> extends Managed {

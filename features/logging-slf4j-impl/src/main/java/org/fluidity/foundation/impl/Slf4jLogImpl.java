@@ -23,6 +23,10 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Uses SLF4J as the underlying logging framework.
+ *
+ * @param <T> identifies the class to which an instance belongs.
+ *
+ * @author Tibor Varga
  */
 final class Slf4jLogImpl<T> extends LogAdapter<Logger, T> {
 

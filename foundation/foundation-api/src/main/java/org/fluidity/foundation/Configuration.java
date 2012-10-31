@@ -135,7 +135,7 @@ import org.fluidity.foundation.spi.PropertyProvider;
  * <li>will have the same property value in its fields regardless of when they are accessed (until you change those values, of course).</li>
  * </ul>
  *
- * @param <T> the settings interface.
+ * @param <T> the settings interface type to implement.
  *
  * @author Tibor Varga
  */
@@ -156,6 +156,7 @@ public interface Configuration<T> {
      * PropertyProvider.properties()} method of the underlying property provider, if found, properly implements that consistency.
      *
      * @param query the object to supply the settings implementation to.
+     * @param <R>   the return type of the query.
      *
      * @return whatever the supplied <code>query</code> returns.
      */
@@ -193,8 +194,8 @@ public interface Configuration<T> {
      * }
      * </pre>
      *
-     * @param <P> the settings interface type.
-     * @param <R> the return type of the <code>read</code> method.
+     * @param <P> the settings interface type passed to the {@link #run(Object) run()} method.
+     * @param <R> the return type of the {@link #run(Object) run()} method.
      */
     interface Query<R, P> {
 

@@ -21,6 +21,8 @@ import org.objectweb.asm.AnnotationVisitor;
 /**
  * Called when an annotation has been fully processed, to extract data collected during the annotation processing.
  *
+ * @param <T> the type of the annotation visitor to call.
+ *
  * @author Tibor Varga
  */
 public interface ProcessorCallback<T extends AnnotationVisitor> {

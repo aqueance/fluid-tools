@@ -72,6 +72,7 @@ public interface DependencyInjector {
      * @param container the container to resolve dependencies of the component.
      * @param contexts  context node corresponding to the component.
      * @param context   the current context definition.
+     * @param <T>       the type of the given <code>instance</code> to inject the fields of.
      *
      * @return the received component.
      */

@@ -64,7 +64,7 @@ public final class ServiceProviders extends Utility {
      *
      * @param interfaceClass the service provider interface.
      * @param classLoader    the class loader to look for implementations in.
-     * @param <T>            the service provider interface
+     * @param <T>            the service provider interface type.
      *
      * @return the first implementation of the given interface or <code>null</code> if none found.
      */
@@ -78,7 +78,7 @@ public final class ServiceProviders extends Utility {
      *
      * @param interfaceClass the service provider interface.
      * @param classLoader    the class loader to look for implementations in.
-     * @param <T>            the service provider interface
+     * @param <T>            the service provider interface type.
      *
      * @return the implementations of the given interface or an empty list if none found.
      */

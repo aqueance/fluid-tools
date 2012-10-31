@@ -182,8 +182,8 @@ public final class Exceptions extends Utility {
          * Executes the given command and {@linkplain Exceptions.Wrapper wraps} any exception thrown therefrom.
          *
          * @param command the command to execute.
-         * @param <T>     the generic return type of the command.
-         * @param <E>     the generic exception type of the command.
+         * @param <T>     the return type of the command.
+         * @param <E>     the type of the exception thrown by the command.
          *
          * @return whatever the given command returns.
          */
@@ -197,8 +197,8 @@ public final class Exceptions extends Utility {
          * @param command the command to execute.
          * @param wrapper the exception class to use to wrap the exception thrown by the command; may be <code>null</code>, in which case {@link Wrapper} will
          *                be used.
-         * @param <T>     the generic return type of the command.
-         * @param <E>     the generic exception type of the command.
+         * @param <T>     the return type of the command.
+         * @param <E>     the type of the exception thrown by the command.
          *
          * @return whatever the given command returns.
          */
@@ -214,6 +214,9 @@ public final class Exceptions extends Utility {
          * @param wrapper the exception class to use to wrap the exception thrown by the command; may be <code>null</code>, in which case {@link Wrapper} will
          *                be used.
          * @param command the command to run.
+         * @param <T>     the return type of the command.
+         * @param <E>     the type of the exception thrown by the command.
+         *
          * @return whatever the command returns.
          */
         public <T, E extends Throwable> T wrap(final Object label, final Class<? extends RuntimeException> wrapper, final Process<T, E> command) {
@@ -256,7 +259,7 @@ public final class Exceptions extends Utility {
          * Executes the given command and {@linkplain Exceptions.Wrapper wraps} any exception thrown therefrom.
          *
          * @param command the command to execute.
-         * @param <E>     the generic exception type of the command.
+         * @param <E>     the type of the exception thrown by the command.
          */
         public <E extends Throwable> void wrap(final Job<E> command) {
             wrap(null, null, command);
@@ -268,7 +271,7 @@ public final class Exceptions extends Utility {
          * @param command the command to execute.
          * @param wrapper the exception class to use to wrap the exception thrown by the command; may be <code>null</code>, in which case {@link Wrapper} will
          *                be used.
-         * @param <E>     the generic exception type of the command.
+         * @param <E>     the type of the exception thrown by the command.
          */
         public <E extends Throwable> void wrap(final Class<? extends RuntimeException> wrapper, final Job<E> command) {
             wrap(null, wrapper, command);
@@ -282,6 +285,7 @@ public final class Exceptions extends Utility {
          * @param wrapper the exception class to use to wrap the exception thrown by the command; may be <code>null</code>, in which case {@link Wrapper} will
          *                be used.
          * @param command the command to run.
+         * @param <E>     the type of the exception thrown by the command.
          */
         public <E extends Throwable> void wrap(final Object label, final Class<? extends RuntimeException> wrapper, final Job<E> command) {
             wrap(label, wrapper, new Process<Void, Throwable>() {

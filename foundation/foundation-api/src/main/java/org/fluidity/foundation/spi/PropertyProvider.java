@@ -41,7 +41,7 @@ public interface PropertyProvider {
      * implementation may use locking to prevent changes to the properties while this method executes.
      *
      * @param query the command that reads properties and expects no changes in the property values while doing so.
-     * @param <T> the type of the object returned by the reader, if any.
+     * @param <T>   the return type of the given <code>query</code>.
      *
      * @return whatever the query returns.
      *
@@ -52,7 +52,7 @@ public interface PropertyProvider {
     /**
      * Properties reader passed to {@link PropertyProvider#properties(PropertyProvider.Query)}.
      *
-     * @param <T> the type of the returned object, if any.
+     * @param <T> the return type of the given <code>query</code>.
      */
     interface Query<T> {
 
@@ -63,5 +63,4 @@ public interface PropertyProvider {
          */
         T run() throws Exception;
     }
-
 }

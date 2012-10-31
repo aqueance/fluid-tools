@@ -47,6 +47,7 @@ public final class Methods extends Utility {
      *
      * @param type    the interface that directly or indirectly defines the method you seek.
      * @param invoker code that invokes the method on the supplied implementation of the specified interface <code>type</code>.
+     * @param <T>     the type of the interface to capture method calls on.
      *
      * @return the method object.
      */
@@ -121,6 +122,8 @@ public final class Methods extends Utility {
      * Allows the caller of {@link Methods#get(Class, Methods.Invoker) Methods.get()} to find a method without referring to it by name.
      * <h3>Usage</h3>
      * See {@link Methods#get(Class, Methods.Invoker) Methods.get()}.
+     *
+     * @param <T> the type of the interface to capture method invocations on.
      *
      * @author Tibor Varga
      */

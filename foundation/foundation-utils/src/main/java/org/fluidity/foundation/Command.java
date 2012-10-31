@@ -28,6 +28,8 @@ public final class Command extends Utility {
     /**
      * Extends the {@link Runnable} concept to commands that can throw some exception.
      *
+     * @param <E> the type of the exception thrown by the command.
+     *
      * @author Tibor Varga
      */
     public interface Job<E extends Throwable> {
@@ -40,6 +42,9 @@ public final class Command extends Utility {
 
     /**
      * Extends the {@link Runnable} concept to commands that can take some parameter and throw some exception.
+     *
+     * @param <P> the parameter type of the command.
+     * @param <E> the type of the exception thrown by the command.
      *
      * @author Tibor Varga
      */
@@ -54,6 +59,9 @@ public final class Command extends Utility {
     /**
      * Extends the {@link Runnable} concept to commands that can return some value and throw some exception.
      *
+     * @param <R> the return type of the command.
+     * @param <E> the type of the exception thrown by the command.
+
      * @author Tibor Varga
      */
     public interface Process<R, E extends Throwable> {
@@ -66,6 +74,10 @@ public final class Command extends Utility {
 
     /**
      * Extends the {@link Runnable} concept to commands that can take some parameter, return some value, and throw some exception.
+     *
+     * @param <R> the return type of the command.
+     * @param <P> the parameter type of the command.
+     * @param <E> the type of the exception thrown by the command.
      *
      * @author Tibor Varga
      */

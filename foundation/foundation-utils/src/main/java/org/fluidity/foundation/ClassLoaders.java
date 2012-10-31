@@ -259,6 +259,7 @@ public final class ClassLoaders extends Utility {
      * @param run       the method to call; the parameter types and the return type must be loaded by the parent class loader and the declaring class must be
      *                  either visible to the <code>parent</code> class loader or listed in the given list of URLs.
      * @param arguments the arguments to pass to the command.
+     * @param <T>       the return type of the given <code>method</code>.
      *
      * @return whatever the command returns.
      *

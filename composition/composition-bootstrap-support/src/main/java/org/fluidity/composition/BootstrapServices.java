@@ -28,7 +28,7 @@ interface BootstrapServices {
      *
      * @param interfaceClass the service provider interface.
      * @param classLoader    the class loader to look for implementations in.
-     * @param <T>            the service provider interface
+     * @param <T>            the service provider interface.
      *
      * @return the first implementation of the given interface or <code>null</code> if none found.
      */

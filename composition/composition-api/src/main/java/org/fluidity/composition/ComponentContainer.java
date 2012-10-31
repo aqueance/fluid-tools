@@ -261,6 +261,7 @@ public interface ComponentContainer {
      * defined anywhere in the object's class hierarchy.
      *
      * @param component a component that needs field injection of dependencies.
+     * @param <T>       the type of component to initialize.
      *
      * @return the supplied object.
      *
@@ -274,6 +275,7 @@ public interface ComponentContainer {
      *
      * @param componentClass the component class to instantiate.
      * @param bindings       the local component bindings.
+     * @param <T>            the type of the component to instantiate.
      *
      * @return the new component.
      *
@@ -302,6 +304,7 @@ public interface ComponentContainer {
      *
      * @param component a component that needs field injection of dependencies.
      * @param api       optional list of component interfaces to expose by the returned object.
+     * @param <T>       the type of the component to wrap.
      *
      * @return a new component that implements all, or the given, component interfaces and injects missing method parameters from this container.
      *
@@ -439,6 +442,7 @@ public interface ComponentContainer {
          *
          * @param type       the component class.
          * @param interfaces optional list of interfaces that should resolve to the supplied component class.
+         * @param <T>        the component class to bind.
          *
          * @throws ComponentContainer.BindingException
          *          when component registration fails.
@@ -458,6 +462,7 @@ public interface ComponentContainer {
          *
          * @param instance   the component instance.
          * @param interfaces optional list of interfaces that should resolve to the supplied component class.
+         * @param <T>        the type of the component to bind.
          *
          * @throws ComponentContainer.BindingException
          *          when component registration fails.
@@ -469,7 +474,7 @@ public interface ComponentContainer {
          *
          * @param group the component group to bind the elements of.
          * @param types the elements of the group.
-         * @param <T>   the group interface.
+         * @param <T>   the group interface type to bind.
          */
         <T> void bindComponentGroup(Class<T> group, Class<T>[] types);
 
@@ -500,6 +505,7 @@ public interface ComponentContainer {
          *
          * @param type       the component whose dependencies the child container will resolve.
          * @param interfaces the interfaces that the returned container should be able resolve through this container.
+         * @param <T>        the type of the component to isolate.
          *
          * @return the registry for the linked child container, never <code>null</code>.
          *

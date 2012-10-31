@@ -38,13 +38,15 @@ import org.fluidity.composition.spi.ComponentInterceptor;
 import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.Proxies;
 
+import static org.fluidity.foundation.Command.Function;
+
 /**
  * Implements basic method relationships and functionality on behalf of actual container and registry implementations. The public facade of dependency
  * injection container implementations must extend this base class and wrap a {@link DependencyGraph} implementation.
  * <h3>Usage</h3>
  * You don't interact with an internal interface.
  *
- * @param <C> the dependency graph type used internally by the subclass.
+ * @param <C> the type of dependency graph used internally by a particular subclass.
  *
  * @author Tibor Varga
  */
@@ -141,7 +143,7 @@ public abstract class EmptyComponentContainer<C extends DependencyGraph> impleme
      */
     @SuppressWarnings("unchecked")
     public final <T> T getComponent(final Class<T> api) {
-        return traverse(services, new Traversed<T>() {
+        return traverse(services, new Function<T, DependencyGraph.Traversal, RuntimeException>() {
             public T run(final DependencyGraph.Traversal traversal) {
                 final DependencyGraph.Node node = container.resolveComponent(api, context.advance(api, false), traversal, api);
                 return node == null ? null : (T) node.instance(traversal);
@@ -154,7 +156,7 @@ public abstract class EmptyComponentContainer<C extends DependencyGraph> impleme
      */
     @SuppressWarnings("unchecked")
     public final <T> T[] getComponentGroup(final Class<T> api) {
-        return traverse(services, new Traversed<T[]>() {
+        return traverse(services, new Function<T[], DependencyGraph.Traversal, RuntimeException>() {
             public T[] run(final DependencyGraph.Traversal traversal) {
                 final DependencyGraph.Node node = container.resolveGroup(api, context.advance(Array.newInstance(api, 0).getClass(), false).expand(null), traversal, api);
                 return node == null ? null : (T[]) node.instance(traversal);
@@ -166,7 +168,7 @@ public abstract class EmptyComponentContainer<C extends DependencyGraph> impleme
      * {@inheritDoc}
      */
     public final void resolveComponent(final Class<?> api) {
-        traverse(services, new Traversed<Void>() {
+        traverse(services, new Function<Void, DependencyGraph.Traversal, RuntimeException>() {
             public Void run(final DependencyGraph.Traversal traversal) {
                 container.resolveComponent(api, context.advance(api, false), traversal, api);
                 return null;
@@ -178,7 +180,7 @@ public abstract class EmptyComponentContainer<C extends DependencyGraph> impleme
      * {@inheritDoc}
      */
     public final void resolveGroup(final Class<?> api) {
-        traverse(services, new Traversed<Void>() {
+        traverse(services, new Function<Void, DependencyGraph.Traversal, RuntimeException>() {
             public Void run(final DependencyGraph.Traversal traversal) {
                 container.resolveGroup(api, context.advance(Array.newInstance(api, 0).getClass(), false).expand(null), traversal, api);
                 return null;
@@ -186,26 +188,7 @@ public abstract class EmptyComponentContainer<C extends DependencyGraph> impleme
         });
     }
 
-    /**
-     * A command that is executed while some resolution observer is active.
-     *
-     * @param <T> the return value type of the command.
-     *
-     * @author Tibor Varga
-     */
-    private interface Traversed<T> {
-
-        /**
-         * Executes the business logic while some resolution observer is active.
-         *
-         * @param traversal the graph traversal state.
-         *
-         * @return whatever the caller of {@link #traverse} expects.
-         */
-        T run(DependencyGraph.Traversal traversal);
-    }
-
-    private <T> T traverse(final ContainerServices services, final Traversed<T> command) {
+    private <T> T traverse(final ContainerServices services, final Function<T, DependencyGraph.Traversal, RuntimeException> command) {
         final DependencyGraph.Traversal saved = traversal.get();
         final DependencyGraph.Traversal current = saved == null ? services.graphTraversal(observer) : saved.observed(observer);
 

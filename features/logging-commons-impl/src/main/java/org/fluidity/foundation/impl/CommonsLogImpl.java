@@ -23,6 +23,10 @@ import org.apache.commons.logging.LogFactory;
 
 /**
  * Uses commons-logging as the underlying logging framework.
+ *
+ * @param <T> the class to which an instance belongs.
+ *
+ * @author Tibor Varga
  */
 final class CommonsLogImpl<T> extends LogAdapter<Log, T> {
 

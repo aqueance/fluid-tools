@@ -30,7 +30,7 @@ final class EmptyRegistry implements ComponentContainer.Registry {
 
     private final ComponentRegistry delegate;
 
-    public EmptyRegistry(final ComponentRegistry delegate) {
+    EmptyRegistry(final ComponentRegistry delegate) {
         this.delegate = delegate;
     }
 

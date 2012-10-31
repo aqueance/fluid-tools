@@ -48,12 +48,13 @@ package org.fluidity.foundation;
 public interface ClassDiscovery {
 
     /**
-     * Finds all classes visible to the given class loader that have been registered according to the service provider specification.
+     * Finds all classes visible to the given class loader that implement or extend the given service provider interface.
      *
      * @param api         the interface or class all discovered classes should implement or extend.
      * @param classLoader the class loader to use to find the classes.
      * @param strict      specifies whether to find classes directly visible to the given class loader (<code>true</code>) or indirectly via any of its parent
      *                    class loaders (<code>false</code>).
+     * @param <T>         the type of the given service provider interface.
      *
      * @return a list of <code>Class</code> objects for the discovered classes.
      */

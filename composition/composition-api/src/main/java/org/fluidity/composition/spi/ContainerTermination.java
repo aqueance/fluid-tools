@@ -86,6 +86,8 @@ public interface ContainerTermination {
      * <h3>Usage</h3>
      * See {@link ContainerTermination}.
      *
+     * @param <T> identifies the class to which a component instance belongs.
+     *
      * @author Tibor Varga
      */
     @SuppressWarnings("UnusedDeclaration")

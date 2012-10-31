@@ -39,6 +39,7 @@ public final class Streams extends Utility {
      * @param buffer      the buffer to use.
      * @param closeInput  closes the input stream if <code>true</code>.
      * @param closeOutput closes the output stream if <code>true</code>.
+     * @param <T>         type of the received and returned <code>output</code> stream.
      *
      * @return the output stream.
      *
