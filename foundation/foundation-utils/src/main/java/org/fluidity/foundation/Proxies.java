@@ -216,9 +216,11 @@ public final class Proxies extends Utility {
                     public Object run() throws Throwable {
                         if (method.getDeclaringClass() == Object.class) {
                             return method.invoke(MethodInvocations.this, args);
-                        } else {
+                        } else if (handler != null) {
                             method.setAccessible(true);
                             return handler.invoke(proxy, method, args);
+                        } else {
+                            throw new IllegalStateException(method.toGenericString());
                         }
                     }
                 });

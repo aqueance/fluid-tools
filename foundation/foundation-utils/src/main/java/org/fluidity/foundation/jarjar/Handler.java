@@ -131,12 +131,14 @@ public final class Handler extends URLStreamHandler {
 
         final String string = spec.substring(start, limit);
 
-        if (string.contains(".".concat(DELIMITER))) {
+        if (string.contains("./") || string.contains("/.")) {
             throw new IllegalArgumentException(String.format("No relative %s URLs supported", PROTOCOL));
         } else {
             final int delimiter = string.indexOf(DELIMITER);
 
             if (delimiter <= 0) {
+
+                // could format(...) the URL but that would require changing the URL protocol to "jar:" and that's forbidden by the setURL(...) method
                 throw new IllegalArgumentException(String.format("%s URLs must refer to an entry", PROTOCOL));
             }
 

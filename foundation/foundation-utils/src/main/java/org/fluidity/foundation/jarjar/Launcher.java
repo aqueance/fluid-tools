@@ -24,6 +24,7 @@ import java.util.List;
 
 import org.fluidity.foundation.Archives;
 import org.fluidity.foundation.ClassLoaders;
+import org.fluidity.foundation.Exceptions;
 import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.Methods;
 
@@ -81,6 +82,8 @@ public final class Launcher {
                     return Methods.invoke(true, loader.loadClass(mainClass).getMethod("main", String[].class), null, new Object[] { args });
                 }
             });
+        } catch (final Exceptions.Wrapper wrapper) {
+            throw wrapper.rethrow(Exception.class);
         } finally {
             if (loader instanceof Closeable) {
                 ((Closeable) loader).close();

@@ -16,8 +16,8 @@
 
 package org.fluidity.foundation;
 
-import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
+import java.io.FileNotFoundException;
 import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -105,6 +105,7 @@ public final class Archives extends Utility {
      */
     public static int read(final boolean cached, final URL url, final Entry reader) throws IOException {
         assert url != null;
+
         final byte[] data = Streams.load(Archives.open(cached, url), new byte[16384], true);
         final InputStream content = new ByteArrayInputStream(data);
 
@@ -182,13 +183,24 @@ public final class Archives extends Utility {
      * @throws IOException if the stream cannot be open.
      */
     public static InputStream open(final boolean cached, final URL url) throws IOException {
-        final URLConnection connection = connection(url);
-        connection.setUseCaches(cached);
-        return connection.getInputStream();
+        return connection(cached, url).getInputStream();
     }
 
-    private static URLConnection connection(final URL url) throws IOException {
-        return url.openConnection();    // TODO: proxy?
+    /**
+     * Creates a connection to the given URL.
+     *
+     * @param cached tells whether a previously cached archive, if any, should be used (value <code>true</code>), or a newly loaded one (value
+     *               <code>false</code>).
+     * @param url    the URL to connect to.
+     *
+     * @return an {@link URLConnection}; never <code>null</code>.
+     *
+     * @throws IOException when getting the connection fails.
+     */
+    public static URLConnection connection(final boolean cached, final URL url) throws IOException {
+        final URLConnection connection = url.openConnection();
+        connection.setUseCaches(cached);
+        return connection;
     }
 
     /**
@@ -264,60 +276,49 @@ public final class Archives extends Utility {
      * @throws IOException when reading the URL contents fails.
      */
     public static Manifest manifest(final boolean cached, final URL url) throws IOException {
-        final URL jar = Archives.containing(url);
-        Manifest manifest = jar == null ? null : jarManifest(cached, jar);
-
-        if (manifest == null) {
-            manifest = new Manifest();
-
-            InputStream stream;
-
-            try {
-                stream = manifestStream(cached, url);
-            } catch (final IOException e) {
-                stream = null;
-            }
-
-            if (stream != null) {
-                try {
-                    manifest.read(stream);
-                } finally {
-                    stream.close();
-                }
-            }
-
-            if (manifest.getMainAttributes().isEmpty() && manifest.getEntries().isEmpty()) {
-                return null;
-            }
-        }
-
-        return manifest;
-    }
-
-    private static InputStream manifestStream(final boolean cached, final URL url) throws IOException {
         InputStream stream;
 
-        try {
-            stream = Archives.open(cached, new URL(String.format("%s:%s%s%s", PROTOCOL, url.toExternalForm(), DELIMITER, JarFile.MANIFEST_NAME)));
-        } catch (final IOException e) {
+        if (url.toExternalForm().endsWith(JarFile.MANIFEST_NAME)) {
+
+            // the URL points to the manifest file
+            stream = Archives.open(cached, url);
+        } else if (Nested.PROTOCOL.equals(url.getProtocol())) {
+
+            // the URL points to a nested archive
+            stream = Archives.open(cached, Nested.formatURL(url, JarFile.MANIFEST_NAME));
+        } else {
             try {
-                stream = Archives.open(cached, new URL(new URL(url, "/"), JarFile.MANIFEST_NAME));
-            } catch (final IOException ignored) {
-                return null;
+
+                // try simple relative URL for the manifest
+                stream = Archives.open(cached, new URL(url, JarFile.MANIFEST_NAME));
+            } catch (final FileNotFoundException e) {
+
+                // relative URL not found
+                try {
+
+                    // assume URL is an archive and see if it contains a manifest
+                    stream = Archives.open(cached, Nested.formatURL(url, JarFile.MANIFEST_NAME));
+                } catch (final IOException ignored) {
+
+                    // apparently not an archive
+                    throw e;
+                }
             }
         }
 
-        return new BufferedInputStream(stream);
-    }
-
-    private static Manifest jarManifest(final boolean cached, final URL url) throws IOException {
-        final JarInputStream stream = new JarInputStream(Archives.open(cached, url), false);
+        final Manifest manifest = new Manifest();
 
         try {
-            return stream.getManifest();
+            manifest.read(stream);
         } finally {
             stream.close();
         }
+
+        if (manifest.getMainAttributes().isEmpty() && manifest.getEntries().isEmpty()) {
+            return null;
+        }
+
+        return manifest;
     }
 
     /**
