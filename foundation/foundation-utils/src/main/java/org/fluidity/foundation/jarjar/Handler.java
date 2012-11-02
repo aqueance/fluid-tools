@@ -17,6 +17,7 @@
 package org.fluidity.foundation.jarjar;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -31,7 +32,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.jar.JarEntry;
-import java.util.jar.JarInputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -107,11 +107,7 @@ public final class Handler extends URLStreamHandler {
 
     @Override
     protected URLConnection openConnection(final URL url, final Proxy proxy) throws IOException {
-        return new Connection(url, proxy);
-    }
-
-    static URLConnection connection(final URL url, final Proxy proxy) throws IOException {
-        return proxy == null || proxy.type() == Proxy.Type.DIRECT ? url.openConnection() : url.openConnection(proxy);
+        return new Connection(url);
     }
 
     @Override
@@ -129,42 +125,57 @@ public final class Handler extends URLStreamHandler {
 
         assert PROTOCOL.equals(url.getProtocol()) : url;
 
-        final String string = spec.substring(start, limit);
+        final String base = url.getPath();
+        final String extra = spec.substring(start, limit);
 
-        if (string.contains("./") || string.contains("/.")) {
-            throw new IllegalArgumentException(String.format("No relative %s URLs supported", PROTOCOL));
-        } else {
-            final int delimiter = string.indexOf(DELIMITER);
+        final String path;
 
-            if (delimiter <= 0) {
+        if (base != null) {
+            final int delimiter1 = base.lastIndexOf(DELIMITER);
+            final int delimiter2 = extra.lastIndexOf(DELIMITER);
+            final int length = DELIMITER.length();
 
-                // could format(...) the URL but that would require changing the URL protocol to "jar:" and that's forbidden by the setURL(...) method
-                throw new IllegalArgumentException(String.format("%s URLs must refer to an entry", PROTOCOL));
-            }
-
-            final String enclosed = string.substring(0, delimiter);
+            final String paths[] = {
+                    delimiter1 < 0 ? base : base.substring(delimiter1 + length),
+                    delimiter2 < 0 ? extra : extra.substring(delimiter1 + length),
+            };
 
             try {
-                final URL valid = new URL(enclosed);
+                final URL relative = new URL(PROTOCOL, null, -1, paths[0]);
+                super.parseURL(relative, paths[1], 0, paths[1].length());
 
-                if (PROTOCOL.equals(valid.getProtocol())) {
-                    throw new IllegalArgumentException(String.format("%s URLs may not enclose a %1$s URL", PROTOCOL));
-                }
+                path = base.substring(0, delimiter1 + length).concat(relative.getPath());
             } catch (final MalformedURLException e) {
-                throw new IllegalArgumentException(String.format("%s URLs must enclose a valid URL", PROTOCOL));
+                throw new IllegalArgumentException(String.format("%s: %s", base, extra), e);
             }
-
-            setURL(url, PROTOCOL, null, -1, null, null, enclosed.concat(string.substring(delimiter)), null, null);
+        } else {
+            path = extra;
         }
+
+        final int delimiter = path.indexOf(DELIMITER);
+        assert delimiter > 0 : path;
+
+        final String enclosed = path.substring(0, delimiter);
+
+        try {
+            final URL valid = new URL(enclosed);
+
+            if (PROTOCOL.equals(valid.getProtocol())) {
+                throw new IllegalArgumentException(String.format("%s URLs may not enclose a %1$s URL", PROTOCOL));
+            }
+        } catch (final MalformedURLException e) {
+            throw new IllegalArgumentException(String.format("%s URLs must enclose a valid URL", PROTOCOL));
+        }
+
+        setURL(url, PROTOCOL, null, -1, null, null, path, null, null);
     }
 
     /**
      * Returns the part of the nested archive URL that identifies the outermost enclosing archive.
      */
     private static URL enclosedURL(final URL url) throws MalformedURLException {
-        final String path = url.getPath();
+        final String path = url.getFile();
         final int delimiter = path.indexOf(DELIMITER);
-
         return new URL(delimiter < 0 ? path : path.substring(0, delimiter));
     }
 
@@ -187,23 +198,22 @@ public final class Handler extends URLStreamHandler {
     }
 
     /**
-     * Creates a URL to either a JAR archive nested in other JAR archives at any level, or a resource entry in such a potentially nested archive, depending on
-     * whether the last item in the <code>path</code> list is <code>null</code> or not, respectively.
+     * Creates a URL to a resource in a JAR archive nested in other JAR archives at any level.
      *
-     * @param root  the URL of the (possibly already nested) JAR archive.
-     * @param path  the list of entry names within the preceding archive entry in the list, or the <code>root</code> archive in case of the first
-     *              path; may be empty, in which case the <code>root</code> URL is returned. If the last item is <code>null</code>, the returned URL will point
-     *              to a nested archive; if the last item is <i>not</i> <code>null</code>, the returned URL will point to a JAR resource inside a (potentially
-     *              nested) archive.
+     * @param root the URL of the (possibly already nested) JAR archive.
+     * @param path the list of entry names within the preceding archive entry in the list, or the <code>root</code> archive in case of the first
+     *             path; may be empty, in which case the <code>root</code> URL is returned. If the last item is <code>null</code>, the returned URL will point
+     *             to a nested archive; if the last item is <i>not</i> <code>null</code>, the returned URL will point to a JAR resource inside a (potentially
+     *             nested) archive.
      *
-     * @return either a <code>jarjar:</code> pointing to a nested archive, or a <code>jar:</code> URL pointing to a JAR resource.
+     * @return a <code>jarjar:</code> pointing either to a nested archive, or a JAR resource within a nested archive.
      *
      * @throws IOException when URL handling fails.
      */
     public static URL formatURL(final URL root, final String... path) throws IOException {
         if (root == null) {
             return null;
-        } else if (path != null && path.length == 0) {
+        } else if (path == null || path.length == 0) {
             return root;
         }
 
@@ -233,21 +243,16 @@ public final class Handler extends URLStreamHandler {
             }
         }
 
-        for (int i = 0, count = path == null ? -1 : path.length - 1; i < count; i++) {
-            //noinspection ConstantConditions
-            specification.add(ClassLoaders.absoluteResourceName(path[i]));
+        for (final String part : path) {
+            if (part == null) {
+                throw new MalformedURLException("Path list may not contain null values");
+            }
+
+            specification.add(ClassLoaders.absoluteResourceName(part));
         }
 
         if (!specification.toString().contains(DELIMITER)) {
             specification.set(stem);
-        }
-
-        assert path == null || path.length > 0;
-        final String entry = path == null ? null : path[path.length - 1];
-
-        if (entry != null) {
-            specification.surround(Archives.PROTOCOL.concat(":"), Archives.DELIMITER);
-            specification.append(entry);
         }
 
         try {
@@ -283,7 +288,7 @@ public final class Handler extends URLStreamHandler {
         final URL jarjar = unwrap(url);
 
         if (PROTOCOL.equals(jarjar.getProtocol())) {
-            contents.remove(enclosedURL(jarjar));
+            contents.remove(enclosedURL(jarjar).toExternalForm());
         }
     }
 
@@ -292,37 +297,38 @@ public final class Handler extends URLStreamHandler {
         return root == null ? url : root;
     }
 
-    private static final Map<URL, Map<String, byte[]>> contents = new HashMap<URL, Map<String, byte[]>>();
+    private static final Map<String, Map<String, byte[]>> contents = new HashMap<String, Map<String, byte[]>>();
 
-    static byte[] contents(final URL url, final Proxy proxy) throws IOException {
-        final byte[] data = load(url, proxy).get(path(url));
-        return data == null ? null : data;
+    static byte[] contents(final URL url) throws IOException {
+        return load(url).get(path(url));
     }
 
     @SuppressWarnings("SynchronizationOnLocalVariableOrMethodParameter")
-    static Map<String, byte[]> load(final URL url, final Proxy proxy) throws IOException {
+    static Map<String, byte[]> load(final URL url) throws IOException {
         assert url != null;
 
         final URL root = enclosedURL(url);
-        Map<String, byte[]> content = contents.get(root);
+        final String key = root.toExternalForm();
+
+        Map<String, byte[]> content = contents.get(key);
 
         if (content == null) {
             content = new HashMap<String, byte[]>();
 
             synchronized (content) {
                 synchronized (contents) {
-                    if (contents.containsKey(root)) {
-                        content = contents.get(root);
+                    if (contents.containsKey(key)) {
+                        content = contents.get(key);
 
                         synchronized (content) {
                             return content;
                         }
                     } else {
-                        contents.put(root, content);
+                        contents.put(key, content);
                     }
                 }
 
-                final URLConnection connection = connection(root, proxy);
+                final URLConnection connection = root.openConnection();
                 connection.setUseCaches(true);
 
                 final ZipInputStream stream = new ZipInputStream(connection.getInputStream());
@@ -428,6 +434,8 @@ public final class Handler extends URLStreamHandler {
 
                             content.putAll(entries);
                         }
+                    } else {
+                        content.put(entry, bytes);
                     }
                 } finally {
                     nested.close();
@@ -454,20 +462,14 @@ public final class Handler extends URLStreamHandler {
     private static class Connection extends URLConnection {
 
         private final URLConnection root;
-        private final Proxy proxy;
 
         Connection(final URL url) throws IOException {
-            this(url, null);
-        }
-
-        Connection(final URL url, final Proxy proxy) throws IOException {
             super(url);
-            this.proxy = proxy;
 
             assert !PROTOCOL.equals(enclosedURL(getURL()).getProtocol()) : getURL();
 
             // the host part of our root URL itself is an URL
-            this.root = Handler.connection(enclosedURL(getURL()), proxy);
+            this.root = enclosedURL(getURL()).openConnection();
         }
 
         @Override
@@ -493,7 +495,7 @@ public final class Handler extends URLStreamHandler {
             }
 
             if (getUseCaches()) {
-                final byte[] contents = Handler.contents(url, proxy);
+                final byte[] contents = Handler.contents(url);
 
                 if (contents == null) {
                     throw new FileNotFoundException(url.toExternalForm());
@@ -501,57 +503,46 @@ public final class Handler extends URLStreamHandler {
                     return new ByteArrayInputStream(contents);
                 }
             } else {
-                final JarInputStream container = new JarInputStream(root.getInputStream());
+                final byte[] buffer = new byte[16384];
+                final InputStream found[] = { null };
 
-                // each successive path is nested in the stream at the previous index
-                final String[] paths = path(url).split(DELIMITER);
+                Archives.read(root.getInputStream(), url, new Archives.Entry() {
 
-                // first stream is the container
-                JarInputStream stream = container;
+                    // each successive path is nested in the stream at the previous index
+                    private final String[] paths = path(url).split(DELIMITER);
 
-                // the first path is an empty string since spec starts with a ! and we split around !s
-                for (int i = 1, pathCount = paths.length; i < pathCount; i++) {
-                    final String file = paths[i];
-                    final String directory = file.endsWith("/") ? file : file.concat("/");
+                    // the first path is ignored since that is the enclosing archive
+                    private int index = 1;
+                    private String file = paths[index];
 
-                    JarEntry next;
-                    while ((next = stream.getNextJarEntry()) != null) {
-                        final String name = next.getName();
+                    public boolean matches(final URL url, final JarEntry entry) throws IOException {
+                        final String name = entry.getName();
 
-                        if (!next.isDirectory()) {
-                            if (file.equals(name)) {
-                                if (i == pathCount - 1) {
-
-                                    // caller must close the stream, which closes its input, closing all streams we just opened here
-                                    return stream;
-                                } else {
-
-                                    // descend to entry
-                                    stream = new JarInputStream(stream);
-                                    break;
-                                }
-                            }
-                        } else if (directory.equals(name)) {
-                            try {
-                                stream.close();
-                            } catch (final IOException e) {
-                                // ignore
-                            }
-
-                            throw new IOException(String.format("%s is a directory", url.toExternalForm()));
+                        if (entry.isDirectory() && name.equals(file.endsWith("/") ? file : file.concat("/"))) {
+                            throw new IOException(String.format("Nested entry '%s' is a directory, URL is invalid: %s", name, url.toExternalForm()));
                         }
 
-                        stream.closeEntry();
+                        return file.equals(name);
                     }
-                }
 
-                try {
-                    stream.close();
-                } catch (final IOException e) {
-                    // ignore
-                }
+                    public boolean read(final URL url, final JarEntry entry, final InputStream stream) throws IOException {
+                        if (++index == paths.length) {
+                            found[0] = new ByteArrayInputStream(Streams.copy(stream, new ByteArrayOutputStream(), buffer, false, false).toByteArray());
+                        } else {
+                            file = paths[index];
 
-                throw new FileNotFoundException(url.toExternalForm());
+                            Archives.read(stream, url, this);
+                        }
+
+                        return false;
+                    }
+                });
+
+                if (found[0] == null) {
+                    throw new FileNotFoundException(url.toExternalForm());
+                } else {
+                    return found[0];
+                }
             }
         }
 

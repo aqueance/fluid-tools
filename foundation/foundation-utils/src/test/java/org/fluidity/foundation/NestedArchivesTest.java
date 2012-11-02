@@ -43,7 +43,7 @@ public class NestedArchivesTest {
 
         urls.add(root);
         for (final String path : paths) {
-            urls.add(Archives.Nested.formatURL(root, path, null));
+            urls.add(Archives.Nested.formatURL(root, path));
         }
 
         return new URLClassLoader(Lists.asArray(URL.class, urls), parent);

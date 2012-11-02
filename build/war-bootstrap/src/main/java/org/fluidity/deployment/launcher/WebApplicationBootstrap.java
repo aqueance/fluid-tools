@@ -123,7 +123,7 @@ public final class WebApplicationBootstrap {
                     final boolean matches = entryName.startsWith(bootEntry) && !entryName.equals(bootEntry);
 
                     if (matches) {
-                        classpath.add(Archives.Nested.formatURL(url, entryName, null));
+                        classpath.add(Archives.Nested.formatURL(url, entryName));
                     }
 
                     return false;

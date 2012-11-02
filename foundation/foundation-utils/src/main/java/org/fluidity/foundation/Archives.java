@@ -96,7 +96,7 @@ public final class Archives extends Utility {
      *
      * @param cached tells whether a previously cached archive, if any, should be used (value <code>true</code>), or a newly loaded one (value
      *               <code>false</code>).
-     * @param url    the URL of the Java archives.
+     * @param url    the URL of the Java archive; this will be passed to the {@link Entry} methods.
      * @param reader the reader to process the archive entries.
      *
      * @return the number of entries read.
@@ -106,7 +106,24 @@ public final class Archives extends Utility {
     public static int read(final boolean cached, final URL url, final Entry reader) throws IOException {
         assert url != null;
 
-        final byte[] data = Streams.load(Archives.open(cached, url), new byte[16384], true);
+        return Archives.read(Archives.open(cached, url), url, reader);
+    }
+
+    /**
+     * Reads entries from a JAR file contained in the given stream. If present, the archive manifest is read first after the archive has been {@linkplain
+     * JarInputStream#JarInputStream(InputStream, boolean) verified} but its {@linkplain JarEntry entry details} will be restricted to those available in a
+     * {@link ZipEntry}.
+     *
+     * @param input  the archive's content.
+     * @param url    the URL archive is coming from; this will be passed to the {@link Entry} methods.
+     * @param reader the reader to process the archive entries.
+     *
+     * @return the number of entries read.
+     *
+     * @throws IOException when something goes wrong reading the JAR file.
+     */
+    public static int read(final InputStream input, final URL url, final Entry reader) throws IOException {
+        final byte[] data = Streams.load(input, new byte[16384], true);
         final InputStream content = new ByteArrayInputStream(data);
 
         try {
@@ -120,14 +137,12 @@ public final class Archives extends Utility {
                 manifest = zip.getNextEntry();
 
                 if (manifest != null) {
-                    final String name = manifest.getName();
-
-                    if (name.equals(META_INF.concat("/"))) {
+                    if (manifest.getName().equals(META_INF.concat("/"))) {
                         zip.closeEntry();
                         manifest = zip.getNextEntry();
                     }
 
-                    if (manifest != null && !name.equals(JarFile.MANIFEST_NAME)) {
+                    if (manifest != null && !manifest.getName().equals(JarFile.MANIFEST_NAME)) {
                         manifest = null;
                     }
 
@@ -220,8 +235,7 @@ public final class Archives extends Utility {
         final String[] list = new String[names.length];
 
         if (url != null) {
-            final Manifest manifest = Archives.manifest(cached, url);
-            final Attributes attributes = manifest == null ? null : manifest.getMainAttributes();
+            final Attributes attributes = Archives.manifest(cached, url).getMainAttributes();
 
             if (attributes != null) {
                 for (int i = 0, limit = names.length; i < limit; i++) {
@@ -250,8 +264,7 @@ public final class Archives extends Utility {
         final String[] list = new String[names.length];
 
         if (url != null) {
-            final Manifest manifest = Archives.manifest(cached, url);
-            final Attributes attributes = manifest == null ? null : manifest.getMainAttributes();
+            final Attributes attributes = Archives.manifest(cached, url).getMainAttributes();
 
             if (attributes != null) {
                 for (int i = 0, limit = names.length; i < limit; i++) {
@@ -300,22 +313,20 @@ public final class Archives extends Utility {
                     stream = Archives.open(cached, Nested.formatURL(url, JarFile.MANIFEST_NAME));
                 } catch (final IOException ignored) {
 
-                    // apparently not an archive
-                    throw e;
+                    // apparently not an archive, give up
+                    stream = null;
                 }
             }
         }
 
         final Manifest manifest = new Manifest();
 
-        try {
-            manifest.read(stream);
-        } finally {
-            stream.close();
-        }
-
-        if (manifest.getMainAttributes().isEmpty() && manifest.getEntries().isEmpty()) {
-            return null;
+        if (stream != null) {
+            try {
+                manifest.read(stream);
+            } finally {
+                stream.close();
+            }
         }
 
         return manifest;
@@ -345,11 +356,21 @@ public final class Archives extends Utility {
      * @throws IOException when the Java URL cannot be created.
      */
     public static URL containing(final URL url) throws IOException {
-        if (url != null && Archives.PROTOCOL.equals(url.getProtocol())) {
-            final String file = url.getFile();
-            final int delimiter = file.indexOf(DELIMITER);
+        final String protocol = url == null ? null : url.getProtocol();
 
-            return new URL(delimiter == -1 ? file : file.substring(0, delimiter));
+        if (protocol != null) {
+            if (Archives.PROTOCOL.equals(protocol)) {
+                final String file = url.getFile();
+                final int delimiter = file.indexOf(DELIMITER);
+
+                return new URL(delimiter == -1 ? file : file.substring(0, delimiter));
+            } else if (Nested.PROTOCOL.equals(protocol)) {
+                final String file = url.getFile();
+                final int delimiter = file.lastIndexOf(Nested.DELIMITER);
+
+                final String containing = delimiter == -1 ? file : file.substring(0, delimiter);
+                return containing.contains(Nested.DELIMITER) ? new URL(Nested.PROTOCOL, null, containing) : new URL(containing);
+            }
         }
 
         return null;
@@ -439,21 +460,48 @@ public final class Archives extends Utility {
         private Nested() { }
 
         /**
-         * Creates a URL to either a JAR archive nested in other JAR archives at any level, or a resource entry in such a potentially nested archive, depending
-         * on whether the last item in the <code>path</code> list is <code>null</code> or not, respectively.
+         * Creates a URL to a resources in a JAR archive nested in other JAR archives at any level.
          *
-         * @param root the URL of the (possibly already nested) JAR archive.
-         * @param path the list of entry names within the preceding archive entry in the list, or the <code>root</code> archive in case of the first
-         *             path; may be empty, in which case the <code>root</code> URL is returned. If the last item is <code>null</code>, the returned URL will
-         *             point to a nested archive; if the last item is <i>not</i> <code>null</code>, the returned URL will point to a JAR resource inside a
-         *             (potentially nested) archive.
+         * @param root  the URL of the (possibly already nested) JAR archive.
+         * @param path  the list of entry names within the preceding archive entry in the list, or the <code>root</code> archive in case of the first
+         *              path; may be empty, in which case the <code>root</code> URL is returned. If the last item is <code>null</code>, the returned URL will point
+         *              to a nested archive; if the last item is <i>not</i> <code>null</code>, the returned URL will point to a JAR resource inside a (potentially
+         *              nested) archive.
          *
-         * @return either a <code>jarjar:</code> pointing to a nested archive, or a <code>jar:</code> URL pointing to a JAR resource.
+         * @return a <code>jarjar:</code> pointing either to a nested archive, or a JAR resource within a nested archive.
          *
          * @throws IOException when URL handling fails.
          */
         public static URL formatURL(final URL root, final String... path) throws IOException {
             return Handler.formatURL(root, path);
+        }
+
+        /**
+         * Takes a JAR resource URL that happens to point to a nested archive and converts that URL to a nested archive URL pointing to the same resource.
+         *
+         * @param archive the JAR resource URL of the (possibly already nested) JAR archive.
+         *
+         * @return a <code>jarjar:</code> pointing either to a nested archive, or a JAR resource within a nested archive.
+         *
+         * @throws IOException when URL handling fails.
+         */
+        public static URL nestedURL(final URL archive) throws IOException {
+            final String protocol = archive == null ? null : archive.getProtocol();
+
+            if (protocol == null || !Archives.PROTOCOL.equals(protocol)) {
+                return archive;
+            }
+
+            final String parts[] = archive.getFile().split(Archives.DELIMITER);
+
+            if (parts.length < 2) {
+                return archive;
+            }
+
+            final String path[] = new String[parts.length - 1];
+            System.arraycopy(parts, 1, path, 0, path.length);
+
+            return Handler.formatURL(new URL(parts[0]), (String[]) path);
         }
 
         /**
@@ -522,7 +570,7 @@ public final class Archives extends Utility {
 
             if (dependencies != null) {
                 for (final String dependency : dependencies.split(" ")) {
-                    urls.add(Handler.formatURL(archive, dependency, null));
+                    urls.add(Handler.formatURL(archive, dependency));
                 }
             }
 

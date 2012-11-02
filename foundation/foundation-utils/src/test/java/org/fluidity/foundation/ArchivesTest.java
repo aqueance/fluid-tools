@@ -35,14 +35,12 @@ public class ArchivesTest {
         assert root != null;
         assert Archives.containing(root) == null : Archives.containing(root);
 
-        final URL level1e = Handler.formatURL(container, "level1-2.jar");
-        final URL level1a = Handler.formatURL(container, "level1-2.jar", null);
-        final URL level2e = Handler.formatURL(container, "level1-2.jar", "level2.jar");
-        final URL level2a = Handler.formatURL(container, "level1-2.jar", "level2.jar", null);
-        final URL level3e = Handler.formatURL(container, "level1-2.jar", "level2.jar", "level3.jar");
+        final URL level1 = Handler.formatURL(container, "level1-2.jar");
+        final URL level2 = Handler.formatURL(container, "level1-2.jar", "level2.jar");
+        final URL level3 = Handler.formatURL(container, "level1-2.jar", "level2.jar", "level3.jar");
 
-        assert level2a.equals(Archives.containing(level3e)) : Archives.containing(level3e);
-        assert level1a.equals(Archives.containing(level2e)) : Archives.containing(level2e);
-        assert container.equals(Archives.containing(level1e)) : Archives.containing(level1e);
+        assert level2.equals(Archives.containing(level3)) : Archives.containing(level3);
+        assert level1.equals(Archives.containing(level2)) : Archives.containing(level2);
+        assert container.equals(Archives.containing(level1)) : Archives.containing(level1);
     }
 }

@@ -85,23 +85,21 @@ public class HandlerTest {
     public void testCaching() throws Exception {
         final URL url = Handler.formatURL(container, "level1-2.jar", "level2.jar", "level3.jar", "level3.txt");
 
-        Handler.load(new URL(url.getFile()), null);
+        Handler.load(url);
         Archives.Nested.unload(url);
     }
 
     @Test
     public void testFormatting() throws Exception {
-        final URL expected = Handler.formatURL(container, "level1-2.jar", "level2.jar", "level3.jar", null);
-        verify(expected, Handler.formatURL(Handler.rootURL(expected), "level1-2.jar", "level2.jar", "level3.jar", null));
-        verify(expected, Handler.formatURL(Handler.formatURL(Handler.rootURL(expected), "level1-2.jar", "level2.jar", null), "level3.jar", null));
-        verify(expected, Handler.formatURL(Handler.formatURL(Handler.formatURL(Handler.rootURL(expected), "level1-2.jar", null), "level2.jar", null), "level3.jar", null));
+        final URL expected = Handler.formatURL(container, "level1-2.jar", "level2.jar", "level3.jar");
+        verify(expected, Handler.formatURL(Handler.rootURL(expected), "level1-2.jar", "level2.jar", "level3.jar"));
+        verify(expected, Handler.formatURL(Handler.formatURL(Handler.rootURL(expected), "level1-2.jar", "level2.jar"), "level3.jar"));
+        verify(expected, Handler.formatURL(Handler.formatURL(Handler.formatURL(Handler.rootURL(expected), "level1-2.jar"), "level2.jar"), "level3.jar"));
 
-        final URL level3 = Handler.formatURL(Handler.formatURL(Handler.formatURL(Handler.rootURL(expected), "level1-2.jar"), "level2.jar"), "level3.jar");
-        verify(expected, Handler.formatURL(level3, (String) null));
-        verify(expected, Handler.formatURL(level3, (String[]) null));
+        verify(expected, Handler.formatURL(Handler.formatURL(Handler.formatURL(Handler.formatURL(Handler.rootURL(expected), "level1-2.jar"), "level2.jar"), "level3.jar")));
 
-        final URL insane = Handler.formatURL(new URL("http://xxx:yyy@insane.org/whatever.jar?query=param"), "level1.jar", "level2.jar", "level3.jar", null);
-        verify(insane, Handler.formatURL(Handler.formatURL(Handler.formatURL(Handler.rootURL(insane), "level1.jar", null), "level2.jar", null), "level3.jar", null));
+        final URL insane = Handler.formatURL(new URL("http://xxx:yyy@insane.org/whatever.jar?query=param"), "level1.jar", "level2.jar", "level3.jar");
+        verify(insane, Handler.formatURL(Handler.formatURL(Handler.formatURL(Handler.rootURL(insane), "level1.jar"), "level2.jar"), "level3.jar"));
     }
 
     @Test
@@ -143,10 +141,7 @@ public class HandlerTest {
     @Test
     public void testParsing() throws Exception {
         final URL archive = Handler.formatURL(new URL("file:/root.jar"), "level1.jar", "level2.jar", "some/path");
-        final URL nested = Handler.formatURL(new URL("file:/root.jar"), "level1.jar", "level2.jar", "some/path", null);
-
-        assert Archives.PROTOCOL.equals(archive.getProtocol()) : archive;
-        assert Archives.Nested.PROTOCOL.equals(nested.getProtocol()) : nested;
+        assert Archives.Nested.PROTOCOL.equals(archive.getProtocol()) : archive;
     }
 
     private void assertContent(final boolean caching, final String content, final String... path) throws IOException {
