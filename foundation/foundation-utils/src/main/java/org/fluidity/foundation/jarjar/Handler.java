@@ -508,17 +508,18 @@ public final class Handler extends URLStreamHandler {
 
                 Archives.read(root.getInputStream(), url, new Archives.Entry() {
 
-                    // each successive path is nested in the stream at the previous index
+                    // each successive path is nested in the archive at the previous index
                     private final String[] paths = path(url).split(DELIMITER);
 
                     // the first path is ignored since that is the enclosing archive
                     private int index = 1;
                     private String file = paths[index];
+                    private String directory = directory(file);
 
                     public boolean matches(final URL url, final JarEntry entry) throws IOException {
                         final String name = entry.getName();
 
-                        if (entry.isDirectory() && name.equals(file.endsWith("/") ? file : file.concat("/"))) {
+                        if (entry.isDirectory() && name.equals(directory)) {
                             throw new IOException(String.format("Nested entry '%s' is a directory, URL is invalid: %s", name, url.toExternalForm()));
                         }
 
@@ -530,11 +531,16 @@ public final class Handler extends URLStreamHandler {
                             found[0] = new ByteArrayInputStream(Streams.copy(stream, new ByteArrayOutputStream(), buffer, false, false).toByteArray());
                         } else {
                             file = paths[index];
+                            directory = directory(file);
 
                             Archives.read(stream, url, this);
                         }
 
                         return false;
+                    }
+
+                    private String directory(final String name) {
+                        return name.endsWith("/") ? name : name.concat("/");
                     }
                 });
 
