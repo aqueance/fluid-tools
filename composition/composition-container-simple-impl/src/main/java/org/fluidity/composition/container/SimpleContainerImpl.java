@@ -60,8 +60,8 @@ final class SimpleContainerImpl implements ParentContainer {
 
     private final DependencyInjector injector;
 
-    SimpleContainerImpl(final ContainerServices services, final PlatformContainer platform) {
-        this(platform == null ? null : new SuperContainer(platform), null, services);
+    SimpleContainerImpl(final ContainerServices services, final SuperContainer bridge) {
+        this(bridge == null ? null : new SuperContainerImpl(bridge), null, services);
     }
 
     private SimpleContainerImpl(final ParentContainer parent, final ParentContainer domain, final ContainerServices services) {
@@ -513,9 +513,9 @@ final class SimpleContainerImpl implements ParentContainer {
         }
     }
 
-    private static class SuperContainer implements ParentContainer {
+    private static class SuperContainerImpl implements ParentContainer {
 
-        private final PlatformContainer platform;
+        private final SuperContainer bridge;
         private final List<GroupResolver> emptyList = Collections.emptyList();
 
         private final ContextNode noContexts = new ContextNode() {
@@ -528,18 +528,18 @@ final class SimpleContainerImpl implements ParentContainer {
             }
         };
 
-        SuperContainer(final PlatformContainer platform) {
-            this.platform = platform;
+        SuperContainerImpl(final SuperContainer bridge) {
+            this.bridge = bridge;
         }
 
         public Node resolveComponent(final Class<?> api, final ContextDefinition context, final Traversal traversal, final Type reference) {
-            return !platform.containsComponent(api, context) ? null : new Node() {
+            return !bridge.containsComponent(api, context) ? null : new Node() {
                 public Class<?> type() {
                     return api;
                 }
 
                 public Object instance(final Traversal traversal) {
-                    return platform.getComponent(api, context);
+                    return bridge.getComponent(api, context);
                 }
 
                 public ComponentContext context() {
@@ -549,13 +549,13 @@ final class SimpleContainerImpl implements ParentContainer {
         }
 
         public Node resolveGroup(final Class<?> api, final ContextDefinition context, final Traversal traversal, final Type reference) {
-            return !platform.containsComponentGroup(api, context) ? null : new Node() {
+            return !bridge.containsComponentGroup(api, context) ? null : new Node() {
                 public Class<?> type() {
                     return api;
                 }
 
                 public Object instance(final Traversal traversal) {
-                    return platform.getComponentGroup(api, context);
+                    return bridge.getComponentGroup(api, context);
                 }
 
                 public ComponentContext context() {
@@ -569,9 +569,9 @@ final class SimpleContainerImpl implements ParentContainer {
                                                      final Traversal traversal,
                                                      final ContextDefinition context,
                                                      final Type reference) {
-            return !platform.containsComponentGroup(api, context) ? null : Collections.<GroupResolver.Node>singletonList(new GroupResolver.Node() {
+            return !bridge.containsComponentGroup(api, context) ? null : Collections.<GroupResolver.Node>singletonList(new GroupResolver.Node() {
                 public Collection<?> instance(final Traversal traversal) {
-                    return Arrays.asList(platform.getComponentGroup(api, context));
+                    return Arrays.asList(bridge.getComponentGroup(api, context));
                 }
             });
         }
@@ -596,7 +596,7 @@ final class SimpleContainerImpl implements ParentContainer {
         }
 
         public ContextNode contexts(final ParentContainer domain, final Class<?> type, final ContextDefinition context) {
-            return platform.containsComponent(type, context) ? noContexts : null;
+            return bridge.containsComponent(type, context) ? noContexts : null;
         }
 
         public ComponentResolver resolver(final Class<?> api, final boolean ascend) {
@@ -608,7 +608,7 @@ final class SimpleContainerImpl implements ParentContainer {
         }
 
         public String id() {
-            return platform.id();
+            return bridge.id();
         }
 
         public Node resolveComponent(final ParentContainer domain,

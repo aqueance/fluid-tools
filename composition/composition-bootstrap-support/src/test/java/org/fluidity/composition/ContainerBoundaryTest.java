@@ -24,7 +24,7 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.fluidity.composition.container.ContainerServices;
-import org.fluidity.composition.container.PlatformContainer;
+import org.fluidity.composition.container.SuperContainer;
 import org.fluidity.composition.container.internal.ContainerServicesFactory;
 import org.fluidity.composition.container.spi.ContainerProvider;
 import org.fluidity.foundation.NoLogFactory;
@@ -43,7 +43,7 @@ public class ContainerBoundaryTest extends Simulator {
     private final MockObjects dependencies = dependencies();
     private final LogFactory logs = new NoLogFactory();
 
-    private final PlatformContainer platform = dependencies.normal(PlatformContainer.class);
+    private final SuperContainer bridge = dependencies.normal(SuperContainer.class);
     private final BootstrapServices providers = dependencies.normal(BootstrapServices.class);
     private final ContainerBootstrap bootstrap = dependencies.normal(ContainerBootstrap.class);
     private final ContainerProvider provider = dependencies.normal(ContainerProvider.class);
@@ -82,7 +82,7 @@ public class ContainerBoundaryTest extends Simulator {
         // set up the test class
         final ContainerBoundary boundary = boundary(classLoader);
 
-        boundary.setPlatformContainer(platform);
+        boundary.setSuperContainer(bridge);
 
         for (final Map.Entry<String, String> entry : properties.entrySet()) {
             boundary.setBindingProperty(entry.getKey(), entry.getValue());
@@ -98,8 +98,8 @@ public class ContainerBoundaryTest extends Simulator {
                                                     EasyMock.same(provider),
                                                     EasyMock.<Properties>notNull(),
                                                     EasyMock.<MutableContainer>same(null),
+                                                    EasyMock.same(bridge),
                                                     EasyMock.same(classLoader),
-                                                    EasyMock.same(platform),
                                                     EasyMock.<ContainerBootstrap.Callback>notNull())).andAnswer(new IAnswer<MutableContainer>() {
             public MutableContainer answer() throws Throwable {
 
@@ -165,8 +165,8 @@ public class ContainerBoundaryTest extends Simulator {
                                                     EasyMock.same(provider),
                                                     EasyMock.<Properties>notNull(),
                                                     EasyMock.<MutableContainer>same(null),
+                                                    EasyMock.<SuperContainer>isNull(),
                                                     EasyMock.same(getClass().getClassLoader()),
-                                                    EasyMock.<PlatformContainer>isNull(),
                                                     EasyMock.<ContainerBootstrap.Callback>notNull())).andAnswer(new IAnswer<MutableContainer>() {
             public MutableContainer answer() throws Throwable {
 
@@ -231,8 +231,8 @@ public class ContainerBoundaryTest extends Simulator {
                                                         EasyMock.same(provider),
                                                         EasyMock.<Properties>notNull(),
                                                         EasyMock.same(containers.get(cl.getParent())),
+                                                        EasyMock.<SuperContainer>isNull(),
                                                         EasyMock.same(cl),
-                                                        EasyMock.<PlatformContainer>isNull(),
                                                         EasyMock.<ContainerBootstrap.Callback>notNull())).andAnswer(new IAnswer<MutableContainer>() {
                 public MutableContainer answer() throws Throwable {
                     callback[0] = ((ContainerBootstrap.Callback) EasyMock.getCurrentArguments()[6]);
@@ -334,8 +334,8 @@ public class ContainerBoundaryTest extends Simulator {
                                                             EasyMock.same(provider),
                                                             EasyMock.<Properties>notNull(),
                                                             EasyMock.<MutableContainer>same(null),
+                                                            EasyMock.<SuperContainer>isNull(),
                                                             EasyMock.same(classLoader),
-                                                            EasyMock.<PlatformContainer>isNull(),
                                                             EasyMock.<ContainerBootstrap.Callback>notNull())).andAnswer(new IAnswer<MutableContainer>() {
                     public MutableContainer answer() throws Throwable {
                         callback[0] = (ContainerBootstrap.Callback) EasyMock.getCurrentArguments()[6];

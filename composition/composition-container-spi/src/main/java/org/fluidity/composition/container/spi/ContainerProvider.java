@@ -19,7 +19,7 @@ package org.fluidity.composition.container.spi;
 import org.fluidity.composition.MutableContainer;
 import org.fluidity.composition.ServiceProvider;
 import org.fluidity.composition.container.ContainerServices;
-import org.fluidity.composition.container.PlatformContainer;
+import org.fluidity.composition.container.SuperContainer;
 
 /**
  * Creates {@linkplain org.fluidity.composition.MutableContainer dependency injection container} instances. This is the entry point to a container
@@ -36,9 +36,9 @@ public interface ContainerProvider {
      * Creates and returns and empty standalone dependency injection container.
      *
      * @param services provides service components for the container; never <code>null</code>.
-     * @param platform the container that turns the host platform's component container into a super container for Fluid Tools; may be <code>null</code>.
+     * @param bridge   the container that turns the host application's component container into a super container for Fluid Tools; may be <code>null</code>.
      *
      * @return and empty standalone dependency injection container.
      */
-    MutableContainer newContainer(ContainerServices services, PlatformContainer platform);
+    MutableContainer newContainer(ContainerServices services, SuperContainer bridge);
 }

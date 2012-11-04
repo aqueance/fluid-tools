@@ -23,13 +23,13 @@ import org.fluidity.composition.ComponentContainer;
  * injection framework to a legacy dependency injection framework prevalent in the rest of the application.
  * <h3>Usage</h3>
  * <pre>
- * {@linkplain org.fluidity.composition.Containers}.{@linkplain org.fluidity.composition.Containers#prepare() prepare}().{@linkplain org.fluidity.composition.ContainerBoundary#setPlatformContainer(PlatformContainer) setPlatformContainer}(new <span class="hl1">PlatformContainer</span>() {
+ * {@linkplain org.fluidity.composition.Containers}.{@linkplain org.fluidity.composition.Containers#prepare() prepare}().{@linkplain org.fluidity.composition.ContainerBoundary#setSuperContainer(SuperContainer) setSuperContainer}(new <span class="hl1">SuperContainer</span>() {
  *   &hellip;
  * });
  * </pre>
  */
 @SuppressWarnings("JavadocReference")
-public interface PlatformContainer {
+public interface SuperContainer {
 
     /**
      * Tells, without any reservation on the part of the receiver, whether the given component interface can be resolved by the receiver.

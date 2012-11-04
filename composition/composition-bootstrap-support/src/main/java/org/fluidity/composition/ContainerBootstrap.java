@@ -19,7 +19,7 @@ package org.fluidity.composition;
 import java.util.Map;
 
 import org.fluidity.composition.container.ContainerServices;
-import org.fluidity.composition.container.PlatformContainer;
+import org.fluidity.composition.container.SuperContainer;
 import org.fluidity.composition.container.spi.ContainerProvider;
 
 /**
@@ -36,31 +36,31 @@ interface ContainerBootstrap {
      * The idea is to find all {@link org.fluidity.composition.spi.PackageBindings} objects and invoke their {@link
      * org.fluidity.composition.spi.PackageBindings#bindComponents(ComponentContainer.Registry)} method.
      *
-     * @param services    provides basic services for containers
-     * @param provider    is the provider of actual dependency injection containers and related functionality.
-     * @param properties  is the properties to bind to the container as a means to configure binding instances at run time.
-     * @param parent      is the container to use as the parent of the one returned; can be <code>null</code>, in which case a standalone container is
-     *                    returned.
-     * @param classLoader is the class loader to use to discover package bindings. Package bindings found in the class loader ancestry are ignored when the
-     * @param platform    the container that turns the host platform's component container into a super container for Fluid Tools.
-     * @param callback    object to notify when a container is initialized or shut down.
+     * @param services   provides basic services for containers
+     * @param provider   is the provider of actual dependency injection containers and related functionality.
+     * @param properties is the properties to bind to the container as a means to configure binding instances at run time.
+     * @param parent     is the container to use as the parent of the one returned; can be <code>null</code>, in which case a standalone container is
+     *                   returned.
+     * @param bridge     the container that turns the host application's component container into a super container for Fluid Tools.
+     * @param loader     is the class loader to use to discover package bindings. Package bindings found in the class loader ancestry are ignored when the
+     * @param callback   object to notify when a container is initialized or shut down.
      *
      * @return the container with the bindings registered.
      */
     MutableContainer populateContainer(ContainerServices services,
-                                             ContainerProvider provider,
-                                             Map properties,
-                                             MutableContainer parent,
-                                             ClassLoader classLoader,
-                                             PlatformContainer platform,
-                                             Callback callback);
+                                       ContainerProvider provider,
+                                       Map properties,
+                                       MutableContainer parent,
+                                       SuperContainer bridge,
+                                       ClassLoader loader,
+                                       Callback callback);
 
     /**
      * Calls the {@link org.fluidity.composition.spi.PackageBindings#initialize(OpenContainer, org.fluidity.composition.spi.ContainerTermination)} method on
      * all bindings.
      *
-     * @param container the container, returned by the {@link #populateContainer(ContainerServices, ContainerProvider, Map, MutableContainer, ClassLoader,
-     *                  PlatformContainer, ContainerBootstrap.Callback)} method, to initialize.
+     * @param container the container, returned by the {@link #populateContainer(ContainerServices, ContainerProvider, Map, MutableContainer, SuperContainer,
+     *                  ClassLoader, ContainerBootstrap.Callback)} method, to initialize.
      * @param services  provides basic services for containers
      */
     void initializeContainer(OpenContainer container, ContainerServices services) throws Exception;

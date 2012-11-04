@@ -27,7 +27,7 @@ import org.fluidity.foundation.Log;
  * <pre>
  * final class MyContainerImpl extends {@linkplain org.fluidity.composition.container.spi.EmptyComponentContainer} {
  *
- *   MyContainerImpl(final <span class="hl1">ContainerServices</span> services, final {@linkplain PlatformContainer} platform) {
+ *   MyContainerImpl(final <span class="hl1">ContainerServices</span> services, final {@linkplain SuperContainer} bridge) {
  *     &hellip;
  *   }
  * }

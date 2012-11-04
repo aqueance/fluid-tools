@@ -24,7 +24,7 @@ import java.util.Properties;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.fluidity.composition.container.ContainerServices;
-import org.fluidity.composition.container.PlatformContainer;
+import org.fluidity.composition.container.SuperContainer;
 import org.fluidity.composition.container.spi.ContainerProvider;
 import org.fluidity.composition.spi.ContainerTermination;
 import org.fluidity.composition.spi.EmptyPackageBindings;
@@ -49,7 +49,7 @@ public final class ContainerBootstrapImplTest extends Simulator {
     private final Log log = NoLogFactory.consume(getClass());
 
     private final ContainerBootstrap.Callback callback = dependencies.normal(ContainerBootstrap.Callback.class);
-    private final PlatformContainer platform = dependencies.normal(PlatformContainer.class);
+    private final SuperContainer bridge = dependencies.normal(SuperContainer.class);
     private final ContainerProvider provider = dependencies.normal(ContainerProvider.class);
     private final ContainerServices services = dependencies.normal(ContainerServices.class);
     private final ClassDiscovery discovery = dependencies.normal(ClassDiscovery.class);
@@ -73,7 +73,7 @@ public final class ContainerBootstrapImplTest extends Simulator {
 
     @SuppressWarnings("unchecked")
     private Object populateContainer(final Class[] classes, final PackageBindings[] instances) throws Exception {
-        EasyMock.expect(provider.newContainer(services, platform)).andReturn(container);
+        EasyMock.expect(provider.newContainer(services, bridge)).andReturn(container);
         EasyMock.expect(discovery.findComponentClasses(PackageBindings.class, null, false)).andReturn(classes);
 
         EasyMock.expect(provider.newContainer(services, null)).andReturn(bindingsContainer);
@@ -101,7 +101,7 @@ public final class ContainerBootstrapImplTest extends Simulator {
 
         verify(new Task() {
             public void run() throws Exception {
-                bootstrap.populateContainer(services, provider, null, null, null, platform, callback);
+                bootstrap.populateContainer(services, provider, null, null, bridge, null, callback);
             }
         });
 
@@ -231,7 +231,7 @@ public final class ContainerBootstrapImplTest extends Simulator {
 
         assert container == verify(new Work<MutableContainer>() {
             public MutableContainer run() throws Exception {
-                return bootstrap.populateContainer(services, provider, null, parent, null, platform, callback);
+                return bootstrap.populateContainer(services, provider, null, parent, bridge, null, callback);
             }
         });
     }
@@ -241,7 +241,7 @@ public final class ContainerBootstrapImplTest extends Simulator {
     public void standaloneComponentAssembly() throws Exception {
 
         // we're not passing a container so subject is expected to create one
-        EasyMock.expect(provider.newContainer(services, platform)).andReturn(container);
+        EasyMock.expect(provider.newContainer(services, bridge)).andReturn(container);
         EasyMock.expect(container.getRegistry()).andReturn(registry);
 
         final Class[] assemblies = {
@@ -264,7 +264,7 @@ public final class ContainerBootstrapImplTest extends Simulator {
 
         final MutableContainer populated = verify(new Work<MutableContainer>() {
             public MutableContainer run() throws Exception {
-                return bootstrap.populateContainer(services, provider, null, null, null, platform, callback);
+                return bootstrap.populateContainer(services, provider, null, null, bridge, null, callback);
             }
         });
 
@@ -299,7 +299,7 @@ public final class ContainerBootstrapImplTest extends Simulator {
 
         assert container == verify(new Work<MutableContainer>() {
             public MutableContainer run() throws Exception {
-                return bootstrap.populateContainer(services, provider, properties, parent, null, platform, callback);
+                return bootstrap.populateContainer(services, provider, properties, parent, bridge, null, callback);
             }
         });
     }

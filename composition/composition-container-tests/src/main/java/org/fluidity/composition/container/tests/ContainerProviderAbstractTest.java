@@ -21,7 +21,7 @@ import org.fluidity.composition.container.ComponentCache;
 import org.fluidity.composition.container.ContainerServices;
 import org.fluidity.composition.container.ContextDefinition;
 import org.fluidity.composition.container.DependencyInjector;
-import org.fluidity.composition.container.PlatformContainer;
+import org.fluidity.composition.container.SuperContainer;
 import org.fluidity.composition.container.spi.ContainerProvider;
 import org.fluidity.composition.container.spi.DependencyGraph;
 import org.fluidity.foundation.ClassDiscovery;
@@ -81,14 +81,14 @@ public abstract class ContainerProviderAbstractTest extends Simulator {
     }
 
     @Test
-    public final void createsPlatformContainer() throws Exception {
-        final PlatformContainer platform = arguments().normal(PlatformContainer.class);
+    public final void createsSuperContainer() throws Exception {
+        final SuperContainer bridge = arguments().normal(SuperContainer.class);
 
         EasyMock.expect(context.copy()).andReturn(copy);
 
         final MutableContainer container = verify(new Work<MutableContainer>() {
             public MutableContainer run() throws Exception {
-                return provider.newContainer(services, platform);
+                return provider.newContainer(services, bridge);
             }
         });
 

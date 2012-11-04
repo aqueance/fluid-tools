@@ -29,7 +29,7 @@ import java.util.WeakHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.fluidity.composition.container.ContainerServices;
-import org.fluidity.composition.container.PlatformContainer;
+import org.fluidity.composition.container.SuperContainer;
 import org.fluidity.composition.container.internal.ContainerServicesFactory;
 import org.fluidity.composition.container.spi.ContainerProvider;
 import org.fluidity.composition.spi.ComponentInterceptor;
@@ -108,7 +108,7 @@ public final class ContainerBoundary implements ComponentContainer {
     /**
      * The super container.
      */
-    private PlatformContainer platform;
+    private SuperContainer bridge;
 
     /**
      * The class loader associated with the container made accessible by this instance.
@@ -178,14 +178,14 @@ public final class ContainerBoundary implements ComponentContainer {
     }
 
     /**
-     * Sets the platform container. The platform container is a bridge between the highest level dependency injection container and the platform's own
-     * dependency resolution facilities.
+     * Sets the super container. The super container is a bridge between the highest level dependency injection container and the host application's dependency
+     * resolution facilities.
      *
-     * @param platform the object that adapts the platform's native dependency resolution logic to the Fluid Tools dependency injection model.
+     * @param bridge the object that adapts the host application's native dependency resolution logic to the Fluid Tools dependency injection model.
      */
-    public void setPlatformContainer(final PlatformContainer platform) {
-        assert this.platform == null;
-        this.platform = platform;
+    public void setSuperContainer(final SuperContainer bridge) {
+        assert this.bridge == null;
+        this.bridge = bridge;
     }
 
     /**
@@ -284,7 +284,7 @@ public final class ContainerBoundary implements ComponentContainer {
         this.rootClassLoader = null;
         this.containerBootstrap = null;
         this.containerProvider = null;
-        this.platform = null;
+        this.bridge = null;
 
         ContainerBoundary.populatedContainers.clear();
         ContainerBoundary.propertiesMap.clear();
@@ -355,8 +355,8 @@ public final class ContainerBoundary implements ComponentContainer {
                                                                         containerProvider,
                                                                         map == null ? new HashMap() : map,
                                                                         parent,
+                                                                        bridge,
                                                                         loader,
-                                                                        platform,
                                                                         callback);
                         }
                     }));

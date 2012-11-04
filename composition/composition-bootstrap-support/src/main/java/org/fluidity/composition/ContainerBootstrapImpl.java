@@ -22,7 +22,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.fluidity.composition.container.ContainerServices;
-import org.fluidity.composition.container.PlatformContainer;
+import org.fluidity.composition.container.SuperContainer;
 import org.fluidity.composition.container.spi.ContainerProvider;
 import org.fluidity.composition.spi.PackageBindings;
 import org.fluidity.foundation.ClassDiscovery;
@@ -43,20 +43,20 @@ final class ContainerBootstrapImpl implements ContainerBootstrap {
                                               final ContainerProvider provider,
                                               final Map properties,
                                               final MutableContainer parent,
-                                              final ClassLoader classLoader,
-                                              final PlatformContainer platform,
+                                              final SuperContainer bridge,
+                                              final ClassLoader loader,
                                               final Callback callback) {
         final Log log = log(services);
         final ClassDiscovery discovery = services.classDiscovery();
 
-        final MutableContainer container = parent == null ? provider.newContainer(services, platform) : parent.makeChildContainer();
+        final MutableContainer container = parent == null ? provider.newContainer(services, bridge) : parent.makeChildContainer();
 
-        log.debug("Created new %s%s", container, (classLoader == null ? "" : String.format(" for class loader %s", classLoader)));
+        log.debug("Created new %s%s", container, (loader == null ? "" : String.format(" for class loader %s", loader)));
 
         /*
          * Find instances of classes implementing the PackageBindings interface.
          */
-        final Class<PackageBindings>[] classes = discovery.findComponentClasses(PackageBindings.class, classLoader, parent != null);
+        final Class<PackageBindings>[] classes = discovery.findComponentClasses(PackageBindings.class, loader, parent != null);
 
         log.debug("Found %s binding set(s) for %s", classes.length, container);
 
