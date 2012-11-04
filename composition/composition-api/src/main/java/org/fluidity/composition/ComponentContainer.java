@@ -528,9 +528,10 @@ public interface ComponentContainer {
         /**
          * Notifies the receiver that a dependency is being resolved. Calls to this method are balanced by calls to {@link #ascending ascending()}.
          *
-         * @param declaringType        the class having the dependency to the <code>api</code>.
+         * @param declaringType        the class having the dependency to the <code>dependencyType</code>.
          * @param dependencyType       the class with which the <code>declaringType</code> references the dependency.
-         * @param typeAnnotations      the annotations of the declaring class; may be <code>null</code>.
+         * @param typeAnnotations      the annotations of the declaring class, and the constructor or method involved in the dependency, if any; may be
+         *                             <code>null</code>.
          * @param referenceAnnotations the annotations of the dependency reference; may be <code>null</code>.
          */
         void descending(Class<?> declaringType, Class<?> dependencyType, Annotation[] typeAnnotations, Annotation[] referenceAnnotations);
@@ -538,7 +539,7 @@ public interface ComponentContainer {
         /**
          * Notifies the receiver that a dependency has been resolved. A call to this method balances a previous call to {@link #descending descending()}.
          *
-         * @param declaringType        the class having the dependency to the <code>api</code>.
+         * @param declaringType        the class having the dependency to the <code>dependencyType</code>.
          * @param dependencyType       the class with which the <code>declaringType</code> references the dependency.
          */
         void ascending(Class<?> declaringType, Class<?> dependencyType);
@@ -562,8 +563,7 @@ public interface ComponentContainer {
         void resolved(DependencyPath path, Class<?> type);
 
         /**
-         * Notifies the receiver that a dependency has been instantiated. The path and type are final. Elements of the path are actual classes that will be or
-         * have been instantiated.
+         * Notifies the receiver that a dependency has been instantiated. The path and type are final. Elements of the path are actual classes that will be.
          * <p/>
          * The {@link DependencyPath#tail()} returns details about the just instantiated object.
          *
