@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Modifier;
 import java.net.URL;
 import java.util.ArrayList;
@@ -103,7 +104,7 @@ public final class ServiceProviders extends Utility {
          * The standard service provider discovery utilities seem to use <code>Class.forName(...)</code>, and that is a no-no.
          */
 
-        final Class<T>[] types = findClasses(TYPE, interfaceClass, classLoader, false, new Log() {
+        final Class<T>[] types = findClasses(TYPE, interfaceClass, classLoader, false, true, new Log() {
             public void debug(final String format, final Object... arguments) {
                 // ignore
             }
@@ -129,7 +130,13 @@ public final class ServiceProviders extends Utility {
             public T next() {
                 return Exceptions.wrap(new Command.Process<T, Exception>() {
                     public T run() throws Exception {
-                        return types[index++].newInstance();
+                        final Constructor<T> constructor = types[index++].getDeclaredConstructor();
+
+                        if (!constructor.isAccessible()) {
+                            constructor.setAccessible(true);
+                        }
+
+                        return constructor.newInstance();
                     }
                 });
             }
@@ -147,16 +154,18 @@ public final class ServiceProviders extends Utility {
      * @param classLoader the class loader to use to find the classes.
      * @param strict      specifies whether to find classes directly visible to the given class loader (<code>true</code>) or indirectly via any of its parent
      *                    class loaders (<code>false</code>).
+     * @param standard    specifies whether only standard service providers are accepted (<code>true</code>) or dependency injected ones also
+     *                    (<code>false</code>).
      * @param log         the logger to emit messages through.
      * @param <T>         the type of the given service provider interface.
      *
      * @return a list of <code>Class</code> objects for the discovered classes.
      */
-    public static <T> Class<T>[] findClasses(final String type, final Class<T> api, final ClassLoader cl, final boolean strict, final Log log) {
+    public static <T> Class<T>[] findClasses(final String type, final Class<T> api, final ClassLoader cl, final boolean strict, final boolean standard, final Log log) {
         return Exceptions.wrap(new Command.Process<Class<T>[], Throwable>() {
             public Class<T>[] run() throws Throwable {
                 final ClassLoader classLoader = cl == null ? ClassLoaders.findClassLoader(api, true) : cl;
-                log.debug("Loading '%s' type service provider files for %s using class loader %s", type, api, classLoader);
+                log.debug("Loading %s service provider files for %s using class loader %s", standard ? "standard" : String.format("'%s' type", type), api, classLoader);
 
                 final Collection<Class<T>> componentList = new LinkedHashSet<Class<T>>();
 
@@ -176,7 +185,10 @@ public final class ServiceProviders extends Utility {
                                 try {
                                     final Class<?> rawClass = classLoader.loadClass(line);
 
-                                    if (!strict || rawClass.getClassLoader() == classLoader) {
+                                    final boolean loadable = !strict || rawClass.getClassLoader() == classLoader;
+                                    final boolean visible = !standard || rawClass.getDeclaredConstructor() != null;
+
+                                    if (loadable && visible) {
                                         if (api.isAssignableFrom(rawClass)) {
                                             @SuppressWarnings("unchecked")
                                             final Class<T> componentClass = (Class<T>) rawClass;

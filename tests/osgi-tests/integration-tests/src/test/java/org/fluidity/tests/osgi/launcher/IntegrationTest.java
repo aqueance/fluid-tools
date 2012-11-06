@@ -154,6 +154,8 @@ public final class IntegrationTest {
                 tests.add((BundleTest) system.getService(reference));
             }
 
+            assert !tests.isEmpty() : "No tests found to execute";
+
             return Lists.asArray(BundleTest.class, tests);
         } catch (final Throwable problem) {
             error.set(problem);
@@ -195,8 +197,10 @@ public final class IntegrationTest {
     }
 
     @AfterSuite(alwaysRun = true)
+    @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
     public void stopContainer() throws Exception {
         framework.stop();
         framework.waitForStop(0);
+        assert error.get() == null : error.get();
     }
 }

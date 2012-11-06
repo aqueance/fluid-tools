@@ -454,7 +454,7 @@ final class SimpleContainerImpl implements ParentContainer {
 
     public String id() {
         final String id = String.format("%x", System.identityHashCode(this));
-        return parent == null ? id : String.format("%s > %s", id, parent.id());
+        return parent == null ? id : String.format("%s > %s", parent.id(), id);
     }
 
     @Override

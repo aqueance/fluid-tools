@@ -136,7 +136,7 @@ public final class WebApplicationBootstrap {
 
             bootstrapServer(httpPort, extract, classpath, bootWar, managedApps, Lists.asArray(String.class, params));
         } else {
-            throw new RuntimeException("Not a local WAR file: " + bootUrl);
+            throw new RuntimeException(String.format("Not a local WAR file: %s", bootUrl));
         }
     }
 

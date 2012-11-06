@@ -185,7 +185,7 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
                     servicesDirectory.mkdirs();
 
                     if (!servicesDirectory.exists()) {
-                        throw new MojoExecutionException("Could not create " + classesDirectory);
+                        throw new MojoExecutionException(String.format("Could not create %s", classesDirectory));
                     }
                 }
             }
@@ -209,7 +209,7 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
                             writer.close();
                         }
                     } catch (final IOException e) {
-                        throw new MojoExecutionException("Error opening file" + serviceProviderFile, e);
+                        throw new MojoExecutionException(String.format("Error opening file %s", serviceProviderFile), e);
                     }
                 }
             }
@@ -618,7 +618,7 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
             if (list == null) {
                 serviceProviderMap.put(key, list = new HashSet<String>());
             } else if (list.contains(className)) {
-                throw new MojoExecutionException("Duplicate service provider class " + className);
+                throw new MojoExecutionException(String.format("Duplicate service provider class %s", className));
             }
 
             list.add(className);

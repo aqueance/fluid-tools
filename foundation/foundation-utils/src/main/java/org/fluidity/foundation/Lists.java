@@ -103,8 +103,7 @@ public class Lists extends Utility {
      * casts needed for the operation.
      *
      * @param type  the item type of the list/array; may not be <code>null</code>.
-     * @param array tells whether a <code>null</code> or empty list should be returned as an empty array (value <code>true</code>) or <code>null</code> (value
-     *              <code>false</code>).
+     * @param array tells whether a <code>null</code> or empty list should be returned as an empty array (<code>true</code>) or <code>null</code> (<code>false</code>).
      * @param list  is the list to convert to an array; may be <code>null</code>.
      * @param <T>   the component type of the given <code>list</code> and the returned array.
      *

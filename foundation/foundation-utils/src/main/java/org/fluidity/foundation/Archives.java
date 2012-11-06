@@ -94,8 +94,7 @@ public final class Archives extends Utility {
      * JarInputStream#JarInputStream(InputStream, boolean) verified} but its {@linkplain JarEntry entry details} will be restricted to those available in a
      * {@link ZipEntry}.
      *
-     * @param cached tells whether a previously cached archive, if any, should be used (value <code>true</code>), or a newly loaded one (value
-     *               <code>false</code>).
+     * @param cached tells whether a previously cached archive, if any, should be used (<code>true</code>), or a newly loaded one (<code>false</code>).
      * @param url    the URL of the Java archive; this will be passed to the {@link Entry} methods.
      * @param reader the reader to process the archive entries.
      *
@@ -189,8 +188,7 @@ public final class Archives extends Utility {
     /**
      * Opens an {@link InputStream} to the contents of the given URL.
      *
-     * @param cached tells whether a previously cached archive, if any, should be used (value <code>true</code>), or a newly loaded one (value
-     *               <code>false</code>).
+     * @param cached tells whether a previously cached archive, if any, should be used (<code>true</code>), or a newly loaded one (<code>false</code>).
      * @param url    the URL to open.
      *
      * @return an {@link InputStream}; never <code>null</code>.
@@ -204,8 +202,7 @@ public final class Archives extends Utility {
     /**
      * Creates a connection to the given URL.
      *
-     * @param cached tells whether a previously cached archive, if any, should be used (value <code>true</code>), or a newly loaded one (value
-     *               <code>false</code>).
+     * @param cached tells whether a previously cached archive, if any, should be used (<code>true</code>), or a newly loaded one (<code>false</code>).
      * @param url    the URL to connect to.
      *
      * @return an {@link URLConnection}; never <code>null</code>.
@@ -221,8 +218,7 @@ public final class Archives extends Utility {
     /**
      * Returns the main attributes with the given names from manifest of the JAR file identified by the given URL.
      *
-     * @param cached tells whether a previously cached archive, if any, should be used (value <code>true</code>), or a newly loaded one (value
-     *               <code>false</code>).
+     * @param cached tells whether a previously cached archive, if any, should be used (<code>true</code>), or a newly loaded one (<code>false</code>).
      * @param url    the URL, pointing either to a JAR resource or an archive itself.
      * @param names  the list of attribute names to load.
      *
@@ -250,8 +246,7 @@ public final class Archives extends Utility {
     /**
      * Returns the main attributes with the given names from manifest of the JAR file identified by the given URL.
      *
-     * @param cached tells whether a previously cached archive, if any, should be used (value <code>true</code>), or a newly loaded one (value
-     *               <code>false</code>).
+     * @param cached tells whether a previously cached archive, if any, should be used (<code>true</code>), or a newly loaded one (<code>false</code>).
      * @param url    the URL, pointing either to a JAR resource or an archive itself.
      * @param names  the list of attribute names to load.
      *
@@ -280,8 +275,7 @@ public final class Archives extends Utility {
      * Loads the JAR manifest from the given URL. Supports URLs pointing to a Java archive, URLs pointing to any resource in a Java archive, URLs
      * pointing to a {@link JarFile#MANIFEST_NAME}, and URLs from which {@link JarFile#MANIFEST_NAME} can be loaded.
      *
-     * @param cached tells whether a previously cached archive, if any, should be used (value <code>true</code>), or a newly loaded one (value
-     *               <code>false</code>).
+     * @param cached tells whether a previously cached archive, if any, should be used (<code>true</code>), or a newly loaded one (<code>false</code>).
      * @param url    the URL.
      *
      * @return the JAR manifest; may be <code>null</code> if not found or has neither main nor entry attributes.

@@ -43,7 +43,7 @@
             <activation><property><name>equinox</name></property></activation>
 
             <modules>
-                <module>osgi</module>
+                <module>osgi-tests</module>
             </modules>
         </profile>
     </profiles>

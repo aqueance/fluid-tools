@@ -23,7 +23,7 @@ import org.fluidity.foundation.spi.LogFactory;
 /**
  * @author Tibor Varga
  */
-public final class ProductionServicesFactory implements ContainerServicesFactory {
+final class ProductionServicesFactory implements ContainerServicesFactory {
 
     /**
      * {@inheritDoc}

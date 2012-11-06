@@ -120,8 +120,8 @@ public interface ContextDefinition {
      * Makes a copy and removes from it all {@link org.fluidity.composition.Component.Context.Collection#IMMEDIATE} context annotations.
      *
      * @param reference the parameterized type of the reference to the component being advanced to.
-     * @param refine    tells whether the reference is just a more refined version of the last one (value <code>true</code>) or an actual advance on the
-     *                  dependency path (value <code>false</code>)
+     * @param refine    tells whether the reference is just a more refined version of the last one (<code>true</code>) or an actual advance on the dependency
+     *                  path (<code>false</code>)
      *
      * @return the new copy of the receiver.
      */

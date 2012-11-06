@@ -16,17 +16,13 @@
 
 package org.fluidity.foundation.impl;
 
-import java.util.Collection;
-import java.util.List;
 import java.util.jar.Attributes;
 
 import org.fluidity.deployment.launcher.ShellApplicationBootstrap;
 import org.fluidity.deployment.plugin.spi.JarManifest;
-import org.fluidity.foundation.Archives;
-import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.jarjar.Launcher;
 
-import org.apache.maven.artifact.Artifact;
+import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 
 /**
@@ -37,21 +33,9 @@ import org.apache.maven.project.MavenProject;
  * @author Tibor Varga
  */
 @SuppressWarnings("UnusedDeclaration")
-public final class CommandLineJarManifest implements JarManifest {
+final class CommandLineJarManifest implements JarManifest {
 
-    public boolean needsCompileDependencies() {
-        return false;
-    }
-
-    public Packaging packaging() {
-        return Packaging.EXCLUDE;
-    }
-
-    public String dependencyPath() {
-        return null;
-    }
-
-    public void processManifest(final MavenProject project, final Attributes attributes, final List<String> paths, final Collection<Artifact> dependencies) {
+    public void processManifest(final MavenProject project, final Attributes attributes, final Dependencies dependencies) throws MojoExecutionException {
         final String originalMainClass = attributes.getValue(Launcher.ORIGINAL_MAIN_CLASS);
 
         if (originalMainClass == null) {
@@ -59,8 +43,6 @@ public final class CommandLineJarManifest implements JarManifest {
             attributes.putValue(Launcher.ORIGINAL_MAIN_CLASS, mainClass == null ? ShellApplicationBootstrap.class.getName() : mainClass);
             attributes.put(Attributes.Name.MAIN_CLASS, Launcher.class.getName());
         }
-
-        attributes.putValue(Archives.Nested.attribute(null), Lists.delimited(" ", paths));
     }
 
     @Override

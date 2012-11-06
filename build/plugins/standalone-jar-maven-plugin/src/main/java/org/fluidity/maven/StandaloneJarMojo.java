@@ -29,6 +29,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
@@ -39,6 +40,7 @@ import org.fluidity.deployment.maven.ArchivesSupport;
 import org.fluidity.deployment.maven.DependenciesSupport;
 import org.fluidity.deployment.plugin.spi.JarManifest;
 import org.fluidity.foundation.Archives;
+import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.ServiceProviders;
 import org.fluidity.foundation.Streams;
 import org.fluidity.foundation.Strings;
@@ -169,6 +171,8 @@ public final class StandaloneJarMojo extends AbstractMojo {
 
         if (handlers.isEmpty()) {
             throw new MojoExecutionException(String.format("No %s implementation found", JarManifest.class.getName()));
+        } else if (handlers.size() > 1) {
+            throw new MojoExecutionException(String.format("Multiple %s implementations found", JarManifest.class.getName()));
         }
 
         try {
@@ -188,26 +192,13 @@ public final class StandaloneJarMojo extends AbstractMojo {
             final JarOutputStream outputStream = new JarOutputStream(new FileOutputStream(file));
 
             final Collection<Artifact> compileDependencies = DependenciesSupport.compileDependencies(repositorySystem, repositorySession, repositories, project, true);
-            final Collection<Artifact> runtimeDependencies = DependenciesSupport.runtimeDependencies(repositorySystem, repositorySession, repositories, project, true);
+            final Collection<Artifact> runtimeDependencies = DependenciesSupport.runtimeDependencies(repositorySystem, repositorySession, repositories, project, false);
+
+            final String dependencyPath = Archives.META_INF.concat("/dependencies/");
 
             try {
-                final String dependencyPath = Archives.META_INF.concat("/dependencies/");
-                final List<String> dependencyList = new ArrayList<String>();
-
-                for (final Artifact artifact : runtimeDependencies) {
-                    final File dependency = artifact.getFile();
-
-                    if (!dependency.exists()) {
-                        throw new MojoExecutionException(String.format("Dependency %s not found (tried: %s)", artifact, dependency));
-                    }
-
-                    if (artifact.getType().equals(DependenciesSupport.JAR_TYPE)) {
-                        dependencyList.add(dependencyPath.concat(dependency.getName()));
-                    }
-                }
-
                 final Collection<Artifact> unpackedDependencies = new HashSet<Artifact>();
-                final Map<String, Collection<Artifact>> includedDependencies = new HashMap<String, Collection<Artifact>>();
+                final Map<String, Inclusion> includedDependencies = new HashMap<String, Inclusion>();
 
                 /*
                  * Manifest handlers use profiles to declare dependencies to include, exclude, or unpack in our standalone artifact.
@@ -239,71 +230,122 @@ public final class StandaloneJarMojo extends AbstractMojo {
                                         ? JarManifest.CREATOR_ID
                                         : original.contains(JarManifest.CREATOR_ID) ? original : String.format("%s, %s", JarManifest.CREATOR_ID, original));
 
+                if (log.isDebugEnabled()) {
+                    log.debug(String.format("Packaged dependencies: %s", runtimeDependencies));
+                }
+
+                final AtomicBoolean dependenciesSet = new AtomicBoolean();
+
+                // even though the code below could handle multiple handlers, we only support one handler because more makes little sense
                 for (final JarManifest handler : handlers) {
                     final Class<? extends JarManifest> handlerClass = handler.getClass();
-
-                    final boolean runtime = handler.needsCompileDependencies();
-                    final JarManifest.Packaging packaging = handler.packaging();
-
-                    final Collection<Artifact> dependencies = runtime ? compileDependencies : new HashSet<Artifact>(runtimeDependencies);
 
                     final Artifact handlerArtifact = DependenciesSupport.dependencyArtifact(DependenciesSupport.dependency(handlerClass, pluginDependencies));
                     final Collection<Artifact> unpackedClosure = DependenciesSupport.dependencyClosure(repositorySystem, unpacked, repositories, handlerArtifact, false, false, null);
                     final Collection<Artifact> includedClosure = DependenciesSupport.dependencyClosure(repositorySystem, included, repositories, handlerArtifact, false, false, null);
 
-                    if (packaging != JarManifest.Packaging.UNPACK) {
-                        unpackedClosure.remove(handlerArtifact);
-                    }
-
-                    if (packaging != JarManifest.Packaging.INCLUDE) {
-                        includedClosure.remove(handlerArtifact);
-                    }
+                    unpackedClosure.remove(handlerArtifact);
+                    includedClosure.remove(handlerArtifact);
 
                     unpackedDependencies.addAll(unpackedClosure);
 
                     if (!includedClosure.isEmpty()) {
-                        final String directory = handler.dependencyPath();
-
-                        if (directory != null && directory.contains("/")) {
-                            throw new MojoExecutionException(String.format("Directory name '%s' returned by %s must not contain '/'", directory, handlerClass));
-                        }
-
-                        final String path = directory == null ? dependencyPath : String.format("%s%s/", dependencyPath, directory);
-
-                        add(includedDependencies, path, includedClosure);
-
                         for (final Artifact artifact : includedClosure) {
                             final File dependency = artifact.getFile();
 
                             if (!dependency.exists()) {
                                 throw new MojoExecutionException(String.format("Dependency %s not found (tried: %s)", artifact, dependency));
                             }
-
-                            if (runtime && !dependencies.contains(artifact)) {
-                                dependencyList.add(path.concat(dependency.getName()));
-                            }
-                        }
-
-                        if (runtime) {
-                            dependencies.addAll(includedClosure);
                         }
                     }
 
                     if (log.isDebugEnabled()) {
-                        log.debug(String.format("Invoking manifest handler: %s", Strings.formatObject(false, true, handler)));
-                        log.debug(String.format("Packaged dependencies: %s", dependencies));
+                        log.debug(String.format("Invoking manifest handler %s", Strings.formatObject(false, true, handler)));
                     }
 
-                    handler.processManifest(project, mainAttributes, dependencyList, dependencies);
+                    final AtomicBoolean inclusionNameSet = new AtomicBoolean();
+
+                    handler.processManifest(project, mainAttributes, new JarManifest.Dependencies() {
+                        public void attribute(final String name, final String delimiter) throws MojoExecutionException {
+                            if (dependenciesSet.compareAndSet(false, true)) {
+                                includedDependencies.put(name, new Inclusion(dependencyPath, runtimeDependencies, delimiter));
+                            } else {
+                                throw new MojoExecutionException(String.format("Secondary manifest handler %s may not set the dependencies attribute",
+                                                                               Strings.formatObject(false, true, handler)));
+                            }
+                        }
+
+                        public Collection<Artifact> runtime() {
+                            return runtimeDependencies;
+                        }
+
+                        public Collection<Artifact> compiler() {
+                            return compileDependencies;
+                        }
+
+                        public void include(final String name) throws MojoExecutionException {
+                            if (inclusionNameSet.compareAndSet(false, true)) {
+                                assert name != null : Strings.formatObject(false, true, handler);
+
+                                if (name.contains("/")) {
+                                    throw new MojoExecutionException(String.format("Directory name '%s' returned by %s must not contain '/'",
+                                                                                   name,
+                                                                                   Strings.formatObject(false, true, handler)));
+                                }
+
+                                final String attribute = Archives.Nested.attribute(name);
+                                if (includedDependencies.containsKey(attribute)) {
+                                    throw new MojoExecutionException(String.format("Dependencies '%s' already included in the archive", name));
+                                }
+
+                                includedDependencies.put(attribute, new Inclusion(String.format("%s%s/", dependencyPath, name), includedClosure, " "));
+                            } else {
+                                throw new MojoExecutionException(String.format("Manifest handler %s tried to specify the inclusion name more than once",
+                                                                               Strings.formatObject(false, true, handler)));
+                            }
+                        }
+                    });
+
+                    if (dependenciesSet.compareAndSet(false, true)) {
+                        includedDependencies.put(Archives.Nested.attribute(null), new Inclusion(dependencyPath, runtimeDependencies, " "));
+                    }
+
+                    if (!includedClosure.isEmpty() && !inclusionNameSet.get()) {
+                        throw new MojoExecutionException(String.format("Manifest handler %s failed to specify the inclusion name",
+                                                                       Strings.formatObject(false, true, handler)));
+                    }
                 }
 
                 final Map<String, Attributes> attributesMap = new HashMap<String, Attributes>();
                 final Map<String, String[]> providerMap = new HashMap<String, String[]>();
-                final byte[] buffer = new byte[1024 * 1024];
+                final byte[] buffer = new byte[16384];
 
                 ArchivesSupport.load(attributesMap, providerMap, buffer, log, new DependencyFeed(unpackedDependencies));
-
                 ArchivesSupport.include(attributesMap, manifest);
+
+                // list the various dependencies in manifest attributes
+                for (final Map.Entry<String, Inclusion> entry : includedDependencies.entrySet()) {
+                    final Inclusion inclusion = entry.getValue();
+                    final List<String> dependencyList = new ArrayList<String>();
+
+                    for (final Artifact artifact : inclusion.artifacts) {
+                        final File dependency = artifact.getFile();
+
+                        if (!dependency.exists()) {
+                            throw new MojoExecutionException(String.format("Dependency %s not found (tried: %s)", artifact, dependency));
+                        } else if (dependency.isDirectory()) {
+                            log.warn(String.format("Ignoring non-JAR dependency %s", dependency));
+                        } else {
+                            final String entryName = inclusion.folder.concat(dependency.getName());
+
+                            if (artifact.getType().equals(DependenciesSupport.JAR_TYPE)) {
+                                dependencyList.add(entryName);
+                            }
+                        }
+                    }
+
+                    mainAttributes.putValue(entry.getKey(), Lists.delimited(inclusion.delimiter, dependencyList));
+                }
 
                 // create the new manifest
                 outputStream.putNextEntry(new JarEntry(ArchivesSupport.META_INF));
@@ -312,48 +354,45 @@ public final class StandaloneJarMojo extends AbstractMojo {
 
                 ArchivesSupport.expand(outputStream, buffer, providerMap, new DependencyFeed(unpackedDependencies));
 
-                add(includedDependencies, dependencyPath, runtimeDependencies);
-
                 final String projectId = project.getArtifact().getId();
 
                 // copy the dependencies, including the original project artifact and those requested by manifest handlers
-                for (final Map.Entry<String, Collection<Artifact>> entry : includedDependencies.entrySet()) {
-                    final String path = entry.getKey();
-                    final Collection<Artifact> list = entry.getValue();
+                for (final Map.Entry<String, Inclusion> entry : includedDependencies.entrySet()) {
+                    final String name = entry.getKey();
+                    final Inclusion inclusion = entry.getValue();
 
-                    outputStream.putNextEntry(new JarEntry(path));
+                    outputStream.putNextEntry(new JarEntry(inclusion.folder));
 
-                    for (final Artifact artifact : list) {
+                    for (final Artifact artifact : inclusion.artifacts) {
                         final File dependency = artifact.getFile();
 
-                        if (dependency.isDirectory()) {
-                            log.warn(String.format("Ignoring non-JAR dependency %s", dependency));
-                        } else {
-                            final String entryName = path.concat(dependency.getName());
-                            outputStream.putNextEntry(new JarEntry(entryName));
+                        assert dependency.exists() : dependency;
+                        assert !dependency.isDirectory() : dependency;
 
-                            if (artifact.getId().equals(projectId)) {
+                        final String entryName = inclusion.folder.concat(dependency.getName());
+                        outputStream.putNextEntry(new JarEntry(entryName));
 
-                                // got to check if our project artifact is something we have created in a previous run
-                                // i.e., if it contains the project artifact we're about to copy
-                                int processed = Archives.read(false, dependency.toURI().toURL(), new Archives.Entry() {
-                                    public boolean matches(final URL url, final JarEntry entry) throws IOException {
-                                        return entryName.equals(entry.getName());
-                                    }
+                        if (artifact.getId().equals(projectId)) {
 
-                                    public boolean read(final URL url, final JarEntry entry, final InputStream stream) throws IOException {
-                                        Streams.copy(stream, outputStream, buffer, true, false);
-                                        return false;
-                                    }
-                                });
-
-                                if (processed > 0) {
-                                    continue;
+                            // got to check if our project artifact is something we have created in a previous run
+                            // i.e., if it contains the project artifact we're about to copy
+                            int processed = Archives.read(false, dependency.toURI().toURL(), new Archives.Entry() {
+                                public boolean matches(final URL url, final JarEntry entry) throws IOException {
+                                    return entryName.equals(entry.getName());
                                 }
-                            }
 
-                            Streams.copy(new FileInputStream(dependency), outputStream, buffer, true, false);
+                                public boolean read(final URL url, final JarEntry entry, final InputStream stream) throws IOException {
+                                    Streams.copy(stream, outputStream, buffer, true, false);
+                                    return false;
+                                }
+                            });
+
+                            if (processed > 0) {
+                                continue;
+                            }
                         }
+
+                        Streams.copy(new FileInputStream(dependency), outputStream, buffer, true, false);
                     }
                 }
             } finally {
@@ -414,6 +453,19 @@ public final class StandaloneJarMojo extends AbstractMojo {
         } while (tempFile.exists());
 
         return tempFile;
+    }
+
+    private static class Inclusion {
+
+        public final String folder;
+        public final Collection<Artifact> artifacts;
+        public final String delimiter;
+
+        private Inclusion(final String folder, final Collection<Artifact> artifacts, final String delimiter) {
+            this.folder = folder;
+            this.artifacts = artifacts;
+            this.delimiter = delimiter;
+        }
     }
 
     /**

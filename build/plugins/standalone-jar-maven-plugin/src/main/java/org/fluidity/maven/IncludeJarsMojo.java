@@ -174,6 +174,12 @@ public final class IncludeJarsMojo extends AbstractMojo {
                     final String id = profile.getId();
 
                     if (profiles.remove(id)) {
+                        final String attribute = Archives.Nested.attribute(id);
+
+                        if (mainAttributes.containsKey(attribute)) {
+                            throw new MojoExecutionException(String.format("Dependencies '%s' already included in the archive", id));
+                        }
+
                         final Collection<Artifact> dependencies = DependenciesSupport.resolve(repositorySystem,
                                                                                               repositorySession,
                                                                                               repositories,
@@ -221,7 +227,7 @@ public final class IncludeJarsMojo extends AbstractMojo {
                             }
                         }
 
-                        mainAttributes.putValue(Archives.Nested.attribute(id), Lists.delimited(" ", dependencyList));
+                        mainAttributes.putValue(attribute, Lists.delimited(" ", dependencyList));
                         dependencyMap.put(dependencyPath, dependencies);
                     }
                 }
@@ -237,7 +243,7 @@ public final class IncludeJarsMojo extends AbstractMojo {
                     outputStream.putNextEntry(new JarEntry(JarFile.MANIFEST_NAME));
                     manifest.write(outputStream);
 
-                    final byte[] buffer = new byte[1024 * 1024];
+                    final byte[] buffer = new byte[16384];
 
                     // copy the original archive, excluding entries from our dependency paths
                     Archives.read(false, packageURL, new Archives.Entry() {

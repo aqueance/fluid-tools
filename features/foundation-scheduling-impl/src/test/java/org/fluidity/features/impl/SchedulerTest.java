@@ -462,18 +462,18 @@ public class SchedulerTest extends Simulator {
 
         final Scheduler.Task.Control control = verify(new Work<Scheduler.Task.Control>() {
             public Scheduler.Task.Control run() throws Exception {
-                return scheduler.invoke(threads.time(1), threads.time(1), task);
+                return scheduler.invoke(threads.time(10), threads.time(10), task);
             }
         });
 
         final IAnswer<Void> exception = new IAnswer<Void>() {
             public Void answer() throws Throwable {
-                threads.lineup(barrier, threads.time(4));
+                threads.lineup(barrier, threads.time(40));
                 throw new Exception();
             }
         };
 
-        settings(3, threads.time(5));
+        settings(3, threads.time(50));
 
         task.run();
         EasyMock.expectLastCall().andAnswer(exception).times(3);
@@ -483,13 +483,13 @@ public class SchedulerTest extends Simulator {
 
         verify(new Task() {
             public void run() throws Exception {
-                threads.lineup(barrier, threads.time(4));
-                threads.lineup(barrier, threads.time(4));
-                threads.lineup(barrier, threads.time(4));
+                threads.lineup(barrier, threads.time(40));
+                threads.lineup(barrier, threads.time(40));
+                threads.lineup(barrier, threads.time(40));
             }
         });
 
-        Thread.sleep(threads.time(1));
+        Thread.sleep(threads.time(10));
 
         assert !control.canceled();
         assert control.suspended();
@@ -499,7 +499,7 @@ public class SchedulerTest extends Simulator {
 
         verify(new Task() {
             public void run() throws Exception {
-                threads.lineup(barrier, threads.time(10));
+                threads.lineup(barrier, threads.time(100));
                 Thread.yield();
             }
         });

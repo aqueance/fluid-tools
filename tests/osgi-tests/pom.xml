@@ -24,7 +24,7 @@
 
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.fluidity.platform.tests</groupId>
-    <artifactId>osgi</artifactId>
+    <artifactId>osgi-tests</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Internal Tests: OSGi Integration Test Modules</name>
@@ -46,10 +46,10 @@
 
     <modules>
         <module>testing-api</module>
-        <module>launcher</module>
         <module>bundle-1</module>
         <module>bundle-2</module>
-        <module>test-app</module>
+        <module>integration-tests</module>
+        <module>manual-test-app</module>
     </modules>
 
     <dependencyManagement>

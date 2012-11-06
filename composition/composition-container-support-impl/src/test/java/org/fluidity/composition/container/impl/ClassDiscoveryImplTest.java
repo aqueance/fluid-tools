@@ -27,9 +27,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.fluidity.foundation.Archives;
 import org.fluidity.foundation.ClassLoaders;
 import org.fluidity.foundation.Log;
 import org.fluidity.foundation.NoLogFactory;
+import org.fluidity.foundation.ServiceProviders;
 import org.fluidity.foundation.Streams;
 
 import org.testng.annotations.Test;
@@ -39,6 +41,8 @@ import org.testng.annotations.Test;
  */
 @SuppressWarnings({ "unchecked", "ResultOfMethodCallIgnored" })
 public class ClassDiscoveryImplTest {
+
+    private static final String SERVICES = String.format("%s/%s/", Archives.META_INF, ServiceProviders.TYPE);
 
     private final Log<ClassDiscoveryImpl> log = NoLogFactory.consume(ClassDiscoveryImpl.class);
 
@@ -50,7 +54,7 @@ public class ClassDiscoveryImplTest {
         classDir.delete();
         classDir.mkdir();
 
-        final File servicesFile = new File(classDir, "META-INF/services/" + Interface.class.getName());
+        final File servicesFile = new File(classDir, SERVICES.concat(Interface.class.getName()));
         servicesFile.getParentFile().mkdirs();
 
         final List<File> fileList = new ArrayList<File>();
@@ -92,7 +96,7 @@ public class ClassDiscoveryImplTest {
         classDir2.delete();
         classDir2.mkdir();
 
-        final File servicesFile = new File(classDir2, "META-INF/services/" + Interface.class.getName());
+        final File servicesFile = new File(classDir2, SERVICES.concat(Interface.class.getName()));
         servicesFile.getParentFile().mkdirs();
 
         final List<File> fileList = new ArrayList<File>();

@@ -48,7 +48,7 @@ import org.eclipse.jetty.webapp.WebDescriptor;
  * @author Tibor Varga
  */
 @SuppressWarnings("UnusedDeclaration")
-public final class JettyBootstrap implements ServerBootstrap {
+final class JettyBootstrap implements ServerBootstrap {
 
     public void bootstrap(final int httpPort, final boolean extract, final File bootApp, final List<File> managedApps, final String args[]) throws IOException {
         final WebAppContext defaultContext = deployWar(bootApp, true, extract);
@@ -70,7 +70,7 @@ public final class JettyBootstrap implements ServerBootstrap {
         context.setClassLoader(new InlineWebAppClassLoader(context));
 
         final String archiveName = warFile.getName();
-        final String contextPath = "/" + (root ? "" : artifactId(archiveName));
+        final String contextPath = "/".concat(root ? "" : artifactId(archiveName));
 
         context.setContextPath(contextPath);
         context.setParentLoaderPriority(true);

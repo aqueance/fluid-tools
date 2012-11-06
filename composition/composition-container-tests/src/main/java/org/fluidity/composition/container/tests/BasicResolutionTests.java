@@ -168,10 +168,12 @@ public final class BasicResolutionTests extends AbstractContainerTests {
         final int prefix = "container ".length();
         final String topId = topString.substring(prefix);
         assert childString.startsWith("container ") : String.format("Wrong container ID: %s", childString);
-        final String childSuffix = " > " + topId;
-        assert childString.endsWith(childSuffix) : String.format("Wrong container ID: %s", childString);
 
-        final String childId = childString.substring(prefix, childString.length() - childSuffix.length());
+        final String childSuffix = childString.substring(prefix);
+        final String childPrefix = topId.concat(" > ");
+        assert childSuffix.startsWith(childPrefix) : String.format("Wrong container ID: %s", childString);
+
+        final String childId = childSuffix.substring(childSuffix.length() - childPrefix.length());
         assert !topId.equals(childId) : "Child container has the same ID as its parent";
     }
 

@@ -93,8 +93,8 @@ public final class Methods extends Utility {
      * Invokes the given <code>method</code> on the given <code>target</code> with the given <code>arguments</code>. All checked exceptions thrown from the
      * method will be wrapped in {@link Exceptions.Wrapper}.
      *
-     * @param restricted tells if the <code>method</code> should be made {@linkplain Method#setAccessible(boolean) accessible} before invoked (value
-     *                   <code>true</code>) or not (value <code>false</code>).
+     * @param restricted tells if the <code>method</code> should be made {@linkplain Method#setAccessible(boolean) accessible} before invoked
+     *                   (<code>true</code>) or not (<code>false</code>).
      * @param method     the method to invoke; may not be <code>null</code>.
      * @param target     the object to invoke the method on; may be <code>null</code> if the method is {@linkplain Modifier#isStatic(int) static}.
      * @param arguments  the arguments to pass to the method.

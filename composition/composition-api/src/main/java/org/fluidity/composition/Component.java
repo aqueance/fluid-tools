@@ -124,10 +124,10 @@ public @interface Component {
      * <h3>Usage</h3>
      * <pre>
      * {@linkplain Component @Component}
-     * <span class="hl2">&#64;MyContext</span>(value = "1")
+     * <span class="hl2">&#64;MyContext</span>("1")
      * public final class MyComponent {
      *
-     *   MyComponent(final <span class="hl2">&#64;MyContext</span>(value = "2") <span class="hl3">MyDependency</span> dependency) {
+     *   MyComponent(final <span class="hl2">&#64;MyContext</span>("2") <span class="hl3">MyDependency</span> dependency) {
      *     &hellip;
      *   }
      *

@@ -31,10 +31,10 @@ import org.fluidity.deployment.osgi.impl.BundleBootstrap;
 import org.fluidity.deployment.plugin.spi.JarManifest;
 import org.fluidity.foundation.Archives;
 import org.fluidity.foundation.ClassLoaders;
-import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.Methods;
 
 import org.apache.maven.artifact.Artifact;
+import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.interpolation.InterpolationException;
 import org.codehaus.plexus.interpolation.InterpolationPostProcessor;
@@ -72,31 +72,13 @@ import static org.osgi.framework.Constants.REQUIRE_CAPABILITY;
  *
  * @author Tibor Varga
  */
-public final class BundleJarManifest implements JarManifest {
+final class BundleJarManifest implements JarManifest {
 
     public static final String DEFAULT_BUNDLE_VERSION = Version.emptyVersion.toString();
     public static final String VERSION_PREFIX = "version:";
 
-    public boolean needsCompileDependencies() {
-
-        // we want to see if Fluid Tools bootstrap libraries are included in the artifact's dependencies
-        return true;
-    }
-
-    public Packaging packaging() {
-        return Packaging.EXCLUDE;
-    }
-
-    public String dependencyPath() {
-        return null;
-    }
-
-    public void processManifest(final MavenProject project, final Attributes attributes, final List<String> paths, final Collection<Artifact> dependencies) {
-        final String classpath = Lists.delimited(",", paths);
-
-        if (!classpath.isEmpty()) {
-            attributes.putValue(BUNDLE_CLASSPATH, classpath);
-        }
+    public void processManifest(final MavenProject project, final Attributes attributes, final Dependencies dependencies) throws MojoExecutionException {
+        dependencies.attribute(BUNDLE_CLASSPATH, ",");
 
         addEntry(attributes, BUNDLE_MANIFESTVERSION, "2");
         addEntry(attributes, BUNDLE_NAME, new Metadata() { public String get() { return project.getName(); } });
@@ -153,15 +135,17 @@ public final class BundleJarManifest implements JarManifest {
             throw new IllegalStateException(e);
         }
 
-        // if embedding other JARs, see if Fluid Tools composition is included and if so, add a bundle activator to bootstrap the system.
-        if (!dependencies.isEmpty()) {
+        final Collection<Artifact> artifacts = dependencies.compiler();
+
+        // if embedding project dependencies, see if Fluid Tools composition is included and if so, add a bundle activator to bootstrap the system.
+        if (!artifacts.isEmpty()) {
             try {
 
                 // create a class loader that sees the project's compile-time dependencies
                 final Set<URL> urls = new HashSet<URL>();
 
                 final String skippedId = project.getArtifact().getId();
-                for (final Artifact dependency : dependencies) {
+                for (final Artifact dependency : artifacts) {
 
                     // we don't need the project artifact and opening it may cause Windows to lock the file and prevent the caller from overwriting it
                     if (!skippedId.equals(dependency.getId())) {

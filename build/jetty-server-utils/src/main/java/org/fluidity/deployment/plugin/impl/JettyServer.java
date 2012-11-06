@@ -33,7 +33,7 @@ import org.eclipse.jetty.webapp.WebAppContext;
  *
  * @author Tibor Varga
  */
-public final class JettyServer extends Utility {
+final class JettyServer extends Utility {
 
     private JettyServer() { }
 

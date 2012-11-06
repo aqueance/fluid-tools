@@ -16,20 +16,20 @@
 
 package org.fluidity.foundation.impl;
 
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 import java.util.Properties;
 import java.util.jar.Attributes;
 
 import org.fluidity.deployment.plugin.spi.JarManifest;
-import org.fluidity.foundation.Lists;
+import org.fluidity.testing.Simulator;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.License;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.Organization;
+import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
+import org.easymock.EasyMock;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -52,9 +52,11 @@ import static org.osgi.framework.Constants.VERSION_ATTRIBUTE;
 /**
  * @author Tibor Varga
  */
-public class BundleJarManifestTest {
+public class BundleJarManifestTest extends Simulator {
 
+    private final JarManifest.Dependencies dependencies = dependencies().normal(JarManifest.Dependencies.class);
     private final JarManifest manifest = new BundleJarManifest();
+
     private MavenProject project;
 
     @BeforeMethod
@@ -62,57 +64,25 @@ public class BundleJarManifestTest {
         project = new MavenProject(new Model());
     }
 
-    @Test
-    public void testMetadata() throws Exception {
-        assert manifest.needsCompileDependencies();
-        assert manifest.packaging() == JarManifest.Packaging.EXCLUDE;
+    private void expectations() throws MojoExecutionException {
+        dependencies.attribute(BUNDLE_CLASSPATH, ",");
+
+        EasyMock.expect(dependencies.compiler()).andReturn(Collections.<Artifact>emptyList());
     }
 
     @Test
     public void testEmptyClasspath() throws Exception {
         final Attributes attributes = new Attributes();
-        final List<String> dependencies = new ArrayList<String>();
 
-        manifest.processManifest(project, attributes, dependencies, Collections.<Artifact>emptyList());
+        expectations();
+
+        verify(new Task() {
+            public void run() throws Exception {
+                manifest.processManifest(project, attributes, dependencies);
+            }
+        });
 
         assert attributes.getValue(BUNDLE_CLASSPATH) == null;
-
-        final String version = attributes.getValue(BUNDLE_VERSION);
-        assert BundleJarManifest.DEFAULT_BUNDLE_VERSION.equals(version) : version;
-    }
-
-    @Test
-    public void testClasspathWithOneEntry() throws Exception {
-        final Attributes attributes = new Attributes();
-        final List<String> dependencies = new ArrayList<String>();
-
-        final String dependency = "dependency.jar";
-        dependencies.add(dependency);
-
-        manifest.processManifest(project, attributes, dependencies, Collections.<Artifact>emptyList());
-
-        assert dependency.equals(attributes.getValue(BUNDLE_CLASSPATH));
-
-        final String version = attributes.getValue(BUNDLE_VERSION);
-        assert BundleJarManifest.DEFAULT_BUNDLE_VERSION.equals(version) : version;
-    }
-
-    @Test
-    public void testClasspathWithMultipleEntry() throws Exception {
-        final Attributes attributes = new Attributes();
-        final List<String> dependencies = new ArrayList<String>();
-
-        final String dependency1 = "dependency1.jar";
-        final String dependency2 = "dependency2.jar";
-        final String dependency3 = "dependency3.jar";
-
-        dependencies.add(dependency1);
-        dependencies.add(dependency2);
-        dependencies.add(dependency3);
-
-        manifest.processManifest(project, attributes, dependencies, Collections.<Artifact>emptyList());
-
-        assert Lists.delimited(",", dependencies).equals(attributes.getValue(BUNDLE_CLASSPATH));
 
         final String version = attributes.getValue(BUNDLE_VERSION);
         assert BundleJarManifest.DEFAULT_BUNDLE_VERSION.equals(version) : version;
@@ -139,7 +109,13 @@ public class BundleJarManifestTest {
         final Attributes attributes = new Attributes();
         attributes.putValue(BUNDLE_VERSION, specified);
 
-        manifest.processManifest(project, attributes, Collections.<String>emptyList(), Collections.<Artifact>emptyList());
+        expectations();
+
+        verify(new Task() {
+            public void run() throws Exception {
+                manifest.processManifest(project, attributes, dependencies);
+            }
+        });
 
         verify(expected, attributes, BUNDLE_VERSION);
     }
@@ -165,7 +141,13 @@ public class BundleJarManifestTest {
         organization.setUrl("http://my.company.com");
         project.setOrganization(organization);
 
-        manifest.processManifest(project, attributes, Collections.<String>emptyList(), Collections.<Artifact>emptyList());
+        expectations();
+
+        verify(new Task() {
+            public void run() throws Exception {
+                manifest.processManifest(project, attributes, dependencies);
+            }
+        });
 
         expect(attributes, BUNDLE_NAME, project.getName());
         expect(attributes, BUNDLE_DESCRIPTION, project.getDescription());
@@ -197,7 +179,13 @@ public class BundleJarManifestTest {
         attributes.putValue(DYNAMICIMPORT_PACKAGE, String.format(specified, VERSION_ATTRIBUTE, BundleJarManifest.VERSION_PREFIX));
         attributes.putValue(FRAGMENT_HOST, String.format(specified, BUNDLE_VERSION_ATTRIBUTE, BundleJarManifest.VERSION_PREFIX));
 
-        manifest.processManifest(project, attributes, Collections.<String>emptyList(), Collections.<Artifact>emptyList());
+        expectations();
+
+        verify(new Task() {
+            public void run() throws Exception {
+                manifest.processManifest(project, attributes, dependencies);
+            }
+        });
 
         verify(String.format(expected, VERSION_ATTRIBUTE), attributes, EXPORT_PACKAGE);
         verify(String.format(expected, VERSION_ATTRIBUTE), attributes, IMPORT_PACKAGE);

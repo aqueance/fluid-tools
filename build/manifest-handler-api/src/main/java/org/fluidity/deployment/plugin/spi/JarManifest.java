@@ -17,10 +17,10 @@
 package org.fluidity.deployment.plugin.spi;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.jar.Attributes;
 
 import org.apache.maven.artifact.Artifact;
+import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 
 /**
@@ -33,6 +33,7 @@ import org.apache.maven.project.MavenProject;
  *
  * @author Tibor Varga
  */
+@SuppressWarnings("JavadocReference")
 public interface JarManifest {
 
     /**
@@ -66,6 +67,8 @@ public interface JarManifest {
          * <pre>
          * &lt;activation>&lt;property>&lt;name><b>!package-include</b>&lt;/name>&lt;/property>&lt;/activation>
          * </pre>
+         * <p/>
+         * The artifacts will be included in the artifact under the directory specified bya a call to {@link JarManifest.Dependencies#include(String)}}.
          */
         INCLUDE("package-include"),
 
@@ -86,47 +89,62 @@ public interface JarManifest {
     }
 
     /**
-     * Tells if the last parameter of the {@link #processManifest(MavenProject, Attributes, List, Collection) processManifest()} method needs compile-time
-     * (<code>true</code>) or run-time (<code>false</code>) dependencies.
+     * Handles the dependencies of the host project.
      *
-     * @return <code>true</code> if compile-time dependencies are required, <code>false</code> if run-time dependencies are.
+     * {@linkplain JarManifest JAR manifest handlers} receive an instance of this.
+     *
+     * @author Tibor Varga
      */
-    boolean needsCompileDependencies();
+    interface Dependencies {
 
-    /**
-     * Tells how the artifact containing this manifest handler should be handled.
-     *
-     * @return {@link Packaging#UNPACK} if the receiver's enclosing JAR file should be copied to the root path in the project artifact, {@link
-     *         Packaging#INCLUDE} if it should be added to the artifact's dependencies, {@link Packaging#EXCLUDE} if the enclosing JAR file should not be
-     *         included or packaged in the project artifact.
-     */
-    Packaging packaging();
+        /**
+         * Instructs the standalone JAR plugin to include the dependencies of the host project and set the dependency list as the {@linkplain
+         * org.fluidity.foundation.Archives.Nested#dependencies(String) named custom dependency} attribute in the manifest.
+         *
+         * @param name      the name with which {@link org.fluidity.foundation.Archives.Nested#dependencies(String)} can find the dependencies at run time.
+         * @param delimiter the delimiter to use to separate the dependency entries.
+         *
+         * @throws MojoExecutionException when a non-primary manifest handler tries to invoke this method.
+         */
+        void attribute(String name, String delimiter) throws MojoExecutionException;
 
-    /**
-     * Names the folder under which to package the dependencies requested for inclusion by the manifest handler that are <em>not</em> dependencies of the
-     * project artifact. The <code>paths</code> parameter of {@link #processManifest(MavenProject, Attributes, List, Collection) processManifest()} method will
-     * have this name used for such dependencies.
-     * <p/>
-     * The returned name must not contain the '/' character.
-     *
-     * @return a directory name, or <code>null</code> if the default path should be used.
-     */
-    String dependencyPath();
+        /**
+         * Returns the run-time dependencies of the host project.
+         *
+         * @return the run-time dependencies of the host project.
+         */
+        Collection<Artifact> runtime();
+
+        /**
+         * Returns the compile time dependencies of the host project.
+         *
+         * @return the compile time dependencies of the host project.
+         */
+        Collection<Artifact> compiler();
+
+        /**
+         * If the handler contains dependencies to {@linkplain JarManifest.Packaging#INCLUDE included} dependencies, it <i>must</i> invoke this method to
+         * specify the name under which the dependencies will be found at run time.
+         *
+         * @param name the name to pass to {@link org.fluidity.foundation.Archives.Nested#attribute(String)} at run time to find the included dependencies.
+         */
+        void include(String name) throws MojoExecutionException;
+    }
 
     /**
      * Transforms the provided main manifest attributes of the given Maven project.
      * <p/>
      * The <code>org.fluidity.maven:standalone-jar-maven-plugin</code> Maven plugin packages the host project's run-time dependencies into the project
-     * artifact, including the original project artifact itself, before invoking this method.
-     * <p/>
-     * The method receives in its <code>paths</code> parameter the paths, relative to the project artifact, of the packaged run-time dependencies, and in its
-     * <code>dependencies</code> parameter either the run-time or compile-time dependencies of the host project, depending on what {@link
-     * #needsCompileDependencies()} returns.
+     * artifact, including the original project artifact itself, before invoking this method. If the receiver is the first handler configured for the project,
+     * it can call {@link JarManifest.Dependencies#attribute(String)} to specify the attribute name under which the packaged dependency list will be available
+     * at run time. When not invoked, the default attribute name is {@linkplain org.fluidity.foundation.Archives.Nested#attribute(String)
+     * Archives.Nested.attribute(null)}. Secondary handler may not call that method.
      *
      * @param project      the Maven project to extract metadata from.
      * @param attributes   the main manifest attributes.
-     * @param paths        the list of dependency paths pointing to the embedded JAR files relative to the JAR file root.
-     * @param dependencies the actual project dependencies.
+     * @param dependencies allows the receiver to handle project dependencies.
+     *
+     * @throws MojoExecutionException when processing the manifest fails.
      */
-    void processManifest(MavenProject project, Attributes attributes, List<String> paths, Collection<Artifact> dependencies);
+    void processManifest(MavenProject project, Attributes attributes, Dependencies dependencies) throws MojoExecutionException;
 }
