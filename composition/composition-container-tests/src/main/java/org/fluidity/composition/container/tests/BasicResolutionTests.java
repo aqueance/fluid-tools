@@ -382,20 +382,20 @@ public final class BasicResolutionTests extends AbstractContainerTests {
     @SuppressWarnings("UnusedDeclaration")
     private static class DependencyChain1 {
 
-        private DependencyChain1(final DependencyChain2 dependency) { }
+        DependencyChain1(final DependencyChain2 dependency) { }
     }
 
     @Component(automatic = false)
     @SuppressWarnings("UnusedDeclaration")
     private static class DependencyChain2 {
 
-        private DependencyChain2(final DependencyChain3 dependency) { }
+        DependencyChain2(final DependencyChain3 dependency) { }
     }
 
     @Component(automatic = false)
     private static class DependencyChain3 {
 
-        private DependencyChain3() {
+        DependencyChain3() {
             throw new UnsupportedOperationException();
         }
     }

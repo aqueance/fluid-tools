@@ -609,6 +609,11 @@ public interface ComponentContainer {
         public InjectionException(final String message, final Throwable cause) {
             super(message, cause);
         }
+
+        /**
+         * Creates a nondescript instance to be used internally.
+         */
+        public InjectionException() { }
     }
 
     /**
@@ -646,6 +651,11 @@ public interface ComponentContainer {
         public ResolutionException(final String message, final Throwable cause) {
             super(message, cause);
         }
+
+        /**
+         * Creates a nondescript instance to be used internally.
+         */
+        public ResolutionException() { }
     }
 
     /**

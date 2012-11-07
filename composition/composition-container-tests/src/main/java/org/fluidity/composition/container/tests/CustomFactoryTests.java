@@ -482,25 +482,25 @@ public final class CustomFactoryTests extends AbstractContainerTests {
     }
 
     @Component.Context(Name.class)
-    private static class NamedGroupMember1 extends NamedGroupMember {
+    private final static class NamedGroupMember1 extends NamedGroupMember {
 
-        protected NamedGroupMember1(final ComponentContext context) {
+        NamedGroupMember1(final ComponentContext context) {
             super(context);
         }
     }
 
     @Component.Context(Name.class)
-    private static class NamedGroupMember2 extends NamedGroupMember {
+    private final static class NamedGroupMember2 extends NamedGroupMember {
 
-        protected NamedGroupMember2(final ComponentContext context) {
+        NamedGroupMember2(final ComponentContext context) {
             super(context);
         }
     }
 
     @Component.Context(Name.class)
-    private static class NamedGroupMember3 extends NamedGroupMember {
+    private final static class NamedGroupMember3 extends NamedGroupMember {
 
-        protected NamedGroupMember3(final ComponentContext context) {
+        NamedGroupMember3(final ComponentContext context) {
             super(context);
         }
     }

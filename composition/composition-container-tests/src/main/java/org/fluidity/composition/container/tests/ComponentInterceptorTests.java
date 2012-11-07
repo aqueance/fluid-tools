@@ -297,9 +297,9 @@ public final class ComponentInterceptorTests extends AbstractContainerTests {
     @SuppressWarnings("UnusedDeclaration")
     private class Dependency1 {
 
-        private Dependency1(final @Optional @Annotation3 @Annotation4 Dependency11 dependency1,
-                            final @Optional @Annotation4 @Annotation5 Dependency12 dependency2,
-                            final @Optional @Annotation4 @Annotation3 Dependency13 dependency3) { }
+        Dependency1(final @Optional @Annotation3 @Annotation4 Dependency11 dependency1,
+                    final @Optional @Annotation4 @Annotation5 Dependency12 dependency2,
+                    final @Optional @Annotation4 @Annotation3 Dependency13 dependency3) { }
     }
 
     // non-static for testing purposes
@@ -307,7 +307,7 @@ public final class ComponentInterceptorTests extends AbstractContainerTests {
     @SuppressWarnings("UnusedDeclaration")
     private class Dependency2 {
 
-        private Dependency2(final @Optional @Annotation5 @Remove @Annotation4 @Annotation3 Dependency21 dependency) { }
+        Dependency2(final @Optional @Annotation5 @Remove @Annotation4 @Annotation3 Dependency21 dependency) { }
     }
 
     @Component(automatic = false)

@@ -83,98 +83,77 @@ public class ConstructorDiscoveryTests extends AbstractContainerTests {
         assert container.getComponent(MixedComponentConstructors.class) == null : "Ambiguous constructor accepted";
     }
 
-    private static class SingleConstructor {
-
-    }
+    private static class SingleConstructor { }
 
     @SuppressWarnings("UnusedDeclaration")
     private static class TwoConstructors0 {
 
-        private TwoConstructors0() {
-        }
+        TwoConstructors0() { }
 
-        private TwoConstructors0(final String ignore) {
-        }
+        TwoConstructors0(final String ignore) { }
     }
 
     @SuppressWarnings("UnusedDeclaration")
     private static class TwoConstructors1 {
 
-        private TwoConstructors1(final String ignore) {
-        }
+        TwoConstructors1(final String ignore) { }
 
-        private TwoConstructors1(final int ignore) {
-        }
+        TwoConstructors1(final int ignore) { }
     }
 
     @SuppressWarnings("UnusedDeclaration")
     private static class ThreeConstructors {
 
-        private ThreeConstructors() {
-        }
+        ThreeConstructors() { }
 
-        private ThreeConstructors(final String ignore) {
-        }
+        ThreeConstructors(final String ignore) { }
 
-        private ThreeConstructors(final int ignore) {
-        }
+        ThreeConstructors(final int ignore) { }
     }
 
     @SuppressWarnings("UnusedDeclaration")
     private static class SingleComponentConstructor {
 
-        private SingleComponentConstructor() {
-        }
+        SingleComponentConstructor() { }
 
-        private SingleComponentConstructor(final int ignore) {
-        }
+        SingleComponentConstructor(final int ignore) { }
 
         @Inject
-        private SingleComponentConstructor(final String ignore) {
-        }
+        SingleComponentConstructor(final String ignore) { }
     }
 
     @SuppressWarnings("UnusedDeclaration")
     private static class MultipleComponentConstructors {
 
-        private MultipleComponentConstructors() {
-        }
+        MultipleComponentConstructors() { }
 
         @Inject
-        private MultipleComponentConstructors(final int ignore) {
-        }
+        MultipleComponentConstructors(final int ignore) { }
 
         @Inject
-        private MultipleComponentConstructors(final String ignore) {
-        }
+        MultipleComponentConstructors(final String ignore) { }
     }
 
     @SuppressWarnings("UnusedDeclaration")
     private static class HiddenComponentConstructor {
 
-        private HiddenComponentConstructor() {
-        }
+        HiddenComponentConstructor() { }
 
-        public HiddenComponentConstructor(final String ignore) {
-        }
+        public HiddenComponentConstructor(final String ignore) { }
 
         @Inject
-        private HiddenComponentConstructor(final int ignore) {
-        }
+        HiddenComponentConstructor(final int ignore) { }
     }
 
     @SuppressWarnings("UnusedDeclaration")
     private static class MixedComponentConstructors {
 
-        private MixedComponentConstructors() {
-        }
+        MixedComponentConstructors() { }
 
         @Inject
-        public MixedComponentConstructors(final int ignore) {
-        }
+        public MixedComponentConstructors(final int ignore) { }
 
         @Inject
-        private MixedComponentConstructors(final String ignore) {
-        }
+        MixedComponentConstructors(final String ignore) { }
     }
 }
