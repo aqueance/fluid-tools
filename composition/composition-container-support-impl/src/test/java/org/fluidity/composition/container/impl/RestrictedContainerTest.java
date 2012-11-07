@@ -19,8 +19,10 @@ package org.fluidity.composition.container.impl;
 import java.io.Serializable;
 
 import org.fluidity.composition.ComponentContainer;
+import org.fluidity.composition.ObservedContainer;
 import org.fluidity.composition.OpenContainer;
-import org.fluidity.composition.container.RestrictedContainer;
+import org.fluidity.composition.container.AccessGuard;
+import org.fluidity.foundation.Proxies;
 import org.fluidity.testing.Simulator;
 
 import org.easymock.EasyMock;
@@ -29,20 +31,24 @@ import org.testng.annotations.Test;
 /**
  * @author Tibor Varga
  */
-public class RestrictedContainerImplTest extends Simulator {
+public class RestrictedContainerTest extends Simulator {
 
     private final MockObjects dependencies = dependencies();
 
     private final OpenContainer level1 = dependencies.normal(OpenContainer.class);
     private final OpenContainer level2 = dependencies.normal(OpenContainer.class);
 
-    private RestrictedContainer container() {
-        return new RestrictedContainerImpl(level1);
+    private ObservedContainer container(final AccessGuard<ComponentContainer> guard) {
+        return Proxies.create(ObservedContainer.class, new DependencyInjectorImpl.RestrictedContainer(guard, level1));
+    }
+
+    private AccessGuard<ComponentContainer> guard() {
+        return new AccessGuard<ComponentContainer>("Disabled");
     }
 
     @Test
     public void testComponentAccessDenied() throws Exception {
-        final RestrictedContainer container = container();
+        final ObservedContainer container = container(guard());
 
         guarantee(new Task() {
             public void run() throws Exception {
@@ -58,9 +64,10 @@ public class RestrictedContainerImplTest extends Simulator {
 
     @Test
     public void testComponentAccessAllowed() throws Exception {
-        final RestrictedContainer container = container();
+        final AccessGuard<ComponentContainer> guard = guard();
+        final ObservedContainer container = container(guard);
 
-        container.enable();
+        guard.enable();
 
         final String value = "value";
         EasyMock.expect(level1.getComponent(Serializable.class)).andReturn(value);
@@ -76,7 +83,7 @@ public class RestrictedContainerImplTest extends Simulator {
 
     @Test
     public void testHierarchyAccessDenied() throws Exception {
-        final RestrictedContainer container = container();
+        final ObservedContainer container = container(guard());
 
         EasyMock.expect(level1.makeChildContainer()).andReturn(level2);
 
@@ -100,7 +107,8 @@ public class RestrictedContainerImplTest extends Simulator {
 
     @Test
     public void testHierarchyAccessAllowed() throws Exception {
-        final RestrictedContainer container = container();
+        final AccessGuard<ComponentContainer> guard = guard();
+        final ObservedContainer container = container(guard);
 
         EasyMock.expect(level1.makeChildContainer()).andReturn(level2);
 
@@ -110,7 +118,7 @@ public class RestrictedContainerImplTest extends Simulator {
             }
         });
 
-        container.enable();
+        guard.enable();
 
         final String value = "value";
         EasyMock.expect(level2.getComponent(Serializable.class)).andReturn(value);

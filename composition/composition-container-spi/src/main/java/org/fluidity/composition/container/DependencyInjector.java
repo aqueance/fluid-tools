@@ -132,14 +132,24 @@ public interface DependencyInjector {
     /**
      * Handles the various special and regular dependency types by invokes the appropriate method of the provided resolution object based on the type of the
      * given dependency. A dependency to a {@link ComponentContainer} will be <em>restricted</em>, meaning that it will only resolve components and component
-     * groups after it has been {@link RestrictedContainer#enable() enabled}.
+     * groups after it has been {@link AccessGuard#enable() enabled}.
      *
      * @param api        the dependency type.
+     * @param guard      the object to guard against access from constructors to dependency injected containers; never <code>null</code> and can be created by
+     *                   {@link #containerGuard()}.
      * @param resolution resolves the various dependency types.
      *
      * @return a resolved node or <code>null</code> if the given dependency could not be resolved.
      */
-    DependencyGraph.Node resolve(Class<?> api, Resolution resolution);
+    DependencyGraph.Node resolve(Class<?> api, AccessGuard<ComponentContainer> guard, Resolution resolution);
+
+    /**
+     * Creates an object that guards against access to a container. Used to create the <code>guard</code> parameter of {@link #resolve(Class, AccessGuard,
+     * DependencyInjector.Resolution)}.
+     *
+     * @return an object that guards against access to a container.
+     */
+    AccessGuard<ComponentContainer> containerGuard();
 
     /**
      * Callback methods to resolve the various types of special and regular dependencies.
@@ -178,12 +188,5 @@ public interface DependencyInjector {
          * @return the resolved dependency.
          */
         DependencyGraph.Node regular();
-
-        /**
-         * A restricted container has been resolved. The receiver can stash it somewhere and enable it later.
-         *
-         * @param container the restricted container that has been resolved.
-         */
-        void handle(RestrictedContainer container);
     }
 }

@@ -79,14 +79,17 @@ abstract class FactoryResolver extends AbstractResolver {
                                               final ContextDefinition context,
                                               final Type reference) {
         final SimpleContainer child = container.newChildContainer(false);
-        final List<RestrictedContainer> containers = new ArrayList<RestrictedContainer>();
         final List<ContextDefinition> contexts = new ArrayList<ContextDefinition>();
 
         final ComponentFactory factory = factory(container, traversal, context, reference);
         final Class<?> consumer = contextConsumer();
 
         final DependencyInjector injector = child.services().dependencyInjector();
-        final ComponentFactory.Instance instance = resolve(injector, traversal, context, child, reference, containers, contexts, factory, consumer);
+
+        final AccessGuard<ComponentContainer> containers = injector.containerGuard();
+        final AccessGuard<DependencyGraph.Node> instantiation = new AccessGuard<DependencyGraph.Node>("Dependency can only be instantiated in ComponentFactory.Instance.bind(...).");
+
+        final ComponentFactory.Instance instance = resolve(injector, traversal, context, child, reference, contexts, factory, consumer, instantiation, containers);
 
         final ContextDefinition saved = context.accept(consumer).collect(contexts).copy();
         final ComponentFactory.Registry registry = new RegistryWrapper(child, saved, traversal);
@@ -99,6 +102,8 @@ abstract class FactoryResolver extends AbstractResolver {
             }
 
             public Object instance(final DependencyGraph.Traversal traversal) {
+                instantiation.enable();
+
                 try {
                     if (instance == null) {
                         return null;
@@ -114,9 +119,7 @@ abstract class FactoryResolver extends AbstractResolver {
                         return child.resolveComponent(api, saved, traversal, reference).instance(traversal);
                     }
                 } finally {
-                    for (final RestrictedContainer restricted : containers) {
-                        restricted.enable();
-                    }
+                    containers.enable();
                 }
             }
 
@@ -147,11 +150,6 @@ abstract class FactoryResolver extends AbstractResolver {
          * See {@link DependencyInjector.Resolution#regular()}.
          */
         DependencyGraph.Node regular(Class<?> api, Type reference, final Annotation[] annotations, Annotation[] params);
-
-        /**
-         * See {@link DependencyInjector.Resolution#handle(RestrictedContainer)}.
-         */
-        void handle(RestrictedContainer container);
     }
 
     private ComponentFactory.Instance resolve(final DependencyInjector injector,
@@ -159,16 +157,16 @@ abstract class FactoryResolver extends AbstractResolver {
                                               final ContextDefinition context,
                                               final SimpleContainer child,
                                               final Type reference,
-                                              final List<RestrictedContainer> containers,
                                               final List<ContextDefinition> contexts,
                                               final ComponentFactory factory,
-                                              final Class<?> consumer) {
+                                              final Class<?> consumer,
+                                              final AccessGuard<DependencyGraph.Node> instances,
+                                              final AccessGuard<ComponentContainer> containers) {
         final ContextDefinition collected = context.copy().accept(null);
         final ContextDefinition reduced = context.copy().accept(consumer);
         final ComponentContext passed = reduced.create();
 
         final Resolution resolution = new Resolution() {
-
             public ComponentContext context(final Class<?> type) {
                 traversal.descend(api, type, null, null);
 
@@ -204,13 +202,9 @@ abstract class FactoryResolver extends AbstractResolver {
                     traversal.ascend(api, type);
                 }
             }
-
-            public void handle(final RestrictedContainer container) {
-                containers.add(container);
-            }
         };
 
-        final ComponentFactory.Container container = new ContainerImpl(traversal, injector, resolution);
+        final ComponentFactory.Container container = new ContainerImpl(instances, containers, traversal, injector, resolution);
 
         final ComponentFactory.Resolver resolver = new ComponentFactory.Resolver() {
             public <T> ComponentFactory.Dependency<T> resolve(final Class<T> api, final Class<?> type, final Field field) {
@@ -250,7 +244,7 @@ abstract class FactoryResolver extends AbstractResolver {
             private DependencyGraph.Node descend(final Class<?> api, final Type reference, final Annotation[] annotations) {
                 assert reference != null : api;
 
-                return injector.resolve(api, new DependencyInjector.Resolution() {
+                return injector.resolve(api, containers, new DependencyInjector.Resolution() {
                     public ComponentContext context() {
                         return resolution.context(api);
                     }
@@ -261,10 +255,6 @@ abstract class FactoryResolver extends AbstractResolver {
 
                     public DependencyGraph.Node regular() {
                         return resolution.regular(api, reference, annotations, annotations);
-                    }
-
-                    public void handle(final RestrictedContainer container) {
-                        resolution.handle(container);
                     }
                 });
             }
@@ -328,7 +318,7 @@ abstract class FactoryResolver extends AbstractResolver {
                     }
                 });
 
-                return new ContainerImpl(traversal, injector, new Resolution() {
+                return new ContainerImpl(instances, containers, traversal, injector, new Resolution() {
                     public ComponentContext context(final Class<?> api) {
                         return passed;
                     }
@@ -346,10 +336,6 @@ abstract class FactoryResolver extends AbstractResolver {
                         return isGroup(api, params)
                                ? container.resolveGroup(api.getComponentType(), copy, traversal, api)
                                : container.resolveComponent(api, copy, traversal, api);
-                    }
-
-                    public void handle(final RestrictedContainer container) {
-                        containers.add(container);
                     }
                 });
             }
@@ -445,11 +431,19 @@ abstract class FactoryResolver extends AbstractResolver {
      */
     private static class ContainerImpl implements ComponentFactory.Container {
 
+        private final AccessGuard<DependencyGraph.Node> instances;
+        private final AccessGuard<ComponentContainer> containers;
         private final DependencyGraph.Traversal traversal;
         private final DependencyInjector injector;
         private final Resolution resolution;
 
-        ContainerImpl(final DependencyGraph.Traversal traversal, final DependencyInjector injector, final Resolution resolution) {
+        ContainerImpl(final AccessGuard<DependencyGraph.Node> instances,
+                      final AccessGuard<ComponentContainer> containers,
+                      final DependencyGraph.Traversal traversal,
+                      final DependencyInjector injector,
+                      final Resolution resolution) {
+            this.instances = instances;
+            this.containers = containers;
             this.traversal = traversal;
             this.injector = injector;
             this.resolution = resolution;
@@ -469,7 +463,9 @@ abstract class FactoryResolver extends AbstractResolver {
                                                 constructor.getDeclaringClass().getAnnotations(),
                                                 constructor.getAnnotations(),
                                                 parameterAnnotations),
-                              parameterAnnotations);
+                              parameterAnnotations,
+                              instances,
+                              containers);
         }
 
         public final <T> ComponentFactory.Dependency<T> resolve(final Class<T> api, final Class<?> type, final Method method, final int parameter) {
@@ -485,7 +481,9 @@ abstract class FactoryResolver extends AbstractResolver {
                                                 type == null ? method.getDeclaringClass().getAnnotations() : type.getAnnotations(),
                                                 method.getAnnotations(),
                                                 parameterAnnotations),
-                              parameterAnnotations);
+                              parameterAnnotations,
+                              instances,
+                              containers);
         }
 
         public final <T> ComponentFactory.Dependency<T> resolve(final Class<T> api, final Class<?> type, final Field field) {
@@ -498,7 +496,9 @@ abstract class FactoryResolver extends AbstractResolver {
                               Lists.concatenate(Annotation.class,
                                                 type == null ? field.getDeclaringClass().getAnnotations() : type.getAnnotations(),
                                                 field.getAnnotations()),
-                              field.getAnnotations());
+                              field.getAnnotations(),
+                              instances,
+                              containers);
         }
 
         public final ComponentFactory.Dependency<?>[] resolve(final Class<?> type, final Method method) {
@@ -526,8 +526,10 @@ abstract class FactoryResolver extends AbstractResolver {
         protected final <T> ComponentFactory.Dependency<T> dependency(final Class<T> api,
                                                                       final Type reference,
                                                                       final Annotation[] annotations,
-                                                                      final Annotation[] params) {
-            final DependencyGraph.Node node = injector.resolve(api, new DependencyInjector.Resolution() {
+                                                                      final Annotation[] params,
+                                                                      final AccessGuard<DependencyGraph.Node> instances,
+                                                                      final AccessGuard<ComponentContainer> containers) {
+            final DependencyGraph.Node node = injector.resolve(api, containers, new DependencyInjector.Resolution() {
                 public ComponentContext context() {
                     return resolution.context(api);
                 }
@@ -539,16 +541,12 @@ abstract class FactoryResolver extends AbstractResolver {
                 public DependencyGraph.Node regular() {
                     return resolution.regular(api, reference, annotations, params);
                 }
-
-                public void handle(final RestrictedContainer container) {
-                    resolution.handle(container);
-                }
             });
 
             return new ComponentFactory.Dependency<T>() {
                 @SuppressWarnings("unchecked")
                 public T instance() {
-                    return node == null ? null : (T) node.instance(traversal);
+                    return instances.access(node) == null ? null : (T) node.instance(traversal);
                 }
             };
         }
