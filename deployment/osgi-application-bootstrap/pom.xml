@@ -40,14 +40,9 @@
     <dependencies>
 
         <dependency>
-            <groupId>org.codehaus.plexus</groupId>
-            <artifactId>plexus-interpolation</artifactId>
-            <version>1.15</version>
-        </dependency>
-
-        <dependency>
-            <groupId>${fluidity.composition.groupId}</groupId>
-            <artifactId>composition-bootstrap-support</artifactId>
+            <groupId>${fluidity.public.groupId}</groupId>
+            <artifactId>fluid-tools-cli-application</artifactId>
+            <type>pom</type>
             <version>${project.version}</version>
         </dependency>
 
@@ -55,6 +50,12 @@
             <groupId>${fluidity.deployment.groupId}</groupId>
             <artifactId>osgi-composition-api</artifactId>
             <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.codehaus.plexus</groupId>
+            <artifactId>plexus-interpolation</artifactId>
+            <version>1.15</version>
         </dependency>
 
         <dependency>

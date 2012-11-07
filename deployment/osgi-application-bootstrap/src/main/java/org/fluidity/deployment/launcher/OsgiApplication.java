@@ -30,9 +30,10 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.TreeSet;
 
-import org.fluidity.composition.Containers;
+import org.fluidity.composition.Component;
 import org.fluidity.composition.Optional;
 import org.fluidity.composition.spi.ContainerTermination;
+import org.fluidity.deployment.cli.Application;
 import org.fluidity.deployment.osgi.StartLevels;
 import org.fluidity.foundation.Archives;
 import org.fluidity.foundation.ClassLoaders;
@@ -71,7 +72,8 @@ import org.osgi.framework.startlevel.FrameworkStartLevel;
  *
  * @author Tibor Varga
  */
-public final class OsgiApplicationBootstrap {
+@Component
+final class OsgiApplication implements Application {
 
     /**
      * The name of the system property that specifies the application properties resource URL. The application properties are deployment independent. If not
@@ -104,13 +106,13 @@ public final class OsgiApplicationBootstrap {
      * @param termination the container termination component.
      * @param levels      the optional start level fine tuning component.
      */
-    OsgiApplicationBootstrap(final Log<OsgiApplicationBootstrap> log, final ContainerTermination termination, final @Optional StartLevels levels) {
+    OsgiApplication(final Log<OsgiApplication> log, final ContainerTermination termination, final @Optional StartLevels levels) {
         this.log = log;
         this.termination = termination;
         this.levels = levels;
     }
 
-    private void run() throws Exception {
+    public void run(final String[] arguments) throws Exception {
 
         /*
          * Embedding OSGi: http://njbartlett.name/2011/03/07/embedding-osgi.html
@@ -308,9 +310,5 @@ public final class OsgiApplicationBootstrap {
 
             return properties;
         }
-    }
-
-    public static void main(final String[] args) throws Exception {
-        Containers.global().instantiate(OsgiApplicationBootstrap.class).run();
     }
 }

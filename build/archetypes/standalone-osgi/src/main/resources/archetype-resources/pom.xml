@@ -29,13 +29,6 @@ limitations under the License.
     <dependencies>
 
         <dependency>
-            <groupId>${fluidity.public.groupId}</groupId>
-            <artifactId>fluid-tools-cli-application</artifactId>
-            <version>${symbol_dollar}{fluid.tools.version}</version>
-            <type>pom</type>
-        </dependency>
-
-        <dependency>
             <groupId>${fluidity.deployment.groupId}</groupId>
             <artifactId>osgi-application-bootstrap</artifactId>
             <version>${symbol_dollar}{fluid.tools.version}</version>
@@ -105,19 +98,6 @@ limitations under the License.
             <plugin>
                 <groupId>${fluidity.plugin.groupId}</groupId>
                 <artifactId>composition-maven-plugin</artifactId>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-
-                <configuration>
-                    <archive>
-                        <manifest>
-                            <mainClass>org.fluidity.deployment.launcher.OsgiApplicationBootstrap</mainClass>
-                        </manifest>
-                    </archive>
-                </configuration>
             </plugin>
 
             <plugin>
