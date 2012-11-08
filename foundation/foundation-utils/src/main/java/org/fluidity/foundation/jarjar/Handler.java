@@ -285,10 +285,8 @@ public final class Handler extends URLStreamHandler {
      * @throws IOException when processing the URL fails.
      */
     public static void unload(final URL url) throws IOException {
-        final URL jarjar = unwrap(url);
-
-        if (PROTOCOL.equals(jarjar.getProtocol())) {
-            contents.remove(enclosedURL(jarjar).toExternalForm());
+        if (PROTOCOL.equals(url.getProtocol())) {
+            cache.remove(enclosedURL(url).toExternalForm());
         }
     }
 
@@ -297,7 +295,7 @@ public final class Handler extends URLStreamHandler {
         return root == null ? url : root;
     }
 
-    private static final Map<String, Map<String, byte[]>> contents = new HashMap<String, Map<String, byte[]>>();
+    private static final Map<String, Map<String, byte[]>> cache = new HashMap<String, Map<String, byte[]>>();
 
     static byte[] contents(final URL url) throws IOException {
         return load(url).get(path(url));
@@ -310,21 +308,21 @@ public final class Handler extends URLStreamHandler {
         final URL root = enclosedURL(url);
         final String key = root.toExternalForm();
 
-        Map<String, byte[]> content = contents.get(key);
+        Map<String, byte[]> content = cache.get(key);
 
         if (content == null) {
             content = new HashMap<String, byte[]>();
 
             synchronized (content) {
-                synchronized (contents) {
-                    if (contents.containsKey(key)) {
-                        content = contents.get(key);
+                synchronized (cache) {
+                    if (cache.containsKey(key)) {
+                        content = cache.get(key);
 
                         synchronized (content) {
                             return content;
                         }
                     } else {
-                        contents.put(key, content);
+                        cache.put(key, content);
                     }
                 }
 
@@ -394,7 +392,7 @@ public final class Handler extends URLStreamHandler {
 
     private static void load(final Map<String, byte[]> content,
                              final Map<Metadata, String> meta,
-                             byte[] buffer,
+                             final byte[] buffer,
                              final String base,
                              final ZipInputStream stream,
                              final ZipEntry first) throws IOException {
