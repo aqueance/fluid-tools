@@ -137,8 +137,8 @@ public interface JarManifest {
      * <p/>
      * The <code>org.fluidity.maven:standalone-jar-maven-plugin</code> Maven plugin packages the host project's run-time dependencies into the project
      * artifact, including the original project artifact itself, before invoking this method. If the receiver is the first handler configured for the project,
-     * it can call {@link JarManifest.Dependencies#attribute(String)} to specify the attribute name under which the packaged dependency list will be available
-     * at run time. When not invoked, the default attribute name is {@linkplain org.fluidity.foundation.Archives.Nested#attribute(String)
+     * it can call {@link JarManifest.Dependencies#attribute(String, String)} to specify the attribute name under which the packaged dependency list will be
+     * available at run time. When not invoked, the default attribute name is {@linkplain org.fluidity.foundation.Archives.Nested#attribute(String)
      * Archives.Nested.attribute(null)}. Secondary handler may not call that method.
      *
      * @param project      the Maven project to extract metadata from.

@@ -150,21 +150,26 @@ public final class ServiceProviders extends Utility {
     /**
      * Finds all classes visible to the given class loader that implement or extend the given service provider interface.
      *
-     * @param api         the interface or class all discovered classes should implement or extend.
-     * @param classLoader the class loader to use to find the classes.
-     * @param strict      specifies whether to find classes directly visible to the given class loader (<code>true</code>) or indirectly via any of its parent
-     *                    class loaders (<code>false</code>).
-     * @param standard    specifies whether only standard service providers are accepted (<code>true</code>) or dependency injected ones also
-     *                    (<code>false</code>).
-     * @param log         the logger to emit messages through.
-     * @param <T>         the type of the given service provider interface.
+     * @param api      the interface or class all discovered classes should implement or extend.
+     * @param loader   the class loader to use to find the classes.
+     * @param strict   specifies whether to find classes directly visible to the given class loader (<code>true</code>) or indirectly via any of its parent
+     *                 class loaders (<code>false</code>).
+     * @param standard specifies whether only standard service providers are accepted (<code>true</code>) or dependency injected ones also
+     *                 (<code>false</code>).
+     * @param log      the logger to emit messages through.
+     * @param <T>      the type of the given service provider interface.
      *
      * @return a list of <code>Class</code> objects for the discovered classes.
      */
-    public static <T> Class<T>[] findClasses(final String type, final Class<T> api, final ClassLoader cl, final boolean strict, final boolean standard, final Log log) {
+    public static <T> Class<T>[] findClasses(final String type,
+                                             final Class<T> api,
+                                             final ClassLoader loader,
+                                             final boolean strict,
+                                             final boolean standard,
+                                             final Log log) {
         return Exceptions.wrap(new Command.Process<Class<T>[], Throwable>() {
             public Class<T>[] run() throws Throwable {
-                final ClassLoader classLoader = cl == null ? ClassLoaders.findClassLoader(api, true) : cl;
+                final ClassLoader classLoader = loader == null ? ClassLoaders.findClassLoader(api, true) : loader;
                 log.debug("Loading %s service provider files for %s using class loader %s", standard ? "standard" : String.format("'%s' type", type), api, classLoader);
 
                 final Collection<Class<T>> componentList = new LinkedHashSet<Class<T>>();
@@ -240,7 +245,7 @@ public final class ServiceProviders extends Utility {
     public interface Log {
 
         /**
-         * Emits a DEBUG level message, provided that DEBUG level message emission is {@link #isDebugEnabled() permitted}.
+         * Emits a DEBUG level message, provided that DEBUG level message emission is {@link org.fluidity.foundation.Log#isDebugEnabled() permitted}.
          *
          * @param format    the format parameter of a {@link String#format(String, Object...)} call.
          * @param arguments the args parameter of a {@link String#format(String, Object...)} call.
@@ -258,7 +263,7 @@ public final class ServiceProviders extends Utility {
         /**
          * Emits an ERROR level message and an exception stack trace.
          *
-         * @param exception the exception to log the stack trace of.
+         * @param error     the exception to log the stack trace of.
          * @param format    the format parameter of a {@link String#format(String, Object...)} call.
          * @param arguments the args parameter of a {@link String#format(String, Object...)} call.
          */
