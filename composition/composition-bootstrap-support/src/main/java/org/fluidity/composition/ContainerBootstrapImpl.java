@@ -80,14 +80,8 @@ final class ContainerBootstrapImpl implements ContainerBootstrap {
             bindings.bindComponents(registry);
         }
 
-        final ContainerLifecycle state = new ContainerLifecycle(container, assemblies, callback);
-
-        registry.bindInstance(state);
-
-        final ContainerLifecycle parentState = parent != null ? parent.getComponent(ContainerLifecycle.class) : null;
-        if (parentState != null) {
-            parentState.addChild(state);
-        }
+        final ContainerLifecycle state = parent == null ? null : parent.getComponent(ContainerLifecycle.class);
+        registry.bindInstance(new ContainerLifecycle(state, container, assemblies, callback));
 
         return container;
     }

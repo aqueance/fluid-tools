@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.jar.Attributes;
 
+import org.fluidity.composition.ComponentContainer;
 import org.fluidity.composition.ComponentGroup;
 import org.fluidity.composition.ContainerBoundary;
 import org.fluidity.deployment.osgi.impl.BundleBootstrap;
@@ -35,6 +36,7 @@ import org.fluidity.foundation.Methods;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.interpolation.InterpolationException;
 import org.codehaus.plexus.interpolation.InterpolationPostProcessor;
@@ -77,7 +79,7 @@ final class BundleJarManifest implements JarManifest {
     public static final String DEFAULT_BUNDLE_VERSION = Version.emptyVersion.toString();
     public static final String VERSION_PREFIX = "version:";
 
-    public void processManifest(final MavenProject project, final Attributes attributes, final Dependencies dependencies) throws MojoExecutionException {
+    public void processManifest(final MavenProject project, final Attributes attributes, final Log log, final Dependencies dependencies) throws MojoExecutionException {
         dependencies.attribute(BUNDLE_CLASSPATH, ",");
 
         addEntry(attributes, BUNDLE_MANIFESTVERSION, "2");
@@ -162,6 +164,7 @@ final class BundleJarManifest implements JarManifest {
 
                 urls.add((Archives.containing(BootstrapDiscovery.class)));
                 urls.add((Archives.containing(BootstrapDiscoveryImpl.class)));
+                urls.add((Archives.containing(ComponentContainer.class)));
 
                 final String activator = ClassLoaders.isolate(null, urls, BootstrapDiscoveryImpl.class, method);
 
@@ -173,6 +176,10 @@ final class BundleJarManifest implements JarManifest {
                                 activator.getClass()));
                     }
                 }
+
+                final String value = attributes.getValue(BUNDLE_ACTIVATOR);
+                log.info(String.format("Bundle activator: %s",
+                                       value == null ? "none" : value.equals(BundleBootstrap.class.getName()) ? JarManifest.FRAMEWORK_ID : value));
             } catch (final ClassNotFoundException e) {
                 // that's OK
             } catch (final Exception e) {

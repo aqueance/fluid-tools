@@ -34,6 +34,7 @@ import org.fluidity.foundation.Log;
  */
 final class ContainerLifecycle {
 
+    private final ContainerLifecycle parent;
     private ContainerBootstrap.Callback callback;
 
     private final OpenContainer container;
@@ -44,7 +45,8 @@ final class ContainerLifecycle {
     private final AtomicBoolean shouldInitialize = new AtomicBoolean(true);
     private final AtomicBoolean shouldShutdown = new AtomicBoolean(true);
 
-    ContainerLifecycle(final OpenContainer container, final List<PackageBindings> bindings, final ContainerBootstrap.Callback callback) {
+    ContainerLifecycle(final ContainerLifecycle parent, final OpenContainer container, final List<PackageBindings> bindings, final ContainerBootstrap.Callback callback) {
+        this.parent = parent;
         this.container = container;
         this.bindings = bindings;
         this.callback = callback;
@@ -80,6 +82,10 @@ final class ContainerLifecycle {
                     child.initialize(log);
                 }
             } finally {
+                if (parent != null) {
+                    parent.addChild(this);
+                }
+
                 if (callback != null) {
                     callback.containerInitialized();
                 }
@@ -95,8 +101,12 @@ final class ContainerLifecycle {
                 callback.containerShutdown();
             }
 
+            if (parent != null) {
+                parent.removeChild(this);
+            }
+
             // make sure the children are shut down before this container
-            for (final ContainerLifecycle child : children) {
+            for (final ContainerLifecycle child : new HashSet<ContainerLifecycle>(children)) {
                 child.shutdown(log);
             }
 
@@ -104,7 +114,11 @@ final class ContainerLifecycle {
         }
     }
 
-    public void addChild(final ContainerLifecycle child) {
+    private void addChild(final ContainerLifecycle child) {
         children.add(child);
+    }
+
+    private void removeChild(final ContainerLifecycle child) {
+        children.remove(child);
     }
 }

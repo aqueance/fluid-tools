@@ -21,6 +21,7 @@ import java.util.jar.Attributes;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
 
 /**
@@ -39,7 +40,7 @@ public interface JarManifest {
     /**
      * Identifies Fluid Tools as the creator of standalone archives; to be used with the {@link #CREATED_BY} manifest header.
      */
-    String CREATOR_ID = "Fluid Tools";
+    String FRAMEWORK_ID = "Fluid Tools";
 
     /**
      * Manifest header that identifies the tool that created the archive.
@@ -142,9 +143,10 @@ public interface JarManifest {
      *
      * @param project      the Maven project to extract metadata from.
      * @param attributes   the main manifest attributes.
+     * @param log          the Maven logger to send messages to.
      * @param dependencies allows the receiver to handle project dependencies.
      *
      * @throws MojoExecutionException when processing the manifest fails.
      */
-    void processManifest(MavenProject project, Attributes attributes, Dependencies dependencies) throws MojoExecutionException;
+    void processManifest(MavenProject project, Attributes attributes, Log log, Dependencies dependencies) throws MojoExecutionException;
 }

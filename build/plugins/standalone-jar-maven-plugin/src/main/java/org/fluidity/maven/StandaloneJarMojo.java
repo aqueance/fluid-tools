@@ -227,8 +227,8 @@ public final class StandaloneJarMojo extends AbstractMojo {
                 final String original = mainAttributes.getValue(JarManifest.CREATED_BY);
                 mainAttributes.putValue(JarManifest.CREATED_BY,
                                         original == null
-                                        ? JarManifest.CREATOR_ID
-                                        : original.contains(JarManifest.CREATOR_ID) ? original : String.format("%s, %s", JarManifest.CREATOR_ID, original));
+                                        ? JarManifest.FRAMEWORK_ID
+                                        : original.contains(JarManifest.FRAMEWORK_ID) ? original : String.format("%s, %s", JarManifest.FRAMEWORK_ID, original));
 
                 if (log.isDebugEnabled()) {
                     log.debug(String.format("Packaged dependencies: %s", runtimeDependencies));
@@ -265,7 +265,7 @@ public final class StandaloneJarMojo extends AbstractMojo {
 
                     final AtomicBoolean inclusionNameSet = new AtomicBoolean();
 
-                    handler.processManifest(project, mainAttributes, new JarManifest.Dependencies() {
+                    handler.processManifest(project, mainAttributes, log, new JarManifest.Dependencies() {
                         public void attribute(final String name, final String delimiter) throws MojoExecutionException {
                             if (dependenciesSet.compareAndSet(false, true)) {
                                 includedDependencies.put(name, new Inclusion(dependencyPath, runtimeDependencies, delimiter));

@@ -110,7 +110,7 @@ public final class ServiceProviders extends Utility {
             }
 
             public void error(final String format, final Object... arguments) {
-                System.out.printf(format.concat("%n"), arguments);
+                System.err.printf(format.concat("%n"), arguments);
             }
 
             public void error(final Exception error, final String format, final Object... arguments) {

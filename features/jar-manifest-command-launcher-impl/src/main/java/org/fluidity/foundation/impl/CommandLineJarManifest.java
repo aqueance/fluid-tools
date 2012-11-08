@@ -23,6 +23,7 @@ import org.fluidity.deployment.plugin.spi.JarManifest;
 import org.fluidity.foundation.jarjar.Launcher;
 
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
 
 /**
@@ -35,7 +36,7 @@ import org.apache.maven.project.MavenProject;
 @SuppressWarnings("UnusedDeclaration")
 final class CommandLineJarManifest implements JarManifest {
 
-    public void processManifest(final MavenProject project, final Attributes attributes, final Dependencies dependencies) throws MojoExecutionException {
+    public void processManifest(final MavenProject project, final Attributes attributes, final Log log, final Dependencies dependencies) throws MojoExecutionException {
         final String originalMainClass = attributes.getValue(Launcher.ORIGINAL_MAIN_CLASS);
 
         if (originalMainClass == null) {
@@ -43,6 +44,10 @@ final class CommandLineJarManifest implements JarManifest {
             attributes.putValue(Launcher.ORIGINAL_MAIN_CLASS, mainClass == null ? ShellApplicationBootstrap.class.getName() : mainClass);
             attributes.put(Attributes.Name.MAIN_CLASS, Launcher.class.getName());
         }
+
+        final String value = attributes.getValue(Launcher.ORIGINAL_MAIN_CLASS);
+        log.info(String.format("Main class: %s",
+                               value == null ? "none" : value.equals(ShellApplicationBootstrap.class.getName()) ? JarManifest.FRAMEWORK_ID : value));
     }
 
     @Override

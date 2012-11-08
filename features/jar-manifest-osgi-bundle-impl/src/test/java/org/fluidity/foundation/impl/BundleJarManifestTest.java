@@ -28,6 +28,7 @@ import org.apache.maven.model.License;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.Organization;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
 import org.easymock.EasyMock;
 import org.testng.annotations.BeforeMethod;
@@ -54,8 +55,10 @@ import static org.osgi.framework.Constants.VERSION_ATTRIBUTE;
  */
 public class BundleJarManifestTest extends Simulator {
 
-    private final JarManifest.Dependencies dependencies = dependencies().normal(JarManifest.Dependencies.class);
+    private final MockObjects components = dependencies();
+    private final JarManifest.Dependencies dependencies = components.normal(JarManifest.Dependencies.class);
     private final JarManifest manifest = new BundleJarManifest();
+    private final Log log = components.lenient(Log.class);
 
     private MavenProject project;
 
@@ -78,7 +81,7 @@ public class BundleJarManifestTest extends Simulator {
 
         verify(new Task() {
             public void run() throws Exception {
-                manifest.processManifest(project, attributes, dependencies);
+                manifest.processManifest(project, attributes, log, dependencies);
             }
         });
 
@@ -113,7 +116,7 @@ public class BundleJarManifestTest extends Simulator {
 
         verify(new Task() {
             public void run() throws Exception {
-                manifest.processManifest(project, attributes, dependencies);
+                manifest.processManifest(project, attributes, log, dependencies);
             }
         });
 
@@ -145,7 +148,7 @@ public class BundleJarManifestTest extends Simulator {
 
         verify(new Task() {
             public void run() throws Exception {
-                manifest.processManifest(project, attributes, dependencies);
+                manifest.processManifest(project, attributes, log, dependencies);
             }
         });
 
@@ -183,7 +186,7 @@ public class BundleJarManifestTest extends Simulator {
 
         verify(new Task() {
             public void run() throws Exception {
-                manifest.processManifest(project, attributes, dependencies);
+                manifest.processManifest(project, attributes, log, dependencies);
             }
         });
 
