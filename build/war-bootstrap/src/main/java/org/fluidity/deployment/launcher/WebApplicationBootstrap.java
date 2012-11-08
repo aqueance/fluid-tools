@@ -35,6 +35,7 @@ import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.ServiceProviders;
 
 import static org.fluidity.foundation.Command.Function;
+import static org.fluidity.foundation.Command.Job;
 
 /**
  * A command line main class that prepares the web container bootstrap process, e.g., creating a work directory, setting up the boot classpath and, then loads
@@ -77,8 +78,8 @@ public final class WebApplicationBootstrap {
             final File bootWar = new File(warPath);
             assert bootWar.exists() : bootWar;
 
-            int httpPort = 0;
-            boolean extract = false;
+            final int httpPort[] = { 0 };
+            final boolean extract[] = { false };
 
             final List<String> params = new ArrayList<String>();
 
@@ -95,48 +96,52 @@ public final class WebApplicationBootstrap {
 
                     if (args.length > j) {
                         try {
-                            httpPort = Integer.parseInt(args[j]);
+                            httpPort[0] = Integer.parseInt(args[j]);
                             i = j;
                         } catch (final NumberFormatException e) {
                             if (!args[j].startsWith("-")) {
-                                throw new RuntimeException(String.format("Parameter %s is not a port number", args[j]));
+                                throw new IllegalArgumentException(String.format("Parameter %s is not a port number", args[j]));
                             }
                         }
                     } else {
-                        httpPort = 80;
+                        httpPort[0] = 80;
                     }
                 } else if (param.equals("-extract")) {
-                    extract = true;
+                    extract[0] = true;
                 } else {
                     params.add(param);
                 }
             }
 
-            final URL war = Archives.containing(WebApplicationBootstrap.class);
-            final List<URL> classpath = new ArrayList<URL>();
+            Archives.Nested.access(new Job<Exception>() {
+                public void run() throws Exception {
+                    final URL war = Archives.containing(WebApplicationBootstrap.class);
+                    final List<URL> classpath = new ArrayList<URL>();
 
-            Archives.read(true, war, new Archives.Entry() {
-                private final String bootEntry = "WEB-INF/boot/";
+                    Archives.read(true, war, new Archives.Entry() {
+                        private final String bootEntry = String.format("%s/boot/", Archives.WEB_INF);
 
-                public boolean matches(final URL url, final JarEntry entry) throws IOException {
-                    final String entryName = entry.getName();
-                    final boolean matches = entryName.startsWith(bootEntry) && !entryName.equals(bootEntry);
+                        public boolean matches(final URL url, final JarEntry entry) throws IOException {
+                            final String entryName = entry.getName();
+                            final boolean matches = entryName.startsWith(bootEntry) && !entryName.equals(bootEntry);
 
-                    if (matches) {
-                        classpath.add(Archives.Nested.formatURL(url, entryName));
-                    }
+                            if (matches) {
+                                classpath.add(Archives.Nested.formatURL(url, entryName));
+                            }
 
-                    return false;
-                }
+                            return false;
+                        }
 
-                public boolean read(final URL url, final JarEntry entry, final InputStream stream) throws IOException {
-                    return true;
+                        public boolean read(final URL url, final JarEntry entry, final InputStream stream) throws IOException {
+                            return true;
+                        }
+                    });
+
+                    bootstrapServer(httpPort[0], extract[0], classpath, bootWar, managedApps, Lists.asArray(String.class, params));
                 }
             });
-
-            bootstrapServer(httpPort, extract, classpath, bootWar, managedApps, Lists.asArray(String.class, params));
         } else {
-            throw new RuntimeException(String.format("Not a local WAR file: %s", bootUrl));
+            throw new IllegalArgumentException(String.format("Not a local WAR file: %s", bootUrl));
         }
     }
 
@@ -157,7 +162,7 @@ public final class WebApplicationBootstrap {
                 }
             });
         } else {
-            throw new RuntimeException(String.format("No server bootstrap found (service provider for %s)", ServerBootstrap.class));
+            throw new IllegalStateException(String.format("No server bootstrap found (service provider for %s)", ServerBootstrap.class));
         }
     }
 }

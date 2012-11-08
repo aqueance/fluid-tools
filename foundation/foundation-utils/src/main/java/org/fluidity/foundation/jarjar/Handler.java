@@ -31,6 +31,7 @@ import java.security.Permission;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.jar.JarEntry;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -39,6 +40,9 @@ import org.fluidity.foundation.Archives;
 import org.fluidity.foundation.ClassLoaders;
 import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.Streams;
+
+import static org.fluidity.foundation.Command.Job;
+import static org.fluidity.foundation.Command.Process;
 
 /**
  * {@linkplain URLStreamHandler Stream protocol handler} to work with resources inside JAR archives embedded in other JAR archives, ad infinitum.
@@ -173,10 +177,14 @@ public final class Handler extends URLStreamHandler {
     /**
      * Returns the part of the nested archive URL that identifies the outermost enclosing archive.
      */
-    private static URL enclosedURL(final URL url) throws MalformedURLException {
-        final String path = url.getFile();
-        final int delimiter = path.indexOf(DELIMITER);
-        return new URL(delimiter < 0 ? path : path.substring(0, delimiter));
+    private static URL enclosedURL(final URL url) {
+        try {
+            final String path = url.getFile();
+            final int delimiter = path.indexOf(DELIMITER);
+            return new URL(delimiter < 0 ? path : path.substring(0, delimiter));
+        } catch (final IOException e) {
+            throw new IllegalStateException(url.toExternalForm(), e);
+        }
     }
 
     /**
@@ -190,11 +198,7 @@ public final class Handler extends URLStreamHandler {
 
     @Override
     protected String toExternalForm(final URL url) {
-        try {
-            return String.format("%s:%s%s", url.getProtocol(), enclosedURL(url).toExternalForm(), path(url));
-        } catch (final IOException e) {
-            throw new IllegalStateException(e);
-        }
+        return String.format("%s:%s%s", url.getProtocol(), enclosedURL(url).toExternalForm(), path(url));
     }
 
     /**
@@ -277,37 +281,109 @@ public final class Handler extends URLStreamHandler {
         return PROTOCOL.equals(jarjar.getProtocol()) ? enclosedURL(jarjar) : url;
     }
 
-    /**
-     * Unloads the contents of the given URL from the caches.
-     *
-     * @param url the URL to unload the contents of.
-     *
-     * @throws IOException when processing the URL fails.
-     */
-    public static void unload(final URL url) throws IOException {
-        if (PROTOCOL.equals(url.getProtocol())) {
-            cache.remove(enclosedURL(url).toExternalForm());
-        }
-    }
-
     private static URL unwrap(final URL url) throws IOException {
         final URL root = Archives.containing(url);
         return root == null ? url : root;
     }
 
-    private static final Map<String, Map<String, byte[]>> cache = new HashMap<String, Map<String, byte[]>>();
+    /**
+     * @author Tibor Varga
+     */
+    private static class CacheContext {
+
+        public final UUID id;
+        public final CacheContext last;
+
+        private CacheContext(final UUID id, final CacheContext last) {
+            this.id = id;
+            this.last = last;
+        }
+    }
+
+    private static final ThreadLocal<CacheContext> context = new InheritableThreadLocal<CacheContext>() {
+        @Override
+        protected CacheContext childValue(final CacheContext parent) {
+            return parent == null ? null : new CacheContext(parent.id, null);
+        }
+    };
+
+    private static final Map<UUID, Map<String, Map<String, byte[]>>> localCache = new HashMap<UUID, Map<String, Map<String, byte[]>>>();
+    private static final Map<String, Map<String, byte[]>> globalCache = new HashMap<String, Map<String, byte[]>>();
+
+    /**
+     * Isolates the effects on the caching of nested archives of the given <code>command</code> from the rest of the application. The isolated cache is
+     * inherited by threads created by <code>command</code> but it will not be stable outside a call to this method or {@link
+     * #access(org.fluidity.foundation.Command.Process)} by a new thread made while this call was still in scope.
+     *
+     * @param command the command that potentially accesses nested archives.
+     * @param <E>     the exception type thrown by the command.
+     */
+    public static <E extends Exception> void access(final Job<E> command) throws E {
+        access(new Process<Void, E>() {
+            public Void run() throws E {
+                command.run();
+                return null;
+            }
+        });
+    }
+
+    /**
+     * Isolates the effects on the caching of nested archives of the given <code>command</code> from the rest of the application. The isolated cache is
+     * inherited by threads created by <code>command</code> but it will not be stable outside a call to this method or {@link
+     * #access(org.fluidity.foundation.Command.Job)} by a new thread made while this call was still in scope.
+     *
+     * @param command the command that potentially accesses nested archives.
+     * @param <T>     the return type of the command.
+     * @param <E>     the exception type thrown by the command.
+     *
+     * @return whatever the command returns.
+     */
+    public static <T, E extends Exception> T access(final Process<T, E> command) throws E {
+        final CacheContext saved = context.get();
+        UUID id;
+
+        synchronized (localCache) {
+            for (id = UUID.randomUUID(); localCache.containsKey(id); id = UUID.randomUUID()) {
+                // empty
+            }
+
+            final Map<String, Map<String, byte[]>> map;
+
+            synchronized (globalCache) {
+                map = new HashMap<String, Map<String, byte[]>>(globalCache);
+            }
+
+            localCache.put(id, map);
+
+            CacheContext local = saved;
+            for (; local != null; local = local.last) {
+                map.putAll(localCache.get(local.id));
+            }
+        }
+
+        context.set(new CacheContext(id, saved));
+
+        try {
+            return command.run();
+        } finally {
+            context.set(saved);
+
+            synchronized (localCache) {
+                localCache.remove(id);
+            }
+        }
+    }
 
     static byte[] contents(final URL url) throws IOException {
-        return load(url).get(path(url));
+        return load(enclosedURL(url)).get(path(url));
     }
 
     @SuppressWarnings("SynchronizationOnLocalVariableOrMethodParameter")
-    static Map<String, byte[]> load(final URL url) throws IOException {
-        assert url != null;
-
-        final URL root = enclosedURL(url);
+    static Map<String, byte[]> load(final URL root) throws IOException {
+        assert root != null;
         final String key = root.toExternalForm();
 
+        final Map<String, Map<String, byte[]>> cache = localCache();
         Map<String, byte[]> content = cache.get(key);
 
         if (content == null) {
@@ -343,6 +419,39 @@ public final class Handler extends URLStreamHandler {
                 return content;
             }
         }
+    }
+
+    private static Map<String, Map<String, byte[]>> localCache() {
+        CacheContext local = context.get();
+        final UUID id = local == null ? null : local.id;
+        assert local == null | id != null;
+
+        final Map<String, Map<String, byte[]>> cache;
+
+        synchronized (localCache) {
+            cache = id == null ? globalCache : localCache.get(id);
+        }
+
+        assert cache != null;
+        return cache;
+    }
+
+    /**
+     * Unloads the contents of the given URL from the caches.
+     *
+     * @param url the URL to unload the contents of.
+     *
+     * @throws IOException when processing the URL fails.
+     */
+    public static void unload(final URL url) throws IOException {
+        if (PROTOCOL.equals(url.getProtocol())) {
+            localCache().remove(enclosedURL(url).toExternalForm());
+        }
+    }
+
+    static boolean loaded(final URL url, final boolean local) {
+        final Map<String, Map<String, byte[]>> cache = local ? localCache() : globalCache;
+        return cache.containsKey(enclosedURL(url).toExternalForm());
     }
 
     /**

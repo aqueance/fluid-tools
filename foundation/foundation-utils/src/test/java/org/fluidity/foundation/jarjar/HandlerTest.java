@@ -23,6 +23,10 @@ import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.jar.JarEntry;
 
 import org.fluidity.foundation.Archives;
@@ -31,12 +35,18 @@ import org.fluidity.foundation.Streams;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import static org.fluidity.foundation.Command.Job;
+
 /**
  * @author Tibor Varga
  */
 public class HandlerTest {
 
-    private final URL container = getClass().getClassLoader().getResource("level0.jar");
+    private final ClassLoader loader = getClass().getClassLoader();
+
+    private final URL container = loader.getResource("level0.jar");
+    private final URL samples = loader.getResource("samples.jar");
+
     private static final byte[] BUFFER = new byte[128];
 
     @DataProvider(name = "caching")
@@ -82,11 +92,116 @@ public class HandlerTest {
     }
 
     @Test
-    public void testCaching() throws Exception {
-        final URL url = Handler.formatURL(container, "level1-2.jar", "level2.jar", "level3.jar", "level3.txt");
+    public void testSingleThreadedCaching() throws Exception {
+        final URL url1 = Handler.formatURL(container, "level1-1.jar", "level2.jar", "level3.jar", "level3.txt");
+        final URL url2 = Handler.formatURL(samples, "META-INF/dependencies/dependency-1.jar");
 
-        Handler.load(url);
-        Archives.Nested.unload(url);
+        Handler.contents(url1);
+        assert Handler.loaded(url1, true);
+        assert Handler.loaded(url1, false);
+
+        Archives.Nested.access(new Job<IOException>() {
+            public void run() throws IOException {
+                assert Handler.loaded(url1, true);
+                assert Handler.loaded(url1, false);
+
+                Archives.Nested.access(new Job<IOException>() {
+                    public void run() throws IOException {
+                        assert Handler.loaded(url1, true);
+                        assert Handler.loaded(url1, false);
+
+                        Handler.contents(url2);
+                        assert Handler.loaded(url2, true);
+                        assert !Handler.loaded(url2, false);
+
+                        Archives.Nested.unload(url1);
+                        assert !Handler.loaded(url1, true);
+                        assert Handler.loaded(url1, false);
+
+                        assert Handler.loaded(url2, true);
+                        assert !Handler.loaded(url2, false);
+                        Archives.Nested.unload(url2);
+                        assert !Handler.loaded(url2, true);
+                        assert !Handler.loaded(url2, false);
+                    }
+                });
+
+                assert Handler.loaded(url1, true);
+                assert Handler.loaded(url1, false);
+
+                Archives.Nested.unload(url1);
+                assert !Handler.loaded(url1, true);
+                assert Handler.loaded(url1, false);
+            }
+        });
+
+        assert Handler.loaded(url1, true);
+        assert Handler.loaded(url1, false);
+
+        Archives.Nested.unload(url1);
+        assert !Handler.loaded(url1, true);
+        assert !Handler.loaded(url1, false);
+    }
+
+    @Test
+    @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
+    public void testMultiThreadedCaching() throws Exception {
+        final URL url1 = Handler.formatURL(container, "level1-1.jar", "level2.jar", "level3.jar", "level3.txt");
+        final URL url2 = Handler.formatURL(samples, "META-INF/dependencies/dependency-1.jar");
+
+        final CyclicBarrier barrier = new CyclicBarrier(2);
+        final AtomicBoolean running = new AtomicBoolean();
+        final AtomicReference<Exception> error = new AtomicReference<Exception>();
+
+        final Thread thread = new Thread() {
+            @Override
+            public void run() {
+                running.set(true);
+
+                try {
+                    Archives.Nested.access(new Job<Exception>() {
+                        public void run() throws Exception {
+                            barrier.await(100, TimeUnit.MILLISECONDS);
+
+                            assert Handler.loaded(url1, true);
+
+                            Handler.contents(url2);
+                            assert Handler.loaded(url2, true);
+
+                            Archives.Nested.unload(url1);
+                            assert !Handler.loaded(url1, true);
+
+                            assert Handler.loaded(url2, true);
+                            Archives.Nested.unload(url2);
+                            assert !Handler.loaded(url2, true);
+                        }
+                    });
+                } catch (final Exception e) {
+                    error.set(e);
+                }
+            }
+        };
+
+        try {
+            Archives.Nested.access(new Job<Exception>() {
+                public void run() throws Exception {
+                    Handler.contents(url1);
+                    assert Handler.loaded(url1, true);
+
+                    thread.start();
+                    barrier.await(100, TimeUnit.MILLISECONDS);
+                    assert running.get();
+
+                    Archives.Nested.unload(url1);
+                    assert !Handler.loaded(url1, true);
+                }
+            });
+        } finally {
+            thread.join(200);
+        }
+
+        assert !thread.isAlive();
+        assert error.get() == null : error.get();
     }
 
     @Test

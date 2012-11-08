@@ -36,6 +36,9 @@ import java.util.zip.ZipInputStream;
 
 import org.fluidity.foundation.jarjar.Handler;
 
+import static org.fluidity.foundation.Command.Job;
+import static org.fluidity.foundation.Command.Process;
+
 /**
  * Convenience methods to work with Java archives.
  * <h3>Usage Example</h3>
@@ -513,16 +516,6 @@ public final class Archives extends Utility {
         }
 
         /**
-         * Unloads a AR archive identified by its URL that was previously loaded to cache nested archives found within. The protocol of the URL must either be
-         * "jar" or "jarjar", as produced by {@link Handler#formatURL(URL, String...)}.
-         *
-         * @param url the URL to the Java archive to unload.
-         */
-        public static void unload(final URL url) throws IOException {
-            Handler.unload(url);
-        }
-
-        /**
          * Returns the JAR manifest attribute listing the embedded dependency paths for the given name.
          *
          * @param name the name of the dependency list; may be <code>null</code>
@@ -617,6 +610,42 @@ public final class Archives extends Utility {
             }
 
             return Lists.asArray(String.class, list);
+        }
+
+        /**
+         * Unloads from the cache the root JAR archive that contains the archive identified by the given URL.
+         *
+         * @param url the URL identifying the Java archive to unload.
+         */
+        public static void unload(final URL url) throws IOException {
+            Handler.unload(url);
+        }
+
+        /**
+         * Isolates the effects on the caching of nested archives of the given <code>command</code> from the rest of the application. The isolated cache is
+         * inherited by threads created by <code>command</code> but it will not be stable outside a call to this method or {@link #access(Command.Process)} by
+         * a new thread made while this call was still in scope.
+         *
+         * @param command the command that potentially accesses nested archives.
+         * @param <E>     the exception type thrown by the command.
+         */
+        public static <E extends Exception> void access(final Job<E> command) throws E {
+            Handler.access(command);
+        }
+
+        /**
+         * Isolates the effects on the caching of nested archives of the given <code>command</code> from the rest of the application. The isolated cache is
+         * inherited by threads created by <code>command</code> but it will not be stable outside a call to this method or {@link #access(Command.Job)} by
+         * a new thread made while this call was still in scope.
+         *
+         * @param command the command that potentially accesses nested archives.
+         * @param <T>     the return type of the command.
+         * @param <E>     the exception type thrown by the command.
+         *
+         * @return whatever the command returns.
+         */
+        public static <T, E extends Exception> T access(final Process<T, E> command) throws E {
+            return Handler.access(command);
         }
     }
 

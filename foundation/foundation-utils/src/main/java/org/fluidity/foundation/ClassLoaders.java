@@ -30,6 +30,7 @@ import java.util.UUID;
 import org.apache.xbean.classloader.JarFileClassLoader;
 
 import static org.fluidity.foundation.Command.Function;
+import static org.fluidity.foundation.Command.Process;
 
 /**
  * Utility methods related to {@linkplain ClassLoader class loaders}.
@@ -255,9 +256,9 @@ public final class ClassLoaders extends Utility {
      *
      * @param parent    the class loader to load the method parameters and the return values; this class loader must not see the given <code>type</code>.
      * @param urls      the list of URLs to use for the isolated class loader; make sure the list contains the JARs containing the type to load.
-     * @param type      the command class to load and invoke the given method on.
-     * @param run       the method to call; the parameter types and the return type must be loaded by the parent class loader and the declaring class must be
-     *                  either visible to the <code>parent</code> class loader or listed in the given list of URLs.
+     * @param type      the command class to load and invoke the given method on; must have a public zero-argument constructor.
+     * @param run       the public method to call; the parameter types and the return type must be loaded by the <code>parent</code> class loader and the declaring
+     *                  class must be either visible to the <code>parent</code> class loader or listed in the given list of URLs.
      * @param arguments the arguments to pass to the command.
      * @param <T>       the return type of the given <code>method</code>.
      *
@@ -270,27 +271,41 @@ public final class ClassLoaders extends Utility {
     @SuppressWarnings("unchecked")
     public static <T> T isolate(final ClassLoader parent, final Collection<URL> urls, final Class<?> type, final Method run, final Object... arguments)
             throws Exceptions.Wrapper, ClassNotFoundException, InstantiationException {
-        final ClassLoader isolated = create(parent, Lists.asArray(URL.class, urls));
-
         try {
+            return Archives.Nested.access(new Process<T, RuntimeException>() {
+                public T run() {
+                    return Exceptions.wrap(new Process<T, Exception>() {
+                        public T run() throws Exception {
+                            final ClassLoader isolated = create(parent, Lists.asArray(URL.class, urls));
 
-            // find the command
-            final Object command = isolated.loadClass(type.getName()).newInstance();
+                            try {
 
-            // find the method to call in the other class loader
-            final Method method = isolated.loadClass(run.getDeclaringClass().getName()).getDeclaredMethod(run.getName(), run.getParameterTypes());
+                                // find the command
+                                final Object command = isolated.loadClass(type.getName()).newInstance();
 
-            return (T) Methods.invoke(true, method, command, arguments);
-        } catch (final NoSuchMethodException e) {
-            throw new AssertionError(e);
-        } catch (final IllegalAccessException e) {
-            throw new AssertionError(e);
-        } finally {
-            try {
-                ((Closeable) isolated).close();
-            } catch (final IOException e) {
-                // ignore
-            }
+                                // find the method to call in the other class loader
+                                final Method method = isolated.loadClass(run.getDeclaringClass().getName()).getDeclaredMethod(run.getName(), run.getParameterTypes());
+
+                                return (T) Methods.invoke(true, method, command, arguments);
+                            } catch (final NoSuchMethodException e) {
+                                throw new AssertionError(e);
+                            } catch (final IllegalAccessException e) {
+                                throw new AssertionError(e);
+                            } finally {
+                                try {
+                                    ((Closeable) isolated).close();
+                                } catch (final IOException e) {
+                                    // ignore
+                                }
+                            }
+                        }
+                    });
+                }
+            });
+        } catch (final Exceptions.Wrapper wrapper) {
+            throw wrapper
+                    .rethrow(ClassNotFoundException.class)
+                    .rethrow(InstantiationException.class);
         }
     }
 
