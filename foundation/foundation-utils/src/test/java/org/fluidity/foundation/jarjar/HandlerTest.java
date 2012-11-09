@@ -96,51 +96,51 @@ public class HandlerTest {
         final URL url1 = Handler.formatURL(container, "level1-1.jar", "level2.jar", "level3.jar", "level3.txt");
         final URL url2 = Handler.formatURL(samples, "META-INF/dependencies/dependency-1.jar");
 
-        Handler.contents(url1, true);
-        assert Handler.loaded(url1, true);
-        assert Handler.loaded(url1, false);
+        Handler.Cache.contents(url1, true);
+        assert Handler.Cache.loaded(url1, true);
+        assert Handler.Cache.loaded(url1, false);
 
         Archives.Nested.access(new Job<IOException>() {
             public void run() throws IOException {
-                assert Handler.loaded(url1, true);
-                assert Handler.loaded(url1, false);
+                assert Handler.Cache.loaded(url1, true);
+                assert Handler.Cache.loaded(url1, false);
 
                 Archives.Nested.access(new Job<IOException>() {
                     public void run() throws IOException {
-                        assert Handler.loaded(url1, true);
-                        assert Handler.loaded(url1, false);
+                        assert Handler.Cache.loaded(url1, true);
+                        assert Handler.Cache.loaded(url1, false);
 
-                        Handler.contents(url2, true);
-                        assert Handler.loaded(url2, true);
-                        assert !Handler.loaded(url2, false);
+                        Handler.Cache.contents(url2, true);
+                        assert Handler.Cache.loaded(url2, true);
+                        assert !Handler.Cache.loaded(url2, false);
 
                         Archives.Nested.unload(url1);
-                        assert !Handler.loaded(url1, true);
-                        assert Handler.loaded(url1, false);
+                        assert !Handler.Cache.loaded(url1, true);
+                        assert Handler.Cache.loaded(url1, false);
 
-                        assert Handler.loaded(url2, true);
-                        assert !Handler.loaded(url2, false);
+                        assert Handler.Cache.loaded(url2, true);
+                        assert !Handler.Cache.loaded(url2, false);
                         Archives.Nested.unload(url2);
-                        assert !Handler.loaded(url2, true);
-                        assert !Handler.loaded(url2, false);
+                        assert !Handler.Cache.loaded(url2, true);
+                        assert !Handler.Cache.loaded(url2, false);
                     }
                 });
 
-                assert Handler.loaded(url1, true);
-                assert Handler.loaded(url1, false);
+                assert Handler.Cache.loaded(url1, true);
+                assert Handler.Cache.loaded(url1, false);
 
                 Archives.Nested.unload(url1);
-                assert !Handler.loaded(url1, true);
-                assert Handler.loaded(url1, false);
+                assert !Handler.Cache.loaded(url1, true);
+                assert Handler.Cache.loaded(url1, false);
             }
         });
 
-        assert Handler.loaded(url1, true);
-        assert Handler.loaded(url1, false);
+        assert Handler.Cache.loaded(url1, true);
+        assert Handler.Cache.loaded(url1, false);
 
         Archives.Nested.unload(url1);
-        assert !Handler.loaded(url1, true);
-        assert !Handler.loaded(url1, false);
+        assert !Handler.Cache.loaded(url1, true);
+        assert !Handler.Cache.loaded(url1, false);
     }
 
     @Test
@@ -163,17 +163,17 @@ public class HandlerTest {
                         public void run() throws Exception {
                             barrier.await(100, TimeUnit.MILLISECONDS);
 
-                            assert Handler.loaded(url1, true);
+                            assert Handler.Cache.loaded(url1, true);
 
-                            Handler.contents(url2, true);
-                            assert Handler.loaded(url2, true);
+                            Handler.Cache.contents(url2, true);
+                            assert Handler.Cache.loaded(url2, true);
 
                             Archives.Nested.unload(url1);
-                            assert !Handler.loaded(url1, true);
+                            assert !Handler.Cache.loaded(url1, true);
 
-                            assert Handler.loaded(url2, true);
+                            assert Handler.Cache.loaded(url2, true);
                             Archives.Nested.unload(url2);
-                            assert !Handler.loaded(url2, true);
+                            assert !Handler.Cache.loaded(url2, true);
                         }
                     });
                 } catch (final Exception e) {
@@ -185,15 +185,15 @@ public class HandlerTest {
         try {
             Archives.Nested.access(new Job<Exception>() {
                 public void run() throws Exception {
-                    Handler.contents(url1, true);
-                    assert Handler.loaded(url1, true);
+                    Handler.Cache.contents(url1, true);
+                    assert Handler.Cache.loaded(url1, true);
 
                     thread.start();
                     barrier.await(100, TimeUnit.MILLISECONDS);
                     assert running.get();
 
                     Archives.Nested.unload(url1);
-                    assert !Handler.loaded(url1, true);
+                    assert !Handler.Cache.loaded(url1, true);
                 }
             });
         } finally {

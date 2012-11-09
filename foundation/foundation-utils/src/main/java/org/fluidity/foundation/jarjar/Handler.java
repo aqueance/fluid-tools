@@ -40,6 +40,7 @@ import org.fluidity.foundation.Archives;
 import org.fluidity.foundation.ClassLoaders;
 import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.Streams;
+import org.fluidity.foundation.Utility;
 
 import static org.fluidity.foundation.Command.Job;
 import static org.fluidity.foundation.Command.Process;
@@ -177,7 +178,7 @@ public final class Handler extends URLStreamHandler {
     /**
      * Returns the part of the nested archive URL that identifies the outermost enclosing archive.
      */
-    private static URL enclosedURL(final URL url) {
+    static URL enclosedURL(final URL url) {
         try {
             final String path = url.getFile();
             final int delimiter = path.indexOf(DELIMITER);
@@ -187,18 +188,9 @@ public final class Handler extends URLStreamHandler {
         }
     }
 
-    /**
-     * Returns the part of the nested archive URL that identifies the list of archives, each nested in the outermost archive.
-     */
-    private static String path(final URL url) {
-        final String path = url.getFile();
-        final int delimiter = path.indexOf(DELIMITER);
-        return delimiter < 0 ? path : path.substring(delimiter);
-    }
-
     @Override
     protected String toExternalForm(final URL url) {
-        return String.format("%s:%s%s", url.getProtocol(), enclosedURL(url).toExternalForm(), path(url));
+        return String.format("%s:%s%s", url.getProtocol(), enclosedURL(url).toExternalForm(), Cache.path(url));
     }
 
     /**
@@ -237,7 +229,7 @@ public final class Handler extends URLStreamHandler {
                 }
 
                 // find the JAR resource, if any
-                final String[] parts = path(root).split(Archives.DELIMITER);
+                final String[] parts = Cache.path(root).split(Archives.DELIMITER);
 
                 if (parts.length > 1) {
                     specification.add(parts[1]);
@@ -281,34 +273,16 @@ public final class Handler extends URLStreamHandler {
         return PROTOCOL.equals(jarjar.getProtocol()) ? enclosedURL(jarjar) : url;
     }
 
-    private static URL unwrap(final URL url) throws IOException {
-        final URL root = Archives.containing(url);
-        return root == null ? url : root;
-    }
-
     /**
-     * @author Tibor Varga
+     * Unloads the contents of the given URL from the caches.
+     *
+     * @param url the URL to unload the contents of.
+     *
+     * @throws java.io.IOException when processing the URL fails.
      */
-    private static class CacheContext {
-
-        public final UUID id;
-        public final CacheContext last;
-
-        private CacheContext(final UUID id, final CacheContext last) {
-            this.id = id;
-            this.last = last;
-        }
+    public static void unload(final URL url) throws IOException {
+        Cache.unload(url);
     }
-
-    private static final ThreadLocal<CacheContext> context = new InheritableThreadLocal<CacheContext>() {
-        @Override
-        protected CacheContext childValue(final CacheContext parent) {
-            return parent == null ? null : new CacheContext(parent.id, null);
-        }
-    };
-
-    private static final Map<UUID, Map<String, Map<String, byte[]>>> localCache = new HashMap<UUID, Map<String, Map<String, byte[]>>>();
-    private static final Map<String, Map<String, byte[]>> globalCache = new HashMap<String, Map<String, byte[]>>();
 
     /**
      * Isolates the effects on the caching of nested archives of the given <code>command</code> from the rest of the application. The isolated cache is
@@ -319,12 +293,7 @@ public final class Handler extends URLStreamHandler {
      * @param <E>     the exception type thrown by the command.
      */
     public static <E extends Exception> void access(final Job<E> command) throws E {
-        access(new Process<Void, E>() {
-            public Void run() throws E {
-                command.run();
-                return null;
-            }
-        });
+        Cache.access(command);
     }
 
     /**
@@ -339,219 +308,12 @@ public final class Handler extends URLStreamHandler {
      * @return whatever the command returns.
      */
     public static <T, E extends Exception> T access(final Process<T, E> command) throws E {
-        final CacheContext saved = context.get();
-        UUID id;
-
-        synchronized (localCache) {
-            for (id = UUID.randomUUID(); localCache.containsKey(id); id = UUID.randomUUID()) {
-                // empty
-            }
-
-            final Map<String, Map<String, byte[]>> map;
-
-            synchronized (globalCache) {
-                map = new HashMap<String, Map<String, byte[]>>(globalCache);
-            }
-
-            localCache.put(id, map);
-
-            CacheContext local = saved;
-            for (; local != null; local = local.last) {
-                map.putAll(localCache.get(local.id));
-            }
-        }
-
-        context.set(new CacheContext(id, saved));
-
-        try {
-            return command.run();
-        } finally {
-            context.set(saved);
-
-            synchronized (localCache) {
-                localCache.remove(id);
-            }
-        }
+        return Cache.access(command);
     }
 
-    static byte[] contents(final URL url, final boolean load) throws IOException {
-        final Map<String, byte[]> cached = cached(enclosedURL(url), load);
-        return cached == null ? null : cached.get(path(url));
-    }
-
-    @SuppressWarnings("SynchronizationOnLocalVariableOrMethodParameter")
-    static Map<String, byte[]> cached(final URL root, final boolean load) throws IOException {
-        assert root != null;
-        final String key = root.toExternalForm();
-
-        final Map<String, Map<String, byte[]>> cache = localCache();
-        Map<String, byte[]> content = cache.get(key);
-
-        if (content == null && load) {
-            content = new HashMap<String, byte[]>();
-
-            synchronized (content) {
-                synchronized (cache) {
-                    if (cache.containsKey(key)) {
-                        content = cache.get(key);
-
-                        synchronized (content) {
-                            return content;
-                        }
-                    } else {
-                        cache.put(key, content);
-                    }
-                }
-
-                final URLConnection connection = root.openConnection();
-                connection.setUseCaches(true);
-
-                final ZipInputStream stream = new ZipInputStream(connection.getInputStream());
-                try {
-                    load(content, new HashMap<Metadata, String>(), new byte[1024 * 1024], "", stream, stream.getNextEntry());
-                } catch (final IOException e) {
-                    stream.close();
-                }
-
-                return content;
-            }
-        } else if (content != null) {
-            synchronized (content) {
-                return content;
-            }
-        } else {
-            return null;
-        }
-    }
-
-    private static Map<String, Map<String, byte[]>> localCache() {
-        CacheContext local = context.get();
-        final UUID id = local == null ? null : local.id;
-        assert local == null | id != null;
-
-        final Map<String, Map<String, byte[]>> cache;
-
-        synchronized (localCache) {
-            cache = id == null ? globalCache : localCache.get(id);
-        }
-
-        assert cache != null;
-        return cache;
-    }
-
-    /**
-     * Unloads the contents of the given URL from the caches.
-     *
-     * @param url the URL to unload the contents of.
-     *
-     * @throws IOException when processing the URL fails.
-     */
-    public static void unload(final URL url) throws IOException {
-        if (PROTOCOL.equals(url.getProtocol())) {
-            localCache().remove(enclosedURL(url).toExternalForm());
-        }
-    }
-
-    static boolean loaded(final URL url, final boolean local) {
-        final Map<String, Map<String, byte[]>> cache = local ? localCache() : globalCache;
-        return cache.containsKey(enclosedURL(url).toExternalForm());
-    }
-
-    /**
-     * @author Tibor Varga
-     */
-    private static class Metadata {
-
-        private final String name;
-        private final long size;
-        private final long crc;
-
-        Metadata(final String name, final long size, final long crc) {
-            assert name != null;
-            final String[] components = name.split("/");
-            this.name = components[components.length - 1];
-            this.size = size;
-            this.crc = crc;
-        }
-
-        @Override
-        public boolean equals(final Object o) {
-            if (this == o) {
-                return true;
-            }
-
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-
-            final Metadata that = (Metadata) o;
-            return size == that.size && crc == that.crc && name.equals(that.name);
-        }
-
-        @Override
-        public int hashCode() {
-            int result = name.hashCode();
-            result = 31 * result + (int) (size ^ (size >>> 32));
-            result = 31 * result + (int) (crc ^ (crc >>> 32));
-            return result;
-        }
-
-        @Override
-        public String toString() {
-            return String.format("%s (%d: %d)", name, size, crc);
-        }
-    }
-
-    private static void load(final Map<String, byte[]> content,
-                             final Map<Metadata, String> meta,
-                             final byte[] buffer,
-                             final String base,
-                             final ZipInputStream stream,
-                             final ZipEntry first) throws IOException {
-        for (ZipEntry next = first; next != null; stream.closeEntry(), next = stream.getNextEntry()) {
-            final String name = next.getName();
-
-            if (!name.endsWith("/")) {
-                final String entry = String.format("%s%s%s", base, DELIMITER, name);
-                final byte[] bytes = Streams.load(stream, buffer, false);
-
-                final ZipInputStream nested = new ZipInputStream(new ByteArrayInputStream(bytes));
-                try {
-                    final ZipEntry check = nested.getNextEntry();
-
-                    if (check != null) {
-                        final Metadata metadata = new Metadata(name, next.getSize(), next.getCrc());
-                        final String reference = meta.get(metadata);
-
-                        if (reference == null) {
-                            meta.put(metadata, entry);
-                            content.put(entry, bytes);
-
-                            load(content, meta, buffer, entry, nested, check);
-                        } else {
-                            content.put(entry, content.get(reference));
-
-                            final Map<String, byte[]> entries = new HashMap<String, byte[]>();
-                            final String prefix = reference.concat(DELIMITER);
-
-                            for (final Map.Entry<String, byte[]> candidate : content.entrySet()) {
-                                final String key = candidate.getKey();
-
-                                if (key.startsWith(prefix)) {
-                                    entries.put(entry.concat(key.substring(reference.length())), candidate.getValue());
-                                }
-                            }
-
-                            content.putAll(entries);
-                        }
-                    } else {
-                        content.put(entry, bytes);
-                    }
-                } finally {
-                    nested.close();
-                }
-            }
-        }
+    private static URL unwrap(final URL url) throws IOException {
+        final URL root = Archives.containing(url);
+        return root == null ? url : root;
     }
 
     /**
@@ -605,7 +367,7 @@ public final class Handler extends URLStreamHandler {
             }
 
             if (getUseCaches()) {
-                final byte[] contents = Handler.contents(url, true);
+                final byte[] contents = Cache.contents(url, true);
 
                 if (contents == null) {
                     throw new FileNotFoundException(url.toExternalForm());
@@ -619,7 +381,7 @@ public final class Handler extends URLStreamHandler {
                 Archives.read(root.getInputStream(), url, new Archives.Entry() {
 
                     // each successive path is nested in the archive at the previous index
-                    private final String[] paths = path(url).split(DELIMITER);
+                    private final String[] paths = Cache.path(url).split(DELIMITER);
 
                     // the first path is ignored since that is the enclosing archive
                     private int index = 1;
@@ -666,6 +428,293 @@ public final class Handler extends URLStreamHandler {
         public void setDoOutput(final boolean value) {
             if (value) {
                 throw new IllegalStateException("Output not supported on nested URLs");
+            }
+        }
+    }
+
+    /**
+     * Caches archive contents.
+     *
+     * @author Tibor Varga
+     */
+    static class Cache extends Utility {
+
+        private Cache() { }
+
+        /**
+         * Returns the part of the nested archive URL that identifies the list of archives, each nested in the outermost archive.
+         */
+        static String path(final URL url) {
+            final String path = url.getFile();
+            final int delimiter = path.indexOf(DELIMITER);
+            return delimiter < 0 ? path : path.substring(delimiter);
+        }
+
+        /**
+         * Isolates the effects on the caching of nested archives of the given <code>command</code> from the rest of the application. The isolated cache is
+         * inherited by threads created by <code>command</code> but it will not be stable outside a call to this method or {@link
+         * #access(org.fluidity.foundation.Command.Process)} by a new thread made while this call was still in scope.
+         *
+         * @param command the command that potentially accesses nested archives.
+         * @param <E>     the exception type thrown by the command.
+         */
+        static <E extends Exception> void access(final Job<E> command) throws E {
+            access(new Process<Void, E>() {
+                public Void run() throws E {
+                    command.run();
+                    return null;
+                }
+            });
+        }
+
+        /**
+         * Isolates the effects on the caching of nested archives of the given <code>command</code> from the rest of the application. The isolated cache is
+         * inherited by threads created by <code>command</code> but it will not be stable outside a call to this method or {@link
+         * #access(org.fluidity.foundation.Command.Job)} by a new thread made while this call was still in scope.
+         *
+         * @param command the command that potentially accesses nested archives.
+         * @param <T>     the return type of the command.
+         * @param <E>     the exception type thrown by the command.
+         *
+         * @return whatever the command returns.
+         */
+        static <T, E extends Exception> T access(final Process<T, E> command) throws E {
+            final CacheContext saved = context.get();
+            UUID id;
+
+            synchronized (localCache) {
+                for (id = UUID.randomUUID(); localCache.containsKey(id); id = UUID.randomUUID()) {
+                    // empty
+                }
+
+                final Map<String, Map<String, byte[]>> map;
+
+                synchronized (globalCache) {
+                    map = new HashMap<String, Map<String, byte[]>>(globalCache);
+                }
+
+                localCache.put(id, map);
+
+                CacheContext local = saved;
+                for (; local != null; local = local.last) {
+                    map.putAll(localCache.get(local.id));
+                }
+            }
+
+            context.set(new CacheContext(id, saved));
+
+            try {
+                return command.run();
+            } finally {
+                context.set(saved);
+
+                synchronized (localCache) {
+                    localCache.remove(id);
+                }
+            }
+        }
+
+        static byte[] contents(final URL url, final boolean load) throws IOException {
+            final Map<String, byte[]> archive = cached(enclosedURL(url), load);
+            return archive == null ? null : archive.get(path(url));
+        }
+
+        @SuppressWarnings("SynchronizationOnLocalVariableOrMethodParameter")
+        static Map<String, byte[]> cached(final URL root, final boolean load) throws IOException {
+            assert root != null;
+            final String key = root.toExternalForm();
+
+            final Map<String, Map<String, byte[]>> cache = localCache();
+            Map<String, byte[]> content = cache.get(key);
+
+            if (content == null && load) {
+                content = new HashMap<String, byte[]>();
+
+                synchronized (content) {
+                    synchronized (cache) {
+                        if (cache.containsKey(key)) {
+                            content = cache.get(key);
+
+                            synchronized (content) {
+                                return content;
+                            }
+                        } else {
+                            cache.put(key, content);
+                        }
+                    }
+
+                    final URLConnection connection = root.openConnection();
+                    connection.setUseCaches(true);
+
+                    final ZipInputStream stream = new ZipInputStream(connection.getInputStream());
+                    try {
+                        load(content, new HashMap<Metadata, String>(), new byte[1024 * 1024], "", stream, stream.getNextEntry());
+                    } catch (final IOException e) {
+                        stream.close();
+                    }
+
+                    return content;
+                }
+            } else if (content != null) {
+                synchronized (content) {
+                    return content;
+                }
+            } else {
+                return null;
+            }
+        }
+
+        private static Map<String, Map<String, byte[]>> localCache() {
+            CacheContext local = context.get();
+            final UUID id = local == null ? null : local.id;
+            assert local == null | id != null;
+
+            final Map<String, Map<String, byte[]>> cache;
+
+            synchronized (localCache) {
+                cache = id == null ? globalCache : localCache.get(id);
+            }
+
+            assert cache != null;
+            return cache;
+        }
+
+        private static void load(final Map<String, byte[]> content,
+                                 final Map<Metadata, String> meta,
+                                 final byte[] buffer,
+                                 final String base,
+                                 final ZipInputStream stream,
+                                 final ZipEntry first) throws IOException {
+            for (ZipEntry next = first; next != null; stream.closeEntry(), next = stream.getNextEntry()) {
+                final String name = next.getName();
+
+                if (!name.endsWith("/")) {
+                    final String entry = String.format("%s%s%s", base, DELIMITER, name);
+                    final byte[] bytes = Streams.load(stream, buffer, false);
+
+                    final ZipInputStream nested = new ZipInputStream(new ByteArrayInputStream(bytes));
+                    try {
+                        final ZipEntry check = nested.getNextEntry();
+
+                        if (check != null) {
+                            final Metadata metadata = new Metadata(name, next.getSize(), next.getCrc());
+                            final String reference = meta.get(metadata);
+
+                            if (reference == null) {
+                                meta.put(metadata, entry);
+                                content.put(entry, bytes);
+
+                                load(content, meta, buffer, entry, nested, check);
+                            } else {
+                                content.put(entry, content.get(reference));
+
+                                final Map<String, byte[]> entries = new HashMap<String, byte[]>();
+                                final String prefix = reference.concat(DELIMITER);
+
+                                for (final Map.Entry<String, byte[]> candidate : content.entrySet()) {
+                                    final String key = candidate.getKey();
+
+                                    if (key.startsWith(prefix)) {
+                                        entries.put(entry.concat(key.substring(reference.length())), candidate.getValue());
+                                    }
+                                }
+
+                                content.putAll(entries);
+                            }
+                        } else {
+                            content.put(entry, bytes);
+                        }
+                    } finally {
+                        nested.close();
+                    }
+                }
+            }
+        }
+
+        /**
+         * Unloads the contents of the given URL from the caches.
+         *
+         * @param url the URL to unload the contents of.
+         *
+         * @throws java.io.IOException when processing the URL fails.
+         */
+        static void unload(final URL url) throws IOException {
+            if (PROTOCOL.equals(url.getProtocol())) {
+                localCache().remove(enclosedURL(url).toExternalForm());
+            }
+        }
+
+        static boolean loaded(final URL url, final boolean local) {
+            final Map<String, Map<String, byte[]>> cache = local ? localCache() : globalCache;
+            return cache.containsKey(enclosedURL(url).toExternalForm());
+        }
+
+        /**
+         * @author Tibor Varga
+         */
+        private static class CacheContext {
+
+            public final UUID id;
+            public final CacheContext last;
+
+            private CacheContext(final UUID id, final CacheContext last) {
+                this.id = id;
+                this.last = last;
+            }
+        }
+
+        private static final ThreadLocal<CacheContext> context = new InheritableThreadLocal<CacheContext>() {
+            @Override
+            protected CacheContext childValue(final CacheContext parent) {
+                return parent == null ? null : new CacheContext(parent.id, null);
+            }
+        };
+
+        private static final Map<UUID, Map<String, Map<String, byte[]>>> localCache = new HashMap<UUID, Map<String, Map<String, byte[]>>>();
+        private static final Map<String, Map<String, byte[]>> globalCache = new HashMap<String, Map<String, byte[]>>();
+
+        /**
+         * @author Tibor Varga
+         */
+        private static class Metadata {
+
+            private final String name;
+            private final long size;
+            private final long crc;
+
+            Metadata(final String name, final long size, final long crc) {
+                assert name != null;
+                final String[] components = name.split("/");
+                this.name = components[components.length - 1];
+                this.size = size;
+                this.crc = crc;
+            }
+
+            @Override
+            public boolean equals(final Object o) {
+                if (this == o) {
+                    return true;
+                }
+
+                if (o == null || getClass() != o.getClass()) {
+                    return false;
+                }
+
+                final Metadata that = (Metadata) o;
+                return size == that.size && crc == that.crc && name.equals(that.name);
+            }
+
+            @Override
+            public int hashCode() {
+                int result = name.hashCode();
+                result = 31 * result + (int) (size ^ (size >>> 32));
+                result = 31 * result + (int) (crc ^ (crc >>> 32));
+                return result;
+            }
+
+            @Override
+            public String toString() {
+                return String.format("%s (%d: %d)", name, size, crc);
             }
         }
     }

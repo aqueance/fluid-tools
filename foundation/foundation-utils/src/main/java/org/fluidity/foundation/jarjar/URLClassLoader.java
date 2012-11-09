@@ -492,7 +492,7 @@ public class URLClassLoader extends SecureClassLoader {
                     final String resource = entry.getName();
                     final CodeSigner[] signers = entry.getCodeSigners();
 
-                    final byte[] cached = Handler.contents(Handler.formatURL(url, resource), false);
+                    final byte[] cached = Handler.Cache.contents(Handler.formatURL(url, resource), true);
                     final byte[] data = cached == null ? Streams.load(stream, buffer, false) : cached;
 
                     if (JarFile.MANIFEST_NAME.equals(resource)) {
