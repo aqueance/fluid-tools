@@ -96,7 +96,7 @@ public class HandlerTest {
         final URL url1 = Handler.formatURL(container, "level1-1.jar", "level2.jar", "level3.jar", "level3.txt");
         final URL url2 = Handler.formatURL(samples, "META-INF/dependencies/dependency-1.jar");
 
-        Handler.Cache.contents(url1, true);
+        Handler.Cache.contents(url1);
         assert Handler.Cache.loaded(url1, true);
         assert Handler.Cache.loaded(url1, false);
 
@@ -110,7 +110,7 @@ public class HandlerTest {
                         assert Handler.Cache.loaded(url1, true);
                         assert Handler.Cache.loaded(url1, false);
 
-                        Handler.Cache.contents(url2, true);
+                        Handler.Cache.contents(url2);
                         assert Handler.Cache.loaded(url2, true);
                         assert !Handler.Cache.loaded(url2, false);
 
@@ -165,7 +165,7 @@ public class HandlerTest {
 
                             assert Handler.Cache.loaded(url1, true);
 
-                            Handler.Cache.contents(url2, true);
+                            Handler.Cache.contents(url2);
                             assert Handler.Cache.loaded(url2, true);
 
                             Archives.Nested.unload(url1);
@@ -185,7 +185,7 @@ public class HandlerTest {
         try {
             Archives.Nested.access(new Job<Exception>() {
                 public void run() throws Exception {
-                    Handler.Cache.contents(url1, true);
+                    Handler.Cache.contents(url1);
                     assert Handler.Cache.loaded(url1, true);
 
                     thread.start();

@@ -59,15 +59,60 @@
             <version>${osgi.specification.version}</version>
             <scope>provided</scope>
         </dependency>
-
-        <dependency>
-            <groupId>${fluidity.public.groupId}</groupId>
-            <artifactId>fluid-tools-osgi-bundle</artifactId>
-            <version>${project.version}</version>
-            <type>pom</type>
-        </dependency>
-
     </dependencies>
+
+    <profiles>
+        <profile>
+            <id>standalone</id>
+            <activation><property><name>!leak-test</name></property></activation>
+
+            <dependencies>
+                <dependency>
+                    <groupId>${fluidity.public.groupId}</groupId>
+                    <artifactId>fluid-tools-osgi-bundle</artifactId>
+                    <version>${project.version}</version>
+                    <type>pom</type>
+                </dependency>
+            </dependencies>
+        </profile>
+
+        <profile>
+            <id>stripped</id>
+            <activation><property><name>leak-test</name></property></activation>
+
+            <dependencies>
+                <dependency>
+                    <groupId>${fluidity.public.groupId}</groupId>
+                    <artifactId>fluid-tools-osgi-bundle</artifactId>
+                    <version>${project.version}</version>
+                    <type>pom</type>
+                    <scope>provided</scope>
+                </dependency>
+
+                <dependency>
+                    <groupId>${fluidity.deployment.groupId}</groupId>
+                    <artifactId>osgi-bundle-bootstrap</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+            </dependencies>
+        </profile>
+
+        <profile>
+            <id>extras</id>
+            <activation><activeByDefault>false</activeByDefault></activation>
+
+            <dependencies>
+                <!-- Just playing with something that is not built along with Fluid Tools as this is not an active profile -->
+                <dependency>
+                    <groupId>org.ow2.asm</groupId>
+                    <artifactId>asm</artifactId>
+                    <version>4.0</version>
+                    <scope>provided</scope>
+                    <optional>false</optional>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
 
     <build>
         <plugins>
@@ -141,24 +186,5 @@
 
         </plugins>
     </build>
-
-    <profiles>
-
-        <profile>
-            <id>extras</id>
-            <activation><activeByDefault>false</activeByDefault></activation>
-
-            <dependencies>
-                <!-- Anything that is not built along with us (as this is not an active profile)-->
-                <dependency>
-                    <groupId>org.ow2.asm</groupId>
-                    <artifactId>asm</artifactId>
-                    <version>4.0</version>
-                    <scope>provided</scope>
-                    <optional>false</optional>
-                </dependency>
-            </dependencies>
-        </profile>
-    </profiles>
 
 </project>

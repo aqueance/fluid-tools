@@ -98,9 +98,8 @@ public final class Archives extends Utility {
     private Archives() { }
 
     /**
-     * Reads entries from a JAR file. If present, the archive manifest is read first after the archive has been {@linkplain
-     * JarInputStream#JarInputStream(InputStream, boolean) verified} but its {@linkplain JarEntry entry details} will be restricted to those available in a
-     * {@link ZipEntry}.
+     * Reads entries from a JAR file. If the archive manifest is the first entry in the archive, its {@linkplain JarEntry entry details} will be restricted to
+     * those available in a {@link ZipEntry}.
      *
      * @param cached tells whether a previously cached archive, if any, should be used (<code>true</code>), or a newly loaded one (<code>false</code>).
      * @param url    the URL of the Java archive; this will be passed to the {@link Entry} methods.
@@ -116,11 +115,10 @@ public final class Archives extends Utility {
     }
 
     /**
-     * Reads entries from a JAR file contained in the given stream. If present, the archive manifest is read first after the archive has been {@linkplain
-     * JarInputStream#JarInputStream(InputStream, boolean) verified} but its {@linkplain JarEntry entry details} will be restricted to those available in a
-     * {@link ZipEntry}.
+     * Reads entries from a JAR file contained in the given stream. If the archive manifest is the first entry in the archive, its {@linkplain
+     * JarEntry entry details} will be restricted to those available in a {@link ZipEntry}.
      *
-     * @param input  the archive's content.
+     * @param input  the archive's content; the stream will be {@linkplain InputStream#close() closed} after reading it.
      * @param url    the URL archive is coming from; this will be passed to the {@link Entry} methods.
      * @param reader the reader to process the archive entries.
      *
@@ -129,67 +127,74 @@ public final class Archives extends Utility {
      * @throws IOException when something goes wrong reading the JAR file.
      */
     public static int read(final InputStream input, final URL url, final Entry reader) throws IOException {
-        final byte[] data = Streams.load(input, new byte[16384], true);
+        return read(Streams.load(input, new byte[16384], true), url, reader);
+    }
+
+    /**
+     * Reads entries from a JAR file contained in the given byte array. If the archive manifest is the first entry in the archive, its {@linkplain
+     * JarEntry entry details} will be restricted to those available in a {@link ZipEntry}.
+     *
+     * @param data   the archive's content.
+     * @param url    the URL archive is coming from; this will be passed to the {@link Entry} methods.
+     * @param reader the reader to process the archive entries.
+     *
+     * @return the number of entries read.
+     *
+     * @throws IOException when something goes wrong reading the JAR file.
+     */
+    public static int read(final byte[] data, final URL url, final Entry reader) throws IOException {
         final InputStream content = new ByteArrayInputStream(data);
 
-        try {
-            int count = 0;
-            final JarInputStream jar = new JarInputStream(content, true);
+        int count = 0;
+        final JarInputStream jar = new JarInputStream(content, true);
 
-            ZipEntry manifest;
+        ZipEntry manifest;
 
-            final ZipInputStream zip = new ZipInputStream(new ByteArrayInputStream(data));
-            try {
+        final ZipInputStream zip = new ZipInputStream(new ByteArrayInputStream(data));
+        manifest = zip.getNextEntry();
+
+        if (manifest != null) {
+            if (manifest.getName().equals(META_INF.concat("/"))) {
+                zip.closeEntry();
                 manifest = zip.getNextEntry();
+            }
 
-                if (manifest != null) {
-                    if (manifest.getName().equals(META_INF.concat("/"))) {
-                        zip.closeEntry();
-                        manifest = zip.getNextEntry();
+            if (manifest != null && !manifest.getName().equals(JarFile.MANIFEST_NAME)) {
+                manifest = null;
+            }
+
+            if (manifest != null) {
+                final JarEntry entry = new JarEntry(manifest);
+
+                if (reader.matches(url, entry)) {
+                    ++count;
+
+                    if (!reader.read(url, entry, new OpenInputStream(zip))) {
+                        return count;
                     }
+                }
+            }
+        }
 
-                    if (manifest != null && !manifest.getName().equals(JarFile.MANIFEST_NAME)) {
-                        manifest = null;
-                    }
+        final InputStream stream = new OpenInputStream(jar);
 
-                    if (manifest != null) {
-                        final JarEntry entry = new JarEntry(manifest);
+        for (JarEntry entry; (entry = jar.getNextJarEntry()) != null; ) {
+            try {
+                if (!entry.isDirectory()) {
+                    if (reader.matches(url, entry)) {
+                        ++count;
 
-                        if (reader.matches(url, entry)) {
-                            ++count;
-
-                            if (!reader.read(url, entry, new OpenInputStream(zip))) {
-                                return count;
-                            }
+                        if (!reader.read(url, entry, stream)) {
+                            return count;
                         }
                     }
                 }
             } finally {
-                zip.close();
+                jar.closeEntry();
             }
-
-            final InputStream stream = new OpenInputStream(jar);
-
-            for (JarEntry entry; (entry = jar.getNextJarEntry()) != null; ) {
-                try {
-                    if (!entry.isDirectory()) {
-                        if (reader.matches(url, entry)) {
-                            ++count;
-
-                            if (!reader.read(url, entry, stream)) {
-                                return count;
-                            }
-                        }
-                    }
-                } finally {
-                    jar.closeEntry();
-                }
-            }
-
-            return count;
-        } finally {
-            content.close();
         }
+
+        return count;
     }
 
     /**
@@ -203,7 +208,8 @@ public final class Archives extends Utility {
      * @throws IOException if the stream cannot be open.
      */
     public static InputStream open(final boolean cached, final URL url) throws IOException {
-        return connection(cached, url).getInputStream();
+        final byte[] data = cached ? Handler.cached(url) : null;
+        return data != null ? new ByteArrayInputStream(data) : connection(cached, url).getInputStream();
     }
 
     /**
@@ -450,7 +456,7 @@ public final class Archives extends Utility {
          *
          * @param url    the URL passed to the originating {@link Archives#read(boolean, URL, Archives.Entry) Archives.read()} call.
          * @param entry  the entry in <code>url</code> to read.
-         * @param stream the stream containing the entry's content; must <em>not</em> be {@link InputStream#close() closed} by the receiver.
+         * @param stream the stream containing the entry's content; ignores {@link InputStream#close()} calls.
          *
          * @return <code>true</code> if further searching is needed, <code>false</code> if search should terminate.
          *
@@ -696,7 +702,7 @@ public final class Archives extends Utility {
     }
 
     /**
-     * Rejects calls to {@link #close()} and delegates all other methods to an actual stream.
+     * Ignores calls to {@link #close()} and delegates all other methods to an actual stream.
      *
      * @author Tibor Varga
      */
@@ -708,7 +714,7 @@ public final class Archives extends Utility {
 
         @Override
         public void close() throws IOException {
-            throw new IOException("Entry content stream cannot be closed");
+            // ignored
         }
     }
 }

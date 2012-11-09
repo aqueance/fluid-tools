@@ -40,7 +40,6 @@ import org.fluidity.foundation.Archives;
 import org.fluidity.foundation.ClassLoaders;
 import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.Streams;
-import org.fluidity.foundation.Utility;
 
 import static org.fluidity.foundation.Command.Job;
 import static org.fluidity.foundation.Command.Process;
@@ -311,6 +310,20 @@ public final class Handler extends URLStreamHandler {
         return Cache.access(command);
     }
 
+    /**
+     * Returns the cached contents of the given archive, loading it first if necessary.
+     *
+     * @param url the URL of the archive.
+     *
+     * @return the contents of the given archive, or <code>null</code> if the URL does not point to an archive.
+     *
+     * @throws IOException when loading the archive fails.
+     */
+    public static byte[] cached(final URL url) throws IOException {
+        final Cache.Archive archive = Cache.archive(url);
+        return PROTOCOL.equals(url.getProtocol()) ? archive.entry(Cache.path(url)) : archive.root();
+    }
+
     private static URL unwrap(final URL url) throws IOException {
         final URL root = Archives.containing(url);
         return root == null ? url : root;
@@ -367,7 +380,7 @@ public final class Handler extends URLStreamHandler {
             }
 
             if (getUseCaches()) {
-                final byte[] contents = Cache.contents(url, true);
+                final byte[] contents = Cache.contents(url);
 
                 if (contents == null) {
                     throw new FileNotFoundException(url.toExternalForm());
@@ -437,9 +450,31 @@ public final class Handler extends URLStreamHandler {
      *
      * @author Tibor Varga
      */
-    static class Cache extends Utility {
+    static class Cache {
 
-        private Cache() { }
+        /**
+         * Represents the contents of a cached archive.
+         *
+         * @author Tibor Varga
+         */
+        static interface Archive {
+
+            /**
+             * Returns the content of a named archive entry.
+             *
+             * @param name the name of the entry.
+             *
+             * @return a byte array; may be <code>null</code>.
+             */
+            byte[] entry(final String name);
+
+            /**
+             * Returns the contents of the archive itself.
+             *
+             * @return the contents of the archive itself.
+             */
+            byte[] root();
+        }
 
         /**
          * Returns the part of the nested archive URL that identifies the list of archives, each nested in the outermost archive.
@@ -479,7 +514,7 @@ public final class Handler extends URLStreamHandler {
          * @return whatever the command returns.
          */
         static <T, E extends Exception> T access(final Process<T, E> command) throws E {
-            final CacheContext saved = context.get();
+            final Context saved = context.get();
             UUID id;
 
             synchronized (localCache) {
@@ -495,13 +530,13 @@ public final class Handler extends URLStreamHandler {
 
                 localCache.put(id, map);
 
-                CacheContext local = saved;
+                Context local = saved;
                 for (; local != null; local = local.last) {
                     map.putAll(localCache.get(local.id));
                 }
             }
 
-            context.set(new CacheContext(id, saved));
+            context.set(new Context(id, saved));
 
             try {
                 return command.run();
@@ -514,20 +549,40 @@ public final class Handler extends URLStreamHandler {
             }
         }
 
-        static byte[] contents(final URL url, final boolean load) throws IOException {
-            final Map<String, byte[]> archive = cached(enclosedURL(url), load);
-            return archive == null ? null : archive.get(path(url));
+        static byte[] contents(final URL url) throws IOException {
+            return load(enclosedURL(url)).get(path(url));
+        }
+
+        static Archive archive(final URL url) throws IOException {
+            final boolean nested = PROTOCOL.equals(url.getProtocol());
+
+            final String archive = nested ? path(url) : "";
+            final int prefix = archive.length() + 1;
+            final Map<String, byte[]> contents = load(nested ? enclosedURL(url) : url);
+
+            return new Archive() {
+                @SuppressWarnings("StringBufferReplaceableByString")
+                public byte[] entry(final String name) {
+                    return contents.get(name.isEmpty()
+                                        ? archive
+                                        : new StringBuilder(prefix + name.length()).append(archive).append(DELIMITER).append(name).toString());
+                }
+
+                public byte[] root() {
+                    return entry("");
+                }
+            };
         }
 
         @SuppressWarnings("SynchronizationOnLocalVariableOrMethodParameter")
-        static Map<String, byte[]> cached(final URL root, final boolean load) throws IOException {
+        static Map<String, byte[]> load(final URL root) throws IOException {
             assert root != null;
             final String key = root.toExternalForm();
 
             final Map<String, Map<String, byte[]>> cache = localCache();
             Map<String, byte[]> content = cache.get(key);
 
-            if (content == null && load) {
+            if (content == null) {
                 content = new HashMap<String, byte[]>();
 
                 synchronized (content) {
@@ -546,26 +601,29 @@ public final class Handler extends URLStreamHandler {
                     final URLConnection connection = root.openConnection();
                     connection.setUseCaches(true);
 
-                    final ZipInputStream stream = new ZipInputStream(connection.getInputStream());
+                    final byte[] buffer = new byte[1024 * 1024];
+                    final byte[] data = Streams.load(connection.getInputStream(), buffer, true);
+
+                    content.put("", data);
+
+                    final ZipInputStream stream = new ZipInputStream(new ByteArrayInputStream(data));
                     try {
-                        load(content, new HashMap<Metadata, String>(), new byte[1024 * 1024], "", stream, stream.getNextEntry());
+                        load(content, new HashMap<Metadata, String>(), buffer, "", stream, stream.getNextEntry());
                     } catch (final IOException e) {
                         stream.close();
                     }
 
                     return content;
                 }
-            } else if (content != null) {
+            } else {
                 synchronized (content) {
                     return content;
                 }
-            } else {
-                return null;
             }
         }
 
         private static Map<String, Map<String, byte[]>> localCache() {
-            CacheContext local = context.get();
+            final Context local = context.get();
             final UUID id = local == null ? null : local.id;
             assert local == null | id != null;
 
@@ -652,21 +710,21 @@ public final class Handler extends URLStreamHandler {
         /**
          * @author Tibor Varga
          */
-        private static class CacheContext {
+        private static class Context {
 
             public final UUID id;
-            public final CacheContext last;
+            public final Context last;
 
-            private CacheContext(final UUID id, final CacheContext last) {
+            private Context(final UUID id, final Context last) {
                 this.id = id;
                 this.last = last;
             }
         }
 
-        private static final ThreadLocal<CacheContext> context = new InheritableThreadLocal<CacheContext>() {
+        private static final ThreadLocal<Context> context = new InheritableThreadLocal<Context>() {
             @Override
-            protected CacheContext childValue(final CacheContext parent) {
-                return parent == null ? null : new CacheContext(parent.id, null);
+            protected Context childValue(final Context parent) {
+                return parent == null ? null : new Context(parent.id, null);
             }
         };
 

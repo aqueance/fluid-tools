@@ -123,8 +123,6 @@ public class URLClassLoader extends SecureClassLoader {
 
                 // collects all processed URLs, may be recursive when an archive refers to others as its class path
                 final Command.Operation<URL, IOException> collect = new Command.Operation<URL, IOException>() {
-                    private final byte[] buffer = new byte[16384];
-
                     public void run(final URL dependency) throws IOException {
                         final String location = dependency.toExternalForm();
 
@@ -137,7 +135,7 @@ public class URLClassLoader extends SecureClassLoader {
                             entries.put(location,
                                         Archives.FILE.equals(protocol) && file.exists() && file.isDirectory()
                                         ? new LocalDirectoryArchive(file)
-                                        : new PackagedArchive(dependency, factory, buffer, this));
+                                        : new PackagedArchive(dependency, factory, this));
                         }
                     }
                 };
@@ -480,10 +478,11 @@ public class URLClassLoader extends SecureClassLoader {
 
         private final Map<String, Archive.Entry> map = new HashMap<String, Archive.Entry>(INITIAL_CAPACITY);
 
-        PackagedArchive(final URL url, final URLStreamHandlerFactory factory, final byte[] buffer, final Command.Operation<URL, IOException> collect) throws IOException {
+        PackagedArchive(final URL url, final URLStreamHandlerFactory factory, final Command.Operation<URL, IOException> collect) throws IOException {
             final Manifest manifest[] = { null };
+            final Handler.Cache.Archive cache = Handler.Cache.archive(url);
 
-            Archives.read(true, url, new Archives.Entry() {
+            Archives.read(cache.root(), url, new Archives.Entry() {
                 public boolean matches(final URL url, final JarEntry entry) throws IOException {
                     return true;
                 }
@@ -492,8 +491,8 @@ public class URLClassLoader extends SecureClassLoader {
                     final String resource = entry.getName();
                     final CodeSigner[] signers = entry.getCodeSigners();
 
-                    final byte[] cached = Handler.Cache.contents(Handler.formatURL(url, resource), true);
-                    final byte[] data = cached == null ? Streams.load(stream, buffer, false) : cached;
+                    final byte[] data = cache.entry(resource);
+                    assert data != null : Handler.formatURL(url, resource);
 
                     if (JarFile.MANIFEST_NAME.equals(resource)) {
                         manifest[0] = new Manifest(new ByteArrayInputStream(data));

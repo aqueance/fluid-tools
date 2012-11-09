@@ -68,6 +68,19 @@
 
     <profiles>
         <profile>
+            <id>quiet</id>
+            <activation><property><name>leak-test</name></property></activation>
+
+            <dependencies>
+                <dependency>
+                    <groupId>${fluidity.features.groupId}</groupId>
+                    <artifactId>logging-sink-impl</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+            </dependencies>
+        </profile>
+
+        <profile>
             <id>bundles</id>
             <activation><activeByDefault>true</activeByDefault></activation>
 
