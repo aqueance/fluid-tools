@@ -16,18 +16,16 @@
 
 package org.fluidity.foundation;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.net.URL;
-import java.net.URLClassLoader;
+import java.net.URLStreamHandlerFactory;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
-import java.util.UUID;
 
-import org.apache.xbean.classloader.JarFileClassLoader;
+import org.fluidity.foundation.jarjar.URLClassLoader;
 
 import static org.fluidity.foundation.Command.Function;
 import static org.fluidity.foundation.Command.Process;
@@ -40,12 +38,12 @@ import static org.fluidity.foundation.Command.Process;
 @SuppressWarnings("UnusedDeclaration")
 public final class ClassLoaders extends Utility {
 
-    private ClassLoaders() { }
-
     /**
      * The <code>.class</code> suffix of Java class files.
      */
     public static final String CLASS_SUFFIX = ".class";
+
+    private ClassLoaders() { }
 
     /**
      * Finds the class loader appropriate for the given class. Here, the term <em>appropriate</em> means:<ul>
@@ -175,18 +173,6 @@ public final class ClassLoaders extends Utility {
     }
 
     /**
-     * Returns a closeable URL class loader. To close it, cast it to {@link Closeable}, and invoke the {@link Closeable#close()} method.
-     *
-     * @param parent the parent class loader for the returned one; may be <code>null</code>.
-     * @param urls   the URLs to initialize the returned class loader with.
-     *
-     * @return a closeable URL class loader.
-     */
-    public static ClassLoader create(final ClassLoader parent, final URL... urls) {
-        return Closeable.class.isAssignableFrom(URLClassLoader.class) ? new URLClassLoader(urls, parent) : XBeansClassLoaders.INSTANCE.create(parent, urls);
-    }
-
-    /**
      * Sets the given class loader as the {@linkplain Thread#setContextClassLoader(ClassLoader) context class loader} and returns the previous context class
      * loader.
      *
@@ -251,8 +237,34 @@ public final class ClassLoaders extends Utility {
     }
 
     /**
-     * Creates an isolated URL class loader for the given list of URLs, loads using the isolated class loader and instantiates the given type and calls the
-     * given method on it with the given parameters to return its return value.
+     * Creates a class loader with the given URLs.
+     *
+     * @param urls     the list of URLs; may not be <code>null</code>.
+     * @param parent   the parent class loader; may be <code>null</code>.
+     * @param handlers the optional URL stream handler factory; may be <code>null</code>.
+     *
+     * @return a class loader that loads classes from the given URLs.
+     */
+    public static ClassLoader create(final Collection<URL> urls, final ClassLoader parent, final URLStreamHandlerFactory handlers) {
+        return new URLClassLoader(urls, parent, handlers);
+    }
+
+    /**
+     * Creates a class loader with the given URLs. The parent class loader of the returned class loader with be the {@linkplain
+     * ClassLoader#getSystemClassLoader() system class loader}.
+     *
+     * @param urls     the list of URLs; may not be <code>null</code>.
+     * @param handlers the optional URL stream handler factory; may be <code>null</code>.
+     *
+     * @return a class loader that loads classes from the given URLs.
+     */
+    public static ClassLoader create(final Collection<URL> urls, final URLStreamHandlerFactory handlers) {
+        return new URLClassLoader(urls, handlers);
+    }
+
+    /**
+     * Creates an isolated URL class loader for the given list of URLs, loads using that class loader and instantiates the given <code>type</code>, and calls
+     * the given <code>method</code> on it with the given <code>arguments</code> to return its return value.
      *
      * @param parent    the class loader to load the method parameters and the return values; this class loader must not see the given <code>type</code>.
      * @param urls      the list of URLs to use for the isolated class loader; make sure the list contains the JARs containing the type to load.
@@ -276,7 +288,7 @@ public final class ClassLoaders extends Utility {
                 public T run() {
                     return Exceptions.wrap(new Process<T, Exception>() {
                         public T run() throws Exception {
-                            final ClassLoader isolated = create(parent, Lists.asArray(URL.class, urls));
+                            final ClassLoader isolated = ClassLoaders.create(urls, parent, null);
 
                             try {
 
@@ -291,12 +303,6 @@ public final class ClassLoaders extends Utility {
                                 throw new AssertionError(e);
                             } catch (final IllegalAccessException e) {
                                 throw new AssertionError(e);
-                            } finally {
-                                try {
-                                    ((Closeable) isolated).close();
-                                } catch (final IOException e) {
-                                    // ignore
-                                }
                             }
                         }
                     });
@@ -306,40 +312,6 @@ public final class ClassLoaders extends Utility {
             throw wrapper
                     .rethrow(ClassNotFoundException.class)
                     .rethrow(InstantiationException.class);
-        }
-    }
-
-    /**
-     * This class isolates the xbeans class loader thus prevents it from being loaded if it is not necessary (i.e., when Java 7+ is present)
-     *
-     * @author Tibor Varga
-     */
-    private static class XBeansClassLoaders {
-
-        static final XBeansClassLoaders INSTANCE = new XBeansClassLoaders();
-
-        public ClassLoader create(final ClassLoader parent, final URL... urls) {
-            final ClassLoader daddy = parent == null ? ClassLoader.getSystemClassLoader() : parent;
-            return new CloseableURLClassLoader(urls, daddy);
-        }
-    }
-
-    /**
-     * Adapts the xbeans URL class loader to the {@link Closeable} interface.
-     *
-     * @author Tibor Varga
-     */
-    private static class CloseableURLClassLoader extends JarFileClassLoader implements Closeable {
-
-        private static final String[] EMPTY_STRING_ARRAY = new String[0];
-
-        CloseableURLClassLoader(final URL[] urls, final ClassLoader parent) {
-            super(UUID.randomUUID().toString(), urls, parent, true, EMPTY_STRING_ARRAY, EMPTY_STRING_ARRAY);
-            assert parent != null;
-        }
-
-        public void close() throws IOException {
-            destroy();
         }
     }
 }

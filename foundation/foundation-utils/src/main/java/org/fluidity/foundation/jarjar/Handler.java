@@ -374,19 +374,20 @@ public final class Handler extends URLStreamHandler {
         }
     }
 
-    static byte[] contents(final URL url) throws IOException {
-        return load(enclosedURL(url)).get(path(url));
+    static byte[] contents(final URL url, final boolean load) throws IOException {
+        final Map<String, byte[]> cached = cached(enclosedURL(url), load);
+        return cached == null ? null : cached.get(path(url));
     }
 
     @SuppressWarnings("SynchronizationOnLocalVariableOrMethodParameter")
-    static Map<String, byte[]> load(final URL root) throws IOException {
+    static Map<String, byte[]> cached(final URL root, final boolean load) throws IOException {
         assert root != null;
         final String key = root.toExternalForm();
 
         final Map<String, Map<String, byte[]>> cache = localCache();
         Map<String, byte[]> content = cache.get(key);
 
-        if (content == null) {
+        if (content == null && load) {
             content = new HashMap<String, byte[]>();
 
             synchronized (content) {
@@ -414,10 +415,12 @@ public final class Handler extends URLStreamHandler {
 
                 return content;
             }
-        } else {
+        } else if (content != null) {
             synchronized (content) {
                 return content;
             }
+        } else {
+            return null;
         }
     }
 
@@ -602,7 +605,7 @@ public final class Handler extends URLStreamHandler {
             }
 
             if (getUseCaches()) {
-                final byte[] contents = Handler.contents(url);
+                final byte[] contents = Handler.contents(url, true);
 
                 if (contents == null) {
                     throw new FileNotFoundException(url.toExternalForm());

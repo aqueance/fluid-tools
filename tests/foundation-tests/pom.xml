@@ -77,12 +77,6 @@
             <scope>test</scope>
         </dependency>
 
-        <dependency>
-            <groupId>org.apache.xbean</groupId>
-            <artifactId>xbean-classloader</artifactId>
-            <optional>true</optional>
-        </dependency>
-
     </dependencies>
 
     <build>

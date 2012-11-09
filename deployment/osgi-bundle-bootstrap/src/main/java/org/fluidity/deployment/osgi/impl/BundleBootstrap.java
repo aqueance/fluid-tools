@@ -121,6 +121,7 @@ public final class BundleBootstrap extends BoundaryComponent implements BundleAc
      * @author Tibor Varga
      */
     @Component(api = { BundleTermination.class, ContainerTermination.class })
+    @SuppressWarnings("unchecked")
     private static class BundleTermination implements ContainerTermination {
 
         private final Jobs jobs;

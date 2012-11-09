@@ -41,7 +41,7 @@
         <skipTests>false</skipTests>
 
         <!-- Equinox versions earlier than 3.7 cannot be embedded, apparently -->
-        <equinox.version>3.8</equinox.version>
+        <equinox.version>3.8.1</equinox.version>
     </properties>
 
     <modules>

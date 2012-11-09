@@ -32,6 +32,7 @@ import org.testng.annotations.Test;
 /**
  * @author Tibor Varga
  */
+@SuppressWarnings("unchecked")
 public class ContainerTerminationJobsTest extends Simulator {
 
     private final MockObjects dependencies = dependencies();

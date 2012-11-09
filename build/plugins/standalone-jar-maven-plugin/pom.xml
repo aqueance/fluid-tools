@@ -84,11 +84,6 @@ class loader that can load classes from those embedded dependencies.
         </dependency>
 
         <dependency>
-            <groupId>org.apache.xbean</groupId>
-            <artifactId>xbean-classloader</artifactId>
-        </dependency>
-
-        <dependency>
             <groupId>${fluidity.composition.groupId}</groupId>
             <artifactId>composition-bootstrap-support</artifactId>
             <version>${project.version}</version>

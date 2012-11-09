@@ -96,7 +96,7 @@ public class HandlerTest {
         final URL url1 = Handler.formatURL(container, "level1-1.jar", "level2.jar", "level3.jar", "level3.txt");
         final URL url2 = Handler.formatURL(samples, "META-INF/dependencies/dependency-1.jar");
 
-        Handler.contents(url1);
+        Handler.contents(url1, true);
         assert Handler.loaded(url1, true);
         assert Handler.loaded(url1, false);
 
@@ -110,7 +110,7 @@ public class HandlerTest {
                         assert Handler.loaded(url1, true);
                         assert Handler.loaded(url1, false);
 
-                        Handler.contents(url2);
+                        Handler.contents(url2, true);
                         assert Handler.loaded(url2, true);
                         assert !Handler.loaded(url2, false);
 
@@ -165,7 +165,7 @@ public class HandlerTest {
 
                             assert Handler.loaded(url1, true);
 
-                            Handler.contents(url2);
+                            Handler.contents(url2, true);
                             assert Handler.loaded(url2, true);
 
                             Archives.Nested.unload(url1);
@@ -185,7 +185,7 @@ public class HandlerTest {
         try {
             Archives.Nested.access(new Job<Exception>() {
                 public void run() throws Exception {
-                    Handler.contents(url1);
+                    Handler.contents(url1, true);
                     assert Handler.loaded(url1, true);
 
                     thread.start();
@@ -217,11 +217,11 @@ public class HandlerTest {
         verify(insane, Handler.formatURL(Handler.formatURL(Handler.formatURL(Handler.rootURL(insane), "level1.jar"), "level2.jar"), "level3.jar"));
     }
 
-    @Test
-    public void testExploration() throws Exception {
+    @Test(dataProvider = "caching")
+    public void testExploration(final boolean caching) throws Exception {
         final List<String> files = new ArrayList<String>();
 
-        Archives.read(true, container, new Archives.Entry() {
+        Archives.read(caching, container, new Archives.Entry() {
             public boolean matches(final URL url, final JarEntry entry) throws IOException {
                 final String name = entry.getName();
 
@@ -233,7 +233,7 @@ public class HandlerTest {
             }
 
             public boolean read(final URL url, final JarEntry entry, final InputStream stream) throws IOException {
-                Archives.read(true, Archives.Nested.formatURL(url, entry.getName()), this);
+                Archives.read(caching, Archives.Nested.formatURL(url, entry.getName()), this);
                 return true;
             }
         });
@@ -255,7 +255,7 @@ public class HandlerTest {
 
     @Test
     public void testParsing() throws Exception {
-        final URL archive = Handler.formatURL(new URL("file:/root.jar"), "level1.jar", "level2.jar", "some/path");
+        final URL archive = Handler.formatURL(new URL(Archives.FILE.concat(":/root.jar")), "level1.jar", "level2.jar", "some/path");
         assert Archives.Nested.PROTOCOL.equals(archive.getProtocol()) : archive;
     }
 

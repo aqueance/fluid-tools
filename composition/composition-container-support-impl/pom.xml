@@ -65,12 +65,6 @@
             <scope>test</scope>
         </dependency>
 
-        <dependency>
-            <groupId>org.apache.xbean</groupId>
-            <artifactId>xbean-classloader</artifactId>
-            <scope>test</scope>
-        </dependency>
-
     </dependencies>
 
     <build>

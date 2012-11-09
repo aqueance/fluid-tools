@@ -111,11 +111,6 @@ class name of the Service Provider interface> unless one already exists.
         </dependency>
 
         <dependency>
-            <groupId>org.apache.xbean</groupId>
-            <artifactId>xbean-classloader</artifactId>
-        </dependency>
-
-        <dependency>
             <groupId>org.ow2.asm</groupId>
             <artifactId>asm</artifactId>
             <version>${asm.version}</version>

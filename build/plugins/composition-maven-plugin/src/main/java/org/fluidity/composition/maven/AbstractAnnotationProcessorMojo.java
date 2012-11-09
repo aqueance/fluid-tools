@@ -16,7 +16,6 @@
 
 package org.fluidity.composition.maven;
 
-import java.io.Closeable;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -49,7 +48,6 @@ import org.fluidity.composition.spi.PackageBindings;
 import org.fluidity.deployment.maven.DependenciesSupport;
 import org.fluidity.foundation.ClassLoaders;
 import org.fluidity.foundation.Exceptions;
-import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.Methods;
 import org.fluidity.foundation.ServiceProviders;
 
@@ -154,19 +152,12 @@ public abstract class AbstractAnnotationProcessorMojo extends AbstractMojo imple
             assert false : e;
         }
 
-        final ClassLoader repository = ClassLoaders.create(null, Lists.asArray(URL.class, urls));
         try {
-            processClasses(repository, classesDirectory, serviceProviderMap, componentMap, componentGroupMap);
-        } catch (final IOException e) {
+            processClasses(ClassLoaders.create(urls, null, null), classesDirectory, serviceProviderMap, componentMap, componentGroupMap);
+        } catch (final MojoExecutionException e) {
+            throw e;
+        } catch (final Exception e) {
             throw new MojoExecutionException("Error processing service providers", e);
-        } catch (final ClassNotFoundException e) {
-            throw new MojoExecutionException("Error processing service providers", e);
-        } finally {
-            try {
-                ((Closeable) repository).close();
-            } catch (final IOException e) {
-                getLog().warn(e.getMessage());
-            }
         }
 
         final Log log = getLog();

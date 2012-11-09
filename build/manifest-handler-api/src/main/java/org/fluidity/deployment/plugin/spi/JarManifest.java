@@ -100,9 +100,10 @@ public interface JarManifest {
 
         /**
          * Instructs the standalone JAR plugin to include the dependencies of the host project and set the dependency list as the {@linkplain
-         * org.fluidity.foundation.Archives.Nested#dependencies(String) named custom dependency} attribute in the manifest.
+         * org.fluidity.foundation.Archives.Nested#dependencies(boolean, String) named custom dependency} attribute in the manifest.
          *
-         * @param name      the name with which {@link org.fluidity.foundation.Archives.Nested#dependencies(String)} can find the dependencies at run time.
+         * @param name      the name with which {@link org.fluidity.foundation.Archives.Nested#dependencies(boolean, String)} can find the dependencies at run
+         *                  time.
          * @param delimiter the delimiter to use to separate the dependency entries.
          *
          * @throws MojoExecutionException when a non-primary manifest handler tries to invoke this method.

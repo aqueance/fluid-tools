@@ -16,16 +16,13 @@
 
 package org.fluidity.foundation.jarjar;
 
-import java.io.Closeable;
 import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.fluidity.foundation.Archives;
 import org.fluidity.foundation.ClassLoaders;
 import org.fluidity.foundation.Exceptions;
-import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.Methods;
 
 import static org.fluidity.foundation.Command.Function;
@@ -72,22 +69,16 @@ public final class Launcher {
         final List<URL> urls = new ArrayList<URL>();
 
         urls.add(root);
-        urls.addAll(Archives.Nested.dependencies(null));
-
-        final ClassLoader loader = new URLClassLoader(Lists.asArray(URL.class, urls), ClassLoaders.findClassLoader(main, true));
+        urls.addAll(Archives.Nested.dependencies(true, null));
 
         try {
-            ClassLoaders.context(loader, new Function<Object, ClassLoader, Exception>() {
+            ClassLoaders.context(ClassLoaders.create(urls, ClassLoaders.findClassLoader(main, true), null), new Function<Object, ClassLoader, Exception>() {
                 public Object run(final ClassLoader loader) throws Exception {
                     return Methods.invoke(true, loader.loadClass(mainClass).getMethod("main", String[].class), null, new Object[] { args });
                 }
             });
         } catch (final Exceptions.Wrapper wrapper) {
             throw wrapper.rethrow(Exception.class);
-        } finally {
-            if (loader instanceof Closeable) {
-                ((Closeable) loader).close();
-            }
         }
     }
 }

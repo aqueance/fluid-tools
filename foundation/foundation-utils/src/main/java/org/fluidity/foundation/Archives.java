@@ -90,6 +90,11 @@ public final class Archives extends Utility {
      */
     public static final String DELIMITER = "!/";
 
+    /**
+     * The file URL protocol.
+     */
+    public static final String FILE = "file";
+
     private Archives() { }
 
     /**
@@ -107,7 +112,6 @@ public final class Archives extends Utility {
      */
     public static int read(final boolean cached, final URL url, final Entry reader) throws IOException {
         assert url != null;
-
         return Archives.read(Archives.open(cached, url), url, reader);
     }
 
@@ -374,6 +378,40 @@ public final class Archives extends Utility {
     }
 
     /**
+     * Returns the resource path in the given URL relative to the given <code>archive</code>. The path will consist of all nested archives relative to the
+     * given <code>archive</code> leading to a resource, the name of which will be the last element of the returned array.
+     *
+     * @param url     the URL, based on the <code>archive</code>, that refers a resource.
+     * @param archive the archive underlying the URL; normally returned by one or more (nested) invocations of {@link #containing(URL)}.
+     *
+     * @return a resource name relative to the given <code>archive</code> in the given URL; may be <code>null</code>.
+     */
+    public static String[] resourcePath(final URL url, final URL archive) {
+        if (url == null) {
+            return null;
+        }
+
+        final String protocol = url.getProtocol();
+        final String stem = archive.toExternalForm();
+
+        final String[] path = relative(protocol, stem, url.toExternalForm());
+        return path == null ? relative(protocol, stem, url.getFile()) : path;
+    }
+
+    private static String[] relative(final String protocol, final String archive, final String url) {
+        if (url.startsWith(archive)) {
+            if (Nested.PROTOCOL.equals(protocol)) {
+                return url.substring(archive.length() + Nested.DELIMITER.length()).split(Nested.DELIMITER);
+            } else {
+                final int delimiter = url.indexOf('/', archive.length());
+                return new String[] { delimiter < 0 ? "/" : url.substring(delimiter + 1) };
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * Returns the URL for the JAR file that loaded this class.
      *
      * @return the URL for the JAR file that loaded this class.
@@ -425,7 +463,7 @@ public final class Archives extends Utility {
      * Convenience methods to handle nested Java archives.
      * <h3>Usage</h3>
      * <pre>
-     * for (final URL <span class="hl2">url</span> : <span class="hl1">Archives.Nested</span>.<span class="hl1">{@linkplain #dependencies(String) dependencies}</span>("widgets")) {
+     * for (final URL <span class="hl2">url</span> : <span class="hl1">Archives.Nested</span>.<span class="hl1">{@linkplain #dependencies(boolean, String) dependencies}</span>(true, "widgets")) {
      *
      *     // make sure to select only those archives that have the
      *     // mandatory "Widget-Name" manifest attribute
@@ -530,20 +568,22 @@ public final class Archives extends Utility {
          * Returns the list of URLs pointing to the named list of embedded archives. The returned URLs can then be extended with further nested archives or
          * resources using the {@link Archives.Nested#formatURL(URL, String...) formatURL} method.
          *
-         * @param name the name of the dependency list; may be <code>null</code>
+         * @param cached tells whether a previously cached archive, if any, should be used (<code>true</code>), or a newly loaded one (<code>false</code>).
+         * @param name   the name of the dependency list; may be <code>null</code>
          *
          * @return the list of URLs pointing to the named list of embedded archives; may be empty.
          *
          * @throws IOException when I/O error occurs when accessing the archive.
          */
-        public static Collection<URL> dependencies(final String name) throws IOException {
-            return Archives.Nested.dependencies(Archives.root(), name);
+        public static Collection<URL> dependencies(final boolean cached, final String name) throws IOException {
+            return Nested.dependencies(cached, Archives.root(), name);
         }
 
         /**
          * Returns the list of URLs pointing to the named list of embedded archives. The returned URLs can then be appended further nested archives or
          * resources using the {@link Archives.Nested#formatURL(URL, String...) formatURL} method.
          *
+         * @param cached  tells whether a previously cached archive, if any, should be used (<code>true</code>), or a newly loaded one (<code>false</code>).
          * @param archive the URL to the Java archive to inspect
          * @param name    the name of the dependency list; may be <code>null</code>
          *
@@ -551,8 +591,8 @@ public final class Archives extends Utility {
          *
          * @throws IOException when I/O error occurs when accessing the archive.
          */
-        public static Collection<URL> dependencies(final URL archive, final String name) throws IOException {
-            final String dependencies = Archives.attributes(true, archive, Archives.Nested.attribute(name))[0];
+        public static Collection<URL> dependencies(final boolean cached, final URL archive, final String name) throws IOException {
+            final String dependencies = Archives.attributes(cached, archive, Nested.attribute(name))[0];
             final Collection<URL> urls = new ArrayList<URL>();
 
             if (dependencies != null) {
@@ -565,31 +605,37 @@ public final class Archives extends Utility {
         }
 
         /**
-         * Returns the list of custom nested dependency names in the given archive. The returned names can then be fed to {@link #dependencies(String)}.
+         * Returns the list of custom nested dependency names in the given archive. The returned names can then be fed to {@link #dependencies(boolean,
+         * String)}.
+         *
+         * @param cached tells whether a previously cached archive, if any, should be used (<code>true</code>), or a newly loaded one (<code>false</code>).
          *
          * @return a possibly empty list of nested dependencies; never <code>null</code>.
          *
          * @throws IOException when reading the archive fails.
          */
-        public static String[] list() throws IOException {
-            return list(Archives.manifest(true, Archives.root()));
+        public static String[] list(final boolean cached) throws IOException {
+            return list(Archives.manifest(cached, Archives.root()));
         }
 
         /**
-         * Returns the list of custom nested dependency names in the given archive. The returned names can then be fed to {@link #dependencies(URL, String)}.
+         * Returns the list of custom nested dependency names in the given archive. The returned names can then be fed to {@link #dependencies(boolean, URL,
+         * String)}.
          *
+         * @param cached  tells whether a previously cached archive, if any, should be used (<code>true</code>), or a newly loaded one (<code>false</code>).
          * @param archive the archive to look for nested dependencies in.
          *
          * @return a possibly empty list of nested dependencies; never <code>null</code>.
          *
          * @throws IOException when reading the archive fails.
          */
-        public static String[] list(final URL archive) throws IOException {
-            return list(Archives.manifest(true, archive));
+        public static String[] list(final boolean cached, final URL archive) throws IOException {
+            return list(Archives.manifest(cached, archive));
         }
 
         /**
-         * Returns the list of custom nested dependency names in the given archive. The returned names can then be fed to {@link #dependencies(URL, String)}.
+         * Returns the list of custom nested dependency names in the given archive. The returned names can then be fed to {@link #dependencies(boolean, URL,
+         * String)}.
          *
          * @param manifest the manifest entries to check for nested dependency headers.
          *

@@ -46,7 +46,7 @@
         <fluidity.features.groupId>${fluidity.groupId}</fluidity.features.groupId>
         <fluidity.public.groupId>${fluidity.groupId}</fluidity.public.groupId>
 
-        <osgi.specification.version>4.3.0</osgi.specification.version>
+        <osgi.specification.version>4.3.1</osgi.specification.version>
         <maven.api.version>3.0.4</maven.api.version>
         <aether.version>1.13.1</aether.version>
         <asm.version>4.1</asm.version>
@@ -149,14 +149,6 @@
                 <groupId>org.sonatype.aether</groupId>
                 <artifactId>aether-impl</artifactId>
                 <version>${aether.version}</version>
-            </dependency>
-
-            <dependency>
-
-                <!-- Offers URL class loader that can be destroyed after use -->
-                <groupId>org.apache.xbean</groupId>
-                <artifactId>xbean-classloader</artifactId>
-                <version>3.7</version>
             </dependency>
 
         </dependencies>

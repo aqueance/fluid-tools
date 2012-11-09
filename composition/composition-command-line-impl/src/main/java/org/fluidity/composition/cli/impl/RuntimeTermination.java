@@ -26,6 +26,7 @@ import org.fluidity.foundation.Command;
  * @author Tibor Varga
  */
 @Component
+@SuppressWarnings("unchecked")
 final class RuntimeTermination implements ContainerTermination {
 
     private final Jobs jobs;

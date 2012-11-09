@@ -51,6 +51,7 @@ This project lists the extra feature modules of Fluid Tools.
         <module>jar-manifest-osgi-bundle-impl</module>
         <module>foundation-scheduling-api</module>
         <module>foundation-scheduling-impl</module>
+        <module>remote-launcher</module>
     </modules>
 
 </project>

@@ -113,6 +113,7 @@ final class OsgiApplication implements Application {
     }
 
     public void run(final String[] arguments) throws Exception {
+        final boolean cached = true;
 
         /*
          * Embedding OSGi: http://njbartlett.name/2011/03/07/embedding-osgi.html
@@ -139,12 +140,12 @@ final class OsgiApplication implements Application {
         final String application = System.getProperty(APPLICATION_PROPERTIES);
         final Properties distribution = loadProperties(application == null
                                                        ? ClassLoaders.readResource(getClass(), APPLICATION_PROPERTIES)
-                                                       : Archives.open(true, new URL(interpolator.interpolate(application))), defaults);
+                                                       : Archives.open(cached, new URL(interpolator.interpolate(application))), defaults);
 
         final String deployment = System.getProperty(DEPLOYMENT_PROPERTIES);
         final Properties properties = deployment == null
                                       ? distribution
-                                      : loadProperties(Archives.open(true, new URL(interpolator.interpolate(deployment))), distribution);
+                                      : loadProperties(Archives.open(cached, new URL(interpolator.interpolate(deployment))), distribution);
 
         final Map<String, String> config = new HashMap<String, String>();
 
@@ -173,10 +174,10 @@ final class OsgiApplication implements Application {
             }
         });
 
-        for (final URL url : Archives.Nested.dependencies(BUNDLES)) {
+        for (final URL url : Archives.Nested.dependencies(cached, BUNDLES)) {
 
             // make sure to select only those archives that have an OSGi bundle symbolic name (it is a mandatory OSGi header)
-            if (Archives.attributes(true, url, Constants.BUNDLE_SYMBOLICNAME)[0] != null) {
+            if (Archives.attributes(cached, url, Constants.BUNDLE_SYMBOLICNAME)[0] != null) {
                 jars.add(url);
             }
         }
@@ -281,7 +282,7 @@ final class OsgiApplication implements Application {
         if (startLevel != null) {
             final int limit = order.size() + 1;
             final int level = Math.max(1, Math.min(limit, levels.initial(limit)));
-            startLevel.setStartLevel(level, null);
+            startLevel.setStartLevel(level);
 
             log.debug("OSGi framework (%s) started at level %d of %d", framework.getSymbolicName(), level, limit);
         } else {

@@ -22,9 +22,9 @@ import java.util.Map;
 import org.fluidity.composition.ComponentContext;
 import org.fluidity.composition.MutableContainer;
 import org.fluidity.composition.container.ContainerServices;
-import org.fluidity.composition.container.impl.ProductionServicesFactory;
 import org.fluidity.composition.container.internal.ContainerServicesFactory;
 import org.fluidity.foundation.NoLogFactory;
+import org.fluidity.foundation.ServiceProviders;
 import org.fluidity.testing.Simulator;
 
 import org.testng.annotations.Factory;
@@ -49,7 +49,7 @@ public abstract class ComponentContainerAbstractTest extends Simulator {
 
     @Factory
     public Object[] tests() {
-        final ContainerServicesFactory factory = new ProductionServicesFactory();
+        final ContainerServicesFactory factory = ServiceProviders.findInstance(ContainerServicesFactory.class, getClass().getClassLoader());
         final ContainerServices services = factory.containerServices(new NoLogFactory());
 
         final ArtifactFactory containers = new ArtifactFactory() {

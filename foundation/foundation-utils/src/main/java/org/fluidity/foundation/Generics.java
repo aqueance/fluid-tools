@@ -329,6 +329,7 @@ public final class Generics extends Utility {
         return specializedType(specific, generic, specific, generic);
     }
 
+    @SuppressWarnings("unchecked")
     private static Type specializedType(final Type specific, final Type generic, final Class<?> rawSpecific, final Class rawGeneric) {
         if (rawGeneric == rawSpecific) {
             return specific;

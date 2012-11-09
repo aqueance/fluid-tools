@@ -29,6 +29,7 @@ import org.fluidity.foundation.Strings;
  * @author Tibor Varga
  */
 @Component
+@SuppressWarnings("unchecked")
 final class WebApplicationTermination implements ContainerTermination {
 
     private final Jobs jobs;

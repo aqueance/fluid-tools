@@ -16,7 +16,6 @@
 
 package org.fluidity.composition.container.impl;
 
-import java.io.Closeable;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
@@ -25,6 +24,7 @@ import java.io.InputStream;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import org.fluidity.foundation.Archives;
@@ -68,18 +68,12 @@ public class ClassDiscoveryImplTest {
 
         assert servicesFile.exists();
 
-        ClassLoader loader = null;
         try {
-            final ClassLoader classLoader = loader = ClassLoaders.create(getClass().getClassLoader(), classDir.toURI().toURL());
-
-            final Class[] classes = new ClassDiscoveryImpl(log).findComponentClasses(Interface.class, classLoader, false);
+            final ClassLoader loader = ClassLoaders.create(Collections.singleton(classDir.toURI().toURL()), getClass().getClassLoader(), null);
+            final Class[] classes = new ClassDiscoveryImpl(log).findComponentClasses(Interface.class, loader, false);
 
             assert new ArrayList<Class>(Arrays.asList(Impl1.class, Impl2.class, Impl3.class)).equals(new ArrayList<Class>(Arrays.asList(classes)));
         } finally {
-            if (loader != null) {
-                ((Closeable) loader).close();
-            }
-
             deleteDirectory(classDir, fileList);
         }
     }
@@ -115,24 +109,14 @@ public class ClassDiscoveryImplTest {
 
         assert servicesFile.exists();
 
-        ClassLoader loader1 = null;
-        ClassLoader loader2 = null;
         try {
-            final ClassLoader classLoader1 = loader1 = ClassLoaders.create(null, classDir1.toURI().toURL());
-            final ClassLoader classLoader2 = loader2 = ClassLoaders.create(loader1, classDir2.toURI().toURL());
+            final ClassLoader loader1 = ClassLoaders.create(Collections.singleton(classDir1.toURI().toURL()), null, null);
+            final ClassLoader loader2 = ClassLoaders.create(Collections.singleton(classDir2.toURI().toURL()), loader1, null);
 
-            final Class[] classes = new ClassDiscoveryImpl(log).findComponentClasses(classLoader1.loadClass(Interface.class.getName()), classLoader2, true);
+            final Class[] classes = new ClassDiscoveryImpl(log).findComponentClasses(loader1.loadClass(Interface.class.getName()), loader2, true);
 
             assert new ArrayList<Class>(Arrays.asList(loader2.loadClass(Impl1.class.getName()))).equals(new ArrayList<Class>(Arrays.asList(classes)));
         } finally {
-            if (loader1 != null) {
-                ((Closeable) loader1).close();
-            }
-
-            if (loader2 != null) {
-                ((Closeable) loader2).close();
-            }
-
             deleteDirectory(classDir1, fileList);
             deleteDirectory(classDir2, fileList);
         }
@@ -168,29 +152,13 @@ public class ClassDiscoveryImplTest {
         rootDir.delete();
     }
 
-    public interface Interface {
+    public interface Interface { }
 
-        // empty
-    }
+    public static class AbstractInterfaceImpl implements Interface { }
 
-    public static class AbstractInterfaceImpl implements Interface {
+    public static class Impl1 extends AbstractInterfaceImpl { }
 
-        // empty
-    }
+    public static class Impl2 extends AbstractInterfaceImpl { }
 
-    public static class Impl1 extends AbstractInterfaceImpl {
-
-        // private to enforce container access override
-        private Impl1() {
-            // empty
-        }
-    }
-
-    public static class Impl2 extends AbstractInterfaceImpl {
-
-    }
-
-    public static class Impl3 extends AbstractInterfaceImpl {
-
-    }
+    public static class Impl3 extends AbstractInterfaceImpl { }
 }

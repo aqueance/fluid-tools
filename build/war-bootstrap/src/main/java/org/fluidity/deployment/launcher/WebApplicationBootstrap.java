@@ -20,7 +20,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.net.URLClassLoader;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.List;
@@ -151,7 +150,7 @@ public final class WebApplicationBootstrap {
                                  final File bootApp,
                                  final List<File> managedApps,
                                  final String args[]) throws Exception {
-        final URLClassLoader classLoader = new URLClassLoader(Lists.asArray(URL.class, classpath));
+        final ClassLoader classLoader = ClassLoaders.create(classpath, null);
         final ServerBootstrap server = ServiceProviders.findInstance(ServerBootstrap.class, classLoader);
 
         if (server != null) {
