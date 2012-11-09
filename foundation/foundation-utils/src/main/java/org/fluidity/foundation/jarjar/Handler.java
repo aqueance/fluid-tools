@@ -450,14 +450,26 @@ public final class Handler extends URLStreamHandler {
      *
      * @author Tibor Varga
      */
-    static class Cache {
+    static final class Cache {
+
+        private static final String ROOT = "";
 
         /**
          * Represents the contents of a cached archive.
          *
          * @author Tibor Varga
          */
-        static interface Archive {
+        static final class Archive {
+
+            private final String archive;
+            private final Map<String, byte[]> contents;
+            private final int prefix;
+
+            private Archive(final String archive, final Map<String, byte[]> contents) {
+                this.archive = archive;
+                this.contents = contents;
+                this.prefix = archive.length() + 1;
+            }
 
             /**
              * Returns the content of a named archive entry.
@@ -466,14 +478,21 @@ public final class Handler extends URLStreamHandler {
              *
              * @return a byte array; may be <code>null</code>.
              */
-            byte[] entry(final String name);
+            @SuppressWarnings("StringBufferReplaceableByString")
+            public byte[] entry(final String name) {
+                return contents.get(name.isEmpty()
+                                    ? archive
+                                    : new StringBuilder(prefix + name.length()).append(archive).append(DELIMITER).append(name).toString());
+            }
 
             /**
              * Returns the contents of the archive itself.
              *
              * @return the contents of the archive itself.
              */
-            byte[] root();
+            public byte[] root() {
+                return entry(ROOT);
+            }
         }
 
         /**
@@ -555,23 +574,7 @@ public final class Handler extends URLStreamHandler {
 
         static Archive archive(final URL url) throws IOException {
             final boolean nested = PROTOCOL.equals(url.getProtocol());
-
-            final String archive = nested ? path(url) : "";
-            final int prefix = archive.length() + 1;
-            final Map<String, byte[]> contents = load(nested ? enclosedURL(url) : url);
-
-            return new Archive() {
-                @SuppressWarnings("StringBufferReplaceableByString")
-                public byte[] entry(final String name) {
-                    return contents.get(name.isEmpty()
-                                        ? archive
-                                        : new StringBuilder(prefix + name.length()).append(archive).append(DELIMITER).append(name).toString());
-                }
-
-                public byte[] root() {
-                    return entry("");
-                }
-            };
+            return new Archive(nested ? path(url) : ROOT, load(nested ? enclosedURL(url) : url));
         }
 
         @SuppressWarnings("SynchronizationOnLocalVariableOrMethodParameter")
@@ -604,11 +607,11 @@ public final class Handler extends URLStreamHandler {
                     final byte[] buffer = new byte[1024 * 1024];
                     final byte[] data = Streams.load(connection.getInputStream(), buffer, true);
 
-                    content.put("", data);
+                    content.put(ROOT, data);
 
                     final ZipInputStream stream = new ZipInputStream(new ByteArrayInputStream(data));
                     try {
-                        load(content, new HashMap<Metadata, String>(), buffer, "", stream, stream.getNextEntry());
+                        load(content, new HashMap<Metadata, String>(), buffer, ROOT, stream, stream.getNextEntry());
                     } catch (final IOException e) {
                         stream.close();
                     }
