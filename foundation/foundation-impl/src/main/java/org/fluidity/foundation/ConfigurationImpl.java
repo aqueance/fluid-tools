@@ -169,8 +169,8 @@ final class ConfigurationImpl<T> implements Configuration<T> {
             final Class<?> type = method.getReturnType();
             final Type genericType = method.getGenericReturnType();
 
-            return Exceptions.wrap(method.toGenericString(), PropertyException.class, new Process<Object, Throwable>() {
-                public Object run() throws Throwable {
+            return Exceptions.wrap(method.toGenericString(), PropertyException.class, new Process<Object, Exception>() {
+                public Object run() throws Exception {
                     return AccessController.doPrivileged(new PrivilegedAction<Object>() {
                         public Object run() {
                             if (!method.isAccessible()) {

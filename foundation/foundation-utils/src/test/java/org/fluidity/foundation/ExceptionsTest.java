@@ -194,8 +194,8 @@ public class ExceptionsTest {
         final Deferred.Label message = Deferred.label("testing");
 
         try {
-            Exceptions.wrap(null, CustomWrapper.class, new Job<Throwable>() {
-                public void run() throws Throwable {
+            Exceptions.wrap(null, CustomWrapper.class, new Job<Exception>() {
+                public void run() throws Exception {
                     throw wrapped;
                 }
             });
@@ -206,8 +206,8 @@ public class ExceptionsTest {
         }
 
         try {
-            Exceptions.wrap(message, CustomWrapper.class, new Job<Throwable>() {
-                public void run() throws Throwable {
+            Exceptions.wrap(message, CustomWrapper.class, new Job<Exception>() {
+                public void run() throws Exception {
                     throw wrapped;
                 }
             });
@@ -219,8 +219,8 @@ public class ExceptionsTest {
         }
 
         try {
-            Exceptions.wrap(message, null, new Job<Throwable>() {
-                public void run() throws Throwable {
+            Exceptions.wrap(message, null, new Job<Exception>() {
+                public void run() throws Exception {
                     throw wrapped;
                 }
             });
@@ -229,6 +229,67 @@ public class ExceptionsTest {
             assert message.toString().equals(e.getMessage()) : e.getMessage();
         } catch (final RuntimeException e) {
             assert e == original : e;
+        }
+    }
+
+    @Test(dataProvider = "exceptions")
+    public void testCheckedWrapper(final Exception original) throws Exception {
+        try {
+            Exceptions.wrap(CheckedWrapper.class, new Job<Exception>() {
+                public void run() throws Exception {
+                    throw original;
+                }
+            });
+        } catch (final CheckedWrapper e) {
+            assert e.getCause() == original;
+        }
+
+        final CheckedWrapper wrapped1 = new CheckedWrapper(original);
+
+        try {
+            Exceptions.wrap(CheckedWrapper.class, new Job<Exception>() {
+                public void run() throws Exception {
+                    throw wrapped1;
+                }
+            });
+        } catch (final CheckedWrapper e) {
+            assert e.getCause() == wrapped1;
+        }
+
+        final String message = "message";
+
+        try {
+            Exceptions.wrap(message, CheckedWrapper.class, new Job<Exception>() {
+                public void run() throws Exception {
+                    throw wrapped1;
+                }
+            });
+        } catch (final CheckedWrapper e) {
+            assert e.getCause() == wrapped1;
+        }
+
+        final CheckedWrapper wrapped2 = new CheckedWrapper(message, original);
+
+        try {
+            Exceptions.wrap(message, CheckedWrapper.class, new Job<Exception>() {
+                public void run() throws Exception {
+                    throw wrapped2;
+                }
+            });
+        } catch (final CheckedWrapper e) {
+            assert e == wrapped2;
+        }
+    }
+
+    @SuppressWarnings("UnusedDeclaration")
+    private static class CheckedWrapper extends Exception {
+
+        private CheckedWrapper(final Throwable cause) {
+            super(cause);
+        }
+
+        private CheckedWrapper(final String message, final Throwable cause) {
+            super(message, cause);
         }
     }
 }

@@ -57,7 +57,7 @@ final class ContextDefinitionImpl implements ContextDefinition {
     });
 
     private final Component.Context.Collection defaultSeries = (Component.Context.Collection) Methods.get(Component.Context.class, new Methods.Invoker<Component.Context>() {
-        public void invoke(final Component.Context capture) throws Throwable {
+        public void invoke(final Component.Context capture) throws Exception {
             capture.collect();
         }
     })[0].getDefaultValue();

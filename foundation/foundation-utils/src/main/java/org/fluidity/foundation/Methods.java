@@ -54,8 +54,8 @@ public final class Methods extends Utility {
     public static <T> Method[] get(final Class<T> type, final Invoker<T> invoker) {
         final Collection<Method> methods = new ArrayList<Method>();
 
-        Exceptions.wrap(new Command.Job<Throwable>() {
-            public void run() throws Throwable {
+        Exceptions.wrap(new Command.Job<Exception>() {
+            public void run() throws Exception {
                 invoker.invoke(Proxies.create(type, new InvocationHandler() {
                     public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
                         methods.add(method);
@@ -105,8 +105,8 @@ public final class Methods extends Utility {
     public static Object invoke(final Method method, final Object target, final Object... arguments) throws Exceptions.Wrapper {
         assert target != null || Modifier.isStatic(method.getModifiers()) : method;
 
-        return Exceptions.wrap(new Command.Process<Object, Throwable>() {
-            public Object run() throws Throwable {
+        return Exceptions.wrap(new Command.Process<Object, Exception>() {
+            public Object run() throws Exception {
                 return method.invoke(target, arguments);
             }
         });
@@ -128,8 +128,8 @@ public final class Methods extends Utility {
          *
          * @param capture a dummy implementation of the interface owning the method being sought. The implementation must call, on the supplied
          *                object, the method it is looking for.
-         * @throws Throwable listed for semantic purposes; should never actually be thrown.
+         * @throws Exception listed for semantic purposes; should never actually be thrown.
          */
-        void invoke(T capture) throws Throwable;
+        void invoke(T capture) throws Exception;
     }
 }

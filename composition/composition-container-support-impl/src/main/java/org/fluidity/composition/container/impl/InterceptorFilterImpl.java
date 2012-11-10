@@ -82,7 +82,7 @@ final class InterceptorFilterImpl implements InterceptorFilter {
     private static class Descriptor implements Comparable<Descriptor> {
 
         private static String collection = Methods.get(Component.Context.class, new Methods.Invoker<Component.Context>() {
-            public void invoke(final Component.Context capture) throws Throwable {
+            public void invoke(final Component.Context capture) throws Exception {
                 capture.collect();
             }
         })[0].getName();

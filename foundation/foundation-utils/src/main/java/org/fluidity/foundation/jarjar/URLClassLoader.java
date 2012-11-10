@@ -163,34 +163,25 @@ public class URLClassLoader extends SecureClassLoader {
 
     @Override
     protected Class<?> findClass(final String name) throws ClassNotFoundException {
-        try {
-            // TODO: Exceptions.wrap to accept checked exception (ClassNotFoundException in this case)
-            return Exceptions.wrap(new Command.Process<Class<?>, PrivilegedActionException>() {
-                public Class<?> run() throws PrivilegedActionException {
-                    return AccessController.doPrivileged(new PrivilegedExceptionAction<Class<?>>() {
-                        public Class<?> run() throws ClassNotFoundException {
-                            final String resource = ClassLoaders.classResourceName(name);
+        return Exceptions.wrap(name, ClassNotFoundException.class, new Command.Process<Class<?>, PrivilegedActionException>() {
+            public Class<?> run() throws PrivilegedActionException {
+                return AccessController.doPrivileged(new PrivilegedExceptionAction<Class<?>>() {
+                    public Class<?> run() throws Exception {
+                        final String resource = ClassLoaders.classResourceName(name);
 
-                            for (final String key : keys.get()) {
-                                try {
-                                    final Archive.Entry entry = entry(key, resource);
+                        for (final String key : keys.get()) {
+                            final Archive.Entry entry = entry(key, resource);
 
-                                    if (entry != null) {
-                                        return entry.define(name);
-                                    }
-                                } catch (final IOException e) {
-                                    throw new ClassNotFoundException(name, e);
-                                }
+                            if (entry != null) {
+                                return entry.define(name);
                             }
-
-                            throw new ClassNotFoundException(name);
                         }
-                    }, context);
-                }
-            });
-        } catch (final Exceptions.Wrapper wrapper) {
-            throw wrapper.rethrow(ClassNotFoundException.class);
-        }
+
+                        throw new ClassNotFoundException(name);
+                    }
+                }, context);
+            }
+        });
     }
 
     @Override

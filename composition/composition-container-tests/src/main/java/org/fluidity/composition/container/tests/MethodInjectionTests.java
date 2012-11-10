@@ -42,7 +42,7 @@ public class MethodInjectionTests extends AbstractContainerTests {
     private final Dependency2 dependency2 = dependencies.normal(Dependency2.class);
 
     private final Method[] methods = Methods.get(InjectedMethods.class, new Methods.Invoker<InjectedMethods>() {
-        public void invoke(final InjectedMethods capture) throws Throwable {
+        public void invoke(final InjectedMethods capture) throws Exception {
             capture.explicit(null, null);
             capture.explicit(0, null, null, null);
         }

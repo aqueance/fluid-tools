@@ -69,7 +69,8 @@ public final class Proxies extends Utility {
      * Creates a new proxy for the given interface using the given invocation handler. The class loader of the interface will be used to load the proxy class.
      *
      * @param type    the interface to implement with a proxy.
-     * @param handler the handler that implements the interface's methods.
+     * @param handler the handler that implements the interface's methods; must <i>never</i> throw {@link Throwable} that is neither an {@link Error} nor an
+     *                {@link Exception}.
      * @param <T>     the type the returned proxy will implement.
      *
      * @return a proxy implementing the given interface.
@@ -85,7 +86,8 @@ public final class Proxies extends Utility {
      *
      * @param type     the interface to implement with a proxy.
      * @param identity the object that computes object identity for the returned proxy.
-     * @param handler  the handler that implements the interface's methods.
+     * @param handler  the handler that implements the interface's methods; must <i>never</i> throw {@link Throwable} that is neither an {@link Error} nor an
+     *                 {@link Exception}.
      * @param <T>      the type the returned proxy will implement.
      *
      * @return a proxy implementing the given interface.
@@ -108,7 +110,8 @@ public final class Proxies extends Utility {
      *
      * @param loader  the class loader to create the proxy.
      * @param types   the interfaces to implement with a proxy.
-     * @param handler the handler that implements the interface's methods.
+     * @param handler the handler that implements the interface's methods; must <i>never</i> throw {@link Throwable} that is neither an {@link Error} nor an
+     *                {@link Exception}.
      *
      * @return a proxy implementing the given interface.
      */
@@ -123,7 +126,8 @@ public final class Proxies extends Utility {
      * @param loader   the class loader to create the proxy.
      * @param identity the object that computes object identity for the returned proxy.
      * @param types    the interfaces to implement with a proxy.
-     * @param handler  the handler that implements the interface's methods.
+     * @param handler  the handler that implements the interface's methods; must <i>never</i> throw {@link Throwable} that is neither an {@link Error} nor an
+     *                 {@link Exception}.
      *
      * @return a proxy implementing the given interface.
      */
@@ -220,14 +224,22 @@ public final class Proxies extends Utility {
         @SuppressWarnings("unchecked")
         public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
             try {
-                return Exceptions.wrap(new Process<Object, Throwable>() {
-                    public Object run() throws Throwable {
+                return Exceptions.wrap(new Process<Object, Exception>() {
+                    public Object run() throws Exception {
                         if (method.getDeclaringClass() == Object.class) {
                             return method.invoke(MethodInvocations.this, args);
                         } else if (handler != null) {
 
                             // called without access control privileges to subject the handler to access control
-                            return handler.invoke(proxy, method, args);
+                            try {
+                                return handler.invoke(proxy, method, args);
+                            } catch (final Exception e) {
+                                throw e;
+                            } catch (final Error e) {
+                                throw e;
+                            } catch (final Throwable e) {
+                                throw new AssertionError(e);
+                            }
                         } else {
                             throw new IllegalStateException(method.toGenericString());
                         }

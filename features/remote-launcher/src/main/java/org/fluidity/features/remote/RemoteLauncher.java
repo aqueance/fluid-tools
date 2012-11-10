@@ -51,8 +51,8 @@ public final class RemoteLauncher {
                     final String[] arguments = new String[args.length - 1];
                     System.arraycopy(args, 1, arguments, 0, arguments.length);
 
-                    final String main = Exceptions.wrap(String.format("%s is not an archive", url), Problem.class, new Command.Process<String, Throwable>() {
-                        public String run() throws Throwable {
+                    final String main = Exceptions.wrap(String.format("%s is not an archive", url), Problem.class, new Command.Process<String, Exception>() {
+                        public String run() throws Exception {
                             return Archives.attributes(true, url, Attributes.Name.MAIN_CLASS)[0];
                         }
                     });

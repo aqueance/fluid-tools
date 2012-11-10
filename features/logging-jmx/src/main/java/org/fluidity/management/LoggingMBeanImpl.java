@@ -43,7 +43,7 @@ final class LoggingMBeanImpl extends StandardMBean implements LoggingMBean {
     }
 
     private final String logLevelUpdateOperation = Methods.get(LoggingMBean.class, new Methods.Invoker<LoggingMBean>() {
-        public void invoke(final LoggingMBean capture) throws Throwable {
+        public void invoke(final LoggingMBean capture) throws Exception {
             capture.logLevelsUpdated();
         }
     })[0].getName();

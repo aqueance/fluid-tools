@@ -29,7 +29,7 @@ public class MethodsTest {
     @Test
     public void testReturnTypes() throws Exception {
         final Method[] methods = Methods.get(VariousMethods.class, new Methods.Invoker<VariousMethods>() {
-            public void invoke(final VariousMethods capture) throws Throwable {
+            public void invoke(final VariousMethods capture) throws Exception {
                 capture.voidMethod();
                 capture.byteMethod();
                 capture.shortMethod();

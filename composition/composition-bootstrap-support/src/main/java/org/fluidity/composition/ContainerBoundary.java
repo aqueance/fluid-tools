@@ -458,8 +458,8 @@ public final class ContainerBoundary implements ComponentContainer {
                 for (final ListIterator<MutableContainer> iterator = containers.listIterator(containers.size()); iterator.hasPrevious(); ) {
                     final MutableContainer container = iterator.previous();
 
-                    Exceptions.wrap(new Job<Throwable>() {
-                        public void run() throws Throwable {
+                    Exceptions.wrap(new Job<Exception>() {
+                        public void run() throws Exception {
                             containerBootstrap.initializeContainer(container, containerServices);
                         }
                     });

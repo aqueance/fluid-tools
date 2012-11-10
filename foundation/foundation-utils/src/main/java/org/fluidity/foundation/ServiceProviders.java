@@ -176,8 +176,8 @@ public final class ServiceProviders extends Utility {
                                              final boolean strict,
                                              final boolean standard,
                                              final Log log) {
-        return Exceptions.wrap(new Command.Process<Class<T>[], Throwable>() {
-            public Class<T>[] run() throws Throwable {
+        return Exceptions.wrap(new Command.Process<Class<T>[], Exception>() {
+            public Class<T>[] run() throws Exception {
                 final ClassLoader classLoader = loader != null ? loader : AccessController.doPrivileged(new PrivilegedAction<ClassLoader>() {
                     public ClassLoader run() {
                         return ClassLoaders.findClassLoader(api, true);
