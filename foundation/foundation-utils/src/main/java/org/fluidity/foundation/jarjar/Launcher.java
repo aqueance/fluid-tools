@@ -17,13 +17,14 @@
 package org.fluidity.foundation.jarjar;
 
 import java.net.URL;
+import java.security.AccessController;
+import java.security.PrivilegedActionException;
+import java.security.PrivilegedExceptionAction;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.fluidity.foundation.Archives;
 import org.fluidity.foundation.ClassLoaders;
-import org.fluidity.foundation.Exceptions;
-import org.fluidity.foundation.Methods;
 
 import static org.fluidity.foundation.Command.Function;
 
@@ -72,13 +73,22 @@ public final class Launcher {
         urls.addAll(Archives.Nested.dependencies(true, null));
 
         try {
-            ClassLoaders.context(ClassLoaders.create(urls, ClassLoaders.findClassLoader(main, true), null), new Function<Object, ClassLoader, Exception>() {
-                public Object run(final ClassLoader loader) throws Exception {
-                    return Methods.invoke(true, loader.loadClass(mainClass).getMethod("main", String[].class), null, new Object[] { args });
+            AccessController.doPrivileged(new PrivilegedExceptionAction<Object>() {
+                public Void run() throws Exception {
+                    final ClassLoader parent = ClassLoaders.findClassLoader(main, true);
+                    final ClassLoader loader = ClassLoaders.create(urls, parent, null);
+
+                    ClassLoaders.context(loader, new Function<Object, ClassLoader, Exception>() {
+                        public Object run(final ClassLoader loader) throws Exception {
+                            return loader.loadClass(mainClass).getMethod("main", String[].class).invoke(null, new Object[] { args });
+                        }
+                    });
+
+                    return null;
                 }
             });
-        } catch (final Exceptions.Wrapper wrapper) {
-            throw wrapper.rethrow(Exception.class);
+        } catch (final PrivilegedActionException e) {
+            throw (Exception) e.getCause();
         }
     }
 }

@@ -24,6 +24,9 @@ import java.io.StringWriter;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Modifier;
 import java.net.URL;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+import java.security.PrivilegedExceptionAction;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -130,11 +133,17 @@ public final class ServiceProviders extends Utility {
             public T next() {
                 return Exceptions.wrap(new Command.Process<T, Exception>() {
                     public T run() throws Exception {
-                        final Constructor<T> constructor = types[index++].getDeclaredConstructor();
+                        final Constructor<T> constructor = AccessController.doPrivileged(new PrivilegedExceptionAction<Constructor<T>>() {
+                            public Constructor<T> run() throws NoSuchMethodException {
+                                final Constructor<T> constructor = types[index++].getDeclaredConstructor();
 
-                        if (!constructor.isAccessible()) {
-                            constructor.setAccessible(true);
-                        }
+                                if (!constructor.isAccessible()) {
+                                    constructor.setAccessible(true);
+                                }
+
+                                return constructor;
+                            }
+                        });
 
                         return constructor.newInstance();
                     }
@@ -169,7 +178,12 @@ public final class ServiceProviders extends Utility {
                                              final Log log) {
         return Exceptions.wrap(new Command.Process<Class<T>[], Throwable>() {
             public Class<T>[] run() throws Throwable {
-                final ClassLoader classLoader = loader == null ? ClassLoaders.findClassLoader(api, true) : loader;
+                final ClassLoader classLoader = loader != null ? loader : AccessController.doPrivileged(new PrivilegedAction<ClassLoader>() {
+                    public ClassLoader run() {
+                        return ClassLoaders.findClassLoader(api, true);
+                    }
+                });
+
                 log.debug("Loading %s service provider files for %s using class loader %s", standard ? "standard" : String.format("'%s' type", type), api, classLoader);
 
                 final Collection<Class<T>> componentList = new LinkedHashSet<Class<T>>();
@@ -187,37 +201,49 @@ public final class ServiceProviders extends Utility {
                             final String line = (hash < 0 ? content : content.substring(0, hash)).trim();
 
                             if (!line.isEmpty()) {
+                                final Class<?> rawClass;
+
                                 try {
-                                    final Class<?> rawClass = classLoader.loadClass(line);
-
-                                    final boolean loadable = !strict || rawClass.getClassLoader() == classLoader;
-                                    final boolean visible = !standard || rawClass.getDeclaredConstructor() != null;
-
-                                    if (loadable && visible) {
-                                        if (api.isAssignableFrom(rawClass)) {
-                                            @SuppressWarnings("unchecked")
-                                            final Class<T> componentClass = (Class<T>) rawClass;
-
-                                            if (Modifier.isAbstract(componentClass.getModifiers())) {
-                                                log.debug("Ignoring abstract service provider %s", componentClass);
-                                            } else {
-                                                if (componentList.contains(componentClass)) {
-                                                    log.error("Multiple export of %s", componentClass);
-                                                } else {
-                                                    if (localList.contains(componentClass)) {
-                                                        log.error("Duplicate %s", componentClass);
-                                                    } else {
-                                                        log.debug("Found %s", componentClass);
-                                                        localList.add(componentClass);
-                                                    }
-                                                }
-                                            }
-                                        } else {
-                                            log.error("%s does not implement %s", rawClass, api);
-                                        }
-                                    }
+                                    rawClass = classLoader.loadClass(line);
                                 } catch (final ClassNotFoundException e) {
                                     log.error(e, "Invalid class name: %s", line);
+                                    continue;
+                                }
+
+                                final boolean loadable = !strict || classLoader == AccessController.doPrivileged(new PrivilegedAction<ClassLoader>() {
+                                    public ClassLoader run() {
+                                        return rawClass.getClassLoader();
+                                    }
+                                });
+
+                                final boolean visible = !standard || null != AccessController.doPrivileged(new PrivilegedExceptionAction<Object>() {
+                                    public Object run() throws NoSuchMethodException {
+                                        return rawClass.getDeclaredConstructor();
+                                    }
+                                });
+
+                                if (loadable && visible) {
+                                    if (api.isAssignableFrom(rawClass)) {
+                                        @SuppressWarnings("unchecked")
+                                        final Class<T> componentClass = (Class<T>) rawClass;
+
+                                        if (Modifier.isAbstract(componentClass.getModifiers())) {
+                                            log.debug("Ignoring abstract service provider %s", componentClass);
+                                        } else {
+                                            if (componentList.contains(componentClass)) {
+                                                log.error("Multiple export of %s", componentClass);
+                                            } else {
+                                                if (localList.contains(componentClass)) {
+                                                    log.error("Duplicate %s", componentClass);
+                                                } else {
+                                                    log.debug("Found %s", componentClass);
+                                                    localList.add(componentClass);
+                                                }
+                                            }
+                                        }
+                                    } else {
+                                        log.error("%s does not implement %s", rawClass, api);
+                                    }
                                 }
                             }
                         }

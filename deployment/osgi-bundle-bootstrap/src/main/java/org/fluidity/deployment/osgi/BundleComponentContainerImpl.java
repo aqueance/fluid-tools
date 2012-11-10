@@ -17,6 +17,8 @@
 package org.fluidity.deployment.osgi;
 
 import java.lang.annotation.Annotation;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -55,6 +57,12 @@ import org.osgi.framework.ServiceRegistration;
  */
 @Component
 final class BundleComponentContainerImpl implements BundleComponentContainer {
+
+    private static final ClassLoader LOADER = AccessController.doPrivileged(new PrivilegedAction<ClassLoader>() {
+        public ClassLoader run() {
+            return BundleComponentContainerImpl.class.getClassLoader();
+        }
+    });
 
     private final BundleContext context;
     private final ComponentContainer container;
@@ -157,7 +165,7 @@ final class BundleComponentContainerImpl implements BundleComponentContainer {
             this.bundleName = context.getBundle().getSymbolicName();
 
             // find all managed component classes
-            final Class<Managed>[] items = discovery.findComponentClasses(Managed.class, getClass().getClassLoader(), false);
+            final Class<Managed>[] items = discovery.findComponentClasses(Managed.class, LOADER, false);
 
             final Map<Class<Managed>, ComponentDescriptor> components = new HashMap<Class<Managed>, ComponentDescriptor>();
 

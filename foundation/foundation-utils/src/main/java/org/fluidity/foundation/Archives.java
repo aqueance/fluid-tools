@@ -17,12 +17,18 @@
 package org.fluidity.foundation;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.net.URLDecoder;
+import java.security.AccessControlException;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -296,31 +302,36 @@ public final class Archives extends Utility {
      * @throws IOException when reading the URL contents fails.
      */
     public static Manifest manifest(final boolean cached, final URL url) throws IOException {
+        final String protocol = url.getProtocol();
         InputStream stream;
 
         if (url.toExternalForm().endsWith(JarFile.MANIFEST_NAME)) {
 
             // the URL points to the manifest file
             stream = Archives.open(cached, url);
-        } else if (Nested.PROTOCOL.equals(url.getProtocol())) {
+        } else if (Nested.PROTOCOL.equals(protocol)) {
 
             // the URL points to a nested archive
             stream = Archives.open(cached, Nested.formatURL(url, JarFile.MANIFEST_NAME));
+        } else if (Archives.FILE.equals(protocol) && localFile(url).isDirectory()) {
+
+            // directories don't have manifest files
+            stream = null;
         } else {
             try {
 
-                // try simple relative URL for the manifest
-                stream = Archives.open(cached, new URL(url, JarFile.MANIFEST_NAME));
-            } catch (final FileNotFoundException e) {
+                // assume URL is an archive and see if it contains a manifest
+                stream = Archives.open(cached, Nested.formatURL(url, JarFile.MANIFEST_NAME));
+            } catch (final IOException e) {
 
-                // relative URL not found
+                // apparently not an archive, give up
                 try {
 
-                    // assume URL is an archive and see if it contains a manifest
-                    stream = Archives.open(cached, Nested.formatURL(url, JarFile.MANIFEST_NAME));
-                } catch (final IOException ignored) {
+                    // try simple relative URL for the manifest
+                    stream = Archives.open(cached, new URL(url, JarFile.MANIFEST_NAME));
+                } catch (final FileNotFoundException ignored) {
 
-                    // apparently not an archive, give up
+                    // relative URL not found
                     stream = null;
                 }
             }
@@ -340,6 +351,34 @@ public final class Archives extends Utility {
     }
 
     /**
+     * Returns the local file underlying the given non-nested archive URL. This method first tries to URL-decode the path and
+     * if the file exists, returns that; otherwise it returns the file at the URL's path without URL decoding.
+     *
+     * @param url the URL.
+     *
+     * @return the local file underlying the URL; may be <code>null</code>.
+     */
+    public static File localFile(final URL url) {
+        final String path = url.getPath();
+
+        try {
+            final File file = new File(URLDecoder.decode(path, "UTF-8"));
+            boolean found = false;
+
+            try {
+                found = file.exists();
+            } catch (final AccessControlException e) {
+                // ignore
+            }
+
+            return found ? file : new File(path);
+        } catch (final UnsupportedEncodingException e) {
+            assert false : e;
+            return null;
+        }
+    }
+
+    /**
      * Returns the URL for the JAR file that contains the given class.
      *
      * @param type the Java class to find.
@@ -349,7 +388,11 @@ public final class Archives extends Utility {
      * @throws IOException when the given URL cannot be accessed.
      */
     public static URL containing(final Class<?> type) throws IOException {
-        return Archives.containing(ClassLoaders.findClassResource(type));
+        return Archives.containing(AccessController.doPrivileged(new PrivilegedAction<URL>() {
+            public URL run() {
+                return ClassLoaders.findClassResource(type);
+            }
+        }));
     }
 
     /**
@@ -669,7 +712,7 @@ public final class Archives extends Utility {
          *
          * @param url the URL identifying the Java archive to unload.
          */
-        public static void unload(final URL url) throws IOException {
+        public static void unload(final URL url) {
             Handler.unload(url);
         }
 

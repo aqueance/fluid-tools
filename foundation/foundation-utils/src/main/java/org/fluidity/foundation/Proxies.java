@@ -19,6 +19,8 @@ package org.fluidity.foundation;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.fluidity.foundation.Command.Process;
@@ -90,8 +92,14 @@ public final class Proxies extends Utility {
      */
     @SuppressWarnings("unchecked")
     public static <T> T create(final Class<T> type, final Identity<? extends T> identity, final InvocationHandler handler) {
+        final ClassLoader loader = AccessController.doPrivileged(new PrivilegedAction<ClassLoader>() {
+            public ClassLoader run() {
+                return type.getClassLoader();
+            }
+        });
+
         final AtomicReference<T> proxy = new AtomicReference<T>();
-        proxy.set((T) Proxy.newProxyInstance(type.getClassLoader(), new Class<?>[] { type }, new MethodInvocations(handler, proxy, identity)));
+        proxy.set((T) Proxy.newProxyInstance(loader, new Class<?>[] { type }, new MethodInvocations(handler, proxy, identity)));
         return proxy.get();
     }
 
@@ -217,7 +225,8 @@ public final class Proxies extends Utility {
                         if (method.getDeclaringClass() == Object.class) {
                             return method.invoke(MethodInvocations.this, args);
                         } else if (handler != null) {
-                            method.setAccessible(true);
+
+                            // called without access control privileges to subject the handler to access control
                             return handler.invoke(proxy, method, args);
                         } else {
                             throw new IllegalStateException(method.toGenericString());

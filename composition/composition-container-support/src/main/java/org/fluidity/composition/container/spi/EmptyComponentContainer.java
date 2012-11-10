@@ -21,6 +21,8 @@ import java.lang.reflect.Array;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -258,7 +260,13 @@ public abstract class EmptyComponentContainer<C extends DependencyGraph> impleme
             }
         }
 
-        return (T) Proxies.create(type.getClassLoader(), Lists.asArray(Class.class, interfaces), new InvocationHandler() {
+        final ClassLoader loader = AccessController.doPrivileged(new PrivilegedAction<ClassLoader>() {
+            public ClassLoader run() {
+                return type.getClassLoader();
+            }
+        });
+
+        return (T) Proxies.create(loader, Lists.asArray(Class.class, interfaces), new InvocationHandler() {
 
             private final Map<Method, Boolean> injectMap = new ConcurrentHashMap<Method, Boolean>();
 
@@ -280,7 +288,12 @@ public abstract class EmptyComponentContainer<C extends DependencyGraph> impleme
                         injectMap.put(method, inject = false);
                     }
 
-                    method.setAccessible(true);
+                    AccessController.doPrivileged(new PrivilegedAction<Void>() {
+                        public Void run() {
+                            method.setAccessible(true);
+                            return null;
+                        }
+                    });
                 }
 
                 return inject ? EmptyComponentContainer.this.invoke(component, false, method, args) : method.invoke(component, args);

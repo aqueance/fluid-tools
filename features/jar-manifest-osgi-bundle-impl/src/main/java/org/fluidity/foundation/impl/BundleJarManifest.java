@@ -32,6 +32,8 @@ import org.fluidity.deployment.osgi.impl.BundleBootstrap;
 import org.fluidity.deployment.plugin.spi.JarManifest;
 import org.fluidity.foundation.Archives;
 import org.fluidity.foundation.ClassLoaders;
+import org.fluidity.foundation.Command;
+import org.fluidity.foundation.Exceptions;
 import org.fluidity.foundation.Methods;
 
 import org.apache.maven.artifact.Artifact;
@@ -166,7 +168,7 @@ final class BundleJarManifest implements JarManifest {
                 urls.add((Archives.containing(BootstrapDiscoveryImpl.class)));
                 urls.add((Archives.containing(ComponentContainer.class)));
 
-                final String activator = ClassLoaders.isolate(null, urls, BootstrapDiscoveryImpl.class, method);
+                final String activator = isolate(null, urls, BootstrapDiscoveryImpl.class, method);
 
                 if (activator != null) {
                     if (!addEntry(attributes, BUNDLE_ACTIVATOR, activator)) {
@@ -239,6 +241,60 @@ final class BundleJarManifest implements JarManifest {
         numericVersion(bundleVersion, partCount);
 
         return bundleVersion.toString().substring(1);
+    }
+
+    /**
+     * Creates an isolated URL class loader for the given list of URLs, loads using that class loader and instantiates the given <code>type</code>, and calls
+     * the given <code>method</code> on it with the given <code>arguments</code> to return its return value.
+     *
+     * @param parent    the class loader to load the method parameters and the return values; this class loader must not see the given <code>type</code>.
+     * @param urls      the list of URLs to use for the isolated class loader; make sure the list contains the JARs containing the type to load.
+     * @param type      the command class to load and invoke the given method on; must have a public zero-argument constructor.
+     * @param run       the public method to call; the parameter types and the return type must be loaded by the <code>parent</code> class loader and the declaring
+     *                  class must be either visible to the <code>parent</code> class loader or listed in the given list of URLs.
+     * @param arguments the arguments to pass to the command.
+     * @param <T>       the return type of the given <code>method</code>.
+     *
+     * @return whatever the command returns.
+     *
+     * @throws ClassNotFoundException when the given class could not be found in the given URLs.
+     * @throws InstantiationException when the given class could not be instantiated.
+     * @throws org.fluidity.foundation.Exceptions.Wrapper when anything else goes wrong.
+     */
+    @SuppressWarnings("unchecked")
+    private static <T> T isolate(final ClassLoader parent, final Collection<URL> urls, final Class<?> type, final Method run, final Object... arguments)
+            throws Exceptions.Wrapper, ClassNotFoundException, InstantiationException {
+        try {
+            return Archives.Nested.access(new Command.Process<T, RuntimeException>() {
+                public T run() {
+                    return Exceptions.wrap(new Command.Process<T, Exception>() {
+                        public T run() throws Exception {
+                            final ClassLoader isolated = ClassLoaders.create(urls, parent, null);
+
+                            try {
+
+                                // find the command
+                                final Object command = isolated.loadClass(type.getName()).newInstance();
+
+                                // find the method to call in the other class loader
+                                final Method method = isolated.loadClass(run.getDeclaringClass().getName()).getDeclaredMethod(run.getName(), run.getParameterTypes());
+
+                                method.setAccessible(true);
+                                return (T) method.invoke(command, arguments);
+                            } catch (final NoSuchMethodException e) {
+                                throw new AssertionError(e);
+                            } catch (final IllegalAccessException e) {
+                                throw new AssertionError(e);
+                            }
+                        }
+                    });
+                }
+            });
+        } catch (final Exceptions.Wrapper wrapper) {
+            throw wrapper
+                    .rethrow(ClassNotFoundException.class)
+                    .rethrow(InstantiationException.class);
+        }
     }
 
     /**

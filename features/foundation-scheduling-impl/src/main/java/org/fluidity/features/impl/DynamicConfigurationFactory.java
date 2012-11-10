@@ -16,8 +16,11 @@
 
 package org.fluidity.features.impl;
 
+import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -29,8 +32,6 @@ import org.fluidity.features.DynamicConfiguration;
 import org.fluidity.features.Updates;
 import org.fluidity.foundation.Configuration;
 import org.fluidity.foundation.Deferred;
-import org.fluidity.foundation.Exceptions;
-import org.fluidity.foundation.Methods;
 import org.fluidity.foundation.Proxies;
 
 /**
@@ -75,15 +76,18 @@ final class DynamicConfigurationFactory implements ComponentFactory {
                         private Configuration.Query<T, T> all = new Configuration.Query<T, T>() {
                             public T run(final T settings) throws Exception {
                                 final Map<Method, Object> cache = new HashMap<Method, Object>();
+                                final Method[] methods = type.getMethods();
 
-                                for (final Method method : type.getMethods()) {
-                                    assert method.getParameterTypes().length == 0 : method;
-
-                                    try {
-                                        cache.put(method, Methods.invoke(true, method, settings));
-                                    } catch (final Exceptions.Wrapper e) {
-                                        e.rethrow(Exception.class);
+                                AccessController.doPrivileged(new PrivilegedAction<Void>() {
+                                    public Void run() {
+                                        AccessibleObject.setAccessible(methods, true);
+                                        return null;
                                     }
+                                });
+
+                                for (final Method method : methods) {
+                                    assert method.getParameterTypes().length == 0 : method;
+                                    cache.put(method, method.invoke(settings));
                                 }
 
                                 return Proxies.create(type, new InvocationHandler() {

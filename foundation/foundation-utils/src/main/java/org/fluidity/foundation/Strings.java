@@ -17,11 +17,14 @@
 package org.fluidity.foundation;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.lang.reflect.Type;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.Arrays;
 import java.util.Comparator;
 
@@ -80,10 +83,26 @@ public final class Strings extends Utility {
             } else if (object instanceof Type) {
                 return Generics.toString(qualified, (Type) object);
             } else {
-                try {
-                    return (String) Methods.invoke(false, type.getDeclaredMethod("toString"), object);
-                } catch (final NoSuchMethodException e) {
+
+                // see if object overrides Object.toString()
+                final Method method = AccessController.doPrivileged(new PrivilegedAction<Method>() {
+                    public Method run() {
+                        try {
+                            return type.getDeclaredMethod("toString");
+                        } catch (final NoSuchMethodException e) {
+                            return null;
+                        }
+                    }
+                });
+
+                if (method == null) {
+
+                    // nope, object did not override Object.toString()
                     return identify ? formatId(object) : Strings.formatClass(false, qualified, type);
+                } else {
+
+                    // yep, object did override Object.toString()
+                    return (String) Methods.invoke(method, object);
                 }
             }
         }
@@ -165,10 +184,16 @@ public final class Strings extends Utility {
         final Class<? extends Annotation> type = annotation.annotationType();
 
         final Lists.Delimited list = Lists.delimited(", ");
-        final Method[] methods = type.getDeclaredMethods();
+        final Method[] methods = AccessController.doPrivileged(new PrivilegedAction<Method[]>() {
+            public Method[] run() {
+                final Method[] methods = type.getDeclaredMethods();
+                AccessibleObject.setAccessible(methods, true);
+                return methods;
+            }
+        });
+
         try {
             if (methods.length == 1 && methods[0].getName().equals("value")) {
-                methods[0].setAccessible(true);
                 appendValue(identity, list.builder, methods[0].invoke(annotation));
             } else {
                 Arrays.sort(methods, new Comparator<Method>() {
@@ -184,7 +209,6 @@ public final class Strings extends Utility {
                         final Object fallback = method.getDefaultValue();
                         final Class<?> parameterType = method.getReturnType();
 
-                        method.setAccessible(true);
                         final Object value = method.invoke(annotation);
 
                         if (fallback == null || !(parameterType.isArray() ? Arrays.equals((Object[]) fallback, (Object[]) value) : fallback.equals(value))) {

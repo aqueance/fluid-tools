@@ -25,6 +25,8 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.lang.reflect.WildcardType;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -583,16 +585,22 @@ public final class Generics extends Utility {
         if (missingTypes > 0) {
             for (int i = enclosingTypes; i < params.length - missingTypes + enclosingTypes; ++i) {
                 if (Generics.rawType(types[i - enclosingTypes]) != params[i]) {
-                    throw new IllegalStateException(String.format("Could not match parameter types of %s constructor; classes: %s, types: %s, annotations: %s, on %s %s version %s virtual machine for %s Java %s",
-                                                                  Strings.formatObject(false, true, type),
-                                                                  Strings.formatObject(false, true, params),
-                                                                  Strings.formatObject(false, true, types),
-                                                                  Strings.formatObject(false, true, annotations),
-                                                                  System.getProperty("java.vm.vendor"),
-                                                                  System.getProperty("java.vm.name"),
-                                                                  System.getProperty("java.vm.version"),
-                                                                  System.getProperty("java.vendor"),
-                                                                  System.getProperty("java.version")));
+                    AccessController.doPrivileged(new PrivilegedAction<Void>() {
+                        public Void run() {
+                            throw new IllegalStateException(String.format("Could not match parameter types of %s constructor; "
+                                                                          + "classes: %s, types: %s, annotations: %s, "
+                                                                          + "on %s %s version %s virtual machine for %s Java %s",
+                                                                          Strings.formatObject(false, true, type),
+                                                                          Strings.formatObject(false, true, params),
+                                                                          Strings.formatObject(false, true, types),
+                                                                          Strings.formatObject(false, true, annotations),
+                                                                          System.getProperty("java.vm.vendor"),
+                                                                          System.getProperty("java.vm.name"),
+                                                                          System.getProperty("java.vm.version"),
+                                                                          System.getProperty("java.vendor"),
+                                                                          System.getProperty("java.version")));
+                        }
+                    });
                 }
             }
         }

@@ -130,7 +130,7 @@ public class URLClassLoader extends SecureClassLoader {
                             collected.add(dependency.toExternalForm());
 
                             final String protocol = dependency.getProtocol();
-                            final File file = file(dependency.getPath());
+                            final File file = Archives.localFile(dependency);
 
                             entries.put(location,
                                         Archives.FILE.equals(protocol) && file.exists() && file.isDirectory()
@@ -157,91 +157,84 @@ public class URLClassLoader extends SecureClassLoader {
         });
     }
 
-    static File file(final String path) {
-        try {
-            final File file = new File(path);
-            return file.exists() ? file : new File(URLDecoder.decode(path, "UTF-8"));
-        } catch (final UnsupportedEncodingException e) {
-            assert false : e;
-            return null;
-        }
-    }
-
-    private Archive.Entry entry(final String url, final String resource) {
+    private Archive.Entry entry(final String url, final String resource) throws IOException {
         return entries.get(url).entry(resource);
     }
 
     @Override
     protected Class<?> findClass(final String name) throws ClassNotFoundException {
-        final String resource = ClassLoaders.classResourceName(name);
-
         try {
-            return AccessController.doPrivileged(new PrivilegedExceptionAction<Class<?>>() {
-                public Class<?> run() throws ClassNotFoundException {
-                    for (final String key : keys.get()) {
-                        final Archive.Entry entry = entry(key, resource);
+            // TODO: Exceptions.wrap to accept checked exception (ClassNotFoundException in this case)
+            return Exceptions.wrap(new Command.Process<Class<?>, PrivilegedActionException>() {
+                public Class<?> run() throws PrivilegedActionException {
+                    return AccessController.doPrivileged(new PrivilegedExceptionAction<Class<?>>() {
+                        public Class<?> run() throws ClassNotFoundException {
+                            final String resource = ClassLoaders.classResourceName(name);
 
-                        if (entry != null) {
-                            try {
-                                return entry.define(name);
-                            } catch (final IOException e) {
-                                throw new ClassNotFoundException(name, e);
+                            for (final String key : keys.get()) {
+                                try {
+                                    final Archive.Entry entry = entry(key, resource);
+
+                                    if (entry != null) {
+                                        return entry.define(name);
+                                    }
+                                } catch (final IOException e) {
+                                    throw new ClassNotFoundException(name, e);
+                                }
                             }
-                        }
-                    }
 
-                    throw new ClassNotFoundException(name);
+                            throw new ClassNotFoundException(name);
+                        }
+                    }, context);
                 }
-            }, context);
-        } catch (final PrivilegedActionException wrapper) {
-            throw (ClassNotFoundException) wrapper.getCause();
+            });
+        } catch (final Exceptions.Wrapper wrapper) {
+            throw wrapper.rethrow(ClassNotFoundException.class);
         }
     }
 
     @Override
     protected URL findResource(final String name) {
-        try {
-            return AccessController.doPrivileged(new PrivilegedExceptionAction<URL>() {
-                public URL run() throws IOException {
-                    for (final String key : keys.get()) {
+        return AccessController.doPrivileged(new PrivilegedAction<URL>() {
+            public URL run() {
+                for (final String key : keys.get()) {
+                    try {
                         final Archive.Entry entry = entry(key, name);
 
                         if (entry != null) {
                             return entry.url();
                         }
+                    } catch (final IOException e) {
+                        // ignored
                     }
-
-                    return null;
                 }
-            }, context);
-        } catch (final PrivilegedActionException e) {
-            assert false : e.getCause();
-            return null;
-        }
+
+                return null;
+            }
+        }, context);
     }
 
     @Override
     protected Enumeration<URL> findResources(final String name) throws IOException {
-        try {
-            return Collections.enumeration(AccessController.doPrivileged(new PrivilegedExceptionAction<Collection<URL>>() {
-                public Collection<URL> run() throws IOException {
-                    final List<URL> list = new ArrayList<URL>();
+        return AccessController.doPrivileged(new PrivilegedAction<Enumeration<URL>>() {
+            public Enumeration<URL> run() {
+                final List<URL> list = new ArrayList<URL>();
 
-                    for (final String key : keys.get()) {
+                for (final String key : keys.get()) {
+                    try {
                         final Archive.Entry entry = entry(key, name);
 
                         if (entry != null) {
                             list.add(entry.url());
                         }
+                    } catch (final IOException e) {
+                        // ignored
                     }
-
-                    return list;
                 }
-            }, context));
-        } catch (final PrivilegedActionException e) {
-            assert false : e.getCause();
-            return null;
-        }
+
+                return Collections.enumeration(list);
+            }
+        }, context);
     }
 
     @Override
@@ -256,6 +249,10 @@ public class URLClassLoader extends SecureClassLoader {
             permission = Archives.connection(true, url).getPermission();
         } catch (final IOException e) {
             permission = null;
+        }
+
+        if (permission instanceof AccessPermission) {
+            permission = ((AccessPermission) permission).delegate();
         }
 
         if (permission instanceof FilePermission) {
@@ -335,7 +332,8 @@ public class URLClassLoader extends SecureClassLoader {
             }
         }
 
-        return defineClass(name, bytes, offset, length, new CodeSource(url, signers));
+        final URL root = Archives.containing(url);
+        return defineClass(name, bytes, offset, length, new CodeSource(root == null ? url : root, signers));
     }
 
     private String attribute(final Attributes primary, final Attributes fallback, final Attributes.Name name) {
@@ -356,8 +354,10 @@ public class URLClassLoader extends SecureClassLoader {
          * @param resource the resource to load the entry for.
          *
          * @return an entry or <code>null</code>.
+         *
+         * @throws IOException when loading the entry fails.
          */
-        Entry entry(String resource);
+        Entry entry(String resource) throws IOException;
 
         /**
          * Represents an entry in an archive.
@@ -420,7 +420,7 @@ public class URLClassLoader extends SecureClassLoader {
             this.location = file.getAbsolutePath();
         }
 
-        public Entry entry(final String resource) {
+        public Entry entry(final String resource) throws IOException {
             final Entry found = map.get(resource);
 
             if (found == null && found != Entry.NOT_FOUND) {
@@ -428,11 +428,7 @@ public class URLClassLoader extends SecureClassLoader {
 
                 if (file.exists()) {
                     final Entry created = new Entry() {
-                        private final URL entry = Exceptions.wrap(new Command.Process<URL, Throwable>() {
-                            public URL run() throws Throwable {
-                                return file.toURI().toURL();
-                            }
-                        });
+                        private final URL entry = file.toURI().toURL();
 
                         public Class<?> define(final String resource) throws IOException {
                             final byte[] bytes = Streams.load(new FileInputStream(file), new byte[16384], true);

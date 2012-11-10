@@ -19,6 +19,10 @@ package org.fluidity.deployment.launcher;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+import java.security.PrivilegedActionException;
+import java.security.PrivilegedExceptionAction;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -38,6 +42,7 @@ import org.fluidity.deployment.osgi.StartLevels;
 import org.fluidity.foundation.Archives;
 import org.fluidity.foundation.ClassLoaders;
 import org.fluidity.foundation.Command;
+import org.fluidity.foundation.Exceptions;
 import org.fluidity.foundation.Log;
 import org.fluidity.foundation.ServiceProviders;
 
@@ -119,30 +124,39 @@ final class OsgiApplication implements Application {
          * Embedding OSGi: http://njbartlett.name/2011/03/07/embedding-osgi.html
          */
 
-        final FrameworkFactory factory = ServiceProviders.findInstance(FrameworkFactory.class, ClassLoaders.findClassLoader(getClass(), true));
+        final ClassLoader loader = AccessController.doPrivileged(new PrivilegedAction<ClassLoader>() {
+            public ClassLoader run() {
+                return ClassLoaders.findClassLoader(getClass(), true);
+            }
+        });
+
+        final FrameworkFactory factory = ServiceProviders.findInstance(FrameworkFactory.class, loader);
         if (factory == null) {
             throw new IllegalStateException("No OSGi framework found");
         }
 
+        final Properties global = AccessController.doPrivileged(new PrivilegedAction<Properties>() {
+            public Properties run() {
+                return System.getProperties();
+            }
+        });
+
         final RegexBasedInterpolator interpolator = new RegexBasedInterpolator();
-
-        final Properties global = System.getProperties();
-        interpolator.addValueSource(new PropertiesBasedValueSource(global));
-
         final RecursionInterceptor interceptor = new SimpleRecursionInterceptor();
 
+        interpolator.addValueSource(new PropertiesBasedValueSource(global));
         interpolator.setCacheAnswers(true);
         interpolator.setReusePatterns(true);
 
         final URL frameworkURL = Archives.containing(factory.getClass());
-        final Properties defaults = loadProperties(ClassLoaders.readResource(getClass(), "osgi.properties"), null);
+        final Properties defaults = loadProperties(resource("osgi.properties"), null);
 
-        final String application = System.getProperty(APPLICATION_PROPERTIES);
+        final String application = global.getProperty(APPLICATION_PROPERTIES);
         final Properties distribution = loadProperties(application == null
-                                                       ? ClassLoaders.readResource(getClass(), APPLICATION_PROPERTIES)
+                                                       ? resource(APPLICATION_PROPERTIES)
                                                        : Archives.open(cached, new URL(interpolator.interpolate(application))), defaults);
 
-        final String deployment = System.getProperty(DEPLOYMENT_PROPERTIES);
+        final String deployment = global.getProperty(DEPLOYMENT_PROPERTIES);
         final Properties properties = deployment == null
                                       ? distribution
                                       : loadProperties(Archives.open(cached, new URL(interpolator.interpolate(deployment))), distribution);
@@ -159,13 +173,23 @@ final class OsgiApplication implements Application {
         config.put(Constants.FRAMEWORK_BUNDLE_PARENT, Constants.FRAMEWORK_BUNDLE_PARENT_FRAMEWORK);
         config.put(OSGI_APPLICATION_ROOT, String.format("%s:%s%s", Archives.Nested.PROTOCOL, Archives.Nested.rootURL(frameworkURL), Archives.Nested.DELIMITER));
 
-        for (final Map.Entry<String, String> entry : config.entrySet()) {
-            System.setProperty(entry.getKey(), entry.getValue());
-        }
+        AccessController.doPrivileged(new PrivilegedAction<Void>() {
+            public Void run() {
+                for (final Map.Entry<String, String> entry : config.entrySet()) {
+                    System.setProperty(entry.getKey(), entry.getValue());
+                }
+
+                return null;
+            }
+        });
 
         log.debug("OSGi system properties: %s", config);
 
-        final Framework framework = factory.newFramework(config);
+        final Framework framework = AccessController.doPrivileged(new PrivilegedAction<Framework>() {
+            public Framework run() {
+                return factory.newFramework(config);
+            }
+        });
 
         final List<Bundle> bundles = new ArrayList<Bundle>();
         final Set<URL> jars = new TreeSet<URL>(new Comparator<URL>() {
@@ -182,114 +206,134 @@ final class OsgiApplication implements Application {
             }
         }
 
-        framework.start();
+        Exceptions.wrap(new Command.Job<PrivilegedActionException>() {
+            public void run() throws PrivilegedActionException {
+                AccessController.doPrivileged(new PrivilegedExceptionAction<Object>() {
+                    public Void run() throws BundleException {
+                        framework.start();
 
-        termination.add(new Command.Job<Exception>() {
-            public void run() {
-                try {
-                    switch (framework.getState()) {
-                    case Framework.ACTIVE:
-                    case Framework.STARTING:
-                        try {
-                            framework.stop(0);
-                        } catch (final BundleException e) {
-                            log.error(e, "Could not stop the OSGi framework");
+                        termination.add(new Command.Job<Exception>() {
+                            public void run() {
+                                try {
+                                    switch (framework.getState()) {
+                                    case Framework.ACTIVE:
+                                    case Framework.STARTING:
+                                        AccessController.doPrivileged(new PrivilegedAction<Void>() {
+                                            public Void run() {
+                                                try {
+                                                    framework.stop(0);
+                                                } catch (final BundleException e) {
+                                                    log.error(e, "Could not stop the OSGi framework");
+                                                }
+
+                                                return null;
+                                            }
+                                        });
+
+                                        // fall through
+                                    case Framework.STOPPING:
+                                        try {
+                                            framework.waitForStop(0);
+                                        } catch (final InterruptedException e) {
+                                            Thread.currentThread().interrupt();
+                                        }
+
+                                        log.debug("OSGi framework (%s) stopped", framework.getSymbolicName());
+
+                                    default:
+                                        break;
+                                    }
+                                } catch (final Exception e) {
+                                    log.error(e, "Error stopping the OSGi framework");
+                                }
+
+                                Archives.Nested.unload(frameworkURL);
+                            }
+                        });
+
+                        final BundleContext system = framework.getBundleContext();
+
+                        for (final URL url : jars) {
+                            log.debug("Installing bundle %s", url);
+
+                            final Bundle bundle = system.installBundle(url.toExternalForm());
+
+                            if (bundle.getHeaders().get(Constants.FRAGMENT_HOST) == null) {
+                                bundles.add(bundle);
+                            }
                         }
 
-                        // fall through
-                    case Framework.STOPPING:
-                        try {
-                            framework.waitForStop(0);
-                        } catch (final InterruptedException e) {
-                            Thread.currentThread().interrupt();
+                        final FrameworkStartLevel startLevel = levels == null ? null : framework.adapt(FrameworkStartLevel.class);
+
+                        final List<List<Bundle>> order = new ArrayList<List<Bundle>>();
+
+                        if (startLevel != null) {
+
+                            // start level 0: framework stopped
+                            // start level 1: framework started
+                            // start level 2+ : bundle start levels
+
+                            final List<Bundle> remaining = new ArrayList<Bundle>(bundles);
+
+                            int level = 1;
+                            for (final List<Bundle> list : list(bundles)) {
+
+                                // make sure no bundle is included that has already been assigned a start level
+                                list.retainAll(remaining);
+
+                                // no bundle to start at this level: discard the rest
+                                if (list.isEmpty()) {
+                                    break;
+                                }
+
+                                remaining.removeAll(list);
+                                order.add(list);
+
+                                ++level;
+                                for (final Bundle bundle : list) {
+                                    bundle.adapt(BundleStartLevel.class).setStartLevel(level);
+                                }
+                            }
+
+                            if (!remaining.isEmpty()) {
+                                order.add(remaining);
+
+                                ++level;
+                                for (final Bundle bundle : remaining) {
+                                    bundle.adapt(BundleStartLevel.class).setStartLevel(level);
+                                }
+                            }
                         }
 
-                        log.debug("OSGi framework (%s) stopped", framework.getSymbolicName());
+                        for (final Bundle bundle : bundles) {
+                            bundle.start(Bundle.START_ACTIVATION_POLICY);
+                        }
 
-                    default:
-                        break;
+                        if (startLevel != null) {
+                            final int limit = order.size() + 1;
+                            final int level = Math.max(1, Math.min(limit, levels.initial(limit)));
+                            startLevel.setStartLevel(level);
+
+                            log.debug("OSGi framework (%s) started at level %d of %d", framework.getSymbolicName(), level, limit);
+                        } else {
+                            log.debug("OSGi framework (%s) started", framework.getSymbolicName());
+                        }
+
+                        return null;
                     }
-                } catch (final Exception e) {
-                    log.error(e, "Error stopping the OSGi framework");
-                }
-
-                try {
-                    Archives.Nested.unload(frameworkURL);
-                } catch (final IOException e) {
-                    assert false : frameworkURL;
-                }
+                });
             }
         });
 
-        final BundleContext system = framework.getBundleContext();
-
-        for (final URL url : jars) {
-            log.debug("Installing bundle %s", url);
-
-            final Bundle bundle = system.installBundle(url.toExternalForm());
-
-            if (bundle.getHeaders().get(Constants.FRAGMENT_HOST) == null) {
-                bundles.add(bundle);
-            }
-        }
-
-        final FrameworkStartLevel startLevel = levels == null ? null : framework.adapt(FrameworkStartLevel.class);
-
-        final List<List<Bundle>> order = new ArrayList<List<Bundle>>();
-
-        if (startLevel != null) {
-
-            // start level 0: framework stopped
-            // start level 1: framework started
-            // start level 2+ : bundle start levels
-
-            final List<Bundle> remaining = new ArrayList<Bundle>(bundles);
-
-            int level = 1;
-            for (final List<Bundle> list : list(bundles)) {
-
-                // make sure no bundle is included that has already been assigned a start level
-                list.retainAll(remaining);
-
-                // no bundle to start at this level: discard the rest
-                if (list.isEmpty()) {
-                    break;
-                }
-
-                remaining.removeAll(list);
-                order.add(list);
-
-                ++level;
-                for (final Bundle bundle : list) {
-                    bundle.adapt(BundleStartLevel.class).setStartLevel(level);
-                }
-            }
-
-            if (!remaining.isEmpty()) {
-                order.add(remaining);
-
-                ++level;
-                for (final Bundle bundle : remaining) {
-                    bundle.adapt(BundleStartLevel.class).setStartLevel(level);
-                }
-            }
-        }
-
-        for (final Bundle bundle : bundles) {
-            bundle.start(Bundle.START_ACTIVATION_POLICY);
-        }
-
-        if (startLevel != null) {
-            final int limit = order.size() + 1;
-            final int level = Math.max(1, Math.min(limit, levels.initial(limit)));
-            startLevel.setStartLevel(level);
-
-            log.debug("OSGi framework (%s) started at level %d of %d", framework.getSymbolicName(), level, limit);
-        } else {
-            log.debug("OSGi framework (%s) started", framework.getSymbolicName());
-        }
-
         framework.waitForStop(0);
+    }
+
+    private InputStream resource(final String name) {
+        return AccessController.doPrivileged(new PrivilegedAction<InputStream>() {
+            public InputStream run() {
+                return ClassLoaders.readResource(getClass(), name);
+            }
+        });
     }
 
     private List<List<Bundle>> list(final List<Bundle> bundles) {

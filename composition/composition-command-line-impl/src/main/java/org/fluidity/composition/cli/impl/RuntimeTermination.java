@@ -16,6 +16,9 @@
 
 package org.fluidity.composition.cli.impl;
 
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+
 import org.fluidity.composition.Component;
 import org.fluidity.composition.spi.ContainerTermination;
 import org.fluidity.foundation.Command;
@@ -34,9 +37,15 @@ final class RuntimeTermination implements ContainerTermination {
     RuntimeTermination(final Jobs<RuntimeTermination> jobs) {
         this.jobs = jobs;
 
-        Runtime.getRuntime().addShutdownHook(new Thread("Container shutdown") {
-            public void run() {
-                jobs.flush();
+        AccessController.doPrivileged(new PrivilegedAction<Void>() {
+            public Void run() {
+                Runtime.getRuntime().addShutdownHook(new Thread("Container shutdown") {
+                    public void run() {
+                        jobs.flush();
+                    }
+                });
+
+                return null;
             }
         });
     }

@@ -18,7 +18,6 @@ package org.fluidity.foundation;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLStreamHandlerFactory;
 import java.util.Collection;
@@ -28,7 +27,6 @@ import java.util.LinkedHashSet;
 import org.fluidity.foundation.jarjar.URLClassLoader;
 
 import static org.fluidity.foundation.Command.Function;
-import static org.fluidity.foundation.Command.Process;
 
 /**
  * Utility methods related to {@linkplain ClassLoader class loaders}.
@@ -52,6 +50,7 @@ public final class ClassLoaders extends Utility {
      * <li>else if <code>fallback</code> is <code>true</code>, the class loader that loaded this class, if not <code>null</code></li>
      * <li>else the system class loader.</li>
      * </ul>
+     * The caller must have the {@link RuntimePermission} <code>"getClassLoader"</code> permission.
      *
      * @param type     the class to find the appropriate class loader for.
      * @param fallback if <code>true</code>, the context class loader and the class loader of this utility class may be returned.
@@ -83,6 +82,8 @@ public final class ClassLoaders extends Utility {
      * Finds the named resource in the class loader appropriate for the given class. See {@link #findClassLoader(Class, boolean)
      * ClassLoaders.findClassLoader(type, true)} for the definition of <em>appropriate</em>. The resource name is computed from a format string and its
      * parameters.
+     * <p/>
+     * The caller must have the {@link RuntimePermission} <code>"getClassLoader"</code> permission.
      *
      * @param type   the class to use the appropriate class loader for.
      * @param format the format string.
@@ -114,6 +115,8 @@ public final class ClassLoaders extends Utility {
      * Finds the named resource in the class loader appropriate for the given class and returns an input stream to read its contents. See {@link
      * #findClassLoader(Class, boolean) ClassLoaders.findClassLoader(type, true)} for the definition of <em>appropriate</em>. The resource name is computed
      * from a format string and its parameters.
+     * <p/>
+     * The caller must have the {@link RuntimePermission} <code>"getClassLoader"</code> permission.
      *
      * @param type   the class to use the appropriate class loader for.
      * @param format the format string.
@@ -152,6 +155,8 @@ public final class ClassLoaders extends Utility {
 
     /**
      * Returns the resource URL where the given class may be loaded from.
+     * <p/>
+     * The caller must have the {@link RuntimePermission} <code>"getClassLoader"</code> permission.
      *
      * @param type the class to return the resource URL for.
      *
@@ -163,6 +168,8 @@ public final class ClassLoaders extends Utility {
 
     /**
      * Returns the input stream where the given class may be loaded from.
+     * <p/>
+     * The caller must have the {@link RuntimePermission} <code>"getClassLoader"</code> permission.
      *
      * @param type the class to return the resource URL for.
      *
@@ -175,6 +182,9 @@ public final class ClassLoaders extends Utility {
     /**
      * Sets the given class loader as the {@linkplain Thread#setContextClassLoader(ClassLoader) context class loader} and returns the previous context class
      * loader.
+     * <p/>
+     * The caller must have the {@link RuntimePermission} <code>"getClassLoader"</code> and {@link RuntimePermission} <code>"setContextClassLoader"</code>
+     * permissions.
      *
      * @param loader the class loader to set.
      *
@@ -193,6 +203,9 @@ public final class ClassLoaders extends Utility {
     /**
      * Sets as the {@linkplain Thread#setContextClassLoader(ClassLoader) context class loader} the one that loaded the given class and returns the previous
      * context class loader.
+     * <p/>
+     * The caller must have the {@link RuntimePermission} <code>"getClassLoader"</code> and {@link RuntimePermission} <code>"setContextClassLoader"</code>
+     * permissions.
      *
      * @param type the class loader to set.
      *
@@ -260,58 +273,5 @@ public final class ClassLoaders extends Utility {
      */
     public static ClassLoader create(final Collection<URL> urls, final URLStreamHandlerFactory handlers) {
         return new URLClassLoader(urls, handlers);
-    }
-
-    /**
-     * Creates an isolated URL class loader for the given list of URLs, loads using that class loader and instantiates the given <code>type</code>, and calls
-     * the given <code>method</code> on it with the given <code>arguments</code> to return its return value.
-     *
-     * @param parent    the class loader to load the method parameters and the return values; this class loader must not see the given <code>type</code>.
-     * @param urls      the list of URLs to use for the isolated class loader; make sure the list contains the JARs containing the type to load.
-     * @param type      the command class to load and invoke the given method on; must have a public zero-argument constructor.
-     * @param run       the public method to call; the parameter types and the return type must be loaded by the <code>parent</code> class loader and the declaring
-     *                  class must be either visible to the <code>parent</code> class loader or listed in the given list of URLs.
-     * @param arguments the arguments to pass to the command.
-     * @param <T>       the return type of the given <code>method</code>.
-     *
-     * @return whatever the command returns.
-     *
-     * @throws ClassNotFoundException when the given class could not be found in the given URLs.
-     * @throws InstantiationException when the given class could not be instantiated.
-     * @throws Exceptions.Wrapper when anything else goes wrong.
-     */
-    @SuppressWarnings("unchecked")
-    public static <T> T isolate(final ClassLoader parent, final Collection<URL> urls, final Class<?> type, final Method run, final Object... arguments)
-            throws Exceptions.Wrapper, ClassNotFoundException, InstantiationException {
-        try {
-            return Archives.Nested.access(new Process<T, RuntimeException>() {
-                public T run() {
-                    return Exceptions.wrap(new Process<T, Exception>() {
-                        public T run() throws Exception {
-                            final ClassLoader isolated = ClassLoaders.create(urls, parent, null);
-
-                            try {
-
-                                // find the command
-                                final Object command = isolated.loadClass(type.getName()).newInstance();
-
-                                // find the method to call in the other class loader
-                                final Method method = isolated.loadClass(run.getDeclaringClass().getName()).getDeclaredMethod(run.getName(), run.getParameterTypes());
-
-                                return (T) Methods.invoke(true, method, command, arguments);
-                            } catch (final NoSuchMethodException e) {
-                                throw new AssertionError(e);
-                            } catch (final IllegalAccessException e) {
-                                throw new AssertionError(e);
-                            }
-                        }
-                    });
-                }
-            });
-        } catch (final Exceptions.Wrapper wrapper) {
-            throw wrapper
-                    .rethrow(ClassNotFoundException.class)
-                    .rethrow(InstantiationException.class);
-        }
     }
 }

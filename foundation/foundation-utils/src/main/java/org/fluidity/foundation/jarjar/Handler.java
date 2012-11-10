@@ -27,7 +27,9 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLStreamHandler;
 import java.security.AccessControlException;
+import java.security.AccessController;
 import java.security.Permission;
+import java.security.PrivilegedAction;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -38,6 +40,7 @@ import java.util.zip.ZipInputStream;
 
 import org.fluidity.foundation.Archives;
 import org.fluidity.foundation.ClassLoaders;
+import org.fluidity.foundation.Deferred;
 import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.Streams;
 
@@ -67,6 +70,8 @@ public final class Handler extends URLStreamHandler {
      */
     public static final String PROTOCOL;
 
+    private static final String PACKAGE;
+
     /**
      * The path component delimiter in a valid URL.
      */
@@ -84,19 +89,34 @@ public final class Handler extends URLStreamHandler {
             throw new IllegalStateException(String.format("Class %s must be in a package at least two levels deep", Handler.class.getName()));
         }
 
-        final String packageName = canonicalName.substring(0, dot);
-
-        try {
-            final String property = System.getProperty(PROTOCOL_HANDLERS_PROPERTY);
-
-            if (property == null || !Arrays.asList(property.split("|")).contains(packageName)) {
-                System.setProperty(PROTOCOL_HANDLERS_PROPERTY, property == null ? packageName : String.format("%s|%s", packageName, property));
-            }
-        } catch (final AccessControlException e) {
-            // fine, we'll just assume our parent package has been registered already
-        }
-
+        PACKAGE = canonicalName.substring(0, dot);
         PROTOCOL = canonicalName.substring(dot + 1, canonicalName.lastIndexOf('.'));
+    }
+
+    private static final Deferred.Reference<Void> registration = Deferred.reference(new Deferred.Factory<Void>() {
+        public Void create() {
+            try {
+                AccessController.doPrivileged(new PrivilegedAction<Void>() {
+                    public Void run() {
+                        final String property = System.getProperty(PROTOCOL_HANDLERS_PROPERTY);
+
+                        if (property == null || !Arrays.asList(property.split("\\|")).contains(PACKAGE)) {
+                            System.setProperty(PROTOCOL_HANDLERS_PROPERTY, property == null ? PACKAGE : String.format("%s|%s", PACKAGE, property));
+                        }
+
+                        return null;
+                    }
+                });
+            } catch (final AccessControlException e) {
+                // fine, we'll just assume our parent package has been registered already
+            }
+
+            return null;
+        }
+    });
+
+    private static void initialize() {
+        registration.get(); // guaranteed to run at most once
     }
 
     /**
@@ -177,19 +197,15 @@ public final class Handler extends URLStreamHandler {
     /**
      * Returns the part of the nested archive URL that identifies the outermost enclosing archive.
      */
-    static URL enclosedURL(final URL url) {
-        try {
-            final String path = url.getFile();
-            final int delimiter = path.indexOf(DELIMITER);
-            return new URL(delimiter < 0 ? path : path.substring(0, delimiter));
-        } catch (final IOException e) {
-            throw new IllegalStateException(url.toExternalForm(), e);
-        }
+    static String enclosedURL(final URL url) {
+        final String path = url.getFile();
+        final int delimiter = path.indexOf(DELIMITER);
+        return delimiter < 0 ? path : path.substring(0, delimiter);
     }
 
     @Override
     protected String toExternalForm(final URL url) {
-        return String.format("%s:%s%s", url.getProtocol(), enclosedURL(url).toExternalForm(), Cache.path(url));
+        return String.format("%s:%s%s", url.getProtocol(), enclosedURL(url), Cache.path(url));
     }
 
     /**
@@ -206,6 +222,8 @@ public final class Handler extends URLStreamHandler {
      * @throws IOException when URL handling fails.
      */
     public static URL formatURL(final URL root, final String... path) throws IOException {
+        Handler.initialize();
+
         if (root == null) {
             return null;
         } else if (path == null || path.length == 0) {
@@ -269,17 +287,15 @@ public final class Handler extends URLStreamHandler {
      */
     public static URL rootURL(final URL url) throws IOException {
         final URL jarjar = unwrap(url);
-        return PROTOCOL.equals(jarjar.getProtocol()) ? enclosedURL(jarjar) : url;
+        return PROTOCOL.equals(jarjar.getProtocol()) ? new URL(enclosedURL(jarjar)) : url;
     }
 
     /**
      * Unloads the contents of the given URL from the caches.
      *
      * @param url the URL to unload the contents of.
-     *
-     * @throws java.io.IOException when processing the URL fails.
      */
-    public static void unload(final URL url) throws IOException {
+    public static void unload(final URL url) {
         Cache.unload(url);
     }
 
@@ -351,10 +367,11 @@ public final class Handler extends URLStreamHandler {
         Connection(final URL url) throws IOException {
             super(url);
 
-            assert !PROTOCOL.equals(enclosedURL(getURL()).getProtocol()) : getURL();
-
             // the host part of our root URL itself is an URL
-            this.root = enclosedURL(getURL()).openConnection();
+            final URL enclosed = new URL(enclosedURL(getURL()));
+            assert !PROTOCOL.equals(enclosed.getProtocol()) : getURL();
+
+            this.root = enclosed.openConnection();
         }
 
         @Override
@@ -364,7 +381,7 @@ public final class Handler extends URLStreamHandler {
 
         @Override
         public Permission getPermission() throws IOException {
-            return root.getPermission();
+            return new AccessPermission(root.getPermission());
         }
 
         @Override
@@ -569,12 +586,12 @@ public final class Handler extends URLStreamHandler {
         }
 
         static byte[] contents(final URL url) throws IOException {
-            return load(enclosedURL(url)).get(path(url));
+            return load(new URL(enclosedURL(url))).get(path(url));
         }
 
         static Archive archive(final URL url) throws IOException {
             final boolean nested = PROTOCOL.equals(url.getProtocol());
-            return new Archive(nested ? path(url) : ROOT, load(nested ? enclosedURL(url) : url));
+            return new Archive(nested ? path(url) : ROOT, load(nested ? new URL(enclosedURL(url)) : url));
         }
 
         @SuppressWarnings("SynchronizationOnLocalVariableOrMethodParameter")
@@ -696,18 +713,15 @@ public final class Handler extends URLStreamHandler {
          * Unloads the contents of the given URL from the caches.
          *
          * @param url the URL to unload the contents of.
-         *
-         * @throws java.io.IOException when processing the URL fails.
          */
-        static void unload(final URL url) throws IOException {
+        static void unload(final URL url) {
             if (PROTOCOL.equals(url.getProtocol())) {
-                localCache().remove(enclosedURL(url).toExternalForm());
+                localCache().remove(enclosedURL(url));
             }
         }
 
         static boolean loaded(final URL url, final boolean local) {
-            final Map<String, Map<String, byte[]>> cache = local ? localCache() : globalCache;
-            return cache.containsKey(enclosedURL(url).toExternalForm());
+            return (local ? localCache() : globalCache).containsKey(enclosedURL(url));
         }
 
         /**

@@ -21,6 +21,8 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -267,7 +269,13 @@ abstract class FactoryResolver extends AbstractResolver {
 
             public void fields(final Class<?> type) {
                 assert type != null;
-                for (final Field field : type.getDeclaredFields()) {
+                final Field[] fields = AccessController.doPrivileged(new PrivilegedAction<Field[]>() {
+                    public Field[] run() {
+                        return type.getDeclaredFields();
+                    }
+                });
+
+                for (final Field field : fields) {
                     if (field.isAnnotationPresent(Inject.class)) {
                         descend(field.getType(), field.getGenericType(), field.getAnnotations());
                     }

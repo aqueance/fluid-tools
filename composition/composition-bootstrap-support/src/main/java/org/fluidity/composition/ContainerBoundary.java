@@ -18,6 +18,8 @@ package org.fluidity.composition;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -119,8 +121,17 @@ public final class ContainerBoundary implements ComponentContainer {
      * Creates a container boundary for the current class loader.
      */
     /* package */ ContainerBoundary() {
-        final ClassLoader cl = Thread.currentThread().getContextClassLoader();
-        this.classLoader = cl == null ? getClass().getClassLoader() : cl;
+        final ClassLoader cl = AccessController.doPrivileged(new PrivilegedAction<ClassLoader>() {
+            public ClassLoader run() {
+                return Thread.currentThread().getContextClassLoader();
+            }
+        });
+
+        this.classLoader = cl != null ? cl : AccessController.doPrivileged(new PrivilegedAction<ClassLoader>() {
+            public ClassLoader run() {
+                return getClass().getClassLoader();
+            }
+        });
     }
 
     /**
@@ -308,80 +319,85 @@ public final class ContainerBoundary implements ComponentContainer {
     private List<MutableContainer> makeContainer() {
         initFinder();
 
-        // list of class loaders from current one up the hierarchy
-        final List<ClassLoader> classLoaders = new ArrayList<ClassLoader>();
+        return AccessController.doPrivileged(new PrivilegedAction<List<MutableContainer>>() {
+            public List<MutableContainer> run() {
 
-        for (ClassLoader loader = classLoader; loader != rootClassLoader; loader = loader.getParent()) {
-            classLoaders.add(loader);
-        }
+                // list of class loaders from current one up the hierarchy
+                final List<ClassLoader> classLoaders = new ArrayList<ClassLoader>();
 
-        // top down: going in reverse order because the container for a given class loader has to use as its parent the container for the parent class loader
-        for (final ListIterator<ClassLoader> i = classLoaders.listIterator(classLoaders.size()); i.hasPrevious(); ) {
-            final ClassLoader loader = i.previous();
-
-            if (!populatedContainers.containsKey(loader)) {
-                findBootstrap(loader);
-                findProvider(loader);
-
-                if (containerBootstrap != null && containerProvider != null) {
-                    if (rootClassLoader == null) {
-                        rootClassLoader = loader;
-                    }
-
-                    final Map map = propertiesMap.get(loader);
-                    final MutableContainer parent = populatedContainers.get(loader.getParent());
-
-                    final AtomicReference<MutableContainer> container = new AtomicReference<MutableContainer>();
-
-                    final ContainerBootstrap.Callback callback = new ContainerBootstrap.Callback() {
-                        public void containerInitialized() {
-                            synchronized (stateLock) {
-                                lockedContainers.add(container.get());
-                            }
-                        }
-
-                        public void containerShutdown() {
-                            synchronized (stateLock) {
-                                populatedContainers.remove(loader);
-                                propertiesMap.remove(loader);
-                                lockedContainers.remove(container.get());
-                            }
-                        }
-                    };
-
-                    container.set(ClassLoaders.context(loader, new Function<MutableContainer, ClassLoader, RuntimeException>() {
-                        public MutableContainer run(final ClassLoader loader) {
-                            return containerBootstrap.populateContainer(findServices(loader),
-                                                                        containerProvider,
-                                                                        map == null ? new HashMap() : map,
-                                                                        parent,
-                                                                        bridge,
-                                                                        loader,
-                                                                        callback);
-                        }
-                    }));
-
-                    populatedContainers.put(loader, container.get());
-                } else {
-                    populatedContainers.put(loader, null);
+                for (ClassLoader loader = classLoader; loader != rootClassLoader; loader = loader.getParent()) {
+                    classLoaders.add(loader);
                 }
+
+                // top down: going in reverse order because the container for a given class loader has to use as its parent the container for the parent class loader
+                for (final ListIterator<ClassLoader> i = classLoaders.listIterator(classLoaders.size()); i.hasPrevious(); ) {
+                    final ClassLoader loader = i.previous();
+
+                    if (!populatedContainers.containsKey(loader)) {
+                        findBootstrap(loader);
+                        findProvider(loader);
+
+                        if (containerBootstrap != null && containerProvider != null) {
+                            if (rootClassLoader == null) {
+                                rootClassLoader = loader;
+                            }
+
+                            final Map map = propertiesMap.get(loader);
+                            final MutableContainer parent = populatedContainers.get(loader.getParent());
+
+                            final AtomicReference<MutableContainer> container = new AtomicReference<MutableContainer>();
+
+                            final ContainerBootstrap.Callback callback = new ContainerBootstrap.Callback() {
+                                public void containerInitialized() {
+                                    synchronized (stateLock) {
+                                        lockedContainers.add(container.get());
+                                    }
+                                }
+
+                                public void containerShutdown() {
+                                    synchronized (stateLock) {
+                                        populatedContainers.remove(loader);
+                                        propertiesMap.remove(loader);
+                                        lockedContainers.remove(container.get());
+                                    }
+                                }
+                            };
+
+                            container.set(ClassLoaders.context(loader, new Function<MutableContainer, ClassLoader, RuntimeException>() {
+                                public MutableContainer run(final ClassLoader loader) {
+                                    return containerBootstrap.populateContainer(findServices(loader),
+                                                                                containerProvider,
+                                                                                map == null ? new HashMap() : map,
+                                                                                parent,
+                                                                                bridge,
+                                                                                loader,
+                                                                                callback);
+                                }
+                            }));
+
+                            populatedContainers.put(loader, container.get());
+                        } else {
+                            populatedContainers.put(loader, null);
+                        }
+                    }
+                }
+
+                assert populatedContainers.containsKey(classLoader) : classLoader;
+
+                // bottom up: list of containers at and above current class loader
+                final List<MutableContainer> containers = new ArrayList<MutableContainer>();
+
+                for (ClassLoader loader = classLoader; loader != null; loader = loader.getParent()) {
+                    final MutableContainer container = populatedContainers.get(loader);
+
+                    if (container != null) {
+                        containers.add(container);
+                    }
+                }
+
+                return containers;
             }
-        }
-
-        assert populatedContainers.containsKey(classLoader) : classLoader;
-
-        // bottom up: list of containers at and above current class loader
-        final List<MutableContainer> containers = new ArrayList<MutableContainer>();
-
-        for (ClassLoader loader = classLoader; loader != null; loader = loader.getParent()) {
-            final MutableContainer container = populatedContainers.get(loader);
-
-            if (container != null) {
-                containers.add(container);
-            }
-        }
-
-        return containers;
+        });
     }
 
     private BootstrapServices initFinder() {

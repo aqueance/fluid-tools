@@ -16,11 +16,14 @@
 
 package org.fluidity.foundation;
 
+import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -149,7 +152,12 @@ final class ConfigurationImpl<T> implements Configuration<T> {
             this.prefixes = prefixes;
             this.defaults = defaults;
             this.provider = provider;
-            this.loader = api.getClassLoader();
+
+            this.loader = AccessController.doPrivileged(new PrivilegedAction<ClassLoader>() {
+                public ClassLoader run() {
+                    return api.getClassLoader();
+                }
+            });
         }
 
         public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
@@ -163,18 +171,26 @@ final class ConfigurationImpl<T> implements Configuration<T> {
 
             return Exceptions.wrap(method.toGenericString(), PropertyException.class, new Process<Object, Throwable>() {
                 public Object run() throws Throwable {
-                    return property(setting.split(),
-                                    setting.grouping(),
-                                    String.format(setting.ids(), args),
-                                    String.format(setting.list(), args),
-                                    String.format(setting.undefined(), args),
-                                    type,
-                                    genericType,
-                                    prefixes,
-                                    String.format(setting.key(), args),
-                                    defaults,
-                                    method,
-                                    args);
+                    return AccessController.doPrivileged(new PrivilegedAction<Object>() {
+                        public Object run() {
+                            if (!method.isAccessible()) {
+                                method.setAccessible(true);
+                            }
+
+                            return property(setting.split(),
+                                            setting.grouping(),
+                                            String.format(setting.ids(), args),
+                                            String.format(setting.list(), args),
+                                            String.format(setting.undefined(), args),
+                                            type,
+                                            genericType,
+                                            prefixes,
+                                            String.format(setting.key(), args),
+                                            defaults,
+                                            method,
+                                            args);
+                        }
+                    });
                 }
             });
         }
@@ -208,7 +224,7 @@ final class ConfigurationImpl<T> implements Configuration<T> {
                     }
 
                     if (value == null) {
-                        final Object fallback = defaults == null ? null : Methods.invoke(false, method, defaults, args);
+                        final Object fallback = defaults == null ? null : Methods.invoke(method, defaults, args);
                         value = fallback == null ? (undefined.length() == 0 ? null : undefined) : fallback;
                     }
 
@@ -324,12 +340,20 @@ final class ConfigurationImpl<T> implements Configuration<T> {
                 });
             } else {
                 final Object instance = type.newInstance();
+                final Field[] fields = type.getFields();
 
-                for (final Field field : type.getFields()) {
+                AccessController.doPrivileged(new PrivilegedAction<Void>() {
+                    public Void run() {
+                        AccessibleObject.setAccessible(fields, true);
+                        return null;
+                    }
+                });
+
+
+                for (final Field field : fields) {
                     final Property setting = field.getAnnotation(Property.class);
 
                     if (setting != null) {
-                        field.setAccessible(true);
                         field.set(instance,
                                   property(setting.split(),
                                            setting.grouping(),

@@ -17,15 +17,17 @@
 package org.fluidity.composition.container.impl;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.lang.reflect.WildcardType;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.IdentityHashMap;
@@ -50,9 +52,11 @@ import org.fluidity.foundation.Deferred;
 import org.fluidity.foundation.Exceptions;
 import org.fluidity.foundation.Generics;
 import org.fluidity.foundation.Lists;
+import org.fluidity.foundation.Methods;
 import org.fluidity.foundation.Proxies;
 import org.fluidity.foundation.Strings;
 
+import static org.fluidity.composition.ComponentContainer.ResolutionException;
 import static org.fluidity.foundation.Command.Process;
 
 /**
@@ -103,7 +107,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
                          final DependencyResolver container,
                          final ContextNode contexts,
                          final ContextDefinition context,
-                         final boolean explicit) throws ComponentContainer.ResolutionException, InvocationTargetException {
+                         final boolean explicit) throws ResolutionException, Exceptions.Wrapper {
         assert method != null;
         assert container != null;
 
@@ -141,12 +145,14 @@ final class DependencyInjectorImpl implements DependencyInjector {
 
         guard.enable();
 
-        try {
-            method.setAccessible(true);
-            return method.invoke(component, parameters);
-        } catch (final IllegalAccessException e) {
-            throw new ComponentContainer.ResolutionException(e, "Invoking %s", method);
-        }
+        AccessController.doPrivileged(new PrivilegedAction<Void>() {
+            public Void run() {
+                method.setAccessible(true);
+                return null;
+            }
+        });
+
+        return Methods.invoke(method, component, parameters);
     }
 
     @SuppressWarnings("unchecked")
@@ -170,14 +176,20 @@ final class DependencyInjectorImpl implements DependencyInjector {
         return false;
     }
 
-    public Constructor<?> findConstructor(final Class<?> componentClass) throws ComponentContainer.ResolutionException {
+    public Constructor<?> findConstructor(final Class<?> componentClass) throws ResolutionException {
         Constructor<?> designated = null;
 
         final List<Constructor<?>> privateConstructors = new ArrayList<Constructor<?>>();
         final List<Constructor<?>> packageConstructors = new ArrayList<Constructor<?>>();
         final List<Constructor<?>> publicConstructors = new ArrayList<Constructor<?>>();
 
-        for (final Constructor<?> constructor : componentClass.getDeclaredConstructors()) {
+        final Constructor<?>[] constructors = AccessController.doPrivileged(new PrivilegedAction<Constructor<?>[]>() {
+            public Constructor<?>[] run() {
+                return componentClass.getDeclaredConstructors();
+            }
+        });
+
+        for (final Constructor<?> constructor : constructors) {
             if (!constructor.isSynthetic()) {
                 if (designated == null) {
                     final int modifiers = constructor.getModifiers();
@@ -194,9 +206,9 @@ final class DependencyInjectorImpl implements DependencyInjector {
 
                 if (constructor.isAnnotationPresent(Inject.class)) {
                     if (designated != null) {
-                        throw new ComponentContainer.ResolutionException("Multiple @%s annotated constructors found in %s",
-                                                                         Strings.formatClass(false, false, Inject.class),
-                                                                         Strings.formatClass(false, true, componentClass));
+                        throw new ResolutionException("Multiple @%s annotated constructors found in %s",
+                                                      Strings.formatClass(false, false, Inject.class),
+                                                      Strings.formatClass(false, true, componentClass));
                     } else {
                         designated = constructor;
                     }
@@ -219,7 +231,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
                 if (privateConstructors.size() == 1 && Modifier.isPrivate(componentClass.getModifiers())) {
                     return selectConstructor(privateConstructors, componentClass);
                 } else {
-                    throw new ComponentContainer.ResolutionException("No suitable constructor found for %s", componentClass);
+                    throw new ResolutionException("No suitable constructor found for %s", componentClass);
                 }
             }
         }
@@ -260,11 +272,11 @@ final class DependencyInjectorImpl implements DependencyInjector {
 
             // fall through
         default:
-            throw new ComponentContainer.ResolutionException("Multiple constructors found for %s", componentClass);
+            throw new ResolutionException("Multiple constructors found for %s", componentClass);
         }
     }
 
-    private static class NoConstructorException extends ComponentContainer.ResolutionException { }
+    private static class NoConstructorException extends ResolutionException { }
 
     public DependencyGraph.Node constructor(final Class<?> api,
                                             final DependencyGraph.Traversal traversal,
@@ -342,10 +354,16 @@ final class DependencyInjectorImpl implements DependencyInjector {
                         }
                     });
 
-                    traversal.instantiating(componentClass);
-                    return traversal.instantiated(componentClass, Exceptions.wrap(label, ComponentContainer.ResolutionException.class, new Process<Object, Exception>() {
-                        public Object run() throws Exception {
+                    AccessController.doPrivileged(new PrivilegedAction<Void>() {
+                        public Void run() {
                             constructor.setAccessible(true);
+                            return null;
+                        }
+                    });
+
+                    traversal.instantiating(componentClass);
+                    return traversal.instantiated(componentClass, Exceptions.wrap(label, ResolutionException.class, new Process<Object, Exception>() {
+                        public Object run() throws Exception {
                             return constructor.newInstance(arguments);
                         }
                     }));
@@ -363,7 +381,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
             }
         });
 
-        return Exceptions.wrap(label, ComponentContainer.ResolutionException.class, new Process<Object, Exception>() {
+        return Exceptions.wrap(label, ResolutionException.class, new Process<Object, Exception>() {
             public Object run() throws Exception {
                 for (final Map.Entry<Field, DependencyGraph.Node> entry : fields.entrySet()) {
                     final Field field = entry.getKey();
@@ -391,9 +409,9 @@ final class DependencyInjectorImpl implements DependencyInjector {
                     final Type[] variables = Generics.unresolved((reference).type());
 
                     if (variables != null) {
-                        throw new ComponentContainer.ResolutionException("Parameterized component of type %s with unresolved type variables: %s",
-                                                                         type.getName(),
-                                                                         Arrays.toString(variables));
+                        throw new ResolutionException("Parameterized component of type %s with unresolved type variables: %s",
+                                                      type.getName(),
+                                                      Arrays.toString(variables));
                     }
                 }
             }
@@ -420,9 +438,15 @@ final class DependencyInjectorImpl implements DependencyInjector {
     }
 
     private void processFields(final Class<?> type, final FieldCommand command) {
-        for (final Field field : type.getDeclaredFields()) {
-            field.setAccessible(true);
+        final Field[] fields = AccessController.doPrivileged(new PrivilegedAction<Field[]>() {
+            public Field[] run() {
+                final Field[] fields = type.getDeclaredFields();
+                AccessibleObject.setAccessible(fields, true);
+                return fields;
+            }
+        });
 
+        for (final Field field : fields) {
             if ((field.getModifiers() & Modifier.FINAL) != 0) {
                 continue;
             }
@@ -510,15 +534,15 @@ final class DependencyInjectorImpl implements DependencyInjector {
                 final Class<?> itemType = dependencyType.getComponentType();
 
                 if (itemType == null) {
-                    throw new ComponentContainer.ResolutionException("Group dependency %s of %s must be an array",
-                                                                     Strings.formatClass(false, true, dependencyType),
-                                                                     declaringType);
+                    throw new ResolutionException("Group dependency %s of %s must be an array",
+                                                  Strings.formatClass(false, true, dependencyType),
+                                                  declaringType);
                 }
 
                 if (itemType.isArray()) {
-                    throw new ComponentContainer.ResolutionException("Group dependency %s of %s must be an array of non-arrays",
-                                                                     Strings.formatClass(false, true, dependencyType),
-                                                                     declaringType);
+                    throw new ResolutionException("Group dependency %s of %s must be an array of non-arrays",
+                                                  Strings.formatClass(false, true, dependencyType),
+                                                  declaringType);
                 }
 
                 final Class<?> groupType = componentGroup != null && componentGroup.api() != null && componentGroup.api().length > 0
@@ -527,17 +551,17 @@ final class DependencyInjectorImpl implements DependencyInjector {
 
                 if (groupType != null) {
                     if (componentGroup.api().length > 1) {
-                        throw new ComponentContainer.ResolutionException("Multiple component group APIs specified for dependency %s of %s: %s",
-                                                                         Strings.formatClass(false, true, dependencyType),
-                                                                         declaringType,
-                                                                         Strings.describeAnnotation(false, componentGroup));
+                        throw new ResolutionException("Multiple component group APIs specified for dependency %s of %s: %s",
+                                                      Strings.formatClass(false, true, dependencyType),
+                                                      declaringType,
+                                                      Strings.describeAnnotation(false, componentGroup));
                     }
 
                     if (!itemType.isAssignableFrom(groupType)) {
-                        throw new ComponentContainer.ResolutionException("The specified component type is not assignable to the dependency type %s of %s: %s",
-                                                                         Strings.formatClass(false, true, dependencyType),
-                                                                         declaringType,
-                                                                         Strings.describeAnnotation(false, componentGroup));
+                        throw new ResolutionException("The specified component type is not assignable to the dependency type %s of %s: %s",
+                                                      Strings.formatClass(false, true, dependencyType),
+                                                      declaringType,
+                                                      Strings.describeAnnotation(false, componentGroup));
                     }
                 }
 
@@ -582,7 +606,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
 
     private Class<?> findDependencyType(final Component component, final Type reference, final Class<?> declaringType) {
         if (reference instanceof TypeVariable || reference instanceof WildcardType) {
-            throw new ComponentContainer.ResolutionException("Unresolved type parameter [%s] in a dependency of %s", reference, declaringType);
+            throw new ResolutionException("Unresolved type parameter [%s] in a dependency of %s", reference, declaringType);
         }
 
         final Class<?> defaultType = Generics.rawType(reference);
@@ -594,7 +618,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
         case 1:
             return types[0];
         default:
-            throw new ComponentContainer.ResolutionException("Multiple types specified for dependency %s of %s", defaultType, declaringType);
+            throw new ResolutionException("Multiple types specified for dependency %s of %s", defaultType, declaringType);
         }
     }
 
@@ -661,9 +685,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
             final Object instance = node == null ? null : node.instance(traversal);
 
             if (instance == null && mandatory) {
-                throw new ComponentContainer.ResolutionException("Dependency %s of %s cannot be satisfied",
-                                                                 Strings.formatClass(true, true, dependencyType),
-                                                                 declaringType);
+                throw new ResolutionException("Dependency %s of %s cannot be satisfied", Strings.formatClass(true, true, dependencyType), declaringType);
             } else {
                 return instance;
             }

@@ -19,6 +19,9 @@ package org.fluidity.foundation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.UndeclaredThrowableException;
+import java.security.AccessController;
+import java.security.PrivilegedActionException;
+import java.security.PrivilegedExceptionAction;
 import java.util.Collection;
 import java.util.HashSet;
 
@@ -148,6 +151,7 @@ public final class Exceptions extends Utility {
 
             list.add(UndeclaredThrowableException.class);
             list.add(InvocationTargetException.class);
+            list.add(PrivilegedActionException.class);
 
             for (final Class<? extends Exception> type : wrappers) {
                 if (type != null && !isChecked(list, type)) {
@@ -250,9 +254,19 @@ public final class Exceptions extends Utility {
         }
 
         private Constructor<? extends RuntimeException> constructor(final Class<? extends RuntimeException> type, final Class<?>... parameters) throws Exception {
-            final Constructor<? extends RuntimeException> constructor = type.getDeclaredConstructor(parameters);
-            constructor.setAccessible(true);
-            return constructor;
+            try {
+
+                // we cannot wrap this because we are in the scope of the wrapping method
+                return AccessController.doPrivileged(new PrivilegedExceptionAction<Constructor<? extends RuntimeException>>() {
+                    public Constructor<? extends RuntimeException> run() throws Exception {
+                        final Constructor<? extends RuntimeException> constructor = type.getDeclaredConstructor(parameters);
+                        constructor.setAccessible(true);
+                        return constructor;
+                    }
+                });
+            } catch (final PrivilegedActionException e) {
+                throw (Exception) e.getCause();
+            }
         }
 
         /**
@@ -301,6 +315,7 @@ public final class Exceptions extends Utility {
          * recognized as wrappers are:<ul>
          * <li><code>any subclass of {@link UndeclaredThrowableException}</code>,</li>
          * <li><code>any subclass of {@link InvocationTargetException}</code>,</li>
+         * <li><code>any subclass of {@link PrivilegedActionException}</code>,</li>
          * <li><code>any subclass of any exception type passed to {@link Exceptions#checked(Class[])},</li>
          * <li><code>{@link RuntimeException}</code>,</li>
          * <li><code>{@link Exceptions.Wrapper}</code>.</li>

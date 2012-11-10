@@ -16,6 +16,9 @@
 
 package org.fluidity.composition;
 
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+
 import org.fluidity.foundation.Utility;
 
 /**
@@ -25,6 +28,12 @@ import org.fluidity.foundation.Utility;
  */
 @SuppressWarnings("UnusedDeclaration")
 public final class Containers extends Utility {
+
+    private static final ClassLoader LOADER = AccessController.doPrivileged(new PrivilegedAction<ClassLoader>() {
+        public ClassLoader run() {
+            return Containers.class.getClassLoader();
+        }
+    });
 
     private Containers() { }
 
@@ -79,6 +88,6 @@ public final class Containers extends Utility {
      * @return a new empty component container.
      */
     public static MutableContainer create(final ClassLoader loader) {
-        return new ContainerBoundary(loader == null ? Containers.class.getClassLoader() : loader).create();
+        return new ContainerBoundary(loader == null ? LOADER : loader).create();
     }
 }
