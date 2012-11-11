@@ -237,13 +237,30 @@ public final class IncludeJarsMojo extends AbstractMojo {
                 }
 
                 if (!dependencyMap.isEmpty()) {
+                    final byte[] buffer = new byte[16384];
+
+                    final SecurityPolicy policy = new SecurityPolicy(packageFile, 2, false, buffer);
+
+                    for (final Map.Entry<String, Collection<Artifact>> entry : dependencyMap.entrySet()) {
+                        final String dependencyPath = entry.getKey();
+
+                        for (final Artifact artifact : entry.getValue()) {
+                            policy.add(artifact.getFile(), 1,dependencyPath);
+                        }
+                    }
+
+                    if (policy.found()) {
+                        mainAttributes.putValue(Archives.SECURITY_POLICY, SecurityPolicy.SECURITY_POLICY_FILE);
+                    }
 
                     // create the new manifest
-                    outputStream.putNextEntry(new JarEntry(ArchivesSupport.META_INF));
                     outputStream.putNextEntry(new JarEntry(JarFile.MANIFEST_NAME));
                     manifest.write(outputStream);
 
-                    final byte[] buffer = new byte[16384];
+                    if (policy.found()) {
+                        outputStream.putNextEntry(new JarEntry(SecurityPolicy.SECURITY_POLICY_FILE));
+                        Streams.store(outputStream, policy.generate(), "UTF-8", buffer, false);
+                    }
 
                     // copy the original archive, excluding entries from our dependency paths
                     Archives.read(false, packageURL, new Archives.Entry() {
@@ -260,7 +277,7 @@ public final class IncludeJarsMojo extends AbstractMojo {
                                 }
                             }
 
-                            return true;
+                            return !name.equals(SecurityPolicy.SECURITY_POLICY_FILE);
                         }
 
                         public boolean read(final URL url, final JarEntry entry, final InputStream stream) throws IOException {
@@ -273,8 +290,6 @@ public final class IncludeJarsMojo extends AbstractMojo {
                     // copy the custom dependencies
                     for (final Map.Entry<String, Collection<Artifact>> entry : dependencyMap.entrySet()) {
                         final String dependencyPath = entry.getKey();
-
-                        outputStream.putNextEntry(new JarEntry(dependencyPath));
 
                         for (final Artifact artifact : entry.getValue()) {
                             final File dependency = artifact.getFile();

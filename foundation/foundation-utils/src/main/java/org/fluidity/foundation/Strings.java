@@ -85,11 +85,15 @@ public final class Strings extends Utility {
             } else {
                 final PrivilegedAction<Method> access = new PrivilegedAction<Method>() {
                     public Method run() {
-                        try {
-                            return type.getDeclaredMethod("toString");
-                        } catch (final NoSuchMethodException e) {
-                            return null;
+                        for (Class<?> check = type; check != Object.class; check = check.getSuperclass()) {
+                            try {
+                                return check.getDeclaredMethod("toString");
+                            } catch (final NoSuchMethodException e) {
+                                // ignored
+                            }
                         }
+
+                        return null;
                     }
                 };
 

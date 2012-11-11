@@ -323,6 +323,8 @@ public final class StandaloneJarMojo extends AbstractMojo {
                 ArchivesSupport.load(attributesMap, providerMap, buffer, log, new DependencyFeed(unpackedDependencies));
                 ArchivesSupport.include(attributesMap, manifest);
 
+                final SecurityPolicy policy = new SecurityPolicy(packageFile, 3, false, buffer);
+
                 // list the various dependencies in manifest attributes
                 for (final Map.Entry<String, Inclusion> entry : includedDependencies.entrySet()) {
                     final Inclusion inclusion = entry.getValue();
@@ -340,6 +342,7 @@ public final class StandaloneJarMojo extends AbstractMojo {
 
                             if (artifact.getType().equals(DependenciesSupport.JAR_TYPE)) {
                                 dependencyList.add(entryName);
+                                policy.add(artifact.getFile(), 2, inclusion.folder);
                             }
                         }
                     }
@@ -347,10 +350,22 @@ public final class StandaloneJarMojo extends AbstractMojo {
                     mainAttributes.putValue(entry.getKey(), Lists.delimited(inclusion.delimiter, dependencyList));
                 }
 
+                for (final Artifact artifact : unpackedDependencies) {
+                    policy.add(artifact.getFile(), 1, null);
+                }
+
+                if (policy.found()) {
+                    mainAttributes.putValue(Archives.SECURITY_POLICY, SecurityPolicy.SECURITY_POLICY_FILE);
+                }
+
                 // create the new manifest
-                outputStream.putNextEntry(new JarEntry(ArchivesSupport.META_INF));
                 outputStream.putNextEntry(new JarEntry(JarFile.MANIFEST_NAME));
                 manifest.write(outputStream);
+
+                if (policy.found()) {
+                    outputStream.putNextEntry(new JarEntry(SecurityPolicy.SECURITY_POLICY_FILE));
+                    Streams.store(outputStream, policy.generate(), "UTF-8", buffer, false);
+                }
 
                 ArchivesSupport.expand(outputStream, buffer, providerMap, new DependencyFeed(unpackedDependencies));
 
@@ -360,8 +375,6 @@ public final class StandaloneJarMojo extends AbstractMojo {
                 for (final Map.Entry<String, Inclusion> entry : includedDependencies.entrySet()) {
                     final String name = entry.getKey();
                     final Inclusion inclusion = entry.getValue();
-
-                    outputStream.putNextEntry(new JarEntry(inclusion.folder));
 
                     for (final Artifact artifact : inclusion.artifacts) {
                         final File dependency = artifact.getFile();
@@ -488,7 +501,7 @@ public final class StandaloneJarMojo extends AbstractMojo {
         }
 
         public boolean include(final JarEntry entry) {
-            return true;
+            return !entry.getName().equals(SecurityPolicy.SECURITY_POLICY_FILE);
         }
     }
 }

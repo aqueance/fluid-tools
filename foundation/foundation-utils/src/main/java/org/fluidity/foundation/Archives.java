@@ -86,6 +86,11 @@ public final class Archives extends Utility {
     public static final String INDEX_NAME = String.format("%s/INDEX.LIST", META_INF);
 
     /**
+     * The name of the main manifest attribute that, when present, points to the security policy file for the archive.
+     */
+    public static final String SECURITY_POLICY = "Security-Policy";
+
+    /**
      * The JAR resource URL protocol.
      */
     public static final String PROTOCOL = "jar";

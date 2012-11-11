@@ -1,0 +1,4 @@
+grant codebase "file:${project.build.finalName}.${project.packaging}" {
+  permission java.lang.RuntimePermission "accessDeclaredMembers";
+  permission java.lang.reflect.ReflectPermission "suppressAccessChecks";
+};

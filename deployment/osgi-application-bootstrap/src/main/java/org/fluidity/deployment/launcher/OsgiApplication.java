@@ -20,9 +20,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.security.AccessController;
+import java.security.CodeSource;
+import java.security.Permission;
+import java.security.PermissionCollection;
+import java.security.Policy;
 import java.security.PrivilegedAction;
 import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
+import java.security.ProtectionDomain;
+import java.security.Provider;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -157,7 +163,11 @@ final class OsgiApplication implements Application {
         interpolator.setCacheAnswers(true);
         interpolator.setReusePatterns(true);
 
-        final URL frameworkURL = Archives.containing(factory.getClass());
+        final Class<? extends FrameworkFactory> frameworkType = factory.getClass();
+        final URL frameworkURL = Archives.containing(frameworkType);
+
+        Policy.setPolicy(new FrameworkPolicy(frameworkType));
+
         final Properties defaults = loadProperties(resource("osgi.properties"), null);
 
         final String application = global.getProperty(APPLICATION_PROPERTIES);
@@ -349,6 +359,58 @@ final class OsgiApplication implements Application {
             }
 
             return properties;
+        }
+    }
+
+    /**
+     * Propagates the permissions of this domain (which must thus be {@link java.security.AllPermission}) to the OSGi framework.
+     *
+     * @author Tibor Varga
+     */
+    private static class FrameworkPolicy extends Policy {
+
+        private final Policy delegate = Policy.getPolicy();
+
+        private final ProtectionDomain launcherDomain = OsgiApplication.class.getProtectionDomain();
+        private final ProtectionDomain frameworkDomain;
+
+        public FrameworkPolicy(final Class<? extends FrameworkFactory> frameworkType) {
+            this.frameworkDomain = frameworkType.getProtectionDomain();
+        }
+
+        @Override
+        public Provider getProvider() {
+            return delegate.getProvider();
+        }
+
+        @Override
+        public String getType() {
+            return delegate.getType();
+        }
+
+        @Override
+        public Parameters getParameters() {
+            return delegate.getParameters();
+        }
+
+        @Override
+        public PermissionCollection getPermissions(final CodeSource source) {
+            return delegate.getPermissions(source == frameworkDomain.getCodeSource() ? launcherDomain.getCodeSource() : source);
+        }
+
+        @Override
+        public PermissionCollection getPermissions(final ProtectionDomain domain) {
+            return delegate.getPermissions(domain == frameworkDomain ? launcherDomain : domain);
+        }
+
+        @Override
+        public boolean implies(final ProtectionDomain domain, final Permission permission) {
+            return delegate.implies(domain == frameworkDomain ? launcherDomain : domain, permission);
+        }
+
+        @Override
+        public void refresh() {
+            delegate.refresh();
         }
     }
 }

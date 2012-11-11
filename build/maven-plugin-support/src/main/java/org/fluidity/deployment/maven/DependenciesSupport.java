@@ -51,6 +51,7 @@ import org.sonatype.aether.collection.DependencyCollectionException;
 import org.sonatype.aether.collection.DependencySelector;
 import org.sonatype.aether.graph.DependencyFilter;
 import org.sonatype.aether.graph.DependencyNode;
+import org.sonatype.aether.graph.DependencyVisitor;
 import org.sonatype.aether.repository.RemoteRepository;
 import org.sonatype.aether.resolution.DependencyRequest;
 import org.sonatype.aether.resolution.DependencyResolutionException;
@@ -58,7 +59,6 @@ import org.sonatype.aether.util.FilterRepositorySystemSession;
 import org.sonatype.aether.util.artifact.ArtifactProperties;
 import org.sonatype.aether.util.artifact.DefaultArtifactType;
 import org.sonatype.aether.util.artifact.JavaScopes;
-import org.sonatype.aether.util.graph.PreorderNodeListGenerator;
 import org.sonatype.aether.util.graph.selector.StaticDependencySelector;
 
 /**
@@ -164,13 +164,14 @@ public final class DependenciesSupport extends Utility {
                                                          final boolean compile,
                                                          final boolean optionals,
                                                          final Collection<Exclusion> exclusions) throws MojoExecutionException {
-        return closure(system, session, repositories, new TransitiveDependencySelector(compile, optionals), aetherDependency(artifact, exclusions));
+        return closure(system, session, repositories, new TransitiveDependencySelector(compile, optionals), !compile, aetherDependency(artifact, exclusions));
     }
 
     private static Collection<Artifact> closure(final RepositorySystem system,
                                                 final RepositorySystemSession session,
                                                 final List<RemoteRepository> repositories,
                                                 final DependencySelector selector,
+                                                final boolean runtime,
                                                 final org.sonatype.aether.graph.Dependency root) throws MojoExecutionException {
 
         /*
@@ -204,12 +205,9 @@ public final class DependenciesSupport extends Utility {
             throw new MojoExecutionException(String.format("Finding transitive dependencies of %s", root), e);
         }
 
-        final PreorderNodeListGenerator generator = new PreorderNodeListGenerator();
-        node.accept(generator);
-
         final Collection<Artifact> dependencies = new HashSet<Artifact>();
 
-        for (final org.sonatype.aether.artifact.Artifact artifact : generator.getArtifacts(true)) {
+        for (final org.sonatype.aether.artifact.Artifact artifact : new ArtifactCollector(runtime, node).artifacts()) {
             final Artifact mavenArtifact = mavenArtifact(artifact);
 
             if (!mavenArtifact.isResolved()) {
@@ -476,7 +474,7 @@ public final class DependenciesSupport extends Utility {
         final Collection<Artifact> artifacts = new LinkedHashSet<Artifact>();
 
         for (final Dependency dependency : dependencies) {
-            artifacts.addAll(closure(system, session, repositories, selector, aetherDependency(dependencyArtifact(dependency), dependency.getExclusions())));
+            artifacts.addAll(closure(system, session, repositories, selector, false, aetherDependency(dependencyArtifact(dependency), dependency.getExclusions())));
         }
 
         return artifacts;
@@ -505,31 +503,24 @@ public final class DependenciesSupport extends Utility {
      */
     private static class TransitiveDependencySelector implements DependencySelector {
 
-        private static final Set<String> RUNTIME_SCOPES = new HashSet<String>(Arrays.asList(JavaScopes.COMPILE, JavaScopes.RUNTIME, JavaScopes.SYSTEM));
+        private static final Set<String> RUNTIME_SCOPES = new HashSet<String>(Arrays.asList(JavaScopes.COMPILE, JavaScopes.PROVIDED, JavaScopes.RUNTIME, JavaScopes.SYSTEM));
         private static final Set<String> COMPILE_SCOPES = new HashSet<String>(Arrays.asList(JavaScopes.COMPILE, JavaScopes.PROVIDED, JavaScopes.SYSTEM));
 
         private final boolean compile;
         private final boolean optionals;
 
         private final Set<String> excludedArtifacts;
-        private final Set<String> selectedArtifacts;
         private final Set<String> acceptedScopes;
 
         TransitiveDependencySelector(final boolean compile, boolean optionals, final String... exclusions) {
-            this(compile, optionals, new HashSet<String>(), exclusions);
-        }
-
-        private TransitiveDependencySelector(final boolean compile, boolean optionals, final Set<String> selected, final String... exclusions) {
             this.compile = compile;
             this.optionals = optionals;
             this.excludedArtifacts = new HashSet<String>(Arrays.asList(exclusions));
-            this.selectedArtifacts = selected;
             this.acceptedScopes = compile ? COMPILE_SCOPES : RUNTIME_SCOPES;
         }
 
         public boolean selectDependency(final org.sonatype.aether.graph.Dependency dependency) {
             return dependency != null
-                   && selectedArtifacts.add(dependency.toString())
                    && !excludedArtifacts.contains(artifactSpecification(dependency.getArtifact()))
                    && acceptedScopes.contains(dependency.getScope())
                    && (optionals || !dependency.isOptional());
@@ -553,11 +544,75 @@ public final class DependenciesSupport extends Utility {
                     }
 
                     // next level optionals and those excluded by the current dependency will not be selected during descent
-                    return new TransitiveDependencySelector(compile, false, selectedArtifacts, Lists.asArray(String.class, excluded));
+                    return new TransitiveDependencySelector(compile, false, Lists.asArray(String.class, excluded));
                 } else {
                     return this;
                 }
             }
+        }
+    }
+
+    /**
+     * Transitively removes dependencies with provided scope for the run time list.
+     *
+     * @author Tibor Varga
+     */
+    private static class ArtifactCollector implements DependencyVisitor {
+
+        private final Set<String> ignored = new HashSet<String>();
+        private final Set<String> visited = new HashSet<String>();
+        private final Collection<org.sonatype.aether.artifact.Artifact> collected = new LinkedHashSet<org.sonatype.aether.artifact.Artifact>();
+
+        private final boolean runtime;
+
+        public ArtifactCollector(final boolean runtime, final DependencyNode node) {
+            this.runtime = runtime;
+            node.accept(this);
+        }
+
+        public boolean visitEnter(final DependencyNode node) {
+            if (!visit(node)) {
+                return false;
+            }
+
+            for (final DependencyNode child : node.getChildren()) {
+                visit(child);
+            }
+
+            return true;
+        }
+
+        private boolean visit(final DependencyNode child) {
+            final org.sonatype.aether.graph.Dependency dependency = child.getDependency();
+
+            final org.sonatype.aether.artifact.Artifact artifact = dependency.getArtifact();
+            final String identity = identity(artifact);
+
+            if (!visited.add(identity)) {
+                return true;
+            }
+
+            if (runtime && JavaScopes.PROVIDED.equals(dependency.getScope())) {
+                ignored.add(identity);
+                return false;
+            } else if (!ignored.contains(identity)) {
+                collected.add(artifact);
+                return true;
+            } else {
+                return false;
+            }
+        }
+
+        public boolean visitLeave(final DependencyNode node) {
+            return true;
+        }
+
+        public Collection<org.sonatype.aether.artifact.Artifact> artifacts() {
+            return collected;
+        }
+
+        private static String identity(final org.sonatype.aether.artifact.Artifact artifact) {
+            return String.format("%s:%s:%s:%s:%s", artifact.getGroupId(), artifact.getArtifactId(), artifact.getClassifier(), artifact.getVersion(), artifact.getExtension());
         }
     }
 }

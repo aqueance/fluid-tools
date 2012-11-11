@@ -212,6 +212,28 @@
                 <skipTests>true</skipTests>
             </properties>
         </profile>
+
+        <profile>
+            <id>security-policy</id>
+            <activation><file><exists>src/main/resources/META-INF/security.policy</exists></file></activation>
+
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-jar-plugin</artifactId>
+
+                        <configuration>
+                            <archive>
+                                <manifestEntries>
+                                    <Security-Policy>META-INF/security.policy</Security-Policy>
+                                </manifestEntries>
+                            </archive>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
     </profiles>
 
     <build>
