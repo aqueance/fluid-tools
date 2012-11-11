@@ -38,6 +38,7 @@ import org.fluidity.composition.spi.ComponentInterceptor;
 import org.fluidity.foundation.ClassLoaders;
 import org.fluidity.foundation.Command.Function;
 import org.fluidity.foundation.Exceptions;
+import org.fluidity.foundation.Security;
 import org.fluidity.foundation.spi.LogFactory;
 
 import static org.fluidity.foundation.Command.Job;
@@ -121,17 +122,14 @@ public final class ContainerBoundary implements ComponentContainer {
      * Creates a container boundary for the current class loader.
      */
     /* package */ ContainerBoundary() {
-        final ClassLoader cl = AccessController.doPrivileged(new PrivilegedAction<ClassLoader>() {
+        final PrivilegedAction<ClassLoader> action = new PrivilegedAction<ClassLoader>() {
             public ClassLoader run() {
-                return Thread.currentThread().getContextClassLoader();
+                final ClassLoader cl = Thread.currentThread().getContextClassLoader();
+                return cl != null ? cl : ContainerBoundary.class.getClassLoader();
             }
-        });
+        };
 
-        this.classLoader = cl != null ? cl : AccessController.doPrivileged(new PrivilegedAction<ClassLoader>() {
-            public ClassLoader run() {
-                return getClass().getClassLoader();
-            }
-        });
+        this.classLoader = Security.CONTROLLED ? AccessController.doPrivileged(action) : action.run();
     }
 
     /**
@@ -319,51 +317,67 @@ public final class ContainerBoundary implements ComponentContainer {
     private List<MutableContainer> makeContainer() {
         initFinder();
 
-        return AccessController.doPrivileged(new PrivilegedAction<List<MutableContainer>>() {
-            public List<MutableContainer> run() {
 
-                // list of class loaders from current one up the hierarchy
-                final List<ClassLoader> classLoaders = new ArrayList<ClassLoader>();
+        // list of class loaders from current one up the hierarchy
+        final List<ClassLoader> classLoaders = new ArrayList<ClassLoader>();
 
+        final PrivilegedAction<Void> ancestry = new PrivilegedAction<Void>() {
+            public Void run() {
                 for (ClassLoader loader = classLoader; loader != rootClassLoader; loader = loader.getParent()) {
                     classLoaders.add(loader);
                 }
 
-                // top down: going in reverse order because the container for a given class loader has to use as its parent the container for the parent class loader
-                for (final ListIterator<ClassLoader> i = classLoaders.listIterator(classLoaders.size()); i.hasPrevious(); ) {
-                    final ClassLoader loader = i.previous();
+                return null;
+            }
+        };
 
-                    if (!populatedContainers.containsKey(loader)) {
-                        findBootstrap(loader);
-                        findProvider(loader);
+        if (Security.CONTROLLED) {
+            AccessController.doPrivileged(ancestry);
+        } else {
+            ancestry.run();
+        }
 
-                        if (containerBootstrap != null && containerProvider != null) {
-                            if (rootClassLoader == null) {
-                                rootClassLoader = loader;
+        // top down: going in reverse order because the container for a given class loader has to use as its parent the container for the parent class loader
+        for (final ListIterator<ClassLoader> i = classLoaders.listIterator(classLoaders.size()); i.hasPrevious(); ) {
+            final ClassLoader loader = i.previous();
+
+            if (!populatedContainers.containsKey(loader)) {
+                findBootstrap(loader);
+                findProvider(loader);
+
+                if (containerBootstrap != null && containerProvider != null) {
+                    if (rootClassLoader == null) {
+                        rootClassLoader = loader;
+                    }
+
+                    final Map map = propertiesMap.get(loader);
+                    final MutableContainer parent = populatedContainers.get(!Security.CONTROLLED ? loader.getParent() : AccessController.doPrivileged(new PrivilegedAction<ClassLoader>() {
+                        public ClassLoader run() {
+                            return loader.getParent();
+                        }
+                    }));
+
+                    final AtomicReference<MutableContainer> container = new AtomicReference<MutableContainer>();
+
+                    final ContainerBootstrap.Callback callback = new ContainerBootstrap.Callback() {
+                        public void containerInitialized() {
+                            synchronized (stateLock) {
+                                lockedContainers.add(container.get());
                             }
+                        }
 
-                            final Map map = propertiesMap.get(loader);
-                            final MutableContainer parent = populatedContainers.get(loader.getParent());
+                        public void containerShutdown() {
+                            synchronized (stateLock) {
+                                populatedContainers.remove(loader);
+                                propertiesMap.remove(loader);
+                                lockedContainers.remove(container.get());
+                            }
+                        }
+                    };
 
-                            final AtomicReference<MutableContainer> container = new AtomicReference<MutableContainer>();
-
-                            final ContainerBootstrap.Callback callback = new ContainerBootstrap.Callback() {
-                                public void containerInitialized() {
-                                    synchronized (stateLock) {
-                                        lockedContainers.add(container.get());
-                                    }
-                                }
-
-                                public void containerShutdown() {
-                                    synchronized (stateLock) {
-                                        populatedContainers.remove(loader);
-                                        propertiesMap.remove(loader);
-                                        lockedContainers.remove(container.get());
-                                    }
-                                }
-                            };
-
-                            container.set(ClassLoaders.context(loader, new Function<MutableContainer, ClassLoader, RuntimeException>() {
+                    final PrivilegedAction<MutableContainer> populate = new PrivilegedAction<MutableContainer>() {
+                        public MutableContainer run() {
+                            return ClassLoaders.context(loader, new Function<MutableContainer, ClassLoader, RuntimeException>() {
                                 public MutableContainer run(final ClassLoader loader) {
                                     return containerBootstrap.populateContainer(findServices(loader),
                                                                                 containerProvider,
@@ -373,16 +387,23 @@ public final class ContainerBoundary implements ComponentContainer {
                                                                                 loader,
                                                                                 callback);
                                 }
-                            }));
-
-                            populatedContainers.put(loader, container.get());
-                        } else {
-                            populatedContainers.put(loader, null);
+                            });
                         }
-                    }
-                }
+                    };
 
-                assert populatedContainers.containsKey(classLoader) : classLoader;
+                    container.set(Security.CONTROLLED ? AccessController.doPrivileged(populate) : populate.run());
+
+                    populatedContainers.put(loader, container.get());
+                } else {
+                    populatedContainers.put(loader, null);
+                }
+            }
+        }
+
+        assert populatedContainers.containsKey(classLoader) : classLoader;
+
+        final PrivilegedAction<List<MutableContainer>> list = new PrivilegedAction<List<MutableContainer>>() {
+            public List<MutableContainer> run() {
 
                 // bottom up: list of containers at and above current class loader
                 final List<MutableContainer> containers = new ArrayList<MutableContainer>();
@@ -397,7 +418,9 @@ public final class ContainerBoundary implements ComponentContainer {
 
                 return containers;
             }
-        });
+        };
+
+        return Security.CONTROLLED ? AccessController.doPrivileged(list) : list.run();
     }
 
     private BootstrapServices initFinder() {

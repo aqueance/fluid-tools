@@ -39,6 +39,7 @@ import org.fluidity.composition.container.ContextDefinition;
 import org.fluidity.composition.spi.ComponentInterceptor;
 import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.Proxies;
+import org.fluidity.foundation.Security;
 
 import static org.fluidity.foundation.Command.Function;
 
@@ -260,7 +261,7 @@ public abstract class EmptyComponentContainer<C extends DependencyGraph> impleme
             }
         }
 
-        final ClassLoader loader = AccessController.doPrivileged(new PrivilegedAction<ClassLoader>() {
+        final ClassLoader loader = !Security.CONTROLLED ? type.getClassLoader() : AccessController.doPrivileged(new PrivilegedAction<ClassLoader>() {
             public ClassLoader run() {
                 return type.getClassLoader();
             }
@@ -288,12 +289,11 @@ public abstract class EmptyComponentContainer<C extends DependencyGraph> impleme
                         injectMap.put(method, inject = false);
                     }
 
-                    AccessController.doPrivileged(new PrivilegedAction<Void>() {
-                        public Void run() {
-                            method.setAccessible(true);
-                            return null;
-                        }
-                    });
+                    final PrivilegedAction<Method> access = Security.setAccessible(method);
+
+                    if (access != null) {
+                        AccessController.doPrivileged(access);
+                    }
                 }
 
                 return inject ? EmptyComponentContainer.this.invoke(component, false, method, args) : method.invoke(component, args);

@@ -36,7 +36,6 @@ import java.security.CodeSource;
 import java.security.Permission;
 import java.security.PermissionCollection;
 import java.security.PrivilegedAction;
-import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
 import java.security.SecureClassLoader;
 import java.util.ArrayList;
@@ -60,6 +59,7 @@ import org.fluidity.foundation.Deferred;
 import org.fluidity.foundation.Exceptions;
 import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.Proxies;
+import org.fluidity.foundation.Security;
 import org.fluidity.foundation.Streams;
 
 import sun.security.util.SecurityConstants;
@@ -74,7 +74,7 @@ public class URLClassLoader extends SecureClassLoader {
     private static final int INITIAL_CAPACITY = 128;
     private static final int CONCURRENCY = Runtime.getRuntime().availableProcessors() << 1;
 
-    private final AccessControlContext context = AccessController.getContext();
+    private final AccessControlContext context = Security.CONTROLLED ? AccessController.getContext() : null;
 
     private final Deferred.Reference<String[]> keys;
     private final Map<String, Archive> entries;
@@ -163,30 +163,32 @@ public class URLClassLoader extends SecureClassLoader {
 
     @Override
     protected Class<?> findClass(final String name) throws ClassNotFoundException {
-        return Exceptions.wrap(name, ClassNotFoundException.class, new Command.Process<Class<?>, PrivilegedActionException>() {
-            public Class<?> run() throws PrivilegedActionException {
-                return AccessController.doPrivileged(new PrivilegedExceptionAction<Class<?>>() {
-                    public Class<?> run() throws Exception {
-                        final String resource = ClassLoaders.classResourceName(name);
+        final PrivilegedExceptionAction<Class<?>> action = new PrivilegedExceptionAction<Class<?>>() {
+            public Class<?> run() throws Exception {
+                final String resource = ClassLoaders.classResourceName(name);
 
-                        for (final String key : keys.get()) {
-                            final Archive.Entry entry = entry(key, resource);
+                for (final String key : keys.get()) {
+                    final Archive.Entry entry = entry(key, resource);
 
-                            if (entry != null) {
-                                return entry.define(name);
-                            }
-                        }
-
-                        throw new ClassNotFoundException(name);
+                    if (entry != null) {
+                        return entry.define(name);
                     }
-                }, context);
+                }
+
+                throw new ClassNotFoundException(name);
+            }
+        };
+
+        return Exceptions.wrap(name, ClassNotFoundException.class, new Command.Process<Class<?>, Exception>() {
+            public Class<?> run() throws Exception {
+                return context == null ? action.run() : AccessController.doPrivileged(action, context);
             }
         });
     }
 
     @Override
     protected URL findResource(final String name) {
-        return AccessController.doPrivileged(new PrivilegedAction<URL>() {
+        final PrivilegedAction<URL> action = new PrivilegedAction<URL>() {
             public URL run() {
                 for (final String key : keys.get()) {
                     try {
@@ -202,12 +204,14 @@ public class URLClassLoader extends SecureClassLoader {
 
                 return null;
             }
-        }, context);
+        };
+
+        return context == null ? action.run() : AccessController.doPrivileged(action, context);
     }
 
     @Override
     protected Enumeration<URL> findResources(final String name) throws IOException {
-        return AccessController.doPrivileged(new PrivilegedAction<Enumeration<URL>>() {
+        final PrivilegedAction<Enumeration<URL>> action = new PrivilegedAction<Enumeration<URL>>() {
             public Enumeration<URL> run() {
                 final List<URL> list = new ArrayList<URL>();
 
@@ -225,7 +229,9 @@ public class URLClassLoader extends SecureClassLoader {
 
                 return Collections.enumeration(list);
             }
-        }, context);
+        };
+
+        return context == null ? action.run() : AccessController.doPrivileged(action, context);
     }
 
     @Override
@@ -272,17 +278,19 @@ public class URLClassLoader extends SecureClassLoader {
         }
 
         if (permission != null) {
-            permissions.add(checkPermission(permission));
+            permissions.add(context == null ? permission : checkPermission(permission));
         }
 
         return permissions;
     }
 
     private Permission checkPermission(final Permission permission) {
-        final SecurityManager security = System.getSecurityManager();
+        assert context != null;
 
-        return security == null ? permission : AccessController.doPrivileged(new PrivilegedAction<Permission>() {
+        return AccessController.doPrivileged(new PrivilegedAction<Permission>() {
             public Permission run() throws SecurityException {
+                final SecurityManager security = System.getSecurityManager();
+                assert security != null;
                 security.checkPermission(permission);
                 return permission;
             }

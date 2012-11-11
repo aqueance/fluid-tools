@@ -42,8 +42,8 @@ import org.fluidity.deployment.osgi.StartLevels;
 import org.fluidity.foundation.Archives;
 import org.fluidity.foundation.ClassLoaders;
 import org.fluidity.foundation.Command;
-import org.fluidity.foundation.Exceptions;
 import org.fluidity.foundation.Log;
+import org.fluidity.foundation.Security;
 import org.fluidity.foundation.ServiceProviders;
 
 import org.codehaus.plexus.interpolation.PropertiesBasedValueSource;
@@ -118,28 +118,37 @@ final class OsgiApplication implements Application {
     }
 
     public void run(final String[] arguments) throws Exception {
+        if (Security.CONTROLLED) {
+            try {
+                AccessController.doPrivileged(new PrivilegedExceptionAction<Void>() {
+                    public Void run() throws Exception {
+                        start();
+                        return null;
+                    }
+                });
+            } catch (final PrivilegedActionException e) {
+                throw (Exception) e.getCause();
+            }
+        } else {
+            start();
+        }
+    }
+
+    private void start() throws Exception {
         final boolean cached = true;
 
         /*
          * Embedding OSGi: http://njbartlett.name/2011/03/07/embedding-osgi.html
          */
 
-        final ClassLoader loader = AccessController.doPrivileged(new PrivilegedAction<ClassLoader>() {
-            public ClassLoader run() {
-                return ClassLoaders.findClassLoader(getClass(), true);
-            }
-        });
+        final ClassLoader loader = ClassLoaders.findClassLoader(getClass(), true);
 
         final FrameworkFactory factory = ServiceProviders.findInstance(FrameworkFactory.class, loader);
         if (factory == null) {
             throw new IllegalStateException("No OSGi framework found");
         }
 
-        final Properties global = AccessController.doPrivileged(new PrivilegedAction<Properties>() {
-            public Properties run() {
-                return System.getProperties();
-            }
-        });
+        final Properties global = System.getProperties();
 
         final RegexBasedInterpolator interpolator = new RegexBasedInterpolator();
         final RecursionInterceptor interceptor = new SimpleRecursionInterceptor();
@@ -173,23 +182,13 @@ final class OsgiApplication implements Application {
         config.put(Constants.FRAMEWORK_BUNDLE_PARENT, Constants.FRAMEWORK_BUNDLE_PARENT_FRAMEWORK);
         config.put(OSGI_APPLICATION_ROOT, String.format("%s:%s%s", Archives.Nested.PROTOCOL, Archives.Nested.rootURL(frameworkURL), Archives.Nested.DELIMITER));
 
-        AccessController.doPrivileged(new PrivilegedAction<Void>() {
-            public Void run() {
-                for (final Map.Entry<String, String> entry : config.entrySet()) {
-                    System.setProperty(entry.getKey(), entry.getValue());
-                }
-
-                return null;
-            }
-        });
+        for (final Map.Entry<String, String> entry : config.entrySet()) {
+            System.setProperty(entry.getKey(), entry.getValue());
+        }
 
         log.debug("OSGi system properties: %s", config);
 
-        final Framework framework = AccessController.doPrivileged(new PrivilegedAction<Framework>() {
-            public Framework run() {
-                return factory.newFramework(config);
-            }
-        });
+        final Framework framework = factory.newFramework(config);
 
         final List<Bundle> bundles = new ArrayList<Bundle>();
         final Set<URL> jars = new TreeSet<URL>(new Comparator<URL>() {
@@ -206,124 +205,120 @@ final class OsgiApplication implements Application {
             }
         }
 
-        Exceptions.wrap(new Command.Job<PrivilegedActionException>() {
-            public void run() throws PrivilegedActionException {
-                AccessController.doPrivileged(new PrivilegedExceptionAction<Object>() {
-                    public Void run() throws BundleException {
-                        framework.start();
+        framework.start();
 
-                        termination.add(new Command.Job<Exception>() {
-                            public void run() {
+        termination.add(new Command.Job<Exception>() {
+            public void run() {
+                try {
+                    switch (framework.getState()) {
+                    case Framework.ACTIVE:
+                    case Framework.STARTING:
+                        final PrivilegedAction<Void> stop = new PrivilegedAction<Void>() {
+                            public Void run() {
                                 try {
-                                    switch (framework.getState()) {
-                                    case Framework.ACTIVE:
-                                    case Framework.STARTING:
-                                        AccessController.doPrivileged(new PrivilegedAction<Void>() {
-                                            public Void run() {
-                                                try {
-                                                    framework.stop(0);
-                                                } catch (final BundleException e) {
-                                                    log.error(e, "Could not stop the OSGi framework");
-                                                }
-
-                                                return null;
-                                            }
-                                        });
-
-                                        // fall through
-                                    case Framework.STOPPING:
-                                        try {
-                                            framework.waitForStop(0);
-                                        } catch (final InterruptedException e) {
-                                            Thread.currentThread().interrupt();
-                                        }
-
-                                        log.debug("OSGi framework (%s) stopped", framework.getSymbolicName());
-
-                                    default:
-                                        break;
-                                    }
-                                } catch (final Exception e) {
-                                    log.error(e, "Error stopping the OSGi framework");
+                                    framework.stop(0);
+                                } catch (final BundleException e) {
+                                    log.error(e, "Could not stop the OSGi framework");
                                 }
 
-                                Archives.Nested.unload(frameworkURL);
+                                return null;
                             }
-                        });
+                        };
 
-                        final BundleContext system = framework.getBundleContext();
-
-                        for (final URL url : jars) {
-                            log.debug("Installing bundle %s", url);
-
-                            final Bundle bundle = system.installBundle(url.toExternalForm());
-
-                            if (bundle.getHeaders().get(Constants.FRAGMENT_HOST) == null) {
-                                bundles.add(bundle);
-                            }
-                        }
-
-                        final FrameworkStartLevel startLevel = levels == null ? null : framework.adapt(FrameworkStartLevel.class);
-
-                        final List<List<Bundle>> order = new ArrayList<List<Bundle>>();
-
-                        if (startLevel != null) {
-
-                            // start level 0: framework stopped
-                            // start level 1: framework started
-                            // start level 2+ : bundle start levels
-
-                            final List<Bundle> remaining = new ArrayList<Bundle>(bundles);
-
-                            int level = 1;
-                            for (final List<Bundle> list : list(bundles)) {
-
-                                // make sure no bundle is included that has already been assigned a start level
-                                list.retainAll(remaining);
-
-                                // no bundle to start at this level: discard the rest
-                                if (list.isEmpty()) {
-                                    break;
-                                }
-
-                                remaining.removeAll(list);
-                                order.add(list);
-
-                                ++level;
-                                for (final Bundle bundle : list) {
-                                    bundle.adapt(BundleStartLevel.class).setStartLevel(level);
-                                }
-                            }
-
-                            if (!remaining.isEmpty()) {
-                                order.add(remaining);
-
-                                ++level;
-                                for (final Bundle bundle : remaining) {
-                                    bundle.adapt(BundleStartLevel.class).setStartLevel(level);
-                                }
-                            }
-                        }
-
-                        for (final Bundle bundle : bundles) {
-                            bundle.start(Bundle.START_ACTIVATION_POLICY);
-                        }
-
-                        if (startLevel != null) {
-                            final int limit = order.size() + 1;
-                            final int level = Math.max(1, Math.min(limit, levels.initial(limit)));
-                            startLevel.setStartLevel(level);
-
-                            log.debug("OSGi framework (%s) started at level %d of %d", framework.getSymbolicName(), level, limit);
+                        if (Security.CONTROLLED) {
+                            AccessController.doPrivileged(stop);
                         } else {
-                            log.debug("OSGi framework (%s) started", framework.getSymbolicName());
+                            stop.run();
                         }
 
-                        return null;
+                        // fall through
+                    case Framework.STOPPING:
+                        try {
+                            framework.waitForStop(0);
+                        } catch (final InterruptedException e) {
+                            Thread.currentThread().interrupt();
+                        }
+
+                        log.debug("OSGi framework (%s) stopped", framework.getSymbolicName());
+
+                    default:
+                        break;
                     }
-                });
+                } catch (final Exception e) {
+                    log.error(e, "Error stopping the OSGi framework");
+                }
+
+                Archives.Nested.unload(frameworkURL);
             }
         });
+
+        final BundleContext system = framework.getBundleContext();
+
+        for (final URL url : jars) {
+            log.debug("Installing bundle %s", url);
+
+            final Bundle bundle = system.installBundle(url.toExternalForm());
+
+            if (bundle.getHeaders().get(Constants.FRAGMENT_HOST) == null) {
+                bundles.add(bundle);
+            }
+        }
+
+        final FrameworkStartLevel startLevel = levels == null ? null : framework.adapt(FrameworkStartLevel.class);
+
+        final List<List<Bundle>> order = new ArrayList<List<Bundle>>();
+
+        if (startLevel != null) {
+
+            // start level 0: framework stopped
+            // start level 1: framework started
+            // start level 2+ : bundle start levels
+
+            final List<Bundle> remaining = new ArrayList<Bundle>(bundles);
+
+            int level = 1;
+            for (final List<Bundle> list : list(bundles)) {
+
+                // make sure no bundle is included that has already been assigned a start level
+                list.retainAll(remaining);
+
+                // no bundle to start at this level: discard the rest
+                if (list.isEmpty()) {
+                    break;
+                }
+
+                remaining.removeAll(list);
+                order.add(list);
+
+                ++level;
+                for (final Bundle bundle : list) {
+                    bundle.adapt(BundleStartLevel.class).setStartLevel(level);
+                }
+            }
+
+            if (!remaining.isEmpty()) {
+                order.add(remaining);
+
+                ++level;
+                for (final Bundle bundle : remaining) {
+                    bundle.adapt(BundleStartLevel.class).setStartLevel(level);
+                }
+            }
+        }
+
+        for (final Bundle bundle : bundles) {
+            bundle.start(Bundle.START_ACTIVATION_POLICY);
+        }
+
+        if (startLevel != null) {
+            final int limit = order.size() + 1;
+            final int level = Math.max(1, Math.min(limit, levels.initial(limit)));
+            startLevel.setStartLevel(level);
+
+            log.debug("OSGi framework (%s) started at level %d of %d", framework.getSymbolicName(), level, limit);
+        } else {
+            log.debug("OSGi framework (%s) started", framework.getSymbolicName());
+        }
 
         framework.waitForStop(0);
     }

@@ -218,6 +218,9 @@ public final class ClassLoaders extends Utility {
     /**
      * Establishes the given class loader as the {@linkplain Thread#setContextClassLoader(ClassLoader) context class loader}, executes the given command, and
      * then establishes the previous context class loader before returning whatever the command returned, or throwing whatever the command threw.
+     * <p/>
+     * The caller must have the {@link RuntimePermission} <code>"getClassLoader"</code> and {@link RuntimePermission} <code>"setContextClassLoader"</code>
+     * permissions.
      * <h3>Usage</h3>
      * <pre>
      * final {@linkplain ClassLoader} loader = &hellip;;

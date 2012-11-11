@@ -292,15 +292,16 @@ public final class Exceptions extends Utility {
 
         private <T extends Exception> Constructor<T> constructor(final Class<T> type, final Class<?>... parameters) throws Exception {
             try {
-
-                // we cannot wrap this call because we are in the scope of the wrapping method
-                return AccessController.doPrivileged(new PrivilegedExceptionAction<Constructor<T>>() {
+                final PrivilegedExceptionAction<Constructor<T>> action = new PrivilegedExceptionAction<Constructor<T>>() {
                     public Constructor<T> run() throws Exception {
                         final Constructor<T> constructor = type.getDeclaredConstructor(parameters);
                         constructor.setAccessible(true);
                         return constructor;
                     }
-                });
+                };
+
+                // we cannot wrap this call because we are in the scope of the wrapping method
+                return Security.CONTROLLED ? AccessController.doPrivileged(action) : action.run();
             } catch (final PrivilegedActionException e) {
                 throw (Exception) e.getCause();
             }

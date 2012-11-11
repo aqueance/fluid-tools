@@ -54,6 +54,7 @@ import org.fluidity.foundation.Generics;
 import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.Methods;
 import org.fluidity.foundation.Proxies;
+import org.fluidity.foundation.Security;
 import org.fluidity.foundation.Strings;
 
 import static org.fluidity.composition.ComponentContainer.ResolutionException;
@@ -145,14 +146,8 @@ final class DependencyInjectorImpl implements DependencyInjector {
 
         guard.enable();
 
-        AccessController.doPrivileged(new PrivilegedAction<Void>() {
-            public Void run() {
-                method.setAccessible(true);
-                return null;
-            }
-        });
-
-        return Methods.invoke(method, component, parameters);
+        final PrivilegedAction<Method> access = Security.setAccessible(method);
+        return Methods.invoke(access == null ? method : AccessController.doPrivileged(access), component, parameters);
     }
 
     @SuppressWarnings("unchecked")
@@ -183,7 +178,7 @@ final class DependencyInjectorImpl implements DependencyInjector {
         final List<Constructor<?>> packageConstructors = new ArrayList<Constructor<?>>();
         final List<Constructor<?>> publicConstructors = new ArrayList<Constructor<?>>();
 
-        final Constructor<?>[] constructors = AccessController.doPrivileged(new PrivilegedAction<Constructor<?>[]>() {
+        final Constructor<?>[] constructors = !Security.CONTROLLED ? componentClass.getDeclaredConstructors() : AccessController.doPrivileged(new PrivilegedAction<Constructor<?>[]>() {
             public Constructor<?>[] run() {
                 return componentClass.getDeclaredConstructors();
             }
@@ -354,17 +349,12 @@ final class DependencyInjectorImpl implements DependencyInjector {
                         }
                     });
 
-                    AccessController.doPrivileged(new PrivilegedAction<Void>() {
-                        public Void run() {
-                            constructor.setAccessible(true);
-                            return null;
-                        }
-                    });
+                    final PrivilegedAction<Constructor> access = Security.setAccessible((Constructor) constructor);
 
                     traversal.instantiating(componentClass);
                     return traversal.instantiated(componentClass, Exceptions.wrap(label, ResolutionException.class, new Process<Object, Exception>() {
                         public Object run() throws Exception {
-                            return constructor.newInstance(arguments);
+                            return (access == null ? constructor : AccessController.doPrivileged(access)).newInstance(arguments);
                         }
                     }));
                 } else {

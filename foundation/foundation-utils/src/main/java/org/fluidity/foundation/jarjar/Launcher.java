@@ -25,6 +25,7 @@ import java.util.List;
 
 import org.fluidity.foundation.Archives;
 import org.fluidity.foundation.ClassLoaders;
+import org.fluidity.foundation.Security;
 
 import static org.fluidity.foundation.Command.Function;
 
@@ -58,6 +59,23 @@ public final class Launcher {
      * @throws Exception when anything goes wrong.
      */
     public static void main(final String[] args) throws Exception {
+        if (Security.CONTROLLED) {
+            try {
+                AccessController.doPrivileged(new PrivilegedExceptionAction<Void>() {
+                    public Void run() throws Exception {
+                        start(args);
+                        return null;
+                    }
+                });
+            } catch (final PrivilegedActionException e) {
+                throw (Exception) e.getCause();
+            }
+        } else {
+            start(args);
+        }
+    }
+
+    private static void start(final String[] args) throws Exception {
         final Class<?> main = Launcher.class;
 
         final URL root = Archives.containing(main);
@@ -72,23 +90,13 @@ public final class Launcher {
         urls.add(root);
         urls.addAll(Archives.Nested.dependencies(true, null));
 
-        try {
-            AccessController.doPrivileged(new PrivilegedExceptionAction<Object>() {
-                public Void run() throws Exception {
-                    final ClassLoader parent = ClassLoaders.findClassLoader(main, true);
-                    final ClassLoader loader = ClassLoaders.create(urls, parent, null);
+        final ClassLoader parent = ClassLoaders.findClassLoader(main, true);
+        final ClassLoader loader = ClassLoaders.create(urls, parent, null);
 
-                    ClassLoaders.context(loader, new Function<Object, ClassLoader, Exception>() {
-                        public Object run(final ClassLoader loader) throws Exception {
-                            return loader.loadClass(mainClass).getMethod("main", String[].class).invoke(null, new Object[] { args });
-                        }
-                    });
-
-                    return null;
-                }
-            });
-        } catch (final PrivilegedActionException e) {
-            throw (Exception) e.getCause();
-        }
+        ClassLoaders.context(loader, new Function<Object, ClassLoader, Exception>() {
+            public Object run(final ClassLoader loader) throws Exception {
+                return loader.loadClass(mainClass).getMethod("main", String[].class).invoke(null, new Object[] { args });
+            }
+        });
     }
 }

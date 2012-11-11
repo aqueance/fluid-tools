@@ -35,6 +35,7 @@ import org.fluidity.composition.container.spi.DependencyGraph;
 import org.fluidity.composition.spi.ComponentFactory;
 import org.fluidity.foundation.Generics;
 import org.fluidity.foundation.Lists;
+import org.fluidity.foundation.Security;
 
 /**
  * Component resolver for a {@link ComponentFactory} component.
@@ -269,7 +270,7 @@ abstract class FactoryResolver extends AbstractResolver {
 
             public void fields(final Class<?> type) {
                 assert type != null;
-                final Field[] fields = AccessController.doPrivileged(new PrivilegedAction<Field[]>() {
+                final Field[] fields = !Security.CONTROLLED ? type.getDeclaredFields() : AccessController.doPrivileged(new PrivilegedAction<Field[]>() {
                     public Field[] run() {
                         return type.getDeclaredFields();
                     }

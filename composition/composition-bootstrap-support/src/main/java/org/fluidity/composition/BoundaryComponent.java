@@ -19,6 +19,8 @@ package org.fluidity.composition;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 
+import org.fluidity.foundation.Security;
+
 /**
  * An abstract class to extend by components at the edge of the application to enjoy field based dependency injection. The class extending this one must
  * declare its dependencies as {@link Inject @Inject} annotated non <code>final</code> instance fields, and call one of the constructors of this class.
@@ -39,7 +41,7 @@ public abstract class BoundaryComponent {
      * Resolves the component dependency fields from components visible to the class loader that loaded the subclass.
      */
     protected BoundaryComponent() {
-        this.container = Containers.global(AccessController.doPrivileged(new PrivilegedAction<ClassLoader>() {
+        this.container = Containers.global(!Security.CONTROLLED ? getClass().getClassLoader() : AccessController.doPrivileged(new PrivilegedAction<ClassLoader>() {
             public ClassLoader run() {
                 return BoundaryComponent.this.getClass().getClassLoader();
             }

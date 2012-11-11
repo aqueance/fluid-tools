@@ -83,9 +83,7 @@ public final class Strings extends Utility {
             } else if (object instanceof Type) {
                 return Generics.toString(qualified, (Type) object);
             } else {
-
-                // see if object overrides Object.toString()
-                final Method method = AccessController.doPrivileged(new PrivilegedAction<Method>() {
+                final PrivilegedAction<Method> access = new PrivilegedAction<Method>() {
                     public Method run() {
                         try {
                             return type.getDeclaredMethod("toString");
@@ -93,7 +91,10 @@ public final class Strings extends Utility {
                             return null;
                         }
                     }
-                });
+                };
+
+                // see if object overrides Object.toString()
+                final Method method = Security.CONTROLLED ? AccessController.doPrivileged(access) : access.run();
 
                 if (method == null) {
 
@@ -183,14 +184,16 @@ public final class Strings extends Utility {
     public static String describeAnnotation(final boolean identity, final Annotation annotation) {
         final Class<? extends Annotation> type = annotation.annotationType();
 
-        final Lists.Delimited list = Lists.delimited(", ");
-        final Method[] methods = AccessController.doPrivileged(new PrivilegedAction<Method[]>() {
+        final PrivilegedAction<Method[]> action = new PrivilegedAction<Method[]>() {
             public Method[] run() {
                 final Method[] methods = type.getDeclaredMethods();
                 AccessibleObject.setAccessible(methods, true);
                 return methods;
             }
-        });
+        };
+
+        final Lists.Delimited list = Lists.delimited(", ");
+        final Method[] methods = Security.CONTROLLED ? AccessController.doPrivileged(action) : action.run();
 
         try {
             if (methods.length == 1 && methods[0].getName().equals("value")) {

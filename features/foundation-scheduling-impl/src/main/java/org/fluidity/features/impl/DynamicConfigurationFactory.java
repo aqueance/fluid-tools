@@ -16,7 +16,6 @@
 
 package org.fluidity.features.impl;
 
-import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.security.AccessController;
@@ -33,6 +32,7 @@ import org.fluidity.features.Updates;
 import org.fluidity.foundation.Configuration;
 import org.fluidity.foundation.Deferred;
 import org.fluidity.foundation.Proxies;
+import org.fluidity.foundation.Security;
 
 /**
  * @author Tibor Varga
@@ -78,12 +78,11 @@ final class DynamicConfigurationFactory implements ComponentFactory {
                                 final Map<Method, Object> cache = new HashMap<Method, Object>();
                                 final Method[] methods = type.getMethods();
 
-                                AccessController.doPrivileged(new PrivilegedAction<Void>() {
-                                    public Void run() {
-                                        AccessibleObject.setAccessible(methods, true);
-                                        return null;
-                                    }
-                                });
+                                final PrivilegedAction<Void> access = Security.setAccessible(methods);
+
+                                if (access != null) {
+                                    AccessController.doPrivileged(access);
+                                }
 
                                 for (final Method method : methods) {
                                     assert method.getParameterTypes().length == 0 : method;

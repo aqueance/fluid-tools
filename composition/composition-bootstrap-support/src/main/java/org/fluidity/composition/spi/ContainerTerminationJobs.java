@@ -26,6 +26,7 @@ import org.fluidity.composition.Component;
 import org.fluidity.composition.ComponentContext;
 import org.fluidity.foundation.Command;
 import org.fluidity.foundation.Log;
+import org.fluidity.foundation.Security;
 import org.fluidity.foundation.Strings;
 
 /**
@@ -102,7 +103,7 @@ final class ContainerTerminationJobs<T> implements ContainerTermination.Jobs<T> 
             throw new IllegalArgumentException(String.format("Attempted to add null job to %s", Strings.formatClass(false, true, caller)));
         }
 
-        return AccessController.doPrivileged(new PrivilegedAction<Boolean>() {
+        final PrivilegedAction<Boolean> check = new PrivilegedAction<Boolean>() {
             public Boolean run() {
                 final ClassLoader check = job.getClass().getClassLoader();
 
@@ -114,7 +115,9 @@ final class ContainerTerminationJobs<T> implements ContainerTermination.Jobs<T> 
 
                 return caller.getClassLoader() == null && check == null;
             }
-        });
+        };
+
+        return Security.CONTROLLED ? AccessController.doPrivileged(check) : check.run();
     }
 
     public void add(final Command.Job<Exception> job) {

@@ -20,6 +20,9 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.URL;
+import java.security.AccessController;
+import java.security.PrivilegedActionException;
+import java.security.PrivilegedExceptionAction;
 import java.util.Collections;
 import java.util.jar.Attributes;
 
@@ -27,6 +30,7 @@ import org.fluidity.foundation.Archives;
 import org.fluidity.foundation.ClassLoaders;
 import org.fluidity.foundation.Command;
 import org.fluidity.foundation.Exceptions;
+import org.fluidity.foundation.Security;
 
 import static org.fluidity.foundation.Command.Job;
 
@@ -43,30 +47,45 @@ public final class RemoteLauncher {
     public static void main(final String[] args) throws Exception {
         if (args.length < 1) {
             throw usage("No arguments specified");
-        } else {
-            final URL url = new URL(args[0]);
-
-            Archives.Nested.access(new Job<Exception>() {
-                public void run() throws Exception {
-                    final String[] arguments = new String[args.length - 1];
-                    System.arraycopy(args, 1, arguments, 0, arguments.length);
-
-                    final String main = Exceptions.wrap(String.format("%s is not an archive", url), Problem.class, new Command.Process<String, Exception>() {
-                        public String run() throws Exception {
-                            return Archives.attributes(true, url, Attributes.Name.MAIN_CLASS)[0];
-                        }
-                    });
-
-                    if (main == null) {
-                        throw usage("No main class specified in %s", url);
+        } else if (Security.CONTROLLED) {
+            try {
+                AccessController.doPrivileged(new PrivilegedExceptionAction<Object>() {
+                    public Object run() throws Exception {
+                        start(args);
+                        return null;
                     }
-
-                    final ClassLoader loader = ClassLoaders.create(Collections.singleton(url), null, null);
-                    final Method start = loader.loadClass(main).getMethod("main", String[].class);
-                    start.invoke(null, (Object) arguments);
-                }
-            });
+                });
+            } catch (final PrivilegedActionException e) {
+                throw (Exception) e.getCause();
+            }
+        } else {
+            start(args);
         }
+    }
+
+    private static void start(final String[] args) throws Exception {
+        final URL url = new URL(args[0]);
+
+        Archives.Nested.access(new Job<Exception>() {
+            public void run() throws Exception {
+                final String[] arguments = new String[args.length - 1];
+                System.arraycopy(args, 1, arguments, 0, arguments.length);
+
+                final String main = Exceptions.wrap(String.format("%s is not an archive", url), Problem.class, new Command.Process<String, Exception>() {
+                    public String run() throws Exception {
+                        return Archives.attributes(true, url, Attributes.Name.MAIN_CLASS)[0];
+                    }
+                });
+
+                if (main == null) {
+                    throw usage("No main class specified in %s", url);
+                }
+
+                final ClassLoader loader = ClassLoaders.create(Collections.singleton(url), null, null);
+                final Method start = loader.loadClass(main).getMethod("main", String[].class);
+                start.invoke(null, (Object) arguments);
+            }
+        });
     }
 
     private static class Problem extends RuntimeException {

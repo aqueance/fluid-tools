@@ -27,8 +27,6 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLDecoder;
 import java.security.AccessControlException;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -380,6 +378,8 @@ public final class Archives extends Utility {
 
     /**
      * Returns the URL for the JAR file that contains the given class.
+     * <p/>
+     * The caller must have the {@link RuntimePermission} <code>"getClassLoader"</code> permission.
      *
      * @param type the Java class to find.
      *
@@ -388,11 +388,7 @@ public final class Archives extends Utility {
      * @throws IOException when the given URL cannot be accessed.
      */
     public static URL containing(final Class<?> type) throws IOException {
-        return Archives.containing(AccessController.doPrivileged(new PrivilegedAction<URL>() {
-            public URL run() {
-                return ClassLoaders.findClassResource(type);
-            }
-        }));
+        return Archives.containing(ClassLoaders.findClassResource(type));
     }
 
     /**
@@ -462,6 +458,8 @@ public final class Archives extends Utility {
 
     /**
      * Returns the URL for the JAR file that loaded this class.
+     * <p/>
+     * The caller must have the {@link RuntimePermission} <code>"getClassLoader"</code> permission.
      *
      * @return the URL for the JAR file that loaded this class.
      *
@@ -616,6 +614,8 @@ public final class Archives extends Utility {
         /**
          * Returns the list of URLs pointing to the named list of embedded archives. The returned URLs can then be extended with further nested archives or
          * resources using the {@link Archives.Nested#formatURL(URL, String...) formatURL} method.
+         * <p/>
+         * The caller must have the {@link RuntimePermission} <code>"getClassLoader"</code> permission.
          *
          * @param cached tells whether a previously cached archive, if any, should be used (<code>true</code>), or a newly loaded one (<code>false</code>).
          * @param name   the name of the dependency list; may be <code>null</code>
@@ -656,6 +656,8 @@ public final class Archives extends Utility {
         /**
          * Returns the list of custom nested dependency names in the given archive. The returned names can then be fed to {@link #dependencies(boolean,
          * String)}.
+         * <p/>
+         * The caller must have the {@link RuntimePermission} <code>"getClassLoader"</code> permission.
          *
          * @param cached tells whether a previously cached archive, if any, should be used (<code>true</code>), or a newly loaded one (<code>false</code>).
          *

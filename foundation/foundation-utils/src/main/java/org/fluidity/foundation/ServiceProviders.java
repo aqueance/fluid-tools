@@ -133,7 +133,7 @@ public final class ServiceProviders extends Utility {
             public T next() {
                 return Exceptions.wrap(new Command.Process<T, Exception>() {
                     public T run() throws Exception {
-                        final Constructor<T> constructor = AccessController.doPrivileged(new PrivilegedExceptionAction<Constructor<T>>() {
+                        final PrivilegedExceptionAction<Constructor<T>> action = new PrivilegedExceptionAction<Constructor<T>>() {
                             public Constructor<T> run() throws NoSuchMethodException {
                                 final Constructor<T> constructor = types[index++].getDeclaredConstructor();
 
@@ -143,9 +143,9 @@ public final class ServiceProviders extends Utility {
 
                                 return constructor;
                             }
-                        });
+                        };
 
-                        return constructor.newInstance();
+                        return (Security.CONTROLLED ? AccessController.doPrivileged(action) : action.run()).newInstance();
                     }
                 });
             }
@@ -178,7 +178,7 @@ public final class ServiceProviders extends Utility {
                                              final Log log) {
         return Exceptions.wrap(new Command.Process<Class<T>[], Exception>() {
             public Class<T>[] run() throws Exception {
-                final ClassLoader classLoader = loader != null ? loader : AccessController.doPrivileged(new PrivilegedAction<ClassLoader>() {
+                final ClassLoader classLoader = loader != null ? loader : !Security.CONTROLLED ? ClassLoaders.findClassLoader(api, true) : AccessController.doPrivileged(new PrivilegedAction<ClassLoader>() {
                     public ClassLoader run() {
                         return ClassLoaders.findClassLoader(api, true);
                     }
@@ -210,17 +210,17 @@ public final class ServiceProviders extends Utility {
                                     continue;
                                 }
 
-                                final boolean loadable = !strict || classLoader == AccessController.doPrivileged(new PrivilegedAction<ClassLoader>() {
+                                final boolean loadable = !strict || classLoader == (!Security.CONTROLLED ? rawClass.getClassLoader() : AccessController.doPrivileged(new PrivilegedAction<ClassLoader>() {
                                     public ClassLoader run() {
                                         return rawClass.getClassLoader();
                                     }
-                                });
+                                }));
 
-                                final boolean visible = !standard || null != AccessController.doPrivileged(new PrivilegedExceptionAction<Object>() {
+                                final boolean visible = !standard || null != (!Security.CONTROLLED ? rawClass.getDeclaredConstructor() : AccessController.doPrivileged(new PrivilegedExceptionAction<Object>() {
                                     public Object run() throws NoSuchMethodException {
                                         return rawClass.getDeclaredConstructor();
                                     }
-                                });
+                                }));
 
                                 if (loadable && visible) {
                                     if (api.isAssignableFrom(rawClass)) {

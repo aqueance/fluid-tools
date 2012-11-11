@@ -94,7 +94,7 @@ public final class Proxies extends Utility {
      */
     @SuppressWarnings("unchecked")
     public static <T> T create(final Class<T> type, final Identity<? extends T> identity, final InvocationHandler handler) {
-        final ClassLoader loader = AccessController.doPrivileged(new PrivilegedAction<ClassLoader>() {
+        final ClassLoader loader = !Security.CONTROLLED ? type.getClassLoader() : AccessController.doPrivileged(new PrivilegedAction<ClassLoader>() {
             public ClassLoader run() {
                 return type.getClassLoader();
             }

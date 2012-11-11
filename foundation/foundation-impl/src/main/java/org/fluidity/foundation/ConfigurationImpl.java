@@ -16,7 +16,6 @@
 
 package org.fluidity.foundation;
 
-import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
@@ -153,7 +152,7 @@ final class ConfigurationImpl<T> implements Configuration<T> {
             this.defaults = defaults;
             this.provider = provider;
 
-            this.loader = AccessController.doPrivileged(new PrivilegedAction<ClassLoader>() {
+            this.loader = !Security.CONTROLLED ? api.getClassLoader() : AccessController.doPrivileged(new PrivilegedAction<ClassLoader>() {
                 public ClassLoader run() {
                     return api.getClassLoader();
                 }
@@ -171,7 +170,7 @@ final class ConfigurationImpl<T> implements Configuration<T> {
 
             return Exceptions.wrap(method.toGenericString(), PropertyException.class, new Process<Object, Exception>() {
                 public Object run() throws Exception {
-                    return AccessController.doPrivileged(new PrivilegedAction<Object>() {
+                    final PrivilegedAction<Object> action = new PrivilegedAction<Object>() {
                         public Object run() {
                             if (!method.isAccessible()) {
                                 method.setAccessible(true);
@@ -190,7 +189,9 @@ final class ConfigurationImpl<T> implements Configuration<T> {
                                             method,
                                             args);
                         }
-                    });
+                    };
+
+                    return Security.CONTROLLED ? AccessController.doPrivileged(action) : action.run();
                 }
             });
         }
@@ -342,13 +343,11 @@ final class ConfigurationImpl<T> implements Configuration<T> {
                 final Object instance = type.newInstance();
                 final Field[] fields = type.getFields();
 
-                AccessController.doPrivileged(new PrivilegedAction<Void>() {
-                    public Void run() {
-                        AccessibleObject.setAccessible(fields, true);
-                        return null;
-                    }
-                });
+                final PrivilegedAction<Void> access = Security.setAccessible(fields);
 
+                if (access != null) {
+                    AccessController.doPrivileged(access);
+                }
 
                 for (final Field field : fields) {
                     final Property setting = field.getAnnotation(Property.class);

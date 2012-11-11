@@ -21,7 +21,6 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.security.AccessController;
-import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
 import java.util.Enumeration;
 
@@ -29,6 +28,7 @@ import org.fluidity.composition.Component;
 import org.fluidity.foundation.ClassLoaders;
 import org.fluidity.foundation.Exceptions;
 import org.fluidity.foundation.Proxies;
+import org.fluidity.foundation.Security;
 
 import static org.fluidity.foundation.Command.Function;
 import static org.fluidity.foundation.Command.Process;
@@ -72,16 +72,18 @@ final class BundleBoundaryImpl implements BundleBoundary {
     }
 
     private <T, E extends Exception> T tunnel(final Object remote, final Object local, final Tunnel<T, E> command) throws E {
-        return Exceptions.wrap(new Process<T, PrivilegedActionException>() {
-            public T run() throws PrivilegedActionException {
-                return AccessController.doPrivileged(new PrivilegedExceptionAction<T>() {
-                    public T run() throws E {
-                        final ClassLoader remoteCL = loader(remote);
-                        final ClassLoader localCL = loader(local);
+        final PrivilegedExceptionAction<T> action = new PrivilegedExceptionAction<T>() {
+            public T run() throws E {
+                final ClassLoader remoteCL = loader(remote);
+                final ClassLoader localCL = loader(local);
 
-                        return command.run(remoteCL == localCL, new DelegatingClassLoader(remoteCL, localCL));
-                    }
-                });
+                return command.run(remoteCL == localCL, new DelegatingClassLoader(remoteCL, localCL));
+            }
+        };
+
+        return Exceptions.wrap(new Process<T, Exception>() {
+            public T run() throws Exception {
+                return !Security.CONTROLLED ? action.run() : AccessController.doPrivileged(action);
             }
         });
     }
