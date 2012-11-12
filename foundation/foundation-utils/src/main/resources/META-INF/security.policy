@@ -3,5 +3,6 @@ grant codebase "file:${project.build.finalName}.${project.packaging}" {
   permission java.lang.RuntimePermission "setContextClassLoader";
   permission java.lang.RuntimePermission "accessDeclaredMembers";
   permission java.lang.reflect.ReflectPermission "suppressAccessChecks";
+  permission java.net.NetPermission "specifyStreamHandler";
   permission java.security.SecurityPermission "createAccessControlContext";
 };

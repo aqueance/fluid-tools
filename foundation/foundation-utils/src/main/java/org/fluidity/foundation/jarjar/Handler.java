@@ -165,7 +165,7 @@ public final class Handler extends URLStreamHandler {
             };
 
             try {
-                final URL relative = new URL(PROTOCOL, null, -1, paths[0]);
+                final URL relative = new URL(PROTOCOL, null, -1, paths[0], this);
                 super.parseURL(relative, paths[1], 0, paths[1].length());
 
                 path = base.substring(0, delimiter1 + length).concat(relative.getPath());
@@ -209,6 +209,19 @@ public final class Handler extends URLStreamHandler {
     }
 
     /**
+     * Parses the given nested URL specification and returns the parsed URL.
+     *
+     * @param specification the nested archive URL in text form.
+     *
+     * @return an {@link URL} with the given specification.
+     *
+     * @throws MalformedURLException when the Java URL cannot be created.
+     */
+    public static URL parseURL(final String specification) throws MalformedURLException {
+        return new URL(null, specification, Singleton.INSTANCE);
+    }
+
+    /**
      * Creates a URL to a resource in a JAR archive nested in other JAR archives at any level.
      *
      * @param root the URL of the (possibly already nested) JAR archive.
@@ -219,9 +232,9 @@ public final class Handler extends URLStreamHandler {
      *
      * @return a <code>jarjar:</code> pointing either to a nested archive, or a JAR resource within a nested archive.
      *
-     * @throws IOException when URL handling fails.
+     * @throws MalformedURLException when URL formatting fails.
      */
-    public static URL formatURL(final URL root, final String... path) throws IOException {
+    public static URL formatURL(final URL root, final String... path) throws MalformedURLException {
         Handler.initialize();
 
         if (root == null) {
@@ -268,11 +281,7 @@ public final class Handler extends URLStreamHandler {
             specification.set(stem);
         }
 
-        try {
-            return new URL(specification.toString());
-        } catch (final MalformedURLException e) {
-            return new URL(null, specification.toString(), Singleton.INSTANCE);
-        }
+        return parseURL(specification.toString());
     }
 
     /**
@@ -286,8 +295,7 @@ public final class Handler extends URLStreamHandler {
      * @throws IOException when processing the URL fails.
      */
     public static URL rootURL(final URL url) throws IOException {
-        final URL jarjar = unwrap(url);
-        return PROTOCOL.equals(jarjar.getProtocol()) ? new URL(enclosedURL(jarjar)) : url;
+        return PROTOCOL.equals(url.getProtocol()) ? new URL(enclosedURL(url)) : url;
     }
 
     /**
@@ -337,12 +345,7 @@ public final class Handler extends URLStreamHandler {
      */
     public static byte[] cached(final URL url) throws IOException {
         final Cache.Archive archive = Cache.archive(url);
-        return PROTOCOL.equals(url.getProtocol()) ? archive.entry(Cache.path(url)) : archive.root();
-    }
-
-    private static URL unwrap(final URL url) throws IOException {
-        final URL root = Archives.containing(url);
-        return root == null ? url : root;
+        return archive == null ? null : PROTOCOL.equals(url.getProtocol()) ? archive.entry(Cache.path(url)) : archive.root();
     }
 
     /**
@@ -585,13 +588,100 @@ public final class Handler extends URLStreamHandler {
             }
         }
 
+        @SuppressWarnings("SynchronizationOnLocalVariableOrMethodParameter")
         static byte[] contents(final URL url) throws IOException {
-            return load(new URL(enclosedURL(url))).get(path(url));
+            final URL enclosed = new URL(enclosedURL(url));
+            final Map<String, byte[]> map = load(enclosed);
+            final String key = path(url);
+
+            if (dynamic(map)) {
+                final byte[][] data;
+
+                synchronized (map) {
+                    data = new byte[][] { map.get(key) };
+
+                    if (data[0] != null) {
+                        return data[0];
+                    }
+                }
+
+                // URL content was not be cached, resort to direct read
+
+                final String[] path = key.split(DELIMITER);
+                URL direct = null;
+
+                final Lists.Delimited intermediate = Lists.delimited(DELIMITER);
+
+                final byte[] buffer = new byte[16384];
+                for (int i = 1, limit = path.length; i < limit; i++) {
+                    final String file = path[i];
+
+                    intermediate.add(file);
+                    final String lookup = DELIMITER.concat(intermediate.toString());
+
+                    if (data[0] == null) {
+                        synchronized (map) {
+                            if ((data[0] = map.get(lookup)) == null) {
+                                direct = new URL(enclosed, file);
+
+                                final URLConnection connection = direct.openConnection();
+                                connection.setUseCaches(true);
+
+                                map.put(lookup, data[0] = Streams.load(connection.getInputStream(), buffer, true));
+
+                                if (data[0].length == 0) {
+                                    return null;
+                                }
+                            }
+                        }
+                    } else {
+                        assert direct != null;
+
+                        synchronized (map) {
+                            final byte[] cached = map.get(lookup);
+
+                            if (cached == null) {
+                                direct = Handler.formatURL(direct, file);
+
+                                Archives.read(data[0], direct, new Archives.Entry() {
+                                    public boolean matches(final URL url, final JarEntry entry) throws IOException {
+                                        return entry.getName().equals(file);
+                                    }
+
+                                    public boolean read(final URL url, final JarEntry entry, final InputStream stream) throws IOException {
+                                        map.put(lookup, data[0] = Streams.load(stream, buffer, true));
+                                        return false;
+                                    }
+                                });
+
+                                if (data[0].length == 0) {
+                                    return null;
+                                }
+                            } else {
+                                data[0] = cached;
+                            }
+                        }
+                    }
+                }
+
+                return data[0].length > 0 ? data[0] : null;
+            } else {
+                return map.get(key);
+            }
         }
 
         static Archive archive(final URL url) throws IOException {
             final boolean nested = PROTOCOL.equals(url.getProtocol());
-            return new Archive(nested ? path(url) : ROOT, load(nested ? new URL(enclosedURL(url)) : url));
+            final Map<String, byte[]> map = load(nested ? new URL(enclosedURL(url)) : url);
+
+            return dynamic(map) ? null : new Archive(nested ? path(url) : ROOT, map);
+        }
+
+        @SuppressWarnings("SynchronizationOnLocalVariableOrMethodParameter")
+        private static boolean dynamic(final Map<String, byte[]> map) {
+            synchronized (map) {
+                return map.get(ROOT).length == 0;
+            }
         }
 
         @SuppressWarnings("SynchronizationOnLocalVariableOrMethodParameter")
@@ -626,11 +716,14 @@ public final class Handler extends URLStreamHandler {
 
                     content.put(ROOT, data);
 
-                    final ZipInputStream stream = new ZipInputStream(new ByteArrayInputStream(data));
-                    try {
-                        load(content, new HashMap<Metadata, String>(), buffer, ROOT, stream, stream.getNextEntry());
-                    } catch (final IOException e) {
-                        stream.close();
+                    // no data: URL handler could be hiding its content: we can't cache it
+                    if (data.length > 0) {
+                        final ZipInputStream stream = new ZipInputStream(new ByteArrayInputStream(data));
+                        try {
+                            load(content, new HashMap<Metadata, String>(), buffer, ROOT, stream, stream.getNextEntry());
+                        } catch (final IOException e) {
+                            stream.close();
+                        }
                     }
 
                     return content;

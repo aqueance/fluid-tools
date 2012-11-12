@@ -262,7 +262,6 @@ public final class StandaloneWarMojo extends AbstractMojo {
 
                 ArchivesSupport.include(attributesMap, manifest);
 
-                outputStream.putNextEntry(new JarEntry(ArchivesSupport.META_INF));
                 outputStream.putNextEntry(new JarEntry(JarFile.MANIFEST_NAME));
                 manifest.write(outputStream);
 
@@ -281,13 +280,12 @@ public final class StandaloneWarMojo extends AbstractMojo {
                     }
 
                     public boolean include(final JarEntry entry) {
-                        return !commandLineOnly || !bootLibraries.contains(entry.getName());
+                        final String name = entry.getName();
+                        return !name.startsWith(bootDirectory) && (!commandLineOnly || !bootLibraries.contains(name));
                     }
                 });
 
                 if (!serverDependencies.isEmpty()) {
-                    outputStream.putNextEntry(new JarEntry(bootDirectory));
-
                     for (final Artifact artifact : serverDependencies) {
                         final File dependency = artifact.getFile();
 

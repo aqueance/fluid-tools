@@ -164,6 +164,7 @@ public final class DependenciesSupport extends Utility {
                                                          final boolean compile,
                                                          final boolean optionals,
                                                          final Collection<Exclusion> exclusions) throws MojoExecutionException {
+        artifact.setScope(JavaScopes.COMPILE);
         return closure(system, session, repositories, new TransitiveDependencySelector(compile, optionals), !compile, aetherDependency(artifact, exclusions));
     }
 
@@ -561,7 +562,7 @@ public final class DependenciesSupport extends Utility {
 
         private final Set<String> ignored = new HashSet<String>();
         private final Set<String> visited = new HashSet<String>();
-        private final Collection<org.sonatype.aether.artifact.Artifact> collected = new LinkedHashSet<org.sonatype.aether.artifact.Artifact>();
+        private final List<org.sonatype.aether.artifact.Artifact> collected = new ArrayList<org.sonatype.aether.artifact.Artifact>();
 
         private final boolean runtime;
 
@@ -571,36 +572,25 @@ public final class DependenciesSupport extends Utility {
         }
 
         public boolean visitEnter(final DependencyNode node) {
-            if (!visit(node)) {
-                return false;
-            }
-
-            for (final DependencyNode child : node.getChildren()) {
-                visit(child);
-            }
-
-            return true;
-        }
-
-        private boolean visit(final DependencyNode child) {
-            final org.sonatype.aether.graph.Dependency dependency = child.getDependency();
+            final org.sonatype.aether.graph.Dependency dependency = node.getDependency();
 
             final org.sonatype.aether.artifact.Artifact artifact = dependency.getArtifact();
             final String identity = identity(artifact);
 
             if (!visited.add(identity)) {
-                return true;
+                return false;
             }
 
             if (runtime && JavaScopes.PROVIDED.equals(dependency.getScope())) {
                 ignored.add(identity);
                 return false;
-            } else if (!ignored.contains(identity)) {
-                collected.add(artifact);
-                return true;
-            } else {
-                return false;
             }
+
+            if (!ignored.contains(identity)) {
+                collected.add(artifact);
+            }
+
+            return true;
         }
 
         public boolean visitLeave(final DependencyNode node) {

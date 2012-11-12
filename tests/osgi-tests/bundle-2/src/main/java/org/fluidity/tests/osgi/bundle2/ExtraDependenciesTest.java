@@ -17,6 +17,7 @@
 package org.fluidity.tests.osgi.bundle2;
 
 import java.net.URL;
+import java.util.Collection;
 import java.util.Properties;
 import java.util.jar.JarFile;
 
@@ -33,6 +34,7 @@ import org.testng.annotations.Test;
 public final class ExtraDependenciesTest implements BundleTest {
 
     private static final String EXTRAS = "extras";
+    private static final String NESTED = "nested";
 
     private final Bundle bundle;
 
@@ -42,11 +44,19 @@ public final class ExtraDependenciesTest implements BundleTest {
 
     @Test
     public void test() throws Exception {
-        assert !Archives.Nested.dependencies(true, bundle.getEntry("/"), EXTRAS).isEmpty();
-        assert !Archives.Nested.dependencies(true, new URL(bundle.getEntry("/"), JarFile.MANIFEST_NAME), EXTRAS).isEmpty();
+        assert !Archives.Nested.dependencies(true, bundle.getEntry("/"), EXTRAS).isEmpty() : EXTRAS;
+        assert !Archives.Nested.dependencies(true, new URL(bundle.getEntry("/"), JarFile.MANIFEST_NAME), EXTRAS).isEmpty() : EXTRAS;
 
         // the bundle location is not guaranteed to be a URL so this is not portable
-        assert !Archives.Nested.dependencies(true, new URL(bundle.getLocation()), EXTRAS).isEmpty();
+        assert !Archives.Nested.dependencies(true, new URL(bundle.getLocation()), EXTRAS).isEmpty() : EXTRAS;
+
+        final Collection<URL> nested = Archives.Nested.dependencies(true, bundle.getEntry("/"), NESTED);
+        assert !nested.isEmpty() : NESTED;
+
+        for (final URL url : nested) {
+            assert Archives.manifest(true, url) != null : url;
+            assert !Archives.manifest(true, url).getMainAttributes().isEmpty() : url;
+        }
     }
 
     public Class<?>[] types() {

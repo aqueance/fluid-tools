@@ -112,6 +112,22 @@
                 </dependency>
             </dependencies>
         </profile>
+
+        <profile>
+            <id>nested</id>
+            <activation><activeByDefault>true</activeByDefault></activation>
+
+            <dependencies>
+                <dependency>
+                    <groupId>${project.groupId}</groupId>
+                    <artifactId>bundle-1</artifactId>
+                    <version>${project.version}</version>
+                    <classifier>bundle</classifier>
+                    <scope>provided</scope>
+                    <optional>true</optional>
+                </dependency>
+            </dependencies>
+        </profile>
     </profiles>
 
     <build>
@@ -172,6 +188,7 @@
                     <classifier>bundle</classifier>
                     <profiles>
                         <profile>extras</profile>
+                        <profile>nested</profile>
                     </profiles>
                 </configuration>
 

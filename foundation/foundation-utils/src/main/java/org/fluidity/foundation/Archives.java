@@ -23,6 +23,7 @@ import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLDecoder;
@@ -404,9 +405,9 @@ public final class Archives extends Utility {
      *
      * @return the URL for the Java archive that the given URL is relative to; may be <code>null</code> if the given URL is not relative to a Java archive.
      *
-     * @throws IOException when the Java URL cannot be created.
+     * @throws MalformedURLException when the Java URL cannot be created.
      */
-    public static URL containing(final URL url) throws IOException {
+    public static URL containing(final URL url) throws MalformedURLException {
         final String protocol = url == null ? null : url.getProtocol();
 
         if (protocol != null) {
@@ -420,11 +421,28 @@ public final class Archives extends Utility {
                 final int delimiter = file.lastIndexOf(Nested.DELIMITER);
 
                 final String containing = delimiter == -1 ? file : file.substring(0, delimiter);
-                return containing.contains(Nested.DELIMITER) ? new URL(Nested.PROTOCOL, null, containing) : new URL(containing);
+                return containing.contains(Nested.DELIMITER) ? Archives.parseURL(String.format("%s:%s", Nested.PROTOCOL, containing)) : new URL(containing);
             }
         }
 
         return null;
+    }
+
+    /**
+     * Parses the given URL specification and returns the parsed URL.
+     *
+     * @param specification the archive URL in text form.
+     *
+     * @return an {@link URL} with the given specification.
+     *
+     * @throws MalformedURLException when the Java URL cannot be created.
+     */
+    public static URL parseURL(final String specification) throws MalformedURLException {
+        if (specification.startsWith(Nested.PROTOCOL.concat(":"))) {
+            return Handler.parseURL(specification);
+        } else {
+            return new URL(specification);
+        }
     }
 
     /**
@@ -448,9 +466,13 @@ public final class Archives extends Utility {
         return path == null ? relative(protocol, stem, url.getFile()) : path;
     }
 
+    private static final String[] NO_STRING = new String[0];
+
     private static String[] relative(final String protocol, final String archive, final String url) {
         if (url.startsWith(archive)) {
-            if (Nested.PROTOCOL.equals(protocol)) {
+            if (url.equals(archive)) {
+                return NO_STRING;
+            } else if (Nested.PROTOCOL.equals(protocol)) {
                 return url.substring(archive.length() + Nested.DELIMITER.length()).split(Nested.DELIMITER);
             } else {
                 final int delimiter = url.indexOf('/', archive.length());

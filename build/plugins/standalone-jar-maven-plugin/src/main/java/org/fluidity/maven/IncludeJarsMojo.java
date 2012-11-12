@@ -245,7 +245,7 @@ public final class IncludeJarsMojo extends AbstractMojo {
                         final String dependencyPath = entry.getKey();
 
                         for (final Artifact artifact : entry.getValue()) {
-                            policy.add(artifact.getFile(), 1,dependencyPath);
+                            policy.add(artifact.getFile(), 1, dependencyPath);
                         }
                     }
 

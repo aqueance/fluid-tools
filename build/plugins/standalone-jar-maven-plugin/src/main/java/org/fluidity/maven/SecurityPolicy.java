@@ -27,6 +27,7 @@ import java.util.regex.Pattern;
 import org.fluidity.foundation.Archives;
 import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.Streams;
+import org.fluidity.foundation.jarjar.Handler;
 
 /**
  * Handles security.policy files in nested archives.
@@ -87,7 +88,7 @@ public final class SecurityPolicy {
         return content.toString();
     }
 
-    private String relativeReferences(final String location, final String archive, final String content) {
+    private String relativeReferences(final String location, final String archive, final String content) throws IOException {
         final StringBuffer replacement = new StringBuffer(content.length() + 128);
         final Pattern pattern = Pattern.compile(String.format("(\"(.*):(\\$\\{%s\\}|%s)(.*)\")", JAVA_CLASS_PATH, archive));
         final Matcher matcher = pattern.matcher(content);
@@ -100,12 +101,25 @@ public final class SecurityPolicy {
                 suffix = Archives.Nested.DELIMITER.concat(suffix.substring(1));
             }
 
-            if (location != null && protocol.startsWith(NESTED_PROTOCOL)) {
-                matcher.appendReplacement(replacement, String.format("\"%s:\\${%s}%s%s%s%s\"", protocol, JAVA_CLASS_PATH, Archives.Nested.DELIMITER, location, archive, suffix));
-            } else if (location == null) {
-                matcher.appendReplacement(replacement, String.format("\"%s:\\${%s}%s\"", protocol, JAVA_CLASS_PATH, suffix));
+            if (location != null) {
+                final String group = matcher.group();
+
+                // remove the surrounding quotes
+                final URL specified = Archives.parseURL(group.substring(1, group.length() - 1));
+
+                // the archive that embeds the specified
+                final URL base = Archives.Nested.rootURL(specified);
+
+                // replace the base with the class path reference
+                final URL root = Archives.parseURL(String.format("%s:\\${%s}", base.getProtocol(), JAVA_CLASS_PATH));
+
+                // move the entire path under the new location
+                final URL url = Archives.Nested.formatURL(Handler.formatURL(root, String.format("%s%s", location, archive)), Archives.resourcePath(specified, base));
+
+                // add the surrounding quotes
+                matcher.appendReplacement(replacement, String.format("\"%s\"", url.toExternalForm()));
             } else {
-                matcher.appendReplacement(replacement, String.format("\"%s:%s:\\${%s}%s%s%s%s\"", Archives.Nested.PROTOCOL, protocol, JAVA_CLASS_PATH, Archives.Nested.DELIMITER, location, archive, suffix));
+                matcher.appendReplacement(replacement, String.format("\"%s:\\${%s}%s\"", protocol, JAVA_CLASS_PATH, suffix));
             }
         }
 
