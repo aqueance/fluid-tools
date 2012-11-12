@@ -140,9 +140,7 @@ public class URLClassLoader extends SecureClassLoader {
                                 if (archive != null) {
                                     entries.put(location, new PackagedArchive(dependency, archive, factory, this));
                                 } else {
-
-                                    // TODO: could not be cached, use something like the local directory handler but with an assumption of an archive
-                                    assert false : dependency;
+                                    throw new IllegalArgumentException(String.format("Not an archive: %s", dependency));
                                 }
                             }
                         }
