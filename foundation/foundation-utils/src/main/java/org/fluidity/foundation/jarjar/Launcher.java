@@ -18,16 +18,17 @@ package org.fluidity.foundation.jarjar;
 
 import java.net.URL;
 import java.security.AccessController;
-import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.fluidity.foundation.Archives;
 import org.fluidity.foundation.ClassLoaders;
+import org.fluidity.foundation.Exceptions;
 import org.fluidity.foundation.Security;
 
 import static org.fluidity.foundation.Command.Function;
+import static org.fluidity.foundation.Command.Job;
 
 /**
  * Launches a main class from a JAR file using a class loader that can load classes from JAR files nested inside the main JAR. Nested JAR files must be located
@@ -59,19 +60,23 @@ public final class Launcher {
      * @throws Exception when anything goes wrong.
      */
     public static void main(final String[] args) throws Exception {
-        if (Security.CONTROLLED) {
-            try {
-                AccessController.doPrivileged(new PrivilegedExceptionAction<Void>() {
-                    public Void run() throws Exception {
+        try {
+            Exceptions.wrap(new Job<Exception>() {
+                public void run() throws Exception {
+                    if (Security.CONTROLLED) {
+                        AccessController.doPrivileged(new PrivilegedExceptionAction<Void>() {
+                            public Void run() throws Exception {
+                                start(args);
+                                return null;
+                            }
+                        });
+                    } else {
                         start(args);
-                        return null;
                     }
-                });
-            } catch (final PrivilegedActionException e) {
-                throw (Exception) e.getCause();
-            }
-        } else {
-            start(args);
+                }
+            });
+        } catch (final Exceptions.Wrapper wrapper) {
+            throw wrapper.rethrow(Exception.class);
         }
     }
 

@@ -36,31 +36,52 @@ import org.fluidity.foundation.jarjar.Handler;
  */
 public final class SecurityPolicy {
 
-    private static final String NESTED_PROTOCOL = Archives.Nested.PROTOCOL.concat(":");
+    /**
+     * The default location for a security policy file in an archive.
+     */
+    public static final String SECURITY_POLICY_FILE = String.format("%s/%s", Archives.META_INF, "security.policy");
+
     private static final String JAVA_CLASS_PATH = "java.class.path";
-    static final String SECURITY_POLICY_FILE = String.format("%s/%s", Archives.META_INF, "security.policy");
 
     private final byte[] buffer;
     private final List<String> files[];
     private final boolean cached;
 
+    /**
+     * Creates a new security policy file processor.
+     *
+     * @param archive the archive to add at level 0; may be <code>null</code>.
+     * @param cached  the flag to send to various methods of {@link Archives} when accessing archives.
+     * @param levels  tells how many lists of files to maintain.
+     * @param buffer  the I/O buffer to use when accessing archives.
+     */
     @SuppressWarnings("unchecked")
-    public SecurityPolicy(final File archive, final int orders, final boolean cached, final byte[] buffer) throws IOException {
-        assert orders > 0 : orders;
-        assert archive != null;
+    public SecurityPolicy(final File archive, final int levels, final boolean cached, final byte[] buffer) throws IOException {
+        assert levels > 0 : levels;
 
         this.buffer = buffer;
         this.cached = cached;
-        this.files = new List[orders];
+        this.files = new List[levels];
 
         for (int i = 0; i < files.length; i++) {
             files[i] = new ArrayList<String>();
         }
 
-        add(archive, 0, null);
+        if (archive != null) {
+            add(archive, 0, null);
+        }
     }
 
-    public void add(final File archive, final int order, final String location) throws IOException {
+    /**
+     * Adds the security policy from the given <code>archive</code> the list at the given index.
+     *
+     * @param archive  the archive to load the security policy from.
+     * @param level    identifies the file list to add the loaded policy to.
+     * @param location the nested location of <code>archive</code> in the one being processed.
+     *
+     * @throws IOException when accessing <code>archive</code> fails.
+     */
+    public void add(final File archive, final int level, final String location) throws IOException {
         assert archive != null;
 
         final URL url = new URL(Archives.FILE, null, -1, archive.getAbsolutePath());
@@ -73,11 +94,31 @@ public final class SecurityPolicy {
                 final String file = archive.getName();
                 final String replacement = relativeReferences(location, file, absoluteReferences(location, file, content));
 
-                files[order].add(replacement);
+                files[level].add(replacement);
             }
         }
     }
 
+    /**
+     * Tells if any security policy files have been loaded.
+     *
+     * @return <code>true</code> if there was at least one policy file loaded; <code>false</code> otherwise.
+     */
+    public boolean found() {
+        for (final List<String> file : files) {
+            if (!file.isEmpty()) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Generates a combined policy file from the ones maintained.
+     *
+     * @return the content to store in a security policy file.
+     */
     public String generate() {
         final Lists.Delimited content = Lists.delimited(String.format("%n"));
 
@@ -150,15 +191,5 @@ public final class SecurityPolicy {
 
     private String entry(final URL url) throws IOException {
         return Archives.attributes(cached, url, Archives.SECURITY_POLICY)[0];
-    }
-
-    public boolean found() {
-        for (final List<String> file : files) {
-            if (!file.isEmpty()) {
-                return true;
-            }
-        }
-
-        return false;
     }
 }

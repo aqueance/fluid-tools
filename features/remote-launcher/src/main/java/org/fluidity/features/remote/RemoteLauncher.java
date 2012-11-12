@@ -24,6 +24,7 @@ import java.security.AccessController;
 import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
 import java.util.Collections;
+import java.util.Properties;
 import java.util.jar.Attributes;
 
 import org.fluidity.foundation.Archives;
@@ -31,6 +32,11 @@ import org.fluidity.foundation.ClassLoaders;
 import org.fluidity.foundation.Command;
 import org.fluidity.foundation.Exceptions;
 import org.fluidity.foundation.Security;
+
+import org.codehaus.plexus.interpolation.PropertiesBasedValueSource;
+import org.codehaus.plexus.interpolation.RecursionInterceptor;
+import org.codehaus.plexus.interpolation.RegexBasedInterpolator;
+import org.codehaus.plexus.interpolation.SimpleRecursionInterceptor;
 
 import static org.fluidity.foundation.Command.Job;
 
@@ -44,6 +50,14 @@ import static org.fluidity.foundation.Command.Job;
  */
 public final class RemoteLauncher {
 
+    /**
+     * Launches a remote application.
+     *
+     * @param args the arguments list, the first item of which specifies the URL to load the remote application from while the rest is the parameters to that
+     *             application.
+     *
+     * @throws Exception when anything goes wrong.
+     */
     public static void main(final String[] args) throws Exception {
         if (args.length < 1) {
             throw usage("No arguments specified");
@@ -64,7 +78,16 @@ public final class RemoteLauncher {
     }
 
     private static void start(final String[] args) throws Exception {
-        final URL url = new URL(args[0]);
+        final Properties global = System.getProperties();
+
+        final RegexBasedInterpolator placeholders = new RegexBasedInterpolator();
+        final RecursionInterceptor recursion = new SimpleRecursionInterceptor();
+
+        placeholders.addValueSource(new PropertiesBasedValueSource(global));
+        placeholders.setCacheAnswers(true);
+        placeholders.setReusePatterns(true);
+
+        final URL url = new URL(placeholders.interpolate(args[0], recursion));
 
         Archives.Nested.access(new Job<Exception>() {
             public void run() throws Exception {

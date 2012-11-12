@@ -338,7 +338,7 @@ public final class StandaloneJarMojo extends AbstractMojo {
                     includedDependencies.get(dependenciesName.get()).artifacts.removeAll(unpackedDependencies);
                 }
 
-                final SecurityPolicy policy = new SecurityPolicy(packageFile, 3, false, buffer);
+                final SecurityPolicy policy = new SecurityPolicy(null, 2, false, buffer);
 
                 // list the various dependencies in manifest attributes
                 for (final Map.Entry<String, Inclusion> entry : includedDependencies.entrySet()) {
@@ -357,7 +357,7 @@ public final class StandaloneJarMojo extends AbstractMojo {
 
                             if (artifact.getType().equals(DependenciesSupport.JAR_TYPE)) {
                                 dependencyList.add(entryName);
-                                policy.add(artifact.getFile(), 2, inclusion.folder);
+                                policy.add(artifact.getFile(), 1, inclusion.folder);
                             }
                         }
                     }
@@ -366,7 +366,7 @@ public final class StandaloneJarMojo extends AbstractMojo {
                 }
 
                 for (final Artifact artifact : unpackedDependencies) {
-                    policy.add(artifact.getFile(), 1, null);
+                    policy.add(artifact.getFile(), 0, null);
                 }
 
                 if (policy.found()) {

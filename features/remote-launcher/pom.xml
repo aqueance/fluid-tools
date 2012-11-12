@@ -43,7 +43,11 @@
             <groupId>${fluidity.foundation.groupId}</groupId>
             <artifactId>foundation-utils</artifactId>
             <version>${project.version}</version>
-            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.codehaus.plexus</groupId>
+            <artifactId>plexus-interpolation</artifactId>
         </dependency>
 
     </dependencies>
@@ -98,10 +102,10 @@
                 <artifactId>standalone-jar-maven-plugin</artifactId>
                 <version>${project.version}</version>
 
-                <!--
-                 Fluid Tools JAR packaging extension: sets up the launcher as the main class
-                 to find the packaged dependencies
-                -->
+                <configuration>
+                    <compact>true</compact>
+                </configuration>
+
                 <dependencies>
                     <dependency>
                         <groupId>${fluidity.features.groupId}</groupId>

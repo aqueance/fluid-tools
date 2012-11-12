@@ -104,8 +104,6 @@ final class OsgiApplication implements Application {
      */
     public static final String OSGI_APPLICATION_ROOT = "osgi.application.root";
 
-    private static final String BUNDLES = "bundles";
-
     private final Log log;
     private final ContainerTermination termination;
     private final StartLevels levels;
@@ -156,12 +154,12 @@ final class OsgiApplication implements Application {
 
         final Properties global = System.getProperties();
 
-        final RegexBasedInterpolator interpolator = new RegexBasedInterpolator();
-        final RecursionInterceptor interceptor = new SimpleRecursionInterceptor();
+        final RegexBasedInterpolator placeholders = new RegexBasedInterpolator();
+        final RecursionInterceptor recursion = new SimpleRecursionInterceptor();
 
-        interpolator.addValueSource(new PropertiesBasedValueSource(global));
-        interpolator.setCacheAnswers(true);
-        interpolator.setReusePatterns(true);
+        placeholders.addValueSource(new PropertiesBasedValueSource(global));
+        placeholders.setCacheAnswers(true);
+        placeholders.setReusePatterns(true);
 
         final Class<? extends FrameworkFactory> frameworkType = factory.getClass();
         final URL frameworkURL = Archives.containing(frameworkType);
@@ -173,12 +171,12 @@ final class OsgiApplication implements Application {
         final String application = global.getProperty(APPLICATION_PROPERTIES);
         final Properties distribution = loadProperties(application == null
                                                        ? resource(APPLICATION_PROPERTIES)
-                                                       : Archives.open(cached, new URL(interpolator.interpolate(application))), defaults);
+                                                       : Archives.open(cached, new URL(placeholders.interpolate(application, recursion))), defaults);
 
         final String deployment = global.getProperty(DEPLOYMENT_PROPERTIES);
         final Properties properties = deployment == null
                                       ? distribution
-                                      : loadProperties(Archives.open(cached, new URL(interpolator.interpolate(deployment))), distribution);
+                                      : loadProperties(Archives.open(cached, new URL(placeholders.interpolate(deployment, recursion))), distribution);
 
         final Map<String, String> config = new HashMap<String, String>();
 
@@ -186,7 +184,7 @@ final class OsgiApplication implements Application {
         final List<String> keys = Collections.list((Enumeration<String>) properties.propertyNames());
 
         for (final String property : keys) {
-            config.put(property, interpolator.interpolate((global.containsKey(property) ? global : properties).getProperty(property), interceptor));
+            config.put(property, placeholders.interpolate((global.containsKey(property) ? global : properties).getProperty(property), recursion));
         }
 
         config.put(Constants.FRAMEWORK_BUNDLE_PARENT, Constants.FRAMEWORK_BUNDLE_PARENT_FRAMEWORK);
@@ -207,12 +205,22 @@ final class OsgiApplication implements Application {
             }
         });
 
-        for (final URL url : Archives.Nested.dependencies(cached, BUNDLES)) {
+        final URL archive = Archives.containing(Archives.containing(getClass()));
 
-            // make sure to select only those archives that have an OSGi bundle symbolic name (it is a mandatory OSGi header)
-            if (Archives.attributes(cached, url, Constants.BUNDLE_SYMBOLICNAME)[0] != null) {
-                jars.add(url);
+        for (final String list : Archives.Nested.list(cached, archive)) {
+            log.debug("Checking packaged archives '%s' in %s", list, archive);
+
+            for (final URL url : Archives.Nested.dependencies(cached, archive, list)) {
+
+                // make sure to select only those archives that have an OSGi bundle symbolic name (it is a mandatory OSGi header)
+                if (Archives.attributes(cached, url, Constants.BUNDLE_SYMBOLICNAME)[0] != null) {
+                    jars.add(url);
+                }
             }
+        }
+
+        if (jars.isEmpty()) {
+            throw new IllegalStateException(String.format("No OSGi bundles found in %s", archive));
         }
 
         framework.start();

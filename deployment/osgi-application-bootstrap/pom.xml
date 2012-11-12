@@ -55,7 +55,6 @@
         <dependency>
             <groupId>org.codehaus.plexus</groupId>
             <artifactId>plexus-interpolation</artifactId>
-            <version>1.15</version>
         </dependency>
 
         <dependency>

@@ -30,6 +30,8 @@ import java.security.AccessControlException;
 import java.security.AccessController;
 import java.security.Permission;
 import java.security.PrivilegedAction;
+import java.security.PrivilegedActionException;
+import java.security.PrivilegedExceptionAction;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -42,6 +44,7 @@ import org.fluidity.foundation.Archives;
 import org.fluidity.foundation.ClassLoaders;
 import org.fluidity.foundation.Deferred;
 import org.fluidity.foundation.Lists;
+import org.fluidity.foundation.Security;
 import org.fluidity.foundation.Streams;
 
 import static org.fluidity.foundation.Command.Job;
@@ -218,7 +221,15 @@ public final class Handler extends URLStreamHandler {
      * @throws MalformedURLException when the Java URL cannot be created.
      */
     public static URL parseURL(final String specification) throws MalformedURLException {
-        return new URL(null, specification, Singleton.INSTANCE);
+        try {
+            return !Security.CONTROLLED ? new URL(null, specification, Singleton.INSTANCE) : AccessController.doPrivileged(new PrivilegedExceptionAction<URL>() {
+                public URL run() throws MalformedURLException {
+                    return new URL(null, specification, Singleton.INSTANCE);
+                }
+            });
+        } catch (final PrivilegedActionException e) {
+            throw (MalformedURLException) e.getCause();
+        }
     }
 
     /**
@@ -740,14 +751,19 @@ public final class Handler extends URLStreamHandler {
             final UUID id = local == null ? null : local.id;
             assert local == null | id != null;
 
-            final Map<String, Map<String, byte[]>> cache;
+            Map<String, Map<String, byte[]>> cache = null;
 
-            synchronized (localCache) {
-                cache = id == null ? globalCache : localCache.get(id);
+            if (id != null) {
+                synchronized (localCache) {
+                    cache = localCache.get(id);
+                }
+
+                if (cache == null) {
+                    context.set(null);
+                }
             }
 
-            assert cache != null;
-            return cache;
+            return cache == null ? globalCache : cache;
         }
 
         private static void load(final Map<String, byte[]> content,

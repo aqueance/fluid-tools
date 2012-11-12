@@ -60,6 +60,7 @@ public final class Security extends Utility {
 
     static {
         boolean controlled;
+
         try {
             controlled = AccessController.doPrivileged(new PrivilegedAction<Boolean>() {
                 public Boolean run() {
