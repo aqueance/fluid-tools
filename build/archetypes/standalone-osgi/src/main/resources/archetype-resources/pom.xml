@@ -105,6 +105,7 @@ limitations under the License.
                 <artifactId>standalone-jar-maven-plugin</artifactId>
 
                 <configuration>
+                    <compact>true</compact>
                     <profiles><profile>bundles</profile></profiles>
                 </configuration>
 

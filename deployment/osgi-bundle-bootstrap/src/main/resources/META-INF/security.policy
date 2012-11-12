@@ -1,4 +1,3 @@
-// the codebase URL might not be valid with an actual OSGi framework
 grant codebase "file:${project.build.finalName}.${project.packaging}" {
   permission java.lang.RuntimePermission "createClassLoader";
   permission java.lang.RuntimePermission "getClassLoader";

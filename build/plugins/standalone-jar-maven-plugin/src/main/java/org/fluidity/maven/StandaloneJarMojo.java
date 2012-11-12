@@ -24,12 +24,14 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
@@ -77,6 +79,14 @@ public final class StandaloneJarMojo extends AbstractMojo {
      */
     @SuppressWarnings("UnusedDeclaration")
     private String classifier;
+
+    /**
+     * Tells the plugin to remove from the list of archived packaged in the main one those that it unpacks into the root of the main archive. In essence,
+     * if the packaged archives are used with a class loader that delegates to the launch class loader, you should set this to <code>true</code>.
+     *
+     * @parameter default-value="false"
+     */
+    private boolean compact;
 
     /**
      * The location of the compiled classes.
@@ -234,7 +244,7 @@ public final class StandaloneJarMojo extends AbstractMojo {
                     log.debug(String.format("Packaged dependencies: %s", runtimeDependencies));
                 }
 
-                final AtomicBoolean dependenciesSet = new AtomicBoolean();
+                final AtomicReference<String> dependenciesName = new AtomicReference<String>();
 
                 // even though the code below could handle multiple handlers, we only support one handler because more makes little sense
                 for (final JarManifest handler : handlers) {
@@ -267,7 +277,7 @@ public final class StandaloneJarMojo extends AbstractMojo {
 
                     handler.processManifest(project, mainAttributes, log, new JarManifest.Dependencies() {
                         public void attribute(final String name, final String delimiter) throws MojoExecutionException {
-                            if (dependenciesSet.compareAndSet(false, true)) {
+                            if (dependenciesName.compareAndSet(null, name)) {
                                 includedDependencies.put(name, new Inclusion(dependencyPath, runtimeDependencies, delimiter));
                             } else {
                                 throw new MojoExecutionException(String.format("Secondary manifest handler %s may not set the dependencies attribute",
@@ -276,11 +286,11 @@ public final class StandaloneJarMojo extends AbstractMojo {
                         }
 
                         public Collection<Artifact> runtime() {
-                            return runtimeDependencies;
+                            return Collections.unmodifiableCollection(runtimeDependencies);
                         }
 
                         public Collection<Artifact> compiler() {
-                            return compileDependencies;
+                            return Collections.unmodifiableCollection(compileDependencies);
                         }
 
                         public void include(final String name) throws MojoExecutionException {
@@ -306,8 +316,9 @@ public final class StandaloneJarMojo extends AbstractMojo {
                         }
                     });
 
-                    if (dependenciesSet.compareAndSet(false, true)) {
-                        includedDependencies.put(Archives.Nested.attribute(null), new Inclusion(dependencyPath, runtimeDependencies, " "));
+                    final String dependencies = Archives.Nested.attribute(null);
+                    if (dependenciesName.compareAndSet(null, dependencies)) {
+                        includedDependencies.put(dependencies, new Inclusion(dependencyPath, runtimeDependencies, " "));
                     }
 
                     if (!includedClosure.isEmpty() && !inclusionNameSet.get()) {
@@ -322,6 +333,10 @@ public final class StandaloneJarMojo extends AbstractMojo {
 
                 ArchivesSupport.load(attributesMap, providerMap, buffer, log, new DependencyFeed(unpackedDependencies));
                 ArchivesSupport.include(attributesMap, manifest);
+
+                if (compact) {
+                    includedDependencies.get(dependenciesName.get()).artifacts.removeAll(unpackedDependencies);
+                }
 
                 final SecurityPolicy policy = new SecurityPolicy(packageFile, 3, false, buffer);
 
