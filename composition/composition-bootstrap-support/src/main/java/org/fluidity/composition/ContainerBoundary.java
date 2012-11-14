@@ -41,7 +41,7 @@ import org.fluidity.foundation.Exceptions;
 import org.fluidity.foundation.Security;
 import org.fluidity.foundation.spi.LogFactory;
 
-import static org.fluidity.foundation.Command.Job;
+import static org.fluidity.foundation.Command.Process;
 
 /**
  * External access to a class loader specific <a href="http://code.google.com/p/fluid-tools/wiki/UserGuide#Dependency_Injection_Concept">dependency
@@ -481,9 +481,10 @@ public final class ContainerBoundary implements ComponentContainer {
                 for (final ListIterator<MutableContainer> iterator = containers.listIterator(containers.size()); iterator.hasPrevious(); ) {
                     final MutableContainer container = iterator.previous();
 
-                    Exceptions.wrap(new Job<Exception>() {
-                        public void run() throws Exception {
+                    Exceptions.wrap(new Process<Void, Exception>() {
+                        public Void run() throws Exception {
                             containerBootstrap.initializeContainer(container, containerServices);
+                            return null;
                         }
                     });
 

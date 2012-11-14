@@ -27,6 +27,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLDecoder;
+import java.net.URLStreamHandler;
+import java.net.URLStreamHandlerFactory;
 import java.security.AccessControlException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -41,7 +43,6 @@ import java.util.zip.ZipInputStream;
 
 import org.fluidity.foundation.jarjar.Handler;
 
-import static org.fluidity.foundation.Command.Job;
 import static org.fluidity.foundation.Command.Process;
 
 /**
@@ -383,18 +384,32 @@ public final class Archives extends Utility {
     }
 
     /**
-     * Returns the URL for the JAR file that contains the given class.
+     * Returns the URL for the JAR file that contains the given class. If the URL does not locate an archive, an attempt is made to find the root URL for the
+     * class.
      * <p/>
      * The caller must have the {@link RuntimePermission} <code>"getClassLoader"</code> permission.
      *
      * @param type the Java class to find.
      *
-     * @return the JAR URL containing the given class; may be <code>null</code> if the given class is not loaded from a JAR file.
+     * @return the JAR URL containing the given class.
      *
      * @throws IOException when the given URL cannot be accessed.
      */
     public static URL containing(final Class<?> type) throws IOException {
-        return Archives.containing(ClassLoaders.findClassResource(type));
+        final URL resource = ClassLoaders.findClassResource(type);
+        final URL url = Archives.containing(resource);
+
+        if (url == null) {
+            final StringBuilder relative = new StringBuilder();
+
+            for (int i = 0, limit = type.getName().split("\\.").length - 1; i < limit; i++) {
+                relative.append("../");
+            }
+
+            return new URL(resource, relative.toString());
+        } else {
+            return url;
+        }
     }
 
     /**
@@ -497,6 +512,32 @@ public final class Archives extends Utility {
     }
 
     /**
+     * Creates a relative URL from the given <code>base</code> URL and a <code>resource</code> in it, using the optional <code>factory</code> if necessary.
+     *
+     * @param base     the base URL to form the relative URL to.
+     * @param resource the resource in the base URL.
+     * @param factory  the URL stream handler to use; may be <code>null</code>.
+     *
+     * @return a relative URL.
+     *
+     * @throws MalformedURLException if the relative URL cannot be formed.
+     */
+    public static URL relativeURL(final URL base, final String resource, final URLStreamHandlerFactory factory) throws MalformedURLException {
+        try {
+            return new URL(base, resource);
+        } catch (final MalformedURLException e) {
+            final int colon = resource.indexOf(':');
+            final URLStreamHandler handler = colon == -1 || factory == null ? null : factory.createURLStreamHandler(resource.substring(colon));
+
+            if (handler != null) {
+                return new URL(base, resource, handler);
+            } else {
+                throw e;
+            }
+        }
+    }
+
+    /**
      * Used by {@link Archives#read(boolean, URL, Archives.Entry) Archives.read()} to select and read entries in a JAR file. The reader will not be invoked for
      * directory entries.
      * <h3>Usage</h3>
@@ -586,7 +627,8 @@ public final class Archives extends Utility {
         }
 
         /**
-         * Takes a JAR resource URL that happens to point to a nested archive and converts that URL to a nested archive URL pointing to the same resource.
+         * Takes a JAR resource URL that happens to point to a nested archive, say <code>jar:file:/tmp/archive.jar!/nested.jar</code>, and converts that URL to
+         * a nested archive URL pointing to the same resource that can be used to access the contents of that nested archive.
          *
          * @param archive the JAR resource URL of the (possibly already nested) JAR archive.
          *
@@ -744,23 +786,23 @@ public final class Archives extends Utility {
         public static void unload(final URL url) {
             Handler.unload(url);
         }
+    }
+
+    /**
+     * Archives cache related functions.
+     * <h3>Usage</h3>
+     * TODO
+     *
+     * @author Tibor Varga
+     */
+    public static class Cache extends Utility {
+
+        private Cache() { }
 
         /**
          * Isolates the effects on the caching of nested archives of the given <code>command</code> from the rest of the application. The isolated cache is
-         * inherited by threads created by <code>command</code> but it will not be stable outside a call to this method or {@link #access(Command.Process)} by
-         * a new thread made while this call was still in scope.
-         *
-         * @param command the command that potentially accesses nested archives.
-         * @param <E>     the exception type thrown by the command.
-         */
-        public static <E extends Exception> void access(final Job<E> command) throws E {
-            Handler.access(command);
-        }
-
-        /**
-         * Isolates the effects on the caching of nested archives of the given <code>command</code> from the rest of the application. The isolated cache is
-         * inherited by threads created by <code>command</code> but it will not be stable outside a call to this method or {@link #access(Command.Job)} by
-         * a new thread made while this call was still in scope.
+         * inherited by threads created by <code>command</code> but it will not be stable outside a call to this method by a new thread made while this call
+         * was still in scope.
          *
          * @param command the command that potentially accesses nested archives.
          * @param <T>     the return type of the command.
@@ -770,6 +812,38 @@ public final class Archives extends Utility {
          */
         public static <T, E extends Exception> T access(final Process<T, E> command) throws E {
             return Handler.access(command);
+        }
+
+        /**
+         * Captures the current content of the archives cache.
+         *
+         * @param active if <code>true</code>, only the active items are retained from the cache, all else is dropped; if <code>false</code>, all items will be
+         *               retained. Active items are those that have been accessed in the nearest enclosing invocation of {@link #access(Object,
+         *               Command.Process)}.
+         *
+         * @return a cache context.
+         */
+        public static Object capture(final boolean active) {
+            return Handler.capture(active);
+        }
+
+        /**
+         * Isolates the effects on the caching of nested archives of the given <code>command</code> from the rest of the application. The isolated cache is
+         * inherited by threads created by <code>command</code> but it will not be stable outside a call to this method by a new thread made while this call
+         * was still in scope.
+         * <p/>
+         * The initial content of the cache will consist of what has been {@linkplain #capture captured} in the given <code>context</code> and
+         * whatever else is in the cache at the point of invocation.
+         *
+         * @param context the cache contents captured using a previous {@link #capture} call.
+         * @param command the command that potentially accesses nested archives.
+         * @param <T>     the return type of the command.
+         * @param <E>     the exception type thrown by the command.
+         *
+         * @return whatever the command returns.
+         */
+        public static <T, E extends Exception> T access(final Object context, final Process<T, E> command) throws E {
+            return Handler.access(context, command);
         }
     }
 

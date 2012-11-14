@@ -22,6 +22,8 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import static org.fluidity.foundation.Command.Process;
+
 /**
  * Convenience methods on methods.
  *
@@ -52,10 +54,10 @@ public final class Methods extends Utility {
      * @return the method object.
      */
     public static <T> Method[] get(final Class<T> type, final Invoker<T> invoker) {
-        final Collection<Method> methods = new ArrayList<Method>();
+        return Exceptions.wrap(new Process<Method[], Exception>() {
+            public Method[] run() throws Exception {
+                final Collection<Method> methods = new ArrayList<Method>();
 
-        Exceptions.wrap(new Command.Job<Exception>() {
-            public void run() throws Exception {
                 invoker.invoke(Proxies.create(type, new InvocationHandler() {
                     public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
                         methods.add(method);
@@ -83,10 +85,10 @@ public final class Methods extends Utility {
                         }
                     }
                 }));
+
+                return Lists.asArray(Method.class, methods);
             }
         });
-
-        return Lists.asArray(Method.class, methods);
     }
 
     /**

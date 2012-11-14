@@ -22,7 +22,6 @@ import java.lang.reflect.UndeclaredThrowableException;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import static org.fluidity.foundation.Command.Job;
 import static org.fluidity.foundation.Command.Process;
 
 /**
@@ -49,8 +48,8 @@ public class ExceptionsTest {
 
         try {
             try {
-                Exceptions.wrap(new Job<Exception>() {
-                    public void run() throws Exception {
+                Exceptions.wrap(new Process<Void, Exception>() {
+                    public Void run() throws Exception {
                         throw original;
                     }
                 });
@@ -113,10 +112,10 @@ public class ExceptionsTest {
         assert unwrapped == original : unwrapped;
 
         try {
-            Exceptions.wrap(new Job<Exception>() {
-                public void run() throws Exception {
-                    Exceptions.wrap(new Job<Exception>() {
-                        public void run() throws Exception {
+            Exceptions.wrap(new Process<Void, Exception>() {
+                public Void run() throws Exception {
+                    return Exceptions.wrap(new Process<Void, Exception>() {
+                        public Void run() throws Exception {
                             throw wrapped;
                         }
                     });
@@ -156,8 +155,8 @@ public class ExceptionsTest {
         assert unwrapped == original : unwrapped;
 
         try {
-            tunnel.wrap(new Job<Exception>() {
-                public void run() throws Exception {
+            tunnel.wrap(new Process<Void, Exception>() {
+                public Void run() throws Exception {
                     throw wrapped;
                 }
             });
@@ -194,8 +193,8 @@ public class ExceptionsTest {
         final Deferred.Label message = Deferred.label("testing");
 
         try {
-            Exceptions.wrap(null, CustomWrapper.class, new Job<Exception>() {
-                public void run() throws Exception {
+            Exceptions.wrap(null, CustomWrapper.class, new Process<Void, Exception>() {
+                public Void run() throws Exception {
                     throw wrapped;
                 }
             });
@@ -206,8 +205,8 @@ public class ExceptionsTest {
         }
 
         try {
-            Exceptions.wrap(message, CustomWrapper.class, new Job<Exception>() {
-                public void run() throws Exception {
+            Exceptions.wrap(message, CustomWrapper.class, new Process<Void, Exception>() {
+                public Void run() throws Exception {
                     throw wrapped;
                 }
             });
@@ -219,8 +218,8 @@ public class ExceptionsTest {
         }
 
         try {
-            Exceptions.wrap(message, null, new Job<Exception>() {
-                public void run() throws Exception {
+            Exceptions.wrap(message, null, new Process<Void, Exception>() {
+                public Void run() throws Exception {
                     throw wrapped;
                 }
             });
@@ -235,8 +234,8 @@ public class ExceptionsTest {
     @Test(dataProvider = "exceptions")
     public void testCheckedWrapper(final Exception original) throws Exception {
         try {
-            Exceptions.wrap(CheckedWrapper.class, new Job<Exception>() {
-                public void run() throws Exception {
+            Exceptions.wrap(CheckedWrapper.class, new Process<Void, Exception>() {
+                public Void run() throws Exception {
                     throw original;
                 }
             });
@@ -247,8 +246,8 @@ public class ExceptionsTest {
         final CheckedWrapper wrapped1 = new CheckedWrapper(original);
 
         try {
-            Exceptions.wrap(CheckedWrapper.class, new Job<Exception>() {
-                public void run() throws Exception {
+            Exceptions.wrap(CheckedWrapper.class, new Process<Void, Exception>() {
+                public Void run() throws Exception {
                     throw wrapped1;
                 }
             });
@@ -259,8 +258,8 @@ public class ExceptionsTest {
         final String message = "message";
 
         try {
-            Exceptions.wrap(message, CheckedWrapper.class, new Job<Exception>() {
-                public void run() throws Exception {
+            Exceptions.wrap(message, CheckedWrapper.class, new Process<Void, Exception>() {
+                public Void run() throws Exception {
                     throw wrapped1;
                 }
             });
@@ -271,8 +270,8 @@ public class ExceptionsTest {
         final CheckedWrapper wrapped2 = new CheckedWrapper(message, original);
 
         try {
-            Exceptions.wrap(message, CheckedWrapper.class, new Job<Exception>() {
-                public void run() throws Exception {
+            Exceptions.wrap(message, CheckedWrapper.class, new Process<Void, Exception>() {
+                public Void run() throws Exception {
                     throw wrapped2;
                 }
             });

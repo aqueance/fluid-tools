@@ -45,11 +45,6 @@
             <version>${project.version}</version>
         </dependency>
 
-        <dependency>
-            <groupId>org.codehaus.plexus</groupId>
-            <artifactId>plexus-interpolation</artifactId>
-        </dependency>
-
     </dependencies>
 
     <build>
@@ -91,7 +86,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>org.fluidity.features.remote.RemoteLauncher</mainClass>
+                            <mainClass>org.fluidity.foundation.jarjar.Launcher</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

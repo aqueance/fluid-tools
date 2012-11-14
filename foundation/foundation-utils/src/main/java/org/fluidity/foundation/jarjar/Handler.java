@@ -33,8 +33,11 @@ import java.security.PrivilegedAction;
 import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.jar.JarEntry;
 import java.util.zip.ZipEntry;
@@ -42,12 +45,12 @@ import java.util.zip.ZipInputStream;
 
 import org.fluidity.foundation.Archives;
 import org.fluidity.foundation.ClassLoaders;
+import org.fluidity.foundation.Command;
 import org.fluidity.foundation.Deferred;
 import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.Security;
 import org.fluidity.foundation.Streams;
 
-import static org.fluidity.foundation.Command.Job;
 import static org.fluidity.foundation.Command.Process;
 
 /**
@@ -184,14 +187,8 @@ public final class Handler extends URLStreamHandler {
 
         final String enclosed = path.substring(0, delimiter);
 
-        try {
-            final URL valid = new URL(enclosed);
-
-            if (PROTOCOL.equals(valid.getProtocol())) {
-                throw new IllegalArgumentException(String.format("%s URLs may not enclose a %1$s URL", PROTOCOL));
-            }
-        } catch (final MalformedURLException e) {
-            throw new IllegalArgumentException(String.format("%s URLs must enclose a valid URL", PROTOCOL));
+        if (enclosed.startsWith(PROTOCOL.concat(":"))) {
+            throw new IllegalArgumentException(String.format("%s URLs may not enclose a %1$s URL", PROTOCOL));
         }
 
         setURL(url, PROTOCOL, null, -1, null, null, path, null, null);
@@ -320,20 +317,8 @@ public final class Handler extends URLStreamHandler {
 
     /**
      * Isolates the effects on the caching of nested archives of the given <code>command</code> from the rest of the application. The isolated cache is
-     * inherited by threads created by <code>command</code> but it will not be stable outside a call to this method or {@link
-     * #access(org.fluidity.foundation.Command.Process)} by a new thread made while this call was still in scope.
-     *
-     * @param command the command that potentially accesses nested archives.
-     * @param <E>     the exception type thrown by the command.
-     */
-    public static <E extends Exception> void access(final Job<E> command) throws E {
-        Cache.access(command);
-    }
-
-    /**
-     * Isolates the effects on the caching of nested archives of the given <code>command</code> from the rest of the application. The isolated cache is
-     * inherited by threads created by <code>command</code> but it will not be stable outside a call to this method or {@link
-     * #access(org.fluidity.foundation.Command.Job)} by a new thread made while this call was still in scope.
+     * inherited by threads created by <code>command</code> but it will not be stable outside a call to this method  by a new thread made while this call was
+     * still in scope.
      *
      * @param command the command that potentially accesses nested archives.
      * @param <T>     the return type of the command.
@@ -346,6 +331,38 @@ public final class Handler extends URLStreamHandler {
     }
 
     /**
+     * Captures the current content of the archives cache.
+     *
+     * @param active if <code>true</code>, only the active items are retained from the cache, all else is dropped; if <code>false</code>, all items will be
+     *               retained. Active items are those that have been accessed in the nearest enclosing invocation of {@link #access(Object,
+     *               Command.Process)}.
+     *
+     * @return a cache context.
+     */
+    public static Object capture(final boolean active) {
+        return Cache.capture(active);
+    }
+
+    /**
+     * Isolates the effects on the caching of nested archives of the given <code>command</code> from the rest of the application. The isolated cache is
+     * inherited by threads created by <code>command</code> but it will not be stable outside a call to this method by a new thread made while this call
+     * was still in scope.
+     * <p/>
+     * The initial content of the cache will consist of what has been {@linkplain #capture(boolean) captured} in the given <code>context</code> and
+     * whatever else is in the cache at the point of invocation.
+     *
+     * @param context the cache contents captured using a previous {@link #capture(boolean)} call.
+     * @param command the command that potentially accesses nested archives.
+     * @param <T>     the return type of the command.
+     * @param <E>     the exception type thrown by the command.
+     *
+     * @return whatever the command returns.
+     */
+    public static <T, E extends Exception> T access(final Object context, final Process<T, E> command) throws E {
+        return Cache.access(context, command);
+    }
+
+    /**
      * Returns the cached contents of the given archive, loading it first if necessary.
      *
      * @param url the URL of the archive.
@@ -355,8 +372,15 @@ public final class Handler extends URLStreamHandler {
      * @throws IOException when loading the archive fails.
      */
     public static byte[] cached(final URL url) throws IOException {
-        final Cache.Archive archive = Cache.archive(url);
-        return archive == null ? null : PROTOCOL.equals(url.getProtocol()) ? archive.entry(Cache.path(url)) : archive.root();
+        return Cache.contents(url);
+    }
+
+    static URL relativeURL(final URL root, final String resource) throws MalformedURLException {
+        return directory(root.getPath()) ? new URL(root, resource) : Handler.formatURL(root, resource);
+    }
+
+    static boolean directory(final String name) {
+        return name.isEmpty() || name.endsWith("/");
     }
 
     /**
@@ -484,23 +508,14 @@ public final class Handler extends URLStreamHandler {
     static final class Cache {
 
         private static final String ROOT = "";
+        private static final byte[] NO_DATA = new byte[0];
 
         /**
          * Represents the contents of a cached archive.
          *
          * @author Tibor Varga
          */
-        static final class Archive {
-
-            private final String archive;
-            private final Map<String, byte[]> contents;
-            private final int prefix;
-
-            private Archive(final String archive, final Map<String, byte[]> contents) {
-                this.archive = archive;
-                this.contents = contents;
-                this.prefix = archive.length() + 1;
-            }
+        static interface Entry {
 
             /**
              * Returns the content of a named archive entry.
@@ -509,21 +524,21 @@ public final class Handler extends URLStreamHandler {
              *
              * @return a byte array; may be <code>null</code>.
              */
-            @SuppressWarnings("StringBufferReplaceableByString")
-            public byte[] entry(final String name) {
-                return contents.get(name.isEmpty()
-                                    ? archive
-                                    : new StringBuilder(prefix + name.length()).append(archive).append(DELIMITER).append(name).toString());
-            }
+            Entry entry(String name) throws IOException;
 
             /**
              * Returns the contents of the archive itself.
              *
              * @return the contents of the archive itself.
              */
-            public byte[] root() {
-                return entry(ROOT);
-            }
+            byte[] data();
+
+            /**
+             * Tells if the archive is cached on demand (<code>true</code>) or all at once (<code>false</code>).
+             *
+             * @return <code>true</code> if the archive is cached on demand; <code>false</code> otherwise.
+             */
+            boolean dynamic();
         }
 
         /**
@@ -537,25 +552,8 @@ public final class Handler extends URLStreamHandler {
 
         /**
          * Isolates the effects on the caching of nested archives of the given <code>command</code> from the rest of the application. The isolated cache is
-         * inherited by threads created by <code>command</code> but it will not be stable outside a call to this method or {@link
-         * #access(org.fluidity.foundation.Command.Process)} by a new thread made while this call was still in scope.
-         *
-         * @param command the command that potentially accesses nested archives.
-         * @param <E>     the exception type thrown by the command.
-         */
-        static <E extends Exception> void access(final Job<E> command) throws E {
-            access(new Process<Void, E>() {
-                public Void run() throws E {
-                    command.run();
-                    return null;
-                }
-            });
-        }
-
-        /**
-         * Isolates the effects on the caching of nested archives of the given <code>command</code> from the rest of the application. The isolated cache is
-         * inherited by threads created by <code>command</code> but it will not be stable outside a call to this method or {@link
-         * #access(org.fluidity.foundation.Command.Job)} by a new thread made while this call was still in scope.
+         * inherited by threads created by <code>command</code> but it will not be stable outside a call to this method by a new thread made while this call
+         * was still in scope.
          *
          * @param command the command that potentially accesses nested archives.
          * @param <T>     the return type of the command.
@@ -564,25 +562,130 @@ public final class Handler extends URLStreamHandler {
          * @return whatever the command returns.
          */
         static <T, E extends Exception> T access(final Process<T, E> command) throws E {
+            return access(null, command);
+        }
+
+        /**
+         * Cache entries.
+         *
+         * @author Tibor Varga
+         */
+        private static class Entries {
+
+            private final Map<String, ArchiveEntry> map = new HashMap<String, ArchiveEntry>();
+            private final Set<String> active = new HashSet<String>();
+
+            Entries() {
+                this((Entries) null);
+            }
+
+            Entries(final Entries base) {
+                if (base != null) {
+                    map.putAll(base.all());
+                }
+            }
+
+            private Entries(final Map<String, ArchiveEntry> map) {
+                this((Entries) null);
+                this.map.putAll(map);
+            }
+
+            boolean contains(final String key) {
+                return map.containsKey(key);
+            }
+
+            ArchiveEntry get(final String key) {
+                final ArchiveEntry entry = map.get(key);
+
+                if (entry != null) {
+                    active.add(key);
+                }
+
+                return entry;
+            }
+
+            void put(final String key, final ArchiveEntry entry) {
+                active.add(key);
+                map.put(key, entry);
+            }
+
+            void remove(final String key) {
+                active.remove(key);
+                map.remove(key);
+            }
+
+            private Map<String, ArchiveEntry> all() {
+                synchronized (map) {
+                    return map;
+                }
+            }
+
+            Map<String, ArchiveEntry> capture(final boolean all) {
+                return Collections.unmodifiableMap(entries(all).map);
+            }
+
+            private Entries entries(final boolean all) {
+                if (all) {
+                    return this;
+                } else {
+                    final HashMap<String, ArchiveEntry> list = new HashMap<String, ArchiveEntry>();
+
+                    for (final String key : active) {
+                        list.put(key, map.get(key));
+                    }
+
+                    return new Entries(list);
+                }
+            }
+        }
+
+        /**
+         * Captures the current content of the archives cache.
+         *
+         * @param active if <code>true</code>, only the active items are retained from the cache, all else is dropped; if <code>false</code>, all items will be
+         *               retained. Active items are those that have been accessed in the nearest enclosing invocation of {@link #access(Object,
+         *               Command.Process)}.
+         *
+         * @return a cache context.
+         */
+        static Object capture(final boolean active) {
+            return activeCache().capture(!active);
+        }
+
+        /**
+         * Isolates the effects on the caching of nested archives of the given <code>command</code> from the rest of the application. The isolated cache is
+         * inherited by threads created by <code>command</code> but it will not be stable outside a call to this method by a new thread made while this call
+         * was still in scope.
+         * <p/>
+         * The initial content of the cache will consist of what has been {@linkplain #capture(boolean) captured} in the given <code>context</code> and
+         * whatever else is in the cache at the point of invocation.
+         *
+         * @param captured the cache contents captured using a previous {@link #capture(boolean)} call.
+         * @param command the command that potentially accesses nested archives.
+         * @param <T>     the return type of the command.
+         * @param <E>     the exception type thrown by the command.
+         *
+         * @return whatever the command returns.
+         */
+        static <T, E extends Exception> T access(final Object captured, final Process<T, E> command) throws E {
+            if (captured != null && !(captured instanceof Map)) {
+                throw new IllegalArgumentException("Invalid captured context; use one returned by the capture(...) method");
+            }
+
             final Context saved = context.get();
             UUID id;
 
-            synchronized (localCache) {
-                for (id = UUID.randomUUID(); localCache.containsKey(id); id = UUID.randomUUID()) {
+            synchronized (privateCache) {
+                for (id = UUID.randomUUID(); privateCache.containsKey(id); id = UUID.randomUUID()) {
                     // empty
                 }
 
-                final Map<String, Map<String, byte[]>> map;
-
-                synchronized (globalCache) {
-                    map = new HashMap<String, Map<String, byte[]>>(globalCache);
-                }
-
-                localCache.put(id, map);
-
-                Context local = saved;
-                for (; local != null; local = local.last) {
-                    map.putAll(localCache.get(local.id));
+                if (captured != null) {
+                    @SuppressWarnings("unchecked")
+                    final Map<String, ArchiveEntry> data = (Map<String, ArchiveEntry>) captured;
+                    privateCache.put(id, new Entries(data));
+                } else {
+                    privateCache.put(id, new Entries(saved == null ? sharedCache : privateCache.get(saved.id)));
                 }
             }
 
@@ -593,169 +696,70 @@ public final class Handler extends URLStreamHandler {
             } finally {
                 context.set(saved);
 
-                synchronized (localCache) {
-                    localCache.remove(id);
+                synchronized (privateCache) {
+                    privateCache.remove(id);
                 }
             }
         }
 
-        @SuppressWarnings("SynchronizationOnLocalVariableOrMethodParameter")
         static byte[] contents(final URL url) throws IOException {
-            final URL enclosed = new URL(enclosedURL(url));
-            final Map<String, byte[]> map = load(enclosed);
-            final String key = path(url);
-
-            if (dynamic(map)) {
-                final byte[][] data;
-
-                synchronized (map) {
-                    data = new byte[][] { map.get(key) };
-
-                    if (data[0] != null) {
-                        return data[0];
-                    }
-                }
-
-                // URL content was not be cached, resort to direct read
-
-                final String[] path = key.split(DELIMITER);
-                URL direct = null;
-
-                final Lists.Delimited intermediate = Lists.delimited(DELIMITER);
-
-                final byte[] buffer = new byte[16384];
-                for (int i = 1, limit = path.length; i < limit; i++) {
-                    final String file = path[i];
-
-                    intermediate.add(file);
-                    final String lookup = DELIMITER.concat(intermediate.toString());
-
-                    if (data[0] == null) {
-                        synchronized (map) {
-                            if ((data[0] = map.get(lookup)) == null) {
-                                direct = new URL(enclosed, file);
-
-                                final URLConnection connection = direct.openConnection();
-                                connection.setUseCaches(true);
-
-                                map.put(lookup, data[0] = Streams.load(connection.getInputStream(), buffer, true));
-
-                                if (data[0].length == 0) {
-                                    return null;
-                                }
-                            }
-                        }
-                    } else {
-                        assert direct != null;
-
-                        synchronized (map) {
-                            final byte[] cached = map.get(lookup);
-
-                            if (cached == null) {
-                                direct = Handler.formatURL(direct, file);
-
-                                Archives.read(data[0], direct, new Archives.Entry() {
-                                    public boolean matches(final URL url, final JarEntry entry) throws IOException {
-                                        return entry.getName().equals(file);
-                                    }
-
-                                    public boolean read(final URL url, final JarEntry entry, final InputStream stream) throws IOException {
-                                        map.put(lookup, data[0] = Streams.load(stream, buffer, true));
-                                        return false;
-                                    }
-                                });
-
-                                if (data[0].length == 0) {
-                                    return null;
-                                }
-                            } else {
-                                data[0] = cached;
-                            }
-                        }
-                    }
-                }
-
-                return data[0].length > 0 ? data[0] : null;
-            } else {
-                return map.get(key);
-            }
+            final Cache.Entry archive = Cache.archive(url);
+            return archive == null ? null : (PROTOCOL.equals(url.getProtocol()) ? archive.entry(Cache.path(url)) : archive).data();
         }
 
-        static Archive archive(final URL url) throws IOException {
+        static Entry archive(final URL url) throws IOException {
             final boolean nested = PROTOCOL.equals(url.getProtocol());
-            final Map<String, byte[]> map = load(nested ? new URL(enclosedURL(url)) : url);
 
-            return dynamic(map) ? null : new Archive(nested ? path(url) : ROOT, map);
+            final URL root = nested ? new URL(enclosedURL(url)) : url;
+            final String path = nested ? path(url) : ROOT;
+
+            return load(root).entry(path);
         }
 
         @SuppressWarnings("SynchronizationOnLocalVariableOrMethodParameter")
-        private static boolean dynamic(final Map<String, byte[]> map) {
-            synchronized (map) {
-                return map.get(ROOT).length == 0;
-            }
-        }
-
-        @SuppressWarnings("SynchronizationOnLocalVariableOrMethodParameter")
-        static Map<String, byte[]> load(final URL root) throws IOException {
+        static Entry load(final URL root) throws IOException {
             assert root != null;
             final String key = root.toExternalForm();
 
-            final Map<String, Map<String, byte[]>> cache = localCache();
-            Map<String, byte[]> content = cache.get(key);
+            final Entries cache = activeCache();
+            ArchiveEntry archive = cache.get(key);
 
-            if (content == null) {
-                content = new HashMap<String, byte[]>();
+            if (archive == null) {
+                archive = new ArchiveEntry(root, ROOT);
 
-                synchronized (content) {
+                synchronized (archive) {
                     synchronized (cache) {
-                        if (cache.containsKey(key)) {
-                            content = cache.get(key);
+                        if (cache.contains(key)) {
+                            archive = cache.get(key);
 
-                            synchronized (content) {
-                                return content;
+                            synchronized (archive) {
+                                return archive;
                             }
                         } else {
-                            cache.put(key, content);
+                            cache.put(key, archive);
                         }
                     }
-
-                    final URLConnection connection = root.openConnection();
-                    connection.setUseCaches(true);
 
                     final byte[] buffer = new byte[1024 * 1024];
-                    final byte[] data = Streams.load(connection.getInputStream(), buffer, true);
-
-                    content.put(ROOT, data);
-
-                    // no data: URL handler could be hiding its content: we can't cache it
-                    if (data.length > 0) {
-                        final ZipInputStream stream = new ZipInputStream(new ByteArrayInputStream(data));
-                        try {
-                            load(content, new HashMap<Metadata, String>(), buffer, ROOT, stream, stream.getNextEntry());
-                        } catch (final IOException e) {
-                            stream.close();
-                        }
-                    }
-
-                    return content;
+                    return archive.load(Streams.load(Archives.connection(true, root).getInputStream(), buffer, true), buffer);
                 }
             } else {
-                synchronized (content) {
-                    return content;
+                synchronized (archive) {
+                    return archive;
                 }
             }
         }
 
-        private static Map<String, Map<String, byte[]>> localCache() {
+        private static Entries activeCache() {
             final Context local = context.get();
             final UUID id = local == null ? null : local.id;
             assert local == null | id != null;
 
-            Map<String, Map<String, byte[]>> cache = null;
+            Entries cache = null;
 
             if (id != null) {
-                synchronized (localCache) {
-                    cache = localCache.get(id);
+                synchronized (privateCache) {
+                    cache = privateCache.get(id);
                 }
 
                 if (cache == null) {
@@ -763,59 +767,7 @@ public final class Handler extends URLStreamHandler {
                 }
             }
 
-            return cache == null ? globalCache : cache;
-        }
-
-        private static void load(final Map<String, byte[]> content,
-                                 final Map<Metadata, String> meta,
-                                 final byte[] buffer,
-                                 final String base,
-                                 final ZipInputStream stream,
-                                 final ZipEntry first) throws IOException {
-            for (ZipEntry next = first; next != null; stream.closeEntry(), next = stream.getNextEntry()) {
-                final String name = next.getName();
-
-                if (!name.endsWith("/")) {
-                    final String entry = String.format("%s%s%s", base, DELIMITER, name);
-                    final byte[] bytes = Streams.load(stream, buffer, false);
-
-                    final ZipInputStream nested = new ZipInputStream(new ByteArrayInputStream(bytes));
-                    try {
-                        final ZipEntry check = nested.getNextEntry();
-
-                        if (check != null) {
-                            final Metadata metadata = new Metadata(name, next.getSize(), next.getCrc());
-                            final String reference = meta.get(metadata);
-
-                            if (reference == null) {
-                                meta.put(metadata, entry);
-                                content.put(entry, bytes);
-
-                                load(content, meta, buffer, entry, nested, check);
-                            } else {
-                                content.put(entry, content.get(reference));
-
-                                final Map<String, byte[]> entries = new HashMap<String, byte[]>();
-                                final String prefix = reference.concat(DELIMITER);
-
-                                for (final Map.Entry<String, byte[]> candidate : content.entrySet()) {
-                                    final String key = candidate.getKey();
-
-                                    if (key.startsWith(prefix)) {
-                                        entries.put(entry.concat(key.substring(reference.length())), candidate.getValue());
-                                    }
-                                }
-
-                                content.putAll(entries);
-                            }
-                        } else {
-                            content.put(entry, bytes);
-                        }
-                    } finally {
-                        nested.close();
-                    }
-                }
-            }
+            return cache == null ? sharedCache : cache;
         }
 
         /**
@@ -825,12 +777,12 @@ public final class Handler extends URLStreamHandler {
          */
         static void unload(final URL url) {
             if (PROTOCOL.equals(url.getProtocol())) {
-                localCache().remove(enclosedURL(url));
+                activeCache().remove(enclosedURL(url));
             }
         }
 
         static boolean loaded(final URL url, final boolean local) {
-            return (local ? localCache() : globalCache).containsKey(enclosedURL(url));
+            return (local ? activeCache() : sharedCache).contains(enclosedURL(url));
         }
 
         /**
@@ -854,8 +806,8 @@ public final class Handler extends URLStreamHandler {
             }
         };
 
-        private static final Map<UUID, Map<String, Map<String, byte[]>>> localCache = new HashMap<UUID, Map<String, Map<String, byte[]>>>();
-        private static final Map<String, Map<String, byte[]>> globalCache = new HashMap<String, Map<String, byte[]>>();
+        private static final Map<UUID, Entries> privateCache = new HashMap<UUID, Entries>();
+        private static final Entries sharedCache = new Entries();
 
         /**
          * @author Tibor Varga
@@ -868,7 +820,7 @@ public final class Handler extends URLStreamHandler {
 
             Metadata(final String name, final long size, final long crc) {
                 assert name != null;
-                final String[] components = name.split("/");
+                final String[] components = name.split(DELIMITER);
                 this.name = components[components.length - 1];
                 this.size = size;
                 this.crc = crc;
@@ -899,6 +851,202 @@ public final class Handler extends URLStreamHandler {
             @Override
             public String toString() {
                 return String.format("%s (%d: %d)", name, size, crc);
+            }
+        }
+
+        /**
+         * @author Tibor Varga
+         */
+        private static class ArchiveEntry implements Entry {
+
+            private final URL root;
+            private final String base;
+            private final Map<Metadata, String> metadata;
+
+            private boolean loaded;
+            private byte[] data;
+            private Map<String, ArchiveEntry> content;
+
+            ArchiveEntry(final URL root, final String base) {
+                this(root, base, new HashMap<Metadata, String>(), new HashMap<String, ArchiveEntry>());
+            }
+
+            ArchiveEntry(final URL root, final String base, final ArchiveEntry parent, final byte[] data, final boolean loaded) {
+                this(root, base, parent);
+                this.data = data;
+                this.loaded = loaded;
+            }
+
+            ArchiveEntry(final URL root, final String base, final ArchiveEntry parent) {
+                this(root, base, parent.metadata, parent.content);
+            }
+
+            private ArchiveEntry(final URL root, final String base, final Map<Metadata, String> metadata, final Map<String, ArchiveEntry> content) {
+                this.root = root;
+                this.base = base;
+
+                if (base != null) {
+                    this.metadata = metadata;
+                    this.content = content;
+                } else {
+                    this.metadata = null;
+                    this.content = null;
+                }
+            }
+
+            Entry load(final byte[] bytes, final byte[] buffer) throws IOException {
+                if (base == null) {
+                    throw new FileNotFoundException(root.toExternalForm());
+                }
+
+                if (loaded) {
+                    return this;
+                }
+
+                if (data == null) {
+                    assert bytes != null : root;
+                    data = bytes;
+                }
+
+                Map<String, ArchiveEntry> map = new HashMap<String, ArchiveEntry>();
+                loaded = true;
+
+                load(base, data, content, map, buffer, metadata);
+
+                if (map.isEmpty()) {
+
+                    // no archive entries and not a directory: either not an archive or the URL handler hides the content: ignore the garbage
+                    if (directory(root.getPath())) {
+                        data = NO_DATA;
+                    }
+                }
+
+                content.putAll(map);
+
+                return this;
+            }
+
+            public Entry entry(final String name) throws IOException {
+                assert name != null;
+
+                if (content == null) {
+                    return null;
+                } else if (name.equals(base)) {
+                    return this;
+                } else {
+                    final boolean absolute = name.startsWith(DELIMITER);
+                    final String key = absolute ? name : String.format("%s%s%s", base, DELIMITER, name);
+                    final String relative = absolute ? name.substring(DELIMITER.length()) : name;
+
+                    ArchiveEntry archive;
+
+                    synchronized (this) {
+                        archive = content.get(key);
+                    }
+
+                    if (archive == null) {
+                        final String[] parts = relative.split(DELIMITER);
+
+                        if (parts.length > 1) {
+                            archive = this;
+                            for (int i = 0, limit = parts.length; archive != null && i < limit; i++) {
+                                archive = (ArchiveEntry) archive.entry(parts[i]);
+                            }
+                        }
+                    }
+
+                    if (archive == null || !archive.loaded) {
+                        synchronized (this) {
+                            if (archive == null) {
+                                archive = content.get(key);
+                            }
+
+                            if (archive == null || !archive.loaded) {
+                                final byte[] buffer = new byte[16384];
+
+                                byte[] bytes = null;
+                                if (archive == null) {
+                                    final URL url = relativeURL(root, relative);
+
+                                    if (directory(root.getPath())) {
+                                        try {
+                                            bytes = Streams.load(Archives.connection(true, url).getInputStream(), buffer, true);
+                                            archive = new ArchiveEntry(url, key, this);
+
+                                            content.put(key, archive);
+                                        } catch (final FileNotFoundException e) {
+                                            content.put(key, archive = new ArchiveEntry(url, null));
+                                        }
+                                    } else {
+                                        content.put(key, archive = new ArchiveEntry(url, null));
+                                    }
+                                }
+
+                                archive.load(bytes, buffer);
+                            }
+                        }
+                    }
+
+                    return archive;
+                }
+            }
+
+            public byte[] data() {
+                return data;
+            }
+
+            public boolean dynamic() {
+                return data == NO_DATA;
+            }
+
+            private void load(final String base,
+                              final byte[] data,
+                              final Map<String, ArchiveEntry> global,
+                              final Map<String, ArchiveEntry> local,
+                              final byte[] buffer,
+                              final Map<Metadata, String> meta) throws IOException {
+                final ZipInputStream stream = new ZipInputStream(new ByteArrayInputStream(data));
+
+                try {
+                    for (ZipEntry next = stream.getNextEntry(); next != null; stream.closeEntry(), next = stream.getNextEntry()) {
+                        final String name = next.getName();
+
+                        if (!directory(name)) {
+                            final String entry = String.format("%s%s%s", base, DELIMITER, name);
+                            final byte[] bytes = Streams.load(stream, buffer, false);
+                            final Metadata metadata = new Metadata(name, next.getSize(), next.getCrc());
+
+                            final String reference = meta.get(metadata);
+
+                            final URL url = Handler.formatURL(root, name);
+
+                            if (reference == null) {
+                                meta.put(metadata, entry);
+                                local.put(entry, new ArchiveEntry(url, entry, this, bytes, false));
+                            } else {
+                                assert !global.containsKey(entry) : entry;
+                                assert global.containsKey(reference) : entry;
+                                local.put(entry, copy(url, entry, global.get(reference)));
+                                final String prefix = reference.concat(DELIMITER);
+
+                                for (final Map.Entry<String, ArchiveEntry> candidate : global.entrySet()) {
+                                    final String key = candidate.getKey();
+
+                                    if (key.startsWith(prefix)) {
+                                        final String root = entry.concat(key.substring(reference.length()));
+                                        local.put(root, copy(url, root, candidate.getValue()));
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } catch (final IOException e) {
+                    stream.close();
+                }
+            }
+
+            private ArchiveEntry copy(final URL url, final String base, final ArchiveEntry entry) {
+                return new ArchiveEntry(url, base, entry, entry.data, entry.loaded);
             }
         }
     }

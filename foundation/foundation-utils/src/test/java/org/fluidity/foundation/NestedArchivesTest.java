@@ -37,7 +37,7 @@ public class NestedArchivesTest {
 
     private ClassLoader loader;
 
-    private ClassLoader createLoader(final URL root, final ClassLoader parent, final String... paths) throws IOException {
+    private ClassLoader createLoader(final URL root, final String... paths) throws IOException {
         final List<URL> urls = new ArrayList<URL>();
 
         urls.add(root);
@@ -45,13 +45,12 @@ public class NestedArchivesTest {
             urls.add(Archives.Nested.formatURL(root, path));
         }
 
-        return ClassLoaders.create(urls, parent, null);
+        return ClassLoaders.create(urls, getClass().getClassLoader(), null);
     }
 
     @BeforeMethod
     public void setup() throws Exception {
         loader = createLoader(root,
-                              getClass().getClassLoader(),
                               "META-INF/dependencies/dependency-1.jar",
                               "META-INF/dependencies/dependency-2.jar",
                               "META-INF/dependencies/dependency-3.jar");
@@ -106,5 +105,12 @@ public class NestedArchivesTest {
         assert rootClass.getMethod("dependency1").invoke(rootObject) != null;
         assert rootClass.getMethod("dependency2").invoke(rootObject) != null;
         assert rootClass.getMethod("dependency3").invoke(rootObject) != null;
+    }
+
+    @Test
+    public void testExplodedArchive() throws Exception {
+        final Class<? extends NestedArchivesTest> me = getClass();
+        final Class<?> type = ClassLoaders.create(Collections.singleton(Archives.containing(me)), null, null).loadClass(me.getName());
+        assert type != null;
     }
 }

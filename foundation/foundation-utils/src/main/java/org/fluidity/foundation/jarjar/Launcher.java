@@ -28,13 +28,16 @@ import org.fluidity.foundation.Exceptions;
 import org.fluidity.foundation.Security;
 
 import static org.fluidity.foundation.Command.Function;
-import static org.fluidity.foundation.Command.Job;
+import static org.fluidity.foundation.Command.Process;
 
 /**
  * Launches a main class from a JAR file using a class loader that can load classes from JAR files nested inside the main JAR. Nested JAR files must be located
  * in the path denoted by the manifest attribute name returned by {@link org.fluidity.foundation.Archives.Nested#attribute(String)
  * Archives.Nested.attribute(null)}. The main class to be loaded is defined by the manifest attribute named in {@link #ORIGINAL_MAIN_CLASS}. The
  * <code>Main-Class</code> manifest attribute has to point to this class, obviously.
+ * <p/>
+ * Without arguments, this launcher will try to load the {@link #ORIGINAL_MAIN_CLASS} from the archive the launcher itself was loaded from. This can be
+ * overridden with the {@link #URL_PARAM} parameter, which specifies the URL to load as the application.
  * <p/>
  * The above manifest attributes are set by the appropriate {@link org.fluidity.deployment.plugin.spi.JarManifest} processor when used by the
  * <code>org.fluidity.maven:standalone-jar-maven-plugin</code> Maven plugin.
@@ -43,6 +46,8 @@ import static org.fluidity.foundation.Command.Job;
  */
 @SuppressWarnings("JavadocReference")
 public final class Launcher {
+
+    public static final String URL_PARAM = "-url:";
 
     private Launcher() { }
 
@@ -61,8 +66,8 @@ public final class Launcher {
      */
     public static void main(final String[] args) throws Exception {
         try {
-            Exceptions.wrap(new Job<Exception>() {
-                public void run() throws Exception {
+            Exceptions.wrap(new Process<Void, Exception>() {
+                public Void run() throws Exception {
                     if (Security.CONTROLLED) {
                         AccessController.doPrivileged(new PrivilegedExceptionAction<Void>() {
                             public Void run() throws Exception {
@@ -73,6 +78,8 @@ public final class Launcher {
                     } else {
                         start(args);
                     }
+
+                    return null;
                 }
             });
         } catch (final Exceptions.Wrapper wrapper) {
@@ -81,26 +88,46 @@ public final class Launcher {
     }
 
     private static void start(final String[] args) throws Exception {
-        final Class<?> main = Launcher.class;
+        final Class<?> me = Launcher.class;
 
-        final URL root = Archives.containing(main);
-        final String mainClass = Archives.attributes(true, root, ORIGINAL_MAIN_CLASS)[0];
+        final URL root = Archives.containing(me);
+        final boolean custom = args.length > 0 && args[0].startsWith(URL_PARAM);
 
-        if (mainClass == null) {
-            throw new IllegalStateException(String.format("%s is not a defined in the %s manifest", ORIGINAL_MAIN_CLASS, root));
+        final URL url;
+        final String[] arguments;
+
+        if (custom) {
+            url = new URL(args[0].substring(URL_PARAM.length()));
+            arguments = new String[args.length - 1];
+            System.arraycopy(args, 1, arguments, 0, arguments.length);
+        } else {
+            url = root;
+            arguments = args;
         }
 
-        final List<URL> urls = new ArrayList<URL>();
+        Archives.Cache.access(new Process<Object, Exception>() {
+            public Object run() throws Exception {
+                final List<URL> urls = new ArrayList<URL>();
 
-        urls.add(root);
-        urls.addAll(Archives.Nested.dependencies(true, null));
+                urls.add(url);
+                urls.addAll(Archives.Nested.dependencies(true, url, null));
 
-        final ClassLoader parent = ClassLoaders.findClassLoader(main, true);
-        final ClassLoader loader = ClassLoaders.create(urls, parent, null);
+                final ClassLoader parent = ClassLoaders.findClassLoader(me, true);
+                final ClassLoader loader = ClassLoaders.create(urls, parent, null);
 
-        ClassLoaders.context(loader, new Function<Object, ClassLoader, Exception>() {
-            public Object run(final ClassLoader loader) throws Exception {
-                return loader.loadClass(mainClass).getMethod("main", String[].class).invoke(null, new Object[] { args });
+                final String main = Archives.attributes(true, url, ORIGINAL_MAIN_CLASS)[0];
+
+                if (main == null) {
+                    throw new IllegalStateException(String.format("%s is not a defined in the %s manifest", ORIGINAL_MAIN_CLASS, url));
+                } else if (!main.equals(me.getName()) || url != root) {
+                    ClassLoaders.context(loader, new Function<Object, ClassLoader, Exception>() {
+                        public Object run(final ClassLoader loader) throws Exception {
+                            return loader.loadClass(main).getMethod("main", String[].class).invoke(null, new Object[] { arguments });
+                        }
+                    });
+                }
+
+                return null;
             }
         });
     }

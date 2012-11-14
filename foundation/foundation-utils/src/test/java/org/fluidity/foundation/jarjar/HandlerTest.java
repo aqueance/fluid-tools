@@ -35,7 +35,7 @@ import org.fluidity.foundation.Streams;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import static org.fluidity.foundation.Command.Job;
+import static org.fluidity.foundation.Command.Process;
 
 /**
  * @author Tibor Varga
@@ -100,13 +100,13 @@ public class HandlerTest {
         assert Handler.Cache.loaded(url1, true);
         assert Handler.Cache.loaded(url1, false);
 
-        Archives.Nested.access(new Job<IOException>() {
-            public void run() throws IOException {
+        Archives.Cache.access(new Process<Void, IOException>() {
+            public Void run() throws IOException {
                 assert Handler.Cache.loaded(url1, true);
                 assert Handler.Cache.loaded(url1, false);
 
-                Archives.Nested.access(new Job<IOException>() {
-                    public void run() throws IOException {
+                Archives.Cache.access(new Process<Void, IOException>() {
+                    public Void run() throws IOException {
                         assert Handler.Cache.loaded(url1, true);
                         assert Handler.Cache.loaded(url1, false);
 
@@ -123,6 +123,8 @@ public class HandlerTest {
                         Archives.Nested.unload(url2);
                         assert !Handler.Cache.loaded(url2, true);
                         assert !Handler.Cache.loaded(url2, false);
+
+                        return null;
                     }
                 });
 
@@ -132,6 +134,8 @@ public class HandlerTest {
                 Archives.Nested.unload(url1);
                 assert !Handler.Cache.loaded(url1, true);
                 assert Handler.Cache.loaded(url1, false);
+
+                return null;
             }
         });
 
@@ -153,16 +157,21 @@ public class HandlerTest {
         final AtomicBoolean running = new AtomicBoolean();
         final AtomicReference<Exception> error = new AtomicReference<Exception>();
 
+        Handler.unload(url1);
+        Handler.unload(url2);
+
         final Thread thread = new Thread() {
             @Override
             public void run() {
                 running.set(true);
 
                 try {
-                    Archives.Nested.access(new Job<Exception>() {
-                        public void run() throws Exception {
+                    Archives.Cache.access(new Process<Void, Exception>() {
+                        public Void run() throws Exception {
                             barrier.await(100, TimeUnit.MILLISECONDS);
 
+                            assert !Handler.Cache.loaded(url1, true);
+                            Handler.Cache.contents(url1);
                             assert Handler.Cache.loaded(url1, true);
 
                             Handler.Cache.contents(url2);
@@ -174,6 +183,24 @@ public class HandlerTest {
                             assert Handler.Cache.loaded(url2, true);
                             Archives.Nested.unload(url2);
                             assert !Handler.Cache.loaded(url2, true);
+
+                            return null;
+                        }
+                    });
+
+                    barrier.await(100, TimeUnit.MILLISECONDS);
+
+                    Archives.Cache.access(new Process<Void, Exception>() {
+                        public Void run() throws Exception {
+                            assert !Handler.Cache.loaded(url1, true);
+
+                            Handler.Cache.contents(url2);
+                            assert Handler.Cache.loaded(url2, true);
+
+                            Archives.Nested.unload(url2);
+                            assert !Handler.Cache.loaded(url2, true);
+
+                            return null;
                         }
                     });
                 } catch (final Exception e) {
@@ -183,8 +210,8 @@ public class HandlerTest {
         };
 
         try {
-            Archives.Nested.access(new Job<Exception>() {
-                public void run() throws Exception {
+            Archives.Cache.access(new Process<Void, Exception>() {
+                public Void run() throws Exception {
                     Handler.Cache.contents(url1);
                     assert Handler.Cache.loaded(url1, true);
 
@@ -194,8 +221,13 @@ public class HandlerTest {
 
                     Archives.Nested.unload(url1);
                     assert !Handler.Cache.loaded(url1, true);
+
+                    return null;
                 }
             });
+
+            barrier.await(100, TimeUnit.MILLISECONDS);
+            assert running.get();
         } finally {
             thread.join(200);
         }

@@ -34,7 +34,7 @@ import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.ServiceProviders;
 
 import static org.fluidity.foundation.Command.Function;
-import static org.fluidity.foundation.Command.Job;
+import static org.fluidity.foundation.Command.Process;
 
 /**
  * A command line main class that prepares the web container bootstrap process, e.g., creating a work directory, setting up the boot classpath and, then loads
@@ -112,8 +112,8 @@ public final class WebApplicationBootstrap {
                 }
             }
 
-            Archives.Nested.access(new Job<Exception>() {
-                public void run() throws Exception {
+            Archives.Cache.access(new Process<Void, Exception>() {
+                public Void run() throws Exception {
                     final URL war = Archives.containing(WebApplicationBootstrap.class);
                     final List<URL> classpath = new ArrayList<URL>();
 
@@ -137,6 +137,8 @@ public final class WebApplicationBootstrap {
                     });
 
                     bootstrapServer(httpPort[0], extract[0], classpath, bootWar, managedApps, Lists.asArray(String.class, params));
+
+                    return null;
                 }
             });
         } else {

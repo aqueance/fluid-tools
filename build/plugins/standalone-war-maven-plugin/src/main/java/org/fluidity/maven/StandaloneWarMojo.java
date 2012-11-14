@@ -40,6 +40,7 @@ import org.fluidity.deployment.maven.ArchivesSupport;
 import org.fluidity.deployment.maven.DependenciesSupport;
 import org.fluidity.foundation.Archives;
 import org.fluidity.foundation.Streams;
+import org.fluidity.foundation.jarjar.Launcher;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.Dependency;
@@ -205,7 +206,7 @@ public final class StandaloneWarMojo extends AbstractMojo {
         final Log log = getLog();
 
         try {
-            final byte buffer[] = new byte[1024 * 1024];
+            final byte buffer[] = new byte[16384];
 
             final AtomicReference<String> mainClass = new AtomicReference<String>();
             final Map<String, Attributes> attributesMap = new HashMap<String, Attributes>();
@@ -218,7 +219,12 @@ public final class StandaloneWarMojo extends AbstractMojo {
                     if (iterator.hasNext()) {
                         final File file = iterator.next().getFile();
                         final URL url = file.toURI().toURL();
-                        mainClass.compareAndSet(null, Archives.attributes(false, url, Attributes.Name.MAIN_CLASS.toString())[0]);
+
+                        // TODO: this is a kludge
+                        final String type = Archives.attributes(false, url, Attributes.Name.MAIN_CLASS.toString())[0];
+                        if (!Launcher.class.getName().equals(type)) {
+                            mainClass.compareAndSet(null, type);
+                        }
                         return file;
                     } else {
                         return null;

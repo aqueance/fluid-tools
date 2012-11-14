@@ -265,7 +265,7 @@ final class BundleJarManifest implements JarManifest {
     private static <T> T isolate(final ClassLoader parent, final Collection<URL> urls, final Class<?> type, final Method run, final Object... arguments)
             throws Exceptions.Wrapper, ClassNotFoundException, InstantiationException {
         try {
-            return Archives.Nested.access(new Command.Process<T, RuntimeException>() {
+            return Archives.Cache.access(new Command.Process<T, RuntimeException>() {
                 public T run() {
                     return Exceptions.wrap(new Command.Process<T, Exception>() {
                         public T run() throws Exception {
@@ -277,7 +277,9 @@ final class BundleJarManifest implements JarManifest {
                                 final Object command = isolated.loadClass(type.getName()).newInstance();
 
                                 // find the method to call in the other class loader
-                                final Method method = isolated.loadClass(run.getDeclaringClass().getName()).getDeclaredMethod(run.getName(), run.getParameterTypes());
+                                final Method method = isolated
+                                        .loadClass(run.getDeclaringClass().getName())
+                                        .getDeclaredMethod(run.getName(), run.getParameterTypes());
 
                                 method.setAccessible(true);
                                 return (T) method.invoke(command, arguments);

@@ -18,16 +18,14 @@ package org.fluidity.foundation.jarjar;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FilePermission;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
 import java.net.SocketPermission;
 import java.net.URL;
 import java.net.URLDecoder;
-import java.net.URLStreamHandler;
 import java.net.URLStreamHandlerFactory;
 import java.security.AccessControlContext;
 import java.security.AccessController;
@@ -44,6 +42,7 @@ import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -60,9 +59,11 @@ import org.fluidity.foundation.Exceptions;
 import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.Proxies;
 import org.fluidity.foundation.Security;
-import org.fluidity.foundation.Streams;
 
 import sun.security.util.SecurityConstants;
+
+import static org.fluidity.foundation.Command.Operation;
+import static org.fluidity.foundation.Command.Process;
 
 /**
  * Caching URL class loader that does not keep files or connections open.
@@ -78,6 +79,8 @@ public class URLClassLoader extends SecureClassLoader {
 
     private final Deferred.Reference<String[]> keys;
     private final Map<String, Archive> entries;
+
+    private Object cache;
 
     /**
      * Creates a new class loader based on the given URLs. Calls {@link #URLClassLoader(Collection, ClassLoader, URLStreamHandlerFactory)} with the {@linkplain
@@ -115,47 +118,43 @@ public class URLClassLoader extends SecureClassLoader {
             }
         }
 
-        this.entries = new LinkedHashMap<String, Archive>(urls.size(), 1.0f);
+        final Collection<URL> locations = new ArrayList<URL>(urls);
+
+        this.cache = Archives.Cache.capture(false);
+        this.entries = new LinkedHashMap<String, Archive>(locations.size(), 1.0f);
 
         this.keys = Deferred.reference(new Deferred.Factory<String[]>() {
             public String[] create() {
                 final List<String> collected = new ArrayList<String>();
 
                 // collects all processed URLs, may be recursive when an archive refers to others as its class path
-                final Command.Operation<URL, IOException> collect = new Command.Operation<URL, IOException>() {
+                final Operation<URL, IOException> collect = new Operation<URL, IOException>() {
                     public void run(final URL dependency) throws IOException {
                         final String location = dependency.toExternalForm();
 
                         if (!entries.containsKey(location)) {
-                            collected.add(dependency.toExternalForm());
+                            final Handler.Cache.Entry archive = Handler.Cache.archive(dependency);
 
-                            final String protocol = dependency.getProtocol();
-                            final File file = Archives.localFile(dependency);
-
-                            if (Archives.FILE.equals(protocol) && file.exists() && file.isDirectory()) {
-                                entries.put(location, new LocalDirectoryArchive(file));
-                            } else {
-                                final Handler.Cache.Archive archive = Handler.Cache.archive(dependency);
-
-                                if (archive != null) {
-                                    entries.put(location, new PackagedArchive(dependency, archive, factory, this));
-                                } else {
-                                    throw new IllegalArgumentException(String.format("Not an archive: %s", dependency));
-                                }
+                            if (archive == null) {
+                                throw new IllegalArgumentException(String.format("Not an archive: %s", dependency));
                             }
+
+                            collected.add(dependency.toExternalForm());
+                            entries.put(location,
+                                        archive.dynamic()
+                                        ? new LazyLoadedArchive(dependency, archive, factory, this)
+                                        : new PackagedArchive(dependency, archive, factory, this));
                         }
                     }
                 };
 
-                Exceptions.wrap(new Command.Job<IOException>() {
-                    public void run() throws IOException {
-                        Archives.Nested.access(new Command.Job<IOException>() {
-                            public void run() throws IOException {
-                                for (final URL url : urls) {
-                                    collect.run(url);
-                                }
-                            }
-                        });
+                cache = Exceptions.wrap(new Process<Object, IOException>() {
+                    public Object run() throws IOException {
+                        for (final URL url : locations) {
+                            collect.run(url);
+                        }
+
+                        return Archives.Cache.capture(true);
                     }
                 });
 
@@ -165,7 +164,16 @@ public class URLClassLoader extends SecureClassLoader {
     }
 
     private Archive.Entry entry(final String url, final String resource) throws IOException {
-        return entries.get(url).entry(resource);
+        final Archive.Entry entry = entries.get(url).entry(resource);
+        return entry == Archive.Entry.NOT_FOUND ? null : entry;
+    }
+
+    private <R, T extends Exception, E extends Exception> R access(final Object label, final Class<T> wrapper, final Process<R, E> action) throws T {
+        return Exceptions.wrap(label, wrapper, new Process<R, E>() {
+            public R run() throws E {
+                return Archives.Cache.access(cache, action);
+            }
+        });
     }
 
     @Override
@@ -186,7 +194,7 @@ public class URLClassLoader extends SecureClassLoader {
             }
         };
 
-        return Exceptions.wrap(name, ClassNotFoundException.class, new Command.Process<Class<?>, Exception>() {
+        return access(name, ClassNotFoundException.class, new Process<Class<?>, Exception>() {
             public Class<?> run() throws Exception {
                 return context == null ? action.run() : AccessController.doPrivileged(action, context);
             }
@@ -213,7 +221,11 @@ public class URLClassLoader extends SecureClassLoader {
             }
         };
 
-        return context == null ? action.run() : AccessController.doPrivileged(action, context);
+        return access(null, Exceptions.Wrapper.class, new Process<URL, RuntimeException>() {
+            public URL run() throws RuntimeException {
+                return context == null ? action.run() : AccessController.doPrivileged(action, context);
+            }
+        });
     }
 
     @Override
@@ -238,7 +250,11 @@ public class URLClassLoader extends SecureClassLoader {
             }
         };
 
-        return context == null ? action.run() : AccessController.doPrivileged(action, context);
+        return access(null, Exceptions.Wrapper.class, new Process<Enumeration<URL>, RuntimeException>() {
+            public Enumeration<URL> run() throws RuntimeException {
+                return context == null ? action.run() : AccessController.doPrivileged(action, context);
+            }
+        });
     }
 
     @Override
@@ -338,13 +354,25 @@ public class URLClassLoader extends SecureClassLoader {
             }
         }
 
-        final URL root = Archives.containing(url);
-        return defineClass(name, bytes, offset, length, new CodeSource(root == null ? url : root, signers));
+        return defineClass(name, bytes, offset, length, new CodeSource(resource.root(), signers));
     }
 
     private String attribute(final Attributes primary, final Attributes fallback, final Attributes.Name name) {
         final String value = primary == null ? null : primary.getValue(name);
         return value == null && fallback != null ? fallback.getValue(name) : value;
+    }
+
+    private static URL[] classpath(final URL url, final Manifest manifest, final URLStreamHandlerFactory factory) throws IOException {
+        final Collection<URL> list = new LinkedHashSet<URL>();
+
+        final String classpath = manifest == null ? null : manifest.getMainAttributes().getValue(Attributes.Name.CLASS_PATH);
+        if (classpath != null) {
+            for (final String relative : classpath.split("[ \t\n\r\f]")) {
+                list.add(Archives.relativeURL(url, relative, factory));
+            }
+        }
+
+        return Lists.asArray(URL.class, list);
     }
 
     /**
@@ -354,15 +382,6 @@ public class URLClassLoader extends SecureClassLoader {
      */
     private interface Archive {
 
-        /**
-         * Loads an entry from the archive.
-         *
-         * @param resource the resource to load the entry for.
-         *
-         * @return an entry or <code>null</code>.
-         *
-         * @throws IOException when loading the entry fails.
-         */
         Entry entry(String resource) throws IOException;
 
         /**
@@ -408,66 +427,99 @@ public class URLClassLoader extends SecureClassLoader {
              * @return a new input stream for this entry.
              */
             InputStream stream() throws IOException;
+
+            /**
+             * Returns the root URL for this entry, suitable for creating a {@link CodeSource} object.
+             *
+             * @return the root URL for this entry.
+             */
+            URL root();
         }
     }
 
     /**
-     * Represents a directory archive in the file system.
+     * Represents a directory or an archive that cannot be browsed.
      *
      * @author Tibor Varga
      */
-    private class LocalDirectoryArchive implements Archive {
+    private class LazyLoadedArchive implements Archive {
 
-        private final Map<String, Archive.Entry> map = new ConcurrentHashMap<String, Archive.Entry>(INITIAL_CAPACITY, 0.75f, CONCURRENCY);
+        private final Map<String, Entry> map = new ConcurrentHashMap<String, Entry>(INITIAL_CAPACITY, 0.75f, CONCURRENCY);
+        private final Manifest manifest;
 
-        private String location;
+        private final URL root;
+        private final Handler.Cache.Entry archive;
 
-        LocalDirectoryArchive(final File file) {
-            this.location = file.getAbsolutePath();
+        public LazyLoadedArchive(final URL url,
+                                 final Handler.Cache.Entry archive,
+                                 final URLStreamHandlerFactory factory,
+                                 final Operation<URL, IOException> collect) throws IOException {
+            this.root = url;
+            this.archive = archive;
+
+            final Entry entry = entry(JarFile.MANIFEST_NAME);
+            this.manifest = entry != null ? new Manifest(entry.stream()) : null;
+
+            for (final URL relative : classpath(url, manifest, factory)) {
+                collect.run(relative);
+            }
         }
 
+        /**
+         * Loads an entry from the archive.
+         *
+         * @param resource the resource to load the entry for.
+         *
+         * @return an entry or <code>null</code>.
+         *
+         * @throws IOException when loading the entry fails.
+         */
         public Entry entry(final String resource) throws IOException {
             final Entry found = map.get(resource);
 
-            if (found == null && found != Entry.NOT_FOUND) {
-                final File file = new File(relative(location, resource));
+            if (found == null && found != Archive.Entry.NOT_FOUND) {
+                final URL url = Handler.relativeURL(root, resource);
 
-                if (file.exists()) {
-                    final Entry created = new Entry() {
-                        private final URL entry = file.toURI().toURL();
+                try {
+                    final Handler.Cache.Entry entry = archive.entry(resource);
 
-                        public Class<?> define(final String resource) throws IOException {
-                            final byte[] bytes = Streams.load(new FileInputStream(file), new byte[16384], true);
-                            return defineClass(resource, bytes, 0, bytes.length, null, this);
-                        }
+                    if (entry != null) {
+                        final byte[] data = entry.data();
 
-                        public URL url() {
-                            return entry;
-                        }
+                        final Entry created = new Entry() {
+                            public Class<?> define(final String resource) throws IOException {
+                                return defineClass(resource, data, 0, data.length, null, this);
+                            }
 
-                        public Manifest manifest() {
-                            return null;
-                        }
+                            public URL url() {
+                                return url;
+                            }
 
-                        public InputStream stream() throws IOException {
-                            return new FileInputStream(file);
-                        }
-                    };
+                            public Manifest manifest() {
+                                return null;
+                            }
 
-                    map.put(resource, created);
+                            public InputStream stream() throws IOException {
+                                return new ByteArrayInputStream(data);
+                            }
 
-                    return created;
-                } else {
-                    map.put(resource, Entry.NOT_FOUND);
+                            public URL root() {
+                                return root;
+                            }
+                        };
+
+                        map.put(resource, created);
+
+                        return created;
+                    }
+                } catch (final FileNotFoundException e) {
+                    // ignore
                 }
+
+                map.put(resource, Archive.Entry.NOT_FOUND);
             }
 
             return found;
-        }
-
-        @SuppressWarnings("StringBufferReplaceableByString")
-        private String relative(final String location, final String resource) {
-            return new StringBuilder(location.length() + resource.length() + 1).append(location).append(File.separatorChar).append(resource).toString();
         }
     }
 
@@ -478,15 +530,15 @@ public class URLClassLoader extends SecureClassLoader {
      */
     private class PackagedArchive implements Archive {
 
-        private final Map<String, Archive.Entry> map = new HashMap<String, Archive.Entry>(INITIAL_CAPACITY);
+        private final Map<String, Archive.Entry> map = new HashMap<String, Entry>(INITIAL_CAPACITY);
 
         PackagedArchive(final URL url,
-                        final Handler.Cache.Archive archive,
+                        final Handler.Cache.Entry archive,
                         final URLStreamHandlerFactory factory,
                         final Command.Operation<URL, IOException> collect) throws IOException {
             final Manifest manifest[] = { null };
 
-            Archives.read(archive.root(), url, new Archives.Entry() {
+            Archives.read(archive.data(), url, new Archives.Entry() {
                 public boolean matches(final URL url, final JarEntry entry) throws IOException {
                     return true;
                 }
@@ -495,7 +547,7 @@ public class URLClassLoader extends SecureClassLoader {
                     final String resource = entry.getName();
                     final CodeSigner[] signers = entry.getCodeSigners();
 
-                    final byte[] data = archive.entry(resource);
+                    final byte[] data = archive.entry(resource).data();
                     assert data != null : Handler.formatURL(url, resource);
 
                     if (JarFile.MANIFEST_NAME.equals(resource)) {
@@ -520,33 +572,18 @@ public class URLClassLoader extends SecureClassLoader {
                         public InputStream stream() throws IOException {
                             return new ByteArrayInputStream(data);
                         }
+
+                        public URL root() {
+                            return url;
+                        }
                     });
 
                     return true;
                 }
             });
 
-            final String classpath = manifest[0] == null ? null : manifest[0].getMainAttributes().getValue(Attributes.Name.CLASS_PATH);
-
-            if (classpath != null) {
-                for (final String relative : classpath.split("[ \t\n\r\f]")) {
-                    URL dependency;
-
-                    try {
-                        dependency = new URL(url, relative);
-                    } catch (final MalformedURLException e) {
-                        final int colon = relative.indexOf(':');
-                        final URLStreamHandler handler = colon == -1 || factory == null ? null : factory.createURLStreamHandler(relative.substring(colon));
-
-                        if (handler != null) {
-                            dependency = new URL(url, relative, handler);
-                        } else {
-                            throw e;
-                        }
-                    }
-
-                    collect.run(dependency);
-                }
+            for (final URL relative : classpath(url, manifest[0], factory)) {
+                collect.run(relative);
             }
         }
 
