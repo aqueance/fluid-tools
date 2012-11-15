@@ -46,8 +46,11 @@ final class CommandLineJarManifest implements JarManifest {
 
             if (original == null) {
                 final String main = attributes.getValue(Attributes.Name.MAIN_CLASS);
-                attributes.putValue(Launcher.ORIGINAL_MAIN_CLASS, main == null ? LAUNCHER : main);
-                attributes.put(Attributes.Name.MAIN_CLASS, Launcher.class.getName());
+
+                if (!Launcher.class.getName().equals(main)) {
+                    attributes.putValue(Launcher.ORIGINAL_MAIN_CLASS, main == null ? LAUNCHER : main);
+                    attributes.put(Attributes.Name.MAIN_CLASS, Launcher.class.getName());
+                }
             }
         } else if (attributes.getValue(Attributes.Name.MAIN_CLASS) == null) {
             attributes.put(Attributes.Name.MAIN_CLASS, LAUNCHER);

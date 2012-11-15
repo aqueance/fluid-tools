@@ -97,44 +97,43 @@ public final class Launcher {
     }
 
     private static void start(final String[] args) throws Exception {
-        final Class<?> me = Launcher.class;
-
-        final URL root = Archives.containing(me);
-        final boolean custom = args.length > 0 && args[0].startsWith(URL_PARAM);
-
-        final URL url;
-        final String[] arguments;
-
-        if (custom) {
-            url = new URL(args[0].substring(URL_PARAM.length()));
-            arguments = new String[args.length - 1];
-            System.arraycopy(args, 1, arguments, 0, arguments.length);
-        } else {
-            url = root;
-            arguments = args;
-        }
-
         Archives.Cache.access(new Process<Object, Exception>() {
             public Object run() throws Exception {
-                final List<URL> urls = new ArrayList<URL>();
+                final Class<?> me = Launcher.class;
+                final URL root = Archives.containing(me);
 
-                urls.add(url);
-                urls.addAll(Archives.Nested.dependencies(true, url, null));
+                final URL url;
+                final String[] arguments;
 
-                final ClassLoader parent = ClassLoaders.findClassLoader(me, true);
-                final ClassLoader loader = ClassLoaders.create(urls, parent, null);
+                if (Archives.attributes(true, root, ORIGINAL_MAIN_CLASS)[0] == null && args.length > 0 && args[0].startsWith(URL_PARAM)) {
+                    url = new URL(args[0].substring(URL_PARAM.length()));
+                    arguments = new String[args.length - 1];
+                    System.arraycopy(args, 1, arguments, 0, arguments.length);
+                } else {
+                    url = root;
+                    arguments = args;
+                }
 
                 final String[] attributes = Archives.attributes(true, url, MAIN_CLASS, ORIGINAL_MAIN_CLASS);
                 final String main = attributes[attributes[1] == null ? 0 : 1];
 
                 if (main == null || main.equals(me.getName())) {
-                    throw new IllegalStateException(String.format("No main class defined in the %s manifest (attribute %s)",
+                    throw new IllegalStateException(String.format("%s main class defined in the %s manifest (attribute %s)",
+                                                                  main == null ? "No" : "Wrong",
                                                                   url,
                                                                   main == null ? MAIN_CLASS : ORIGINAL_MAIN_CLASS));
                 } else {
+                    final List<URL> urls = new ArrayList<URL>();
+
+                    urls.add(url);
+                    urls.addAll(Archives.Nested.dependencies(true, url, null));
+
+                    final ClassLoader parent = ClassLoaders.findClassLoader(me, true);
+                    final ClassLoader loader = ClassLoaders.create(urls, parent, null);
+
                     ClassLoaders.context(loader, new Function<Object, ClassLoader, Exception>() {
                         public Object run(final ClassLoader loader) throws Exception {
-                            return loader.loadClass(main).getMethod("main", String[].class).invoke(null, new Object[] { arguments });
+                            return loader.loadClass(main).getMethod("main", String[].class).invoke(null, (Object) arguments);
                         }
                     });
                 }
