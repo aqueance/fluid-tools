@@ -16,43 +16,75 @@
 
 package org.fluidity.foundation.jarjar;
 
-import java.security.BasicPermission;
+import java.net.URL;
 import java.security.Permission;
 
+import org.fluidity.foundation.Command;
+import org.fluidity.foundation.Deferred;
+import org.fluidity.foundation.Exceptions;
 import org.fluidity.foundation.Strings;
 
 /**
- * Wraps another permission so that the access control implementation honors the full nested URL in security policy files. The {@link URLClassLoader} replaces
- * instances with their delegates because these permission, probably due to being defined by application code, remain unresolved and thus cannot be granted to
- * a code base in security policy files.
+ * Represents a permission to access {@linkplain org.fluidity.foundation.Archives.Nested nested} archives. The {@link #getName()} of this permission is an URL
+ * to the archive to access nested archives in. This permission then delegates to the appropriate permissions for that URL, like {@link java.io.FilePermission}
+ * or {@link java.net.SocketPermission}. Wildcards supported by these are supported by adding the necessary protocol to the name of this permission, like
+ * <code>file:/path/*</code>, <code>file:/path/-</code>, <code>http://*.host.com</code>, etc.
  *
  * @author Tibor Varga
  */
-final class AccessPermission extends BasicPermission {
+public final class AccessPermission extends Permission {
 
-    private final Permission delegate;
+    private final Deferred.Reference<Permission> delegate = Deferred.reference(new Deferred.Factory<Permission>() {
+        public Permission create() {
+            final String spec = getName();
 
-    AccessPermission(final Permission delegate) {
-        super(delegate.getName(), delegate.getActions());
-        this.delegate = delegate;
+            return Exceptions.wrap(new Command.Process<Permission, Exception>() {
+                public Permission run() throws Exception {
+                    return new URL(spec).openConnection().getPermission();
+                }
+            });
+        }
+    });
+
+    public AccessPermission(final String name) {
+        super(name);
     }
 
-    /**
-     * Returns the wrapped permission.
-     *
-     * @return the wrapped permission.
-     */
-    Permission delegate() {
-        return delegate;
+    private Permission delegate() {
+        return delegate.get();
     }
 
     @Override
     public boolean implies(final Permission permission) {
-        return permission.getClass() == getClass() && delegate.implies(((AccessPermission) permission).delegate);
+        return permission instanceof AccessPermission && delegate().implies(((AccessPermission) permission).delegate());
+    }
+
+    @Override
+    public String getActions() {
+        return "";
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        final AccessPermission that = (AccessPermission) o;
+        return getName().equals(that.getName());
+    }
+
+    @Override
+    public int hashCode() {
+        return getName().hashCode();
     }
 
     @Override
     public String toString() {
-        return String.format("%s: %s", Strings.formatClass(false, true, getClass()), delegate.toString());
+        return String.format("%s %s", Strings.formatClass(false, true, getClass()), getName());
     }
 }

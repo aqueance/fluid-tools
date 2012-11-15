@@ -18,6 +18,7 @@ package org.fluidity.foundation;
 
 import java.io.IOException;
 import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -36,6 +37,7 @@ public class NestedArchivesTest {
     private final URL root = getClass().getClassLoader().getResource(container);
 
     private ClassLoader loader;
+    private boolean standard;
 
     private ClassLoader createLoader(final URL root, final String... paths) throws IOException {
         final List<URL> urls = new ArrayList<URL>();
@@ -54,6 +56,7 @@ public class NestedArchivesTest {
                               "META-INF/dependencies/dependency-1.jar",
                               "META-INF/dependencies/dependency-2.jar",
                               "META-INF/dependencies/dependency-3.jar");
+        standard = loader instanceof URLClassLoader;
     }
 
     @Test
@@ -71,14 +74,15 @@ public class NestedArchivesTest {
     @Test
     public void testFindingOneResource() throws Exception {
         final URL url1 = loader.getResource("resource-1.txt");
+
         assert url1 != null;
-        assert url1.getProtocol().equals(Archives.Nested.PROTOCOL) : url1;
+        assert url1.getProtocol().equals(standard ? Archives.PROTOCOL : Archives.Nested.PROTOCOL) : url1;
         assert new URL(url1.getFile()).getProtocol().equals(Archives.FILE) : url1;
 
         final URL url2 = loader.getResource("resource-2.txt");
         assert url2 != null;
-        assert url2.getProtocol().equals(Archives.Nested.PROTOCOL) : url2;
-        assert new URL(url2.getFile()).getProtocol().equals(Archives.FILE) : url2;
+        assert url2.getProtocol().equals(standard ? Archives.PROTOCOL : Archives.Nested.PROTOCOL) : url2;
+        assert new URL(url2.getFile()).getProtocol().equals(standard ? Archives.Nested.PROTOCOL : Archives.FILE) : url2;
     }
 
     @Test
@@ -91,8 +95,14 @@ public class NestedArchivesTest {
             protocols.add(new URL(url.getFile()).getProtocol());
         }
 
-        assert protocols.size() == 1 : protocols;
-        assert protocols.contains(Archives.FILE);
+        if (standard) {
+            assert protocols.size() == 2 : protocols;
+            assert protocols.contains(Archives.FILE) : protocols;
+            assert protocols.contains(Archives.Nested.PROTOCOL) : protocols;
+        } else {
+            assert protocols.size() == 1 : protocols;
+            assert protocols.contains(Archives.FILE) : protocols;
+        }
     }
 
     @Test

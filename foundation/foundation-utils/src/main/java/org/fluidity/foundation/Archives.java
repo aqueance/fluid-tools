@@ -364,7 +364,9 @@ public final class Archives extends Utility {
      * @return the local file underlying the URL; may be <code>null</code>.
      */
     public static File localFile(final URL url) {
-        final String path = url.getPath();
+        assert url != null;
+        assert FILE.equals(url.getProtocol()) : url;
+        final String path = url.getPath().replace('/', File.separatorChar);
 
         try {
             final File file = new File(URLDecoder.decode(path, "UTF-8"));

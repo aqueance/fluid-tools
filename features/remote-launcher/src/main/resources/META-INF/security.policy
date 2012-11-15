@@ -1,4 +1,4 @@
-/* grant set for the remote application
+/* grants for the remote application
 grant codebase "\${remote.application}" {
   ...
 };

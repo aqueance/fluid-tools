@@ -60,8 +60,6 @@ import org.fluidity.foundation.Lists;
 import org.fluidity.foundation.Proxies;
 import org.fluidity.foundation.Security;
 
-import sun.security.util.SecurityConstants;
-
 import static org.fluidity.foundation.Command.Operation;
 import static org.fluidity.foundation.Command.Process;
 
@@ -74,6 +72,9 @@ public class URLClassLoader extends SecureClassLoader {
 
     private static final int INITIAL_CAPACITY = 128;
     private static final int CONCURRENCY = Runtime.getRuntime().availableProcessors() << 1;
+
+    private static final String FILE_ACCESS = "read";
+    private static final String SOCKET_ACCESS = "connect,accept";
 
     private final AccessControlContext context = Security.CONTROLLED ? AccessController.getContext() : null;
 
@@ -271,32 +272,30 @@ public class URLClassLoader extends SecureClassLoader {
             permission = null;
         }
 
-        if (permission instanceof AccessPermission) {
-            permission = ((AccessPermission) permission).delegate();
-        }
-
         if (permission instanceof FilePermission) {
             final String path = permission.getName();
 
             if (path.endsWith(File.separator)) {
-                permission = new FilePermission(path.concat("-"), SecurityConstants.FILE_READ_ACTION);
+                permission = new FilePermission(path.concat("-"), FILE_ACCESS);
             }
-        } else if (permission == null && url.getProtocol().equals(Archives.FILE)) {
-            try {
-                final String path = URLDecoder.decode(url.getPath().replace('/', File.separatorChar), "UTF-8");
-                permission = new FilePermission(path.endsWith(File.separator) ? path.concat("-") : path, SecurityConstants.FILE_READ_ACTION);
-            } catch (final UnsupportedEncodingException e) {
-                assert false : e;
-            }
-        } else {
-            try {
-                final String host = Archives.Nested.rootURL(url).getHost();
-
-                if (host != null && !host.isEmpty()) {
-                    permission = new SocketPermission(host, SecurityConstants.SOCKET_CONNECT_ACCEPT_ACTION);
+        }  else if (permission == null) {
+            if (Archives.FILE.equals(url.getProtocol())) {
+                try {
+                    final String path = URLDecoder.decode(url.getPath().replace('/', File.separatorChar), "UTF-8");
+                    permission = new FilePermission(path.endsWith(File.separator) ? path.concat("-") : path, FILE_ACCESS);
+                } catch (final UnsupportedEncodingException e) {
+                    assert false : e;
                 }
-            } catch (final IOException e) {
-                // ignore
+            } else {
+                try {
+                    final String host = Archives.Nested.rootURL(url).getHost();
+
+                    if (host != null && !host.isEmpty()) {
+                        permission = new SocketPermission(host, SOCKET_ACCESS);
+                    }
+                } catch (final IOException e) {
+                    // ignore
+                }
             }
         }
 

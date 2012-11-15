@@ -380,7 +380,7 @@ public final class Handler extends URLStreamHandler {
     }
 
     static boolean directory(final String name) {
-        return name.isEmpty() || name.endsWith("/");
+        return name.isEmpty() || name.endsWith("/") || name.endsWith("\\");
     }
 
     /**
@@ -401,15 +401,18 @@ public final class Handler extends URLStreamHandler {
     private static class Connection extends URLConnection {
 
         private final URLConnection root;
+        private final String archive;
 
         Connection(final URL url) throws IOException {
             super(url);
 
             // the host part of our root URL itself is an URL
-            final URL enclosed = new URL(enclosedURL(getURL()));
+            archive = enclosedURL(getURL());
+
+            final URL enclosed = new URL(archive);
             assert !PROTOCOL.equals(enclosed.getProtocol()) : getURL();
 
-            this.root = enclosed.openConnection();
+            root = enclosed.openConnection();
         }
 
         @Override
@@ -419,7 +422,7 @@ public final class Handler extends URLStreamHandler {
 
         @Override
         public Permission getPermission() throws IOException {
-            return new AccessPermission(root.getPermission());
+            return new AccessPermission(archive);
         }
 
         @Override
